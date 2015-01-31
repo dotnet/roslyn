@@ -10,37 +10,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal sealed class LocalSuppressMessageCodeAction : CodeAction
         {
-            private readonly AbstractSuppressionCodeFixProvider fixer;
-            private readonly string title;
-            private readonly ISymbol targetSymbol;
-            private readonly SyntaxNode targetNode;
-            private readonly Document document;
-            private readonly Diagnostic diagnostic;
+            private readonly AbstractSuppressionCodeFixProvider _fixer;
+            private readonly string _title;
+            private readonly ISymbol _targetSymbol;
+            private readonly SyntaxNode _targetNode;
+            private readonly Document _document;
+            private readonly Diagnostic _diagnostic;
 
             public LocalSuppressMessageCodeAction(AbstractSuppressionCodeFixProvider fixer, ISymbol targetSymbol, SyntaxNode targetNode, Document document, Diagnostic diagnostic)
             {
-                this.fixer = fixer;
-                this.targetSymbol = targetSymbol;
-                this.targetNode = targetNode;
-                this.document = document;
-                this.diagnostic = diagnostic;
+                _fixer = fixer;
+                _targetSymbol = targetSymbol;
+                _targetNode = targetNode;
+                _document = document;
+                _diagnostic = diagnostic;
 
-                this.title = FeaturesResources.SuppressWithLocalSuppressMessage;
+                _title = FeaturesResources.SuppressWithLocalSuppressMessage;
             }
 
             protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var newTargetNode = fixer.AddLocalSuppressMessageAttribute(targetNode, targetSymbol, diagnostic);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newRoot = root.ReplaceNode(targetNode, newTargetNode);
-                return document.WithSyntaxRoot(newRoot);
+                var newTargetNode = _fixer.AddLocalSuppressMessageAttribute(_targetNode, _targetSymbol, _diagnostic);
+                var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = root.ReplaceNode(_targetNode, newTargetNode);
+                return _document.WithSyntaxRoot(newRoot);
             }
 
             public override string Title
             {
                 get
                 {
-                    return this.title;
+                    return _title;
                 }
             }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 get
                 {
-                    return this.targetNode;
+                    return _targetNode;
                 }
             }
         }

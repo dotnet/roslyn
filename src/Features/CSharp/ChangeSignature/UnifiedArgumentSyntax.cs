@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 {
     internal struct UnifiedArgumentSyntax : IUnifiedArgumentSyntax
     {
-        private readonly SyntaxNode argument;
+        private readonly SyntaxNode _argument;
 
         private UnifiedArgumentSyntax(SyntaxNode argument)
         {
             Debug.Assert(argument.IsKind(SyntaxKind.Argument) || argument.IsKind(SyntaxKind.AttributeArgument));
-            this.argument = argument;
+            _argument = argument;
         }
 
         public static IUnifiedArgumentSyntax Create(ArgumentSyntax argument)
@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             get
             {
-                return this.argument.IsKind(SyntaxKind.Argument)
-                    ? ((ArgumentSyntax)this.argument).NameColon
-                    : ((AttributeArgumentSyntax)this.argument).NameColon;
+                return _argument.IsKind(SyntaxKind.Argument)
+                    ? ((ArgumentSyntax)_argument).NameColon
+                    : ((AttributeArgumentSyntax)_argument).NameColon;
             }
         }
 
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             Debug.Assert(nameColonSyntax is NameColonSyntax);
 
-            return this.argument.IsKind(SyntaxKind.Argument)
-                ? Create(((ArgumentSyntax)this.argument).WithNameColon((NameColonSyntax)nameColonSyntax))
-                : Create(((AttributeArgumentSyntax)this.argument).WithNameColon((NameColonSyntax)nameColonSyntax));
+            return _argument.IsKind(SyntaxKind.Argument)
+                ? Create(((ArgumentSyntax)_argument).WithNameColon((NameColonSyntax)nameColonSyntax))
+                : Create(((AttributeArgumentSyntax)_argument).WithNameColon((NameColonSyntax)nameColonSyntax));
         }
 
         public string GetName()
@@ -52,23 +52,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         public IUnifiedArgumentSyntax WithName(string name)
         {
-            return this.argument.IsKind(SyntaxKind.Argument)
-                    ? Create(((ArgumentSyntax)this.argument).WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))))
-                    : Create(((AttributeArgumentSyntax)this.argument).WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))));
+            return _argument.IsKind(SyntaxKind.Argument)
+                    ? Create(((ArgumentSyntax)_argument).WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))))
+                    : Create(((AttributeArgumentSyntax)_argument).WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(name))));
         }
 
         public IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation)
         {
-            return new UnifiedArgumentSyntax(argument.WithAdditionalAnnotations(annotation));
+            return new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
         }
 
         public SyntaxNode Expression
         {
             get
             {
-                return this.argument.IsKind(SyntaxKind.Argument)
-                    ? ((ArgumentSyntax)this.argument).Expression
-                    : ((AttributeArgumentSyntax)this.argument).Expression;
+                return _argument.IsKind(SyntaxKind.Argument)
+                    ? ((ArgumentSyntax)_argument).Expression
+                    : ((AttributeArgumentSyntax)_argument).Expression;
             }
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             get
             {
-                return this.argument == null;
+                return _argument == null;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         public static explicit operator SyntaxNode(UnifiedArgumentSyntax unified)
         {
-            return unified.argument;
+            return unified._argument;
         }
     }
 }

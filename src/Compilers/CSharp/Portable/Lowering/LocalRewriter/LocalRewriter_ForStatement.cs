@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.GenerateDebugInfo)
             {
                 if (!conditionSpanOpt.IsEmpty)
-                {   
+                {
                     branchBack = new BoundSequencePointWithSpan(syntax, branchBack, conditionSpanOpt);
                 }
                 else

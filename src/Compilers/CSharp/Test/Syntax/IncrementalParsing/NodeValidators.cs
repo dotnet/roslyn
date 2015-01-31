@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 //test
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     internal class NodeValidators

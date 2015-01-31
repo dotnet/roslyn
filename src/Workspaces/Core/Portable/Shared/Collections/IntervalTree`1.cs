@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         protected Node root;
 
         private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals);
-        private static readonly TestInterval IntersectsWithTest = IntersectsWith;
-        private static readonly TestInterval ContainsTest = Contains;
-        private static readonly TestInterval OverlapsWithTest = OverlapsWith;
+        private static readonly TestInterval s_intersectsWithTest = IntersectsWith;
+        private static readonly TestInterval s_containsTest = Contains;
+        private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
 
         protected IntervalTree(Node root)
         {
@@ -109,22 +109,22 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public IEnumerable<T> GetOverlappingIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
         {
-            return this.GetPreOrderIntervals(start, length, OverlapsWithTest, introspector, skipZeroLengthIntervals);
+            return this.GetPreOrderIntervals(start, length, s_overlapsWithTest, introspector, skipZeroLengthIntervals);
         }
 
         public IEnumerable<T> GetIntersectingIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
         {
-            return this.GetPreOrderIntervals(start, length, IntersectsWithTest, introspector, skipZeroLengthIntervals);
+            return this.GetPreOrderIntervals(start, length, s_intersectsWithTest, introspector, skipZeroLengthIntervals);
         }
 
         public IList<T> GetIntersectingInOrderIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
         {
-            return this.GetInOrderIntervals(start, length, IntersectsWithTest, introspector, skipZeroLengthIntervals);
+            return this.GetInOrderIntervals(start, length, s_intersectsWithTest, introspector, skipZeroLengthIntervals);
         }
 
         public IEnumerable<T> GetContainingIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
         {
-            return this.GetPreOrderIntervals(start, length, ContainsTest, introspector, skipZeroLengthIntervals);
+            return this.GetPreOrderIntervals(start, length, s_containsTest, introspector, skipZeroLengthIntervals);
         }
 
         public bool IntersectsWith(int position, IIntervalIntrospector<T> introspector)

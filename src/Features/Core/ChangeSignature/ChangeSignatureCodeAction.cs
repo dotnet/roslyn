@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal class ChangeSignatureCodeAction : CodeActionWithOptions
     {
-        private AbstractChangeSignatureService changeSignatureService;
-        private ChangeSignatureAnalyzedContext context;
+        private AbstractChangeSignatureService _changeSignatureService;
+        private ChangeSignatureAnalyzedContext _context;
 
         public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalyzedContext context)
         {
-            this.changeSignatureService = changeSignatureService;
-            this.context = context;
+            _changeSignatureService = changeSignatureService;
+            _context = context;
         }
 
         public override string Title
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            return changeSignatureService.GetChangeSignatureOptions(context, cancellationToken);
+            return _changeSignatureService.GetChangeSignatureOptions(_context, cancellationToken);
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var changeSignatureOptions = options as ChangeSignatureOptionsResult;
             if (changeSignatureOptions != null && !changeSignatureOptions.IsCancelled)
             {
-                var changeSignatureResult = changeSignatureService.ChangeSignatureWithContext(context, changeSignatureOptions, cancellationToken);
+                var changeSignatureResult = _changeSignatureService.ChangeSignatureWithContext(_context, changeSignatureOptions, cancellationToken);
 
                 if (changeSignatureResult.Succeeded)
                 {

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    static class CSharpCompilationOptionsExtensions
+    internal static class CSharpCompilationOptionsExtensions
     {
         public static void VerifyErrors(this CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             MetadataImportOptions metadataImportOptions = 0;
             ImmutableArray<string> features = ImmutableArray<string>.Empty;
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
-                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, 
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,  
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign,
+                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
         }

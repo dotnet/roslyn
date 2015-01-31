@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 protected readonly DiagnosticIncrementalAnalyzer Owner;
 
-                private ImmutableArray<DiagnosticData>.Builder builder;
+                private ImmutableArray<DiagnosticData>.Builder _builder;
 
                 public DiagnosticsGetter(DiagnosticIncrementalAnalyzer owner)
                 {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 protected DiagnosticAnalyzersAndStates AnalyzersAndState
                 {
-                    get { return this.Owner.analyzersAndState; }
+                    get { return this.Owner._analyzersAndState; }
                 }
 
                 protected abstract Task AppendDiagnosticsFromKeyAsync(ProjectId projectId, object value, StateType stateType, string language, CancellationToken cancellationToken);
@@ -175,13 +175,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 protected void AppendDiagnostics(IEnumerable<DiagnosticData> items)
                 {
-                    this.builder = this.builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
-                    this.builder.AddRange(items);
+                    _builder = _builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
+                    _builder.AddRange(items);
                 }
 
                 protected ImmutableArray<DiagnosticData> GetDiagnosticData()
                 {
-                    return this.builder != null ? this.builder.ToImmutable() : ImmutableArray<DiagnosticData>.Empty;
+                    return _builder != null ? _builder.ToImmutable() : ImmutableArray<DiagnosticData>.Empty;
                 }
 
                 protected static ProjectId GetProjectId(object key)
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 private DiagnosticLogAggregator DiagnosticLogAggregator
                 {
-                    get { return this.Owner.diagnosticLogAggregator; }
+                    get { return this.Owner._diagnosticLogAggregator; }
                 }
             }
 
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 protected AnalyzerExecutor AnalyzerExecutor
                 {
-                    get { return this.Owner.executor; }
+                    get { return this.Owner._executor; }
                 }
             }
         }

@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly string ImplicitTypeName = "<invalid-global-code>";
 
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
-        private static readonly InterfaceInfo NoInterfaces = new InterfaceInfo();
+        private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
-        private ImmutableHashSet<Symbol> lazyAbstractMembers = null;
-        private InterfaceInfo lazyInterfaceInfo = null;
+        private ImmutableHashSet<Symbol> _lazyAbstractMembers = null;
+        private InterfaceInfo _lazyInterfaceInfo = null;
 
         private class InterfaceInfo
         {
@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private InterfaceInfo GetInterfaceInfo()
         {
-            var info = this.lazyInterfaceInfo;
+            var info = _lazyInterfaceInfo;
             if (info != null)
             {
-                Debug.Assert(info != NoInterfaces || info.IsDefaultValue(), "default value was modified");
+                Debug.Assert(info != s_noInterfaces || info.IsDefaultValue(), "default value was modified");
                 return info;
             }
 
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // NOTE: we are assigning lazyInterfaceInfo via interlocked not for correctness, 
                     // we just do not want to override an existing info that could be partially filled.
-                    return Interlocked.CompareExchange(ref this.lazyInterfaceInfo, info, null) ?? info;
+                    return Interlocked.CompareExchange(ref _lazyInterfaceInfo, info, null) ?? info;
                 }
             }
 
             // if we have got here it means neither we nor our bases implement anything
-            this.lazyInterfaceInfo = info = NoInterfaces;
+            _lazyInterfaceInfo = info = s_noInterfaces;
             return info;
         }
 
@@ -306,12 +306,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool ignoreDynamic, ignoreCustomModifiers;
+            private readonly bool _ignoreDynamic,_ignoreCustomModifiers;
 
             public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiers)
             {
-                this.ignoreDynamic = ignoreDynamic;
-                this.ignoreCustomModifiers = ignoreCustomModifiers;
+                _ignoreDynamic = ignoreDynamic;
+                _ignoreCustomModifiers = ignoreCustomModifiers;
             }
 
             public override int GetHashCode(TypeSymbol obj)
@@ -323,14 +323,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return
                     (object)x == null ? (object)y == null :
-                    x.Equals(y, ignoreCustomModifiers: ignoreCustomModifiers, ignoreDynamic: ignoreDynamic);
+                    x.Equals(y, ignoreCustomModifiers: _ignoreCustomModifiers, ignoreDynamic: _ignoreDynamic);
             }
         }
 
         protected virtual ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
         {
             var info = this.GetInterfaceInfo();
-            if (info == NoInterfaces)
+            if (info == s_noInterfaces)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var info = this.GetInterfaceInfo();
-                if (info == NoInterfaces)
+                if (info == s_noInterfaces)
                 {
                     return ImmutableHashSet.Create<NamedTypeSymbol>();
                 }
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                     var info = this.GetInterfaceInfo();
-                    if (info == NoInterfaces)
+                    if (info == s_noInterfaces)
                     {
                         return SymbolAndDiagnostics.Empty;
                     }
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Determine  a better location for diagnostic squiggles.  Squiggle the interace rather than the class.
             Location interfacelocation = null;
-            if ((object)implementingType !=null)
+            if ((object)implementingType != null)
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Symbol GetExplicitImplementationForInterfaceMember(Symbol interfaceMember)
         {
             var info = this.GetInterfaceInfo();
-            if (info == NoInterfaces)
+            if (info == s_noInterfaces)
             {
                 return null;
             }
@@ -1253,11 +1253,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (lazyAbstractMembers == null)
+                if (_lazyAbstractMembers == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyAbstractMembers, ComputeAbstractMembers(), null);
+                    Interlocked.CompareExchange(ref _lazyAbstractMembers, ComputeAbstractMembers(), null);
                 }
-                return lazyAbstractMembers;
+                return _lazyAbstractMembers;
             }
         }
 

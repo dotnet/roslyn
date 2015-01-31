@@ -9,25 +9,25 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class ChoiceMatcher : Matcher<T>
         {
-            private readonly Matcher<T> matcher1;
-            private readonly Matcher<T> matcher2;
+            private readonly Matcher<T> _matcher1;
+            private readonly Matcher<T> _matcher2;
 
             public ChoiceMatcher(Matcher<T> matcher1, Matcher<T> matcher2)
             {
-                this.matcher1 = matcher1;
-                this.matcher2 = matcher2;
+                _matcher1 = matcher1;
+                _matcher2 = matcher2;
             }
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
                 return
-                    matcher1.TryMatch(sequence, ref index) ||
-                    matcher2.TryMatch(sequence, ref index);
+                    _matcher1.TryMatch(sequence, ref index) ||
+                    _matcher2.TryMatch(sequence, ref index);
             }
 
             public override string ToString()
             {
-                return string.Format("({0}|{1})", matcher1, matcher2);
+                return string.Format("({0}|{1})", _matcher1, _matcher2);
             }
         }
     }

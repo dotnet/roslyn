@@ -4,25 +4,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial struct ChildSyntaxList
     {
-        private readonly GreenNode node;
-        private int count;
+        private readonly GreenNode _node;
+        private int _count;
 
         internal ChildSyntaxList(GreenNode node)
         {
-            this.node = node;
-            this.count = -1;
+            _node = node;
+            _count = -1;
         }
 
         public int Count
         {
             get
             {
-                if (this.count == -1)
+                if (_count == -1)
                 {
-                    this.count = this.CountNodes();
+                    _count = this.CountNodes();
                 }
 
-                return this.count;
+                return _count;
             }
         }
 
@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(node);
+            return new Enumerator(_node);
         }
 
         public Reversed Reverse()
         {
-            return new Reversed(this.node);
+            return new Reversed(_node);
         }
     }
 }

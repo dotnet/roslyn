@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly LambdaSimplifierCodeRefactoringProvider codeIssueProvider;
-            private readonly SemanticDocument document;
-            private readonly Func<SyntaxNode, bool> predicate;
-            private readonly CancellationToken cancellationToken;
+            private readonly LambdaSimplifierCodeRefactoringProvider _codeIssueProvider;
+            private readonly SemanticDocument _document;
+            private readonly Func<SyntaxNode, bool> _predicate;
+            private readonly CancellationToken _cancellationToken;
 
             public Rewriter(
                 LambdaSimplifierCodeRefactoringProvider codeIssueProvider,
@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 Func<SyntaxNode, bool> predicate,
                 CancellationToken cancellationToken)
             {
-                this.codeIssueProvider = codeIssueProvider;
-                this.document = document;
-                this.predicate = predicate;
-                this.cancellationToken = cancellationToken;
+                _codeIssueProvider = codeIssueProvider;
+                _document = document;
+                _predicate = predicate;
+                _cancellationToken = cancellationToken;
             }
 
             private ExpressionSyntax SimplifyInvocation(InvocationExpressionSyntax invocation)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 var memberAccess = expression as MemberAccessExpressionSyntax;
                 if (memberAccess != null)
                 {
-                    var symbolMap = SemanticMap.From(document.SemanticModel, memberAccess.Expression, cancellationToken);
+                    var symbolMap = SemanticMap.From(_document.SemanticModel, memberAccess.Expression, _cancellationToken);
                     var anySideEffects = symbolMap.AllReferencedSymbols.Any(s =>
                         s.Kind == SymbolKind.Method || s.Kind == SymbolKind.Property);
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
             {
-                if (predicate(node) && CanSimplify(document, node, cancellationToken))
+                if (_predicate(node) && CanSimplify(_document, node, _cancellationToken))
                 {
                     var invocation = TryGetInvocationExpression(node.Body);
                     if (invocation != null)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
             {
-                if (predicate(node) && CanSimplify(document, node, cancellationToken))
+                if (_predicate(node) && CanSimplify(_document, node, _cancellationToken))
                 {
                     var invocation = TryGetInvocationExpression(node.Body);
                     if (invocation != null)

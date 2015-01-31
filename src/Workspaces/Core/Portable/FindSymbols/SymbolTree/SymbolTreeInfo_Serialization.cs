@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         using (var reader = new ObjectReader(stream))
                         {
                             info = ReadFrom(reader);
-                            if (info != null && VersionStamp.CanReusePersistedVersion(version, info.version))
+                            if (info != null && VersionStamp.CanReusePersistedVersion(version, info._version))
                             {
                                 return info;
                             }
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            this.version.WriteTo(writer);
+            _version.WriteTo(writer);
 
-            writer.WriteInt32(this.nodes.Count);
-            foreach (var node in this.nodes)
+            writer.WriteInt32(_nodes.Count);
+            foreach (var node in _nodes)
             {
                 writer.WriteString(node.Name);
                 writer.WriteInt32(node.ParentIndex);

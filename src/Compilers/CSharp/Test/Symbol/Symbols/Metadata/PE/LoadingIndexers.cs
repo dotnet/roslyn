@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 } // end of class NonGeneric
 ";
 
-            CompileWithCustomILSource("", ilSource, compilation => 
+            CompileWithCustomILSource("", ilSource, compilation =>
                 CheckInstanceAndStaticIndexers(compilation, "NonGeneric", "System.Int32 NonGeneric.this[System.Int64 x] { get; set; }"),
                 emitOptions: TestEmitters.RefEmitBug);
         }
@@ -1186,19 +1186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void LoadImplicitImplementation()
         {
-
         }
 
         [Fact]
         public void LoadOverriding()
         {
-
         }
 
         [Fact]
         public void LoadHiding()
         {
-
         }
     }
 }

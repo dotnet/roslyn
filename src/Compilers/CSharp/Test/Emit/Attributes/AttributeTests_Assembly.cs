@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AssemblyAttributeTests : CSharpTestBase
     {
-        private readonly string NetModuleName = GetUniqueName() + ".netmodule";
+        private readonly string _netModuleName = GetUniqueName() + ".netmodule";
 
         [Fact]
         public void VersionAttribute()
@@ -271,7 +271,7 @@ public class en_US
 ", new MetadataReference[] { deRef, neutralRef }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "10");
 
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
 
@@ -281,7 +281,7 @@ public class en_US
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
 
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
 
@@ -300,7 +300,7 @@ public class Test
     void M(en_us x)
     {}
 }
-", new MetadataReference[] { en_usRef}, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "23");
+", new MetadataReference[] { en_usRef }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "23");
 
             compilation.VerifyEmitDiagnostics();
 
@@ -337,9 +337,9 @@ public class en_US
                 {
                     new ModuleData(
                         neutral.Assembly.Identity,
-                        OutputKind.DynamicallyLinkedLibrary, 
-                        neutral.EmitToArray(options: new EmitOptions(metadataOnly: true)), 
-                        pdb: default(ImmutableArray<byte>), 
+                        OutputKind.DynamicallyLinkedLibrary,
+                        neutral.EmitToArray(options: new EmitOptions(metadataOnly: true)),
+                        pdb: default(ImmutableArray<byte>),
                         inMemoryModule: true)
                 },
                 sourceSymbolValidator: m =>
@@ -366,7 +366,7 @@ public class neutral
 ", new MetadataReference[] { deRef }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "50");
 
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
 
@@ -376,7 +376,7 @@ public class neutral
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
 
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
         }
@@ -448,8 +448,8 @@ public class neutral
         {
             var hash_module = TestReferences.SymbolsTests.netModule.hash_module;
 
-            var hash_resources = new [] {new ResourceDescription("hash_resource", "snKey.snk", 
-                () => new MemoryStream(TestResources.SymbolsTests.General.snKey, writable: false), 
+            var hash_resources = new[] {new ResourceDescription("hash_resource", "snKey.snk",
+                () => new MemoryStream(TestResources.SymbolsTests.General.snKey, writable: false),
                 true)};
 
             CSharpCompilation compilation;
@@ -471,7 +471,7 @@ class Program
                     Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm);
 
                     var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
-                    Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 }, 
+                    Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 },
                         reader.GetBlobBytes(file1.HashValue));
 
                     var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
@@ -577,7 +577,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation, verify: false, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -606,7 +606,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation, verify: false, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -639,7 +639,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation, verify: false, emitOptions: TestEmitters.RefEmitBug,
                 manifestResources: hash_resources,
                 validator: (peAssembly, _) =>
                 {
@@ -831,7 +831,7 @@ public class C {}
 
         #region Helpers
 
-        private static string DefaultNetModuleSourceHeader =
+        private static string s_defaultNetModuleSourceHeader =
             @"using System;
                 using System.Reflection;
                 using System.Security.Permissions;
@@ -842,7 +842,7 @@ public class C {}
                 [assembly: UserDefinedAssemblyAttrAllowMultiple(""UserDefinedAssemblyAttrAllowMultiple"")]
             ";
 
-        private static string DefaultNetModuleSourceBody =
+        private static string s_defaultNetModuleSourceBody =
                 @"
                 public class NetModuleClass { }
 
@@ -875,7 +875,7 @@ public class C {}
 
         private ModuleMetadata GetNetModuleWithAssemblyAttributes(string source = null, IEnumerable<MetadataReference> references = null, string assemblyName = null)
         {
-            source = source ?? DefaultNetModuleSourceHeader + DefaultNetModuleSourceBody;
+            source = source ?? s_defaultNetModuleSourceHeader + s_defaultNetModuleSourceBody;
             var netmoduleCompilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule, references: references, assemblyName: assemblyName);
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
@@ -926,14 +926,14 @@ public class C {}
 
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(18, metadataReader.CustomAttributes.Count);
-            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count); 
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
             Handle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             var consoleappCompilation = CreateCompilationWithMscorlib(
-                consoleappSource, 
-                references: new[] { netModuleWithAssemblyAttributes.GetReference() }, 
+                consoleappSource,
+                references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
 
             var diagnostics = consoleappCompilation.GetDiagnostics();
@@ -964,19 +964,19 @@ public class C {}
 
             var exeMetadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
 
-            peModule = exeMetadata.GetAssembly().ManifestModule; 
+            peModule = exeMetadata.GetAssembly().ManifestModule;
             metadataReader = peModule.GetMetadataReader();
 
             Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
             Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(6, metadataReader.CustomAttributes.Count);
-            Assert.Equal(1, metadataReader.DeclarativeSecurityAttributes.Count); 
+            Assert.Equal(1, metadataReader.DeclarativeSecurityAttributes.Count);
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             consoleappCompilation = CreateCompilationWithMscorlib(
-                consoleappSource, 
+                consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseModule);
 
@@ -990,7 +990,7 @@ public class C {}
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(0, metadataReader.CustomAttributes.Count);
-            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count); 
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
@@ -1258,7 +1258,7 @@ class Program
             string defaultHeaderString = @"
 using System;
 ";
-            var defsRef = CreateCompilationWithMscorlib(defaultHeaderString + DefaultNetModuleSourceBody).ToMetadataReference();
+            var defsRef = CreateCompilationWithMscorlib(defaultHeaderString + s_defaultNetModuleSourceBody).ToMetadataReference();
             MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(source2, references: new[] { defsRef });
 
             var compilation = CreateCompilationWithMscorlib(source1, references: new[] { defsRef, netmodule1Ref }, options: TestOptions.ReleaseDll);
@@ -1279,7 +1279,6 @@ using System;
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
-
         }
 
         [Fact, WorkItem(546939, "DevDiv")]
@@ -1308,7 +1307,7 @@ using System;
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str1"")]	    // duplicate
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text2 = ""str1"", Text = ""str1"")]	    // unique
 ";
-            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader + netmoduleAttributes + DefaultNetModuleSourceBody);
+            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader + netmoduleAttributes + s_defaultNetModuleSourceBody);
 
             string source = @"
 class Program
@@ -1357,8 +1356,8 @@ class Program
             string defaultBodyString = @"
 using System;
 ";
-            MetadataReference netmoduleDefsRef = GetNetModuleWithAssemblyAttributesRef(defaultBodyString + DefaultNetModuleSourceBody);
-            MetadataReference netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader, references: new[] { netmoduleDefsRef });
+            MetadataReference netmoduleDefsRef = GetNetModuleWithAssemblyAttributesRef(defaultBodyString + s_defaultNetModuleSourceBody);
+            MetadataReference netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader, references: new[] { netmoduleDefsRef });
             MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(netmodule1Attributes, references: new[] { netmoduleDefsRef });
             MetadataReference netmodule2Ref = GetNetModuleWithAssemblyAttributesRef(netmodule2Attributes, references: new[] { netmoduleDefsRef });
             MetadataReference netmodule3Ref = GetNetModuleWithAssemblyAttributesRef(netmodule3Attributes, references: new[] { netmoduleDefsRef });
@@ -1387,7 +1386,7 @@ class Program
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str2"")]	    // duplicate
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str1"")]	    // duplicate
 ";
-            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader + netmoduleAttributes + DefaultNetModuleSourceBody);
+            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader + netmoduleAttributes + s_defaultNetModuleSourceBody);
 
             string source = @"
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0)]  		            // unique
@@ -1429,7 +1428,7 @@ class Program
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str2"")]	    // duplicate
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str1"")]	    // duplicate
 ";
-            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader + netmoduleAttributes + DefaultNetModuleSourceBody);
+            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader + netmoduleAttributes + s_defaultNetModuleSourceBody);
 
             string source = @"
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0)]  		            // unique
@@ -1520,7 +1519,7 @@ class Program1 { static void Main(string[] args) {    } }
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;
-           
+
             Handle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
@@ -1568,7 +1567,7 @@ using System.Runtime.CompilerServices;
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]
 ";
             var module = CreateCompilationWithMscorlib(moduleSrc, options: TestOptions.ReleaseModule, assemblyName: "M");
-            
+
             string assemblySrc = @"
 public class C { }
 ";
@@ -1578,7 +1577,7 @@ public class C { }
             CompileAndVerify(assembly, symbolValidator: moduleSymbol =>
             {
                 var attrs = moduleSymbol.ContainingAssembly.GetAttributes().Select(a => a.ToString()).ToArray();
-                AssertEx.SetEqual(new[] 
+                AssertEx.SetEqual(new[]
                     {
                         "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)",
                         "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)",
@@ -1851,8 +1850,8 @@ public class C { }
             var compMod1 = CreateCompilationWithMscorlib(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
             var compMod2 = CreateCompilationWithMscorlib(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
-            var appCompilation = CreateCompilationWithMscorlib(source, 
-                                                               references: new MetadataReference [] {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
+            var appCompilation = CreateCompilationWithMscorlib(source,
+                                                               references: new MetadataReference[] { compMod1.EmitToImageReference(), compMod2.EmitToImageReference() },
                                                                options: TestOptions.ReleaseDll);
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);

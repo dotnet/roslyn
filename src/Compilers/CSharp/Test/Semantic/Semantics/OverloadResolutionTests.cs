@@ -228,13 +228,11 @@ static class P
 }";
 
             CompileAndVerify(source3, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"BB");
-
         }
 
         [Fact]
         public void DeviationFromSpec()
         {
-
             string source1 = @"
 using System;
 class P
@@ -343,7 +341,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA)", "P.M1(P.DB
         [Fact]
         public void ExactlyMatchingNestedLambda()
         {
-
             string source1 = @"
 using System;
 class P
@@ -388,7 +385,6 @@ class P
         [Fact]
         public void ParametersImplicitlyConvertableToEachOther()
         {
-
             string source1 = @"
 using System;
 
@@ -438,7 +434,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(CA)", "P.M1(CB)")
         [Fact]
         public void BetterTaskType()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -479,7 +474,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         [Fact]
         public void BetterDelegateType()
         {
-
             string source1 = @"
 using System;
 
@@ -550,7 +544,6 @@ class C
         [Fact]
         public void TestLambdaErrorReporting()
         {
-
             TestAllErrors(
 @"
 using System;
@@ -641,10 +634,10 @@ class C
 
             TestOverloadResolutionWithDiff(source);
         }
-
-
         [Fact]
-        void TestConstraintViolationApplicabilityErrors()
+
+
+        private void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
             // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
@@ -734,9 +727,9 @@ class C
 "'string' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'",
 "'Test6<L<string>>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'");
         }
-
         [Fact]
-        void TestBug9583()
+
+        private void TestBug9583()
         {
             TestErrors(
 @"
@@ -750,7 +743,6 @@ class C
 }",
 
 "'Foo' error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.");
-
         }
 
         [Fact]
@@ -771,9 +763,9 @@ class C
 "'VoidReturning()' error CS1503: Argument 1: cannot convert from 'void' to 'bool'"
                );
         }
-
         [Fact]
-        void TestBug6156()
+
+        private void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -817,11 +809,11 @@ class Out2 : Ref2
     // C# says this overrides SLOT2
 }");
         }
-
-
-
         [Fact]
-        void TestGenericMethods()
+
+
+
+        private void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -842,10 +834,10 @@ class C
     }
 }");
         }
-
-
         [Fact]
-        void TestDelegateBetterness()
+
+
+        private void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -905,9 +897,9 @@ class C
 }
 ");
         }
-
         [Fact]
-        void TestTieBreakers()
+
+        private void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -1176,10 +1168,10 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
-
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-        void TestBaseAccessForAbstractMembers()
+
+        private void TestBaseAccessForAbstractMembers()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1231,10 +1223,10 @@ class Base4<U, V> : Base3<U, V>
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
         }
-
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-        void TestBaseAccessForAbstractMembers1()
+
+        private void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1258,10 +1250,10 @@ class Base2<A, B> : Base<A, B>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"));
         }
-
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-        void TestBaseAccessForAbstractMembers2()
+
+        private void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
 namespace A
@@ -1339,7 +1331,6 @@ public class B
 int
 long
 ");
-
         }
 
         [Fact]
@@ -1377,7 +1368,6 @@ public class B
 int
 long
 ");
-
         }
 
         [Fact, WorkItem(546694, "DevDiv")]
@@ -1416,7 +1406,6 @@ class B: A
 ";
             CompileAndVerify(source, expectedOutput: @"PASS
 PASS");
-
         }
 
         [Fact, WorkItem(529847, "DevDiv")]
@@ -1446,7 +1435,6 @@ class Test
                 // (17,21): error CS0122: 'Base.Base()' is inaccessible due to its protection level
                 //         var a = new Base();
                 Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base.Base()"));
-
         }
 
         [Fact]
@@ -1483,7 +1471,6 @@ public class B
             CompileAndVerify(source, expectedOutput: @"int
 long
 ");
-
         }
 
         [Fact]
@@ -5803,7 +5790,6 @@ public class Q
         [Fact]
         public void ClassPlusLambda1()
         {
-
             // ACASEY: EricLi's comment provides good context on the
             // nature of the problems that arise in such situations and the behavior of the native
             // compiler.  However, the comments about Roslyn's behavior are no longer accurate.
@@ -6864,7 +6850,6 @@ class C
         [Fact, WorkItem(30)]
         public void BugCodePlex_30_01()
         {
-
             string source1 = @"
 using System;
 class C
@@ -6886,7 +6871,6 @@ class C
         [Fact, WorkItem(30)]
         public void BugCodePlex_30_02()
         {
-
             string source1 = @"
 using System;
 class C
@@ -6913,7 +6897,6 @@ class C
         [Fact, WorkItem(30)]
         public void BugCodePlex_30_03()
         {
-
             string source1 = @"
 using System;
 class C
@@ -6938,7 +6921,6 @@ class C
         [Fact]
         public void ExactlyMatchingAsyncLambda_01()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -6974,7 +6956,6 @@ class C
         [Fact]
         public void ExactlyMatchingAsyncLambda_02()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -7007,7 +6988,6 @@ class C
         [Fact]
         public void ExactlyMatchingAsyncLambda_03()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -7086,7 +7066,6 @@ namespace C
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_0()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7125,7 +7104,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_1()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7168,7 +7146,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_2()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7207,7 +7184,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_3()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7250,7 +7226,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_4()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7293,7 +7268,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_5()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7336,7 +7310,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
         public void Bug1080896_6()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7377,7 +7350,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
         public void Bug1081302_0()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7417,7 +7389,6 @@ IfNotNull<T, U>(this T? source, Func<T, U> selector)");
         [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
         public void Bug1081302_1()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7462,7 +7433,6 @@ namespace ConsoleApplication2
         [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
         public void Bug1081302_2()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7507,7 +7477,6 @@ namespace ConsoleApplication2
         [Fact]
         public void ExactParameterMatchAndOptionals()
         {
-
             string source1 = @"
 
 class CTest

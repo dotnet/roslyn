@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             {
                 return null;
             }
-            
+
             if (typeInfo.Type.InheritsFromOrEquals(ienumerableSymbol))
             {
                 if (typeInfo.Type.GetArity() != 1)

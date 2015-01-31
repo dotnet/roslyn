@@ -2,6 +2,7 @@
 
 using System;
 using Xunit;
+
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     /// <summary>

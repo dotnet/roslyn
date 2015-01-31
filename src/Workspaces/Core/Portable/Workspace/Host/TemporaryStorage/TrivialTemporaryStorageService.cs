@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         private class StreamStorage : ITemporaryStreamStorage
         {
-            private MemoryStream stream;
+            private MemoryStream _stream;
 
             public void Dispose()
             {
@@ -36,45 +36,45 @@ namespace Microsoft.CodeAnalysis
 
             public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
             {
-                if (stream == null)
+                if (_stream == null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                stream.Position = 0;
-                return stream;
+                _stream.Position = 0;
+                return _stream;
             }
 
             public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
-                if (stream == null)
+                if (_stream == null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                stream.Position = 0;
-                return Task.FromResult((Stream)stream);
+                _stream.Position = 0;
+                return Task.FromResult((Stream)_stream);
             }
 
             public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
-                this.stream = newStream;
+                _stream = newStream;
             }
 
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var newStream = new MemoryStream();
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
-                this.stream = newStream;
+                _stream = newStream;
             }
         }
 
         private class TextStorage : ITemporaryTextStorage
         {
-            private string text;
-            private Encoding encoding;
+            private string _text;
+            private Encoding _encoding;
 
             public void Dispose()
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
 
             public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
             {
-                return SourceText.From(text, encoding);
+                return SourceText.From(_text, _encoding);
             }
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis
             {
                 // Decompose the SourceText into it's underlying parts, since we use it as a key
                 // into many other caches that don't expect it to be held
-                this.text = text.ToString();
-                this.encoding = text.Encoding;
+                _text = text.ToString();
+                _encoding = text.Encoding;
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))

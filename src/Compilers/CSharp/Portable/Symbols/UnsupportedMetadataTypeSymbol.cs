@@ -6,11 +6,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class UnsupportedMetadataTypeSymbol : ErrorTypeSymbol
     {
-        private readonly BadImageFormatException mrEx;
+        private readonly BadImageFormatException _mrEx;
 
         internal UnsupportedMetadataTypeSymbol(BadImageFormatException mrEx = null)
         {
-            this.mrEx = mrEx;
+            _mrEx = mrEx;
         }
 
         internal override DiagnosticInfo ErrorInfo

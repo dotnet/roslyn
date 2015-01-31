@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         internal class TemporaryStorageService : ITemporaryStorageService
         {
-            private readonly ITextFactoryService textFactory;
-            private readonly MemoryMappedFileManager memoryMappedFileManager = new MemoryMappedFileManager();
+            private readonly ITextFactoryService _textFactory;
+            private readonly MemoryMappedFileManager _memoryMappedFileManager = new MemoryMappedFileManager();
 
             public TemporaryStorageService(ITextFactoryService textFactory)
             {
-                this.textFactory = textFactory;
+                _textFactory = textFactory;
             }
 
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
@@ -47,35 +47,35 @@ namespace Microsoft.CodeAnalysis.Host
 
             private class TemporaryTextStorage : ITemporaryTextStorage
             {
-                private readonly TemporaryStorageService service;
-                private Encoding encoding;
-                private MemoryMappedInfo memoryMappedInfo;
+                private readonly TemporaryStorageService _service;
+                private Encoding _encoding;
+                private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
                 {
-                    this.service = service;
+                    _service = service;
                 }
 
                 public void Dispose()
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         // Destructors of SafeHandle and FileStream in MemoryMappedFile
                         // will eventually release resources if this Dispose is not called
                         // explicitly
-                        memoryMappedInfo.Dispose();
-                        memoryMappedInfo = null;
+                        _memoryMappedInfo.Dispose();
+                        _memoryMappedInfo = null;
                     }
 
-                    if (encoding != null)
+                    if (_encoding != null)
                     {
-                        encoding = null;
+                        _encoding = null;
                     }
                 }
 
                 public SourceText ReadText(CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo == null)
+                    if (_memoryMappedInfo == null)
                     {
                         throw new InvalidOperationException();
                     }
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         // unfortunately, there is no way to re-use stream reader. it will repeatedly re-allocate its buffer(1K).
                         // but most of time, this shouldn't be used that much since we consume tree directly rather than text.
-                        using (var stream = memoryMappedInfo.CreateReadableStream())
+                        using (var stream = _memoryMappedInfo.CreateReadableStream())
                         using (var reader = new StreamReader(stream, Encoding.Unicode, detectEncodingFromByteOrderMarks: false))
                         {
-                            return this.service.textFactory.CreateText(reader, encoding, cancellationToken);
+                            return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
                         }
                     }
                 }
@@ -109,21 +109,21 @@ namespace Microsoft.CodeAnalysis.Host
 
                 public void WriteText(SourceText text, CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         throw new InvalidOperationException();
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
                     {
-                        encoding = text.Encoding;
+                        _encoding = text.Encoding;
 
                         // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                        memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
+                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
 
                         // Write the source text out as Unicode. We expect that to be cheap.
-                        using (var stream = memoryMappedInfo.CreateWritableStream())
+                        using (var stream = _memoryMappedInfo.CreateWritableStream())
                         {
                             using (var writer = new StreamWriter(stream, Encoding.Unicode))
                             {
@@ -142,29 +142,29 @@ namespace Microsoft.CodeAnalysis.Host
 
             private class TemporaryStreamStorage : ITemporaryStreamStorage
             {
-                private readonly TemporaryStorageService service;
-                private MemoryMappedInfo memoryMappedInfo;
+                private readonly TemporaryStorageService _service;
+                private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryStreamStorage(TemporaryStorageService service)
                 {
-                    this.service = service;
+                    _service = service;
                 }
 
                 public void Dispose()
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         // Destructors of SafeHandle and FileStream in MemoryMappedFile
                         // will eventually release resources if this Dispose is not called
                         // explicitly
-                        memoryMappedInfo.Dispose();
-                        memoryMappedInfo = null;
+                        _memoryMappedInfo.Dispose();
+                        _memoryMappedInfo = null;
                     }
                 }
 
                 public Stream ReadStream(CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo == null)
+                    if (_memoryMappedInfo == null)
                     {
                         throw new InvalidOperationException();
                     }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        return memoryMappedInfo.CreateReadableStream();
+                        return _memoryMappedInfo.CreateReadableStream();
                     }
                 }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         throw new InvalidOperationException(WorkspacesResources.TemporaryStorageCannotBeWrittenMultipleTimes);
                     }
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {
                         var size = stream.Length;
-                        memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
-                        using (var viewStream = memoryMappedInfo.CreateWritableStream())
+                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+                        using (var viewStream = _memoryMappedInfo.CreateWritableStream())
                         {
                             var buffer = SharedPools.ByteArray.Allocate();
                             try

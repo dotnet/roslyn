@@ -80,7 +80,7 @@ public class C {
 
         [Fact]
         public void PinvokeMethodReferences_VB()
-        {  
+        {
             var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
                 @"
 Module Module1
@@ -114,13 +114,13 @@ Module Module1
 
             Microsoft.CodeAnalysis.Solution sln = new AdhocWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
-                .AddMetadataReference(prj1Id, MscorlibRef)                
+                .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
             Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
             tree = (SyntaxTree)prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
             Compilation comp = prj.GetCompilationAsync().Result;
-            
+
             SemanticModel semanticModel = comp.GetSemanticModel(tree);
 
             SyntaxNode declareMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.DeclareStatementSyntax>().FirstOrDefault();
@@ -270,7 +270,7 @@ class B : C, A
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
         {
             System.Action<Location> verifier = (location) => Assert.True(expectedMatchedLines.Remove(location.GetLineSpan().StartLinePosition.Line));
-            
+
             foreach (var location in reference.Locations)
             {
                 verifier(location.Location);

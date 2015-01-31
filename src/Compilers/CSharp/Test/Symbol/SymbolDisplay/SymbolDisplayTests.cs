@@ -763,7 +763,7 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,   // =
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StringLiteral, 
+                SymbolDisplayPartKind.StringLiteral,
                 SymbolDisplayPartKind.Punctuation);
         }
 
@@ -1584,7 +1584,7 @@ class C {
         [Fact]
         public void TestMemberFieldAll()
         {
-            var text = 
+            var text =
 @"class C {
     int f;
 }";
@@ -2461,7 +2461,7 @@ class class1Attribute : System.Attribute { }
                 new SymbolDisplayFormat(),
                 "class1Attribute",
                 SymbolDisplayPartKind.ClassName);
-    
+
             TestSymbolDescription(text, findSymbol,
                 new SymbolDisplayFormat(miscellaneousOptions: SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix),
                 "class1",
@@ -3161,7 +3161,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation, //(
-                SymbolDisplayPartKind.StructName, 
+                SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation, //)
                 SymbolDisplayPartKind.Punctuation); //)
         }

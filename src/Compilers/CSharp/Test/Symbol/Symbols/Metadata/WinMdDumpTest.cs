@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 {
     public class WinMdDumpTest : CSharpTestBase
     {
-        private readonly MetadataReference WindowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
-        private readonly MetadataReference SystemRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
-        private readonly MetadataReference SystemObjectModelRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
-        private readonly MetadataReference WindowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
-        private readonly MetadataReference InteropServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
-        
+        private readonly MetadataReference _windowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
+        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
+        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
+        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
+        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
+
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)
         {
             string memberIndent;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.AppendLine("{");
 
                         AppendCustomAttributes(result, member, memberIndent, inBlock: true);
-                       
+
                         if (property.GetMethod != null)
                         {
                             result.Append(memberIndent);
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.AppendLine();
 
                         AppendCustomAttributes(result, member, memberIndent, inBlock: true);
-                    
+
                         if (evnt.RemoveMethod != null)
                         {
                             result.Append(memberIndent);
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 case TypedConstantKind.Array:
                     result.Append("{");
                     int i = 0;
-                    
+
                     foreach (var item in constant.Values)
                     {
                         if (i > 0)
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
         private string Dump(MetadataReference winmd, MetadataReference[] additionalRefs = null)
         {
-            IEnumerable<MetadataReference> references = new[] { MscorlibRef_v4_0_30316_17626, SystemRuntimeRef, SystemObjectModelRef, WindowsRuntimeUIXamlRef, InteropServicesWindowsRuntimeRef, winmd };
+            IEnumerable<MetadataReference> references = new[] { MscorlibRef_v4_0_30316_17626, _systemRuntimeRef, _systemObjectModelRef, _windowsRuntimeUIXamlRef, _interopServicesWindowsRuntimeRef, winmd };
 
             if (additionalRefs != null)
             {
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
             }
 
             var comp = CreateCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            
+
             var writer = new StringBuilder();
             AppendAssemblyRefs(writer, (PEAssemblySymbol)comp.GetReferencedAssemblySymbol(winmd));
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         public void DumpWindowsWinMD()
         {
             var expected = Encoding.UTF8.GetString(TestResources.WinRt.Windows_dump);
-            var actual = Dump(WindowsRef);
+            var actual = Dump(_windowsRef);
             AssertDumpsEqual(expected, actual);
         }
 
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         public void DumpWinMDPrefixing()
         {
             var winmd = MetadataReference.CreateFromImage(TestResources.WinRt.WinMDPrefixing.AsImmutableOrNull());
-            var actual = Dump(winmd, new[] { WindowsRef });
+            var actual = Dump(winmd, new[] { _windowsRef });
             var expected = Encoding.UTF8.GetString(TestResources.WinRt.WinMDPrefixing_dump);
             AssertDumpsEqual(expected, actual);
         }

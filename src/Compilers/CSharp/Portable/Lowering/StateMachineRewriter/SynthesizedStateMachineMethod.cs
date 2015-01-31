@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SynthesizedStateMachineMethod : SynthesizedImplementationMethod, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly bool hasMethodBodyDependency;
+        private readonly bool _hasMethodBodyDependency;
 
         public SynthesizedStateMachineMethod(
-            string name,            
+            string name,
             MethodSymbol interfaceMethod,
             StateMachineTypeSymbol stateMachineType,
             PropertySymbol associatedProperty,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasMethodBodyDependency)
             : base(interfaceMethod, stateMachineType, name, debuggerHidden, generateDebugInfo, associatedProperty)
         {
-            this.hasMethodBodyDependency = hasMethodBodyDependency;
+            _hasMethodBodyDependency = hasMethodBodyDependency;
         }
 
         public StateMachineTypeSymbol StateMachineType
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasMethodBodyDependency
         {
-            get { return hasMethodBodyDependency; }
+            get { return _hasMethodBodyDependency; }
         }
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method

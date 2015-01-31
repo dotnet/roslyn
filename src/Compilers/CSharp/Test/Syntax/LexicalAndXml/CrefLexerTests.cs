@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(530523, "DevDiv")]
-        [Fact(Skip="530523")]
+        [Fact(Skip = "530523")]
         public void TestLexNewline()
         {
             AssertTokens(@"A

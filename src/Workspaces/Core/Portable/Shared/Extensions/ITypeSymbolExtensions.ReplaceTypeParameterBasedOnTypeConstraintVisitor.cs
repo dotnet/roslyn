@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private class ReplaceTypeParameterBasedOnTypeConstraintVisitor : SymbolVisitor<ITypeSymbol>
         {
-            private readonly CancellationToken cancellationToken;
-            private readonly Compilation compilation;
-            private readonly ISet<string> availableTypeParameterNames;
-            private readonly Solution solution;
+            private readonly CancellationToken _cancellationToken;
+            private readonly Compilation _compilation;
+            private readonly ISet<string> _availableTypeParameterNames;
+            private readonly Solution _solution;
 
             public ReplaceTypeParameterBasedOnTypeConstraintVisitor(Compilation compilation, ISet<string> availableTypeParameterNames, Solution solution, CancellationToken cancellationToken)
             {
-                this.compilation = compilation;
-                this.availableTypeParameterNames = availableTypeParameterNames;
-                this.solution = solution;
-                this.cancellationToken = cancellationToken;
+                _compilation = compilation;
+                _availableTypeParameterNames = availableTypeParameterNames;
+                _solution = solution;
+                _cancellationToken = cancellationToken;
             }
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return compilation.CreatePointerTypeSymbol(elementType);
+                return _compilation.CreatePointerTypeSymbol(elementType);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (availableTypeParameterNames.Contains(symbol.Name))
+                if (_availableTypeParameterNames.Contains(symbol.Name))
                 {
                     return symbol;
                 }
@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     default:
                         if (symbol.ConstraintTypes.All(t => t is INamedTypeSymbol))
                         {
-                            var immutableProjects = solution.Projects.ToImmutableHashSet();
+                            var immutableProjects = _solution.Projects.ToImmutableHashSet();
                             var derivedImplementedTypesOfEachConstraintType = symbol.ConstraintTypes.Select(ct =>
                             {
                                 var derivedAndImplementedTypes = new List<INamedTypeSymbol>();
-                                return ((INamedTypeSymbol)ct).FindDerivedClassesAsync(solution, immutableProjects, cancellationToken).WaitAndGetResult(cancellationToken)
-                                       .Concat(((INamedTypeSymbol)ct).FindImplementingTypesAsync(solution, immutableProjects, cancellationToken).WaitAndGetResult(cancellationToken))
+                                return ((INamedTypeSymbol)ct).FindDerivedClassesAsync(_solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken)
+                                       .Concat(((INamedTypeSymbol)ct).FindImplementingTypesAsync(_solution, immutableProjects, _cancellationToken).WaitAndGetResult(_cancellationToken))
                                        .ToList();
                             });
 
@@ -116,13 +116,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                 // If the resultant intersecting type contains any Type arguments that could be replaced 
                                 // using the type contraints then recursively update the type until all constraints are appropriately handled
                                 var typeConstraintConvertedType = resultantIntersectingType.Accept(this);
-                                var knownsimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, compilation, cancellationToken);
+                                var knownsimilarTypesInCompilation = SymbolFinder.FindSimilarSymbols(typeConstraintConvertedType, _compilation, _cancellationToken);
                                 if (knownsimilarTypesInCompilation.Any())
                                 {
                                     return knownsimilarTypesInCompilation.First();
                                 }
 
-                                var resultantSimilarKnownTypes = SymbolFinder.FindSimilarSymbols(resultantIntersectingType, compilation, cancellationToken);
+                                var resultantSimilarKnownTypes = SymbolFinder.FindSimilarSymbols(resultantIntersectingType, _compilation, _cancellationToken);
                                 return resultantSimilarKnownTypes.FirstOrDefault() ?? (ITypeSymbol)symbol;
                             }
                         }

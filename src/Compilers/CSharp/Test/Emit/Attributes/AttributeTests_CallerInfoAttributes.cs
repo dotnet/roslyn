@@ -51,7 +51,7 @@ class Test {
                 //     static void LogCallerFilePath([CallerFilePath] string filePath) { }
                 Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, @"CallerFilePath").WithLocation(7, 36),
 
-                 // (9,38): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+                // (9,38): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
                 //     static void LogCallerMemberName([CallerMemberName] string memberName) { }
                 Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, @"CallerMemberName").WithLocation(9, 38));
         }
@@ -792,7 +792,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(30, 47).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(31, 31).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(31, 49).WithArguments("string", "int"),
-    
+
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(33, 49).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(34, 31).WithArguments("string", "int"),
 
@@ -825,8 +825,8 @@ C:\file.cs
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { Parse(source, @"C:\file.cs")}, 
-                new[] { SystemRef }, 
+                new[] { Parse(source, @"C:\file.cs") },
+                new[] { SystemRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
@@ -1091,7 +1091,7 @@ name: IsTrue
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-    
+
         [Fact]
         public void TestCallerMemberName_CustomAttribute()
         {
@@ -1164,8 +1164,8 @@ name: Compare
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                source, 
-                new[] { SystemRef }, 
+                source,
+                new[] { SystemRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
@@ -1821,7 +1821,7 @@ name: C:\file.cs
             MetadataReference libReference = CompileIL(iLSource);
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { Parse(source, @"C:\file.cs") }, 
+                new[] { Parse(source, @"C:\file.cs") },
                 new[] { libReference },
                 TestOptions.ReleaseExe);
 
@@ -1979,7 +1979,7 @@ MyMethod
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-		
+
         [Fact, WorkItem(531040, "DevDiv")]
         public void Repro_17449()
         {
@@ -2057,7 +2057,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2ValueType").WithArguments("lineNumber", "System.ValueType"));
         }
 
-        
+
         [Fact, WorkItem(531043, "DevDiv")]
         public void Repro_17457()
         {
@@ -2216,7 +2216,7 @@ class Test
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-		
+
         [Fact, WorkItem(531046, "DevDiv")]
         public void TestUserDefinedImplicitConversion()
         {
@@ -2260,7 +2260,7 @@ class Test
                 //     public bool M2(string expected, [CallerMemberName] Test line = null)
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "Test"));
         }
-		
+
         [Fact, WorkItem(546980, "DevDiv")]
         public void TestBaseCtorInvocation()
         {
@@ -2360,13 +2360,13 @@ query path : C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) }, 
-                new[] { SystemCoreRef }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-		
+
         [Fact, WorkItem(531034, "DevDiv")]
         public void WarnOnCallerInfoCollision()
         {
@@ -2411,9 +2411,9 @@ C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
                 options: TestOptions.ReleaseExe);
-            
+
             compilation.VerifyDiagnostics(
                 // C:\filename(7,21): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
                 //     static void M1([CallerMemberName,CallerFilePath] string s = null) { Console.WriteLine(s); }

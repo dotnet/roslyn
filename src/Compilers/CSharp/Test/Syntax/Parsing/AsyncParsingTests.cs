@@ -932,7 +932,8 @@ class C
         }
 
         [Fact]
-        public void NonAsyncLambda() {
+        public void NonAsyncLambda()
+        {
             TestVersions(options =>
             {
                 UsingNode("async => async", options);
@@ -1235,7 +1236,5 @@ class C
 ");
             Check(SyntaxKind.IndexerDeclaration);
         }
-
-
     }
 }

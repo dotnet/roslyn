@@ -618,12 +618,12 @@ class C
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "123012704256" );
+            CompileAndVerify(source, expectedOutput: "123012704256");
         }
 
         [Fact]
         public void TestNamedAndOptionalParamsOnIndexers()
-        {           
+        {
             string source = @"
 using System; 
 class D
@@ -672,7 +672,6 @@ D.this[str: 'bar', i: 13].set
 D.this[str: 'baz', i: 2].set
 D.this[str: 'bah', i: 3].set";
             CompileAndVerify(source, expectedOutput: expected);
-
         }
 
         [Fact]
@@ -890,7 +889,7 @@ public class D
     }
 }";
 
-            CompileWithCustomILSource(source, ilSource );
+            CompileWithCustomILSource(source, ilSource);
         }
 
         [WorkItem(542867, "DevDiv")]
@@ -961,8 +960,8 @@ public class Parent
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef });
             comp.VerifyDiagnostics(
-// (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Foo(ref int)'
-//          Foo();
+ // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Foo(ref int)'
+ //          Foo();
  Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("x", "Parent.Foo(ref int)"));
         }
 
@@ -980,7 +979,7 @@ public interface IOptionalRef
 ";
             CompileAndVerify(source, new[] { SystemRef }).VerifyDiagnostics();
         }
-       
+
         [Fact]
         public void DefaultParameterValueErrors()
         {
@@ -1296,7 +1295,7 @@ System.Runtime.InteropServices.UnknownWrapper
             // definitions in metadata:
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected );
+                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected);
             }
         }
 
@@ -1474,11 +1473,11 @@ True";
                 compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vbCompilation.VerifyDiagnostics();
 
-            var csharpCompilation = CreateCSharpCompilation("CS", csharp, 
+            var csharpCompilation = CreateCSharpCompilation("CS", csharp,
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new[] { vbCompilation });
 
-            var verifier = CompileAndVerify(csharpCompilation , expectedOutput: expected);
+            var verifier = CompileAndVerify(csharpCompilation, expectedOutput: expected);
             verifier.VerifyIL("D.Main", il);
         }
 
@@ -1586,7 +1585,7 @@ public class D
 
             var exeComp = CreateCompilationWithMscorlib(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
 
-            var verifier = CompileAndVerify(exeComp , expectedOutput: @"DatesMatch
+            var verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
 12345678901234567890
 0
 null
@@ -1850,7 +1849,7 @@ class B
         Console.WriteLine(""{0}, {1}"", i1[0], i2[0]);
     }
 }";
-            var verifier = CompileAndVerify(source , expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"F2()
 F1()
 2, 3
@@ -1873,7 +1872,7 @@ F1()
   IL_001e:  ret
 }");
         }
-  
+
         [Fact]
         [WorkItem(546713, "DevDiv")]
         public void Test16631()
@@ -2180,13 +2179,13 @@ public class C
                 Assert.True(parameters[1].HasExplicitDefaultValue);
                 Assert.Equal(0M, parameters[1].ExplicitDefaultValue);
                 Assert.Equal(ConstantValue.Create(0M), parameters[1].ExplicitDefaultConstantValue);
-                Assert.Equal(0, parameters[1].GetAttributes().Length); 
+                Assert.Equal(0, parameters[1].GetAttributes().Length);
 
                 Assert.True(parameters[2].IsOptional);
                 Assert.True(parameters[2].HasExplicitDefaultValue);
                 Assert.Equal(1M, parameters[2].ExplicitDefaultValue);
                 Assert.Equal(ConstantValue.Create(1M), parameters[2].ExplicitDefaultConstantValue);
-                Assert.Equal(0, parameters[2].GetAttributes().Length); 
+                Assert.Equal(0, parameters[2].GetAttributes().Length);
 
                 Assert.True(parameters[3].IsOptional);
                 Assert.False(parameters[3].HasExplicitDefaultValue);

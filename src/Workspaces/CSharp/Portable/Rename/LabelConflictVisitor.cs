@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
     internal sealed class LabelConflictVisitor : CSharpSyntaxVisitor
     {
-        private readonly ConflictingIdentifierTracker tracker;
+        private readonly ConflictingIdentifierTracker _tracker;
 
         public LabelConflictVisitor(SyntaxToken tokenBeingRenamed)
         {
-            tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
+            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
         }
 
         public override void DefaultVisit(SyntaxNode node)
@@ -39,16 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
             }
 
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
             DefaultVisit(node);
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
         }
 
         public IEnumerable<SyntaxToken> ConflictingTokens
         {
             get
             {
-                return tracker.ConflictingTokens;
+                return _tracker.ConflictingTokens;
             }
         }
     }

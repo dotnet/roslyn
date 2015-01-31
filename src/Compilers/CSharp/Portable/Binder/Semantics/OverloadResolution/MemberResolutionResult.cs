@@ -11,25 +11,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
     internal struct MemberResolutionResult<TMember> where TMember : Symbol
     {
-        private readonly TMember member;
-        private readonly TMember leastOverriddenMember;
-        private readonly MemberAnalysisResult result;
+        private readonly TMember _member;
+        private readonly TMember _leastOverriddenMember;
+        private readonly MemberAnalysisResult _result;
 
         internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result)
         {
-            this.member = member;
-            this.leastOverriddenMember = leastOverriddenMember;
-            this.result = result;
+            _member = member;
+            _leastOverriddenMember = leastOverriddenMember;
+            _result = result;
         }
 
         internal bool IsNull
         {
-            get { return (object)member == null; }
+            get { return (object)_member == null; }
         }
 
         internal bool IsNotNull
         {
-            get { return (object)member != null; }
+            get { return (object)_member != null; }
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public TMember Member
         {
-            get { return member; }
+            get { return _member; }
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         internal TMember LeastOverriddenMember
         {
-            get { return leastOverriddenMember; }
+            get { return _leastOverriddenMember; }
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.result.HasUseSiteDiagnosticToReportFor(this.member);
+                return _result.HasUseSiteDiagnosticToReportFor(_member);
             }
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal MemberAnalysisResult Result
         {
-            get { return result; }
+            get { return _result; }
         }
 
         public override bool Equals(object obj)

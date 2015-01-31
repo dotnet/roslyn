@@ -5,11 +5,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    partial class SyntaxToken
+    internal partial class SyntaxToken
     {
         internal class SyntaxIdentifierWithTrailingTrivia : SyntaxIdentifier
         {
-            private readonly CSharpSyntaxNode trailing;
+            private readonly CSharpSyntaxNode _trailing;
 
             internal SyntaxIdentifierWithTrailingTrivia(string text, CSharpSyntaxNode trailing)
                 : base(text)
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
-                    this.trailing = trailing;
+                    _trailing = trailing;
                 }
             }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
-                    this.trailing = trailing;
+                    _trailing = trailing;
                 }
             }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
-                    this.trailing = trailing;
+                    _trailing = trailing;
                 }
             }
 
@@ -50,17 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal override void WriteTo(ObjectWriter writer)
             {
                 base.WriteTo(writer);
-                writer.WriteValue(this.trailing);
+                writer.WriteValue(_trailing);
             }
 
             public override CSharpSyntaxNode GetTrailingTrivia()
             {
-                return this.trailing;
+                return _trailing;
             }
 
             internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
             {
-                return new SyntaxIdentifierWithTrivia(this.Kind, this.TextField, this.TextField, trivia, this.trailing, this.GetDiagnostics(), this.GetAnnotations());
+                return new SyntaxIdentifierWithTrivia(this.Kind, this.TextField, this.TextField, trivia, _trailing, this.GetDiagnostics(), this.GetAnnotations());
             }
 
             internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
             {
-                return new SyntaxIdentifierWithTrailingTrivia(this.TextField, this.trailing, diagnostics, this.GetAnnotations());
+                return new SyntaxIdentifierWithTrailingTrivia(this.TextField, _trailing, diagnostics, this.GetAnnotations());
             }
 
             internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
             {
-                return new SyntaxIdentifierWithTrailingTrivia(this.TextField, this.trailing, this.GetDiagnostics(), annotations);
+                return new SyntaxIdentifierWithTrailingTrivia(this.TextField, _trailing, this.GetDiagnostics(), annotations);
             }
         }
     }

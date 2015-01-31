@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public class TreeRules
     {
         [TreeRule(Name = "RoundTrip", Group = "RoundTrip")]
-        bool RoundTrip(SyntaxTree tree, string codeText, string filename, ref string errorText)
+        private bool RoundTrip(SyntaxTree tree, string codeText, string filename, ref string errorText)
         {
             var retVal = true;
             if (tree.GetRoot().ToFullString() != codeText)
@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return retVal;
         }
-
         [TreeRule(Name = "TreeFullSpan", Group = "Span")]
-        bool TreeFullSpan(SyntaxTree tree, string codeText, string filename, ref string errorText)
+
+        private bool TreeFullSpan(SyntaxTree tree, string codeText, string filename, ref string errorText)
         {
             var retVal = true;
             if (tree.GetRoot().FullSpan.Length != codeText.Length)
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return retVal;
         }
-
         [TreeRule(Name = "NullsAndCollections", Group = "RoundTrip")]
-        bool NullsAndCollections(SyntaxTree tree, string codeText, string filename, ref string errorText)
+
+        private bool NullsAndCollections(SyntaxTree tree, string codeText, string filename, ref string errorText)
         {
             var retVal = true;
             if (tree.GetDiagnostics() == null)

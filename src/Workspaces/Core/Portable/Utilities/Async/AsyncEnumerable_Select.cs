@@ -20,53 +20,53 @@ namespace Roslyn.Utilities
 
         private class SelectAsyncEnumerable<TSource, TResult> : IAsyncEnumerable<TResult>
         {
-            private readonly IAsyncEnumerable<TSource> source;
-            private readonly Func<TSource, TResult> selector;
+            private readonly IAsyncEnumerable<TSource> _source;
+            private readonly Func<TSource, TResult> _selector;
 
             public SelectAsyncEnumerable(
                 IAsyncEnumerable<TSource> source,
                 Func<TSource, TResult> selector)
             {
-                this.source = source;
-                this.selector = selector;
+                _source = source;
+                _selector = selector;
             }
 
             public IAsyncEnumerator<TResult> GetEnumerator()
             {
-                return new SelectAsyncEnumerator<TSource, TResult>(source.GetEnumerator(), selector);
+                return new SelectAsyncEnumerator<TSource, TResult>(_source.GetEnumerator(), _selector);
             }
         }
 
         private class SelectAsyncEnumerator<TSource, TResult> : IAsyncEnumerator<TResult>
         {
-            private readonly IAsyncEnumerator<TSource> source;
-            private readonly Func<TSource, TResult> func;
-            private TResult current;
+            private readonly IAsyncEnumerator<TSource> _source;
+            private readonly Func<TSource, TResult> _func;
+            private TResult _current;
 
             public SelectAsyncEnumerator(IAsyncEnumerator<TSource> source, Func<TSource, TResult> func)
             {
-                this.source = source;
-                this.func = func;
+                _source = source;
+                _func = func;
             }
 
             public TResult Current
             {
                 get
                 {
-                    return current;
+                    return _current;
                 }
             }
 
             public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
             {
-                var result = await source.MoveNextAsync(cancellationToken).ConfigureAwait(false);
-                this.current = result ? func(source.Current) : default(TResult);
+                var result = await _source.MoveNextAsync(cancellationToken).ConfigureAwait(false);
+                _current = result ? _func(_source.Current) : default(TResult);
                 return result;
             }
 
             public void Dispose()
             {
-                source.Dispose();
+                _source.Dispose();
             }
         }
     }

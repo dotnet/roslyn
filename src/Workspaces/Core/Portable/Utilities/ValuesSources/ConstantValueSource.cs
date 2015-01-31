@@ -10,33 +10,33 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class ConstantValueSource<T> : ValueSource<T>
     {
-        private readonly T value;
-        private Task<T> task;
+        private readonly T _value;
+        private Task<T> _task;
 
         public ConstantValueSource(T value)
         {
-            this.value = value;
+            _value = value;
         }
 
         public override T GetValue(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.value;
+            return _value;
         }
 
         public override bool TryGetValue(out T value)
         {
-            value = this.value;
+            value = _value;
             return true;
         }
 
         public override Task<T> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.task == null)
+            if (_task == null)
             {
-                Interlocked.CompareExchange(ref this.task, Task.FromResult(this.value), null);
+                Interlocked.CompareExchange(ref _task, Task.FromResult(_value), null);
             }
 
-            return this.task;
+            return _task;
         }
     }
 }

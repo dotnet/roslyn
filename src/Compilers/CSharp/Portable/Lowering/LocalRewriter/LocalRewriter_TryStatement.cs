@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundBlock tryBlock = (BoundBlock)this.Visit(node.TryBlock);
 
-            var origSawAwait = this.sawAwait;
-            this.sawAwait = false;
+            var origSawAwait = _sawAwait;
+            _sawAwait = false;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = (ImmutableArray<BoundCatchBlock>)this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
 
-            this.sawAwaitInExceptionHandler |= this.sawAwait;
-            this.sawAwait |= origSawAwait;
+            _sawAwaitInExceptionHandler |= _sawAwait;
+            _sawAwait |= origSawAwait;
 
             return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
         }

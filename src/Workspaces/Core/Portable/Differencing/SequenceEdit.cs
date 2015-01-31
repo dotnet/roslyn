@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Differencing
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct SequenceEdit : IEquatable<SequenceEdit>
     {
-        private readonly int oldIndex;
-        private readonly int newIndex;
+        private readonly int _oldIndex;
+        private readonly int _newIndex;
 
         internal SequenceEdit(int oldIndex, int newIndex)
         {
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             Debug.Assert(newIndex >= -1);
             Debug.Assert(newIndex != -1 || oldIndex != -1);
 
-            this.oldIndex = oldIndex;
-            this.newIndex = newIndex;
+            _oldIndex = oldIndex;
+            _newIndex = newIndex;
         }
 
         /// <summary>
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                if (oldIndex == -1)
+                if (_oldIndex == -1)
                 {
                     return EditKind.Insert;
                 }
 
-                if (newIndex == -1)
+                if (_newIndex == -1)
                 {
                     return EditKind.Delete;
                 }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                return oldIndex;
+                return _oldIndex;
             }
         }
 
@@ -64,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                return newIndex;
+                return _newIndex;
             }
         }
 
         public bool Equals(SequenceEdit other)
         {
-            return this.oldIndex == other.oldIndex
-                && this.newIndex == other.newIndex;
+            return _oldIndex == other._oldIndex
+                && _newIndex == other._newIndex;
         }
 
         public override bool Equals(object obj)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         public override int GetHashCode()
         {
-            return Hash.Combine(oldIndex, newIndex);
+            return Hash.Combine(_oldIndex, _newIndex);
         }
 
         // internal for testing
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Differencing
             switch (Kind)
             {
                 case EditKind.Delete:
-                    return result + " (" + oldIndex + ")";
+                    return result + " (" + _oldIndex + ")";
 
                 case EditKind.Insert:
-                    return result + " (" + newIndex + ")";
+                    return result + " (" + _newIndex + ")";
 
                 case EditKind.Update:
-                    return result + " (" + oldIndex + " -> " + newIndex + ")";
+                    return result + " (" + _oldIndex + " -> " + _newIndex + ")";
             }
 
             return result;

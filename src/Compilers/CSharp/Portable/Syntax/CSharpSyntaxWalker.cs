@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.VisitToken(child.AsToken());
                     }
                 }
-
             } while (i < childCnt);
         }
 

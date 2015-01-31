@@ -19,32 +19,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class OverloadResolution
     {
-        private readonly Binder binder;
+        private readonly Binder _binder;
 
         public OverloadResolution(Binder binder)
         {
-            this.binder = binder;
+            _binder = binder;
         }
 
-        CSharpCompilation Compilation
+        private CSharpCompilation Compilation
         {
-            get { return binder.Compilation; }
+            get { return _binder.Compilation; }
         }
 
-        Conversions Conversions
+        private Conversions Conversions
         {
-            get { return binder.Conversions; }
+            get { return _binder.Conversions; }
         }
 
         // lazily compute if the compiler is in "strict" mode (rather than duplicating bugs for compatibility)
-        private bool? strict = null;
-        bool Strict
+        private bool? _strict = null;
+        private bool Strict
         {
             get
             {
-                if (strict.HasValue) return strict.Value;
-                bool value = binder.Compilation.Feature("strict") != null;
-                strict = value;
+                if (_strict.HasValue) return _strict.Value;
+                bool value = _binder.Compilation.Feature("strict") != null;
+                _strict = value;
                 return value;
             }
         }
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var leastOverriddenMember = (TMember)member.GetLeastOverriddenMember(binder.ContainingType);
+            var leastOverriddenMember = (TMember)member.GetLeastOverriddenMember(_binder.ContainingType);
 
             // Filter out members with unsupported metadata.
             if (member.HasUnsupportedMetadata)
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (TypeSymbol arg in typeArguments)
             {
-                if (!binder.IsAccessible(arg, ref useSiteDiagnostics)) return false;
+                if (!_binder.IsAccessible(arg, ref useSiteDiagnostics)) return false;
             }
             return true;
         }
@@ -1789,11 +1789,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class ReturnStatements : BoundTreeWalker
         {
-            private readonly ArrayBuilder<BoundReturnStatement> returns;
+            private readonly ArrayBuilder<BoundReturnStatement> _returns;
 
             public ReturnStatements(ArrayBuilder<BoundReturnStatement> returns)
             {
-                this.returns = returns;
+                _returns = returns;
             }
 
             public override BoundNode VisitLambda(BoundLambda node)
@@ -1804,7 +1804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitReturnStatement(BoundReturnStatement node)
             {
-                returns.Add(node);
+                _returns.Add(node);
                 return null;
             }
         }
@@ -2195,7 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We must ignore the 'ref' on the parameter while determining the applicability of argument for the given method call.
             // During argument rewriting, we will replace the argument value with a temporary local and pass that local by reference.
 
-            if (allowRefOmittedArguments && paramRefKind == RefKind.Ref && argRefKind == RefKind.None && !binder.InAttributeArgument)
+            if (allowRefOmittedArguments && paramRefKind == RefKind.Ref && argRefKind == RefKind.None && !_binder.InAttributeArgument)
             {
                 hasAnyRefOmittedArgument = true;
                 return RefKind.None;
@@ -2510,7 +2510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in "Infer" for details.
 
             var inferenceResult = MethodTypeInferrer.Infer(
-                binder,
+                _binder,
                 originalTypeParameters,
                 method.ContainingType,
                 originalEffectiveParameters.ParameterTypes,
@@ -2527,7 +2527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (arguments.IsExtensionMethodInvocation)
             {
-                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(binder.Conversions, method, originalEffectiveParameters.ParameterTypes, args, ref useSiteDiagnostics);
+                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(_binder.Conversions, method, originalEffectiveParameters.ParameterTypes, args, ref useSiteDiagnostics);
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
@@ -2617,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MemberAnalysisResult result;
             var conversionsArray = conversions != null ? conversions.ToImmutableAndFree() : default(ImmutableArray<Conversion>);
-            if (badArguments!= null)
+            if (badArguments != null)
             {
                 result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments.ToImmutableAndFree(), conversionsArray);
             }

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 
-",            GetCA1036CSharpResultAt(4, 18));
+", GetCA1036CSharpResultAt(4, 18));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 ",
-            GetCA1036CSharpResultAt(4, 18)); 
+            GetCA1036CSharpResultAt(4, 18));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -654,7 +654,7 @@ Public Class A : Implements IComparable
 
 End Class
 ",
-            GetCA1036BasicResultAt(4, 14)); 
+            GetCA1036BasicResultAt(4, 14));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -687,7 +687,7 @@ Public Class A : Implements IComparable
 
 End Class
 ",
-            GetCA1036BasicResultAt(4, 14)); 
+            GetCA1036BasicResultAt(4, 14));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -720,7 +720,7 @@ Public Structure A : Implements IComparable
 
 End Class
 ",
-            GetCA1036BasicResultAt(4, 18)); 
+            GetCA1036BasicResultAt(4, 18));
         }
 
         internal static string CA1036Name = "CA1036";

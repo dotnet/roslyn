@@ -955,7 +955,7 @@ class C
 }
 ";
             var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
-            
+
             c.VerifyIL("C.Main", @"
 {
   // Code size       25 (0x19)
@@ -1538,7 +1538,7 @@ public class myFor
     }
 }
 ";
-            CompileAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef },  expectedOutput: @"Initialize
+            CompileAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef }, expectedOutput: @"Initialize
 Done
 Next
 Done
@@ -1698,7 +1698,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(text,  additionalRefs: new[] {  SystemCoreRef }, expectedOutput: @"1
+            var comp = CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
 4
 9
 16");
@@ -1927,6 +1927,5 @@ class Program
   IL_0012:  br.s       IL_0003
 }");
         }
-
     }
 }

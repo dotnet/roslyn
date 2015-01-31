@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or null if the document doesn't have any modifications and
         /// presence of compilation errors was not determined.
         /// </summary>
-        private readonly bool? hasCompilationErrors;
+        private readonly bool? _hasCompilationErrors;
 
         private DocumentAnalysisResults(ImmutableArray<RudeEditDiagnostic> rudeEdits)
         {
-            this.hasCompilationErrors = rudeEdits.Length == 0;
+            _hasCompilationErrors = rudeEdits.Length == 0;
             this.RudeEditErrors = rudeEdits;
         }
 
@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             this.ActiveStatements = activeStatements;
             this.ExceptionRegions = exceptionRegionsOpt;
             this.LineEdits = lineEditsOpt;
-            this.hasCompilationErrors = hasSemanticErrors;
+            _hasCompilationErrors = hasSemanticErrors;
         }
 
         public bool HasChanges
         {
             get
             {
-                return hasCompilationErrors.HasValue;
+                return _hasCompilationErrors.HasValue;
             }
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return HasChanges && (hasCompilationErrors.Value || !RudeEditErrors.IsDefaultOrEmpty);
+                return HasChanges && (_hasCompilationErrors.Value || !RudeEditErrors.IsDefaultOrEmpty);
             }
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return hasCompilationErrors == true;
+                return _hasCompilationErrors == true;
             }
         }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt)
         {
             return new DocumentAnalysisResults(
-                activeStatements, 
+                activeStatements,
                 default(ImmutableArray<RudeEditDiagnostic>),
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,

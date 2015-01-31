@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public readonly ParameterConfiguration OriginalConfiguration;
         public readonly ParameterConfiguration UpdatedConfiguration;
 
-        private readonly Dictionary<int, int?> originalIndexToUpdatedIndexMap = new Dictionary<int, int?>();
+        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = new Dictionary<int, int?>();
 
         public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var parameter = originalParameterList[i];
                 var updatedIndex = updatedParameterList.IndexOf(parameter);
-                originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
+                _originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
             }
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return null;
             }
 
-            return originalIndexToUpdatedIndexMap[parameterIndex];
+            return _originalIndexToUpdatedIndexMap[parameterIndex];
         }
     }
 }

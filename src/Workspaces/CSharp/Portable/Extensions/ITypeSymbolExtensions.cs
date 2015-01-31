@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
-        { 
+        {
             if (semanticModel.IsSpeculativeSemanticModel)
             {
                 position = semanticModel.OriginalPositionForSpeculation;

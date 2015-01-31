@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var features = new Dictionary<string, object>();
             features.Add("Features", new List<string>(new[] { "Test Features" }));
-            return new OptionService(new[] 
+            return new OptionService(new[]
                 {
                     new Lazy<IOptionProvider>(() => new TestOptionsProvider())
                 },
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     () =>
                     {
                         return new TestOptionSerializer();
-                    }, 
+                    },
                     new OptionSerializerMetadata(features))
                 });
         }

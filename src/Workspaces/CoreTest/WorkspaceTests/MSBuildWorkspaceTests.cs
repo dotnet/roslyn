@@ -21,7 +21,6 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
 
-
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class MSBuildWorkspaceTests : MSBuildWorkspaceTestBase
@@ -525,7 +524,7 @@ class C1
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var ws = MSBuildWorkspace.Create();
-            
+
             // convince workspace that csharp projects are really visual basic (should cause lots of syntax errors)
             ws.AssociateFileExtensionWithLanguage("csproj", LanguageNames.VisualBasic);
 
@@ -2093,7 +2092,7 @@ class C1
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithNonExistentProjectFile()
-                {
+        {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             // open for read-write so no one else can read
@@ -2101,8 +2100,8 @@ class C1
             var ws = MSBuildWorkspace.Create();
             AssertThrows<System.IO.FileNotFoundException>(() =>
                 {
-                ws.OpenProjectAsync(projectFile).Wait();
-            });
+                    ws.OpenProjectAsync(projectFile).Wait();
+                });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

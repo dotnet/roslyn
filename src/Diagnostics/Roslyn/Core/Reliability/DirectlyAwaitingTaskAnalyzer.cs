@@ -24,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
             analysisContext.RegisterCompilationStartAction(
                 (context) =>
                 {
-                    if (context.Compilation.AssemblyName != null && 
+                    if (context.Compilation.AssemblyName != null &&
                         (context.Compilation.AssemblyName.Contains("FxCopAnalyzer") || context.Compilation.AssemblyName.Contains("FxCopDiagnosticFixers")))
                     {
                         return;
@@ -49,38 +49,38 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private sealed class CodeBlockAnalyzer
         {
-            private readonly DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer;
-            private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
+            private readonly DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> _analyzer;
+            private readonly Lazy<ImmutableArray<INamedTypeSymbol>> _taskTypes;
 
             public CodeBlockAnalyzer(DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer, Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes)
             {
-                this.analyzer = analyzer;
-                this.taskTypes = taskTypes;
+                _analyzer = analyzer;
+                _taskTypes = taskTypes;
             }
 
             public void Initialize(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
-                context.RegisterSyntaxNodeAction(new SyntaxNodeAnalyzer(analyzer, taskTypes).AnalyzeNode, analyzer.AwaitSyntaxKind);
+                context.RegisterSyntaxNodeAction(new SyntaxNodeAnalyzer(_analyzer, _taskTypes).AnalyzeNode, _analyzer.AwaitSyntaxKind);
             }
         }
 
         private sealed class SyntaxNodeAnalyzer
         {
-            private readonly DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer;
-            private readonly Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes;
+            private readonly DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> _analyzer;
+            private readonly Lazy<ImmutableArray<INamedTypeSymbol>> _taskTypes;
 
             public SyntaxNodeAnalyzer(DirectlyAwaitingTaskAnalyzer<TLanguageKindEnum> analyzer, Lazy<ImmutableArray<INamedTypeSymbol>> taskTypes)
             {
-                this.analyzer = analyzer;
-                this.taskTypes = taskTypes;
+                _analyzer = analyzer;
+                _taskTypes = taskTypes;
             }
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var expression = analyzer.GetAwaitedExpression(context.Node);
+                var expression = _analyzer.GetAwaitedExpression(context.Node);
                 var type = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken).Type;
 
-                if (type != null && taskTypes.Value.Contains(type.OriginalDefinition))
+                if (type != null && _taskTypes.Value.Contains(type.OriginalDefinition))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(DirectlyAwaitingTaskAnalyzerRule.Rule, expression.GetLocation()));
                 }

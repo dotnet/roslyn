@@ -34,39 +34,39 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleIdDoNotMarkEnumsWithFlags = "CA2217";
         internal const string RuleNameForExportAttribute = "EnumWithFlagsAttributeRules";
 
-        private static LocalizableString localizableTitleCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableMessageCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableDescriptionCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableDescriptionCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor Rule1027 = new DiagnosticDescriptor(RuleIdMarkEnumsWithFlags,
-                                                                             localizableTitleCA1027,
-                                                                             localizableMessageCA1027,
+                                                                             s_localizableTitleCA1027,
+                                                                             s_localizableMessageCA1027,
                                                                              FxCopDiagnosticCategory.Design,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
-                                                                             description: localizableDescriptionCA1027,
+                                                                             description: s_localizableDescriptionCA1027,
                                                                              helpLinkUri: "http://msdn.microsoft.com/library/ms182159.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 
-        private static LocalizableString localizableTitleCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableMessageCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableDescriptionCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableDescriptionCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
-                                                                             localizableTitleCA2217,
-                                                                             localizableMessageCA2217,
+                                                                             s_localizableTitleCA2217,
+                                                                             s_localizableMessageCA2217,
                                                                              FxCopDiagnosticCategory.Usage,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
-                                                                             description: localizableDescriptionCA2217,
+                                                                             description: s_localizableDescriptionCA2217,
                                                                              helpLinkUri: "http://msdn.microsoft.com/library/ms182335.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 
-        private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(Rule1027, Rule2217);
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = ImmutableArray.Create(Rule1027, Rule2217);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return supportedDiagnostics;
+                return s_supportedDiagnostics;
             }
         }
 

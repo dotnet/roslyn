@@ -1939,7 +1939,7 @@ class MyClass
         /// </summary>
         private class DocumentationCommentAdder : CSharpSyntaxRewriter
         {
-            private int count;
+            private int _count;
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
@@ -1951,7 +1951,7 @@ class MyClass
                 }
 
                 var existingLeadingTrivia = token.LeadingTrivia;
-                var newLeadingTrivia = SyntaxFactory.ParseToken("/** " + (count++) + " */1)").LeadingTrivia;
+                var newLeadingTrivia = SyntaxFactory.ParseToken("/** " + (_count++) + " */1)").LeadingTrivia;
                 return newToken.WithLeadingTrivia(existingLeadingTrivia.Concat(newLeadingTrivia));
             }
         }
@@ -2341,7 +2341,6 @@ class C {{ }}
         [Fact]
         public void IncludeFileResolution()
         {
-
             var xml1 = @"
 <root>
     <include file=""test.xml"" path=""//element""/> <!--relative to d1 -->
@@ -2382,7 +2381,7 @@ class C { }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
             var resolver = new XmlFileResolver(rootDir.Path);
-            var comp = CSharpCompilation.Create("Test", new[] { tree }, new [] { MscorlibRef }, TestOptions.ReleaseDll.WithXmlReferenceResolver(resolver));
+            var comp = CSharpCompilation.Create("Test", new[] { tree }, new[] { MscorlibRef }, TestOptions.ReleaseDll.WithXmlReferenceResolver(resolver));
             var actual = GetDocumentationCommentText(comp);
 
             var expected = (@"
@@ -2774,7 +2773,7 @@ class C {{ }}
 class C {{ }}
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFilePath));
-            var actual = GetDocumentationCommentText(comp, 
+            var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."));
             var expectedTemplate = (@"
@@ -2808,7 +2807,7 @@ class C {{ }}
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFilePath));
 
             // CONSIDER: differs from dev11, but this is a reasonable recovery.
-            var actual = GetDocumentationCommentText(comp, 
+            var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//parent", "Operation caused a stack overflow."));
             var expectedTemplate = (@"
@@ -2843,9 +2842,9 @@ class C {{ }}
 class C {{ }}
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFilePath));
-            
+
             // CONSIDER: not checked against dev11 - just don't blow up.
-            var actual = GetDocumentationCommentText(comp, 
+            var actual = GetDocumentationCommentText(comp,
                 // 1dc0fa5fb526.xml(2,2): warning CS1589: Unable to include XML fragment '//include' of file '1dc0fa5fb526.xml' -- Operation caused a stack overflow.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."),
                 // 1dc0fa5fb526.xml(2,2): warning CS1589: Unable to include XML fragment '//include' of file '1dc0fa5fb526.xml' -- Operation caused a stack overflow.
@@ -2996,7 +2995,7 @@ enum D {{ }}
                 // (5,5): warning CS1589: Unable to include XML fragment '.' of file '012bf028d62c.xml' -- The XPath expression evaluated to unexpected type System.Xml.Linq.XDocument.
                 // /// <include file="012bf028d62c.xml" path="."/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, string.Format(@"<include file=""{0}"" path="".""/>", xmlFilePath)).WithArguments(xmlFilePath, ".", "The XPath expression evaluated to unexpected type System.Xml.Linq.XDocument."));
-            
+
             var expected = (@"
 <?xml version=""1.0""?>
 <doc>
@@ -3785,7 +3784,7 @@ class C { }
 ";
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
-            
+
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var actualText = DocumentationCommentCompiler.GetDocumentationCommentXml(type, processIncludes: true, cancellationToken: default(CancellationToken));
             var expectedText =
@@ -5478,7 +5477,7 @@ public class C { }
     </members>
 </doc>".Trim();
 
-            Action<ModuleSymbol> validator = module => 
+            Action<ModuleSymbol> validator = module =>
             {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
 
@@ -5913,13 +5912,13 @@ class C { }
 ";
 
             var comp = CreateCompilationWithMscorlib(
-                Parse(source, options: TestOptions.RegularWithDocumentationComments, filename: sourcePath), 
-                options: TestOptions.ReleaseDll.WithSourceReferenceResolver(SourceFileResolver.Default).WithXmlReferenceResolver(XmlFileResolver.Default), 
+                Parse(source, options: TestOptions.RegularWithDocumentationComments, filename: sourcePath),
+                options: TestOptions.ReleaseDll.WithSourceReferenceResolver(SourceFileResolver.Default).WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
 
             var actual = GetDocumentationCommentText(comp);
 
-            var expected = 
+            var expected =
 @"<?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -6037,12 +6036,12 @@ class C
     </assembly>
     <members>
         <member name=""T:C"">
-            <overloads>Searches a sorted array for a value using a binary search algorithm.</overloads><typeparam name=""T"">" + 
-            @"The type of items in the array.</typeparam><typeparam name=""TComparator"">The type of comparator used to compare " + 
-            @"items during the search operation.</typeparam><param name=""array"">The sorted array to search.</param><param name=""value"">" + 
-            @"The object to search for.</param><returns>If found, the index of the specified value in the given array. Otheriwse, if not " + 
-            @"found, and the value is less than one or more items in the array, a negative number which is the bitwise complement of the " + 
-            @"index of the first item that is larger than the given value. If the value is not found and it is greater than any of the items " + 
+            <overloads>Searches a sorted array for a value using a binary search algorithm.</overloads><typeparam name=""T"">" +
+            @"The type of items in the array.</typeparam><typeparam name=""TComparator"">The type of comparator used to compare " +
+            @"items during the search operation.</typeparam><param name=""array"">The sorted array to search.</param><param name=""value"">" +
+            @"The object to search for.</param><returns>If found, the index of the specified value in the given array. Otheriwse, if not " +
+            @"found, and the value is less than one or more items in the array, a negative number which is the bitwise complement of the " +
+            @"index of the first item that is larger than the given value. If the value is not found and it is greater than any of the items " +
             @"in the array, a negative number which is the bitwise complement of (the index of the last item plus 1).</returns>
         </member>
     </members>

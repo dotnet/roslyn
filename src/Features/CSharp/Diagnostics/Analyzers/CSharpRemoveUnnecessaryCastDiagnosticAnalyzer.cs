@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryCastDiagnosticAnalyzer : RemoveUnnecessaryCastDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.CastExpression);
+        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.CastExpression);
 
         public override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
         {
             get
             {
-                return kindsOfInterest;
+                return s_kindsOfInterest;
             }
         }
 

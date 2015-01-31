@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public bool IsConstant { get; private set; }
 
-            private SemanticMap semanticMap;
-            private readonly TService service;
+            private SemanticMap _semanticMap;
+            private readonly TService _service;
 
             public State(TService service, SemanticDocument document)
             {
-                this.service = service;
+                _service = service;
                 this.Document = document;
             }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var enclosingBlocks = service.GetContainingExecutableBlocks(this.Expression);
+                var enclosingBlocks = _service.GetContainingExecutableBlocks(this.Expression);
                 if (enclosingBlocks.Any())
                 {
                     // If we're inside a block, then don't even try the other options (like field,
@@ -152,8 +152,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public SemanticMap GetSemanticMap(CancellationToken cancellationToken)
             {
-                this.semanticMap = this.semanticMap ?? this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
-                return this.semanticMap;
+                _semanticMap = _semanticMap ?? this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
+                return _semanticMap;
             }
 
             private TExpressionSyntax GetExpressionUnderSpan(SyntaxTree tree, TextSpan textSpan, CancellationToken cancellationToken)
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // Don't generate a variable for an expression that's the only expression in a
                 // statement.  Otherwise we'll end up with something like "v;" which is not
                 // legal in C#.
-                if (!service.CanIntroduceVariableFor(this.Expression))
+                if (!_service.CanIntroduceVariableFor(this.Expression))
                 {
                     return false;
                 }

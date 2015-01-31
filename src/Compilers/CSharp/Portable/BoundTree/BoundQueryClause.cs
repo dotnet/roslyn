@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class BoundQueryClause
+    internal partial class BoundQueryClause
     {
         /// <summary>
         /// The bound expression that invokes the operation of the query clause.

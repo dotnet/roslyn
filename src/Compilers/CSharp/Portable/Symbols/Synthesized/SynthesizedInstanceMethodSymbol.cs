@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedInstanceMethodSymbol : MethodSymbol
     {
-        private ParameterSymbol lazyThisParameter;
+        private ParameterSymbol _lazyThisParameter;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!IsStatic);
 
-            if ((object)lazyThisParameter == null)
+            if ((object)_lazyThisParameter == null)
             {
-                Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
+                Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
             }
 
-            thisParameter = lazyThisParameter;
+            thisParameter = _lazyThisParameter;
             return true;
         }
 

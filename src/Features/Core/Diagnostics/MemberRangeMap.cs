@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -17,26 +17,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal class MemberRangeMap
     {
-        private static readonly Func<DocumentId, DictionaryData> createMap = _ => new DictionaryData();
-        private static readonly Func<VersionStamp, StrongBox<int>> createStrongBoxMap = _ => new StrongBox<int>(0);
+        private static readonly Func<DocumentId, DictionaryData> s_createMap = _ => new DictionaryData();
+        private static readonly Func<VersionStamp, StrongBox<int>> s_createStrongBoxMap = _ => new StrongBox<int>(0);
 
-        private readonly ConcurrentDictionary<DocumentId, DictionaryData> map;
+        private readonly ConcurrentDictionary<DocumentId, DictionaryData> _map;
 
         public MemberRangeMap()
         {
-            this.map = new ConcurrentDictionary<DocumentId, DictionaryData>(concurrencyLevel: 2, capacity: 10);
+            _map = new ConcurrentDictionary<DocumentId, DictionaryData>(concurrencyLevel: 2, capacity: 10);
         }
 
         public void Remove(DocumentId documentId)
         {
             DictionaryData unused;
-            this.map.TryRemove(documentId, out unused);
+            _map.TryRemove(documentId, out unused);
         }
 
         public void Touch(ProviderId providerId, Document document, VersionStamp version)
         {
             // only touch and updateMemberRange methods are allowed to update the dictionaries
-            var data = this.map.GetOrAdd(document.Id, createMap);
+            var data = _map.GetOrAdd(document.Id, s_createMap);
 
             lock (data)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ProviderId providerId, Document document, VersionStamp newVersion, int memberId, TextSpan span, MemberRanges oldRanges)
         {
             // only touch and updateMemberRange methods are allowed to update the dictionaries
-            var data = this.map.GetOrAdd(document.Id, createMap);
+            var data = _map.GetOrAdd(document.Id, s_createMap);
 
             lock (data)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public MemberRanges GetSavedMemberRange(ProviderId providerId, Document document)
         {
-            var data = this.map.GetOrAdd(document.Id, createMap);
+            var data = _map.GetOrAdd(document.Id, s_createMap);
             lock (data)
             {
                 return GetSavedMemberRange_NoLock(data, providerId, document);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void IncreaseVersion_NoLock(DictionaryData data, DocumentId documentId, VersionStamp version)
         {
-            var strongBox = data.VersionTrackingMap.GetOrAdd(version, createStrongBoxMap);
+            var strongBox = data.VersionTrackingMap.GetOrAdd(version, s_createStrongBoxMap);
 
             // actually increase one
             strongBox.Value++;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void DecreaseVersion_NoLock(DictionaryData data, DocumentId documentId, VersionStamp version)
         {
-            var strongBox = data.VersionTrackingMap.GetOrAdd(version, createStrongBoxMap);
+            var strongBox = data.VersionTrackingMap.GetOrAdd(version, s_createStrongBoxMap);
 
             // decrease
             strongBox.Value--;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Conditional("DEBUG")]
         private void ValidateVersionTracking()
         {
-            foreach (var data in this.map.Values)
+            foreach (var data in _map.Values)
             {
                 var versionsInVersionMap = data.VersionMap.Values.ToSet();
                 var versionsInTrackingMap = data.VersionTrackingMap.Keys;

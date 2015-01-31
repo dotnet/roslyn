@@ -6856,8 +6856,8 @@ SubLong: Exception at 0 - -int.MinValue
         [Fact]
         public void CheckedNumericSubtractionOverflow4()
         {
-            var text = MakeNumericOverflowTest(NegativeNumericSubtractionCasesTemplate, "S02", "Sub", "-", "checked");            
-            
+            var text = MakeNumericOverflowTest(NegativeNumericSubtractionCasesTemplate, "S02", "Sub", "-", "checked");
+
             bool isx86 = (IntPtr.Size == 4);
             string expectedOutput;
 
@@ -7172,7 +7172,7 @@ AddULong: No exception at 1 + ulong.MaxValue (value = 0)
         public void UncheckedNumericAdditionOverflow2()
         {
             var text = MakeNumericOverflowTest(PositiveNumericAdditionCasesTemplate, "S02", "Add", "+", "unchecked");
-            
+
             bool isx86 = (IntPtr.Size == 4);
             string expectedOutput;
 
@@ -8710,7 +8710,7 @@ namespace N
 }
 ";
 
-            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false) );
+            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false));
         }
 
         [Fact, WorkItem(531327, "DevDiv")]
@@ -8751,7 +8751,7 @@ unsafe class A
     }
 }
 ";
-            
+
             var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
         }
@@ -8954,7 +8954,7 @@ class c1
 	}
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"0");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0");
             compVerifier.VerifyIL("C..ctor", @"
 {
   // Code size       21 (0x15)

@@ -13,31 +13,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypedConstantTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamedTypeSymbol namedType;
-        private readonly NamedTypeSymbol systemType;
-        private readonly ArrayTypeSymbol arrayType;
-        private readonly TypeSymbol intType;
-        private readonly TypeSymbol stringType;
-        private readonly TypeSymbol enumString1;
-        private readonly TypeSymbol enumString2;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamedTypeSymbol _namedType;
+        private readonly NamedTypeSymbol _systemType;
+        private readonly ArrayTypeSymbol _arrayType;
+        private readonly TypeSymbol _intType;
+        private readonly TypeSymbol _stringType;
+        private readonly TypeSymbol _enumString1;
+        private readonly TypeSymbol _enumString2;
 
         public TypedConstantTests()
         {
-            compilation = CreateCompilationWithMscorlib("class C {}");
-            namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
-            arrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
-            intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            stringType = compilation.GetSpecialType(SpecialType.System_String);
-            enumString1 = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(compilation.GetSpecialType(SpecialType.System_String));
-            enumString2 = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(compilation.GetSpecialType(SpecialType.System_String));
+            _compilation = CreateCompilationWithMscorlib("class C {}");
+            _namedType = _compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            _systemType = _compilation.GetWellKnownType(WellKnownType.System_Type);
+            _arrayType = _compilation.CreateArrayTypeSymbol(_compilation.GetSpecialType(SpecialType.System_Object));
+            _intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            _stringType = _compilation.GetSpecialType(SpecialType.System_String);
+            _enumString1 = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_compilation.GetSpecialType(SpecialType.System_String));
+            _enumString2 = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_compilation.GetSpecialType(SpecialType.System_String));
         }
 
         [Fact]
         public void Conversions()
         {
-            TypedConstant common = new TypedConstant(systemType, TypedConstantKind.Type, namedType);
+            TypedConstant common = new TypedConstant(_systemType, TypedConstantKind.Type, _namedType);
             TypedConstant lang = (TypedConstant)common;
             TypedConstant common2 = lang;
 
@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.Equal(common.Kind, common2.Kind);
             Assert.Equal(common.Type, common2.Type);
 
-            TypedConstant commonArray = new TypedConstant(arrayType, 
-                new[] { new TypedConstant(systemType, TypedConstantKind.Type, namedType) }.AsImmutableOrNull());
+            TypedConstant commonArray = new TypedConstant(_arrayType,
+                new[] { new TypedConstant(_systemType, TypedConstantKind.Type, _namedType) }.AsImmutableOrNull());
 
             TypedConstant langArray = (TypedConstant)commonArray;
             TypedConstant commonArray2 = langArray;
@@ -70,32 +70,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             EqualityTesting.AssertEqual(default(TypedConstant), default(TypedConstant));
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.intType, TypedConstantKind.Primitive, 1),
-                new TypedConstant(this.intType, TypedConstantKind.Primitive, 1));
+                new TypedConstant(_intType, TypedConstantKind.Primitive, 1),
+                new TypedConstant(_intType, TypedConstantKind.Primitive, 1));
 
             var s1 = "foo";
             var s2 = String.Format("{0}{1}{1}", "f", "o");
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, s1),
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, s2));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, s1),
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, s2));
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null));
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.enumString1, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.enumString2, TypedConstantKind.Primitive, null));
+                new TypedConstant(_enumString1, TypedConstantKind.Primitive, null),
+                new TypedConstant(_enumString2, TypedConstantKind.Primitive, null));
 
             EqualityTesting.AssertNotEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.stringType, TypedConstantKind.Error, null));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
+                new TypedConstant(_stringType, TypedConstantKind.Error, null));
 
             EqualityTesting.AssertNotEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.systemType, TypedConstantKind.Primitive, null));
-
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
+                new TypedConstant(_systemType, TypedConstantKind.Primitive, null));
         }
     }
 }

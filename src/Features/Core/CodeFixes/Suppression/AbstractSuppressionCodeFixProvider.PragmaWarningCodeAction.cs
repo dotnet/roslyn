@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal sealed class PragmaWarningCodeAction : CodeAction
         {
-            private readonly AbstractSuppressionCodeFixProvider fixer;
-            private readonly string title;
-            private readonly SyntaxToken startToken;
-            private readonly SyntaxToken endToken;
-            private readonly SyntaxNode nodeWithTokens;
-            private readonly Document document;
-            private readonly Diagnostic diagnostic;
+            private readonly AbstractSuppressionCodeFixProvider _fixer;
+            private readonly string _title;
+            private readonly SyntaxToken _startToken;
+            private readonly SyntaxToken _endToken;
+            private readonly SyntaxNode _nodeWithTokens;
+            private readonly Document _document;
+            private readonly Diagnostic _diagnostic;
 
             public PragmaWarningCodeAction(
                 AbstractSuppressionCodeFixProvider fixer,
@@ -28,42 +28,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Document document,
                 Diagnostic diagnostic)
             {
-                this.fixer = fixer;
-                this.startToken = startToken;
-                this.endToken = endToken;
-                this.nodeWithTokens = nodeWithTokens;
-                this.document = document;
-                this.diagnostic = diagnostic;
+                _fixer = fixer;
+                _startToken = startToken;
+                _endToken = endToken;
+                _nodeWithTokens = nodeWithTokens;
+                _document = document;
+                _diagnostic = diagnostic;
 
-                this.title = fixer.TitleForPragmaWarningSuppressionFix;
+                _title = fixer.TitleForPragmaWarningSuppressionFix;
             }
 
             protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var startAndEndTokenAreTheSame = startToken == endToken;
-                SyntaxToken newStartToken = GetNewStartToken(startToken, diagnostic, fixer);
+                var startAndEndTokenAreTheSame = _startToken == _endToken;
+                SyntaxToken newStartToken = GetNewStartToken(_startToken, _diagnostic, _fixer);
 
-                SyntaxToken newEndToken = endToken;
+                SyntaxToken newEndToken = _endToken;
                 if (startAndEndTokenAreTheSame)
                 {
                     newEndToken = newStartToken;
                 }
 
-                newEndToken = GetNewEndToken(newEndToken, diagnostic, fixer);
+                newEndToken = GetNewEndToken(newEndToken, _diagnostic, _fixer);
 
                 SyntaxNode newNode;
                 if (startAndEndTokenAreTheSame)
                 {
-                    newNode = nodeWithTokens.ReplaceToken(startToken, newEndToken);
+                    newNode = _nodeWithTokens.ReplaceToken(_startToken, newEndToken);
                 }
                 else
                 {
-                    newNode = nodeWithTokens.ReplaceTokens(new[] { startToken, endToken }, (o, n) => o == startToken ? newStartToken : newEndToken);
+                    newNode = _nodeWithTokens.ReplaceTokens(new[] { _startToken, _endToken }, (o, n) => o == _startToken ? newStartToken : newEndToken);
                 }
 
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newRoot = root.ReplaceNode(nodeWithTokens, newNode);
-                return document.WithSyntaxRoot(newRoot);
+                var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = root.ReplaceNode(_nodeWithTokens, newNode);
+                return _document.WithSyntaxRoot(newRoot);
             }
 
             private static SyntaxToken GetNewStartToken(SyntaxToken startToken, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer)
@@ -157,18 +157,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 get
                 {
-                    return this.title;
+                    return _title;
                 }
             }
 
             public SyntaxToken StartToken_TestOnly
             {
-                get { return this.startToken; }
+                get { return _startToken; }
             }
 
             public SyntaxToken EndToken_TestOnly
             {
-                get { return this.endToken; }
+                get { return _endToken; }
             }
         }
     }

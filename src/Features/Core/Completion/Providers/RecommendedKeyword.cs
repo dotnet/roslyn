@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public RecommendedKeyword(
             string keyword,
              Glyph glyph,
-              Func<CancellationToken, ImmutableArray<SymbolDisplayPart>> descriptionFactory, 
+              Func<CancellationToken, ImmutableArray<SymbolDisplayPart>> descriptionFactory,
               bool isIntrinsic = false,
               bool shouldFormatOnCommit = false)
         {

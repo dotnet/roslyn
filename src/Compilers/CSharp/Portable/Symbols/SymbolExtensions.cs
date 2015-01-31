@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsContainingSymbolOfAllTypeParameters(this Symbol containingSymbol, TypeSymbol type)
         {
-            return (object)type.VisitType(HasInvalidTypeParameterFunc, containingSymbol) == null;
+            return (object)type.VisitType(s_hasInvalidTypeParameterFunc, containingSymbol) == null;
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return types.All(containingSymbol.IsContainingSymbolOfAllTypeParameters);
         }
 
-        private static readonly Func<TypeSymbol, Symbol, bool, bool> HasInvalidTypeParameterFunc = (type, containingSymbol, unused) => HasInvalidTypeParameter(type, containingSymbol);
+        private static readonly Func<TypeSymbol, Symbol, bool, bool> s_hasInvalidTypeParameterFunc = (type, containingSymbol, unused) => HasInvalidTypeParameter(type, containingSymbol);
 
         private static bool HasInvalidTypeParameter(TypeSymbol type, Symbol containingSymbol)
         {
@@ -329,6 +329,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return csSymbol;
         }
-
     }
 }

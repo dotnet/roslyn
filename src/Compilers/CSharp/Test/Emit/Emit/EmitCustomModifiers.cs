@@ -35,11 +35,11 @@ public class A
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(source, 
+            var c = CreateCompilationWithMscorlib(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(c, expectedOutput: 
+            CompileAndVerify(c, expectedOutput:
 @"F1
 F2
 F3
@@ -505,7 +505,7 @@ Derived2.Method(Int64[], Int16[], Single[])
             CompileAndVerify(
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput, 
+                expectedOutput: expectedOutput,
                 emitOptions: TestEmitters.RefEmitUnsupported_646023);
         }
 
@@ -549,7 +549,7 @@ System.Int32[]
             CompileAndVerify(
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput, 
+                expectedOutput: expectedOutput,
                 emitOptions: TestEmitters.RefEmitUnsupported_646023);
         }
 

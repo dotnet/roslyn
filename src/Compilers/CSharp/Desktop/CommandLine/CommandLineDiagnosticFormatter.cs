@@ -8,22 +8,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CommandLineDiagnosticFormatter : CSharpDiagnosticFormatter
     {
-        private readonly string baseDirectory;
-        private Lazy<string> lazyNormalizedBaseDirectory;
-        private readonly bool displayFullPaths;
-        private readonly bool displayEndLocations;
+        private readonly string _baseDirectory;
+        private Lazy<string> _lazyNormalizedBaseDirectory;
+        private readonly bool _displayFullPaths;
+        private readonly bool _displayEndLocations;
 
         internal CommandLineDiagnosticFormatter(string baseDirectory, bool displayFullPaths, bool displayEndLocations)
         {
-            this.baseDirectory = baseDirectory;
-            this.displayFullPaths = displayFullPaths;
-            this.displayEndLocations = displayEndLocations;
-            this.lazyNormalizedBaseDirectory = new Lazy<string>(() => FileUtilities.TryNormalizeAbsolutePath(baseDirectory));
+            _baseDirectory = baseDirectory;
+            _displayFullPaths = displayFullPaths;
+            _displayEndLocations = displayEndLocations;
+            _lazyNormalizedBaseDirectory = new Lazy<string>(() => FileUtilities.TryNormalizeAbsolutePath(baseDirectory));
         }
 
         internal override string FormatSourceSpan(LinePositionSpan span, IFormatProvider formatter)
         {
-            if (displayEndLocations)
+            if (_displayEndLocations)
             {
                 return string.Format(formatter, "({0},{1},{2},{3})",
                     span.Start.Line + 1,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override string FormatSourcePath(string path, string basePath, IFormatProvider formatter)
         {
-            var normalizedPath = FileUtilities.NormalizeRelativePath(path, basePath, baseDirectory);
+            var normalizedPath = FileUtilities.NormalizeRelativePath(path, basePath, _baseDirectory);
             if (normalizedPath == null)
             {
                 return path;
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // By default, specify the name of the file in which an error was found.
             // When The /fullpaths option is present, specify the full path to the file.
-            return displayFullPaths ? normalizedPath : RelativizeNormalizedPath(normalizedPath);
+            return _displayFullPaths ? normalizedPath : RelativizeNormalizedPath(normalizedPath);
         }
 
         /// <summary>
-        /// Get the path name starting from the <see cref="baseDirectory"/>
+        /// Get the path name starting from the <see cref="_baseDirectory"/>
         /// </summary>
         internal string RelativizeNormalizedPath(string normalizedPath)
         {
-            var normalizedBaseDirectory = lazyNormalizedBaseDirectory.Value;
+            var normalizedBaseDirectory = _lazyNormalizedBaseDirectory.Value;
             if (normalizedBaseDirectory == null)
             {
                 return normalizedPath;

@@ -12,19 +12,19 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected class ModifiedWhitespace : Whitespace
         {
-            private readonly Whitespace original;
+            private readonly Whitespace _original;
 
             public ModifiedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, string language) :
                 base(optionSet, lineBreaks, indentation, elastic, language)
             {
-                this.original = null;
+                _original = null;
             }
 
             public ModifiedWhitespace(OptionSet optionSet, Whitespace original, int lineBreaks, int indentation, bool elastic, string language) :
                 base(optionSet, lineBreaks, indentation, elastic, language)
             {
                 Contract.ThrowIfNull(original);
-                this.original = original;
+                _original = original;
             }
 
             public override bool ContainsChanges
@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {
-                if (this.original == null)
+                if (_original == null)
                 {
                     return base.WithSpace(space, context, formattingRules);
                 }
 
-                if (this.LineBreaks == this.original.LineBreaks && this.original.Spaces == space)
+                if (this.LineBreaks == _original.LineBreaks && _original.Spaces == space)
                 {
-                    return this.original;
+                    return _original;
                 }
 
                 return base.WithSpace(space, context, formattingRules);
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
             {
-                if (this.original == null)
+                if (_original == null)
                 {
                     return base.WithLine(line, indentation, context, formattingRules, cancellationToken);
                 }
 
-                if (this.original.LineBreaks == line && this.original.Spaces == indentation)
+                if (_original.LineBreaks == line && _original.Spaces == indentation)
                 {
-                    return this.original;
+                    return _original;
                 }
 
                 return base.WithLine(line, indentation, context, formattingRules, cancellationToken);
@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override TriviaData WithIndentation(
                 int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
             {
-                if (this.original == null)
+                if (_original == null)
                 {
                     return base.WithIndentation(indentation, context, formattingRules, cancellationToken);
                 }
 
-                if (this.LineBreaks == this.original.LineBreaks && this.original.Spaces == indentation)
+                if (this.LineBreaks == _original.LineBreaks && _original.Spaces == indentation)
                 {
-                    return this.original;
+                    return _original;
                 }
 
                 return base.WithIndentation(indentation, context, formattingRules, cancellationToken);

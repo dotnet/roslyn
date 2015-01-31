@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    partial class AttributeSyntax
+    public partial class AttributeSyntax
     {
         /// <summary>
         /// Return the name used in syntax for the attribute. This is typically the class

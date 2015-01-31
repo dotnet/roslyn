@@ -16,21 +16,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal struct Enumerator
         {
-            private SyntaxList<TNode> list;
-            private int index;
+            private SyntaxList<TNode> _list;
+            private int _index;
 
             internal Enumerator(SyntaxList<TNode> list)
             {
-                this.list = list;
-                this.index = -1;
+                _list = list;
+                _index = -1;
             }
 
             public bool MoveNext()
             {
-                var newIndex = this.index + 1;
-                if (newIndex < this.list.Count)
+                var newIndex = _index + 1;
+                if (newIndex < _list.Count)
                 {
-                    this.index = newIndex;
+                    _index = newIndex;
                     return true;
                 }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 get
                 {
-                    return this.list[this.index];
+                    return _list[_index];
                 }
             }
         }

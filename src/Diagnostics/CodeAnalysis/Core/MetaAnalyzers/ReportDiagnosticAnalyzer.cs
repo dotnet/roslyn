@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TIdentifierNameSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor InvalidReportDiagnosticRule = new DiagnosticDescriptor(
             DiagnosticIds.InvalidReportDiagnosticRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             DiagnosticCategory.AnalyzerCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -99,19 +99,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         protected abstract class ReportDiagnosticCompilationAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax>
         {
-            private readonly ImmutableHashSet<INamedTypeSymbol> contextTypes;
-            private readonly INamedTypeSymbol diagnosticType;
-            private readonly INamedTypeSymbol diagnosticDescriptorType;
+            private readonly ImmutableHashSet<INamedTypeSymbol> _contextTypes;
+            private readonly INamedTypeSymbol _diagnosticType;
+            private readonly INamedTypeSymbol _diagnosticDescriptorType;
 
-            private ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>> supportedDescriptorFieldsMap;
+            private ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>> _supportedDescriptorFieldsMap;
 
-            public ReportDiagnosticCompilationAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType,  INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            public ReportDiagnosticCompilationAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
-                this.contextTypes = contextTypes;
-                this.diagnosticType = diagnosticType;
-                this.diagnosticDescriptorType = diagnosticDescriptorType;
-                this.supportedDescriptorFieldsMap = ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>>.Empty;
+                _contextTypes = contextTypes;
+                _diagnosticType = diagnosticType;
+                _diagnosticDescriptorType = diagnosticDescriptorType;
+                _supportedDescriptorFieldsMap = ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>>.Empty;
             }
 
             protected abstract IEnumerable<SyntaxNode> GetArgumentExpressions(TInvocationExpressionSyntax invocation);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private ImmutableArray<IFieldSymbol> GetSupportedDescriptors(Compilation compilation, INamedTypeSymbol analyzer, CancellationToken cancellationToken)
             {
                 ImmutableArray<IFieldSymbol> descriptorFields;
-                if (this.supportedDescriptorFieldsMap.TryGetValue(analyzer, out descriptorFields))
+                if (_supportedDescriptorFieldsMap.TryGetValue(analyzer, out descriptorFields))
                 {
                     return descriptorFields;
                 }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                 }
 
-                return ImmutableInterlocked.GetOrAdd(ref supportedDescriptorFieldsMap, analyzer, descriptorFields);
+                return ImmutableInterlocked.GetOrAdd(ref _supportedDescriptorFieldsMap, analyzer, descriptorFields);
             }
 
             private ImmutableArray<IFieldSymbol> GetReferencedDescriptorFields(SyntaxNode syntax, SemanticModel semanticModel)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         var field = (IFieldSymbol)symbol;
                         var fieldType = field.Type as INamedTypeSymbol;
-                        if (fieldType != null && fieldType.GetBaseTypesAndThis().Contains(diagnosticDescriptorType))
+                        if (fieldType != null && fieldType.GetBaseTypesAndThis().Contains(_diagnosticDescriptorType))
                         {
                             builder.Add((IFieldSymbol)symbol);
                         }
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 if (symbol == null ||
                     symbol.Kind != SymbolKind.Method ||
                     !symbol.Name.Equals(ReportDiagnosticName, StringComparison.OrdinalIgnoreCase) ||
-                    !contextTypes.Contains(symbol.ContainingType))
+                    !_contextTypes.Contains(symbol.ContainingType))
                 {
                     return;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     var argument = arguments.First();
                     var type = semanticModel.GetTypeInfo(argument, symbolContext.CancellationToken).ConvertedType;
-                    if (type != null && type.Equals(diagnosticType))
+                    if (type != null && type.Equals(_diagnosticType))
                     {
                         var argSymbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
                         if (argSymbol != null)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             {
                                 var method = argSymbol as IMethodSymbol;
                                 if (method != null &&
-                                    method.ContainingType.Equals(diagnosticType) &&
+                                    method.ContainingType.Equals(_diagnosticType) &&
                                     method.Name.Equals(nameof(Diagnostic.Create), StringComparison.OrdinalIgnoreCase))
                                 {
                                     diagnosticInitializerOpt = argument;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             {
                                 var descriptorFields = GetReferencedDescriptorFields(diagnosticInitializerOpt, semanticModel);
                                 if (descriptorFields.Length == 1 &&
-                                    !this.supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
+                                    !_supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
                                 {
                                     var diagnostic = Diagnostic.Create(InvalidReportDiagnosticRule, invocation.GetLocation(), descriptorFields[0].Name);
                                     symbolContext.ReportDiagnostic(diagnostic);

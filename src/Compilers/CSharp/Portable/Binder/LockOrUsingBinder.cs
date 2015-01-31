@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <remarks>
     /// This type exists to share code between UsingStatementBinder and LockBinder.
     /// </remarks>
-    internal abstract class LockOrUsingBinder : LocalScopeBinder 
+    internal abstract class LockOrUsingBinder : LocalScopeBinder
     {
-        private ImmutableHashSet<Symbol> lazyLockedOrDisposedVariables;
-        private ExpressionAndDiagnostics lazyExpressionAndDiagnostics;
+        private ImmutableHashSet<Symbol> _lazyLockedOrDisposedVariables;
+        private ExpressionAndDiagnostics _lazyExpressionAndDiagnostics;
 
         internal LockOrUsingBinder(Binder enclosing)
             : base(enclosing)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (lazyLockedOrDisposedVariables == null)
+                if (_lazyLockedOrDisposedVariables == null)
                 {
                     ImmutableHashSet<Symbol> lockedOrDisposedVariables = this.Next.LockedOrDisposedVariables;
 
@@ -57,30 +57,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    Interlocked.CompareExchange(ref lazyLockedOrDisposedVariables, lockedOrDisposedVariables, null);
+                    Interlocked.CompareExchange(ref _lazyLockedOrDisposedVariables, lockedOrDisposedVariables, null);
                 }
-                Debug.Assert(lazyLockedOrDisposedVariables != null);
-                return lazyLockedOrDisposedVariables;
+                Debug.Assert(_lazyLockedOrDisposedVariables != null);
+                return _lazyLockedOrDisposedVariables;
             }
         }
 
         protected BoundExpression BindTargetExpression(DiagnosticBag diagnostics)
         {
-            if (lazyExpressionAndDiagnostics == null)
+            if (_lazyExpressionAndDiagnostics == null)
             {
                 // Filter out method group in conversion.
                 DiagnosticBag expressionDiagnostics = DiagnosticBag.GetInstance();
                 BoundExpression boundExpression = this.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
-                Interlocked.CompareExchange(ref lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);
+                Interlocked.CompareExchange(ref _lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);
             }
-            Debug.Assert(lazyExpressionAndDiagnostics != null);
+            Debug.Assert(_lazyExpressionAndDiagnostics != null);
 
             if (diagnostics != null)
             {
-                diagnostics.AddRange(lazyExpressionAndDiagnostics.Diagnostics);
+                diagnostics.AddRange(_lazyExpressionAndDiagnostics.Diagnostics);
             }
 
-            return lazyExpressionAndDiagnostics.Expression;
+            return _lazyExpressionAndDiagnostics.Expression;
         }
 
         /// <remarks>

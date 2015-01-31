@@ -11,28 +11,28 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal class BackgroundCompiler
     {
-        private readonly Workspace workspace;
-        private readonly IWorkspaceTaskScheduler compilationScheduler;
-        private readonly IWorkspaceTaskScheduler notificationQueue;
+        private readonly Workspace _workspace;
+        private readonly IWorkspaceTaskScheduler _compilationScheduler;
+        private readonly IWorkspaceTaskScheduler _notificationQueue;
 
         // Used to keep a strong reference to the built compilations so they are not GC'd
-        private Compilation[] mostRecentCompilations;
+        private Compilation[] _mostRecentCompilations;
 
-        private readonly object buildGate = new object();
-        private CancellationTokenSource cancellationSource;
+        private readonly object _buildGate = new object();
+        private CancellationTokenSource _cancellationSource;
 
         public BackgroundCompiler(Workspace workspace)
         {
-            this.workspace = workspace;
+            _workspace = workspace;
 
             // make a scheduler that runs on the thread pool
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            this.compilationScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
+            _compilationScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
 
             // default uses current (ideally UI/foreground scheduler) if possible
-            this.notificationQueue = taskSchedulerFactory.CreateTaskQueue();
-            this.cancellationSource = new CancellationTokenSource();
-            this.workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+            _notificationQueue = taskSchedulerFactory.CreateTaskQueue();
+            _cancellationSource = new CancellationTokenSource();
+            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
 
             var editorWorkspace = workspace as Workspace;
             if (editorWorkspace != null)
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void Rebuild(Solution solution, ProjectId initialProject = null)
         {
-            lock (this.buildGate)
+            lock (_buildGate)
             {
                 // Keep the previous compilations around so that we can incrementally
                 // build the current compilations without rebuilding the entire DeclarationTable
                 this.CancelBuild(releasePreviousCompilations: false);
 
-                var allProjects = this.workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
+                var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
 
                 // don't even get started if there is nothing to do
                 if (allProjects.Count > 0)
@@ -93,13 +93,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void CancelBuild(bool releasePreviousCompilations)
         {
-            lock (buildGate)
+            lock (_buildGate)
             {
-                this.cancellationSource.Cancel();
-                this.cancellationSource = new CancellationTokenSource();
+                _cancellationSource.Cancel();
+                _cancellationSource = new CancellationTokenSource();
                 if (releasePreviousCompilations)
                 {
-                    mostRecentCompilations = null;
+                    _mostRecentCompilations = null;
                 }
             }
         }
@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.Host
             ProjectId initialProject,
             ISet<ProjectId> allProjects)
         {
-            var cancellationToken = this.cancellationSource.Token;
-            this.compilationScheduler.ScheduleTask(
+            var cancellationToken = _cancellationSource.Token;
+            _compilationScheduler.ScheduleTask(
                 () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 "BackgroundCompiler.BuildCompilationsAsync",
                 cancellationToken);
@@ -138,11 +138,11 @@ namespace Microsoft.CodeAnalysis.Host
                     logger.Dispose();
                     if (t.Status == TaskStatus.RanToCompletion)
                     {
-                        lock (buildGate)
+                        lock (_buildGate)
                         {
                             if (!cancellationToken.IsCancellationRequested)
                             {
-                                mostRecentCompilations = t.Result;
+                                _mostRecentCompilations = t.Result;
                             }
                         }
                     }

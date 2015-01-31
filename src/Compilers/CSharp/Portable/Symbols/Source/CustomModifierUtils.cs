@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 returnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnType, RefKind.None, destinationMethod.ContainingAssembly);
             }
-
         }
 
         /// <param name="sourceType">Type that already has custom modifiers.</param>

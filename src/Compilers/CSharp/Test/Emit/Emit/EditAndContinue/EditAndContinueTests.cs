@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 #pragma warning disable 618
 using System;
 using System.Collections.Immutable;
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 Assert.Equal(methods.Count, 1);
                 Assert.True(methods.ContainsKey("C.M2()"));
 
-               using (var md1 = diff1.GetMetadata())
+                using (var md1 = diff1.GetMetadata())
                 {
                     var reader1 = md1.Reader;
                     var readers = new[] { reader0, reader1 };
@@ -3137,7 +3138,7 @@ class B : A<B>
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0), 
+                ModuleMetadata.CreateFromImage(bytes0),
                 m => testData0.GetMethodData(methodNames0[MetadataTokens.GetRowNumber(m) - 1]).GetEncDebugInfo());
 
             #region Gen1 
@@ -3485,7 +3486,7 @@ class B : A<B>
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(
-                ModuleMetadata.CreateFromImage(bytes0), 
+                ModuleMetadata.CreateFromImage(bytes0),
                 testData0.GetMethodData("C.M").EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
@@ -4043,7 +4044,7 @@ class B
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
-                        
+
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
@@ -4597,7 +4598,7 @@ class B
   IL_000e:  ret
 }");
         }
-        
+
         /// <summary>
         /// Should not re-use locals with custom modifiers.
         /// </summary>
@@ -4654,7 +4655,7 @@ class B
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-            
+
             diff1.VerifyIL("C.F", @"
 {
   // Code size       38 (0x26)
@@ -5103,8 +5104,8 @@ class B
         [Fact]
         public void MethodSignatureWithNoPIAType()
         {
-        var sourcePIA =
-@"using System;
+            var sourcePIA =
+    @"using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""_.dll"")]
 [assembly: Guid(""35DB1A6B-D635-4320-A062-28D42920E2A3"")]

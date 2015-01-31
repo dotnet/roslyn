@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
     internal class CSharpGenerateTypeService :
         AbstractGenerateTypeService<CSharpGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeDeclarationSyntax, ArgumentSyntax>
     {
-        private static readonly SyntaxAnnotation annotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         protected override string DefaultFileExtension
         {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         protected override bool IsInInterfaceList(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax &&
-                expression.Parent is BaseTypeSyntax && 
+                expression.Parent is BaseTypeSyntax &&
                 expression.Parent.IsParentKind(SyntaxKind.BaseList) &&
                 ((BaseTypeSyntax)expression.Parent).Type == expression)
             {
@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 // not an arbitrary expression).
                 var leftSideExpression = simpleName.GetLeftSideOfDot();
                 if (!leftSideExpression.IsKind(
-                    SyntaxKind.QualifiedName, 
-                    SyntaxKind.IdentifierName, 
-                    SyntaxKind.AliasQualifiedName, 
-                    SyntaxKind.GenericName, 
+                    SyntaxKind.QualifiedName,
+                    SyntaxKind.IdentifierName,
+                    SyntaxKind.AliasQualifiedName,
+                    SyntaxKind.GenericName,
                     SyntaxKind.SimpleMemberAccessExpression))
                 {
                     return false;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
 
             // BUG(5712): Don't offer generate type in an enum's base list.
-            if (nameOrMemberAccessExpression.Parent is BaseTypeSyntax && 
+            if (nameOrMemberAccessExpression.Parent is BaseTypeSyntax &&
                 nameOrMemberAccessExpression.Parent.IsParentKind(SyntaxKind.BaseList) &&
                 ((BaseTypeSyntax)nameOrMemberAccessExpression.Parent).Type == nameOrMemberAccessExpression &&
                 nameOrMemberAccessExpression.Parent.Parent.IsParentKind(SyntaxKind.EnumDeclaration))
@@ -888,12 +888,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 name: propertyName.ToString(),
                 type: propertyType,
                 parameters: null,
-                getMethod: accessor,
-                setMethod: accessor,
+                getMethod: s_accessor,
+                setMethod: s_accessor,
                 isIndexer: false);
         }
 
-        private static readonly IMethodSymbol accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+        private static readonly IMethodSymbol s_accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: null,
                     accessibility: Accessibility.Public,
                     statements: null);
@@ -926,13 +926,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             var typeNameToReplace = objectCreation.Type;
             var newTypeName = namedType.GenerateTypeSyntax();
-            var newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(annotation);
+            var newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(s_annotation);
             var newNode = oldNode.ReplaceNode(objectCreation, newObjectCreation);
-            
+
             var speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, model);
             if (speculativeModel != null)
             {
-                newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(annotation).Single();
+                newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
                 return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType);
             }

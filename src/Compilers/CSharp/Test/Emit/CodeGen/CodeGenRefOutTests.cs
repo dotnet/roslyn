@@ -64,7 +64,6 @@ class C
     }
 }";
             CompileAndVerify(source, expectedOutput: "2");
-
         }
 
         [Fact]

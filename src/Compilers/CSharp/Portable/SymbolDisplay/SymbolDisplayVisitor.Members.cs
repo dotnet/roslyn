@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.builder.Add(CreatePart(SymbolDisplayPartKind.PropertyName, symbol, symbol.Name));
             }
-            
+
             if (this.format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters) && symbol.Parameters.Any())
             {
                 AddPunctuation(SyntaxKind.OpenBracketToken);
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var first = true;
-            
+
             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
             // to visualize a symbol *during its construction*, the parameters and return type might 
             // still be null. 

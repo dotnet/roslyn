@@ -2217,7 +2217,6 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "b").WithArguments("switch on boolean type", "2"));
         }
 
-
         #endregion
     }
 }

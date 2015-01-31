@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [Flags]
@@ -13,61 +14,61 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // NOTE: these types should line up with the elements in BinaryOperatorKind
 
-        TypeMask            = 0x000000FF,
+        TypeMask = 0x000000FF,
 
-        SByte               = 0x00000011,
-        Byte                = 0x00000012,
-        Short               = 0x00000013,
-        UShort              = 0x00000014,
-        Int                 = 0x00000015,
-        UInt                = 0x00000016,
-        Long                = 0x00000017,
-        ULong               = 0x00000018,
-        Char                = 0x00000019,
-        Float               = 0x0000001A,
-        Double              = 0x0000001B,
-        Decimal             = 0x0000001C,
-        Bool                = 0x0000001D,
-        _Object             = 0x0000001E, // reserved for binary op
-        _String             = 0x0000001F, // reserved for binary op
-        _StringAndObject    = 0x00000021, // reserved for binary op
-        _ObjectAndString    = 0x00000022, // reserved for binary op
+        SByte = 0x00000011,
+        Byte = 0x00000012,
+        Short = 0x00000013,
+        UShort = 0x00000014,
+        Int = 0x00000015,
+        UInt = 0x00000016,
+        Long = 0x00000017,
+        ULong = 0x00000018,
+        Char = 0x00000019,
+        Float = 0x0000001A,
+        Double = 0x0000001B,
+        Decimal = 0x0000001C,
+        Bool = 0x0000001D,
+        _Object = 0x0000001E, // reserved for binary op
+        _String = 0x0000001F, // reserved for binary op
+        _StringAndObject = 0x00000021, // reserved for binary op
+        _ObjectAndString = 0x00000022, // reserved for binary op
 
-        Enum                = 0x00000023,
-        _EnumAndUnderlying  = 0x00000024, // reserved for binary op
-        _UnderlyingAndEnum  = 0x00000025, // reserved for binary op
-        _Delegate           = 0x00000026, // reserved for binary op
-        Pointer             = 0x00000027,
-        _PointerAndInt      = 0x00000028, // reserved for binary op
-        _PointerAndUInt     = 0x00000029, // reserved for binary op
-        _PointerAndLong     = 0x0000002A, // reserved for binary op
-        _PointerAndULong    = 0x0000002B, // reserved for binary op
-        _IntAndPointer      = 0x0000002C, // reserved for binary op
-        _UIntAndPointer     = 0x0000002D, // reserved for binary op
-        _LongAndPointer     = 0x0000002E, // reserved for binary op
-        _ULongAndPointer    = 0x0000002F, // reserved for binary op
-        _NullableNull       = 0x00000030, // reserved for binary op
-        UserDefined         = 0x00000031,
-        Dynamic             = 0x00000032,
-       
-        OpMask              = 0x0000FF00,
-        PostfixIncrement    = 0x00001000,
-        PostfixDecrement    = 0x00001100,
-        PrefixIncrement     = 0x00001200,
-        PrefixDecrement     = 0x00001300,
-        UnaryPlus           = 0x00001400,
-        UnaryMinus          = 0x00001500,
-        LogicalNegation     = 0x00001600,
-        BitwiseComplement   = 0x00001700,
-        True                = 0x00001800,
-        False               = 0x00001900,
+        Enum = 0x00000023,
+        _EnumAndUnderlying = 0x00000024, // reserved for binary op
+        _UnderlyingAndEnum = 0x00000025, // reserved for binary op
+        _Delegate = 0x00000026, // reserved for binary op
+        Pointer = 0x00000027,
+        _PointerAndInt = 0x00000028, // reserved for binary op
+        _PointerAndUInt = 0x00000029, // reserved for binary op
+        _PointerAndLong = 0x0000002A, // reserved for binary op
+        _PointerAndULong = 0x0000002B, // reserved for binary op
+        _IntAndPointer = 0x0000002C, // reserved for binary op
+        _UIntAndPointer = 0x0000002D, // reserved for binary op
+        _LongAndPointer = 0x0000002E, // reserved for binary op
+        _ULongAndPointer = 0x0000002F, // reserved for binary op
+        _NullableNull = 0x00000030, // reserved for binary op
+        UserDefined = 0x00000031,
+        Dynamic = 0x00000032,
 
-        Lifted              = 0x00010000,
-        _Logical            = 0x00020000, // reserved for binary op              
-        Checked             = 0x00040000,
+        OpMask = 0x0000FF00,
+        PostfixIncrement = 0x00001000,
+        PostfixDecrement = 0x00001100,
+        PrefixIncrement = 0x00001200,
+        PrefixDecrement = 0x00001300,
+        UnaryPlus = 0x00001400,
+        UnaryMinus = 0x00001500,
+        LogicalNegation = 0x00001600,
+        BitwiseComplement = 0x00001700,
+        True = 0x00001800,
+        False = 0x00001900,
+
+        Lifted = 0x00010000,
+        _Logical = 0x00020000, // reserved for binary op              
+        Checked = 0x00040000,
 
         Error = 0x00000000,
-        
+
         SBytePostfixIncrement = SByte | PostfixIncrement,
         BytePostfixIncrement = Byte | PostfixIncrement,
         ShortPostfixIncrement = Short | PostfixIncrement,
@@ -262,63 +263,63 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // NOTE: these types should line up with the elements in UnaryOperatorKind
 
-        TypeMask            = UnaryOperatorKind.TypeMask,
+        TypeMask = UnaryOperatorKind.TypeMask,
 
-        Int                 = UnaryOperatorKind.Int,
-        UInt                = UnaryOperatorKind.UInt,
-        Long                = UnaryOperatorKind.Long,
-        ULong               = UnaryOperatorKind.ULong,
-        Char                = UnaryOperatorKind.Char, //not used
-        Float               = UnaryOperatorKind.Float,
-        Double              = UnaryOperatorKind.Double,
-        Decimal             = UnaryOperatorKind.Decimal,
-        Bool                = UnaryOperatorKind.Bool,
-        Object              = UnaryOperatorKind._Object,
-        String              = UnaryOperatorKind._String,
-        StringAndObject     = UnaryOperatorKind._StringAndObject,
-        ObjectAndString     = UnaryOperatorKind._ObjectAndString,
-        
-        Enum                = UnaryOperatorKind.Enum,
-        EnumAndUnderlying   = UnaryOperatorKind._EnumAndUnderlying,
-        UnderlyingAndEnum   = UnaryOperatorKind._UnderlyingAndEnum,
-        Delegate            = UnaryOperatorKind._Delegate,
-        Pointer             = UnaryOperatorKind.Pointer,
-        PointerAndInt       = UnaryOperatorKind._PointerAndInt,
-        PointerAndUInt      = UnaryOperatorKind._PointerAndUInt,
-        PointerAndLong      = UnaryOperatorKind._PointerAndLong,
-        PointerAndULong     = UnaryOperatorKind._PointerAndULong,
-        IntAndPointer       = UnaryOperatorKind._IntAndPointer,
-        UIntAndPointer      = UnaryOperatorKind._UIntAndPointer,
-        LongAndPointer      = UnaryOperatorKind._LongAndPointer,
-        ULongAndPointer     = UnaryOperatorKind._ULongAndPointer,
-        NullableNull        = UnaryOperatorKind._NullableNull,
-        UserDefined         = UnaryOperatorKind.UserDefined,
-        Dynamic             = UnaryOperatorKind.Dynamic,
-       
-        OpMask              = 0x0000FF00,
-        Multiplication      = 0x00001000,
-        Addition            = 0x00001100,
-        Subtraction         = 0x00001200,
-        Division            = 0x00001300,
-        Remainder           = 0x00001400,
-        LeftShift           = 0x00001500,
-        RightShift          = 0x00001600,
-        Equal               = 0x00001700,
-        NotEqual            = 0x00001800,
-        GreaterThan         = 0x00001900,
-        LessThan            = 0x00001A00,
-        GreaterThanOrEqual  = 0x00001B00,
-        LessThanOrEqual     = 0x00001C00,
-        And                 = 0x00001D00,
-        Xor                 = 0x00001E00,
-        Or                  = 0x00001F00,
+        Int = UnaryOperatorKind.Int,
+        UInt = UnaryOperatorKind.UInt,
+        Long = UnaryOperatorKind.Long,
+        ULong = UnaryOperatorKind.ULong,
+        Char = UnaryOperatorKind.Char, //not used
+        Float = UnaryOperatorKind.Float,
+        Double = UnaryOperatorKind.Double,
+        Decimal = UnaryOperatorKind.Decimal,
+        Bool = UnaryOperatorKind.Bool,
+        Object = UnaryOperatorKind._Object,
+        String = UnaryOperatorKind._String,
+        StringAndObject = UnaryOperatorKind._StringAndObject,
+        ObjectAndString = UnaryOperatorKind._ObjectAndString,
 
-        Lifted              = UnaryOperatorKind.Lifted,
-        Logical             = UnaryOperatorKind._Logical,
-        Checked             = UnaryOperatorKind.Checked,
+        Enum = UnaryOperatorKind.Enum,
+        EnumAndUnderlying = UnaryOperatorKind._EnumAndUnderlying,
+        UnderlyingAndEnum = UnaryOperatorKind._UnderlyingAndEnum,
+        Delegate = UnaryOperatorKind._Delegate,
+        Pointer = UnaryOperatorKind.Pointer,
+        PointerAndInt = UnaryOperatorKind._PointerAndInt,
+        PointerAndUInt = UnaryOperatorKind._PointerAndUInt,
+        PointerAndLong = UnaryOperatorKind._PointerAndLong,
+        PointerAndULong = UnaryOperatorKind._PointerAndULong,
+        IntAndPointer = UnaryOperatorKind._IntAndPointer,
+        UIntAndPointer = UnaryOperatorKind._UIntAndPointer,
+        LongAndPointer = UnaryOperatorKind._LongAndPointer,
+        ULongAndPointer = UnaryOperatorKind._ULongAndPointer,
+        NullableNull = UnaryOperatorKind._NullableNull,
+        UserDefined = UnaryOperatorKind.UserDefined,
+        Dynamic = UnaryOperatorKind.Dynamic,
+
+        OpMask = 0x0000FF00,
+        Multiplication = 0x00001000,
+        Addition = 0x00001100,
+        Subtraction = 0x00001200,
+        Division = 0x00001300,
+        Remainder = 0x00001400,
+        LeftShift = 0x00001500,
+        RightShift = 0x00001600,
+        Equal = 0x00001700,
+        NotEqual = 0x00001800,
+        GreaterThan = 0x00001900,
+        LessThan = 0x00001A00,
+        GreaterThanOrEqual = 0x00001B00,
+        LessThanOrEqual = 0x00001C00,
+        And = 0x00001D00,
+        Xor = 0x00001E00,
+        Or = 0x00001F00,
+
+        Lifted = UnaryOperatorKind.Lifted,
+        Logical = UnaryOperatorKind._Logical,
+        Checked = UnaryOperatorKind.Checked,
 
         Error = 0x00000000,
-        
+
         IntMultiplication = Int | Multiplication,
         UIntMultiplication = UInt | Multiplication,
         LongMultiplication = Long | Multiplication,
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DoubleAddition = Double | Addition,
         DecimalAddition = Decimal | Addition,
         EnumAndUnderlyingAddition = EnumAndUnderlying | Addition,
-        UnderlyingAndEnumAddition =  UnderlyingAndEnum | Addition,
+        UnderlyingAndEnumAddition = UnderlyingAndEnum | Addition,
         UserDefinedAddition = UserDefined | Addition,
         LiftedIntAddition = Lifted | Int | Addition,
         LiftedUIntAddition = Lifted | UInt | Addition,
@@ -431,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUserDefinedSubtraction = Lifted | UserDefined | Subtraction,
         DelegateRemoval = Delegate | Subtraction,
         PointerAndIntSubtraction = PointerAndInt | Subtraction,
-        PointerAndUIntSubtraction = PointerAndUInt | Subtraction, 
+        PointerAndUIntSubtraction = PointerAndUInt | Subtraction,
         PointerAndLongSubtraction = PointerAndLong | Subtraction,
         PointerAndULongSubtraction = PointerAndULong | Subtraction,
         PointerSubtraction = Pointer | Subtraction,
@@ -487,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DelegateEqual = Delegate | Equal,
         PointerEqual = Pointer | Equal,
         DynamicEqual = Dynamic | Equal,
-        
+
         IntNotEqual = Int | NotEqual,
         UIntNotEqual = UInt | NotEqual,
         LongNotEqual = Long | NotEqual,
@@ -535,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUserDefinedLessThan = Lifted | UserDefined | LessThan,
         PointerLessThan = Pointer | LessThan,
         DynamicLessThan = Dynamic | LessThan,
-                
+
         IntGreaterThan = Int | GreaterThan,
         UIntGreaterThan = UInt | GreaterThan,
         LongGreaterThan = Long | GreaterThan,
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUserDefinedLessThanOrEqual = Lifted | UserDefined | LessThanOrEqual,
         PointerLessThanOrEqual = Pointer | LessThanOrEqual,
         DynamicLessThanOrEqual = Dynamic | LessThanOrEqual,
-     
+
         IntGreaterThanOrEqual = Int | GreaterThanOrEqual,
         UIntGreaterThanOrEqual = UInt | GreaterThanOrEqual,
         LongGreaterThanOrEqual = Long | GreaterThanOrEqual,
@@ -598,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUserDefinedGreaterThanOrEqual = Lifted | UserDefined | GreaterThanOrEqual,
         PointerGreaterThanOrEqual = Pointer | GreaterThanOrEqual,
         DynamicGreaterThanOrEqual = Dynamic | GreaterThanOrEqual,
-        
+
         IntAnd = Int | And,
         UIntAnd = UInt | And,
         LongAnd = Long | And,
@@ -607,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         BoolAnd = Bool | And,
         UserDefinedAnd = UserDefined | And,
         LiftedIntAnd = Lifted | Int | And,
-        LiftedUIntAnd  = Lifted | UInt | And,
+        LiftedUIntAnd = Lifted | UInt | And,
         LiftedLongAnd = Lifted | Long | And,
         LiftedULongAnd = Lifted | ULong | And,
         LiftedEnumAnd = Lifted | Enum | And,
@@ -615,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LiftedUserDefinedAnd = Lifted | UserDefined | And,
         DynamicAnd = Dynamic | And,
 
-        LogicalAnd = And | Logical, 
+        LogicalAnd = And | Logical,
         LogicalBoolAnd = Bool | LogicalAnd,
         LogicalUserDefinedAnd = UserDefined | LogicalAnd,
         DynamicLogicalAnd = Dynamic | LogicalAnd,

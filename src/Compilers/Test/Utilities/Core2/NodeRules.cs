@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     var kind = nonTerminal.GetKind();
                     if (!(kind == "OmittedArgument" || kind.Contains("Bad") ||
-                        (kind == "CompilationUnit" && 
+                        (kind == "CompilationUnit" &&
                         nonTerminal.ChildNodesAndTokens().Count == 1 &&
                         nonTerminal.ChildNodesAndTokens().First().GetKind() == "EndOfFileToken")))
                     {

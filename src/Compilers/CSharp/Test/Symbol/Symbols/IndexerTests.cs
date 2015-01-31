@@ -194,7 +194,7 @@ class C : IB, IC
             {
                 Assert.NotNull(setter);
                 Assert.True(setter.ReturnsVoid);
-                CheckParameters(setter.Parameters, expectedParameterTypes.Concat(new [] { expectedType }).ToArray());
+                CheckParameters(setter.Parameters, expectedParameterTypes.Concat(new[] { expectedType }).ToArray());
             }
             else
             {
@@ -203,7 +203,6 @@ class C : IB, IC
 
             Assert.Equal(property.GetMethod != null, hasGet);
             Assert.Equal(property.SetMethod != null, hasSet);
-
         }
 
         private static void CheckParameters(ImmutableArray<ParameterSymbol> parameters, SpecialType[] expectedTypes)
@@ -719,7 +718,7 @@ class Derived : Base
 ";
 
             var compilation = CreateCompilationWithCustomILSource(csharp, il);
-                
+
             // As in dev10, we report only the first hidden member.
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS0108: 'Derived.this[int]' hides inherited member 'Base.this[int]'. Use the new keyword if hiding was intended.
@@ -1890,7 +1889,7 @@ interface B<T>
                 // (7,25): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
                 //     public const string Constant2 = B<int>.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2"),
-                
+
                 // (15,18): error CS0525: Interfaces cannot contain fields
                 //     const string Constant1 = "X";
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
@@ -1935,7 +1934,7 @@ class B<T> where T : Q
     public int this[long x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,25): error CS0110: The evaluation of the constant value for 'P.Constant2' involves a circular definition
                 //     public const string Constant2 = Q.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("P.Constant2"),
@@ -1984,7 +1983,7 @@ class A
     public int this[ulong x] { get { return 0; } }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (10,5): error CS0110: The evaluation of the constant value for 'E.E' involves a circular definition
                 //     E = F,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "E").WithArguments("E.E"),
@@ -2144,7 +2143,7 @@ class B
 ";
             var compilation = CreateCompilationWithMscorlib(source);
 
-            var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type => 
+            var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);

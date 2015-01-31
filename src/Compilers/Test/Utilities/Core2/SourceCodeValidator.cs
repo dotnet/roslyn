@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Name = "ExceptionThrown"
         };
 
-        private readonly string[] m_searchPatterns;
-        private readonly IParser m_parser;
-        private readonly TreeValidator m_treeValidator;
+        private readonly string[] _searchPatterns;
+        private readonly IParser _parser;
+        private readonly TreeValidator _treeValidator;
         protected readonly List<Failure> m_failures;
 
         public event Action<string> FileFound;
@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public SourceCodeValidator(IParser parser, string[] searchPatterns, ISyntaxNodeKindProvider nodeKindProvider, bool enableAllRules)
         {
-            m_parser = parser;
-            m_searchPatterns = searchPatterns;
-            m_treeValidator = new TreeValidator(nodeKindProvider);
+            _parser = parser;
+            _searchPatterns = searchPatterns;
+            _treeValidator = new TreeValidator(nodeKindProvider);
             m_failures = new List<Failure>();
             if (!enableAllRules)
             {
-                m_treeValidator.UnregisterAllRules();
+                _treeValidator.UnregisterAllRules();
             }
         }
 
@@ -49,27 +49,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void RegisterRule(TreeRuleDelegate test, string name, string group)
         {
-            m_treeValidator.RegisterRule(test, name, group);
+            _treeValidator.RegisterRule(test, name, group);
         }
 
         public void RegisterRule(NonTerminalRuleDelegate test, string name, string group)
         {
-            m_treeValidator.RegisterRule(test, name, group);
+            _treeValidator.RegisterRule(test, name, group);
         }
 
         public void RegisterRule(TokenRuleDelegate test, string name, string group)
         {
-            m_treeValidator.RegisterRule(test, name, group);
+            _treeValidator.RegisterRule(test, name, group);
         }
 
         public void RegisterRule(TriviaRuleDelegate test, string name, string group)
         {
-            m_treeValidator.RegisterRule(test, name, group);
+            _treeValidator.RegisterRule(test, name, group);
         }
 
         public void UnRegisterRule(string name)
         {
-            m_treeValidator.UnregisterRule(name);
+            _treeValidator.UnregisterRule(name);
         }
 
         protected bool ValidateCode(string code, ref SyntaxTree outTree, string filePath = "")
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var parserThread = new Thread(exceptionWrapper);
             parserThread.Start((ThreadStart)(() =>
             {
-                tree = m_parser.Parse(code);
+                tree = _parser.Parse(code);
             }));
             if (!parserThread.Join(ParserTimeout))
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var treeValidatorThread = new Thread(exceptionWrapper);
                 treeValidatorThread.Start((ThreadStart)(() =>
                 {
-                    isValid = m_treeValidator.Validate(tree, code, filePath, m_failures);
+                    isValid = _treeValidator.Validate(tree, code, filePath, m_failures);
                 }));
                 if (!treeValidatorThread.Join(TreeValidatorTimeout))
                 {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             ;
-            dirHelper.IterateFiles(m_searchPatterns);
+            dirHelper.IterateFiles(_searchPatterns);
             return isValid;
         }
 

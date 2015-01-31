@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // target type cannot be a non-nullable value type
             Debug.Assert(!rewrittenType.IsValueType || rewrittenType.IsNullableType());
 
-            if (!inExpressionLambda)
+            if (!_inExpressionLambda)
             {
                 ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValue);
 

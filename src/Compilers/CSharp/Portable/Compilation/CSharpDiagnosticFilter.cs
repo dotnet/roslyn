@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal static class CSharpDiagnosticFilter
     {
-        private static readonly ErrorCode[] AlinkWarnings = { ErrorCode.WRN_ConflictingMachineAssembly,
+        private static readonly ErrorCode[] s_alinkWarnings = { ErrorCode.WRN_ConflictingMachineAssembly,
                                                               ErrorCode.WRN_RefCultureMismatch,
                                                               ErrorCode.WRN_InvalidVersionFormat };
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //specifying warnaserror:1607 and getting a message saying "warning as error CS8012..."
             //We don't permit configuring 1607 and independently configuring the new warnings.
             ReportDiagnostic reportAction;
-            if (AlinkWarnings.Contains((ErrorCode)d.Code) &&
+            if (s_alinkWarnings.Contains((ErrorCode)d.Code) &&
                 specificDiagnosticOptions.Keys.Contains(CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn)))
             {
                 reportAction = GetDiagnosticReport(ErrorFacts.GetSeverity(ErrorCode.WRN_ALinkWarn),

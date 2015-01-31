@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal class NameSyntaxComparer : IComparer<NameSyntax>
     {
-        private readonly IComparer<SyntaxToken> tokenComparer;
+        private readonly IComparer<SyntaxToken> _tokenComparer;
         internal TypeSyntaxComparer TypeComparer;
 
         internal NameSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
         {
-            this.tokenComparer = tokenComparer;
+            _tokenComparer = tokenComparer;
         }
 
         public static IComparer<NameSyntax> Create()
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // first token.
             if (x is IdentifierNameSyntax && y is IdentifierNameSyntax)
             {
-                return tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+                return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
             }
             else if (x is GenericNameSyntax && y is GenericNameSyntax)
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (x is IdentifierNameSyntax && y is GenericNameSyntax)
             {
-                int compare = tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+                int compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
                 if (compare != 0)
                 {
                     return compare;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (x is GenericNameSyntax && y is IdentifierNameSyntax)
             {
-                int compare = tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+                int compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
                 if (compare != 0)
                 {
                     return compare;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private int Compare(GenericNameSyntax x, GenericNameSyntax y)
         {
-            int compare = tokenComparer.Compare(x.Identifier, y.Identifier);
+            int compare = _tokenComparer.Compare(x.Identifier, y.Identifier);
             if (compare != 0)
             {
                 return compare;

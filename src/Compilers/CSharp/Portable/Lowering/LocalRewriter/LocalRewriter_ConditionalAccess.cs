@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // null when currently enclosing conditional access node
         // is not supposed to be lowered.
-        private BoundExpression currentConditionalAccessTarget = null;
+        private BoundExpression _currentConditionalAccessTarget = null;
 
         private enum ConditionalAccessLoweringKind
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // by utilizing stack dup/pop instructions 
         internal BoundExpression RewriteConditionalAccess(BoundConditionalAccess node, bool used, BoundExpression rewrittenWhenNull = null)
         {
-            Debug.Assert(!this.inExpressionLambda);
+            Debug.Assert(!_inExpressionLambda);
 
             var loweredReceiver = this.VisitExpression(node.Receiver);
             var receiverType = loweredReceiver.Type;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      but there seem to be no way of knowing that without walking AccessExpression.
             //      For now we will just check that we are in an async method, but it would be nice
             //      to have something more precise.
-            var isAsync = this.factory.CurrentMethod.IsAsync;
+            var isAsync = _factory.CurrentMethod.IsAsync;
 
             ConditionalAccessLoweringKind loweringKind;
             // CONSIDER: If we knew that loweredReceiver is not a captured local
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // trivial cases can be handled more efficiently in IL gen
                 loweringKind = ConditionalAccessLoweringKind.None;
             }
-            else if(needTemp)
+            else if (needTemp)
             {
                 if (receiverType.IsReferenceType || receiverType.IsNullableType())
                 {
@@ -89,36 +89,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            var previousConditionalAccesTarget = currentConditionalAccessTarget;
+            var previousConditionalAccesTarget = _currentConditionalAccessTarget;
             LocalSymbol temp = null;
             BoundExpression unconditionalAccess = null;
 
             switch (loweringKind)
             {
                 case ConditionalAccessLoweringKind.None:
-                    currentConditionalAccessTarget = null;
+                    _currentConditionalAccessTarget = null;
                     break;
 
                 case ConditionalAccessLoweringKind.NoCapture:
-                    currentConditionalAccessTarget = loweredReceiver;
+                    _currentConditionalAccessTarget = loweredReceiver;
                     break;
 
                 case ConditionalAccessLoweringKind.DuplicateCode:
-                    currentConditionalAccessTarget = loweredReceiver;
-                    unconditionalAccess = used? 
+                    _currentConditionalAccessTarget = loweredReceiver;
+                    unconditionalAccess = used ?
                         this.VisitExpression(node.AccessExpression) :
                         this.VisitUnusedExpression(node.AccessExpression);
 
                     goto case ConditionalAccessLoweringKind.CaptureReceiverByVal;
 
                 case ConditionalAccessLoweringKind.CaptureReceiverByVal:
-                    temp = factory.SynthesizedLocal(receiverType);
-                    currentConditionalAccessTarget = factory.Local(temp);
+                    temp = _factory.SynthesizedLocal(receiverType);
+                    _currentConditionalAccessTarget = _factory.Local(temp);
                     break;
 
                 case ConditionalAccessLoweringKind.CaptureReceiverByRef:
-                    temp = factory.SynthesizedLocal(receiverType, refKind: RefKind.Ref);
-                    currentConditionalAccessTarget = factory.Local(temp);
+                    temp = _factory.SynthesizedLocal(receiverType, refKind: RefKind.Ref);
+                    _currentConditionalAccessTarget = _factory.Local(temp);
                     break;
 
                 default:
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.VisitExpression(node.AccessExpression) :
                         this.VisitUnusedExpression(node.AccessExpression);
 
-            currentConditionalAccessTarget = previousConditionalAccesTarget;
+            _currentConditionalAccessTarget = previousConditionalAccesTarget;
 
             TypeSymbol type = this.VisitType(node.Type);
 
@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (accessExpressionType != nodeType && nodeType.IsNullableType())
             {
                 Debug.Assert(accessExpressionType == nodeType.GetNullableUnderlyingType());
-                loweredAccessExpression = factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
+                loweredAccessExpression = _factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
 
                 if (unconditionalAccess != null)
                 {
-                    unconditionalAccess = factory.New((NamedTypeSymbol)nodeType, unconditionalAccess);
+                    unconditionalAccess = _factory.New((NamedTypeSymbol)nodeType, unconditionalAccess);
                 }
             }
             else
@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result;
-                     var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+            var objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
-            rewrittenWhenNull = rewrittenWhenNull ?? factory.Default(nodeType);
+            rewrittenWhenNull = rewrittenWhenNull ?? _factory.Default(nodeType);
 
             switch (loweringKind)
             {
@@ -171,21 +171,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConditionalAccessLoweringKind.CaptureReceiverByVal:
                     // capture the receiver into a temp
-                    loweredReceiver = factory.Sequence(
-                                            factory.AssignmentExpression(factory.Local(temp), loweredReceiver),
-                                            factory.Local(temp));
+                    loweredReceiver = _factory.Sequence(
+                                            _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
+                                            _factory.Local(temp));
 
                     goto case ConditionalAccessLoweringKind.NoCapture;
 
                 case ConditionalAccessLoweringKind.NoCapture:
                     {
-
                         // (object)r != null ? access : default(T)
                         var condition = receiverType.IsNullableType() ?
                             MakeOptimizedHasValue(loweredReceiver.Syntax, loweredReceiver) :
-                            factory.ObjectNotEqual(
-                                factory.Convert(objectType, loweredReceiver),
-                                factory.Null(objectType));
+                            _factory.ObjectNotEqual(
+                                _factory.Convert(objectType, loweredReceiver),
+                                _factory.Null(objectType));
 
                         var consequence = loweredAccessExpression;
 
@@ -198,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (temp != null)
                         {
-                            result = factory.Sequence(temp, result);
+                            result = _factory.Sequence(temp, result);
                         }
                     }
                     break;
@@ -211,15 +210,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //                                          r.Foo()}
 
                     {
-                        var v = factory.SynthesizedLocal(receiverType);
+                        var v = _factory.SynthesizedLocal(receiverType);
 
-                        BoundExpression captureRef = factory.AssignmentExpression(factory.Local(temp), loweredReceiver, refKind: RefKind.Ref);
-                        BoundExpression isNull = factory.LogicalAnd(
+                        BoundExpression captureRef = _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver, refKind: RefKind.Ref);
+                        BoundExpression isNull = _factory.LogicalAnd(
                                                 IsClass(receiverType, objectType),
-                                                factory.Sequence(
-                                                    factory.AssignmentExpression(factory.Local(v), factory.Local(temp)),
-                                                    factory.AssignmentExpression(factory.Local(temp), factory.Local(v), RefKind.Ref),
-                                                    factory.ObjectEqual(factory.Convert(objectType, factory.Local(v)), factory.Null(objectType)))
+                                                _factory.Sequence(
+                                                    _factory.AssignmentExpression(_factory.Local(v), _factory.Local(temp)),
+                                                    _factory.AssignmentExpression(_factory.Local(temp), _factory.Local(v), RefKind.Ref),
+                                                    _factory.ObjectEqual(_factory.Convert(objectType, _factory.Local(v)), _factory.Null(objectType)))
                                                 );
 
                         result = RewriteConditionalOperator(node.Syntax,
@@ -229,12 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                            null,
                            nodeType);
 
-                        result = factory.Sequence(
+                        result = _factory.Sequence(
                                 ImmutableArray.Create(temp, v),
                                 captureRef,
                                 result
                             );
-
                     }
                     break;
 
@@ -243,11 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!receiverType.IsNullableType());
 
                         // if we have a class, do regular conditional access via a val temp
-                        loweredReceiver = factory.AssignmentExpression(factory.Local(temp), loweredReceiver);
+                        loweredReceiver = _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver);
                         BoundExpression ifClass = RewriteConditionalOperator(node.Syntax,
-                            factory.ObjectNotEqual(
-                                                    factory.Convert(objectType, loweredReceiver),
-                                                    factory.Null(objectType)),
+                            _factory.ObjectNotEqual(
+                                                    _factory.Convert(objectType, loweredReceiver),
+                                                    _factory.Null(objectType)),
                             loweredAccessExpression,
                             rewrittenWhenNull,
                             null,
@@ -255,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (temp != null)
                         {
-                            ifClass = factory.Sequence(temp, ifClass);
+                            ifClass = _factory.Sequence(temp, ifClass);
                         }
 
                         // if we have a struct, then just access unconditionally
@@ -280,19 +278,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBinaryOperator IsClass(TypeSymbol receiverType, NamedTypeSymbol objectType)
         {
-            return factory.ObjectEqual(
-                                factory.Convert(objectType, factory.Default(receiverType)),
-                                factory.Null(objectType));
+            return _factory.ObjectEqual(
+                                _factory.Convert(objectType, _factory.Default(receiverType)),
+                                _factory.Null(objectType));
         }
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
-            if (currentConditionalAccessTarget == null)
+            if (_currentConditionalAccessTarget == null)
             {
                 return node;
             }
 
-            var newtarget = currentConditionalAccessTarget;
+            var newtarget = _currentConditionalAccessTarget;
             if (newtarget.Type.IsNullableType())
             {
                 newtarget = MakeOptimizedGetValueOrDefault(node.Syntax, newtarget);

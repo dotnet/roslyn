@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {
             var parts = SplitMemberName(qualifiedName);
-            
+
             lastContainer = container;
             for (int i = 0; i < parts.Length - 1; i++)
             {

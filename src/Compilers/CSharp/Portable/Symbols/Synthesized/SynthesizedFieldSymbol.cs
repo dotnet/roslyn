@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class SynthesizedFieldSymbol : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbol type;
+        private readonly TypeSymbol _type;
 
         public SynthesizedFieldSymbol(
             NamedTypeSymbol containingType,
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, name, isPublic, isReadOnly, isStatic)
         {
             Debug.Assert((object)type != null);
-            this.type = type;
+            _type = type;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return this.type;
+            return _type;
         }
     }
 }

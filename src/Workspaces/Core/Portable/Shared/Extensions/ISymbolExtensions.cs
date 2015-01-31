@@ -915,9 +915,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // otherwise: needs valid GetAwaiter
-            var potentialGetAwaiters = semanticModel.LookupSymbols(position, 
-                                                                   container: typeSymbol ?? methodSymbol.ReturnType.OriginalDefinition, 
-                                                                   name: WellKnownMemberNames.GetAwaiter, 
+            var potentialGetAwaiters = semanticModel.LookupSymbols(position,
+                                                                   container: typeSymbol ?? methodSymbol.ReturnType.OriginalDefinition,
+                                                                   name: WellKnownMemberNames.GetAwaiter,
                                                                    includeReducedExtensionMethods: true);
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private class TestAnalyzerReferenceByLanguage : AnalyzerReference
         {
-            private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap;
+            private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
 
             public TestAnalyzerReferenceByLanguage(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
             {
-                this.analyzersMap = analyzersMap;
+                _analyzersMap = analyzersMap;
             }
 
             public override string FullPath
@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
             {
-                return this.analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
+                return _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
             }
 
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             {
                 ImmutableArray<DiagnosticAnalyzer> analyzers;
-                if (this.analyzersMap.TryGetValue(language, out analyzers))
+                if (_analyzersMap.TryGetValue(language, out analyzers))
                 {
                     return analyzers;
                 }

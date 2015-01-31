@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
     {
-        private bool hasNoBaseCycles;
+        private bool _hasNoBaseCycles;
 
         // Only the compiler can create NamedTypeSymbols.
         internal NamedTypeSymbol()
@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.hasNoBaseCycles;
+                return _hasNoBaseCycles;
             }
         }
 
         internal void SetKnownToHaveNoDeclaredBaseCycles()
         {
-            this.hasNoBaseCycles = true;
+            _hasNoBaseCycles = true;
         }
 
         /// <summary>
@@ -392,7 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-
                 // CONSIDER: we could cache this, but it's only expensive for non-special struct types
                 // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
                 // nicely into the flags variable.

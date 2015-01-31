@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new CSharpParseOptions(
                 languageVersion: LanguageVersion.CSharp3,
                 documentationMode: DocumentationMode.Diagnose,
-                preprocessorSymbols: defines);    
+                preprocessorSymbols: defines);
         }
 
         private SyntaxTree Parse(string text, params string[] defines)

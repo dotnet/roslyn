@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             var classDeclaration = root.FindToken(span.Start).Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>();
             if (classDeclaration != null)
             {
-                
                 var title = string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text);
                 var codeAction = new MyCodeAction(title, ct => AddStaticKeyword(document, root, classDeclaration));
                 context.RegisterCodeFix(codeAction, context.Diagnostics);
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
         }
 
         private Task<Document> AddStaticKeyword(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration)
-            {
+        {
             var staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
             var newDeclaration = classDeclaration.AddModifiers(staticKeyword);
             var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);

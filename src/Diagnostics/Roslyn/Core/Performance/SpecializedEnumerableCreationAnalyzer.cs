@@ -19,25 +19,25 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
-        private static LocalizableString localizableTitleUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitleUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessageUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
-            localizableTitleUseEmptyEnumerable,
-            localizableMessageUseEmptyEnumerable,
+            s_localizableTitleUseEmptyEnumerable,
+            s_localizableMessageUseEmptyEnumerable,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessageUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
-            localizableTitleUseSingletonEnumerable,
-            localizableMessageUseSingletonEnumerable,
+            s_localizableTitleUseSingletonEnumerable,
+            s_localizableMessageUseSingletonEnumerable,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -91,13 +91,13 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class AbstractCodeBlockStartedAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
         {
-            private INamedTypeSymbol genericEnumerableSymbol;
-            private IMethodSymbol genericEmptyEnumerableSymbol;
+            private INamedTypeSymbol _genericEnumerableSymbol;
+            private IMethodSymbol _genericEmptyEnumerableSymbol;
 
             public AbstractCodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
-                this.genericEnumerableSymbol = genericEnumerableSymbol;
-                this.genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
+                _genericEnumerableSymbol = genericEnumerableSymbol;
+                _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
             protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TLanguageKindEnum> context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol);
@@ -106,9 +106,9 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var methodSymbol = context.OwningSymbol as IMethodSymbol;
                 if (methodSymbol != null &&
-                    methodSymbol.ReturnType.OriginalDefinition == this.genericEnumerableSymbol)
+                    methodSymbol.ReturnType.OriginalDefinition == _genericEnumerableSymbol)
                 {
-                    GetSyntaxAnalyzer(context, this.genericEnumerableSymbol, this.genericEmptyEnumerableSymbol);
+                    GetSyntaxAnalyzer(context, _genericEnumerableSymbol, _genericEmptyEnumerableSymbol);
                 }
             }
         }
@@ -116,12 +116,12 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract class AbstractSyntaxAnalyzer
         {
             protected INamedTypeSymbol genericEnumerableSymbol;
-            private IMethodSymbol genericEmptyEnumerableSymbol;
+            private IMethodSymbol _genericEmptyEnumerableSymbol;
 
             public AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
                 this.genericEnumerableSymbol = genericEnumerableSymbol;
-                this.genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
+                _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
             public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -144,7 +144,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var methodSymbol = semanticModel.GetSymbolInfo(name).Symbol as IMethodSymbol;
                 if (methodSymbol != null &&
-                    methodSymbol.OriginalDefinition == this.genericEmptyEnumerableSymbol)
+                    methodSymbol.OriginalDefinition == _genericEmptyEnumerableSymbol)
                 {
                     addDiagnostic(Diagnostic.Create(UseEmptyEnumerableRule, name.Parent.GetLocation()));
                 }

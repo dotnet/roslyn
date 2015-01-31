@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis
     [Serializable]
     public sealed class SerializableDocumentId
     {
-        private readonly SerializableProjectId projectId;
-        private readonly Guid guid;
-        private readonly string debugName;
+        private readonly SerializableProjectId _projectId;
+        private readonly Guid _guid;
+        private readonly string _debugName;
 
         public SerializableDocumentId(DocumentId documentId)
         {
@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            this.projectId = new SerializableProjectId(documentId.ProjectId);
-            this.guid = documentId.Id;
-            this.debugName = documentId.DebugName;
+            _projectId = new SerializableProjectId(documentId.ProjectId);
+            _guid = documentId.Id;
+            _debugName = documentId.DebugName;
         }
 
         public DocumentId DocumentId
         {
             get
             {
-                return new DocumentId(projectId.ProjectId, guid, debugName);
+                return new DocumentId(_projectId.ProjectId, _guid, _debugName);
             }
         }
     }

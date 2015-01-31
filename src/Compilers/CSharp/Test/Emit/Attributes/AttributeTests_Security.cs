@@ -1488,7 +1488,7 @@ public class MyClass
                     // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                     // [PermissionSetAttribute(SecurityAction.Deny, File = @"pset_01.xml")]
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
-            
+
                 using (var output = new MemoryStream())
                 {
                     var emitResult = comp.Emit(output);

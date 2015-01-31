@@ -3,11 +3,12 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal struct SeparatedSyntaxListBuilder<TNode> where TNode : CSharpSyntaxNode
     {
-        private readonly SyntaxListBuilder builder;
+        private readonly SyntaxListBuilder _builder;
 
         public SeparatedSyntaxListBuilder(int size)
             : this(new SyntaxListBuilder(size))
@@ -21,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal SeparatedSyntaxListBuilder(SyntaxListBuilder builder)
         {
-            this.builder = builder;
+            _builder = builder;
         }
 
         public bool IsNull
         {
             get
             {
-                return this.builder == null;
+                return _builder == null;
             }
         }
 
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.builder.Count;
+                return _builder.Count;
             }
         }
 
@@ -44,51 +45,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.builder[index];
+                return _builder[index];
             }
 
             set
             {
-                this.builder[index] = value;
+                _builder[index] = value;
             }
         }
 
         public void Clear()
         {
-            this.builder.Clear();
+            _builder.Clear();
         }
 
         public SeparatedSyntaxListBuilder<TNode> Add(TNode node)
         {
-            this.builder.Add(node);
+            _builder.Add(node);
             return this;
         }
 
         public void AddSeparator(SyntaxToken separatorToken)
         {
-            this.builder.Add(separatorToken);
+            _builder.Add(separatorToken);
         }
 
         public void AddRange(TNode[] items, int offset, int length)
         {
-            this.builder.AddRange(items, offset, length);
+            _builder.AddRange(items, offset, length);
         }
 
         public void AddRange(SeparatedSyntaxList<TNode> nodes)
         {
-            this.builder.AddRange(nodes.GetWithSeparators());
+            _builder.AddRange(nodes.GetWithSeparators());
         }
 
         public bool Any(SyntaxKind kind)
         {
-            return this.builder.Any(kind);
+            return _builder.Any(kind);
         }
 
         public SeparatedSyntaxList<TNode> ToList()
         {
-            return builder == null
+            return _builder == null
                 ? default(SeparatedSyntaxList<TNode>)
-                : new SeparatedSyntaxList<TNode>(new SyntaxList<CSharpSyntaxNode>(this.builder.ToListNode()));
+                : new SeparatedSyntaxList<TNode>(new SyntaxList<CSharpSyntaxNode>(_builder.ToListNode()));
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </remarks>
         internal SyntaxListBuilder UnderlyingBuilder
         {
-            get { return builder; }
+            get { return _builder; }
         }
 
         public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxListBuilder<TNode> builder)

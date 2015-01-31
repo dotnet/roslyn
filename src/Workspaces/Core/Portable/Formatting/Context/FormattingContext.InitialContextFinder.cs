@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         private class InitialContextFinder
         {
-            private readonly TokenStream tokenStream;
-            private readonly ChainedFormattingRules formattingRules;
-            private readonly SyntaxNode rootNode;
+            private readonly TokenStream _tokenStream;
+            private readonly ChainedFormattingRules _formattingRules;
+            private readonly SyntaxNode _rootNode;
 
             public InitialContextFinder(
                 TokenStream tokenStream,
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 Contract.ThrowIfNull(formattingRules);
                 Contract.ThrowIfNull(rootNode);
 
-                this.tokenStream = tokenStream;
-                this.formattingRules = formattingRules;
-                this.rootNode = rootNode;
+                _tokenStream = tokenStream;
+                _formattingRules = formattingRules;
+                _rootNode = rootNode;
             }
 
             public ValueTuple<List<IndentBlockOperation>, List<SuppressOperation>> Do(SyntaxToken startToken, SyntaxToken endToken)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     node.DescendantNodesAndSelf(n => n != previous && n.Span.IntersectsWith(span) && !span.Contains(n.Span))
                         .Do(n =>
                             {
-                                this.formattingRules.AddIndentBlockOperations(list, n);
+                                _formattingRules.AddIndentBlockOperations(list, n);
                                 foreach (var element in list)
                                 {
                                     if (element != null)
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (operations.Count == 0)
                 {
                     operations.Add(new IndentBlockOperation(
-                        startToken: this.rootNode.GetFirstToken(includeZeroWidth: true),
-                        endToken: this.rootNode.GetLastToken(includeZeroWidth: true),
-                        textSpan: this.rootNode.FullSpan,
+                        startToken: _rootNode.GetFirstToken(includeZeroWidth: true),
+                        endToken: _rootNode.GetLastToken(includeZeroWidth: true),
+                        textSpan: _rootNode.FullSpan,
                         indentationDelta: 0,
                         option: IndentBlockOption.AbsolutePosition));
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return true;
                     }
 
-                    if (o.ContainsElasticTrivia(this.tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElastic))
+                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElastic))
                     {
                         return true;
                     }
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)
                 {
-                    this.formattingRules.AddSuppressOperations(list, currentIndentationNode);
+                    _formattingRules.AddSuppressOperations(list, currentIndentationNode);
 
                     list.RemoveAll(predicate);
                     if (list.Count > 0)

@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedMethodSymbol : AbstractWrappedSymbol, IMethodSymbol
         {
-            private IMethodSymbol symbol;
+            private IMethodSymbol _symbol;
 
             public WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(methodSymbol, canImplementImplicitly, docCommentFormattingService)
             {
-                this.symbol = methodSymbol;
+                _symbol = methodSymbol;
             }
 
             public int Arity
             {
                 get
                 {
-                    return this.symbol.Arity;
+                    return _symbol.Arity;
                 }
             }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.AssociatedSymbol;
+                    return _symbol.AssociatedSymbol;
                 }
             }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.AssociatedAnonymousDelegate;
+                    return _symbol.AssociatedAnonymousDelegate;
                 }
             }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ConstructedFrom;
+                    return _symbol.ConstructedFrom;
                 }
             }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     return this.CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
-                        : this.symbol.ExplicitInterfaceImplementations;
+                        : _symbol.ExplicitInterfaceImplementations;
                 }
             }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.HidesBaseMethodsByName;
+                    return _symbol.HidesBaseMethodsByName;
                 }
             }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsExtensionMethod;
+                    return _symbol.IsExtensionMethod;
                 }
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsGenericMethod;
+                    return _symbol.IsGenericMethod;
                 }
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsAsync;
+                    return _symbol.IsAsync;
                 }
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.MethodKind;
+                    return _symbol.MethodKind;
                 }
             }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.OverriddenMethod;
+                    return _symbol.OverriddenMethod;
                 }
             }
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Parameters;
+                    return _symbol.Parameters;
                 }
             }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.PartialDefinitionPart;
+                    return _symbol.PartialDefinitionPart;
                 }
             }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.PartialImplementationPart;
+                    return _symbol.PartialImplementationPart;
                 }
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ReceiverType;
+                    return _symbol.ReceiverType;
                 }
             }
 
@@ -152,21 +152,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 get
                 {
                     // This implementation feels incorrect!
-                    return this.symbol.ReducedFrom;
+                    return _symbol.ReducedFrom;
                 }
             }
 
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             {
                 // This implementation feels incorrect, but it follows the pattern that other extension method related APIs are using!
-                return this.symbol.GetTypeInferredDuringReduction(reducedFromTypeParameter);
+                return _symbol.GetTypeInferredDuringReduction(reducedFromTypeParameter);
             }
 
             public bool ReturnsVoid
             {
                 get
                 {
-                    return this.symbol.ReturnsVoid;
+                    return _symbol.ReturnsVoid;
                 }
             }
 
@@ -174,20 +174,20 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ReturnType;
+                    return _symbol.ReturnType;
                 }
             }
 
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
             {
-                return this.symbol.GetReturnTypeAttributes();
+                return _symbol.GetReturnTypeAttributes();
             }
 
             public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
             {
                 get
                 {
-                    return this.symbol.ReturnTypeCustomModifiers;
+                    return _symbol.ReturnTypeCustomModifiers;
                 }
             }
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.TypeArguments;
+                    return _symbol.TypeArguments;
                 }
             }
 
@@ -203,31 +203,31 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.TypeParameters;
+                    return _symbol.TypeParameters;
                 }
             }
 
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             {
-                return this.symbol.Construct(typeArguments);
+                return _symbol.Construct(typeArguments);
             }
 
             public DllImportData GetDllImportData()
             {
-                return this.symbol.GetDllImportData();
+                return _symbol.GetDllImportData();
             }
 
             public IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
             {
                 // This implementation feels incorrect!
-                return this.symbol.ReduceExtensionMethod(receiverType);
+                return _symbol.ReduceExtensionMethod(receiverType);
             }
 
             public bool IsVararg
             {
                 get
                 {
-                    return this.symbol.IsVararg;
+                    return _symbol.IsVararg;
                 }
             }
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsCheckedBuiltin;
+                    return _symbol.IsCheckedBuiltin;
                 }
             }
         }

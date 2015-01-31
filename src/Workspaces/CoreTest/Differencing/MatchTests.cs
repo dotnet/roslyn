@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         {
             TestNode x1, x2;
 
-            var oldRoot = new TestNode(0, 1, 
+            var oldRoot = new TestNode(0, 1,
                 x1 = new TestNode(1, 1));
 
             var newRoot = new TestNode(0, 1,
                 x2 = new TestNode(1, 2));
 
-            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, 
+            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
                 new[] { KeyValuePair.Create(x1, x2), KeyValuePair.Create(x1, x2) });
 
             TestNode n;

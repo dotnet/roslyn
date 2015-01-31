@@ -150,38 +150,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         {
             switch (diagnostic.Id)
             {
-            case CS1061:
-                if (node.IsKind(SyntaxKind.ConditionalAccessExpression))
-                {
-                    node = (node as ConditionalAccessExpressionSyntax).WhenNotNull;
-                }
-                else if (node.IsKind(SyntaxKind.MemberBindingExpression))
-                {
-                    node = (node as MemberBindingExpressionSyntax).Name;
-                }
+                case CS1061:
+                    if (node.IsKind(SyntaxKind.ConditionalAccessExpression))
+                    {
+                        node = (node as ConditionalAccessExpressionSyntax).WhenNotNull;
+                    }
+                    else if (node.IsKind(SyntaxKind.MemberBindingExpression))
+                    {
+                        node = (node as MemberBindingExpressionSyntax).Name;
+                    }
 
-                break;
-            case CS0122:
-                break;
+                    break;
+                case CS0122:
+                    break;
 
-            case CS1503:
-                //// look up its corresponding method name
-                var parent = node.GetAncestor<InvocationExpressionSyntax>();
-                if (parent == null)
-                {
+                case CS1503:
+                    //// look up its corresponding method name
+                    var parent = node.GetAncestor<InvocationExpressionSyntax>();
+                    if (parent == null)
+                    {
+                        return false;
+                    }
+
+                    var method = parent.Expression as MemberAccessExpressionSyntax;
+                    if (method != null)
+                    {
+                        node = method.Name;
+                    }
+
+                    break;
+
+                default:
                     return false;
-                }
-
-                var method = parent.Expression as MemberAccessExpressionSyntax;
-                if (method != null)
-                {
-                    node = method.Name;
-                }
-
-                break;
-
-            default:
-                return false;
             }
 
             var simpleName = node as SimpleNameSyntax;
@@ -228,58 +228,58 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         {
             switch (diagnostic.Id)
             {
-            case CS0103:
-            case CS0246:
-            case CS0305:
-            case CS0308:
-            case CS0122:
-            case CS0307:
-            case CS0616:
-            case CS1003:
-            case CS1580:
-            case CS1581:
-                break;
+                case CS0103:
+                case CS0246:
+                case CS0305:
+                case CS0308:
+                case CS0122:
+                case CS0307:
+                case CS0616:
+                case CS1003:
+                case CS1580:
+                case CS1581:
+                    break;
 
-            case CS1002:
-                //// only lookup errors inside ParenthesizedLambdaExpression e.g., () => { ... }
-                if (node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
-                {
-                    if (node is SimpleNameSyntax)
+                case CS1002:
+                    //// only lookup errors inside ParenthesizedLambdaExpression e.g., () => { ... }
+                    if (node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
                     {
-                        break;
+                        if (node is SimpleNameSyntax)
+                        {
+                            break;
+                        }
+                        else if (node is BlockSyntax || node is MemberAccessExpressionSyntax || node is BinaryExpressionSyntax)
+                        {
+                            var last = node.DescendantNodes().OfType<SimpleNameSyntax>().LastOrDefault();
+                            if (!TryFindStandaloneType(ref node))
+                            {
+                                node = node.DescendantNodes().OfType<SimpleNameSyntax>().FirstOrDefault();
+                            }
+                            else
+                            {
+                                node = last;
+                            }
+                        }
                     }
-                    else if (node is BlockSyntax || node is MemberAccessExpressionSyntax || node is BinaryExpressionSyntax)
+                    else
                     {
-                        var last = node.DescendantNodes().OfType<SimpleNameSyntax>().LastOrDefault();
-                        if (!TryFindStandaloneType(ref node))
-                        {
-                            node = node.DescendantNodes().OfType<SimpleNameSyntax>().FirstOrDefault();
-                        }
-                        else
-                        {
-                            node = last;
-                        }
+                        return false;
                     }
-                }
-                else
-                {
+
+                    break;
+
+                case CS1574:
+                case CS1584:
+                    var cref = node as QualifiedCrefSyntax;
+                    if (cref != null)
+                    {
+                        node = cref.Container;
+                    }
+
+                    break;
+
+                default:
                     return false;
-                }
-
-                break;
-
-            case CS1574:
-            case CS1584:
-                var cref = node as QualifiedCrefSyntax;
-                if (cref != null)
-                {
-                    node = cref.Container;
-                }
-
-                break;
-
-            default:
-                return false;
             }
 
             return TryFindStandaloneType(ref node);
@@ -587,7 +587,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             return IsViablePropertyOrField(field, expression, semanticModel, syntaxFacts, cancellationToken);
-
         }
 
         internal override bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

@@ -129,7 +129,7 @@ namespace NS
     struct Name5 {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new string[] {text1, text2, text3});
+            var compilation = CreateCompilationWithMscorlib(new string[] { text1, text2, text3 });
 
             var ns = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("NS").Single();
 
@@ -168,7 +168,6 @@ namespace NS
                 // (4,12): error CS0101: The namespace 'NS' already contains a definition for 'Name4'
                 //     struct Name4 {}
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "Name4").WithArguments("Name4", "NS"));
-
         }
 
         [WorkItem(527531, "DevDiv")]

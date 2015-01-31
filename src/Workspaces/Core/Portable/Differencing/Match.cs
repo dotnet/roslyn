@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Differencing
         private const double MatchingDistance3 = 1.5;
         private const double MaxDistance = 2.0;
 
-        private readonly TreeComparer<TNode> comparer;
-        private readonly TNode root1;
-        private readonly TNode root2;
+        private readonly TreeComparer<TNode> _comparer;
+        private readonly TNode _root1;
+        private readonly TNode _root2;
 
-        private readonly Dictionary<TNode, TNode> oneToTwo;
-        private readonly Dictionary<TNode, TNode> twoToOne;
+        private readonly Dictionary<TNode, TNode> _oneToTwo;
+        private readonly Dictionary<TNode, TNode> _twoToOne;
 
         internal Match(TNode root1, TNode root2, TreeComparer<TNode> nodeComparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
         {
-            this.root1 = root1;
-            this.root2 = root2;
-            this.comparer = nodeComparer;
+            _root1 = root1;
+            _root2 = root2;
+            _comparer = nodeComparer;
 
             int labelCount = nodeComparer.LabelCount;
 
@@ -41,29 +41,29 @@ namespace Microsoft.CodeAnalysis.Differencing
             CategorizeNodesByLabels(root2, labelCount, out nodes2, out count2);
 
             // Calculate match:
-            this.oneToTwo = new Dictionary<TNode, TNode>(count1);
-            this.twoToOne = new Dictionary<TNode, TNode>(count2);
+            _oneToTwo = new Dictionary<TNode, TNode>(count1);
+            _twoToOne = new Dictionary<TNode, TNode>(count2);
 
             if (knownMatches != null)
             {
                 foreach (var knownMatch in knownMatches)
                 {
-                    if (comparer.GetLabel(knownMatch.Key) != comparer.GetLabel(knownMatch.Value))
+                    if (_comparer.GetLabel(knownMatch.Key) != _comparer.GetLabel(knownMatch.Value))
                     {
                         throw new ArgumentException(string.Format(WorkspacesResources.MatchingNodesMustHaveTheSameLabel, knownMatch.Key, knownMatch.Value), "knownMatches");
                     }
 
-                    if (!comparer.TreesEqual(knownMatch.Key, root1))
+                    if (!_comparer.TreesEqual(knownMatch.Key, root1))
                     {
                         throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheOldTree, knownMatch.Key), "knownMatches");
                     }
 
-                    if (!comparer.TreesEqual(knownMatch.Value, root2))
+                    if (!_comparer.TreesEqual(knownMatch.Value, root2))
                     {
                         throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheNewTree, knownMatch.Value), "knownMatches");
                     }
 
-                    if (!oneToTwo.ContainsKey(knownMatch.Key))
+                    if (!_oneToTwo.ContainsKey(knownMatch.Key))
                     {
                         Add(knownMatch.Key, knownMatch.Value);
                     }
@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Differencing
             // This order ensures that a node of a certain kind can have a parent of the same kind 
             // and we can still use tied-to-parent for that kind. That's because the parent will always
             // be processed earlier than the child due to depth-first prefix ordering.
-            foreach (TNode node in comparer.GetDescendants(root))
+            foreach (TNode node in _comparer.GetDescendants(root))
             {
-                int label = comparer.GetLabel(node);
+                int label = _comparer.GetLabel(node);
                 if (label < 0 || label >= labelCount)
                 {
                     throw new InvalidOperationException(string.Format(WorkspacesResources.LabelForNodeIsInvalid, node, labelCount));
@@ -113,9 +113,9 @@ namespace Microsoft.CodeAnalysis.Differencing
             Debug.Assert(nodes1.Length == nodes2.Length);
 
             // Root nodes always match but they might have been added as knownMatches
-            if (!HasPartnerInTree2(root1))
+            if (!HasPartnerInTree2(_root1))
             {
-                Add(root1, root2);
+                Add(_root1, _root2);
             }
 
             // --- The original FastMatch algorithm ---
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         private void ComputeMatchForLabel(int label, List<TNode> s1, List<TNode> s2)
         {
-            int tiedToAncestor = comparer.TiedToAncestor(label);
+            int tiedToAncestor = _comparer.TiedToAncestor(label);
 
             ComputeMatchForLabel(s1, s2, tiedToAncestor, EpsilonDistance);     // almost exact match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance1);   // ok match
@@ -216,13 +216,13 @@ namespace Microsoft.CodeAnalysis.Differencing
                         // consider avoding matching them to all other nodes of the same label.
                         // Rather we should only match them with their siblings that share the same parent.
 
-                        var ancestor1 = comparer.GetAncestor(node1, tiedToAncestor);
-                        var ancestor2 = comparer.GetAncestor(node2, tiedToAncestor);
+                        var ancestor1 = _comparer.GetAncestor(node1, tiedToAncestor);
+                        var ancestor2 = _comparer.GetAncestor(node2, tiedToAncestor);
 
                         // Since CategorizeNodesByLabels added nodes to the s1/s2 lists in depth-first prefix order,
                         // we can also accept equality in the following condition. That's because we find the partner 
                         // of the parent node before we get to finding it for the child node of the same kind.
-                        Debug.Assert(comparer.GetLabel(ancestor1) <= comparer.GetLabel(node1));
+                        Debug.Assert(_comparer.GetLabel(ancestor1) <= _comparer.GetLabel(node1));
 
                         if (!Contains(ancestor1, ancestor2))
                         {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     // Now, we have no other choice than comparing the node "values"
                     // and looking for the one with the smaller distance.
 
-                    double distance = comparer.GetDistance(node1, node2);
+                    double distance = _comparer.GetDistance(node1, node2);
                     if (distance < bestDistance)
                     {
                         matched = true;
@@ -271,44 +271,44 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal void Add(TNode node1, TNode node2)
         {
-            Debug.Assert(comparer.TreesEqual(node1, root1));
-            Debug.Assert(comparer.TreesEqual(node2, root2));
+            Debug.Assert(_comparer.TreesEqual(node1, _root1));
+            Debug.Assert(_comparer.TreesEqual(node2, _root2));
 
-            oneToTwo.Add(node1, node2);
-            twoToOne.Add(node2, node1);
+            _oneToTwo.Add(node1, node2);
+            _twoToOne.Add(node2, node1);
         }
 
         internal bool TryGetPartnerInTree1(TNode node2, out TNode partner1)
         {
-            bool result = twoToOne.TryGetValue(node2, out partner1);
-            Debug.Assert(comparer.TreesEqual(node2, root2));
-            Debug.Assert(!result || comparer.TreesEqual(partner1, root1));
+            bool result = _twoToOne.TryGetValue(node2, out partner1);
+            Debug.Assert(_comparer.TreesEqual(node2, _root2));
+            Debug.Assert(!result || _comparer.TreesEqual(partner1, _root1));
             return result;
         }
 
         internal bool HasPartnerInTree1(TNode node2)
         {
-            Debug.Assert(comparer.TreesEqual(node2, root2));
-            return twoToOne.ContainsKey(node2);
+            Debug.Assert(_comparer.TreesEqual(node2, _root2));
+            return _twoToOne.ContainsKey(node2);
         }
 
         internal bool TryGetPartnerInTree2(TNode node1, out TNode partner2)
         {
-            bool result = oneToTwo.TryGetValue(node1, out partner2);
-            Debug.Assert(comparer.TreesEqual(node1, root1));
-            Debug.Assert(!result || comparer.TreesEqual(partner2, root2));
+            bool result = _oneToTwo.TryGetValue(node1, out partner2);
+            Debug.Assert(_comparer.TreesEqual(node1, _root1));
+            Debug.Assert(!result || _comparer.TreesEqual(partner2, _root2));
             return result;
         }
 
         internal bool HasPartnerInTree2(TNode node1)
         {
-            Debug.Assert(comparer.TreesEqual(node1, root1));
-            return oneToTwo.ContainsKey(node1);
+            Debug.Assert(_comparer.TreesEqual(node1, _root1));
+            return _oneToTwo.ContainsKey(node1);
         }
 
         internal bool Contains(TNode node1, TNode node2)
         {
-            Debug.Assert(comparer.TreesEqual(node2, root2));
+            Debug.Assert(_comparer.TreesEqual(node2, _root2));
 
             TNode partner2;
             return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                return comparer;
+                return _comparer;
             }
         }
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                return root1;
+                return _root1;
             }
         }
 
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                return root2;
+                return _root2;
             }
         }
 
@@ -342,18 +342,18 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             get
             {
-                return new ReadOnlyDictionary<TNode, TNode>(oneToTwo);
+                return new ReadOnlyDictionary<TNode, TNode>(_oneToTwo);
             }
         }
 
         public bool TryGetNewNode(TNode oldNode, out TNode newNode)
         {
-            return oneToTwo.TryGetValue(oldNode, out newNode);
+            return _oneToTwo.TryGetValue(oldNode, out newNode);
         }
 
         public bool TryGetOldNode(TNode newNode, out TNode oldNode)
         {
-            return twoToOne.TryGetValue(newNode, out oldNode);
+            return _twoToOne.TryGetValue(newNode, out oldNode);
         }
 
         /// <summary>

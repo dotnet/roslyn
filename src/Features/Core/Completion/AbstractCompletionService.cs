@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -18,28 +18,28 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private const int MruSize = 10;
 
-        private readonly List<string> committedItems = new List<string>(MruSize);
-        private object mruGate = new object();
+        private readonly List<string> _committedItems = new List<string>(MruSize);
+        private object _mruGate = new object();
 
         private void CompletionItemComitted(CompletionItem item)
         {
-            lock (mruGate)
+            lock (_mruGate)
             {
                 // We need to remove the item if it's already in the list.
                 // If we're at capacity, we need to remove the LRU item.
-                var removed = committedItems.Remove(item.DisplayText);
-                if (!removed && committedItems.Count == MruSize)
+                var removed = _committedItems.Remove(item.DisplayText);
+                if (!removed && _committedItems.Count == MruSize)
                 {
-                    committedItems.RemoveAt(0);
+                    _committedItems.RemoveAt(0);
                 }
 
-                committedItems.Add(item.DisplayText);
+                _committedItems.Add(item.DisplayText);
             }
         }
 
         protected int GetMRUIndex(CompletionItem item)
         {
-            lock (mruGate)
+            lock (_mruGate)
             {
                 // A lower value indicates more recently used.  Since items are added
                 // to the end of the list, our result just maps to the negation of the 
@@ -47,16 +47,16 @@ namespace Microsoft.CodeAnalysis.Completion
                 // -1 => 1  == Not Found
                 // 0  => 0  == least recently used 
                 // 9  => -9 == most recently used 
-                var index = committedItems.IndexOf(item.DisplayText);
+                var index = _committedItems.IndexOf(item.DisplayText);
                 return -index;
             }
         }
 
         public void ClearMRUCache()
         {
-            lock (mruGate)
+            lock (_mruGate)
             {
-                committedItems.Clear();
+                _committedItems.Clear();
             }
         }
 

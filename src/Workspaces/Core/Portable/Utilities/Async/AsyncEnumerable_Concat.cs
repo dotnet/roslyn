@@ -20,34 +20,34 @@ namespace Roslyn.Utilities
 
         private class ConcatAsyncEnumerable<T> : IAsyncEnumerable<T>
         {
-            private readonly IAsyncEnumerable<T> first;
-            private readonly IAsyncEnumerable<T> second;
+            private readonly IAsyncEnumerable<T> _first;
+            private readonly IAsyncEnumerable<T> _second;
 
             public ConcatAsyncEnumerable(IAsyncEnumerable<T> first, IAsyncEnumerable<T> second)
             {
-                this.first = first;
-                this.second = second;
+                _first = first;
+                _second = second;
             }
 
             public IAsyncEnumerator<T> GetEnumerator()
             {
-                return new ConcatAsyncEnumerator<T>(first.GetEnumerator(), second.GetEnumerator());
+                return new ConcatAsyncEnumerator<T>(_first.GetEnumerator(), _second.GetEnumerator());
             }
         }
 
         private class ConcatAsyncEnumerator<T> : IAsyncEnumerator<T>
         {
-            private readonly IAsyncEnumerator<T> first;
-            private readonly IAsyncEnumerator<T> second;
+            private readonly IAsyncEnumerator<T> _first;
+            private readonly IAsyncEnumerator<T> _second;
 
-            private IAsyncEnumerator<T> currentEnumerator;
+            private IAsyncEnumerator<T> _currentEnumerator;
 
             public ConcatAsyncEnumerator(IAsyncEnumerator<T> first, IAsyncEnumerator<T> second)
             {
-                this.first = first;
-                this.second = second;
+                _first = first;
+                _second = second;
 
-                this.currentEnumerator = first;
+                _currentEnumerator = first;
             }
 
             public T Current { get; private set; }
@@ -56,19 +56,19 @@ namespace Roslyn.Utilities
             {
                 while (true)
                 {
-                    var currentEnumeratorMoveNext = await currentEnumerator.MoveNextAsync(cancellationToken).ConfigureAwait(false);
+                    var currentEnumeratorMoveNext = await _currentEnumerator.MoveNextAsync(cancellationToken).ConfigureAwait(false);
 
                     // The current enumerator moved forward successfully.  Get it's current
                     // value and store it, and return true to let the caller know we moved.
                     if (currentEnumeratorMoveNext)
                     {
-                        this.Current = currentEnumerator.Current;
+                        this.Current = _currentEnumerator.Current;
                         return true;
                     }
 
                     // Current enumerator didn't move forward.  If it's the second enumerator
                     // then we're done.  
-                    if (currentEnumerator == this.second)
+                    if (_currentEnumerator == _second)
                     {
                         this.Current = default(T);
                         return false;
@@ -76,14 +76,14 @@ namespace Roslyn.Utilities
 
                     // The first enumerator finished.  Set our current enumerator to the
                     // second enumerator and then recurse.
-                    this.currentEnumerator = second;
+                    _currentEnumerator = _second;
                 }
             }
 
             public void Dispose()
             {
-                first.Dispose();
-                second.Dispose();
+                _first.Dispose();
+                _second.Dispose();
             }
         }
     }

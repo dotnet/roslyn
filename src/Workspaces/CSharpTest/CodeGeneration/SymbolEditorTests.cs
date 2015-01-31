@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 {
     public class SymbolEditorTests
     {
-        private readonly SyntaxGenerator g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
+        private readonly SyntaxGenerator _g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
         private Solution GetSolution(params string[] sources)
         {
             var ws = new AdhocWorkspace();
             var pid = ProjectId.CreateNewId();
 
-            var docs = sources.Select((s, i) => 
+            var docs = sources.Select((s, i) =>
                 DocumentInfo.Create(
-                    DocumentId.CreateNewId(pid), 
-                    name: "code" + i, 
+                    DocumentId.CreateNewId(pid),
+                    name: "code" + i,
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s), VersionStamp.Default)))).ToList();
 
             var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         [Fact]
         public void TestEditOneDeclaration()
         {
-            var code = 
+            var code =
 @"class C
 {
 }";
@@ -99,11 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             var symbol = GetSymbols(solution, "C").First();
             var editor = SymbolEditor.Create(solution);
 
-            var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, g.MethodDeclaration("m"))).Result;
+            var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, _g.MethodDeclaration("m"))).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
             Assert.Equal(0, newSymbol.GetMembers("m2").Length);
 
-            newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, g.MethodDeclaration("m2"))).Result;
+            newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, _g.MethodDeclaration("m2"))).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
             Assert.Equal(1, newSymbol.GetMembers("m2").Length);
 

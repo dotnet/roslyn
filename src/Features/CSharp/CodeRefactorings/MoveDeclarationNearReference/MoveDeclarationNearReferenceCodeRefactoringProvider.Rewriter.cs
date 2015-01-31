@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly BlockSyntax oldInnermostBlock;
-            private readonly BlockSyntax newInnermostBlock;
-            private readonly BlockSyntax oldOutermostBlock;
-            private readonly LocalDeclarationStatementSyntax declarationStatement;
+            private readonly BlockSyntax _oldInnermostBlock;
+            private readonly BlockSyntax _newInnermostBlock;
+            private readonly BlockSyntax _oldOutermostBlock;
+            private readonly LocalDeclarationStatementSyntax _declarationStatement;
 
             public Rewriter(
                 BlockSyntax oldInnermostBlock,
@@ -22,22 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 BlockSyntax oldOutermostBlock,
                 LocalDeclarationStatementSyntax declarationStatement)
             {
-                this.oldInnermostBlock = oldInnermostBlock;
-                this.newInnermostBlock = newInnermostBlock;
-                this.oldOutermostBlock = oldOutermostBlock;
-                this.declarationStatement = declarationStatement;
+                _oldInnermostBlock = oldInnermostBlock;
+                _newInnermostBlock = newInnermostBlock;
+                _oldOutermostBlock = oldOutermostBlock;
+                _declarationStatement = declarationStatement;
             }
 
             public override SyntaxNode VisitBlock(BlockSyntax oldBlock)
             {
-                if (oldBlock == oldInnermostBlock)
+                if (oldBlock == _oldInnermostBlock)
                 {
-                    return newInnermostBlock;
+                    return _newInnermostBlock;
                 }
 
-                if (oldBlock == oldOutermostBlock)
+                if (oldBlock == _oldOutermostBlock)
                 {
-                    var statements = SyntaxFactory.List(oldBlock.Statements.Where(s => s != declarationStatement).Select(this.Visit));
+                    var statements = SyntaxFactory.List(oldBlock.Statements.Where(s => s != _declarationStatement).Select(this.Visit));
                     return oldBlock.WithStatements(statements).WithAdditionalAnnotations(Formatter.Annotation);
                 }
 

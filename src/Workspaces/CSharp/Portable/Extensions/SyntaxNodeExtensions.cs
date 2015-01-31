@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         // Matches the following:
         //
         // (whitespace* newline)+ 
-        private static readonly Matcher<SyntaxTrivia> OneOrMoreBlankLines;
+        private static readonly Matcher<SyntaxTrivia> s_oneOrMoreBlankLines;
 
         // Matches the following:
         // 
         // (whitespace* (single-comment|multi-comment) whitespace* newline)+ OneOrMoreBlankLines
-        private static readonly Matcher<SyntaxTrivia> BannerMatcher;
+        private static readonly Matcher<SyntaxTrivia> s_bannerMatcher;
 
         static SyntaxNodeExtensions()
         {
@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
-            OneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine);
-            BannerMatcher =
+            s_oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine);
+            s_bannerMatcher =
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
-                    OneOrMoreBlankLines);
+                    s_oneOrMoreBlankLines);
         }
 
         private static Matcher<SyntaxTrivia> Match(SyntaxKind kind, string description)
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var leadingTriviaToKeep = new List<SyntaxTrivia>(node.GetLeadingTrivia());
 
             var index = 0;
-            OneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index);
+            s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index);
 
             strippedTrivia = new List<SyntaxTrivia>(leadingTriviaToKeep.Take(index));
 
@@ -669,8 +669,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Now, consume as many banners as we can.
             var index = 0;
             while (
-                OneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index) ||
-                BannerMatcher.TryMatch(leadingTriviaToKeep, ref index))
+                s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index) ||
+                s_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index))
             {
             }
 
@@ -753,13 +753,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <summary>
         /// Look inside a trivia list for a skipped token that contains the given position.
         /// </summary>
-        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> FindSkippedTokenForward =
+        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> s_findSkippedTokenForward =
             (l, p) => FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p);
 
         /// <summary>
         /// Look inside a trivia list for a skipped token that contains the given position.
         /// </summary>
-        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> FindSkippedTokenBackward =
+        private static readonly Func<SyntaxTriviaList, int, SyntaxToken> s_findSkippedTokenBackward =
             (l, p) => FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p);
 
         /// <summary>
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? FindSkippedTokenForward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
 
             return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? FindSkippedTokenBackward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
 
             return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // simply take the first ancestor ConditionalAccessExpression. Instead, we 
                 // must walk upward until we find the ConditionalAccessExpression whose
                 // OperatorToken appears left of the MemberBinding.
-                if (parent.IsKind(SyntaxKind.ConditionalAccessExpression) && 
+                if (parent.IsKind(SyntaxKind.ConditionalAccessExpression) &&
                     ((ConditionalAccessExpressionSyntax)parent).OperatorToken.Span.End <= node.SpanStart)
                 {
                     return (ConditionalAccessExpressionSyntax)parent;

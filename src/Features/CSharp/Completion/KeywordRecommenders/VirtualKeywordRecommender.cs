@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class VirtualKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> ValidMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ExternKeyword,
             SyntaxKind.InternalKeyword,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.IsMemberDeclarationContext(
-                validModifiers: ValidMemberModifiers,
+                validModifiers: s_validMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);

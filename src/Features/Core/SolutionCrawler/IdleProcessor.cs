@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private const int MinimumDelayInMS = 50;
 
-        private readonly int backOffTimeSpanInMS;
+        private readonly int _backOffTimeSpanInMS;
 
         protected readonly IAsynchronousOperationListener Listener;
         protected readonly CancellationToken CancellationToken;
 
         // points to processor task
-        private Task processorTask;
+        private Task _processorTask;
 
         // there is one thread that writes to it and one thread reads from it
-        private int lastAccessTimeInMS;
+        private int _lastAccessTimeInMS;
 
         public IdleProcessor(
             IAsynchronousOperationListener listener,
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             this.Listener = listener;
             this.CancellationToken = cancellationToken;
 
-            this.backOffTimeSpanInMS = backOffTimeSpanInMS;
-            this.lastAccessTimeInMS = Environment.TickCount;
+            _backOffTimeSpanInMS = backOffTimeSpanInMS;
+            _lastAccessTimeInMS = Environment.TickCount;
         }
 
         protected abstract Task WaitAsync(CancellationToken cancellationToken);
@@ -40,15 +40,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         protected void Start()
         {
-            if (this.processorTask == null)
+            if (_processorTask == null)
             {
-                this.processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, this.CancellationToken, TaskScheduler.Default);
+                _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, this.CancellationToken, TaskScheduler.Default);
             }
         }
 
         protected void UpdateLastAccessTime()
         {
-            this.lastAccessTimeInMS = Environment.TickCount;
+            _lastAccessTimeInMS = Environment.TickCount;
         }
 
         private async Task ProcessAsync()
@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 try
                 {
-
                     if (this.CancellationToken.IsCancellationRequested)
                     {
                         return;
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         await ExecuteAsync().ConfigureAwait(continueOnCapturedContext: false);
                     }
-
                 }
                 catch (OperationCanceledException)
                 {
@@ -91,14 +89,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                var diffInMS = Environment.TickCount - this.lastAccessTimeInMS;
-                if (diffInMS >= this.backOffTimeSpanInMS)
+                var diffInMS = Environment.TickCount - _lastAccessTimeInMS;
+                if (diffInMS >= _backOffTimeSpanInMS)
                 {
                     return;
                 }
 
                 // TODO: will safestart/unwarp capture cancellation exception?
-                var timeLeft = this.backOffTimeSpanInMS - diffInMS;
+                var timeLeft = _backOffTimeSpanInMS - diffInMS;
                 await Task.Delay(Math.Max(MinimumDelayInMS, timeLeft), this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             }
         }
@@ -107,12 +105,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             get
             {
-                if (this.processorTask == null)
+                if (_processorTask == null)
                 {
                     return SpecializedTasks.EmptyTask;
                 }
 
-                return this.processorTask;
+                return _processorTask;
             }
         }
     }

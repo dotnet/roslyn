@@ -17,33 +17,33 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
     {
         private partial class Editor
         {
-            private readonly Document document;
-            private readonly SemanticModel model;
-            private readonly State state;
+            private readonly Document _document;
+            private readonly SemanticModel _model;
+            private readonly State _state;
 
             public Editor(
                 Document document,
                 SemanticModel model,
                 State state)
             {
-                this.document = document;
-                this.model = model;
-                this.state = state;
+                _document = document;
+                _model = model;
+                _state = state;
             }
 
             public async Task<Document> GetEditAsync(CancellationToken cancellationToken)
             {
-                var unimplementedMembers = state.UnimplementedMembers;
+                var unimplementedMembers = _state.UnimplementedMembers;
 
                 var memberDefinitions = GenerateMembers(
                     unimplementedMembers,
                     cancellationToken);
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    document.Project.Solution,
-                    state.ClassType,
+                    _document.Project.Solution,
+                    _state.ClassType,
                     memberDefinitions,
-                    new CodeGenerationOptions(state.Location.GetLocation()),
+                    new CodeGenerationOptions(_state.Location.GetLocation()),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(this.state.Location);
+                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_state.Location);
 
                 return GenerateMember(member, addUnsafe, cancellationToken);
             }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 CancellationToken cancellationToken)
             {
                 var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
-                var accessibility = member.ComputeResultantAccessibility(state.ClassType);
+                var accessibility = member.ComputeResultantAccessibility(_state.ClassType);
 
                 if (member.Kind == SymbolKind.Method)
                 {
@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             private ISymbol GenerateMethod(
                 IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility, CancellationToken cancellationToken)
             {
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var syntaxFactory = document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
                 var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
-                    this.model.Compilation);
+                    _model.Compilation);
 
-                method = method.EnsureNonConflictingNames(this.state.ClassType, syntaxFacts, cancellationToken);
+                method = method.EnsureNonConflictingNames(_state.ClassType, syntaxFacts, cancellationToken);
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method,
@@ -125,15 +125,15 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 Accessibility accessibility,
                 CancellationToken cancellationToken)
             {
-                var syntaxFactory = document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
                 var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
-                    this.model.Compilation);
+                    _model.Compilation);
 
                 var getMethod = ShouldGenerateAccessor(property.GetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.GetMethod,
                         attributes: null,
-                        accessibility: property.GetMethod.ComputeResultantAccessibility(state.ClassType),
+                        accessibility: property.GetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: throwingBody)
                     : null;
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.SetMethod,
                         attributes: null,
-                        accessibility: property.SetMethod.ComputeResultantAccessibility(state.ClassType),
+                        accessibility: property.SetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: throwingBody)
                     : null;
 
@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             {
                 return
                     method != null &&
-                    method.IsAccessibleWithin(state.ClassType) &&
-                    state.ClassType.FindImplementationForAbstractMember(method) == null;
+                    method.IsAccessibleWithin(_state.ClassType) &&
+                    _state.ClassType.FindImplementationForAbstractMember(method) == null;
             }
         }
     }

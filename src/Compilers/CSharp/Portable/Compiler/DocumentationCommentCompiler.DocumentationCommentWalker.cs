@@ -14,21 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     // a provided stream.
     internal partial class DocumentationCommentCompiler : CSharpSymbolVisitor
     {
-
         /// <summary>
         /// Walks a DocumentationCommentTriviaSyntax, binding the semantically meaningful parts 
         /// to produce diagnostics and to replace source crefs with documentation comment IDs.
         /// </summary>
         private class DocumentationCommentWalker : CSharpSyntaxWalker
         {
-            private readonly CSharpCompilation compilation;
-            private readonly DiagnosticBag diagnostics;
-            private readonly Symbol memberSymbol;
-            private readonly TextWriter writer;
-            private readonly ArrayBuilder<CSharpSyntaxNode> includeElementNodes;
+            private readonly CSharpCompilation _compilation;
+            private readonly DiagnosticBag _diagnostics;
+            private readonly Symbol _memberSymbol;
+            private readonly TextWriter _writer;
+            private readonly ArrayBuilder<CSharpSyntaxNode> _includeElementNodes;
 
-            private HashSet<ParameterSymbol> documentedParameters;
-            private HashSet<TypeParameterSymbol> documentedTypeParameters;
+            private HashSet<ParameterSymbol> _documentedParameters;
+            private HashSet<TypeParameterSymbol> _documentedTypeParameters;
 
             private DocumentationCommentWalker(
                 CSharpCompilation compilation,
@@ -40,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<TypeParameterSymbol> documentedTypeParameters)
                 : base(SyntaxWalkerDepth.StructuredTrivia)
             {
-                this.compilation = compilation;
-                this.diagnostics = diagnostics;
-                this.memberSymbol = memberSymbol;
-                this.writer = writer;
-                this.includeElementNodes = includeElementNodes;
+                _compilation = compilation;
+                _diagnostics = diagnostics;
+                _memberSymbol = memberSymbol;
+                _writer = writer;
+                _includeElementNodes = includeElementNodes;
 
-                this.documentedParameters = documentedParameters;
-                this.documentedTypeParameters = documentedTypeParameters;
+                _documentedParameters = documentedParameters;
+                _documentedTypeParameters = documentedTypeParameters;
             }
 
             /// <summary>
@@ -73,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     walker.Visit(trivia);
 
                     // Copy back out in case they have been initialized.
-                    documentedParameters = walker.documentedParameters;
-                    documentedTypeParameters = walker.documentedTypeParameters;
+                    documentedParameters = walker._documentedParameters;
+                    documentedTypeParameters = walker._documentedTypeParameters;
                 }
                 return pooled.ToStringAndFree();
             }
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     XmlCrefAttributeSyntax crefAttr = (XmlCrefAttributeSyntax)node;
                     CrefSyntax cref = crefAttr.Cref;
 
-                    BinderFactory factory = compilation.GetBinderFactory(cref.SyntaxTree);
+                    BinderFactory factory = _compilation.GetBinderFactory(cref.SyntaxTree);
                     Binder binder = factory.GetBinder(cref);
 
                     // Do this for the diagnostics, even if it won't be written.
@@ -97,26 +96,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string docCommentId = GetDocumentationCommentId(cref, binder, crefDiagnostics);
                     if (diagnose)
                     {
-                        diagnostics.AddRange(crefDiagnostics);
+                        _diagnostics.AddRange(crefDiagnostics);
                     }
                     crefDiagnostics.Free();
 
-                    if (writer != null)
+                    if (_writer != null)
                     {
                         Visit(crefAttr.Name);
                         VisitToken(crefAttr.EqualsToken);
 
                         // Not going to visit normally, because we want to skip trivia within
                         // the attribute value.
-                        crefAttr.StartQuoteToken.WriteTo(writer, leading: true, trailing: false);
+                        crefAttr.StartQuoteToken.WriteTo(_writer, leading: true, trailing: false);
 
                         // We're not going to visit the cref because we want to bind it
                         // and write a doc comment ID in its place.
-                        writer.Write(docCommentId);
+                        _writer.Write(docCommentId);
 
                         // Not going to visit normally, because we want to skip trivia within
                         // the attribute value.
-                        crefAttr.EndQuoteToken.WriteTo(writer, leading: false, trailing: true);
+                        crefAttr.EndQuoteToken.WriteTo(_writer, leading: false, trailing: true);
                     }
 
                     // Don't descend - we've already written out everything necessary.
@@ -126,18 +125,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     XmlNameAttributeSyntax nameAttr = (XmlNameAttributeSyntax)node;
 
-                    BinderFactory factory = compilation.GetBinderFactory(nameAttr.SyntaxTree);
+                    BinderFactory factory = _compilation.GetBinderFactory(nameAttr.SyntaxTree);
                     Binder binder = factory.GetBinder(nameAttr, nameAttr.Identifier.SpanStart);
 
                     // Do this for diagnostics, even if we aren't writing.
-                    BindName(nameAttr, binder, memberSymbol, ref documentedParameters, ref documentedTypeParameters, diagnostics);
+                    BindName(nameAttr, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, _diagnostics);
 
                     // Do descend - we still need to write out the tokens of the attribute.
                 }
 
                 // NOTE: if we're recording any include element nodes (i.e. if includeElementsNodes is non-null),
                 // then we want to record all of them, because we won't be able to distinguish in the XML DOM.
-                if (includeElementNodes != null)
+                if (_includeElementNodes != null)
                 {
                     XmlNameSyntax nameSyntax = null;
                     if (nodeKind == SyntaxKind.XmlEmptyElement)
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (nameSyntax != null && nameSyntax.Prefix == null &&
                         DocumentationCommentXmlNames.ElementEquals(nameSyntax.LocalName.ValueText, DocumentationCommentXmlNames.IncludeElementName))
                     {
-                        includeElementNodes.Add((CSharpSyntaxNode)node);
+                        _includeElementNodes.Add((CSharpSyntaxNode)node);
                     }
                 }
 
@@ -161,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitToken(SyntaxToken token)
             {
-                if (writer != null)
+                if (_writer != null)
                 {
-                    token.WriteTo(writer);
+                    token.WriteTo(_writer);
                 }
 
                 base.VisitToken(token);

@@ -86,7 +86,6 @@ class A {
 
             // A class with only a static constructor defined should still generate a default instance constructor.
             check(@"internal class A { static A(int x) {} }", "A", 1, doNotCheckAccessibility);
-
         }
 
         [WorkItem(537345, "DevDiv")]

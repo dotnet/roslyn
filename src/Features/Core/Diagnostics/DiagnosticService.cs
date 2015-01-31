@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private readonly IAsynchronousOperationListener listener;
-        private readonly EventMap eventMap;
-        private readonly SimpleTaskQueue eventQueue;
-        private readonly ImmutableArray<IDiagnosticUpdateSource> updateSources;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly EventMap _eventMap;
+        private readonly SimpleTaskQueue _eventQueue;
+        private readonly ImmutableArray<IDiagnosticUpdateSource> _updateSources;
 
-        private readonly object gate;
-        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>> map;
+        private readonly object _gate;
+        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>> _map;
 
         [ImportingConstructor]
         public DiagnosticService(
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             // queue to serialize events.
-            this.eventMap = new EventMap();
-            this.eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+            _eventMap = new EventMap();
+            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
 
-            this.updateSources = diagnosticUpdateSource.AsImmutable();
-            this.listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
+            _updateSources = diagnosticUpdateSource.AsImmutable();
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
 
-            this.gate = new object();
-            this.map = new Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>>();
+            _gate = new object();
+            _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>>();
 
             // connect each diagnostic update source to events
             ConnectDiagnosticsUpdatedEvents();
@@ -47,22 +47,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             add
             {
-                this.eventMap.AddEventHandler(DiagnosticsUpdatedEventName, value);
+                _eventMap.AddEventHandler(DiagnosticsUpdatedEventName, value);
             }
 
             remove
             {
-                this.eventMap.RemoveEventHandler(DiagnosticsUpdatedEventName, value);
+                _eventMap.RemoveEventHandler(DiagnosticsUpdatedEventName, value);
             }
         }
 
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
-            var handlers = this.eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            var handlers = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (handlers.Length > 0)
             {
-                var eventToken = this.listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-                this.eventQueue.ScheduleTask(() =>
+                var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
+                _eventQueue.ScheduleTask(() =>
                 {
                     UpdateDataMap(sender, args);
 
@@ -82,18 +82,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            Contract.Requires(this.updateSources.IndexOf(updateSource) >= 0);
+            Contract.Requires(_updateSources.IndexOf(updateSource) >= 0);
 
             // we expect someone who uses this ability to small.
-            lock (this.gate)
+            lock (_gate)
             {
-                var list = this.map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
+                var list = _map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
                 var data = new Data(args);
 
                 list.Remove(data.Id);
                 if (list.Count == 0 && args.Diagnostics.Length == 0)
                 {
-                    this.map.Remove(updateSource);
+                    _map.Remove(updateSource);
                     return;
                 }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ConnectDiagnosticsUpdatedEvents()
         {
-            foreach (var source in this.updateSources)
+            foreach (var source in _updateSources)
             {
                 source.DiagnosticsUpdated += OnDiagnosticsUpdated;
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private IEnumerable<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
         {
-            foreach (var source in this.updateSources)
+            foreach (var source in _updateSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private IEnumerable<DiagnosticData> GetDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
-            foreach (var source in this.updateSources)
+            foreach (var source in _updateSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -194,10 +194,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void AppendMatchingData(
             IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, List<Data> list)
         {
-            lock (this.gate)
+            lock (_gate)
             {
                 Dictionary<object, Data> current;
-                if (!this.map.TryGetValue(source, out current))
+                if (!_map.TryGetValue(source, out current))
                 {
                     return;
                 }
@@ -242,10 +242,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public ImmutableDictionary<object, ImmutableArray<DiagnosticData>> GetEngineCachedDiagnostics(DocumentId documentId)
         {
-            lock (this.gate)
+            lock (_gate)
             {
                 var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticData>>();
-                foreach (var diagnosticMap in this.map.Values)
+                foreach (var diagnosticMap in _map.Values)
                 {
                     foreach (var kv in diagnosticMap)
                     {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
     {
         internal abstract class AbstractIntroduceVariableCodeAction : CodeAction
         {
-            private readonly bool allOccurrences;
-            private readonly bool isConstant;
-            private readonly bool isLocal;
-            private readonly bool isQueryLocal;
-            private readonly TExpressionSyntax expression;
-            private readonly SemanticDocument document;
-            private readonly TService service;
-            private readonly string title;
+            private readonly bool _allOccurrences;
+            private readonly bool _isConstant;
+            private readonly bool _isLocal;
+            private readonly bool _isQueryLocal;
+            private readonly TExpressionSyntax _expression;
+            private readonly SemanticDocument _document;
+            private readonly TService _service;
+            private readonly string _title;
 
-            private static Regex newlinePattern = new Regex(@"[\r\n]+", RegexOptions.Compiled);
+            private static Regex s_newlinePattern = new Regex(@"[\r\n]+", RegexOptions.Compiled);
 
             internal AbstractIntroduceVariableCodeAction(
                 TService service,
@@ -36,19 +36,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool isLocal,
                 bool isQueryLocal)
             {
-                this.service = service;
-                this.document = document;
-                this.expression = expression;
-                this.allOccurrences = allOccurrences;
-                this.isConstant = isConstant;
-                this.isLocal = isLocal;
-                this.isQueryLocal = isQueryLocal;
-                this.title = CreateDisplayText(expression);
+                _service = service;
+                _document = document;
+                _expression = expression;
+                _allOccurrences = allOccurrences;
+                _isConstant = isConstant;
+                _isLocal = isLocal;
+                _isQueryLocal = isQueryLocal;
+                _title = CreateDisplayText(expression);
             }
 
             public override string Title
             {
-                get { return this.title; }
+                get { return _title; }
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)
             {
-                if (isQueryLocal)
+                if (_isQueryLocal)
                 {
-                    return await service.IntroduceQueryLocalAsync(this.document, this.expression, this.allOccurrences, cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceQueryLocalAsync(_document, _expression, _allOccurrences, cancellationToken).ConfigureAwait(false);
                 }
-                else if (isLocal)
+                else if (_isLocal)
                 {
-                    return await service.IntroduceLocalAsync(this.document, this.expression, this.allOccurrences, this.isConstant, cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceLocalAsync(_document, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private async Task<Document> IntroduceFieldAsync(CancellationToken cancellationToken)
             {
-                var result = await service.IntroduceFieldAsync(this.document, this.expression, this.allOccurrences, this.isConstant, cancellationToken).ConfigureAwait(false);
+                var result = await _service.IntroduceFieldAsync(_document, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 return result.Item1;
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)
             {
-                var singleLineExpression = this.document.Project.LanguageServices.GetService<ISyntaxFactsService>().ConvertToSingleLine(expression);
+                var singleLineExpression = _document.Project.LanguageServices.GetService<ISyntaxFactsService>().ConvertToSingleLine(expression);
                 var nodeString = singleLineExpression.ToFullString().Trim();
 
                 // prevent the display string from spanning multiple lines
-                nodeString = newlinePattern.Replace(nodeString, " ");
+                nodeString = s_newlinePattern.Replace(nodeString, " ");
 
                 // prevent the display string from being too long
                 const int MaxLength = 40;
@@ -112,19 +112,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                   }
                 };
 
-                var formatString = isQueryLocal
-                    ? allOccurrences
+                var formatString = _isQueryLocal
+                    ? _allOccurrences
                         ? FeaturesResources.IntroduceQueryVariableForAll
                         : FeaturesResources.IntroduceQueryVariableFor
-                    : formatStrings[allOccurrences ? 1 : 0, isConstant ? 1 : 0, isLocal ? 1 : 0];
+                    : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
                 return string.Format(formatString, nodeString);
             }
 
             protected ITypeSymbol GetExpressionType(
                 CancellationToken cancellationToken)
             {
-                var semanticModel = document.SemanticModel;
-                var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+                var semanticModel = _document.SemanticModel;
+                var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
 
                 return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
             }

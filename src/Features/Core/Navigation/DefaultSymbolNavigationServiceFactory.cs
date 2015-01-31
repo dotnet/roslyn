@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis.Navigation
     [ExportWorkspaceServiceFactory(typeof(ISymbolNavigationService), ServiceLayer.Default), Shared]
     internal class DefaultSymbolNavigationServiceFactory : IWorkspaceServiceFactory
     {
-        private ISymbolNavigationService singleton;
+        private ISymbolNavigationService _singleton;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (this.singleton == null)
+            if (_singleton == null)
             {
-                this.singleton = new DefaultSymbolNavigationService();
+                _singleton = new DefaultSymbolNavigationService();
             }
 
-            return singleton;
+            return _singleton;
         }
     }
 }

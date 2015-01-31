@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class PropertySymbol :
+    internal partial class PropertySymbol :
         Cci.IPropertyDefinition
     {
         #region IPropertyDefinition Members

@@ -290,7 +290,7 @@ class G : F
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
 
                 // This is new in Roslyn.  It is reported because F.Finalize is now a runtime finalizer.
-                
+
                 // (57,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"));
         }

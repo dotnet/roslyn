@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
                 }
-                
+
                 return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
             }
         }

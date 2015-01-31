@@ -14,36 +14,36 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
         public const string CA1401 = "CA1401";
         public const string CA2101 = "CA2101";
 
-        private static LocalizableString localizableTitleCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokesShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableMessageCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokeMethodShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokesShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokeMethodShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleCA1401 = new DiagnosticDescriptor(CA1401,
-                                                                         localizableTitleCA1401,
-                                                                         localizableMessageCA1401,
+                                                                         s_localizableTitleCA1401,
+                                                                         s_localizableMessageCA1401,
                                                                          FxCopDiagnosticCategory.Interoperability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182209.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        private static LocalizableString localizableMessageAndTitleCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableDescriptionCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArgumentsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitleCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableDescriptionCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArgumentsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleCA2101 = new DiagnosticDescriptor(CA2101,
-                                                                         localizableMessageAndTitleCA2101,
-                                                                         localizableMessageAndTitleCA2101,
+                                                                         s_localizableMessageAndTitleCA2101,
+                                                                         s_localizableMessageAndTitleCA2101,
                                                                          FxCopDiagnosticCategory.Globalization,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: localizableDescriptionCA2101,
+                                                                         description: s_localizableDescriptionCA2101,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182319.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA1401, RuleCA2101);
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = ImmutableArray.Create(RuleCA1401, RuleCA2101);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return supportedDiagnostics;
+                return s_supportedDiagnostics;
             }
         }
 
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 
         private sealed class Analyzer
         {
-            private INamedTypeSymbol dllImportType;
-            private INamedTypeSymbol marshalAsType;
-            private INamedTypeSymbol stringBuilderType;
-            private INamedTypeSymbol unmanagedType;
+            private INamedTypeSymbol _dllImportType;
+            private INamedTypeSymbol _marshalAsType;
+            private INamedTypeSymbol _stringBuilderType;
+            private INamedTypeSymbol _unmanagedType;
 
             public Analyzer(
                 INamedTypeSymbol dllImportType,
@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 INamedTypeSymbol stringBuilderType,
                 INamedTypeSymbol unmanagedType)
             {
-                this.dllImportType = dllImportType;
-                this.marshalAsType = marshalAsType;
-                this.stringBuilderType = stringBuilderType;
-                this.unmanagedType = unmanagedType;
+                _dllImportType = dllImportType;
+                _marshalAsType = marshalAsType;
+                _stringBuilderType = stringBuilderType;
+                _unmanagedType = unmanagedType;
             }
 
             public void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                     return;
                 }
 
-                var dllAttribute = methodSymbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass.Equals(this.dllImportType));
+                var dllAttribute = methodSymbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass.Equals(_dllImportType));
                 var defaultLocation = dllAttribute == null ? methodSymbol.Locations.FirstOrDefault() : GetAttributeLocation(dllAttribute);
 
                 // CA1401 - PInvoke methods should not be visible
@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                     bool appliedCA2101ToMethod = false;
                     foreach (var parameter in methodSymbol.Parameters)
                     {
-                        if (parameter.Type.SpecialType == SpecialType.System_String || parameter.Type.Equals(this.stringBuilderType))
+                        if (parameter.Type.SpecialType == SpecialType.System_String || parameter.Type.Equals(_stringBuilderType))
                         {
-                            var marshalAsAttribute = parameter.GetAttributes().FirstOrDefault(attr => attr.AttributeClass.Equals(this.marshalAsType));
+                            var marshalAsAttribute = parameter.GetAttributes().FirstOrDefault(attr => attr.AttributeClass.Equals(_marshalAsType));
                             var charSet = marshalAsAttribute == null
                                 ? dllImportData.CharacterSet
                                 : MarshalingToCharSet(GetParameterMarshaling(marshalAsAttribute));
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 
                     // only unicode marshaling is considered safe, but only check this if we haven't already flagged the attribute
                     if (!appliedCA2101ToMethod && dllImportData.CharacterSet != CharSet.Unicode &&
-                        (methodSymbol.ReturnType.SpecialType == SpecialType.System_String || methodSymbol.ReturnType.Equals(this.stringBuilderType)))
+                        (methodSymbol.ReturnType.SpecialType == SpecialType.System_String || methodSymbol.ReturnType.Equals(_stringBuilderType)))
                     {
                         context.ReportDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
                     }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 if (attributeData.ConstructorArguments.Length > 0)
                 {
                     var argument = attributeData.ConstructorArguments.First();
-                    if (argument.Type.Equals(this.unmanagedType))
+                    if (argument.Type.Equals(_unmanagedType))
                     {
                         return (UnmanagedType)argument.Value;
                     }

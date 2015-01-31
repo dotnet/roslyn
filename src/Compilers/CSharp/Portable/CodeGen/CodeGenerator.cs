@@ -19,40 +19,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal sealed partial class CodeGenerator
     {
-        private readonly MethodSymbol method;
+        private readonly MethodSymbol _method;
 
         // Syntax of the method body (block or an expression) being emitted, 
         // or null if the method being emitted isn't a source method.
         // If we are emitting a lambda this is its body.
-        private readonly SyntaxNode methodBodySyntaxOpt;
+        private readonly SyntaxNode _methodBodySyntaxOpt;
 
-        private readonly BoundStatement boundBody;
-        private readonly ILBuilder builder;
-        private readonly PEModuleBuilder module;
-        private readonly DiagnosticBag diagnostics;
-        private readonly OptimizationLevel optimizations;
-        private readonly bool emitPdbSequencePoints;
+        private readonly BoundStatement _boundBody;
+        private readonly ILBuilder _builder;
+        private readonly PEModuleBuilder _module;
+        private readonly DiagnosticBag _diagnostics;
+        private readonly OptimizationLevel _optimizations;
+        private readonly bool _emitPdbSequencePoints;
 
-        private readonly HashSet<LocalSymbol> stackLocals;
+        private readonly HashSet<LocalSymbol> _stackLocals;
 
         // not 0 when in a protected region with a handler. 
-        private int tryNestingLevel = 0;
+        private int _tryNestingLevel = 0;
 
-        private readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
-        private int uniqueNameId;
+        private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
+        private int _uniqueNameId;
 
         // label used when when return is emitted in a form of store/goto
-        private static readonly object ReturnLabel = new object();
+        private static readonly object s_returnLabel = new object();
 
-        private int asyncCatchHandlerOffset = -1;
-        private ArrayBuilder<int> asyncYieldPoints = null;
-        private ArrayBuilder<int> asyncResumePoints = null;
+        private int _asyncCatchHandlerOffset = -1;
+        private ArrayBuilder<int> _asyncYieldPoints = null;
+        private ArrayBuilder<int> _asyncResumePoints = null;
 
         /// <summary>
         /// In some cases returns are handled as gotos to return epilogue.
         /// This is used to track the state of the epilogue.
         /// </summary>
-        private IndirectReturnState indirectReturnState;
+        private IndirectReturnState _indirectReturnState;
 
         private enum IndirectReturnState : byte
         {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Emitted = 2,  // return sequence has been emitted
         }
 
-        private LocalDefinition returnTemp;
+        private LocalDefinition _returnTemp;
 
         public CodeGenerator(
             MethodSymbol method,
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(moduleBuilder != null);
             Debug.Assert(diagnostics != null);
 
-            this.method = method;
-            this.boundBody = boundBody;
-            this.builder = builder;
-            this.module = moduleBuilder;
-            this.diagnostics = diagnostics;
+            _method = method;
+            _boundBody = boundBody;
+            _builder = builder;
+            _module = moduleBuilder;
+            _diagnostics = diagnostics;
 
             // Always optimize synthesized methods that don't contain user code.
             // 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // (aka bridge methods) with by-ref returns because peverify produces errors if we
             // return a ref local (which the return local will be in such cases).
 
-            this.optimizations = method.GenerateDebugInfo ? optimizations : OptimizationLevel.Release;
+            _optimizations = method.GenerateDebugInfo ? optimizations : OptimizationLevel.Release;
 
             // Emit sequence points unless
             // - the PDBs are not being generated
@@ -98,26 +98,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //   user code that can be stepped thru, or changed during EnC.
             // 
             // This setting only affects generating PDB sequence points, it shall not affect generated IL in any way.
-            this.emitPdbSequencePoints = emittingPdbs && method.GenerateDebugInfo;
+            _emitPdbSequencePoints = emittingPdbs && method.GenerateDebugInfo;
 
-            if (this.optimizations == OptimizationLevel.Release)
+            if (_optimizations == OptimizationLevel.Release)
             {
-                this.boundBody = Optimizer.Optimize(boundBody, out stackLocals);
+                _boundBody = Optimizer.Optimize(boundBody, out _stackLocals);
             }
-            
-            methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
+
+            _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
         }
 
         private LocalDefinition LazyReturnTemp
         {
             get
             {
-                var result = returnTemp;
+                var result = _returnTemp;
                 if (result == null)
                 {
-                    Debug.Assert(!this.method.ReturnsVoid, "returning something from void method?");
-                    result = AllocateTemp(this.method.ReturnType, boundBody.Syntax);
-                    returnTemp = result;
+                    Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
+                    result = AllocateTemp(_method.ReturnType, _boundBody.Syntax);
+                    _returnTemp = result;
                 }
                 return result;
             }
@@ -125,27 +125,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool IsStackLocal(LocalSymbol local)
         {
-            return stackLocals != null && stackLocals.Contains(local);
+            return _stackLocals != null && _stackLocals.Contains(local);
         }
 
         public void Generate()
         {
             this.GenerateImpl();
 
-            Debug.Assert(this.asyncCatchHandlerOffset < 0);
-            Debug.Assert(this.asyncYieldPoints == null);
-            Debug.Assert(this.asyncResumePoints == null);
+            Debug.Assert(_asyncCatchHandlerOffset < 0);
+            Debug.Assert(_asyncYieldPoints == null);
+            Debug.Assert(_asyncResumePoints == null);
         }
 
         public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
         {
             this.GenerateImpl();
-            Debug.Assert(this.asyncCatchHandlerOffset >= 0);
+            Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
-            asyncCatchHandlerOffset = this.builder.GetILOffsetFromMarker(this.asyncCatchHandlerOffset);
+            asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
 
-            ArrayBuilder<int> yieldPoints = this.asyncYieldPoints;
-            ArrayBuilder<int> resumePoints = this.asyncResumePoints;
+            ArrayBuilder<int> yieldPoints = _asyncYieldPoints;
+            ArrayBuilder<int> resumePoints = _asyncResumePoints;
 
             Debug.Assert((yieldPoints == null) == (resumePoints == null));
 
@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 int n = yieldPoints.Count;
                 for (int i = 0; i < n; i++)
                 {
-                    int yieldOffset = this.builder.GetILOffsetFromMarker(yieldPoints[i]);
-                    int resumeOffset = this.builder.GetILOffsetFromMarker(resumePoints[i]);
+                    int yieldOffset = _builder.GetILOffsetFromMarker(yieldPoints[i]);
+                    int resumeOffset = _builder.GetILOffsetFromMarker(resumePoints[i]);
                     Debug.Assert(resumeOffset >= 0); // resume marker should always be reachable from dispatch
 
                     // yield point may not be reachable if the whole 
@@ -188,14 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Synthesized methods should have a sequence point
             // at offset 0 to ensure correct stepping behavior.
-            if (this.emitPdbSequencePoints && this.method.IsImplicitlyDeclared)
+            if (_emitPdbSequencePoints && _method.IsImplicitlyDeclared)
             {
-                this.builder.DefineInitialHiddenSequencePoint();
+                _builder.DefineInitialHiddenSequencePoint();
             }
 
-            EmitStatement(boundBody);
+            EmitStatement(_boundBody);
 
-            if (indirectReturnState == IndirectReturnState.Needed)
+            if (_indirectReturnState == IndirectReturnState.Needed)
             {
                 // it is unfortunate that return was not handled while we were in scope of the method
                 // it can happen in rare cases involving exception handling (for example all returns were from a try)
@@ -203,65 +203,65 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 HandleReturn();
             }
 
-            if (!diagnostics.HasAnyErrors())
+            if (!_diagnostics.HasAnyErrors())
             {
-                builder.Realize();
+                _builder.Realize();
             }
 
-            this.synthesizedLocalOrdinals.Free();
+            _synthesizedLocalOrdinals.Free();
         }
 
         private void HandleReturn()
         {
-            builder.MarkLabel(ReturnLabel);
+            _builder.MarkLabel(s_returnLabel);
 
-            Debug.Assert(method.ReturnsVoid == (returnTemp == null));
+            Debug.Assert(_method.ReturnsVoid == (_returnTemp == null));
 
-            if (this.emitPdbSequencePoints && !method.IsIterator && !method.IsAsync)
+            if (_emitPdbSequencePoints && !_method.IsIterator && !_method.IsAsync)
             {
                 // In debug mode user could set a breakpoint on the last "}" of the method and 
                 // expect to hit it before exiting the method.
                 // We do it by rewriting all returns into a jump to an Exit label 
                 // and mark the Exit sequence with sequence point for the span of the last "}".
-                BlockSyntax blockSyntax = methodBodySyntaxOpt as BlockSyntax;
+                BlockSyntax blockSyntax = _methodBodySyntaxOpt as BlockSyntax;
                 if (blockSyntax != null)
                 {
                     EmitSequencePoint(blockSyntax.SyntaxTree, blockSyntax.CloseBraceToken.Span);
                 }
             }
 
-            if (returnTemp != null)
+            if (_returnTemp != null)
             {
-                builder.EmitLocalLoad(LazyReturnTemp);
-                builder.EmitRet(false);
+                _builder.EmitLocalLoad(LazyReturnTemp);
+                _builder.EmitRet(false);
             }
             else
             {
-                builder.EmitRet(true);
+                _builder.EmitRet(true);
             }
 
-            indirectReturnState = IndirectReturnState.Emitted;
+            _indirectReturnState = IndirectReturnState.Emitted;
         }
 
         private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
         {
-            builder.EmitToken(module.Translate(symbol, syntaxNode, diagnostics), syntaxNode, diagnostics);
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
         }
 
         private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList)
         {
-            builder.EmitToken(module.Translate(method, syntaxNode, diagnostics, optArgList), syntaxNode, diagnostics);
+            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList), syntaxNode, _diagnostics);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, CSharpSyntaxNode syntaxNode)
         {
-            builder.EmitToken(module.Translate(symbol, syntaxNode, diagnostics), syntaxNode, diagnostics);
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
         {
             CSharpSyntaxNode syntax = node.Syntax;
-            if (this.emitPdbSequencePoints)
+            if (_emitPdbSequencePoints)
             {
                 if (syntax == null) //Null syntax indicates hidden sequence point (not equivalent to WasCompilerGenerated)
                 {
@@ -280,18 +280,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
-            if (instructionsEmitted == 0 && syntax != null && optimizations == OptimizationLevel.Debug)
+            if (instructionsEmitted == 0 && syntax != null && _optimizations == OptimizationLevel.Debug)
             {
                 // if there was no code emitted, then emit nop 
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope
-                builder.EmitOpCode(ILOpCode.Nop);
+                _builder.EmitOpCode(ILOpCode.Nop);
             }
         }
 
         private void EmitSequencePointStatement(BoundSequencePointWithSpan node)
         {
             TextSpan span = node.Span;
-            if (span != default(TextSpan) && this.emitPdbSequencePoints)
+            if (span != default(TextSpan) && _emitPdbSequencePoints)
             {
                 this.EmitSequencePoint(node.SyntaxTree, span);
             }
@@ -303,17 +303,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
-            if (instructionsEmitted == 0 && span != default(TextSpan) && optimizations == OptimizationLevel.Debug)
+            if (instructionsEmitted == 0 && span != default(TextSpan) && _optimizations == OptimizationLevel.Debug)
             {
                 // if there was no code emitted, then emit nop 
                 // otherwise this point could get associated with some random statement, possibly in a wrong scope
-                builder.EmitOpCode(ILOpCode.Nop);
+                _builder.EmitOpCode(ILOpCode.Nop);
             }
         }
 
         private void SetInitialDebugDocument()
         {
-            if (emitPdbSequencePoints && this.methodBodySyntaxOpt != null)
+            if (_emitPdbSequencePoints && _methodBodySyntaxOpt != null)
             {
                 // If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 // provide the IL builder with our best guess at the appropriate debug document.
@@ -321,14 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // points, then the IL Builder will drop the sequence point for lack of a document.
                 // This negatively impacts the scenario where we insert hidden sequence points at
                 // the beginnings of methods so that step-into (F11) will handle them correctly.
-                builder.SetInitialDebugDocument(this.methodBodySyntaxOpt.SyntaxTree);
+                _builder.SetInitialDebugDocument(_methodBodySyntaxOpt.SyntaxTree);
             }
         }
 
         private void EmitHiddenSequencePoint()
         {
-            Debug.Assert(emitPdbSequencePoints);
-            builder.DefineHiddenSequencePoint();
+            Debug.Assert(_emitPdbSequencePoints);
+            _builder.DefineHiddenSequencePoint();
         }
 
         private void EmitSequencePoint(CSharpSyntaxNode syntax)
@@ -339,9 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private TextSpan EmitSequencePoint(SyntaxTree syntaxTree, TextSpan span)
         {
             Debug.Assert(syntaxTree != null);
-            Debug.Assert(emitPdbSequencePoints);
+            Debug.Assert(_emitPdbSequencePoints);
 
-            builder.DefineSequencePoint(syntaxTree, span);
+            _builder.DefineSequencePoint(syntaxTree, span);
             return span;
         }
     }

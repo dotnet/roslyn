@@ -1917,7 +1917,6 @@ class Program
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(text, options: commonoption).VerifyDiagnostics();
-
         }
 
         [WorkItem(546814, "DevDiv")]
@@ -1940,7 +1939,6 @@ class Program
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(text, options: commonoption).VerifyDiagnostics();
-
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string AnalyzerException = "Analyzer.Exception";
         private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
 
-        private static readonly SHA256CryptoServiceProvider sha256CryptoServiceProvider = new SHA256CryptoServiceProvider();
+        private static readonly SHA256CryptoServiceProvider s_sha256CryptoServiceProvider = new SHA256CryptoServiceProvider();
 
-        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
+        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
 
         private static string ComputeSha256Hash(string name)
         {
-            byte[] hash = sha256CryptoServiceProvider.ComputeHash(Encoding.UTF8.GetBytes(name));
+            byte[] hash = s_sha256CryptoServiceProvider.ComputeHash(Encoding.UTF8.GetBytes(name));
             return Convert.ToBase64String(hash);
         }
 
@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
         {
             StrongBox<bool> value;
-            if (telemetryCache.TryGetValue(analyzer, out value))
+            if (s_telemetryCache.TryGetValue(analyzer, out value))
             {
                 return value.Value;
             }
 
-            return telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(service, a))).Value;
+            return s_telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(service, a))).Value;
         }
 
         private static bool CheckTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)

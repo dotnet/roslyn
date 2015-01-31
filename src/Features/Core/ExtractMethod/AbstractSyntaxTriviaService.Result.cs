@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         private class Result : ITriviaSavedResult
         {
-            private static readonly AnnotationResolver defaultAnnotationResolver = ResolveAnnotation;
-            private static readonly TriviaResolver defaultTriviaResolver = ResolveTrivia;
+            private static readonly AnnotationResolver s_defaultAnnotationResolver = ResolveAnnotation;
+            private static readonly TriviaResolver s_defaultTriviaResolver = ResolveTrivia;
 
-            private readonly SyntaxNode root;
-            private readonly int endOfLineKind;
+            private readonly SyntaxNode _root;
+            private readonly int _endOfLineKind;
 
-            private readonly Dictionary<TriviaLocation, SyntaxAnnotation> annotations;
-            private readonly Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> triviaList;
+            private readonly Dictionary<TriviaLocation, SyntaxAnnotation> _annotations;
+            private readonly Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> _triviaList;
 
             public Result(
                 SyntaxNode root,
@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(annotations);
                 Contract.ThrowIfNull(triviaList);
 
-                this.root = root;
-                this.endOfLineKind = endOfLineKind;
+                _root = root;
+                _endOfLineKind = endOfLineKind;
 
-                this.annotations = annotations;
-                this.triviaList = triviaList;
+                _annotations = annotations;
+                _triviaList = triviaList;
             }
 
             public SyntaxNode Root
             {
-                get { return this.root; }
+                get { return _root; }
             }
 
             public SyntaxNode RestoreTrivia(
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (list[i].RawKind == this.endOfLineKind)
+                    if (list[i].RawKind == _endOfLineKind)
                     {
                         return i;
                     }
@@ -103,13 +103,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 SyntaxNode root,
                 AnnotationResolver annotationResolver)
             {
-                var resolver = annotationResolver ?? defaultAnnotationResolver;
+                var resolver = annotationResolver ?? s_defaultAnnotationResolver;
 
                 var tokens = Enumerable.Range((int)TriviaLocation.BeforeBeginningOfSpan, TriviaLocationsCount)
                                        .Cast<TriviaLocation>()
                                        .ToDictionary(
                                             location => location,
-                                            location => resolver(root, location, this.annotations[location]));
+                                            location => resolver(root, location, _annotations[location]));
 
                 // check variable assumption. ordering of two pairs can't be changed
                 Contract.ThrowIfFalse(
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var tokenPairs = CreatePreviousNextTokenPairs(tokens);
                 var tokenToLeadingTrailingTriviaMap = CreateTokenLeadingTrailingTriviaMap(tokens);
 
-                var resolver = triviaResolver ?? defaultTriviaResolver;
+                var resolver = triviaResolver ?? s_defaultTriviaResolver;
 
                 var triviaPairs = Enumerable.Range((int)TriviaLocation.BeforeBeginningOfSpan, TriviaLocationsCount)
                                             .Cast<TriviaLocation>()
@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 map[tokens[TriviaLocation.BeforeBeginningOfSpan]] = new LeadingTrailingTriviaPair
                 {
                     LeadingTrivia = tuple.LeadingTrivia,
-                    TrailingTrivia = this.triviaList[TriviaLocation.BeforeBeginningOfSpan]
+                    TrailingTrivia = _triviaList[TriviaLocation.BeforeBeginningOfSpan]
                 };
 
                 tuple = map.GetOrAdd(tokens[TriviaLocation.AfterBeginningOfSpan], _ => default(LeadingTrailingTriviaPair));
                 map[tokens[TriviaLocation.AfterBeginningOfSpan]] = new LeadingTrailingTriviaPair
                 {
-                    LeadingTrivia = this.triviaList[TriviaLocation.AfterBeginningOfSpan],
+                    LeadingTrivia = _triviaList[TriviaLocation.AfterBeginningOfSpan],
                     TrailingTrivia = tuple.TrailingTrivia
                 };
 
@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 map[tokens[TriviaLocation.BeforeEndOfSpan]] = new LeadingTrailingTriviaPair
                 {
                     LeadingTrivia = tuple.LeadingTrivia,
-                    TrailingTrivia = this.triviaList[TriviaLocation.BeforeEndOfSpan]
+                    TrailingTrivia = _triviaList[TriviaLocation.BeforeEndOfSpan]
                 };
 
                 tuple = map.GetOrAdd(tokens[TriviaLocation.AfterEndOfSpan], _ => default(LeadingTrailingTriviaPair));
                 map[tokens[TriviaLocation.AfterEndOfSpan]] = new LeadingTrailingTriviaPair
                 {
-                    LeadingTrivia = this.triviaList[TriviaLocation.AfterEndOfSpan],
+                    LeadingTrivia = _triviaList[TriviaLocation.AfterEndOfSpan],
                     TrailingTrivia = tuple.TrailingTrivia
                 };
 

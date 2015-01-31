@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class UsingStatementTests : EmitMetadataTestBase
     {
         #region "From UsingStatementTests"
-        const string DisposableClass = @"
+        private const string DisposableClass = @"
 public class DisposableClass : System.IDisposable
 {
     private readonly string name;
@@ -30,7 +30,7 @@ public class DisposableClass : System.IDisposable
 }
 ";
 
-        const string DisposableStruct = @"
+        private const string DisposableStruct = @"
 public struct DisposableStruct : System.IDisposable
 {
     private readonly string name;
@@ -581,7 +581,7 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected );
+            var verifier = CompileAndVerify(text, expectedOutput: expected);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
@@ -2522,20 +2522,20 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (var a = new { })
+    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using (var a = new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),
-                // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (var b = new { p1 = 10 })
+    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using (var b = new { p1 = 10 })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var b = new { p1 = 10 }").WithArguments("<anonymous type: int p1>"),
-                // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (var c = new { p1 = 10.0, p2 = 'a' })
+    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using (var c = new { p1 = 10.0, p2 = 'a' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c = new { p1 = 10.0, p2 = 'a' }").WithArguments("<anonymous type: double p1, char p2>"),
-                // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (new { })
+    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using (new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new { }").WithArguments("<empty anonymous type>"),
-                // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (new { f1 = "12345", f2 = 'S' })
+    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+    //         using (new { f1 = "12345", f2 = 'S' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, @"new { f1 = ""12345"", f2 = 'S' }").WithArguments("<anonymous type: string f1, char f2>")
     );
         }

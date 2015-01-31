@@ -9,27 +9,27 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         protected internal class DiagnosticAsyncToken : AsyncToken
         {
-            private readonly string name;
-            private readonly object tag;
-            private Task task;
+            private readonly string _name;
+            private readonly object _tag;
+            private Task _task;
 
-            private readonly string stackTrace;
-            private string completesAsyncOperationStackTrace;
+            private readonly string _stackTrace;
+            private string _completesAsyncOperationStackTrace;
 
             public DiagnosticAsyncToken(AsynchronousOperationListener listener, string name, object tag)
                 : base(listener)
             {
-                this.name = name;
-                this.tag = tag;
+                _name = name;
+                _tag = tag;
 
-                this.stackTrace = new StackTrace().ToString();
+                _stackTrace = new StackTrace().ToString();
             }
 
             internal void AssociateWithTask(Task task)
             {
-                this.task = task;
+                _task = task;
 
-                this.completesAsyncOperationStackTrace = new StackTrace().ToString();
+                _completesAsyncOperationStackTrace = new StackTrace().ToString();
             }
         }
     }

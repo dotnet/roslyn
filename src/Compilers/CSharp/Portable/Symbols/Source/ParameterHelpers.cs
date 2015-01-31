@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
-
                 SyntaxToken outKeyword;
                 SyntaxToken refKeyword;
                 SyntaxToken paramsKeyword;
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isValidDefaultValue = (defaultExpression.ConstantValue != null) ||
                                         (defaultExpression.Kind == BoundKind.DefaultOperator) ||
-                                        (defaultExpression.Kind == BoundKind.ObjectCreationExpression && 
+                                        (defaultExpression.Kind == BoundKind.ObjectCreationExpression &&
                                                 ((BoundObjectCreationExpression)defaultExpression).Constructor.IsDefaultValueTypeConstructor());
 
             SyntaxToken outKeyword;

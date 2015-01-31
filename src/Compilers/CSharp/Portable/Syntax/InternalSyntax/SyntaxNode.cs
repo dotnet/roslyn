@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
-        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>> structuresTable
+        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
             = new ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (parent != null)
                 {
                     SyntaxNode structure;
-                    var structsInParent = structuresTable.GetOrCreateValue(parent);
+                    var structsInParent = s_structuresTable.GetOrCreateValue(parent);
                     lock (structsInParent)
                     {
                         if (!structsInParent.TryGetValue(trivia, out structure))

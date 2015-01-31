@@ -109,7 +109,7 @@ namespace System
         {
             var c = CSharpCompilation.Create("TypeSymbolFromReflectionType",
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree("class C { }") },
-                references: new[] { 
+                references: new[] {
                     MscorlibRef,
                     MetadataReference.CreateFromImage(File.ReadAllBytes(typeof(TypeTests).Assembly.Location))
                 });
@@ -157,10 +157,10 @@ namespace System
         public void AmbiguousNestedTypeSymbolFromMetadata()
         {
             var code = "class A { class B { } }";
-            var c1 = CSharpCompilation.Create("Asm1", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(code)});
-            var c2 = CSharpCompilation.Create("Asm2", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(code)});
+            var c1 = CSharpCompilation.Create("Asm1", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(code) });
+            var c2 = CSharpCompilation.Create("Asm2", syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(code) });
             var c3 = CSharpCompilation.Create("Asm3",
-                references: new[] { 
+                references: new[] {
                     new CSharpCompilationReference(c1),
                     new CSharpCompilationReference(c2)
                 });
@@ -174,7 +174,7 @@ namespace System
             var code = "class A { class B { } class B { } }";
             var c1 = CSharpCompilation.Create("Asm1",
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(code) });
-            
+
             Assert.Equal("A.B", c1.GetTypeByMetadataName("A+B").ToTestDisplayString());
         }
     }

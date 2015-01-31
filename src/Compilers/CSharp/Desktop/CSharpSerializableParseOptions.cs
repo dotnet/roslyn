@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [Serializable]
     public sealed class CSharpSerializableParseOptions : SerializableParseOptions
     {
-        private readonly CSharpParseOptions options;
+        private readonly CSharpParseOptions _options;
 
         public CSharpSerializableParseOptions(CSharpParseOptions options)
         {
@@ -18,22 +18,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException("options");
             }
 
-            this.options = options;
+            _options = options;
         }
 
         public new ParseOptions Options
         {
-            get { return options; }
+            get { return _options; }
         }
 
         protected override ParseOptions CommonOptions
         {
-            get { return options; }
+            get { return _options; }
         }
 
         private CSharpSerializableParseOptions(SerializationInfo info, StreamingContext context)
         {
-            this.options = new CSharpParseOptions(
+            _options = new CSharpParseOptions(
                 languageVersion: (LanguageVersion)info.GetValue("LanguageVersion", typeof(LanguageVersion)),
                 documentationMode: (DocumentationMode)info.GetValue("DocumentationMode", typeof(DocumentationMode)),
                 kind: (SourceCodeKind)info.GetValue("Kind", typeof(SourceCodeKind)),
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            CommonGetObjectData(options, info, context);
+            CommonGetObjectData(_options, info, context);
 
-            info.AddValue("LanguageVersion", options.LanguageVersion, typeof(LanguageVersion));
-            info.AddArray("PreprocessorSymbols", options.PreprocessorSymbols);
+            info.AddValue("LanguageVersion", _options.LanguageVersion, typeof(LanguageVersion));
+            info.AddArray("PreprocessorSymbols", _options.PreprocessorSymbols);
         }
     }
 }

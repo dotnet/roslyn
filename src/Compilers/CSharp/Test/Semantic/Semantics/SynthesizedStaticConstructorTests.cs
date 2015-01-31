@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SynthesizedStaticConstructorTests : CompilingTestBase
     {
-
         [Fact]
         public void NoStaticMembers()
         {

@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class DynamicTypeEraser : AbstractTypeMap
     {
-        private readonly TypeSymbol objectType;
+        private readonly TypeSymbol _objectType;
 
         public DynamicTypeEraser(TypeSymbol objectType)
         {
             Debug.Assert((object)objectType != null);
-            this.objectType = objectType;
+            _objectType = objectType;
         }
 
         public TypeSymbol EraseDynamic(TypeSymbol type)
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeSymbol SubstituteDynamicType()
         {
-            return objectType;
+            return _objectType;
         }
     }
 }

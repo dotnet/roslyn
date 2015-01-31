@@ -164,7 +164,7 @@ namespace System
             var lastParameterType = beginInvoke.Parameters[invoke.Parameters.Length].Type;
             Assert.Equal("System.AsyncCallback", lastParameterType.ToTestDisplayString());
             Assert.Equal(SpecialType.System_AsyncCallback, lastParameterType.SpecialType);
-            Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length+1].Type.ToTestDisplayString());
+            Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.ToTestDisplayString());
 
             var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
             Assert.Equal(invoke.ReturnType, endInvoke.ReturnType);
@@ -328,7 +328,7 @@ delegate int D(int x, ref int y, out int z);
             comp.VerifyDiagnostics();
 
             NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
-            
+
             MethodSymbol invoke = d.DelegateInvokeMethod;
             ImmutableArray<ParameterSymbol> invokeParameters = invoke.Parameters;
             Assert.Equal(3, invokeParameters.Length);
@@ -501,7 +501,7 @@ delegate void D(int callback, int @object);
 
         [Fact]
         public void DelegateConversion()
-        {           
+        {
             var text = @"
 public class A { }
 public class B { }

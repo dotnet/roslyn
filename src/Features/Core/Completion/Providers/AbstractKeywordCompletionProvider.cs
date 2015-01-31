@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractKeywordCompletionProvider<TContext> : AbstractCompletionProvider
     {
-        private readonly ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders;
+        private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
         protected AbstractKeywordCompletionProvider(
             IEnumerable<IKeywordRecommender<TContext>> keywordRecommenders)
         {
-            this.keywordRecommenders = ImmutableArray.CreateRange(keywordRecommenders);
+            _keywordRecommenders = ImmutableArray.CreateRange(keywordRecommenders);
         }
 
         protected abstract Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static Comparer comparer = new Comparer();
+        private static Comparer s_comparer = new Comparer();
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position, CompletionTriggerInfo triggerInfo,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var unionKeywords = await document.GetUnionResultsFromDocumentAndLinks(comparer, async (doc, ct) => await RecommendKeywordsAsync(doc, position, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+                var unionKeywords = await document.GetUnionResultsFromDocumentAndLinks(s_comparer, async (doc, ct) => await RecommendKeywordsAsync(doc, position, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var textChangeSpan = this.GetTextChangeSpan(text, position);
                 var completions = unionKeywords.Select(s => CreateItem(document.Project.Solution.Workspace, textChangeSpan, s)).ToList();
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 displayText: keyword.Keyword,
                 filterSpan: span,
                 descriptionFactory: (c) => Task.FromResult(keyword.DescriptionFactory(c)),
-                glyph: Glyph.Keyword, 
+                glyph: Glyph.Keyword,
                 isIntrinsic: keyword.IsIntrinsic);
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var context = await CreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             var set = new HashSet<RecommendedKeyword>();
-            foreach (var recommender in keywordRecommenders)
+            foreach (var recommender in _keywordRecommenders)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

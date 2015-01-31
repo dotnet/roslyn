@@ -78,11 +78,11 @@ class C
             });
             VerifyCSharpFix(
                 ArrayEmptySource + Source,
-                ArrayEmptySource + FixedSource, 
+                ArrayEmptySource + FixedSource,
                 allowNewCompilerDiagnostics: true);
             VerifyCSharpFix(
                 "using System;\r\n" + ArrayEmptySource + Source,
-                "using System;\r\n" + ArrayEmptySource + FixedSource.Replace("System.Array.Empty", "Array.Empty"), 
+                "using System;\r\n" + ArrayEmptySource + FixedSource.Replace("System.Array.Empty", "Array.Empty"),
                 allowNewCompilerDiagnostics: true);
         }
 

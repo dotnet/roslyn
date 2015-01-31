@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedFieldSymbolBase : FieldSymbol
     {
-        private readonly NamedTypeSymbol containingType;
-        private readonly string name;
-        private readonly DeclarationModifiers modifiers;
+        private readonly NamedTypeSymbol _containingType;
+        private readonly string _name;
+        private readonly DeclarationModifiers _modifiers;
 
         public SynthesizedFieldSymbolBase(
             NamedTypeSymbol containingType,
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)containingType != null);
             Debug.Assert(!string.IsNullOrEmpty(name));
 
-            this.containingType = containingType;
-            this.name = name;
-            this.modifiers = (isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private) |
+            _containingType = containingType;
+            _name = name;
+            _modifiers = (isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private) |
                 (isReadOnly ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None) |
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
         }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             // do not emit Dynamic or CompilerGenerated attributes for fields inside compiler generated types:
-            if (containingType.IsImplicitlyDeclared)
+            if (_containingType.IsImplicitlyDeclared)
             {
                 return;
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         public override ImmutableArray<CustomModifier> CustomModifiers
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReadOnly
         {
-            get { return (this.modifiers & DeclarationModifiers.ReadOnly) != 0; }
+            get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
         public override bool IsVolatile
@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return this.containingType; }
+            get { return _containingType; }
         }
 
         public override NamedTypeSymbol ContainingType
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility
         {
-            get { return ModifierUtils.EffectiveAccessibility(this.modifiers); }
+            get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
         }
 
         public override bool IsStatic
         {
-            get { return (this.modifiers & DeclarationModifiers.Static) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Static) != 0; }
         }
 
         internal override bool HasSpecialName

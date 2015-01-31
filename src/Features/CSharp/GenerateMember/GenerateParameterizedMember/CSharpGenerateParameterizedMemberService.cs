@@ -23,20 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
     {
         internal partial class InvocationExpressionInfo : AbstractInvocationInfo
         {
-            private readonly InvocationExpressionSyntax invocationExpression;
+            private readonly InvocationExpressionSyntax _invocationExpression;
 
             public InvocationExpressionInfo(
                 SemanticDocument document,
                 AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
                 : base(document, state)
             {
-                this.invocationExpression = state.InvocationExpressionOpt;
+                _invocationExpression = state.InvocationExpressionOpt;
             }
 
             protected override IList<string> DetermineParameterNames(CancellationToken cancellationToken)
             {
                 return this.Document.SemanticModel.GenerateParameterNames(
-                    this.invocationExpression.ArgumentList);
+                    _invocationExpression.ArgumentList);
             }
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 // should be.
                 var typeInference = this.Document.Project.LanguageServices.GetService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(this.Document.SemanticModel,
-                    this.invocationExpression, objectAsDefault: true, cancellationToken: cancellationToken);
+                    _invocationExpression, objectAsDefault: true, cancellationToken: cancellationToken);
                 if (State.IsInConditionalAccessExpression)
                 {
                     return inferredType.RemoveNullableIfPresent();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             {
                 var result = new List<ITypeParameterSymbol>();
                 var semanticModel = this.Document.SemanticModel;
-                foreach (var argument in this.invocationExpression.ArgumentList.Arguments)
+                foreach (var argument in _invocationExpression.ArgumentList.Arguments)
                 {
                     var type = semanticModel.GetType(argument.Expression, cancellationToken);
                     type.GetReferencedTypeParameters(result);
@@ -137,14 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             protected override IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
             {
                 return
-                    this.invocationExpression.ArgumentList.Arguments.Select(
+                    _invocationExpression.ArgumentList.Arguments.Select(
                         a => a.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
                              a.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None).ToList();
             }
 
             protected override IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
             {
-                return this.invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken)).ToList();
+                return _invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken)).ToList();
             }
 
             private ITypeSymbol DetermineParameterType(
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 
             protected override IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
             {
-                return this.invocationExpression.ArgumentList.Arguments.Select(a => false).ToList();
+                return _invocationExpression.ArgumentList.Arguments.Select(a => false).ToList();
             }
 
             protected override bool IsIdentifierName()

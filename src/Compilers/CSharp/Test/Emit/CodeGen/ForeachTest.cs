@@ -661,7 +661,7 @@ Z";
 ";
             string expectedOutput = @"abc
 xyz";
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef },  expectedOutput: expectedOutput);
+            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -787,7 +787,7 @@ b
 c
 ";
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
-            
+
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 

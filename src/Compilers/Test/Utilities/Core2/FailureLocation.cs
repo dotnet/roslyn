@@ -8,27 +8,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public FailureLocation(TextSpan span, SyntaxTree tree)
         {
-            m_SourceSpan = span;
-            m_SourceTree = tree;
+            _sourceSpan = span;
+            _sourceTree = tree;
         }
 
-        private static Location m_Default;
+        private static Location s_default;
         public static Location Default
         {
             get
             {
-                if (m_Default == null)
+                if (s_default == null)
                 {
-                    m_Default = new FailureLocation(new TextSpan(0, 0), null);
+                    s_default = new FailureLocation(new TextSpan(0, 0), null);
                 }
 
-                return m_Default;
+                return s_default;
             }
         }
 
         public override FileLinePositionSpan GetLineSpan()
         {
-            return m_SourceTree.GetLineSpan(m_SourceSpan);
+            return _sourceTree.GetLineSpan(_sourceSpan);
         }
 
         public override LocationKind Kind
@@ -39,21 +39,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private TextSpan m_SourceSpan;
+        private TextSpan _sourceSpan;
         public override TextSpan SourceSpan
         {
             get
             {
-                return m_SourceSpan;
+                return _sourceSpan;
             }
         }
 
-        private readonly SyntaxTree m_SourceTree;
+        private readonly SyntaxTree _sourceTree;
         public override SyntaxTree SourceTree
         {
             get
             {
-                return m_SourceTree;
+                return _sourceTree;
             }
         }
 
@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public bool Equals(FailureLocation other)
         {
-            return m_SourceSpan == other.m_SourceSpan && ReferenceEquals(m_SourceTree, other.m_SourceTree);
+            return _sourceSpan == other._sourceSpan && ReferenceEquals(_sourceTree, other._sourceTree);
         }
 
         public override int GetHashCode()
         {
-            return m_SourceSpan.GetHashCode() ^ m_SourceTree.GetHashCode();
+            return _sourceSpan.GetHashCode() ^ _sourceTree.GetHashCode();
         }
     }
 }

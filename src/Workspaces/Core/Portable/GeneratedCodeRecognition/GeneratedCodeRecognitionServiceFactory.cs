@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
     [ExportWorkspaceServiceFactory(typeof(IGeneratedCodeRecognitionService), ServiceLayer.Default), Shared]
     internal class GeneratedCodeRecognitionServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly IGeneratedCodeRecognitionService Singleton = new GeneratedCodeRecognitionService();
+        private static readonly IGeneratedCodeRecognitionService s_singleton = new GeneratedCodeRecognitionService();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return Singleton;
+            return s_singleton;
         }
 
         private class GeneratedCodeRecognitionService : IGeneratedCodeRecognitionService

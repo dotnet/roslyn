@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             SkippedTokens = 4,
         }
 
-        private static readonly Func<SyntaxTrivia, bool>[] StepIntoFunctions = new Func<SyntaxTrivia, bool>[]
+        private static readonly Func<SyntaxTrivia, bool>[] s_stepIntoFunctions = new Func<SyntaxTrivia, bool>[]
         {
             /* 000 */ null,
             /* 001 */ t =>                                                                   SyntaxFacts.IsDocumentationCommentTrivia((SyntaxKind)t.RawKind),
@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         protected override Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments)
         {
-            var index = (skipped     ? SyntaxKinds.SkippedTokens : 0) |
-                        (directives  ? SyntaxKinds.Directives    : 0) |
-                        (docComments ? SyntaxKinds.DocComments   : 0);
-            return StepIntoFunctions[(int)index];
+            var index = (skipped ? SyntaxKinds.SkippedTokens : 0) |
+                        (directives ? SyntaxKinds.Directives : 0) |
+                        (docComments ? SyntaxKinds.DocComments : 0);
+            return s_stepIntoFunctions[(int)index];
         }
     }
 }

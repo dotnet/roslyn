@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
-            this.sawAwait = true;
+            _sawAwait = true;
             return base.VisitAwaitExpression(node);
         }
     }

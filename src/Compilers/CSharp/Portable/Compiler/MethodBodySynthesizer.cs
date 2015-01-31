@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: ImmutableArray<int>.Empty,
                         resultKind: LookupResultKind.Viable,
                         type: objectType)
-            { WasCompilerGenerated = true })
-            { WasCompilerGenerated = true };
+                    { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true };
 
             var boundStatements = ImmutableArray.Create(baseConstructorCall);
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundConversion.Synthesized(syntax,
                                 new BoundArrayAccess(syntax,
                                     submissionArrayReference,
-                                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(0), intType) { WasCompilerGenerated = true } ),
+                                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(0), intType) { WasCompilerGenerated = true }),
                                     objectType),
                                 Conversion.ExplicitReference,
                                 false,
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldAccess,
                         new BoundParameter(syntax, parameter) { WasCompilerGenerated = true },
                         property.Type)
-                { WasCompilerGenerated = true })
+                    { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
             }
 
@@ -356,8 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(updateMethodId);
                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember,
-                                                                      memberDescriptor.DeclaringTypeMetadataName, 
-                                                                      memberDescriptor.Name), 
+                                                                      memberDescriptor.DeclaringTypeMetadataName,
+                                                                      memberDescriptor.Name),
                                                                       syntax.Location));
 
                 return new BoundBlock(syntax,
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[0],
                     right: boundBackingField,
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // LOOP:
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[1],
                     right: boundTmps[0],
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // (DelegateType)Delegate.Combine(tmp1, value)
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[2],
                     right: delegateUpdate,
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // Interlocked.CompareExchange<DelegateType>(ref _event, tmp2, tmp1)
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[0],
                     right: compareExchange,
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // tmp0 == tmp1 // i.e. exit when they are equal, jump to start otherwise
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: boolType)
             { WasCompilerGenerated = true };
-            
+
             // branchfalse (tmp0 == tmp1) LOOP
             BoundStatement loopEnd = new BoundConditionalGoto(syntax,
                 condition: loopExitCondition,
@@ -516,7 +516,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loopEnd,
                     @return))
             { WasCompilerGenerated = true };
-
         }
 
         internal static BoundBlock ConstructDestructorBody(MethodSymbol method, BoundBlock block)
@@ -542,10 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             new BoundBaseReference(
                                 syntax,
                                 method.ContainingType)
-                { WasCompilerGenerated = true },
+                            { WasCompilerGenerated = true },
                             baseTypeFinalize)
                         )
-                { WasCompilerGenerated = true },
+                    { WasCompilerGenerated = true },
                     ((BlockSyntax)syntax).CloseBraceToken.Span);
 
                 return new BoundBlock(
@@ -562,9 +561,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ImmutableArray.Create<BoundStatement>(
                                     baseFinalizeCall)
                             )
-                { WasCompilerGenerated = true }
+                            { WasCompilerGenerated = true }
                         )
-                { WasCompilerGenerated = true }));
+                        { WasCompilerGenerated = true }));
             }
 
             return block;

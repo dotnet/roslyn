@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
         }
-
     }
 
     internal partial class BoundCall
@@ -524,8 +523,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, BoundStatement statement)
         {
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, 
-                ImmutableArray.Create(statement)) { WasCompilerGenerated = true };
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty,
+                ImmutableArray.Create(statement))
+            { WasCompilerGenerated = true };
         }
 
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, ImmutableArray<BoundStatement> statements)

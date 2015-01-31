@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
     {
         private abstract class AbstractCodeAction : CodeAction
         {
-            private readonly IList<IMethodSymbol> constructors;
-            private readonly Document document;
-            private readonly State state;
-            private readonly TService service;
-            private readonly string title;
+            private readonly IList<IMethodSymbol> _constructors;
+            private readonly Document _document;
+            private readonly State _state;
+            private readonly TService _service;
+            private readonly string _title;
 
             protected AbstractCodeAction(
                 TService service,
@@ -29,24 +29,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 IList<IMethodSymbol> constructors,
                 string title)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
-                this.constructors = constructors;
-                this.title = title;
+                _service = service;
+                _document = document;
+                _state = state;
+                _constructors = constructors;
+                _title = title;
             }
 
             public override string Title
             {
-                get { return this.title; }
+                get { return _title; }
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    document.Project.Solution,
-                    state.ClassType,
-                    constructors.Select(CreateConstructorDefinition),
+                    _document.Project.Solution,
+                    _state.ClassType,
+                    _constructors.Select(CreateConstructorDefinition),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return result;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             private IMethodSymbol CreateConstructorDefinition(
                 IMethodSymbol constructor)
             {
-                var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
                 var baseConstructorArguments = constructor.Parameters.Length != 0
                     ? syntaxFactory.CreateArguments(constructor.Parameters)
                     : null;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     attributes: null,
                     accessibility: constructor.DeclaredAccessibility,
                     modifiers: new DeclarationModifiers(),
-                    typeName: state.ClassType.Name,
+                    typeName: _state.ClassType.Name,
                     parameters: constructor.Parameters,
                     statements: null,
                     baseConstructorArguments: baseConstructorArguments);

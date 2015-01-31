@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddImport
         private const string NameNotInContext = "CS0103";
         private const string MessageFormat = "The name '{0}' does not exist in the current context";
 
-        private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember);
+        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember);
 
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
         {
             get
             {
-                return kindsOfInterest;
+                return s_kindsOfInterest;
             }
         }
 

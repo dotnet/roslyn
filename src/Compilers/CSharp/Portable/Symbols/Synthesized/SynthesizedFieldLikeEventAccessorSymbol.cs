@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedFieldLikeEventAccessorSymbol : SourceEventAccessorSymbol
     {
         // Since we don't have a syntax reference, we'll have to use another object for locking.
-        private readonly object methodChecksLockObject = new object();
+        private readonly object _methodChecksLockObject = new object();
 
-        private readonly string name;
+        private readonly string _name;
 
         internal SynthesizedFieldLikeEventAccessorSymbol(SourceFieldLikeEventSymbol @event, bool isAdder)
             : base(@event, null, null, @event.Locations)
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: false);
 
-            this.name = GetOverriddenAccessorName(@event, isAdder) ??
+            _name = GetOverriddenAccessorName(@event, isAdder) ??
                 SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
         }
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         public override bool IsImplicitlyDeclared
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override object MethodChecksLockObject
         {
-            get { return methodChecksLockObject; }
+            get { return _methodChecksLockObject; }
         }
 
         internal override MethodImplAttributes ImplementationAttributes

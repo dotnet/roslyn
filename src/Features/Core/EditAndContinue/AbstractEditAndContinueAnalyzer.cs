@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsPartial(INamedTypeSymbol type);
         internal abstract SyntaxNode EmptyCompilationUnit { get; }
 
-        private static readonly SourceText EmptySource = SourceText.From("");
+        private static readonly SourceText s_emptySource = SourceText.From("");
 
         #region Document Analysis 
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     oldTreeOpt = null;
                     oldRoot = EmptyCompilationUnit;
-                    oldText = EmptySource;
+                    oldText = s_emptySource;
                 }
 
                 var newTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -290,9 +290,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // If the document is unchanged don't continue the analysis since 
                     // a) comparing texts is cheaper than diffing trees
                     // b) we need to ignore errors in unchanged documents
-                    
+
                     AnalyzeUnchangedDocument(
-                        baseActiveStatements, 
+                        baseActiveStatements,
                         newText,
                         newRoot,
                         document.Id,
@@ -449,11 +449,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lineEdits.AsImmutable(),
                     hasSemanticErrors: false);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
+            }
 
         internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     map.Add(edit.OldNode, edit.Kind);
                 }
-                
+
                 if (edit.Kind == EditKind.Insert || edit.Kind == EditKind.Update)
                 {
                     map.Add(edit.NewNode, edit.Kind);
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             for (int i = 0; i < newActiveStatements.Length; i++)
             {
                 TextSpan oldStatementSpan, newStatementSpan;
-                if (!TryGetTextSpan(newText.Lines, oldActiveStatements[i].Span, out oldStatementSpan) || 
+                if (!TryGetTextSpan(newText.Lines, oldActiveStatements[i].Span, out oldStatementSpan) ||
                     !TryGetEnclosingBreakpointSpan(newRoot, oldStatementSpan.Start, out newStatementSpan))
                 {
                     newExceptionRegionsOpt[i] = ImmutableArray<LinePositionSpan>.Empty;
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // from looking at active statements.
             int start, end;
             bool hasActiveStatement = TryGetOverlappingActiveStatements(oldText, edit.OldNode.Span, oldActiveStatements, out start, out end);
-            
+
             if (edit.Kind == EditKind.Delete)
             {
                 // The entire member has been deleted.
@@ -1102,9 +1102,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         // internal for testing
         internal Match<SyntaxNode> ComputeBodyMatch(
-            SyntaxNode oldBody, 
-            SyntaxNode newBody, 
-            ActiveNode[] activeNodes, 
+            SyntaxNode oldBody,
+            SyntaxNode newBody,
+            ActiveNode[] activeNodes,
             List<RudeEditDiagnostic> diagnostics,
             out bool isActiveMethod)
         {
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 AddMatchingStateMachineSuspensionPoints(ref lazyKnownMatches, ref lazyRudeEdits, oldStateMachineSuspensionPoints, newStateMachineSuspensionPoints);
             }
-            
+
             var match = ComputeBodyMatch(oldBody, newBody, lazyKnownMatches);
 
             if (lazyRudeEdits != null)
@@ -1177,10 +1177,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]);
                 }
             }
-                
+
             return match;
         }
-        
+
         private static void AddMatchingActiveNodes(ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, IEnumerable<ActiveNode> activeNodes)
         {
             // add nodes that are tracked by the editor buffer to known matches:
@@ -1199,15 +1199,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private void AddMatchingStateMachineSuspensionPoints(
-            ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, 
-            ref List<SequenceEdit> lazyRudeEdits, 
+            ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches,
+            ref List<SequenceEdit> lazyRudeEdits,
             ImmutableArray<SyntaxNode> oldStateMachineSuspensionPoints,
             ImmutableArray<SyntaxNode> newStateMachineSuspensionPoints)
         {
             // State machine suspension points (yield statements and await expressions) determine the structure of the generated state machine.
             // Change of the SM structure is far more significant then changes of the value (arguments) of these nodes.
             // Hence we build the match such that these nodes are fixed.
-            
+
             if (lazyKnownMatches == null)
             {
                 lazyKnownMatches = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
@@ -1505,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
-            Func<TSyntaxNode, TSyntaxNode, bool> areSimilar) 
+            Func<TSyntaxNode, TSyntaxNode, bool> areSimilar)
             where TSyntaxNode : SyntaxNode
         {
             List<SyntaxNode> oldNodes = null, newNodes = null;
@@ -2052,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     int start, end;
 
                     // TODO: also preserve local variables if the body contains lambdas
-                    bool preserveLocalVariables = 
+                    bool preserveLocalVariables =
                         TryGetOverlappingActiveStatements(oldText, edit.Key.Span, oldActiveStatements, out start, out end) ||
                         IsStateMachineMethod(edit.Key);
 

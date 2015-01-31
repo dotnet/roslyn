@@ -6,21 +6,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertyInfo
     {
-        private static readonly ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo> propertyToInfoMap =
+        private static readonly ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo> s_propertyToInfoMap =
             new ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo>();
 
-        private readonly bool isNew;
-        private readonly bool isUnsafe;
-        private readonly SyntaxNode initializer;
+        private readonly bool _isNew;
+        private readonly bool _isUnsafe;
+        private readonly SyntaxNode _initializer;
 
         private CodeGenerationPropertyInfo(
             bool isNew,
             bool isUnsafe,
             SyntaxNode initializer)
         {
-            this.isNew = isNew;
-            this.isUnsafe = isUnsafe;
-            this.initializer = initializer;
+            _isNew = isNew;
+            _isUnsafe = isUnsafe;
+            _initializer = initializer;
         }
 
         public static void Attach(
@@ -30,19 +30,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxNode initializer)
         {
             var info = new CodeGenerationPropertyInfo(isNew, isUnsafe, initializer);
-            propertyToInfoMap.Add(property, info);
+            s_propertyToInfoMap.Add(property, info);
         }
 
         private static CodeGenerationPropertyInfo GetInfo(IPropertySymbol property)
         {
             CodeGenerationPropertyInfo info;
-            propertyToInfoMap.TryGetValue(property, out info);
+            s_propertyToInfoMap.TryGetValue(property, out info);
             return info;
         }
 
         public static SyntaxNode GetInitializer(CodeGenerationPropertyInfo info)
         {
-            return info == null ? null : info.initializer;
+            return info == null ? null : info._initializer;
         }
 
         public static SyntaxNode GetInitializer(IPropertySymbol property)
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static bool GetIsNew(CodeGenerationPropertyInfo info)
         {
-            return info != null && info.isNew;
+            return info != null && info._isNew;
         }
 
         private static bool GetIsUnsafe(CodeGenerationPropertyInfo info)
         {
-            return info != null && info.isUnsafe;
+            return info != null && info._isUnsafe;
         }
     }
 }

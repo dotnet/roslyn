@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -42,36 +42,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private readonly Solution baseSolution;
+        private readonly Solution _baseSolution;
 
         // signalled when the session is terminated:
-        private readonly CancellationTokenSource cancellation;
+        private readonly CancellationTokenSource _cancellation;
 
         // document id -> [active statements ordered by position]
-        private readonly IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> baseActiveStatements;
+        private readonly IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> _baseActiveStatements;
 
-        private readonly DebuggingSession debuggingSession;
+        private readonly DebuggingSession _debuggingSession;
 
         /// <summary>
         /// Stopped at exception, an unwind is required before EnC is allowed. All edits are rude.
         /// </summary>
-        private readonly bool stoppedAtException;
+        private readonly bool _stoppedAtException;
 
         // Results of changed documents analysis. 
         // The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
         // Contains analyses of the latest observed document versions.
-        private readonly object analysesGuard = new object();
-        private readonly Dictionary<DocumentId, Analysis> analyses;
+        private readonly object _analysesGuard = new object();
+        private readonly Dictionary<DocumentId, Analysis> _analyses;
 
         // A document id is added whenever any analysis reports rude edits.
-        private readonly object documentsWithReportedRudeEditsGuard = new object();
-        private readonly HashSet<DocumentId> documentsWithReportedRudeEdits;
+        private readonly object _documentsWithReportedRudeEditsGuard = new object();
+        private readonly HashSet<DocumentId> _documentsWithReportedRudeEdits;
 
-        private readonly ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects;
+        private readonly ImmutableDictionary<ProjectId, ProjectReadOnlyReason> _projects;
 
         // EncEditSessionInfo is populated on a background thread and then read from the UI thread
-        private readonly object encEditSessionInfoGuard = new object();
-        private EncEditSessionInfo encEditSessionInfo = new EncEditSessionInfo();
+        private readonly object _encEditSessionInfoGuard = new object();
+        private EncEditSessionInfo _encEditSessionInfo = new EncEditSessionInfo();
 
         internal EditSession(
             Solution baseSolution,
@@ -83,30 +83,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(baseSolution != null);
             Debug.Assert(debuggingSession != null);
 
-            this.baseSolution = baseSolution;
-            this.debuggingSession = debuggingSession;
-            this.stoppedAtException = stoppedAtException;
-            this.projects = projects;
-            this.cancellation = new CancellationTokenSource();
+            _baseSolution = baseSolution;
+            _debuggingSession = debuggingSession;
+            _stoppedAtException = stoppedAtException;
+            _projects = projects;
+            _cancellation = new CancellationTokenSource();
 
             // TODO: small dict, pool?
-            this.analyses = new Dictionary<DocumentId, Analysis>();
-            this.baseActiveStatements = baseActiveStatements;
+            _analyses = new Dictionary<DocumentId, Analysis>();
+            _baseActiveStatements = baseActiveStatements;
 
             // TODO: small dict, pool?
-            this.documentsWithReportedRudeEdits = new HashSet<DocumentId>();
+            _documentsWithReportedRudeEdits = new HashSet<DocumentId>();
         }
 
         internal CancellationTokenSource Cancellation
         {
-            get { return cancellation; }
+            get { return _cancellation; }
         }
 
         internal Solution BaseSolution
         {
             get
             {
-                return baseSolution;
+                return _baseSolution;
             }
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return baseActiveStatements;
+                return _baseActiveStatements;
             }
         }
 
@@ -122,18 +122,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return baseSolution.Workspace.CurrentSolution;
+                return _baseSolution.Workspace.CurrentSolution;
             }
         }
 
         public bool StoppedAtException
         {
-            get { return stoppedAtException; }
+            get { return _stoppedAtException; }
         }
 
         public IReadOnlyDictionary<ProjectId, ProjectReadOnlyReason> Projects
         {
-            get { return projects; }
+            get { return _projects; }
         }
 
         internal bool TryGetProjectState(string projectName, out ProjectReadOnlyReason reason)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // We used to keep track of project ids but Venus may have multiple project ids during debugging sessions,
             // causing EnC fail to recognize they belong to the same project. Therefore, instead of ids,
             // their public display name (which is shared between multiple projects in Venus) is compared.
-            foreach (var pair in Projects.Where((p) => baseSolution.GetProject(p.Key)?.Name == projectName))
+            foreach (var pair in Projects.Where((p) => _baseSolution.GetProject(p.Key)?.Name == projectName))
             {
                 reason = pair.Value;
                 return true;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
             var result = new List<ValueTuple<DocumentId, AsyncLazy<DocumentAnalysisResults>>>();
 
-            lock (analysesGuard)
+            lock (_analysesGuard)
             {
                 foreach (var changedDocumentId in changedDocuments)
                 {
@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private async Task<HashSet<ISymbol>> GetAllAddedSymbols(CancellationToken cancellationToken)
         {
             Analysis[] analyses;
-            lock (analysesGuard)
+            lock (_analysesGuard)
             {
-                analyses = this.analyses.Values.ToArray();
+                analyses = _analyses.Values.ToArray();
             }
 
             HashSet<ISymbol> addedSymbols = null;
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document document)
         {
-            lock (analysesGuard)
+            lock (_analysesGuard)
             {
                 return GetDocumentAnalysisNoLock(document);
             }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document document)
         {
             Analysis analysis;
-            if (analyses.TryGetValue(document.Id, out analysis) && analysis.Document == document)
+            if (_analyses.TryGetValue(document.Id, out analysis) && analysis.Document == document)
             {
                 return analysis.Results;
             }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
 
             ImmutableArray<ActiveStatementSpan> activeStatements;
-            if (!baseActiveStatements.TryGetValue(document.Id, out activeStatements))
+            if (!_baseActiveStatements.TryGetValue(document.Id, out activeStatements))
             {
                 activeStatements = ImmutableArray.Create<ActiveStatementSpan>();
             }
@@ -232,34 +232,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     try
                     {
-                        var result = await analyzer.AnalyzeDocumentAsync(baseSolution, activeStatements, document, cancellationToken).ConfigureAwait(false);
+                        var result = await analyzer.AnalyzeDocumentAsync(_baseSolution, activeStatements, document, cancellationToken).ConfigureAwait(false);
 
                         if (!result.RudeEditErrors.IsDefault)
                         {
-                            lock (documentsWithReportedRudeEditsGuard)
+                            lock (_documentsWithReportedRudeEditsGuard)
                             {
-                                documentsWithReportedRudeEdits.Add(document.Id);
+                                _documentsWithReportedRudeEdits.Add(document.Id);
                             }
                         }
 
                         return result;
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                },
+                    },
                 cacheResult: true);
 
-            analyses[document.Id] = new Analysis(document, lazyResults);
+            _analyses[document.Id] = new Analysis(document, lazyResults);
             return lazyResults;
         }
 
         internal ImmutableArray<DocumentId> GetDocumentsWithReportedRudeEdits()
         {
-            lock (documentsWithReportedRudeEditsGuard)
+            lock (_documentsWithReportedRudeEditsGuard)
             {
-                return ImmutableArray.CreateRange(documentsWithReportedRudeEdits);
+                return ImmutableArray.CreateRange(_documentsWithReportedRudeEdits);
             }
         }
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                var baseProject = baseSolution.GetProject(project.Id);
+                var baseProject = _baseSolution.GetProject(project.Id);
 
                 var documentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
                 if (documentAnalyses.Count == 0)
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ProjectAnalysisSummary.NoChanges;
                 }
 
-                if (stoppedAtException)
+                if (_stoppedAtException)
                 {
                     // all edits are disallowed when stopped at exception:
                     return ProjectAnalysisSummary.RudeEdits;
@@ -320,17 +320,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ProjectAnalysisSummary.ValidChanges :
                     ProjectAnalysisSummary.ValidInsignificantChanges;
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
+            }
 
         private async Task<ProjectChanges> GetProjectChangesAsync(Project project, CancellationToken cancellationToken)
         {
             try
             {
-                var baseProject = baseSolution.GetProject(project.Id);
+                var baseProject = _baseSolution.GetProject(project.Id);
                 var allEdits = new List<SemanticEdit>();
                 var allLineEdits = new List<KeyValuePair<DocumentId, ImmutableArray<LineChange>>>();
 
@@ -356,17 +356,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return new ProjectChanges(allEdits, allLineEdits);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
+            }
 
         public async Task<Deltas> EmitProjectDeltaAsync(Project project, EmitBaseline baseline, CancellationToken cancellationToken)
         {
             try
             {
-                Debug.Assert(!stoppedAtException);
+                Debug.Assert(!_stoppedAtException);
 
                 var changes = await GetProjectChangesAsync(project, cancellationToken).ConfigureAwait(false);
                 var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -392,21 +392,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return new Deltas(ilStream.ToArray(), metadataStream.ToArray(), updateMethodTokens, pdbStream, changes.LineChanges, result);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
+            }
 
         internal void LogRudeEditErrors(ImmutableArray<RudeEditDiagnostic> rudeEditErrors)
         {
-            lock (encEditSessionInfoGuard)
+            lock (_encEditSessionInfoGuard)
             {
-                if (encEditSessionInfo != null)
+                if (_encEditSessionInfo != null)
                 {
                     foreach (var item in rudeEditErrors)
                     {
-                        encEditSessionInfo.LogRudeEdit((ushort)item.Kind, item.SyntaxKind);
+                        _encEditSessionInfo.LogRudeEdit((ushort)item.Kind, item.SyntaxKind);
                     }
                 }
             }
@@ -414,32 +414,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal void LogEmitProjectDeltaErrors(IEnumerable<string> errorIds)
         {
-            lock (encEditSessionInfoGuard)
+            lock (_encEditSessionInfoGuard)
             {
-                Debug.Assert(encEditSessionInfo != null);
-                encEditSessionInfo.EmitDeltaErrorIds = errorIds;
+                Debug.Assert(_encEditSessionInfo != null);
+                _encEditSessionInfo.EmitDeltaErrorIds = errorIds;
             }
         }
 
         internal void LogBuildState(ProjectAnalysisSummary lastEditSessionSummary)
         {
-            lock (encEditSessionInfoGuard)
+            lock (_encEditSessionInfoGuard)
             {
-                Debug.Assert(encEditSessionInfo != null);
-                encEditSessionInfo.HadCompilationErrors |= lastEditSessionSummary == ProjectAnalysisSummary.CompilationErrors;
-                encEditSessionInfo.HadRudeEdits |= lastEditSessionSummary == ProjectAnalysisSummary.RudeEdits;
-                encEditSessionInfo.HadValidChanges |= lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges;
-                encEditSessionInfo.HadValidInsignificantChanges |= lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges;
+                Debug.Assert(_encEditSessionInfo != null);
+                _encEditSessionInfo.HadCompilationErrors |= lastEditSessionSummary == ProjectAnalysisSummary.CompilationErrors;
+                _encEditSessionInfo.HadRudeEdits |= lastEditSessionSummary == ProjectAnalysisSummary.RudeEdits;
+                _encEditSessionInfo.HadValidChanges |= lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges;
+                _encEditSessionInfo.HadValidInsignificantChanges |= lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges;
             }
         }
 
         internal void LogEditSession(EncDebuggingSessionInfo encDebuggingSessionInfo)
         {
-            lock (encEditSessionInfoGuard)
+            lock (_encEditSessionInfoGuard)
             {
-                Debug.Assert(encEditSessionInfo != null);
-                encDebuggingSessionInfo.EndEditSession(this.encEditSessionInfo);
-                this.encEditSessionInfo = null;
+                Debug.Assert(_encEditSessionInfo != null);
+                encDebuggingSessionInfo.EndEditSession(_encEditSessionInfo);
+                _encEditSessionInfo = null;
             }
         }
     }

@@ -380,7 +380,7 @@ namespace N
         #region Helper Methods
 
         private const string RuleName = CA1708DiagnosticAnalyzer.RuleId;
-        private static readonly string Message = FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase;
+        private static readonly string s_message = FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase;
 
         private const string Namespace = CA1708DiagnosticAnalyzer.Namespace;
         private const string Type = CA1708DiagnosticAnalyzer.Type;
@@ -394,27 +394,27 @@ namespace N
 
         private static DiagnosticResult GetCA1708CSharpResult(string typeName, string objectName)
         {
-            return GetGlobalResult(RuleName, string.Format(Message, typeName, objectName));
+            return GetGlobalResult(RuleName, string.Format(s_message, typeName, objectName));
         }
 
         private static DiagnosticResult GetCA1708BasicResult(string typeName, string objectName)
         {
-            return GetGlobalResult(RuleName, string.Format(Message, typeName, objectName));
+            return GetGlobalResult(RuleName, string.Format(s_message, typeName, objectName));
         }
 
         private static DiagnosticResult GetCA1708CSharpResultAt(string typeName, string objectName, int line, int column)
         {
-            return GetCSharpResultAt(line, column, RuleName, string.Format(Message, typeName, objectName));
+            return GetCSharpResultAt(line, column, RuleName, string.Format(s_message, typeName, objectName));
         }
 
         private static DiagnosticResult GetCA1708BasicResultAt(string typeName, string objectName, int line, int column)
         {
-            return GetBasicResultAt(line, column, RuleName, string.Format(Message, typeName, objectName));
+            return GetBasicResultAt(line, column, RuleName, string.Format(s_message, typeName, objectName));
         }
 
         private static DiagnosticResult GetCA1708CSharpResultAt(string typeName, string objectName, params string[] locations)
         {
-            return GetCSharpResultAt(RuleName, string.Format(Message, typeName, objectName), locations);
+            return GetCSharpResultAt(RuleName, string.Format(s_message, typeName, objectName), locations);
         }
 
         #endregion

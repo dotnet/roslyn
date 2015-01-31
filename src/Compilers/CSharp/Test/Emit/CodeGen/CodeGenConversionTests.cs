@@ -258,7 +258,7 @@ class Program
         Test.Int32();                       
     }
 }
-";                                                                                 
+";
 
             var expectedOutput = @"
 02/01/2013 22:32:47
@@ -273,7 +273,7 @@ null
 null
 0
 ";
-            
+
             // When the method with the attribute is in source.
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 

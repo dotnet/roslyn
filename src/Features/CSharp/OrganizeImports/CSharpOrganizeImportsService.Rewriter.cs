@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly bool placeSystemNamespaceFirst;
+            private readonly bool _placeSystemNamespaceFirst;
             public readonly IList<TextChange> TextChanges = new List<TextChange>();
 
             public Rewriter(bool placeSystemNamespaceFirst)
             {
-                this.placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList;
                 SyntaxList<UsingDirectiveSyntax> organizedUsingList;
                 UsingsAndExternAliasesOrganizer.Organize(
-                    node.Externs, node.Usings, placeSystemNamespaceFirst,
+                    node.Externs, node.Usings, _placeSystemNamespaceFirst,
                     out organizedExternAliasList, out organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList;
                 SyntaxList<UsingDirectiveSyntax> organizedUsingList;
                 UsingsAndExternAliasesOrganizer.Organize(
-                    node.Externs, node.Usings, placeSystemNamespaceFirst,
+                    node.Externs, node.Usings, _placeSystemNamespaceFirst,
                     out organizedExternAliasList, out organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);

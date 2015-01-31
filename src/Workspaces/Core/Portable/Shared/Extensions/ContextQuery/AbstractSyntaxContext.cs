@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 {
     internal abstract class AbstractSyntaxContext
     {
-        private ISet<INamedTypeSymbol> outerTypes;
+        private ISet<INamedTypeSymbol> _outerTypes;
 
         protected AbstractSyntaxContext(
             Workspace workspace,
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public ISet<INamedTypeSymbol> GetOuterTypes(CancellationToken cancellationToken)
         {
-            if (this.outerTypes == null)
+            if (_outerTypes == null)
             {
-                Interlocked.CompareExchange(ref this.outerTypes, ComputeOuterTypes(cancellationToken), null);
+                Interlocked.CompareExchange(ref _outerTypes, ComputeOuterTypes(cancellationToken), null);
             }
 
-            return this.outerTypes;
+            return _outerTypes;
         }
 
         public TService GetLanguageService<TService>() where TService : class, ILanguageService

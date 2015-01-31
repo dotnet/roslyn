@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CompoundAssignmentForDelegate : EmitMetadataTestBase
     {
-
         // The method  to removal or concatenation with ‘optional’ parameter
         [Fact]
         public void OptionalParaInCompAssignOperator()
@@ -199,7 +198,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput:"10").VerifyIL("C.Main", @"
+            CompileAndVerify(text, expectedOutput: "10").VerifyIL("C.Main", @"
 {
   // Code size       77 (0x4d)
   .maxstack  3
@@ -237,7 +236,7 @@ class C
         [Fact]
         public void LambdaMethodToRemovalOrConcatenation()
         {
-            var text =@"
+            var text = @"
 using System;
 delegate void boo(string x);
 class C
@@ -255,7 +254,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput:"Hello").VerifyIL("C.Main()", @"
+            CompileAndVerify(text, expectedOutput: "Hello").VerifyIL("C.Main()", @"
 {
   // Code size       80 (0x50)
   .maxstack  3

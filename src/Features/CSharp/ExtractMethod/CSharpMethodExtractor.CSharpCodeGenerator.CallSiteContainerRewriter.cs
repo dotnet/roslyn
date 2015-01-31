@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private class CallSiteContainerRewriter : CSharpSyntaxRewriter
             {
-                private readonly SyntaxNode outmostCallSiteContainer;
-                private readonly IEnumerable<SyntaxNode> statementsOrFieldToInsert;
-                private readonly HashSet<SyntaxAnnotation> variableToRemoveMap;
-                private readonly SyntaxNode firstStatementOrFieldToReplace;
-                private readonly SyntaxNode lastStatementOrFieldToReplace;
+                private readonly SyntaxNode _outmostCallSiteContainer;
+                private readonly IEnumerable<SyntaxNode> _statementsOrFieldToInsert;
+                private readonly HashSet<SyntaxAnnotation> _variableToRemoveMap;
+                private readonly SyntaxNode _firstStatementOrFieldToReplace;
+                private readonly SyntaxNode _lastStatementOrFieldToReplace;
 
                 public CallSiteContainerRewriter(
                     SyntaxNode outmostCallSiteContainer,
@@ -36,25 +36,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     Contract.ThrowIfNull(statementsOrFieldToInsert);
                     Contract.ThrowIfTrue(statementsOrFieldToInsert.IsEmpty());
 
-                    this.outmostCallSiteContainer = outmostCallSiteContainer;
+                    _outmostCallSiteContainer = outmostCallSiteContainer;
 
-                    this.variableToRemoveMap = variableToRemoveMap;
-                    this.statementsOrFieldToInsert = statementsOrFieldToInsert;
+                    _variableToRemoveMap = variableToRemoveMap;
+                    _statementsOrFieldToInsert = statementsOrFieldToInsert;
 
-                    this.firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
-                    this.lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
+                    _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
+                    _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
 
-                    Contract.ThrowIfFalse(this.firstStatementOrFieldToReplace.Parent == this.lastStatementOrFieldToReplace.Parent);
+                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent);
                 }
 
                 public SyntaxNode Generate()
                 {
-                    return Visit(this.outmostCallSiteContainer);
+                    return Visit(_outmostCallSiteContainer);
                 }
 
                 private SyntaxNode ContainerOfStatementsOrFieldToReplace
                 {
-                    get { return this.firstStatementOrFieldToReplace.Parent; }
+                    get { return _firstStatementOrFieldToReplace.Parent; }
                 }
 
                 public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // go through each var decls in decl statement
                     foreach (var variable in node.Declaration.Variables)
                     {
-                        if (this.variableToRemoveMap.HasSyntaxAnnotation(variable))
+                        if (_variableToRemoveMap.HasSyntaxAnnotation(variable))
                         {
                             // if it had initialization, it shouldn't reach here.
                             Contract.ThrowIfFalse(variable.Initializer == null);
@@ -272,19 +272,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     Contract.ThrowIfNull(statement);
 
                     // if all three same
-                    if ((statement != firstStatementOrFieldToReplace) || (firstStatementOrFieldToReplace != lastStatementOrFieldToReplace))
+                    if ((statement != _firstStatementOrFieldToReplace) || (_firstStatementOrFieldToReplace != _lastStatementOrFieldToReplace))
                     {
                         return statement;
                     }
 
                     // replace one statement with another
-                    if (this.statementsOrFieldToInsert.Count() == 1)
+                    if (_statementsOrFieldToInsert.Count() == 1)
                     {
-                        return this.statementsOrFieldToInsert.Cast<StatementSyntax>().Single();
+                        return _statementsOrFieldToInsert.Cast<StatementSyntax>().Single();
                     }
 
                     // replace one statement with multiple statements (see bug # 6310)
-                    return SyntaxFactory.Block(SyntaxFactory.List(this.statementsOrFieldToInsert.Cast<StatementSyntax>()));
+                    return SyntaxFactory.Block(SyntaxFactory.List(_statementsOrFieldToInsert.Cast<StatementSyntax>()));
                 }
 
                 private SyntaxList<StatementSyntax> ReplaceStatements(SyntaxList<StatementSyntax> statements)
@@ -292,10 +292,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // okay, this visit contains the statement
                     var newStatements = new List<StatementSyntax>(statements);
 
-                    var firstStatementIndex = newStatements.FindIndex(s => s == this.firstStatementOrFieldToReplace);
+                    var firstStatementIndex = newStatements.FindIndex(s => s == _firstStatementOrFieldToReplace);
                     Contract.ThrowIfFalse(firstStatementIndex >= 0);
 
-                    var lastStatementIndex = newStatements.FindIndex(s => s == this.lastStatementOrFieldToReplace);
+                    var lastStatementIndex = newStatements.FindIndex(s => s == _lastStatementOrFieldToReplace);
                     Contract.ThrowIfFalse(lastStatementIndex >= 0);
 
                     Contract.ThrowIfFalse(firstStatementIndex <= lastStatementIndex);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     newStatements.RemoveRange(firstStatementIndex, lastStatementIndex - firstStatementIndex + 1);
 
                     // add new statements to replace
-                    newStatements.InsertRange(firstStatementIndex, this.statementsOrFieldToInsert.Cast<StatementSyntax>());
+                    newStatements.InsertRange(firstStatementIndex, _statementsOrFieldToInsert.Cast<StatementSyntax>());
 
                     return newStatements.ToSyntaxList();
                 }
@@ -314,10 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // okay, this visit contains the statement
                     var newMembers = new List<MemberDeclarationSyntax>(members);
 
-                    var firstMemberIndex = newMembers.FindIndex(s => s == (global ? this.firstStatementOrFieldToReplace.Parent : this.firstStatementOrFieldToReplace));
+                    var firstMemberIndex = newMembers.FindIndex(s => s == (global ? _firstStatementOrFieldToReplace.Parent : _firstStatementOrFieldToReplace));
                     Contract.ThrowIfFalse(firstMemberIndex >= 0);
 
-                    var lastMemberIndex = newMembers.FindIndex(s => s == (global ? this.lastStatementOrFieldToReplace.Parent : this.lastStatementOrFieldToReplace));
+                    var lastMemberIndex = newMembers.FindIndex(s => s == (global ? _lastStatementOrFieldToReplace.Parent : _lastStatementOrFieldToReplace));
                     Contract.ThrowIfFalse(lastMemberIndex >= 0);
 
                     Contract.ThrowIfFalse(firstMemberIndex <= lastMemberIndex);
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // add new statements to replace
                     newMembers.InsertRange(firstMemberIndex,
-                        this.statementsOrFieldToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
+                        _statementsOrFieldToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
 
                     return newMembers.ToSyntaxList();
                 }
@@ -349,8 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitConstructorDeclaration(node);
                     }
 
-                    Contract.ThrowIfFalse(this.firstStatementOrFieldToReplace == this.lastStatementOrFieldToReplace);
-                    return node.WithInitializer((ConstructorInitializerSyntax)this.statementsOrFieldToInsert.Single());
+                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace == _lastStatementOrFieldToReplace);
+                    return node.WithInitializer((ConstructorInitializerSyntax)_statementsOrFieldToInsert.Single());
                 }
 
                 public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    partial class AnonymousMethodExpressionSyntax
+    public partial class AnonymousMethodExpressionSyntax
     {
         public BlockSyntax Block => (BlockSyntax)this.Body;
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class SyntaxFactory
+    public partial class SyntaxFactory
     {
         /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression()

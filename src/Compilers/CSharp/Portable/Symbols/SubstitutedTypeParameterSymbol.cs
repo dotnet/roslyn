@@ -10,24 +10,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal class SubstitutedTypeParameterSymbol : TypeParameterSymbol
     {
-        private readonly Symbol container;
-        private readonly TypeMap map;
-        private readonly TypeParameterSymbol substitutedFrom;
+        private readonly Symbol _container;
+        private readonly TypeMap _map;
+        private readonly TypeParameterSymbol _substitutedFrom;
 
         internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom)
         {
-            this.container = newContainer;
+            _container = newContainer;
             // it is important that we don't use the map here in the constructor, as the map is still being filled
             // in by TypeMap.WithAlphaRename.  Instead, we can use the map lazily when yielding the constraints.
-            this.map = map;
-            this.substitutedFrom = substitutedFrom;
+            _map = map;
+            _substitutedFrom = substitutedFrom;
         }
 
         public override TypeParameterKind TypeParameterKind
         {
             get
             {
-                return substitutedFrom.TypeParameterKind;
+                return _substitutedFrom.TypeParameterKind;
             }
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.container;
+                return _container;
             }
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.Locations;
+                return _substitutedFrom.Locations;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.DeclaringSyntaxReferences;
+                return _substitutedFrom.DeclaringSyntaxReferences;
             }
         }
 
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // A substituted type parameter symbol is used as a type parameter of a frame type for lambda-captured
                 // variables within a generic method.  In that case the frame's own type parameter is an original.
                 return
-                    ContainingSymbol.OriginalDefinition != substitutedFrom.ContainingSymbol.OriginalDefinition ? this :
-                    substitutedFrom.OriginalDefinition;
+                    ContainingSymbol.OriginalDefinition != _substitutedFrom.ContainingSymbol.OriginalDefinition ? this :
+                    _substitutedFrom.OriginalDefinition;
             }
         }
 
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.container.Kind == SymbolKind.Method)
+                if (_container.Kind == SymbolKind.Method)
                 {
-                    MethodSymbol reducedFrom = ((MethodSymbol)this.container).ReducedFrom;
+                    MethodSymbol reducedFrom = ((MethodSymbol)_container).ReducedFrom;
 
                     if ((object)reducedFrom != null)
                     {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.HasConstructorConstraint;
+                return _substitutedFrom.HasConstructorConstraint;
             }
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.Ordinal;
+                return _substitutedFrom.Ordinal;
             }
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.Variance;
+                return _substitutedFrom.Variance;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.HasValueTypeConstraint;
+                return _substitutedFrom.HasValueTypeConstraint;
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.HasReferenceTypeConstraint;
+                return _substitutedFrom.HasReferenceTypeConstraint;
             }
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.Name
+                return _substitutedFrom.Name
 #if DEBUG_ALPHA // turn on DEBUG_ALPHA to help diagnose issues around type parameter alpha-renaming
                     + "-" + nextSequence++
 #endif
@@ -145,45 +145,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.substitutedFrom.IsImplicitlyDeclared;
+                return _substitutedFrom.IsImplicitlyDeclared;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.substitutedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _substitutedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.substitutedFrom.GetAttributes();
+            return _substitutedFrom.GetAttributes();
         }
 
         internal override void EnsureAllConstraintsAreResolved()
         {
-            this.substitutedFrom.EnsureAllConstraintsAreResolved();
+            _substitutedFrom.EnsureAllConstraintsAreResolved();
         }
 
         internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            return this.map.SubstituteTypes(this.substitutedFrom.GetConstraintTypes(inProgress)).WhereAsArray(IsNotObjectFunc).Distinct();
+            return _map.SubstituteTypes(_substitutedFrom.GetConstraintTypes(inProgress)).WhereAsArray(s_isNotObjectFunc).Distinct();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
-            return this.map.SubstituteNamedTypes(this.substitutedFrom.GetInterfaces(inProgress));
+            return _map.SubstituteNamedTypes(_substitutedFrom.GetInterfaces(inProgress));
         }
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
-            return this.map.SubstituteNamedType(this.substitutedFrom.GetEffectiveBaseClass(inProgress));
+            return _map.SubstituteNamedType(_substitutedFrom.GetEffectiveBaseClass(inProgress));
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            return this.map.SubstituteType(this.substitutedFrom.GetDeducedBaseType(inProgress));
+            return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress));
         }
 
-        private static Func<TypeSymbol, bool> IsNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
+        private static Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
     }
 }

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /* This is the static API on Workspace that lets you associate text containers with workspace instances */
     public abstract partial class Workspace
     {
-        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> bufferToWorkspaceRegistrationMap =
+        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap =
             new ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>();
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             return new WorkspaceRegistration();
         }
 
-        private static ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback createRegistration = CreateRegistration;
+        private static ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 
         /// <summary>
         /// Returns a <see cref="WorkspaceRegistration" /> for a given text container.
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("textContainer");
             }
 
-            return bufferToWorkspaceRegistrationMap.GetValue(textContainer, createRegistration);
+            return s_bufferToWorkspaceRegistrationMap.GetValue(textContainer, s_createRegistration);
         }
     }
 }

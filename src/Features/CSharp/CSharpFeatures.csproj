@@ -95,9 +95,7 @@
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
-    <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
@@ -298,14 +296,10 @@
     <Compile Include="Diagnostics\CSharpSyntaxNodeAnalyzerService.cs" />
     <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
-    <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.cs" />
     <Compile Include="EditAndContinue\SyntaxComparer.cs" />
-    <Compile Include="EditAndContinue\SyntaxUtilities.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="EditAndContinue\SyntaxUtilities.cs" />
     <Compile Include="EditAndContinue\TopSyntaxComparer.cs" />
     <Compile Include="EncapsulateField\CSharpEncapsulateFieldService.cs" />
     <Compile Include="ExtractInterface\CSharpExtractInterfaceService.cs" />
@@ -337,16 +331,10 @@
     <Compile Include="GenerateMember\GenerateEnumMember\CSharpGenerateEnumMemberService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpCommonGenerationServiceMethods.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateConversionService.cs" />
-    <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateMethodService.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateMethodService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateParameterizedMemberService.cs" />
-    <Compile Include="GenerateMember\GenerateVariable\CSharpGenerateVariableService.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="GenerateType\CSharpGenerateTypeService.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="GenerateMember\GenerateVariable\CSharpGenerateVariableService.cs" />
+    <Compile Include="GenerateType\CSharpGenerateTypeService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassService.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceService.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.cs" />
@@ -400,7 +388,6 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

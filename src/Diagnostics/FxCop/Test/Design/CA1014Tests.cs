@@ -32,7 +32,7 @@ imports System.Reflection
         End Sub
     End class
 ",
-            diagnosticCA1016, diagnosticCA1014);
+            s_diagnosticCA1016, s_diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -49,7 +49,7 @@ imports System.Reflection
         End Sub
     End class
 ",
-                diagnosticCA1014);
+                s_diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -72,7 +72,7 @@ class CLSCompliantAttribute : Attribute {
     public CLSCompliantAttribute(bool s) {}
 }
 ",
-                diagnosticCA1014);
+                s_diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -90,7 +90,7 @@ class Program
     }
 }
 ",
-                diagnosticCA1014);
+                s_diagnosticCA1014);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -184,17 +184,17 @@ class Program
     }
 }
 ",
-            diagnosticCA1016, diagnosticCA1014);
+            s_diagnosticCA1016, s_diagnosticCA1014);
         }
 
-        private static DiagnosticResult diagnosticCA1014 = new DiagnosticResult
+        private static DiagnosticResult s_diagnosticCA1014 = new DiagnosticResult
         {
             Id = AssemblyAttributesDiagnosticAnalyzer.CA1014RuleName,
             Severity = DiagnosticSeverity.Warning,
             Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageFormat.ToString()
         };
 
-        private static DiagnosticResult diagnosticCA1016 = new DiagnosticResult
+        private static DiagnosticResult s_diagnosticCA1016 = new DiagnosticResult
         {
             Id = AssemblyAttributesDiagnosticAnalyzer.CA1016RuleName,
             Severity = DiagnosticSeverity.Warning,

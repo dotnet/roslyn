@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private struct Worker
         {
-            private readonly SemanticModel semanticModel;
-            private readonly SyntaxTree syntaxTree;
-            private readonly TextSpan textSpan;
-            private readonly List<ClassifiedSpan> list;
-            private readonly CancellationToken cancellationToken;
-            private readonly Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers;
-            private readonly Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers;
-            private readonly HashSet<ClassifiedSpan> set;
-            private readonly Stack<SyntaxNodeOrToken> pendingNodes;
+            private readonly SemanticModel _semanticModel;
+            private readonly SyntaxTree _syntaxTree;
+            private readonly TextSpan _textSpan;
+            private readonly List<ClassifiedSpan> _list;
+            private readonly CancellationToken _cancellationToken;
+            private readonly Func<SyntaxNode, List<ISyntaxClassifier>> _getNodeClassifiers;
+            private readonly Func<SyntaxToken, List<ISyntaxClassifier>> _getTokenClassifiers;
+            private readonly HashSet<ClassifiedSpan> _set;
+            private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
 
             private Worker(
                 Workspace workspace,
@@ -33,17 +33,17 @@ namespace Microsoft.CodeAnalysis.Classification
                 Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
-                this.getNodeClassifiers = getNodeClassifiers;
-                this.getTokenClassifiers = getTokenClassifiers;
-                this.semanticModel = semanticModel;
-                this.syntaxTree = semanticModel.SyntaxTree;
-                this.textSpan = textSpan;
-                this.list = list;
-                this.cancellationToken = cancellationToken;
+                _getNodeClassifiers = getNodeClassifiers;
+                _getTokenClassifiers = getTokenClassifiers;
+                _semanticModel = semanticModel;
+                _syntaxTree = semanticModel.SyntaxTree;
+                _textSpan = textSpan;
+                _list = list;
+                _cancellationToken = cancellationToken;
 
                 // get one from pool
-                this.set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
-                this.pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
+                _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
+                _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             }
 
             internal static void Classify(
@@ -59,41 +59,41 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 try
                 {
-                    worker.pendingNodes.Push(worker.syntaxTree.GetRoot(cancellationToken));
+                    worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
                     worker.ProcessNodes();
                 }
                 finally
                 {
                     // release collections to the pool
-                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker.set);
-                    SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker.pendingNodes);
+                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
+                    SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
                 }
             }
 
             private void AddClassification(TextSpan textSpan, string type)
             {
                 var tuple = new ClassifiedSpan(type, textSpan);
-                if (!this.set.Contains(tuple))
+                if (!_set.Contains(tuple))
                 {
-                    this.list.Add(tuple);
-                    this.set.Add(tuple);
+                    _list.Add(tuple);
+                    _set.Add(tuple);
                 }
             }
 
             private void ProcessNodes()
             {
-                while (pendingNodes.Count > 0)
+                while (_pendingNodes.Count > 0)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var nodeOrToken = pendingNodes.Pop();
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    var nodeOrToken = _pendingNodes.Pop();
 
-                    if (nodeOrToken.Span.IntersectsWith(textSpan))
+                    if (nodeOrToken.Span.IntersectsWith(_textSpan))
                     {
                         ClassifyNodeOrToken(nodeOrToken);
 
                         foreach (var child in nodeOrToken.ChildNodesAndTokens())
                         {
-                            pendingNodes.Push(child);
+                            _pendingNodes.Push(child);
                         }
                     }
                 }
@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyNode(SyntaxNode syntax)
             {
-                foreach (var classifier in getNodeClassifiers(syntax))
+                foreach (var classifier in _getNodeClassifiers(syntax))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var classifications = classifier.ClassifyNode(syntax, this.semanticModel, cancellationToken);
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    var classifications = classifier.ClassifyNode(syntax, _semanticModel, _cancellationToken);
                     AddClassifications(classifications);
                 }
             }
@@ -145,10 +145,10 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 ClassifyStructuredTrivia(syntax.LeadingTrivia);
 
-                foreach (var classifier in getTokenClassifiers(syntax))
+                foreach (var classifier in _getTokenClassifiers(syntax))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var classifications = classifier.ClassifyToken(syntax, this.semanticModel, cancellationToken);
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    var classifications = classifier.ClassifyToken(syntax, _semanticModel, _cancellationToken);
                     AddClassifications(classifications);
                 }
 
@@ -159,11 +159,11 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 foreach (var trivia in triviaList)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    _cancellationToken.ThrowIfCancellationRequested();
 
                     if (trivia.HasStructure)
                     {
-                        pendingNodes.Push(trivia.GetStructure());
+                        _pendingNodes.Push(trivia.GetStructure());
                     }
                 }
             }

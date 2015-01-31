@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const int MaximumRecursionDepth = 50;
 
         protected readonly AssemblySymbol corLibrary;
-        private readonly int currentRecursionDepth;
+        private readonly int _currentRecursionDepth;
 
         protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth)
         {
             Debug.Assert((object)corLibrary != null);
             this.corLibrary = corLibrary;
-            this.currentRecursionDepth = currentRecursionDepth;
+            _currentRecursionDepth = currentRecursionDepth;
         }
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitDynamic;
             }
 
-            return Conversion.NoConversion; 
+            return Conversion.NoConversion;
         }
 
         private Conversion GetExplicitUserDefinedConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -587,40 +587,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Notice that there is no implicit numeric conversion from a type to itself. That's an
         // identity conversion.
-        private static readonly bool[,] implicitNumericConversions = 
+        private static readonly bool[,] s_implicitNumericConversions =
         {
-// to     sb  b  s  us i ui  l ul  c  f  d  m
-// from
-/* sb */ { F, F, T, F, T, F, T, F, F, T, T, T },
-/*  b */ { F, F, T, T, T, T, T, T, F, T, T, T },
-/*  s */ { F, F, F, F, T, F, T, F, F, T, T, T },
-/* us */ { F, F, F, F, T, T, T, T, F, T, T, T },
-/*  i */ { F, F, F, F, F, F, T, F, F, T, T, T },
-/* ui */ { F, F, F, F, F, F, T, T, F, T, T, T },
-/*  l */ { F, F, F, F, F, F, F, F, F, T, T, T },
-/* ul */ { F, F, F, F, F, F, F, F, F, T, T, T },
-/*  c */ { F, F, F, T, T, T, T, T, F, T, T, T },
-/*  f */ { F, F, F, F, F, F, F, F, F, F, T, F },
-/*  d */ { F, F, F, F, F, F, F, F, F, F, F, F },
-/*  m */ { F, F, F, F, F, F, F, F, F, F, F, F }
+            // to     sb  b  s  us i ui  l ul  c  f  d  m
+            // from
+            /* sb */
+         { F, F, T, F, T, F, T, F, F, T, T, T },
+            /*  b */
+         { F, F, T, T, T, T, T, T, F, T, T, T },
+            /*  s */
+         { F, F, F, F, T, F, T, F, F, T, T, T },
+            /* us */
+         { F, F, F, F, T, T, T, T, F, T, T, T },
+            /*  i */
+         { F, F, F, F, F, F, T, F, F, T, T, T },
+            /* ui */
+         { F, F, F, F, F, F, T, T, F, T, T, T },
+            /*  l */
+         { F, F, F, F, F, F, F, F, F, T, T, T },
+            /* ul */
+         { F, F, F, F, F, F, F, F, F, T, T, T },
+            /*  c */
+         { F, F, F, T, T, T, T, T, F, T, T, T },
+            /*  f */
+         { F, F, F, F, F, F, F, F, F, F, T, F },
+            /*  d */
+         { F, F, F, F, F, F, F, F, F, F, F, F },
+            /*  m */
+         { F, F, F, F, F, F, F, F, F, F, F, F }
         };
 
-        private static readonly bool[,] explicitNumericConversions = 
+        private static readonly bool[,] s_explicitNumericConversions =
         {
-// to     sb  b  s us  i ui  l ul  c  f  d  m
-// from
-/* sb */ { F, T, F, T, F, T, F, T, T, F, F, F },
-/*  b */ { T, F, F, F, F, F, F, F, T, F, F, F },
-/*  s */ { T, T, F, T, F, T, F, T, T, F, F, F },
-/* us */ { T, T, T, F, F, F, F, F, T, F, F, F },
-/*  i */ { T, T, T, T, F, T, F, T, T, F, F, F },
-/* ui */ { T, T, T, T, T, F, F, F, T, F, F, F },
-/*  l */ { T, T, T, T, T, T, F, T, T, F, F, F },
-/* ul */ { T, T, T, T, T, T, T, F, T, F, F, F },
-/*  c */ { T, T, T, F, F, F, F, F, F, F, F, F },
-/*  f */ { T, T, T, T, T, T, T, T, T, F, F, T },
-/*  d */ { T, T, T, T, T, T, T, T, T, T, F, T },
-/*  m */ { T, T, T, T, T, T, T, T, T, T, T, F }
+            // to     sb  b  s us  i ui  l ul  c  f  d  m
+            // from
+            /* sb */
+         { F, T, F, T, F, T, F, T, T, F, F, F },
+            /*  b */
+         { T, F, F, F, F, F, F, F, T, F, F, F },
+            /*  s */
+         { T, T, F, T, F, T, F, T, T, F, F, F },
+            /* us */
+         { T, T, T, F, F, F, F, F, T, F, F, F },
+            /*  i */
+         { T, T, T, T, F, T, F, T, T, F, F, F },
+            /* ui */
+         { T, T, T, T, T, F, F, F, T, F, F, F },
+            /*  l */
+         { T, T, T, T, T, T, F, T, T, F, F, F },
+            /* ul */
+         { T, T, T, T, T, T, T, F, T, F, F, F },
+            /*  c */
+         { T, T, T, F, F, F, F, F, F, F, F, F },
+            /*  f */
+         { T, T, T, T, T, T, T, T, T, F, F, T },
+            /*  d */
+         { T, T, T, T, T, T, T, T, T, T, F, T },
+            /*  m */
+         { T, T, T, T, T, T, T, T, T, T, T, F }
         };
 
         private static int GetNumericTypeIndex(SpecialType specialType)
@@ -660,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return implicitNumericConversions[sourceIndex, destinationIndex];
+            return s_implicitNumericConversions[sourceIndex, destinationIndex];
         }
 
         private static bool HasExplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
@@ -682,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return explicitNumericConversions[sourceIndex, destinationIndex];
+            return s_explicitNumericConversions[sourceIndex, destinationIndex];
         }
 
         public static bool IsConstantNumericZero(ConstantValue value)
@@ -1418,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A more rigorous solution would mimic the CLI approach, which uses
             // a combination of requiring finite instantiation closures (see section 9.2 of
             // the CLI spec) and records previous conversion steps to check for cycles.
-            if (this.currentRecursionDepth >= MaximumRecursionDepth)
+            if (_currentRecursionDepth >= MaximumRecursionDepth)
             {
                 // NOTE: The spec doesn't really address what happens if there's an overflow
                 // in our conversion check.  It's sort of implied that the conversion "proof"
@@ -1434,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return quickResult.Value();
             }
 
-            return this.CreateInstance(this.currentRecursionDepth + 1).
+            return this.CreateInstance(_currentRecursionDepth + 1).
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 
@@ -2092,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 
             // The spec should state that any pointer type is convertible to
             // sbyte, byte, ... etc, or any corresponding nullable type.
-            
+
             switch (destination.StrippedType().SpecialType)
             {
                 case SpecialType.System_SByte:

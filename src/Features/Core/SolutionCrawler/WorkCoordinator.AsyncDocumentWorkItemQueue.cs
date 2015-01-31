@@ -12,32 +12,32 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private class AsyncDocumentWorkItemQueue : AsyncWorkItemQueue<DocumentId>
             {
-                private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
+                private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
 
                 protected override int WorkItemCount_NoLock
                 {
                     get
                     {
-                        return this.documentWorkQueue.Count;
+                        return _documentWorkQueue.Count;
                     }
                 }
 
                 protected override bool TryTake_NoLock(DocumentId key, out WorkItem workInfo)
                 {
                     workInfo = default(WorkItem);
-                    
+
                     var documentMap = default(Dictionary<DocumentId, WorkItem>);
-                    if (this.documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
+                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
                         documentMap.TryGetValue(key, out workInfo))
                     {
                         documentMap.Remove(key);
 
                         if (documentMap.Count == 0)
                         {
-                            this.documentWorkQueue.Remove(key.ProjectId);
+                            _documentWorkQueue.Remove(key.ProjectId);
                             SharedPools.BigDefault<Dictionary<DocumentId, WorkItem>>().ClearAndFree(documentMap);
                         }
-                        
+
                         return true;
                     }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 protected override bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
-                    if (documentWorkQueue.Count == 0)
+                    if (_documentWorkQueue.Count == 0)
                     {
                         workItem = default(WorkItem);
                         return false;
@@ -65,17 +65,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private DocumentId GetBestDocumentId_NoLock(ProjectId preferableProjectId)
                 {
                     var projectId = preferableProjectId;
-                    if (projectId == null || !this.documentWorkQueue.ContainsKey(projectId))
+                    if (projectId == null || !_documentWorkQueue.ContainsKey(projectId))
                     {
                         // explicitly iterate so that we can use struct enumerator
-                        foreach (var pair in this.documentWorkQueue)
+                        foreach (var pair in _documentWorkQueue)
                         {
                             projectId = pair.Key;
                             break;
                         }
                     }
 
-                    var documentMap = this.documentWorkQueue[projectId];
+                    var documentMap = _documentWorkQueue[projectId];
 
                     // explicitly iterate so that we can use struct enumerator.
                     // Return the first normal priority work item we find.  If we don't
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // see whether we need to update
                     var key = item.DocumentId;
                     var documentMap = default(Dictionary<DocumentId, WorkItem>);
-                    if (this.documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
+                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
                         documentMap.TryGetValue(key, out existingWorkItem))
                     {
                         // TODO: should I care about language when replace it?
@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     if (documentMap == null)
                     {
                         documentMap = SharedPools.BigDefault<Dictionary<DocumentId, WorkItem>>().AllocateAndClear();
-                        this.documentWorkQueue.Add(key.ProjectId, documentMap);
+                        _documentWorkQueue.Add(key.ProjectId, documentMap);
 
-                        if (this.documentWorkQueue.Count == 1)
+                        if (_documentWorkQueue.Count == 1)
                         {
                             Logger.Log(FunctionId.WorkCoordinator_AsyncWorkItemQueue_FirstItem);
                         }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override void Dispose_NoLock()
                 {
-                    foreach (var map in this.documentWorkQueue.Values)
+                    foreach (var map in _documentWorkQueue.Values)
                     {
                         foreach (var workItem in map.Values)
                         {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         SharedPools.BigDefault<Dictionary<DocumentId, WorkItem>>().ClearAndFree(map);
                     }
 
-                    this.documentWorkQueue.Clear();
+                    _documentWorkQueue.Clear();
                 }
             }
         }

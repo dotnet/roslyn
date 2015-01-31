@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        const string transparentIdentifierPrefix = "<>h__TransparentIdentifier";
+        private const string transparentIdentifierPrefix = "<>h__TransparentIdentifier";
 
         internal BoundExpression BindQuery(QueryExpressionSyntax node, DiagnosticBag diagnostics)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeQueryClause(node, result);
         }
 
-        BoundExpression BindQueryInternal1(QueryTranslationState state, DiagnosticBag diagnostics)
+        private BoundExpression BindQueryInternal1(QueryTranslationState state, DiagnosticBag diagnostics)
         {
             // If the query is a degenerate one the form "from x in e select x", but in source,
             // then we go ahead and generate the select anyway.  We do this by skipping BindQueryInternal2,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name != null && state.rangeVariable.Name == name.Identifier.ValueText;
         }
 
-        BoundExpression BindQueryInternal2(QueryTranslationState state, DiagnosticBag diagnostics)
+        private BoundExpression BindQueryInternal2(QueryTranslationState state, DiagnosticBag diagnostics)
         {
             // we continue reducing the query until it is reduced away.
             while (true)
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParams.ToImmutableAndFree(), result.ResultKind, result.Type);
         }
 
-        void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
+        private void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
         {
             var topClause = state.clauses.Pop();
             switch (topClause.Kind())
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        void ReduceWhere(WhereClauseSyntax where, QueryTranslationState state, DiagnosticBag diagnostics)
+        private void ReduceWhere(WhereClauseSyntax where, QueryTranslationState state, DiagnosticBag diagnostics)
         {
             // A query expression with a where clause
             //     from x in e
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.fromExpression = MakeQueryClause(where, invocation, queryInvocation: invocation);
         }
 
-        void ReduceJoin(JoinClauseSyntax join, QueryTranslationState state, DiagnosticBag diagnostics)
+        private void ReduceJoin(JoinClauseSyntax join, QueryTranslationState state, DiagnosticBag diagnostics)
         {
             var inExpression = BindValue(join.InExpression, diagnostics, BindValueKind.RValue);
 
@@ -290,11 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var outerKeySelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, join.LeftExpression);
-            
+
             var x1 = state.rangeVariable;
             var x2 = state.AddRangeVariable(this, join.Identifier, diagnostics);
             var innerKeySelectorLambda = MakeQueryUnboundLambda(QueryTranslationState.RangeVariableMap(x2), x2, join.RightExpression);
-            
+
             if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
                 var select = state.selectOrGroup as SelectClauseSyntax;
@@ -310,10 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), select.Expression);
 
                     invocation = MakeQueryInvocation(
-                        join, 
+                        join,
                         state.fromExpression,
                         "Join",
-                        ImmutableArray.Create(inExpression, outerKeySelectorLambda, innerKeySelectorLambda, resultSelectorLambda), 
+                        ImmutableArray.Create(inExpression, outerKeySelectorLambda, innerKeySelectorLambda, resultSelectorLambda),
                         diagnostics);
                 }
                 else
@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, g), select.Expression);
 
                     invocation = MakeQueryInvocation(
-                        join, 
+                        join,
                         state.fromExpression,
-                        "GroupJoin", 
+                        "GroupJoin",
                         ImmutableArray.Create(inExpression, outerKeySelectorLambda, innerKeySelectorLambda, resultSelectorLambda),
                         diagnostics);
 
@@ -364,8 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var resultSelectorLambda = MakePairLambda(join, state, x1, x2);
 
                     invocation = MakeQueryInvocation(
-                        join, 
-                        state.fromExpression, 
+                        join,
+                        state.fromExpression,
                         "Join",
                         ImmutableArray.Create(inExpression, outerKeySelectorLambda, innerKeySelectorLambda, resultSelectorLambda),
                         diagnostics);
@@ -387,9 +387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var resultSelectorLambda = MakePairLambda(join, state, x1, g);
 
                     invocation = MakeQueryInvocation(
-                        join, 
-                        state.fromExpression, 
-                        "GroupJoin", 
+                        join,
+                        state.fromExpression,
+                        "GroupJoin",
                         ImmutableArray.Create(inExpression, outerKeySelectorLambda, innerKeySelectorLambda, resultSelectorLambda),
                         diagnostics);
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (state.clauses.IsEmpty() && state.selectOrGroup.IsKind(SyntaxKind.SelectClause))
             {
                 var select = (SelectClauseSyntax)state.selectOrGroup;
-               
+
                 // A query expression with a second from clause followed by a select clause
                 //     from x1 in e1
                 //     from x2 in e2
@@ -460,9 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), select.Expression);
 
                 var invocation = MakeQueryInvocation(
-                    from, 
-                    state.fromExpression, 
-                    "SelectMany", 
+                    from,
+                    state.fromExpression,
+                    "SelectMany",
                     ImmutableArray.Create(collectionSelectorLambda, resultSelectorLambda),
                     diagnostics);
 
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultSelectorLambda = MakePairLambda(from, state, x1, x2);
 
                 var invocation = MakeQueryInvocation(
-                    from, 
+                    from,
                     state.fromExpression,
                     "SelectMany",
                     ImmutableArray.Create(collectionSelectorLambda, resultSelectorLambda),
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.fromExpression = MakeQueryClause(let, invocation, y, invocation);
         }
 
-        BoundQueryClause MakeQueryClause(
+        private BoundQueryClause MakeQueryClause(
             CSharpSyntaxNode syntax,
             BoundExpression expression,
             RangeVariableSymbol definedSymbol = null,
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: TypeOrError(expression));
         }
 
-        BoundExpression MakePair(CSharpSyntaxNode node, string field1Name, BoundExpression field1Value, string field2Name, BoundExpression field2Value, QueryTranslationState state, DiagnosticBag diagnostics)
+        private BoundExpression MakePair(CSharpSyntaxNode node, string field1Name, BoundExpression field1Value, string field2Name, BoundExpression field2Value, QueryTranslationState state, DiagnosticBag diagnostics)
         {
             if (field1Name == field2Name)
             {
@@ -775,6 +775,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             analyzedArguments.Free();
             return result;
         }
-
     }
 }

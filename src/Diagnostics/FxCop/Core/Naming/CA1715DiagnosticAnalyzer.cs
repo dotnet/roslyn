@@ -12,33 +12,33 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
     {
         internal const string RuleId = "CA1715";
 
-        private static LocalizableString localizableMessageAndTitleInterfaceRule = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceNamesShouldStartWithI), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitleInterfaceRule = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceNamesShouldStartWithI), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
-                                                                                      localizableMessageAndTitleInterfaceRule,
-                                                                                      localizableMessageAndTitleInterfaceRule,
+                                                                                      s_localizableMessageAndTitleInterfaceRule,
+                                                                                      s_localizableMessageAndTitleInterfaceRule,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182243.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
-        private static LocalizableString localizableMessageAndTitleTypeParameterRule = new LocalizableResourceString(nameof(FxCopRulesResources.TypeParameterNamesShouldStartWithT), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitleTypeParameterRule = new LocalizableResourceString(nameof(FxCopRulesResources.TypeParameterNamesShouldStartWithT), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
-                                                                                      localizableMessageAndTitleTypeParameterRule,
-                                                                                      localizableMessageAndTitleTypeParameterRule,
+                                                                                      s_localizableMessageAndTitleTypeParameterRule,
+                                                                                      s_localizableMessageAndTitleTypeParameterRule,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182243.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
-        private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return SupportedRules;
+                return s_supportedRules;
             }
         }
 

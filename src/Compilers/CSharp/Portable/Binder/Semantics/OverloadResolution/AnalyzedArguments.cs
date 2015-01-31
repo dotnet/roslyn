@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ArrayBuilder<IdentifierNameSyntax> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
         public bool IsExtensionMethodInvocation;
-        private ThreeState lazyHasDynamicArgument;
+        private ThreeState _lazyHasDynamicArgument;
 
         internal AnalyzedArguments()
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Names.Clear();
             this.RefKinds.Clear();
             this.IsExtensionMethodInvocation = false;
-            this.lazyHasDynamicArgument = ThreeState.Unknown;
+            _lazyHasDynamicArgument = ThreeState.Unknown;
         }
 
         public BoundExpression Argument(int i)
@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (lazyHasDynamicArgument.HasValue())
+                if (_lazyHasDynamicArgument.HasValue())
                 {
-                    return lazyHasDynamicArgument.Value();
+                    return _lazyHasDynamicArgument.Value();
                 }
 
                 bool hasRefKinds = RefKinds.Count > 0;
@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // By-ref dynamic arguments don't make the invocation dynamic.
                     if ((object)argument.Type != null && argument.Type.IsDynamic() && (!hasRefKinds || RefKinds[i] == Microsoft.CodeAnalysis.RefKind.None))
                     {
-                        lazyHasDynamicArgument = ThreeState.True;
+                        _lazyHasDynamicArgument = ThreeState.True;
                         return true;
                     }
                 }
 
-                lazyHasDynamicArgument = ThreeState.False;
+                _lazyHasDynamicArgument = ThreeState.False;
                 return false;
             }
         }

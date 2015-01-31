@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis
     internal class MetadataOnlyReference
     {
         // version based cache
-        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>> cache
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>> s_cache
             = new ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>>();
 
         // snapshot based cache
-        private static readonly ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet> snapshotCache
+        private static readonly ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet> s_snapshotCache
             = new ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet>();
 
-        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>>.CreateValueCallback createReferenceSetMap =
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>>.CreateValueCallback s_createReferenceSetMap =
             _ => new ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>();
 
         internal static MetadataReference GetOrBuildReference(
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis
             // okay, proceed with whatever image we have
 
             // now, remove existing set
-            var mapFromBranch = cache.GetValue(solution.BranchId, createReferenceSetMap);
+            var mapFromBranch = s_cache.GetValue(solution.BranchId, s_createReferenceSetMap);
             mapFromBranch.Remove(projectReference.ProjectId);
 
             // create new one
             var newReferenceSet = new MetadataOnlyReferenceSet(version, image);
-            var referenceSet = snapshotCache.GetValue(finalCompilation, _ => newReferenceSet);
+            var referenceSet = s_snapshotCache.GetValue(finalCompilation, _ => newReferenceSet);
             if (newReferenceSet != referenceSet)
             {
                 // someone else has beaten us. 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         {
             // if we have one from snapshot cache, use it. it will make sure same compilation will get same metadata reference always.
             MetadataOnlyReferenceSet referenceSet;
-            if (snapshotCache.TryGetValue(finalOrDeclarationCompilation, out referenceSet))
+            if (s_snapshotCache.TryGetValue(finalOrDeclarationCompilation, out referenceSet))
             {
                 reference = referenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             BranchId branchId, ProjectReference projectReference, Compilation finalOrDeclarationCompilation, VersionStamp version, out MetadataReference reference)
         {
             // get map for the branch
-            var mapFromBranch = cache.GetValue(branchId, createReferenceSetMap);
+            var mapFromBranch = s_cache.GetValue(branchId, s_createReferenceSetMap);
 
             // if we have one, return it
             MetadataOnlyReferenceSet referenceSet;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
                (version == VersionStamp.Default || referenceSet.Version == version))
             {
                 // record it to snapshot based cache.
-                var newReferenceSet = snapshotCache.GetValue(finalOrDeclarationCompilation, _ => referenceSet);
+                var newReferenceSet = s_snapshotCache.GetValue(finalOrDeclarationCompilation, _ => referenceSet);
 
                 reference = newReferenceSet.GetMetadataReference(finalOrDeclarationCompilation, projectReference.Aliases, projectReference.EmbedInteropTypes);
                 return true;
@@ -137,29 +137,29 @@ namespace Microsoft.CodeAnalysis
         private class MetadataOnlyReferenceSet
         {
             // use WeakReference so we don't keep MetadataReference's alive if they are not being consumed
-            private readonly NonReentrantLock gate = new NonReentrantLock(useThisInstanceForSynchronization: true);
+            private readonly NonReentrantLock _gate = new NonReentrantLock(useThisInstanceForSynchronization: true);
 
             // here, there is a very small chance of leaking Tuple and WeakReference, but it is so small chance,
             // I don't believe it will actually happen in real life situation. basically, for leak to happen, 
             // every image creation except the first one has to fail so that we end up re-use old reference set.
             // and the user creates many different metadata references with multiple combination of the key (tuple).
-            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> metadataReferences
+            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _metadataReferences
                 = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
 
-            private readonly VersionStamp version;
-            private readonly MetadataOnlyImage image;
+            private readonly VersionStamp _version;
+            private readonly MetadataOnlyImage _image;
 
             public MetadataOnlyReferenceSet(VersionStamp version, MetadataOnlyImage image)
             {
-                this.version = version;
-                this.image = image;
+                _version = version;
+                _image = image;
             }
 
             public VersionStamp Version
             {
                 get
                 {
-                    return version;
+                    return _version;
                 }
             }
 
@@ -167,11 +167,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var key = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes);
 
-                using (gate.DisposableWait())
+                using (_gate.DisposableWait())
                 {
                     WeakReference<MetadataReference> weakMetadata;
                     MetadataReference metadataReference;
-                    if (!metadataReferences.TryGetValue(key, out weakMetadata) || !weakMetadata.TryGetTarget(out metadataReference))
+                    if (!_metadataReferences.TryGetValue(key, out weakMetadata) || !weakMetadata.TryGetTarget(out metadataReference))
                     {
                         // here we give out strong reference to compilation. so there is possibility that we end up making 2 compilations for same project alive.
                         // one for final compilation and one for declaration only compilation. but the final compilation will be eventually kicked out from compilation cache
@@ -182,9 +182,9 @@ namespace Microsoft.CodeAnalysis
                         // there is one case where we could have 2 compilations for same project alive. if a user opens a file that requires a skeleton assembly when the skeleton
                         // assembly project didn't reach the final stage yet and then the user opens another document that is part of the skeleton assembly project 
                         // and then never change it. declaration compilation will be alive by skeleton assembly and final compilation will be alive by background compiler.
-                        metadataReference = this.image.CreateReference(aliases, embedInteropTypes, new DeferredDocumentationProvider(compilation));
+                        metadataReference = _image.CreateReference(aliases, embedInteropTypes, new DeferredDocumentationProvider(compilation));
                         weakMetadata = new WeakReference<MetadataReference>(metadataReference);
-                        this.metadataReferences[key] = weakMetadata;
+                        _metadataReferences[key] = weakMetadata;
                     }
 
                     return metadataReference;

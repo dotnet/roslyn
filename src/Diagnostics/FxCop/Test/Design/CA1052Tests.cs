@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class CA1052Tests : DiagnosticAnalyzerTestBase
     {
         #region Verifiers
-         
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new StaticTypeRulesDiagnosticAnalyzer();

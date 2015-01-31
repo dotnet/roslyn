@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
         private class Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
         {
-            private readonly List<SyntaxToken> tokensIncludingZeroWidth;
+            private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
 
             public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
             {
-                this.tokensIncludingZeroWidth = tokensIncludingZeroWidth;
+                _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
             }
 
             public IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>> GetEnumerator()
             {
-                return new Enumerator(this.tokensIncludingZeroWidth);
+                return new Enumerator(_tokensIncludingZeroWidth);
             }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -32,19 +32,19 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private struct Enumerator : IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>>
             {
-                private readonly List<SyntaxToken> tokensIncludingZeroWidth;
-                private readonly int maxCount;
+                private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+                private readonly int _maxCount;
 
-                private ValueTuple<int, SyntaxToken, SyntaxToken> current;
-                private int index;
+                private ValueTuple<int, SyntaxToken, SyntaxToken> _current;
+                private int _index;
 
                 public Enumerator(List<SyntaxToken> tokensIncludingZeroWidth)
                 {
-                    this.tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-                    this.maxCount = this.tokensIncludingZeroWidth.Count - 1;
+                    _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
+                    _maxCount = _tokensIncludingZeroWidth.Count - 1;
 
-                    this.index = 0;
-                    this.current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
+                    _index = 0;
+                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
                 }
 
                 public void Dispose()
@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 public bool MoveNext()
                 {
-                    if (index < this.maxCount)
+                    if (_index < _maxCount)
                     {
-                        current = ValueTuple.Create(index, this.tokensIncludingZeroWidth[index], this.tokensIncludingZeroWidth[index + 1]);
-                        index++;
+                        _current = ValueTuple.Create(_index, _tokensIncludingZeroWidth[_index], _tokensIncludingZeroWidth[_index + 1]);
+                        _index++;
                         return true;
                     }
 
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 private bool MoveNextRare()
                 {
-                    index = this.maxCount + 1;
-                    current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
+                    _index = _maxCount + 1;
+                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
                     return false;
                 }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     get
                     {
-                        return current;
+                        return _current;
                     }
                 }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     get
                     {
-                        if (index == 0 || index == this.maxCount + 1)
+                        if (_index == 0 || _index == _maxCount + 1)
                         {
                             throw new InvalidOperationException();
                         }
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 void System.Collections.IEnumerator.Reset()
                 {
-                    index = 0;
-                    current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
+                    _index = 0;
+                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
                 }
             }
         }

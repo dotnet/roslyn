@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         // PERF: Use byte instead of QuickScanState so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[,] stateTransitions = new byte[,]
+        private static readonly byte[,] s_stateTransitions = new byte[,]
         {
             // Initial
             {
@@ -199,16 +199,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             //localize frequently accessed fields
             var charWindow = TextWindow.CharacterWindow;
-            var charPropLength = charProperties.Length;
+            var charPropLength = s_charProperties.Length;
 
             for (; i < n; i++)
             {
                 char c = charWindow[i];
                 int uc = unchecked((int)c);
 
-                var flags = uc < charPropLength ? (CharFlags)charProperties[uc] : CharFlags.Complex;
+                var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
 
-                state = (QuickScanState)stateTransitions[(int)state, (int)flags];
+                state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
                 if (state == QuickScanState.Done || state == QuickScanState.Bad)
                 {
                     goto exitWhile;
@@ -226,12 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
-                var token = this.cache.LookupToken(
+                var token = _cache.LookupToken(
                     TextWindow.CharacterWindow,
                     TextWindow.LexemeRelativeStart,
                     i - TextWindow.LexemeRelativeStart,
                     hashCode,
-                    createQuickTokenFunction);
+                    _createQuickTokenFunction);
                 return token;
             }
             else
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private Func<SyntaxToken> createQuickTokenFunction;
+        private Func<SyntaxToken> _createQuickTokenFunction;
 
         private SyntaxToken CreateQuickToken()
         {
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // # is marked complex as it may start directives.
         // PERF: Use byte instead of CharFlags so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[] charProperties = new[]
+        private static readonly byte[] s_charProperties = new[]
         {
             // 0 .. 31
             (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex,

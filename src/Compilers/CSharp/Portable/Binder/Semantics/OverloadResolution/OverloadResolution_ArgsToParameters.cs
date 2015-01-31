@@ -22,32 +22,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct ParameterMap
         {
-            private readonly int[] parameters;
-            private readonly int length;
+            private readonly int[] _parameters;
+            private readonly int _length;
 
             public ParameterMap(int[] parameters, int length)
             {
                 Debug.Assert(parameters == null || parameters.Length == length);
-                this.parameters = parameters;
-                this.length = length;
+                _parameters = parameters;
+                _length = length;
             }
 
-            public bool IsTrivial { get { return this.parameters == null; } }
+            public bool IsTrivial { get { return _parameters == null; } }
 
-            public int Length { get { return this.length; } }
+            public int Length { get { return _length; } }
 
             public int this[int argument]
             {
                 get
                 {
-                    Debug.Assert(0 <= argument && argument < length);
-                    return parameters == null ? argument : parameters[argument];
+                    Debug.Assert(0 <= argument && argument < _length);
+                    return _parameters == null ? argument : _parameters[argument];
                 }
             }
 
             public ImmutableArray<int> ToImmutableArray()
             {
-                return parameters.AsImmutableOrNull();
+                return _parameters.AsImmutableOrNull();
             }
         }
 

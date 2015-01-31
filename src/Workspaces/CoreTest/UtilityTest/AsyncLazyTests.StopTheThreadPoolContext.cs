@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// </summary>
         private class StopTheThreadPoolContext : IDisposable
         {
-            private readonly int originalWorkerThreads;
-            private readonly int originalIOThreads;
-            private readonly ManualResetEventSlim testComplete = new ManualResetEventSlim();
+            private readonly int _originalWorkerThreads;
+            private readonly int _originalIOThreads;
+            private readonly ManualResetEventSlim _testComplete = new ManualResetEventSlim();
 
             public StopTheThreadPoolContext()
             {
                 int numProcs = Environment.ProcessorCount;
                 var barrier = new Barrier(numProcs + 1);
 
-                ThreadPool.GetMaxThreads(out originalWorkerThreads, out originalIOThreads);
-                ThreadPool.SetMaxThreads(numProcs, originalIOThreads);
+                ThreadPool.GetMaxThreads(out _originalWorkerThreads, out _originalIOThreads);
+                ThreadPool.SetMaxThreads(numProcs, _originalIOThreads);
 
                 for (int i = 0; i < numProcs; i++)
                 {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         delegate
                         {
                             barrier.SignalAndWait();
-                            testComplete.Wait();
+                            _testComplete.Wait();
                         });
                 }
 
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             public void Dispose()
             {
-                testComplete.Set();
-                ThreadPool.SetMaxThreads(originalWorkerThreads, originalIOThreads);
+                _testComplete.Set();
+                ThreadPool.SetMaxThreads(_originalWorkerThreads, _originalIOThreads);
             }
         }
     }

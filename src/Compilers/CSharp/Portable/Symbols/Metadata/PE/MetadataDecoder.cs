@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// Type context for resolving generic type arguments.
         /// </summary>
-        private readonly PENamedTypeSymbol typeContextOpt;
+        private readonly PENamedTypeSymbol _typeContextOpt;
 
         /// <summary>
         /// Method context for resolving generic method type arguments.
         /// </summary>
-        private readonly PEMethodSymbol methodContextOpt;
+        private readonly PEMethodSymbol _methodContextOpt;
 
         public MetadataDecoder(
             PEModuleSymbol moduleSymbol,
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Debug.Assert((object)moduleSymbol != null);
 
-            this.typeContextOpt = typeContextOpt;
-            this.methodContextOpt = methodContextOpt;
+            _typeContextOpt = typeContextOpt;
+            _methodContextOpt = methodContextOpt;
         }
 
         internal PEModuleSymbol ModuleSymbol
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override TypeSymbol GetGenericMethodTypeParamSymbol(int position)
         {
-            if ((object)methodContextOpt == null)
+            if ((object)_methodContextOpt == null)
             {
                 return new UnsupportedMetadataTypeSymbol(); // type parameter not associated with a method
             }
 
-            var typeParameters = methodContextOpt.TypeParameters;
+            var typeParameters = _methodContextOpt.TypeParameters;
 
             if (typeParameters.Length <= position)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override TypeSymbol GetGenericTypeParamSymbol(int position)
         {
-            PENamedTypeSymbol type = typeContextOpt;
+            PENamedTypeSymbol type = _typeContextOpt;
 
             while ((object)type != null && (type.MetadataArity - type.Arity) > position)
             {

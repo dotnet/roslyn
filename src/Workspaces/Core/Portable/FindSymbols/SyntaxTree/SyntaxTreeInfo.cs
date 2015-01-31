@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// snapshot based cache to guarantee same info is returned without re-calculating for same solution snapshot.
         /// since document will be re-created per new solution, this should go away as soon as there is any change on workspace.
         /// </summary>
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo> identifierSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo>();
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeContextInfo> contextSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeContextInfo>();
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo> declaredSymbolsSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo> s_identifierSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeContextInfo> s_contextSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeContextInfo>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo> s_declaredSymbolsSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo>();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
@@ -100,17 +100,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static Task<SyntaxTreeContextInfo> GetContextInfoAsync(Document document, CancellationToken cancellationToken)
         {
-            return GetInfoAsync(document, contextSnapshotCache, SyntaxTreeContextInfo.LoadAsync, tuple => tuple.Item2, cancellationToken);
+            return GetInfoAsync(document, s_contextSnapshotCache, SyntaxTreeContextInfo.LoadAsync, tuple => tuple.Item2, cancellationToken);
         }
 
         public static Task<SyntaxTreeIdentifierInfo> GetIdentifierInfoAsync(Document document, CancellationToken cancellationToken)
         {
-            return GetInfoAsync(document, identifierSnapshotCache, SyntaxTreeIdentifierInfo.LoadAsync, tuple => tuple.Item1, cancellationToken);
+            return GetInfoAsync(document, s_identifierSnapshotCache, SyntaxTreeIdentifierInfo.LoadAsync, tuple => tuple.Item1, cancellationToken);
         }
 
         public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(Document document, CancellationToken cancellationToken)
         {
-            return GetInfoAsync(document, declaredSymbolsSnapshotCache, SyntaxTreeDeclarationInfo.LoadAsync, tuple => tuple.Item3, cancellationToken);
+            return GetInfoAsync(document, s_declaredSymbolsSnapshotCache, SyntaxTreeDeclarationInfo.LoadAsync, tuple => tuple.Item3, cancellationToken);
         }
 
         // The probability of getting a false positive when calling ContainsIdentifier.

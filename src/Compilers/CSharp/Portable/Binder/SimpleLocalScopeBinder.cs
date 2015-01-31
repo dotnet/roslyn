@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class SimpleLocalScopeBinder : LocalScopeBinder
     {
-        private readonly ImmutableArray<LocalSymbol> locals;
+        private readonly ImmutableArray<LocalSymbol> _locals;
 
         public SimpleLocalScopeBinder(ImmutableArray<LocalSymbol> locals, Binder next) :
             base(next)
         {
-            this.locals = locals;
+            _locals = locals;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return this.locals;
+            return _locals;
         }
     }
 }

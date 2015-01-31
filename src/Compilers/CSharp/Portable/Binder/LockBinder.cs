@@ -8,21 +8,21 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LockBinder : LockOrUsingBinder 
+    internal sealed class LockBinder : LockOrUsingBinder
     {
-        private readonly LockStatementSyntax syntax;
+        private readonly LockStatementSyntax _syntax;
 
         public LockBinder(Binder enclosing, LockStatementSyntax syntax)
             : base(enclosing)
         {
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         protected override ExpressionSyntax TargetExpressionSyntax
         {
             get
             {
-                return syntax.Expression;
+                return _syntax.Expression;
             }
         }
 
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
             Debug.Assert(this.Locals.IsDefaultOrEmpty);
-            return new BoundLockStatement(syntax, expr, stmt, hasErrors);
+            return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
     }
 }

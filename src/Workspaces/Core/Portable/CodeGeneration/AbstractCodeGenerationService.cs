@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal abstract partial class AbstractCodeGenerationService : ICodeGenerationService
     {
-        private readonly ISymbolDeclarationService symbolDeclarationService;
+        private readonly ISymbolDeclarationService _symbolDeclarationService;
 
         protected AbstractCodeGenerationService(
             ISymbolDeclarationService symbolDeclarationService)
         {
-            this.symbolDeclarationService = symbolDeclarationService;
+            _symbolDeclarationService = symbolDeclarationService;
         }
 
         public TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode

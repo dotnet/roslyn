@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private sealed class LowPriorityProcessor : GlobalOperationAwareIdleProcessor
                 {
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers;
-                    private readonly AsyncProjectWorkItemQueue workItemQueue;
+                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+                    private readonly AsyncProjectWorkItemQueue _workItemQueue;
 
                     public LowPriorityProcessor(
                         IAsynchronousOperationListener listener,
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken shutdownToken) :
                         base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        this.lazyAnalyzers = lazyAnalyzers;
-                        this.workItemQueue = new AsyncProjectWorkItemQueue();
+                        _lazyAnalyzers = lazyAnalyzers;
+                        _workItemQueue = new AsyncProjectWorkItemQueue();
 
                         Start();
                     }
@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         get
                         {
-                            return this.lazyAnalyzers.Value;
+                            return _lazyAnalyzers.Value;
                         }
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
                     {
-                        return this.workItemQueue.WaitAsync(cancellationToken);
+                        return _workItemQueue.WaitAsync(cancellationToken);
                     }
 
                     protected override async Task ExecuteAsync()
@@ -57,36 +57,36 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
                             // we wait for global operation, higher and normal priority processor to finish its working
-                            await Task.WhenAll(this.Processor.highPriorityProcessor.Running,
-                                this.Processor.normalPriorityProcessor.Running,
+                            await Task.WhenAll(this.Processor._highPriorityProcessor.Running,
+                                this.Processor._normalPriorityProcessor.Running,
                                 GlobalOperationWaitAsync()).ConfigureAwait(false);
 
                             // process any available project work, preferring the active project.                            
                             CancellationTokenSource projectCancellation;
                             WorkItem workItem;
-                            if (this.workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), out workItem, out projectCancellation))
+                            if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
-                    }
+                        }
 
                     public void Enqueue(WorkItem item)
                     {
                         this.UpdateLastAccessTime();
 
                         // Project work
-                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: this.Processor.listener.BeginAsyncOperation("WorkItem"));
+                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: this.Processor._listener.BeginAsyncOperation("WorkItem"));
 
-                        var added = this.workItemQueue.AddOrReplace(item);
+                        var added = _workItemQueue.AddOrReplace(item);
 
-                        Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, enqueueLogger, Environment.TickCount, item.ProjectId, !added);
+                        Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, item.ProjectId, !added);
 
-                        SolutionCrawlerLogger.LogWorkItemEnqueue(this.Processor.logAggregator, item.ProjectId);
+                        SolutionCrawlerLogger.LogWorkItemEnqueue(this.Processor._logAggregator, item.ProjectId);
                     }
 
                     private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                                 else
                                 {
-                                    SolutionCrawlerLogger.LogProcessProjectNotExist(this.Processor.logAggregator);
+                                    SolutionCrawlerLogger.LogProcessProjectNotExist(this.Processor._logAggregator);
 
                                     RemoveProject(projectId);
                                 }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             processedEverything = true;
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -145,13 +145,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // let's make sure newly enqueued work item has all the flag needed.
                             if (!processedEverything)
                             {
-                                this.workItemQueue.AddOrReplace(workItem.Retry(this.Listener.BeginAsyncOperation("ReenqueueWorkItem")));
+                                _workItemQueue.AddOrReplace(workItem.Retry(this.Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
-                            SolutionCrawlerLogger.LogProcessProject(this.Processor.logAggregator, projectId.Id, processedEverything);
+                            SolutionCrawlerLogger.LogProcessProject(this.Processor._logAggregator, projectId.Id, processedEverything);
 
                             // remove one that is finished running
-                            this.workItemQueue.RemoveCancellationSource(projectId);
+                            _workItemQueue.RemoveCancellationSource(projectId);
                         }
                     }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public override void Shutdown()
                     {
                         base.Shutdown();
-                        this.workItemQueue.Dispose();
+                        _workItemQueue.Dispose();
                     }
 
                     internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     internal void WaitUntilCompletion_ForTestingPurposesOnly()
                     {
                         // this shouldn't happen. would like to get some diagnostic
-                        while (this.workItemQueue.HasAnyWork)
+                        while (_workItemQueue.HasAnyWork)
                         {
                             Environment.FailFast("How?");
                         }

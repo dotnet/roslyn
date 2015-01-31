@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedSubmissionConstructor : SynthesizedInstanceConstructor
     {
-        private readonly ImmutableArray<ParameterSymbol> parameters;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, DiagnosticBag diagnostics)
             : base(containingType)
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // resolve return type:
             TypeSymbol returnType = compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics);
 
-            this.parameters = ImmutableArray.Create<ParameterSymbol>(
+            _parameters = ImmutableArray.Create<ParameterSymbol>(
                 new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"),
                 new SynthesizedParameterSymbol(this, returnType, 1, RefKind.Ref, "submissionResult")
             );
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
-            get { return parameters; }
+            get { return _parameters; }
         }
     }
 }

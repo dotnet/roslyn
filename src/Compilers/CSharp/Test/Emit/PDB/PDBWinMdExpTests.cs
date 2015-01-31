@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 </token-map>";
 
             var compilation = CreateCompilationWithMscorlib45(
-                text, 
+                text,
                 options: TestOptions.ReleaseWinMD,
-                sourceFileName:"source.cs").VerifyDiagnostics();
+                sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
             AssertXmlEqual(expected, actual);

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// query variable is starting with the current lambda's first parameter P, compute "P.Item1.Item1.Item2".
         /// See also WithQueryLambdaParametersBinder.
         /// </summary>
-        class RangeVariableMap : Dictionary<RangeVariableSymbol, ImmutableArray<string>>
+        private class RangeVariableMap : Dictionary<RangeVariableSymbol, ImmutableArray<string>>
         {
             public RangeVariableMap() { }
         }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Performance
         /// and ArrayInitializerExpression (e.g. "byte[] arr = { }"), but not ImplicitArrayCreationExpression, because you can't have an
         /// implicitly typed array of length 0 (e.g. "new[] { }" is erroneous).
         /// </summary>
-        private static readonly SyntaxKind[] expressionKinds = new[] { SyntaxKind.ArrayCreationExpression, SyntaxKind.ArrayInitializerExpression };
+        private static readonly SyntaxKind[] s_expressionKinds = new[] { SyntaxKind.ArrayCreationExpression, SyntaxKind.ArrayInitializerExpression };
 
         /// <summary>Called once at compilation start to register actions in the compilation context.</summary>
         /// <param name="context">The analysis context.</param>
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Performance
                 {
                     Report(ctx, isArrayCreationExpression ? ctx.Node : initializerExpr);
                 }
-            }, expressionKinds);
+            }, s_expressionKinds);
         }
     }
 }

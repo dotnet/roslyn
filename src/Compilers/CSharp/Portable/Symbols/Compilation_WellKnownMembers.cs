@@ -14,21 +14,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     // TODO: (tomat) translated 1:1 from VB, might need adjustments
     // TODO: (tomat) can we share more with VB?
 
-    partial class CSharpCompilation
+    public partial class CSharpCompilation
     {
-        private readonly WellKnownMembersSignatureComparer wellKnownMemberSignatureComparer;
+        private readonly WellKnownMembersSignatureComparer _wellKnownMemberSignatureComparer;
 
         /// <summary>
         /// An array of cached well known types available for use in this Compilation.
         /// Lazily filled by GetWellKnownType method.
         /// </summary>
-        private NamedTypeSymbol[] lazyWellKnownTypes;
+        private NamedTypeSymbol[] _lazyWellKnownTypes;
 
         /// <summary>
         /// Lazy cache of well known members.
         /// Not yet known value is represented by ErrorTypeSymbol.UnknownResultType
         /// </summary>
-        private Symbol[] lazyWellKnownTypeMembers;
+        private Symbol[] _lazyWellKnownTypeMembers;
 
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Test hook: if a member is marked missing, then return null.
             if (IsMemberMissing(member)) return null;
 
-            if (lazyWellKnownTypeMembers == null || ReferenceEquals(lazyWellKnownTypeMembers[(int)member], ErrorTypeSymbol.UnknownResultType))
+            if (_lazyWellKnownTypeMembers == null || ReferenceEquals(_lazyWellKnownTypeMembers[(int)member], ErrorTypeSymbol.UnknownResultType))
             {
-                if (lazyWellKnownTypeMembers == null)
+                if (_lazyWellKnownTypeMembers == null)
                 {
                     var wellKnownTypeMembers = new Symbol[(int)WellKnownMember.Count];
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         wellKnownTypeMembers[i] = ErrorTypeSymbol.UnknownResultType;
                     }
 
-                    Interlocked.CompareExchange(ref lazyWellKnownTypeMembers, wellKnownTypeMembers, null);
+                    Interlocked.CompareExchange(ref _lazyWellKnownTypeMembers, wellKnownTypeMembers, null);
                 }
 
                 MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(member);
@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsErrorType())
                 {
-                    result = GetRuntimeMember(type, ref descriptor, wellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
+                    result = GetRuntimeMember(type, ref descriptor, _wellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
                 }
 
-                Interlocked.CompareExchange(ref lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
+                Interlocked.CompareExchange(ref _lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
             }
 
-            return lazyWellKnownTypeMembers[(int)member];
+            return _lazyWellKnownTypeMembers[(int)member];
         }
 
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type >= WellKnownType.First && type <= WellKnownType.Last);
 
             int index = (int)type - (int)WellKnownType.First;
-            if (lazyWellKnownTypes == null || (object)lazyWellKnownTypes[index] == null)
+            if (_lazyWellKnownTypes == null || (object)_lazyWellKnownTypes[index] == null)
             {
-                if (lazyWellKnownTypes == null)
+                if (_lazyWellKnownTypes == null)
                 {
-                    Interlocked.CompareExchange(ref lazyWellKnownTypes, new NamedTypeSymbol[(int)WellKnownTypes.Count], null);
+                    Interlocked.CompareExchange(ref _lazyWellKnownTypes, new NamedTypeSymbol[(int)WellKnownTypes.Count], null);
                 }
 
                 string mdName = type.GetMetadataName();
@@ -108,10 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
                 }
 
-                if ((object)Interlocked.CompareExchange(ref lazyWellKnownTypes[index], result, null) != null)
+                if ((object)Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) != null)
                 {
                     Debug.Assert(
-                        result == lazyWellKnownTypes[index] || (lazyWellKnownTypes[index].IsErrorType() && result.IsErrorType())
+                        result == _lazyWellKnownTypes[index] || (_lazyWellKnownTypes[index].IsErrorType() && result.IsErrorType())
                     );
                 }
                 else
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warnings.Free();
             }
 
-            return lazyWellKnownTypes[index];
+            return _lazyWellKnownTypes[index];
         }
 
         internal bool IsAttributeType(TypeSymbol type)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(member.Name.Equals(descriptor.Name));
 
-                if (member.Kind != targetSymbolKind || member.IsStatic != isStatic || 
+                if (member.Kind != targetSymbolKind || member.IsStatic != isStatic ||
                     !(member.DeclaredAccessibility == Accessibility.Public || ((object)accessWithinOpt != null && Symbol.IsSymbolAccessible(member, accessWithinOpt))))
                 {
                     continue;
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Default                                      JIT optimizations enabled
             // DisableOptimizations                         JIT optimizations enabled
             // Default | DisableOptimizations               JIT optimizations disabled
-            if (options.OptimizationLevel == OptimizationLevel.Debug)
+            if (_options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 var defaultDebuggingMode = (FieldSymbol)GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggableAttribute_DebuggingModes__Default);
                 if ((object)defaultDebuggingMode == null || !defaultDebuggingMode.HasConstantValue)
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantVal |= disableOptimizationsDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
             }
 
-            if (options.EnableEditAndContinue)
+            if (_options.EnableEditAndContinue)
             {
                 var enableEncDebuggingMode = (FieldSymbol)GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggableAttribute_DebuggingModes__EnableEditAndContinue);
                 if ((object)enableEncDebuggingMode == null || !enableEncDebuggingMode.HasConstantValue)
@@ -515,10 +515,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Native compiler encodes an extra transform flag, always false, for each custom modifier.
                 HandleCustomModifiers(customModifiersCount, transformFlagsBuilder);
 
-                type.VisitType(EncodeDynamicTransform, transformFlagsBuilder);
+                type.VisitType(s_encodeDynamicTransform, transformFlagsBuilder);
             }
 
-            private static readonly Func<TypeSymbol, ArrayBuilder<bool>, bool, bool> EncodeDynamicTransform = (type, transformFlagsBuilder, isNestedNamedType) =>
+            private static readonly Func<TypeSymbol, ArrayBuilder<bool>, bool, bool> s_encodeDynamicTransform = (type, transformFlagsBuilder, isNestedNamedType) =>
             {
                 // Encode transforms flag for this type and it's custom modifiers (if any).
                 switch (type.TypeKind)
@@ -732,11 +732,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class WellKnownMembersSignatureComparer : SpecialMembersSignatureComparer
         {
-            private readonly CSharpCompilation compilation;
+            private readonly CSharpCompilation _compilation;
 
             public WellKnownMembersSignatureComparer(CSharpCompilation compilation)
             {
-                this.compilation = compilation;
+                _compilation = compilation;
             }
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType wellKnownId = (WellKnownType)typeId;
                 if (wellKnownId >= WellKnownType.First && wellKnownId <= WellKnownType.Last)
                 {
-                    return (type == this.compilation.GetWellKnownType(wellKnownId));
+                    return (type == _compilation.GetWellKnownType(wellKnownId));
                 }
 
                 return base.MatchTypeToTypeId(type, typeId);

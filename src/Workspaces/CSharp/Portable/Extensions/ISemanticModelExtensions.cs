@@ -60,42 +60,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (expression.Kind())
             {
-            case SyntaxKind.SimpleMemberAccessExpression:
-            case SyntaxKind.PointerMemberAccessExpression:
-                var max = (MemberAccessExpressionSyntax)expression;
-                qualifier = max.Expression;
-                name = max.Name.Identifier.ValueText;
-                arity = max.Name.Arity;
-                break;
-            case SyntaxKind.QualifiedName:
-                var qn = (QualifiedNameSyntax)expression;
-                qualifier = qn.Left;
-                name = qn.Right.Identifier.ValueText;
-                arity = qn.Arity;
-                break;
-            case SyntaxKind.AliasQualifiedName:
-                var aq = (AliasQualifiedNameSyntax)expression;
-                qualifier = aq.Alias;
-                name = aq.Name.Identifier.ValueText;
-                arity = aq.Name.Arity;
-                break;
-            case SyntaxKind.GenericName:
-                var gx = (GenericNameSyntax)expression;
-                qualifier = null;
-                name = gx.Identifier.ValueText;
-                arity = gx.Arity;
-                break;
-            case SyntaxKind.IdentifierName:
-                var nx = (IdentifierNameSyntax)expression;
-                qualifier = null;
-                name = nx.Identifier.ValueText;
-                arity = 0;
-                break;
-            default:
-                qualifier = null;
-                name = null;
-                arity = 0;
-                break;
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                    var max = (MemberAccessExpressionSyntax)expression;
+                    qualifier = max.Expression;
+                    name = max.Name.Identifier.ValueText;
+                    arity = max.Name.Arity;
+                    break;
+                case SyntaxKind.QualifiedName:
+                    var qn = (QualifiedNameSyntax)expression;
+                    qualifier = qn.Left;
+                    name = qn.Right.Identifier.ValueText;
+                    arity = qn.Arity;
+                    break;
+                case SyntaxKind.AliasQualifiedName:
+                    var aq = (AliasQualifiedNameSyntax)expression;
+                    qualifier = aq.Alias;
+                    name = aq.Name.Identifier.ValueText;
+                    arity = aq.Name.Arity;
+                    break;
+                case SyntaxKind.GenericName:
+                    var gx = (GenericNameSyntax)expression;
+                    qualifier = null;
+                    name = gx.Identifier.ValueText;
+                    arity = gx.Arity;
+                    break;
+                case SyntaxKind.IdentifierName:
+                    var nx = (IdentifierNameSyntax)expression;
+                    qualifier = null;
+                    name = nx.Identifier.ValueText;
+                    arity = 0;
+                    break;
+                default:
+                    qualifier = null;
+                    name = null;
+                    arity = 0;
+                    break;
             }
         }
 
@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Add more token kinds if necessary;
             switch (token.Kind())
             {
-            case SyntaxKind.CommaToken:
-            case SyntaxKind.DelegateKeyword:
-                return false;
+                case SyntaxKind.CommaToken:
+                case SyntaxKind.DelegateKeyword:
+                    return false;
             }
 
             return true;

@@ -504,7 +504,6 @@ public struct Test : short { }
             Assert.Equal(SpecialType.System_Int16, retargetingType.Interfaces.Single().SpecialType);
             Assert.Equal(TypeKind.Error, retargetingType.BaseType.TypeKind);
             Assert.Equal(SpecialType.System_ValueType, retargetingType.BaseType.SpecialType);
-
         }
 
         [Fact]
@@ -561,7 +560,6 @@ public interface Test : short { }
             Assert.Equal(TypeKind.Error, retargetingType.Interfaces.Single().TypeKind);
             Assert.Equal(SpecialType.System_Int16, retargetingType.Interfaces.Single().SpecialType);
             Assert.Null(retargetingType.BaseType);
-
         }
 
         [Fact]
@@ -631,7 +629,6 @@ public class C<T> where T : int
             var retargetingTypeParameterConstraint = retargetingTypeParameter.ConstraintTypes.Single();
             Assert.Equal(TypeKind.Error, retargetingTypeParameterConstraint.TypeKind);
             Assert.Equal(SpecialType.System_Int32, retargetingTypeParameterConstraint.SpecialType);
-
         }
 
         private void CheckTypes(ImmutableArray<TypeSymbol> source, ImmutableArray<TypeSymbol> retargeting)
@@ -694,12 +691,12 @@ public class C<T> where T : int
 class C1<T>
 {
 }";
-            var comp1 = CreateCompilation(source, new [] {MscorlibRef_v20}, TestOptions.ReleaseDll);
+            var comp1 = CreateCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
             comp1.VerifyDiagnostics();
 
             NamedTypeSymbol c1 = comp1.Assembly.GlobalNamespace.GetTypeMembers("C1").Single();
 
-            var comp2 = CreateCompilation("", new [] {MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1)}, TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1) }, TestOptions.ReleaseDll);
 
             NamedTypeSymbol c1r = comp2.GlobalNamespace.GetTypeMembers("C1").Single();
 

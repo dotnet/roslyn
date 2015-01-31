@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class DeclarationTreeBuilder : CSharpSyntaxVisitor<SingleNamespaceOrTypeDeclaration>
     {
-        private readonly SyntaxTree syntaxTree;
-        private readonly string scriptClassName;
-        private readonly bool isSubmission;
-        private List<Diagnostic> referenceDirectiveDiagnostics;
+        private readonly SyntaxTree _syntaxTree;
+        private readonly string _scriptClassName;
+        private readonly bool _isSubmission;
+        private List<Diagnostic> _referenceDirectiveDiagnostics;
 
         private DeclarationTreeBuilder(SyntaxTree syntaxTree, string scriptClassName, bool isSubmission)
         {
-            this.syntaxTree = syntaxTree;
-            this.scriptClassName = scriptClassName;
-            this.isSubmission = isSubmission;
+            _syntaxTree = syntaxTree;
+            _scriptClassName = scriptClassName;
+            _isSubmission = isSubmission;
         }
 
         public static RootSingleNamespaceDeclaration ForTree(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<MemberDeclarationSyntax> members,
             Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
-            Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind == SourceCodeKind.Regular));
+            Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
             {
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasGlobalMembers)
             {
                 //The implicit class is not static and has no extensions
-                SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None; 
+                SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
                 var memberNames = GetNonTypeMemberNames(internalMembers, ref declFlags);
-                var container = syntaxTree.GetReference(node);
+                var container = _syntaxTree.GetReference(node);
 
                 childrenBuilder.Add(CreateImplicitClass(memberNames, container, declFlags));
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private RootSingleNamespaceDeclaration CreateScriptRootDeclaration(CompilationUnitSyntax compilationUnit)
         {
-            Debug.Assert(syntaxTree.Options.Kind != SourceCodeKind.Regular);
+            Debug.Assert(_syntaxTree.Options.Kind != SourceCodeKind.Regular);
 
             var members = compilationUnit.Members;
             var rootChildren = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //Script class is not static and contains no extensions.
-            SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None; 
+            SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
             var membernames = GetNonTypeMemberNames(((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
             rootChildren.Add(
                 CreateScriptClass(
@@ -135,10 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
                 hasExternAliases: compilationUnit.Externs.Any(),
-                treeNode: syntaxTree.GetReference(compilationUnit),
+                treeNode: _syntaxTree.GetReference(compilationUnit),
                 children: rootChildren.ToImmutableAndFree(),
                 referenceDirectives: GetReferenceDirectives(compilationUnit),
-                referenceDirectiveDiagnostics: referenceDirectiveDiagnostics.AsImmutableOrEmpty(),
+                referenceDirectiveDiagnostics: _referenceDirectiveDiagnostics.AsImmutableOrEmpty(),
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
         }
 
@@ -166,15 +166,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ICollection<string> memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
-            Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular);
+            Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
 
             // script type is represented by the parent node:
-            var parentReference = syntaxTree.GetReference(parent);
-            var fullName = scriptClassName.Split('.');
+            var parentReference = _syntaxTree.GetReference(parent);
+            var fullName = _scriptClassName.Split('.');
 
             // Note: The symbol representing the merged declarations uses parentReference to enumerate non-type members.
             SingleNamespaceOrTypeDeclaration decl = new SingleTypeDeclaration(
-                kind: isSubmission ? DeclarationKind.Submission : DeclarationKind.Script,
+                kind: _isSubmission ? DeclarationKind.Submission : DeclarationKind.Script,
                 name: fullName.Last(),
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Sealed,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitCompilationUnit(CompilationUnitSyntax compilationUnit)
         {
-            if (syntaxTree.Options.Kind != SourceCodeKind.Regular)
+            if (_syntaxTree.Options.Kind != SourceCodeKind.Regular)
             {
                 return CreateScriptRootDeclaration(compilationUnit);
             }
@@ -208,12 +208,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
 
             // no diagnostics should be reported from a non-script tree:
-            Debug.Assert(referenceDirectiveDiagnostics == null);
+            Debug.Assert(_referenceDirectiveDiagnostics == null);
 
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
                 hasExternAliases: compilationUnit.Externs.Any(),
-                treeNode: syntaxTree.GetReference(compilationUnit),
+                treeNode: _syntaxTree.GetReference(compilationUnit),
                 children: children,
                 referenceDirectives: ImmutableArray<ReferenceDirective>.Empty,
                 referenceDirectiveDiagnostics: GetMisplacedReferenceDirectivesDiagnostics(compilationUnit),
@@ -239,11 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var children = VisitNamespaceChildren(node, node.Members, node.Green.Members);
 
-            if (syntaxTree.Options.Kind == SourceCodeKind.Interactive || syntaxTree.Options.Kind == SourceCodeKind.Script)
+            if (_syntaxTree.Options.Kind == SourceCodeKind.Interactive || _syntaxTree.Options.Kind == SourceCodeKind.Script)
             {
-                referenceDirectiveDiagnostics = referenceDirectiveDiagnostics ?? new List<Diagnostic>();
+                _referenceDirectiveDiagnostics = _referenceDirectiveDiagnostics ?? new List<Diagnostic>();
 
-                referenceDirectiveDiagnostics.Add(new CSDiagnostic(
+                _referenceDirectiveDiagnostics.Add(new CSDiagnostic(
                     new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_NamespaceNotAllowedInScript),
                     new SourceLocation(node.NamespaceKeyword)));
             }
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name: dotted.Right.Identifier.ValueText,
                     hasUsings: hasUsings,
                     hasExternAliases: hasExterns,
-                    syntaxReference: syntaxTree.GetReference(currentNode),
+                    syntaxReference: _syntaxTree.GetReference(currentNode),
                     nameLocation: new SourceLocation(dotted.Right),
                     children: children);
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: name.GetUnqualifiedName().Identifier.ValueText,
                 hasUsings: hasUsings,
                 hasExternAliases: hasExterns,
-                syntaxReference: syntaxTree.GetReference(currentNode),
+                syntaxReference: _syntaxTree.GetReference(currentNode),
                 nameLocation: new SourceLocation(name),
                 children: children);
         }
@@ -316,8 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: node.Identifier.ValueText,
                 modifiers: node.Modifiers.ToDeclarationModifiers(),
                 arity: node.Arity,
-                declFlags: declFlags, 
-                syntaxReference: syntaxTree.GetReference(node),
+                declFlags: declFlags,
+                syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
                 children: VisitTypeChildren(node));
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 modifiers: node.Modifiers.ToDeclarationModifiers(),
                 declFlags: declFlags,
                 arity: node.Arity,
-                syntaxReference: syntaxTree.GetReference(node),
+                syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: SpecializedCollections.EmptyCollection<string>(),
                 children: ImmutableArray<SingleTypeDeclaration>.Empty);
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: 0,
                 modifiers: node.Modifiers.ToDeclarationModifiers(),
                 declFlags: declFlags,
-                syntaxReference: syntaxTree.GetReference(node),
+                syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty);
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
-           
+
             int i = 0;
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            if (anyNonTypeMembers) 
+            if (anyNonTypeMembers)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }

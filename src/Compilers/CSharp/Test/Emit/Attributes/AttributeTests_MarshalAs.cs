@@ -506,7 +506,7 @@ class X
         /// (ArraySubType, SizeConst), (SizeParamIndex, SafeArraySubType) not allowed, others ignored
         /// </summary>
         [Fact]
-        public void NativeTypeFixedArray() 
+        public void NativeTypeFixedArray()
         {
             var source = @"
 using System;
@@ -616,7 +616,7 @@ public class X
         /// (SafeArraySubType, SafeArrayUserDefinedSubType) not allowed together unless VT_DISPATCH, VT_UNKNOWN, VT_RECORD; others ignored.
         /// </summary>
         [Fact]
-        public void NativeTypeSafeArray() 
+        public void NativeTypeSafeArray()
         {
             var source = @"
 using System;
@@ -735,7 +735,7 @@ public class X
             };
 
             // RefEmit emits assembly-qualified type names even for types contained in the assembly (X)
-            CompileAndVerifyFieldMarshal(source, (fieldName, assembly, emitOptions) => 
+            CompileAndVerifyFieldMarshal(source, (fieldName, assembly, emitOptions) =>
             {
                 if (emitOptions != TestEmitters.RefEmit)
                 {
@@ -745,7 +745,7 @@ public class X
                 string displayName = assembly.Identity.GetDisplayName();
                 byte[] typeName;
 
-                switch (fieldName) 
+                switch (fieldName)
                 {
                     case "SafeArray5":
                         typeName = e.GetBytes("System.Collections.Generic.List`1[[X, " + displayName + "]][][], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
@@ -847,7 +847,7 @@ public class X
         }
 
         [Fact]
-        public void NativeTypeFixedSysString_Errors() 
+        public void NativeTypeFixedSysString_Errors()
         {
             var source = @"
 #pragma warning disable 169
@@ -1063,11 +1063,11 @@ class X
     }
 }
 ";
-            var blobs = new Dictionary<string, byte[]>() 
+            var blobs = new Dictionary<string, byte[]>()
             {
                 { "foo:",                  new byte[] { 0x14 } }, // return value
                 { "foo:IDispatch",         new byte[] { 0x1a } },
-                { "foo:LPArray0",          new byte[] { 0x2a, 0x50 } }, 
+                { "foo:LPArray0",          new byte[] { 0x2a, 0x50 } },
                 { "foo:SafeArray8",        new byte[] { 0x1d, 0x00 } },
                 { "foo:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
             };
@@ -1129,7 +1129,7 @@ public interface I
         set;
     }
 }";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { "get_P:", new byte[] { 0x13 } }, // return value for get accessor
                     { "set_P:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } }, // value parameter for set accessor
@@ -1156,14 +1156,14 @@ class C
         remove { }
     }
 }";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
-                    { "add_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } }, 
-                    { "remove_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } }, 
+                    { "add_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } },
+                    { "remove_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } },
                 },
                 isField: false);
         }
-        
+
         [Fact]
         public void Parameters_Indexer_Getter()
         {
@@ -1177,7 +1177,7 @@ public class C
     }
 }
 ";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { "get_Item:a", new byte[] { 0x13 } },
                     { "get_Item:b", new byte[] { 0x13 } },
@@ -1199,7 +1199,7 @@ public class C
     }
 }
 ";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { "set_Item:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } },
                     { "set_Item:a", new byte[] { 0x13 } },
@@ -1227,7 +1227,7 @@ class C
 }";
             var marshalAsBstr = new byte[] { 0x13 };
 
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { ".ctor:object", null },
                     { ".ctor:method", null },
@@ -1248,7 +1248,7 @@ class C
                 },
                 isField: false);
         }
-        
+
         [Fact]
         public void Parameters_Errors()
         {
@@ -1332,7 +1332,7 @@ class X
                 { "f:VBByRefStr_e1", new byte[] { 0x22 } },
                 { "f:VBByRefStr_e2", new byte[] { 0x22 } },
                 { "f:VBByRefStr_e3", new byte[] { 0x22 } },
-            }, 
+            },
             isField: false);
         }
 

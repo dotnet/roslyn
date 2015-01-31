@@ -35,7 +35,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             {
                 kind = CSharpExtensions.Kind(node).ToString();
             }
-            else 
+            else
             {
                 kind = VisualBasicExtensions.Kind(node).ToString();
             }
@@ -51,7 +51,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             {
                 kind = CSharpExtensions.Kind(token).ToString();
             }
-            else 
+            else
             {
                 kind = VisualBasicExtensions.Kind(token).ToString();
             }

@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         private const int MAX_DIRECTIVE_IDENTIFIER_WIDTH = 128;
 
-        private readonly DirectiveStack context;
+        private readonly DirectiveStack _context;
 
         internal DirectiveParser(Lexer lexer, DirectiveStack context)
             : base(lexer, LexerMode.Directive, null, null, false)
         {
-            this.context = context;
+            _context = context;
         }
 
         public CSharpSyntaxNode ParseDirective(
@@ -124,20 +124,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var expr = this.ParseExpression();
             var eod = this.ParseEndOfDirective(ignoreErrors: false);
-            if (this.context.HasPreviousIfOrElif())
+            if (_context.HasPreviousIfOrElif())
             {
                 var isTrue = this.EvaluateBool(expr);
-                var branchTaken = endIsActive && isTrue && !this.context.PreviousBranchTaken();
+                var branchTaken = endIsActive && isTrue && !_context.PreviousBranchTaken();
                 return SyntaxFactory.ElifDirectiveTrivia(hash, keyword, expr, eod, endIsActive, branchTaken, isTrue);
             }
             else
             {
                 eod = eod.WithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
-                if (this.context.HasUnfinishedRegion())
+                if (_context.HasUnfinishedRegion())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
                 }
-                else if (this.context.HasUnfinishedIf())
+                else if (_context.HasUnfinishedIf())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndifDirectiveExpected);
                 }
@@ -151,16 +151,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseElseDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool endIsActive)
         {
             var eod = this.ParseEndOfDirective(ignoreErrors: false);
-            if (this.context.HasPreviousIfOrElif())
+            if (_context.HasPreviousIfOrElif())
             {
-                var branchTaken = endIsActive && !this.context.PreviousBranchTaken();
+                var branchTaken = endIsActive && !_context.PreviousBranchTaken();
                 return SyntaxFactory.ElseDirectiveTrivia(hash, keyword, eod, endIsActive, branchTaken);
             }
-            else if (this.context.HasUnfinishedRegion())
+            else if (_context.HasUnfinishedRegion())
             {
                 return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
             }
-            else if (this.context.HasUnfinishedIf())
+            else if (_context.HasUnfinishedIf())
             {
                 return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndifDirectiveExpected);
             }
@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseEndIfDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool endIsActive)
         {
             var eod = this.ParseEndOfDirective(ignoreErrors: false);
-            if (this.context.HasUnfinishedIf())
+            if (_context.HasUnfinishedIf())
             {
                 return SyntaxFactory.EndIfDirectiveTrivia(hash, keyword, eod, endIsActive);
             }
-            else if (this.context.HasUnfinishedRegion())
+            else if (_context.HasUnfinishedRegion())
             {
                 // CONSIDER: dev10 actually pops the region off the directive stack here.
                 // See if (tok == PPT_ENDIF) in CSourceData::CPreprocessor::ScanPreprocessorIfSection.
@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseEndRegionDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive)
         {
             var eod = this.ParseEndOfDirectiveWithOptionalPreprocessingMessage();
-            if (this.context.HasUnfinishedRegion())
+            if (_context.HasUnfinishedRegion())
             {
                 return SyntaxFactory.EndRegionDirectiveTrivia(hash, keyword, eod, isActive);
             }
-            else if (this.context.HasUnfinishedIf())
+            else if (_context.HasUnfinishedIf())
             {
                 return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndifDirectiveExpected);
             }
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsDefined(string id)
         {
-            var defState = this.context.IsDefined(id);
+            var defState = _context.IsDefined(id);
             switch (defState)
             {
                 default:

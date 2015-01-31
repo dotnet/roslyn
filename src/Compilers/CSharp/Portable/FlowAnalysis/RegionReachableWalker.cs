@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 walker.Analyze(ref badRegion, diagnostics);
-                startPointIsReachable = badRegion || walker.reginStartPointIsReachable.GetValueOrDefault(true);
-                endPointIsReachable = badRegion || walker.reginEndPointIsReachable.GetValueOrDefault(walker.State.Alive);
+                startPointIsReachable = badRegion || walker._reginStartPointIsReachable.GetValueOrDefault(true);
+                endPointIsReachable = badRegion || walker._reginEndPointIsReachable.GetValueOrDefault(walker.State.Alive);
             }
             finally
             {
@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool? reginStartPointIsReachable;
-        private bool? reginEndPointIsReachable;
+        private bool? _reginStartPointIsReachable;
+        private bool? _reginEndPointIsReachable;
 
         private RegionReachableWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            reginStartPointIsReachable = this.State.Alive;
+            _reginStartPointIsReachable = this.State.Alive;
             base.EnterRegion();
         }
 
         override protected void LeaveRegion()
         {
-            reginEndPointIsReachable = this.State.Alive;
+            _reginEndPointIsReachable = this.State.Alive;
             base.LeaveRegion();
         }
     }

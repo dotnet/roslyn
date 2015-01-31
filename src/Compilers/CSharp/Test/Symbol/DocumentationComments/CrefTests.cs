@@ -5708,7 +5708,6 @@ class C
             var parameterTypeContainingType = parameterType.DescendantNodes().OfType<SimpleNameSyntax>().First();
             var containingTypeInfo = model.GetSymbolInfo(parameterTypeContainingType);
             Assert.IsType<CrefTypeParameterSymbol>(containingTypeInfo.Symbol);
-
         }
 
         [WorkItem(551354, "DevDiv")]

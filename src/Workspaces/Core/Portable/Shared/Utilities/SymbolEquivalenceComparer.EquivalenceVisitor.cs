@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 ////#define TRACKDEPTH
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,18 +18,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class EquivalenceVisitor
         {
-            private readonly bool compareMethodTypeParametersByIndex;
-            private readonly bool objectAndDynamicCompareEqually;
-            private readonly SymbolEquivalenceComparer symbolEquivalenceComparer;
+            private readonly bool _compareMethodTypeParametersByIndex;
+            private readonly bool _objectAndDynamicCompareEqually;
+            private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 
             public EquivalenceVisitor(
                 SymbolEquivalenceComparer symbolEquivalenceComparer,
                 bool compareMethodTypeParametersByIndex,
                 bool objectAndDynamicCompareEqually)
             {
-                this.symbolEquivalenceComparer = symbolEquivalenceComparer;
-                this.compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;
-                this.objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
+                _symbolEquivalenceComparer = symbolEquivalenceComparer;
+                _compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;
+                _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
             }
 
 #if TRACKDEPTH
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // Special case.  If we're comparing signatures then we want to compare 'object'
                     // and 'dynamic' as the same.  However, since they're different types, we don't
                     // want to bail out using the above check.
-                    return objectAndDynamicCompareEqually &&
+                    return _objectAndDynamicCompareEqually &&
                            ((yKind == SymbolKind.DynamicType && xKind == SymbolKind.NamedType && ((ITypeSymbol)x).SpecialType == SpecialType.System_Object) ||
                             (xKind == SymbolKind.DynamicType && yKind == SymbolKind.NamedType && ((ITypeSymbol)y).SpecialType == SpecialType.System_Object));
                 }
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
             {
-                return symbolEquivalenceComparer.assembliesCanDiffer || AssembliesAreEquivalentCore(x, y);
+                return _symbolEquivalenceComparer._assembliesCanDiffer || AssembliesAreEquivalentCore(x, y);
             }
 
             private bool AssembliesAreEquivalentCore(IAssemblySymbol x, IAssemblySymbol y)
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private bool ModulesAreEquivalent(IModuleSymbol x, IModuleSymbol y)
             {
                 // TODO(cyrusn): What's the right thing to do here?  
-                return symbolEquivalenceComparer.assembliesCanDiffer || x.Name == y.Name;
+                return _symbolEquivalenceComparer._assembliesCanDiffer || x.Name == y.Name;
             }
 
             private bool NamedTypesAreEquivalent(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             /// <param name="y">The second type to compare</param>
             /// <param name="equivalentTypesWithDifferingAssemblies">
             /// Map of equivalent non-nested types to be populated, such that each key-value pair of named types are equivalent but reside in different assemblies.
-            /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="assembliesCanDiffer"/> is true.
+            /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="_assembliesCanDiffer"/> is true.
             /// </param>
             /// <returns>True if the two types are equivalent.</returns>
             private bool HandleNamedTypesWorker(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 // If we are ignoring assemblies and containing assemblies are different, add {x, y} to equivalentTypesWithDifferingAssemblies map.
-                if (symbolEquivalenceComparer.assembliesCanDiffer &&
+                if (_symbolEquivalenceComparer._assembliesCanDiffer &&
                     equivalentTypesWithDifferingAssemblies != null &&
                     x.ContainingType == null &&
                     x.ContainingAssembly != null &&
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies, compareParameterName, isParameterNameCaseSensitive))
+                    if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies, compareParameterName, isParameterNameCaseSensitive))
                     {
                         return false;
                     }
@@ -442,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                if (x.IsGlobalNamespace && symbolEquivalenceComparer.assembliesCanDiffer)
+                if (x.IsGlobalNamespace && _symbolEquivalenceComparer._assembliesCanDiffer)
                 {
                     // No need to compare the containers of global namespace when assemblies can differ.
                     return true;
@@ -502,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // If this is a method type parameter, and we are in 'non-recurse' mode (because
                 // we're comparing method parameters), then we're done at this point.  The types are
                 // equal.
-                if (x.TypeParameterKind == TypeParameterKind.Method && compareMethodTypeParametersByIndex)
+                if (x.TypeParameterKind == TypeParameterKind.Method && _compareMethodTypeParametersByIndex)
                 {
                     return true;
                 }

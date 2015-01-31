@@ -55,7 +55,7 @@ class C
             var c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
-            
+
             var mdStream = new MemoryStream();
             var ilStream = new MemoryStream();
             var pdbStream = new MemoryStream();
@@ -99,7 +99,7 @@ class C
     public static int F(object a) { return 1; }
     public static void Main() { Console.WriteLine(F(null)); } 
 }
-";            
+";
             string src2 = @"
 using System;
 class C 

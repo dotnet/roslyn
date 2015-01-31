@@ -1696,7 +1696,6 @@ class Test
             Assert.Equal(0, analysisControlFlow.ExitPoints.Count());
             Assert.Equal(0, analysisControlFlow.EntryPoints.Count());
             Assert.Equal(0, analysisControlFlow.ReturnStatements.Count());
-
         }
         #endregion
     }

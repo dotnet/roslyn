@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             CheckTypeNames(globalTypes, context.ReportDiagnostic);
             CheckNamespaceMembers(globalNamespaces, context.Compilation, context.ReportDiagnostic);
         }
-        
+
         protected override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             // Do not descent into non-publicly visible types

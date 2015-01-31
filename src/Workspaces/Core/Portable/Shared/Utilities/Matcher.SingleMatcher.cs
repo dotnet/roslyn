@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class SingleMatcher : Matcher<T>
         {
-            private readonly Func<T, bool> predicate;
-            private readonly string description;
+            private readonly Func<T, bool> _predicate;
+            private readonly string _description;
 
             public SingleMatcher(Func<T, bool> predicate, string description)
             {
-                this.predicate = predicate;
-                this.description = description;
+                _predicate = predicate;
+                _description = description;
             }
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
-                if (index < sequence.Count && predicate(sequence[index]))
+                if (index < sequence.Count && _predicate(sequence[index]))
                 {
                     index++;
                     return true;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             public override string ToString()
             {
-                return description;
+                return _description;
             }
         }
     }

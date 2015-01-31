@@ -103,9 +103,7 @@
     <Compile Include="CodeGeneration\CSharpCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\CSharpCodeGenerationServiceFactory.cs" />
     <Compile Include="CodeGeneration\CSharpDeclarationComparer.cs" />
-    <Compile Include="CodeGeneration\CSharpSyntaxGenerator.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="CodeGeneration\CSharpSyntaxGenerator.cs" />
     <Compile Include="CodeGeneration\DestructorGenerator.cs" />
     <Compile Include="CodeGeneration\EnumMemberGenerator.cs" />
     <Compile Include="CodeGeneration\EventGenerator.cs" />
@@ -130,9 +128,7 @@
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseParameterListSyntaxExtensions.cs" />
-    <Compile Include="Extensions\BreakpointSpans.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Extensions\BreakpointSpans.cs" />
     <Compile Include="Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\CSharpSyntaxContext.cs" />
@@ -198,9 +194,7 @@
     <Compile Include="Formatting\FormattingHelpers.cs" />
     <Compile Include="Formatting\Rules\AnchorIndentationFormattingRule.cs" />
     <Compile Include="Formatting\Rules\BaseFormattingRule.cs" />
-    <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs" />
     <Compile Include="Formatting\Rules\EndOfFileTokenFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IndentBlockFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IndentUserSettingsFormattingRule.cs" />
@@ -214,18 +208,14 @@
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
-    <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactory.PathSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.NullSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.PositionalSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.RecoverableSyntaxTree.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.cs" />
-    <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
     <Compile Include="LinkedFiles\CSharpLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Recommendations\CSharpRecommendationService.cs" />
     <Compile Include="Rename\CSharpRenameRewriterLanguageService.cs" />

@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class ResourceTests : CSharpTestBase
     {
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hFile, uint dwFlags);
+        private static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hFile, uint dwFlags);
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool FreeLibrary([In] IntPtr hFile);
+        private static extern bool FreeLibrary([In] IntPtr hFile);
 
         [Fact]
         public void DefaultVersionResource()
@@ -203,8 +203,8 @@ class C
             var c1 = CreateCompilationWithMscorlib("");
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("r2", "file", () => { throw new Exception("bad stuff"); }, false)
                 });
 
@@ -214,8 +214,8 @@ class C
             );
 
             result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("r2", "file", () => null, false)
                 });
 
@@ -230,11 +230,11 @@ class C
         public void CS1508_DuplicateMainfestResourceIdentifier()
         {
             var c1 = CreateCompilationWithMscorlib("");
-            Func<Stream> dataProvider = () => new MemoryStream(new byte[] {});
+            Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "x.foo", dataProvider, true),
                     new ResourceDescription("A", "y.foo", dataProvider, true)
                 });
@@ -253,8 +253,8 @@ class C
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", dataProvider, true),
                     new ResourceDescription("A", null, dataProvider, true, isEmbedded: true, checkArgs: true)
                 });
@@ -266,8 +266,8 @@ class C
 
             // file name ignored for embedded manifest resources
             result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: true, checkArgs: true),
                     new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: false, checkArgs: true)
                 });
@@ -286,8 +286,8 @@ class C
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "x.foo", dataProvider, true),
                     new ResourceDescription("B", "x.foo", dataProvider, true)
                 });
@@ -306,8 +306,8 @@ class C
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", dataProvider, true),
                     new ResourceDescription("B", null, dataProvider, true, isEmbedded: true, checkArgs: true)
                 });
@@ -316,8 +316,8 @@ class C
 
             // file name ignored for embedded manifest resources
             result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "x.foo", dataProvider, true, isEmbedded: true, checkArgs: true),
                     new ResourceDescription("B", "x.foo", dataProvider, true, isEmbedded: false, checkArgs: true)
                 });
@@ -333,8 +333,8 @@ class C
             Func<Stream> dataProvider = () => new MemoryStream(new byte[] { });
 
             var result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "x.foo", dataProvider, true),
                     new ResourceDescription("A", "x.foo", dataProvider, true)
                 });
@@ -347,8 +347,8 @@ class C
             );
 
             result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "x.foo", dataProvider, true),
                     new ResourceDescription("B", "x.foo", dataProvider, true),
                     new ResourceDescription("B", "y.foo", dataProvider, true)
@@ -362,8 +362,8 @@ class C
             );
 
             result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "foo.dll", dataProvider, true),
                 });
 
@@ -375,8 +375,8 @@ class C
             c1 = CreateCompilationWithMscorlib("", references: new[] { netModule1 });
 
             result = c1.Emit(new MemoryStream(), manifestResources:
-                new[] 
-                { 
+                new[]
+                {
                     new ResourceDescription("A", "netmodule1.netmodule", dataProvider, true),
                 });
 
@@ -403,18 +403,18 @@ class C
 
             var arrayOfEmbeddedData = new byte[] { 1, 2, 3, 4, 5 };
             var resourceFileData = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-            
+
             var result = c1.Emit(output, manifestResources:
-                new ResourceDescription[] 
-                { 
-                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true), 
+                new ResourceDescription[]
+                {
+                    new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), true),
                     new ResourceDescription(r2Name, resourceFileName, () => new MemoryStream(resourceFileData), false)
                 });
 
             Assert.True(result.Success);
 
             var assembly = Assembly.ReflectionOnlyLoad(output.ToArray());
-                
+
             string[] resourceNames = assembly.GetManifestResourceNames();
             Assert.Equal(2, resourceNames.Length);
 
@@ -431,9 +431,9 @@ class C
 
             c1 = null;
         }
-
         [Fact]
-        void AddResourceToModule()
+
+        private void AddResourceToModule()
         {
             for (int metadataOnlyIfNonzero = 0; metadataOnlyIfNonzero < 2; metadataOnlyIfNonzero++)
             {
@@ -769,8 +769,8 @@ public class Maine
             const string r2Name = "another.DoTtEd.NAME";
 
             var result = c1.Emit(output, manifestResources:
-                new ResourceDescription[] 
-                { 
+                new ResourceDescription[]
+                {
                     new ResourceDescription(r2Name, "nonExistent", () => { throw new NotSupportedException("error in data provider"); }, false)
                 });
 
@@ -796,9 +796,9 @@ public class Maine
             const string r2Name = "another.DoTtEd.NAME";
 
             var result = c1.Emit(output, manifestResources:
-                new ResourceDescription[] 
-                { 
-                    new ResourceDescription(r2Name, () => null, true), 
+                new ResourceDescription[]
+                {
+                    new ResourceDescription(r2Name, () => null, true),
                 });
 
             Assert.False(result.Success);
@@ -842,7 +842,7 @@ public class Maine
             try
             {
                 lib = LoadLibraryEx(exeFile.Path, IntPtr.Zero, 0x00000002);
-                Assert.True(lib != IntPtr.Zero, String.Format("LoadLibrary failed with HResult: {0:X}", + Marshal.GetLastWin32Error()));
+                Assert.True(lib != IntPtr.Zero, String.Format("LoadLibrary failed with HResult: {0:X}", +Marshal.GetLastWin32Error()));
 
                 //the manifest and version primitives are tested elsewhere. This is to test that the default
                 //values are passed to the primitives that assemble the resources.

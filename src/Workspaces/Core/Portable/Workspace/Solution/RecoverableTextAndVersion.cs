@@ -14,53 +14,53 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class RecoverableTextAndVersion : RecoverableCachedObjectSource<TextAndVersion>
     {
-        private readonly ITemporaryStorageService storageService;
+        private readonly ITemporaryStorageService _storageService;
 
         // these fields are assigned once during call to SaveAsync
-        private ITemporaryTextStorage storage;
-        private VersionStamp storedVersion;
-        private string storedFilePath;
+        private ITemporaryTextStorage _storage;
+        private VersionStamp _storedVersion;
+        private string _storedFilePath;
 
         public RecoverableTextAndVersion(
             ValueSource<TextAndVersion> initialTextAndVersion,
             ITemporaryStorageService storageService)
             : base(initialTextAndVersion)
         {
-            this.storageService = storageService;
+            _storageService = storageService;
         }
 
         public bool TryGetTextVersion(out VersionStamp version)
         {
-            version = this.storedVersion;
+            version = _storedVersion;
             return version != default(VersionStamp);
         }
 
         protected override async Task<TextAndVersion> RecoverAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(this.storage);
+            Contract.ThrowIfNull(_storage);
 
-            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, this.storedFilePath, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, _storedFilePath, cancellationToken))
             {
-                var text = await this.storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-                return TextAndVersion.Create(text, this.storedVersion, this.storedFilePath);
+                var text = await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
+                return TextAndVersion.Create(text, _storedVersion, _storedFilePath);
             }
         }
 
         protected override TextAndVersion Recover(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, this.storedFilePath, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, _storedFilePath, cancellationToken))
             {
-                var text = this.storage.ReadText(cancellationToken);
-                return TextAndVersion.Create(text, this.storedVersion, this.storedFilePath);
+                var text = _storage.ReadText(cancellationToken);
+                return TextAndVersion.Create(text, _storedVersion, _storedFilePath);
             }
         }
 
         protected override Task SaveAsync(TextAndVersion textAndVersion, CancellationToken cancellationToken)
         {
-            this.storage = this.storageService.CreateTemporaryTextStorage(CancellationToken.None);
-            this.storedVersion = textAndVersion.Version;
-            this.storedFilePath = textAndVersion.FilePath;
-            return storage.WriteTextAsync(textAndVersion.Text);
+            _storage = _storageService.CreateTemporaryTextStorage(CancellationToken.None);
+            _storedVersion = textAndVersion.Version;
+            _storedFilePath = textAndVersion.FilePath;
+            return _storage.WriteTextAsync(textAndVersion.Text);
         }
     }
 }

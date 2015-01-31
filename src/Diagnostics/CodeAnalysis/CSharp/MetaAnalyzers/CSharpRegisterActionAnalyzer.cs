@@ -23,21 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 
         private sealed class CSharpRegisterActionCompilationAnalyzer : RegisterActionCompilationAnalyzer
         {
-            private readonly ITypeSymbol csharpSyntaxKind, basicSyntaxKind;
+            private readonly ITypeSymbol _csharpSyntaxKind,_basicSyntaxKind;
 
             public CSharpRegisterActionCompilationAnalyzer(
                 INamedTypeSymbol csharpSyntaxKind,
                 INamedTypeSymbol basicSyntaxKind,
                 INamedTypeSymbol analysisContext,
                 INamedTypeSymbol compilationStartAnalysisContext,
-                INamedTypeSymbol codeBlockStartAnalysisContext, 
-                INamedTypeSymbol symbolKind, 
-                INamedTypeSymbol diagnosticAnalyzer, 
+                INamedTypeSymbol codeBlockStartAnalysisContext,
+                INamedTypeSymbol symbolKind,
+                INamedTypeSymbol diagnosticAnalyzer,
                 INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
-                this.csharpSyntaxKind = csharpSyntaxKind;
-                this.basicSyntaxKind = basicSyntaxKind;
+                _csharpSyntaxKind = csharpSyntaxKind;
+                _basicSyntaxKind = basicSyntaxKind;
             }
 
             protected override IEnumerable<SyntaxNode> GetArgumentExpressions(InvocationExpressionSyntax invocation)
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 
             protected override bool IsSyntaxKind(ITypeSymbol type)
             {
-                return (csharpSyntaxKind != null && type.Equals(csharpSyntaxKind)) ||
-                    (basicSyntaxKind != null && type.Equals(basicSyntaxKind));
+                return (_csharpSyntaxKind != null && type.Equals(_csharpSyntaxKind)) ||
+                    (_basicSyntaxKind != null && type.Equals(_basicSyntaxKind));
             }
         }
     }

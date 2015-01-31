@@ -43,23 +43,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private readonly ConcurrentQueue<Entry> callLog = new ConcurrentQueue<Entry>();
+        private readonly ConcurrentQueue<Entry> _callLog = new ConcurrentQueue<Entry>();
 
         protected override void OnAbstractMember(string abstractMemberName, SyntaxNode node, ISymbol symbol, string callerName)
         {
-            callLog.Enqueue(new Entry(abstractMemberName, callerName, node, symbol));
+            _callLog.Enqueue(new Entry(abstractMemberName, callerName, node, symbol));
         }
 
         public IEnumerable<Entry> CallLog
         {
-            get { return callLog; }
+            get { return _callLog; }
         }
 
         #endregion
 
         #region Analysis
 
-        private static readonly Regex omittedSyntaxKindRegex =
+        private static readonly Regex s_omittedSyntaxKindRegex =
             new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString.*");
 
         private bool FilterByAbstractName(Entry entry, string abstractMemberName)
@@ -69,26 +69,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifyAllAnalyzerMembersWereCalled()
         {
-            var actualMembers = callLog.Select(e => e.CallerName).Distinct();
+            var actualMembers = _callLog.Select(e => e.CallerName).Distinct();
             AssertSequenceEqual(AllAnalyzerMemberNames, actualMembers);
         }
 
         public void VerifyAnalyzeSymbolCalledForAllSymbolKinds()
         {
             var expectedSymbolKinds = new[] { SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Property };
-            var actualSymbolKinds = callLog.Where(a => FilterByAbstractName(a, "Symbol")).Where(e => e.SymbolKind.HasValue).Select(e => e.SymbolKind.Value).Distinct();
+            var actualSymbolKinds = _callLog.Where(a => FilterByAbstractName(a, "Symbol")).Where(e => e.SymbolKind.HasValue).Select(e => e.SymbolKind.Value).Distinct();
             AssertSequenceEqual(expectedSymbolKinds, actualSymbolKinds);
         }
 
         protected virtual bool IsAnalyzeNodeSupported(TLanguageKindEnum syntaxKind)
         {
-            return !omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
+            return !s_omittedSyntaxKindRegex.IsMatch(syntaxKind.ToString());
         }
 
         public void VerifyAnalyzeNodeCalledForAllSyntaxKinds()
         {
             var expectedSyntaxKinds = AllSyntaxKinds.Where(IsAnalyzeNodeSupported);
-            var actualSyntaxKinds = callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Distinct();
+            var actualSyntaxKinds = _callLog.Where(a => FilterByAbstractName(a, "SyntaxNode")).Select(e => e.SyntaxKind).Distinct();
             AssertIsSuperset(expectedSyntaxKinds, actualSyntaxKinds);
         }
 
@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             expectedArguments = expectedArguments.Where(a => IsOnCodeBlockSupported(a.SymbolKind, a.MethodKind, a.ReturnsVoid));
 
-            var actualOnCodeBlockStartedArguments = callLog.Where(a => FilterByAbstractName(a, "CodeBlockStart"))
+            var actualOnCodeBlockStartedArguments = _callLog.Where(a => FilterByAbstractName(a, "CodeBlockStart"))
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
-            var actualOnCodeBlockEndedArguments = callLog.Where(a => FilterByAbstractName(a, "CodeBlock"))
+            var actualOnCodeBlockEndedArguments = _callLog.Where(a => FilterByAbstractName(a, "CodeBlock"))
                 .Select(e => new { SymbolKind = e.SymbolKind.Value, MethodKind = e.MethodKind ?? InvalidMethodKind, e.ReturnsVoid }).Distinct();
 
             if (!allowUnexpectedCalls)

@@ -11,31 +11,31 @@ namespace Roslyn.Utilities
     /// </summary>
     internal struct PooledObject<T> : IDisposable where T : class
     {
-        private readonly Action<ObjectPool<T>, T> releaser;
-        private readonly ObjectPool<T> pool;
-        private T pooledObject;
+        private readonly Action<ObjectPool<T>, T> _releaser;
+        private readonly ObjectPool<T> _pool;
+        private T _pooledObject;
 
         public PooledObject(ObjectPool<T> pool, Func<ObjectPool<T>, T> allocator, Action<ObjectPool<T>, T> releaser) : this()
         {
-            this.pool = pool;
-            this.pooledObject = allocator(pool);
-            this.releaser = releaser;
+            _pool = pool;
+            _pooledObject = allocator(pool);
+            _releaser = releaser;
         }
 
         public T Object
         {
             get
             {
-                return this.pooledObject;
+                return _pooledObject;
             }
         }
 
         public void Dispose()
         {
-            if (this.pooledObject != null)
+            if (_pooledObject != null)
             {
-                releaser(pool, pooledObject);
-                this.pooledObject = null;
+                _releaser(_pool, _pooledObject);
+                _pooledObject = null;
             }
         }
 

@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     internal class MockAssemblySymbol : NonMissingAssemblySymbol
     {
-        private readonly string name;
+        private readonly string _name;
 
         public MockAssemblySymbol(string name)
         {
-            this.name = name;
+            _name = name;
         }
 
         public override AssemblyIdentity Identity
         {
-            get { return new AssemblyIdentity(name); }
+            get { return new AssemblyIdentity(_name); }
         }
 
         internal override ImmutableArray<byte> PublicKey

@@ -8,9 +8,9 @@ namespace Roslyn.Utilities
 {
     internal class EventMap
     {
-        private readonly NonReentrantLock guard = new NonReentrantLock();
+        private readonly NonReentrantLock _guard = new NonReentrantLock();
 
-        private readonly Dictionary<string, object> eventNameToHandlers =
+        private readonly Dictionary<string, object> _eventNameToHandlers =
             new Dictionary<string, object>();
 
         public EventMap()
@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
 
         public void AddEventHandler<TEventHandler>(string eventName, TEventHandler eventHandler)
         {
-            using (this.guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
                 var handlers = GetEvents_NoLock<TEventHandler>(eventName);
                 var newHandlers = handlers.Add(eventHandler);
@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
 
         public void RemoveEventHandler<TEventHandler>(string eventName, TEventHandler eventHandler)
         {
-            using (this.guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
                 var handlers = GetEvents_NoLock<TEventHandler>(eventName);
                 var newHandlers = handlers.Remove(eventHandler);
@@ -42,7 +42,7 @@ namespace Roslyn.Utilities
 
         public ImmutableArray<TEventHandler> GetEventHandlers<TEventHandler>(string eventName)
         {
-            using (this.guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
                 return GetEvents_NoLock<TEventHandler>(eventName);
             }
@@ -60,10 +60,10 @@ namespace Roslyn.Utilities
 
         private ImmutableArray<TEventHandler> GetEvents_NoLock<TEventHandler>(string eventName)
         {
-            this.guard.AssertHasLock();
+            _guard.AssertHasLock();
 
             object handlers;
-            if (this.eventNameToHandlers.TryGetValue(eventName, out handlers))
+            if (_eventNameToHandlers.TryGetValue(eventName, out handlers))
             {
                 return (ImmutableArray<TEventHandler>)handlers;
             }
@@ -73,9 +73,9 @@ namespace Roslyn.Utilities
 
         private void SetEvents_NoLock<TEventHandler>(string name, ImmutableArray<TEventHandler> events)
         {
-            this.guard.AssertHasLock();
+            _guard.AssertHasLock();
 
-            this.eventNameToHandlers[name] = events;
+            _eventNameToHandlers[name] = events;
         }
     }
 }

@@ -230,7 +230,6 @@ class C
   IL_0000:  br.s       IL_0000
 }
 ");
-                
         }
 
         // Label Next to Label  
@@ -362,7 +361,7 @@ class C
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ret
 }
-");                
+");
         }
 
         // Finally is executed while use 'goto' to exit try block
@@ -804,6 +803,5 @@ public class A
 ";
             CompileAndVerify(text, expectedOutput: "Catch");
         }
-
     }
 }

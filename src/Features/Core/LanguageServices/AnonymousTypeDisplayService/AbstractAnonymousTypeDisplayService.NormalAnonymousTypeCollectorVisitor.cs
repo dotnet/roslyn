@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         private class NormalAnonymousTypeCollectorVisitor : SymbolVisitor
         {
-            private readonly ISet<INamedTypeSymbol> seenTypes = new HashSet<INamedTypeSymbol>();
-            private readonly ICollection<INamedTypeSymbol> namedTypes;
+            private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
+            private readonly ICollection<INamedTypeSymbol> _namedTypes;
 
             public NormalAnonymousTypeCollectorVisitor(ICollection<INamedTypeSymbol> namedTypes)
             {
-                this.namedTypes = namedTypes;
+                _namedTypes = namedTypes;
             }
 
             public override void DefaultVisit(ISymbol node)
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             public override void VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (seenTypes.Add(symbol))
+                if (_seenTypes.Add(symbol))
                 {
                     if (symbol.IsNormalAnonymousType())
                     {
-                        namedTypes.Add(symbol);
+                        _namedTypes.Add(symbol);
 
                         foreach (var property in symbol.GetValidAnonymousTypeProperties())
                         {

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         #region DeclSecurityTable Validation
-        
+
         /// <summary>
         /// Validate the contents of the DeclSecurity metadata table.
         /// </summary>
@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 default:
                     throw TestExceptionUtilities.UnexpectedValue(token.Kind);
-
             }
         }
 

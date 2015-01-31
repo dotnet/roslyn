@@ -102,7 +102,7 @@ class C
 
             Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
         }
- 
+
         [WorkItem(538262, "DevDiv")]
         [Fact]
         public void LookupCompilationUnitSyntax()
@@ -1316,7 +1316,7 @@ class Program
         [Fact, WorkItem(546523, "DevDiv")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
         {
-            var usings = new [] { "using X;" };
+            var usings = new[] { "using X;" };
 
             var source =
 @"
@@ -1361,7 +1361,7 @@ class Program
 
             actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: usings);
             TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
-            
+
             Action<ModuleSymbol> validator = (module) =>
             {
                 NamespaceSymbol globalNS = module.GlobalNamespace;
@@ -1759,7 +1759,7 @@ class C
         [Fact, WorkItem(1078961, "DevDiv")]
         public void Bug1078961_5()
         {
-             const string source = @"
+            const string source = @"
 class C
 {
     class T { }
@@ -1782,7 +1782,7 @@ class C
         [Fact, WorkItem(1078961, "DevDiv")]
         public void Bug1078961_6()
         {
-             const string source = @"
+            const string source = @"
 class C
 {
     class T { }

@@ -119,9 +119,9 @@ class C
                 // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
                 //     event System.Action E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
-    
+
                 // Uninteresting:
-                
+
                 // (4,25): warning CS0414: The field 'C.E' is assigned but its value is never used
                 //     event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("C.E"));
@@ -617,8 +617,8 @@ namespace EventDeserialization
             var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, "Lib");
 
             var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
-            
-            var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef}), TestOptions.ReleaseExe);
+
+            var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"A
 False
 null

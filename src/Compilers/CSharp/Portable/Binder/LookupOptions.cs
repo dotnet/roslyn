@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        static bool OnlyOneBitSet(LookupOptions o)
+        private static bool OnlyOneBitSet(LookupOptions o)
         {
             return (o & (o - 1)) == 0;
         }

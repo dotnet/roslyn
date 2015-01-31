@@ -2026,7 +2026,7 @@ End Class";
 
             Verify(code, expected);
         }
-        
+
         [Fact]
         [WorkItem(602932, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]

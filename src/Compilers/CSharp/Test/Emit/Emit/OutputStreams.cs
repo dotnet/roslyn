@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         public override long Length
         {
-            get 
-            { 
+            get
+            {
                 return 0;
             }
         }

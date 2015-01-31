@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     [ExportOptionProvider, Shared]
     internal class CSharpCodeStyleOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> options = new List<IOption>
+        private IEnumerable<IOption> _options = new List<IOption>
             {
                 CSharpCodeStyleOptions.UseVarWhenDeclaringLocals
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()
         {
-            return options;
+            return _options;
         }
     }
 }

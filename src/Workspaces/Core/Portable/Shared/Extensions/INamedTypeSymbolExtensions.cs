@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static IList<ISymbol> GetUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             INamedTypeSymbol interfaceType,
-            Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>,  CancellationToken, bool> isImplemented,
+            Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>, CancellationToken, bool> isImplemented,
             Func<INamedTypeSymbol, ISymbol, bool> isValidImplementation,
             Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
             CancellationToken cancellationToken)

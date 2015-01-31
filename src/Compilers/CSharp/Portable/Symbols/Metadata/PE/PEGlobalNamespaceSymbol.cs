@@ -19,19 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// The module containing the namespace.
         /// </summary>
         /// <remarks></remarks>
-        private readonly PEModuleSymbol moduleSymbol;
+        private readonly PEModuleSymbol _moduleSymbol;
 
         internal PEGlobalNamespaceSymbol(PEModuleSymbol moduleSymbol)
         {
             Debug.Assert((object)moduleSymbol != null);
-            this.moduleSymbol = moduleSymbol;
+            _moduleSymbol = moduleSymbol;
         }
 
         public override Symbol ContainingSymbol
         {
             get
             {
-                return moduleSymbol;
+                return _moduleSymbol;
             }
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return moduleSymbol;
+                return _moduleSymbol;
             }
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return moduleSymbol.ContainingAssembly;
+                return _moduleSymbol.ContainingAssembly;
             }
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return moduleSymbol;
+                return _moduleSymbol;
             }
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
-                    groups = moduleSymbol.Module.GroupTypesByNamespaceOrThrow(System.StringComparer.Ordinal);
+                    groups = _moduleSymbol.Module.GroupTypesByNamespaceOrThrow(System.StringComparer.Ordinal);
                 }
                 catch (BadImageFormatException)
                 {

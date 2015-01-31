@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
         }
 
-        private static readonly Func<ITypeSymbol, bool> ShouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
+        private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override IEnumerable<ClassifiedSpan> ClassifyToken(
             SyntaxToken lessThanToken,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out identifier))
             {
                 var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
-                if (types.Any(ShouldInclude))
+                if (types.Any(s_shouldInclude))
                 {
                     return SpecializedCollections.SingletonEnumerable(
                         new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));

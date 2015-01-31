@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class IteratorMethodToStateMachineRewriter
+    internal partial class IteratorMethodToStateMachineRewriter
     {
         // storage of various information about a given try/finally frame
         private sealed class IteratorFinallyFrame

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public string ServiceType { get; private set; }
         public string Layer { get; private set; }
 
-        public WorkspaceServiceMetadata(Type serviceType, string layer) 
+        public WorkspaceServiceMetadata(Type serviceType, string layer)
             : this(serviceType.AssemblyQualifiedName, layer)
         {
         }

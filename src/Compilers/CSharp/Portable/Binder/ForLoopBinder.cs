@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class ForLoopBinder : LoopBinder
     {
-        private readonly ForStatementSyntax syntax;
+        private readonly ForStatementSyntax _syntax;
 
         public ForLoopBinder(Binder enclosing, ForStatementSyntax syntax)
             : base(enclosing)
         {
             Debug.Assert(syntax != null);
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var declaration = this.syntax.Declaration;
+            var declaration = _syntax.Declaration;
             if (declaration == null)
             {
                 return ImmutableArray<LocalSymbol>.Empty;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            BoundForStatement result = BindForParts(syntax, originalBinder, diagnostics);
+            BoundForStatement result = BindForParts(_syntax, originalBinder, diagnostics);
             return result;
         }
 
@@ -73,6 +73,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          this.BreakLabel,
                                          this.ContinueLabel);
         }
-
     }
 }

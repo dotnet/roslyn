@@ -147,7 +147,6 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         [Fact]
@@ -1057,7 +1056,7 @@ async () => {
                 }
             }
         }
-        
+
         #region AwaitExpressionInSyncContext
 
         [Fact]
@@ -1605,7 +1604,7 @@ async () => {
         }
 
         #endregion AwaitExpressionInSyncContext
-        
+
         #region AwaitExpressionStatementInSyncContext
 
         [Fact]

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         public void GetPathNameRelativeToBaseDirectory()
         {
             var formatter = new CommandLineDiagnosticFormatter(
-                baseDirectory: @"X:\rootdir\dir", 
+                baseDirectory: @"X:\rootdir\dir",
                 displayFullPaths: true,
                 displayEndLocations: true);
 

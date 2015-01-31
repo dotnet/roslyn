@@ -15,23 +15,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class UnmatchedGotoFinder : BoundTreeWalker
     {
-        private readonly Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache; // NB: never modified.
+        private readonly Dictionary<BoundNode, HashSet<LabelSymbol>> _unmatchedLabelsCache; // NB: never modified.
 
-        private HashSet<LabelSymbol> gotos;
-        private HashSet<LabelSymbol> targets;
+        private HashSet<LabelSymbol> _gotos;
+        private HashSet<LabelSymbol> _targets;
 
         private UnmatchedGotoFinder(Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache)
         {
             Debug.Assert(unmatchedLabelsCache != null);
-            this.unmatchedLabelsCache = unmatchedLabelsCache;
+            _unmatchedLabelsCache = unmatchedLabelsCache;
         }
 
         public static HashSet<LabelSymbol> Find(BoundNode node, Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache)
         {
             UnmatchedGotoFinder finder = new UnmatchedGotoFinder(unmatchedLabelsCache);
             finder.Visit(node);
-            HashSet<LabelSymbol> gotos = finder.gotos;
-            HashSet<LabelSymbol> targets = finder.targets;
+            HashSet<LabelSymbol> gotos = finder._gotos;
+            HashSet<LabelSymbol> targets = finder._targets;
             if (gotos != null && targets != null)
             {
                 gotos.RemoveAll(targets);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode Visit(BoundNode node)
         {
             HashSet<LabelSymbol> unmatched;
-            if (node != null && unmatchedLabelsCache.TryGetValue(node, out unmatched))
+            if (node != null && _unmatchedLabelsCache.TryGetValue(node, out unmatched))
             {
                 if (unmatched != null)
                 {
@@ -96,22 +96,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddGoto(LabelSymbol label)
         {
-            if (gotos == null)
+            if (_gotos == null)
             {
-                gotos = new HashSet<LabelSymbol>();
+                _gotos = new HashSet<LabelSymbol>();
             }
 
-            gotos.Add(label);
+            _gotos.Add(label);
         }
 
         private void AddTarget(LabelSymbol label)
         {
-            if (targets == null)
+            if (_targets == null)
             {
-                targets = new HashSet<LabelSymbol>();
+                _targets = new HashSet<LabelSymbol>();
             }
 
-            targets.Add(label);
+            _targets.Add(label);
         }
     }
 }

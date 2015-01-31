@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
         {
-            get 
+            get
             {
                 if (this.containingType.AnyMemberHasAttributes)
                 {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ExplicitValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {
-            private readonly SyntaxReference equalsValueNodeRef;
+            private readonly SyntaxReference _equalsValueNodeRef;
 
             public ExplicitValuedEnumConstantSymbol(
                 SourceMemberContainerTypeSymbol containingEnum,
@@ -169,19 +169,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DiagnosticBag diagnostics) :
                 base(containingEnum, syntax, diagnostics)
             {
-                this.equalsValueNodeRef = initializer.GetReference();
+                _equalsValueNodeRef = initializer.GetReference();
             }
 
             protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
             {
-                return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)this.equalsValueNodeRef.GetSyntax(), dependencies, earlyDecodingWellKnownAttributes, diagnostics);
+                return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)_equalsValueNodeRef.GetSyntax(), dependencies, earlyDecodingWellKnownAttributes, diagnostics);
             }
         }
 
         private sealed class ImplicitValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {
-            private readonly SourceEnumConstantSymbol otherConstant;
-            private readonly uint otherConstantOffset;
+            private readonly SourceEnumConstantSymbol _otherConstant;
+            private readonly uint _otherConstantOffset;
 
             public ImplicitValuedEnumConstantSymbol(
                 SourceMemberContainerTypeSymbol containingEnum,
@@ -194,29 +194,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)otherConstant != null);
                 Debug.Assert(otherConstantOffset > 0);
 
-                this.otherConstant = otherConstant;
-                this.otherConstantOffset = otherConstantOffset;
+                _otherConstant = otherConstant;
+                _otherConstantOffset = otherConstantOffset;
             }
 
             protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
             {
-                var otherValue = this.otherConstant.GetConstantValue(new ConstantFieldsInProgress(this, dependencies), earlyDecodingWellKnownAttributes);
+                var otherValue = _otherConstant.GetConstantValue(new ConstantFieldsInProgress(this, dependencies), earlyDecodingWellKnownAttributes);
                 // Value may be Unset if there are dependencies
                 // that must be evaluated first.
                 if (otherValue == Microsoft.CodeAnalysis.ConstantValue.Unset)
-            {
+                {
                     return Microsoft.CodeAnalysis.ConstantValue.Unset;
-            }
+                }
                 if (otherValue.IsBad)
                 {
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;
                 }
                 ConstantValue value;
-                var overflowKind = EnumConstantHelper.OffsetValue(otherValue, this.otherConstantOffset, out value);
-                        if (overflowKind == EnumOverflowKind.OverflowReport)
-                        {
-                            // Report an error if the value is immediately
-                            // outside the range, but not otherwise.
+                var overflowKind = EnumConstantHelper.OffsetValue(otherValue, _otherConstantOffset, out value);
+                if (overflowKind == EnumOverflowKind.OverflowReport)
+                {
+                    // Report an error if the value is immediately
+                    // outside the range, but not otherwise.
                     diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.Locations[0], this);
                 }
                 return value;

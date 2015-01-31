@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
         {
-            var declarations = symbolDeclarationService.GetDeclarations(destination);
+            var declarations = _symbolDeclarationService.GetDeclarations(destination);
             return declarations.Any(r => CanAddTo(r.GetSyntax(cancellationToken), solution, cancellationToken));
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var symbol = namespaceOrType;
             var locationOpt = options.BestLocation;
 
-            var declarations = symbolDeclarationService.GetDeclarations(symbol);
+            var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
             var fallbackDeclaration = default(SyntaxNode);
             if (locationOpt != null && locationOpt.IsInSource)

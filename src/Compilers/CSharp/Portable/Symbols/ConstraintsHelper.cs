@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             DiagnosticBag diagnostics)
         {
-            type.VisitType(CheckConstraintsSingleTypeFunc, new CheckConstraintsArgs(type.DeclaringCompilation, conversions, location, diagnostics));
+            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(type.DeclaringCompilation, conversions, location, diagnostics));
         }
 
         public static bool CheckAllConstraints(
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> CheckConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);
+        private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);
 
         private static bool CheckConstraintsSingleType(TypeSymbol type, CheckConstraintsArgs args)
         {

@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedBackingFieldSymbol : SynthesizedFieldSymbolBase
     {
-        private readonly SourcePropertySymbol property;
-        private readonly bool hasInitializer;
+        private readonly SourcePropertySymbol _property;
+        private readonly bool _hasInitializer;
 
         public SynthesizedBackingFieldSymbol(
             SourcePropertySymbol property,
@@ -28,46 +28,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
 
-            this.property = property;
-            this.hasInitializer = hasInitializer;
+            _property = property;
+            _hasInitializer = hasInitializer;
         }
 
         public bool HasInitializer
         {
-            get { return hasInitializer; }
+            get { return _hasInitializer; }
         }
 
         public override Symbol AssociatedSymbol
         {
             get
             {
-                return this.property;
+                return _property;
             }
         }
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
-            return property.GetLexicalSortKey();
+            return _property.GetLexicalSortKey();
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return this.property.Locations;
+                return _property.Locations;
             }
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return this.property.Type;
+            return _property.Type;
         }
 
         internal override bool HasPointerType
         {
             get
             {
-                return this.property.HasPointerType;
+                return _property.HasPointerType;
             }
         }
 

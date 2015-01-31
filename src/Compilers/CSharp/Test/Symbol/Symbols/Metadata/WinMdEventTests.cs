@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 } // end of class ReversedBase
 ";
 
-        private readonly MetadataReference EventLibRef;
+        private readonly MetadataReference _eventLibRef;
 
         private const string DynamicCommonSrc =
 @"using System.Runtime.InteropServices.WindowsRuntime;
@@ -231,7 +231,7 @@ public partial class B : I
         event dynamicDelegate d3;
     }
 }";
-            EventLibRef = CreateCompilation(
+            _eventLibRef = CreateCompilation(
                 eventLibSrc,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
                 options:
@@ -244,7 +244,7 @@ public partial class B : I
         [Fact]
         public void WinMdExternalEventTests()
         {
-            var src = 
+            var src =
 @"
 using EventLibrary;
 
@@ -307,10 +307,10 @@ class C
                 DynamicCommonSrc,
                 references: new[] {
                     MscorlibRef_v4_0_30316_17626,
-                    EventLibRef,
+                    _eventLibRef,
                 },
                 options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
-            
+
             var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings: new[]
             {
                 // (6,31): warning CS0067: The event 'A.d1' is never used
@@ -326,11 +326,11 @@ class C
 
             var verifer = CompileAndVerifyOnWin8Only(
                 src,
-                additionalRefs: new[] { 
+                additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
-                    EventLibRef, 
+                    _eventLibRef,
                     dynamicCommonRef
                 },
                 emitOptions: TestEmitters.RefEmitBug);
@@ -2356,15 +2356,15 @@ public partial class A : I
                 additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
-                    EventLibRef,
+                    _eventLibRef,
                 },
                 emitOptions: TestEmitters.RefEmitBug);
             verifier.VerifyDiagnostics(
-                // (6,42): warning CS0067: The event 'A.d2' is never used
-                //     public event genericDelegate<object> d2;
+    // (6,42): warning CS0067: The event 'A.d2' is never used
+    //     public event genericDelegate<object> d2;
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"),
-                // (7,34): warning CS0067: The event 'A.d3' is never used
-                //     public event dynamicDelegate d3;
+    // (7,34): warning CS0067: The event 'A.d3' is never used
+    //     public event dynamicDelegate d3;
     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d3").WithArguments("A.d3"));
             verifier.VerifyIL("A.Scenario1",
 @"
@@ -2772,7 +2772,7 @@ class C : Interface<int>
 
             Assert.IsType<SourceCustomEventSymbol>(implementingNormalEvent);
             Assert.IsType<SourceCustomEventSymbol>(implementingWinRTEvent);
-            
+
             // Based on kind of explicitly implemented interface event (other checks to be tested separately).
             Assert.False(implementingNormalEvent.IsWindowsRuntimeEvent);
             Assert.True(implementingWinRTEvent.IsWindowsRuntimeEvent);
@@ -3078,7 +3078,7 @@ class C : IWinRT, INormal
 
                 var ilRef = CompileIL(il);
 
-                var comp = CreateCompilation(source, WinRtRefs.Concat(new[] {ilRef}));
+                var comp = CreateCompilation(source, WinRtRefs.Concat(new[] { ilRef }));
                 comp.VerifyDiagnostics(
                     // (4,32): error CS1991: 'C.E' cannot implement 'INormal.E' because 'C.E' is a Windows Runtime event and 'INormal.E' is a regular .NET event.
                     //     public event System.Action E 
@@ -3119,7 +3119,7 @@ class C : INormal, IWinRT
         }
 
         [WorkItem(547321, "DevDiv")]
-        [Fact(Skip="547321")]
+        [Fact(Skip = "547321")]
         public void ERR_MixingWinRTEventWithRegular_BaseTypeImplementsInterface()
         {
             var source = @"

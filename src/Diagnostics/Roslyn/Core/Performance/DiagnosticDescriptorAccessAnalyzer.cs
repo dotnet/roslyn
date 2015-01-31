@@ -9,20 +9,20 @@ namespace Roslyn.Diagnostics.Analyzers
         where TSyntaxKind : struct
         where TMemberAccessExpressionSyntax : SyntaxNode
     {
-        private static readonly string DiagnosticTypeFullName = typeof(Diagnostic).FullName;
+        private static readonly string s_diagnosticTypeFullName = typeof(Diagnostic).FullName;
 
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor DoNotRealizeDiagnosticDescriptorRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotAccessDiagnosticDescriptorRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         protected sealed override DiagnosticDescriptor Descriptor
@@ -58,7 +58,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var left = GetLeftOfMemberAccess(memberAccess);
             var leftType = context.SemanticModel.GetTypeInfo(left).Type;
-            if (leftType != null && leftType.ToDisplayString() == DiagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
+            if (leftType != null && leftType.ToDisplayString() == s_diagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
             {
                 var nameOfMember = string.Empty;
                 var parentMemberAccess = memberAccess.Parent as TMemberAccessExpressionSyntax;

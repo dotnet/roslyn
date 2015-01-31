@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
             }
 
-            throw new InvalidOperationException("This program location is thought to be unreachable."); 
+            throw new InvalidOperationException("This program location is thought to be unreachable.");
         }
 
         private static SyntaxNode GetDeclaration(ISymbol symbol)
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             {
                 if (CA1008DiagnosticAnalyzer.IsMemberNamedNone(field))
                 {
-                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken); 
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken);
                 }
             }
 

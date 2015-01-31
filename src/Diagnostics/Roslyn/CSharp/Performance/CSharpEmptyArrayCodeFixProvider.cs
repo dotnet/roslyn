@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Performance
         }
 
         internal override Task<Document> GetUpdatedDocumentAsync(
-            Document document, SemanticModel model, SyntaxNode root, 
+            Document document, SemanticModel model, SyntaxNode root,
             SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken)
         {
             ArrayTypeSyntax arrayType = GetArrayType(nodeToFix);

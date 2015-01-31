@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the reference to the declaration of the base or interface type as part of the symbol's declaration. 
         /// </summary>
         public static async Task<SyntaxNode> GetBaseOrInterfaceDeclarationReferenceAsync(
-            this SymbolEditor editor, 
-            ISymbol symbol, 
-            ITypeSymbol baseOrInterfaceType, 
+            this SymbolEditor editor,
+            ISymbol symbol,
+            ITypeSymbol baseOrInterfaceType,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseOrInterfaceType == null)
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Changes the base type of the symbol.
         /// </summary>
         public static async Task<ISymbol> SetBaseTypeAsync(
-            this SymbolEditor editor, 
+            this SymbolEditor editor,
             INamedTypeSymbol symbol,
-            Func<SyntaxGenerator, SyntaxNode> getNewBaseType, 
+            Func<SyntaxGenerator, SyntaxNode> getNewBaseType,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var baseType = symbol.BaseType;
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 if (typeRef != null)
                 {
                     return await editor.EditOneDeclarationAsync(
-                        symbol, 
-                        typeRef.GetLocation(), 
-                        (e, d) => e.ReplaceNode(typeRef, getNewBaseType(e.Generator)), 
+                        symbol,
+                        typeRef.GetLocation(),
+                        (e, d) => e.ReplaceNode(typeRef, getNewBaseType(e.Generator)),
                         cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Changes the base type of the symbol.
         /// </summary>
         public static Task<ISymbol> SetBaseTypeAsync(
-            this SymbolEditor editor, 
-            INamedTypeSymbol symbol, 
-            ITypeSymbol newBaseType, 
+            this SymbolEditor editor,
+            INamedTypeSymbol symbol,
+            ITypeSymbol newBaseType,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return editor.SetBaseTypeAsync(symbol, g => newBaseType != null ? g.TypeExpression(newBaseType) : null, cancellationToken);

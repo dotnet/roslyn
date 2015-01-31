@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class EventDocumentationCommentTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamespaceSymbol acmeNamespace;
-        private readonly NamedTypeSymbol widgetClass;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
 
         public EventDocumentationCommentTests()
         {
-            compilation = CreateCompilationWithMscorlib(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlib(@"namespace Acme
 {
     class Widget: IProcess
     {
@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ");
 
-            acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMember<NamespaceSymbol>("Acme");
-            widgetClass = acmeNamespace.GetMember<NamedTypeSymbol>("Widget");
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMember<NamespaceSymbol>("Acme");
+            _widgetClass = _acmeNamespace.GetMember<NamedTypeSymbol>("Widget");
         }
 
         [Fact]
         public void TestFieldLikeEvent()
         {
-            var eventSymbol = this.widgetClass.GetMember<EventSymbol>("E");
+            var eventSymbol = _widgetClass.GetMember<EventSymbol>("E");
             Assert.Equal("E:Acme.Widget.E", eventSymbol.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.add_E(System.Action)", eventSymbol.AddMethod.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.remove_E(System.Action)", eventSymbol.RemoveMethod.GetDocumentationCommentId());
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCustomEvent()
         {
-            var eventSymbol = this.widgetClass.GetMember<EventSymbol>("F");
+            var eventSymbol = _widgetClass.GetMember<EventSymbol>("F");
             Assert.Equal("E:Acme.Widget.F", eventSymbol.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.add_F(System.Action)", eventSymbol.AddMethod.GetDocumentationCommentId());
             Assert.Equal("M:Acme.Widget.remove_F(System.Action)", eventSymbol.RemoveMethod.GetDocumentationCommentId());

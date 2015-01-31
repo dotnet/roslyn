@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedFieldSymbol : AbstractWrappedSymbol, IFieldSymbol
         {
-            private readonly IFieldSymbol symbol;
+            private readonly IFieldSymbol _symbol;
 
             public WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService)
             {
-                this.symbol = fieldSymbol;
+                _symbol = fieldSymbol;
             }
 
             public new IFieldSymbol OriginalDefinition
             {
                 get
                 {
-                    return this.symbol.OriginalDefinition;
+                    return _symbol.OriginalDefinition;
                 }
             }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.AssociatedSymbol;
+                    return _symbol.AssociatedSymbol;
                 }
             }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ConstantValue;
+                    return _symbol.ConstantValue;
                 }
             }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.CustomModifiers;
+                    return _symbol.CustomModifiers;
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.HasConstantValue;
+                    return _symbol.HasConstantValue;
                 }
             }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsConst;
+                    return _symbol.IsConst;
                 }
             }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsReadOnly;
+                    return _symbol.IsReadOnly;
                 }
             }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsVolatile;
+                    return _symbol.IsVolatile;
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Type;
+                    return _symbol.Type;
                 }
             }
         }

@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public abstract class CA1003DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1003";
-        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.UseGenericEventHandlerInstances), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.UseGenericEventHandlerInstances), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RuleId,
-            localizableMessageAndTitle,
-            localizableMessageAndTitle,
+            s_localizableMessageAndTitle,
+            s_localizableMessageAndTitle,
             FxCopDiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         protected abstract class AnalyzerBase
         {
-            private Compilation compilation;
-            private INamedTypeSymbol eventHandler;
-            private INamedTypeSymbol genericEventHandler;
-            private INamedTypeSymbol eventArgs;
-            private INamedTypeSymbol comSourceInterfacesAttribute;
+            private Compilation _compilation;
+            private INamedTypeSymbol _eventHandler;
+            private INamedTypeSymbol _genericEventHandler;
+            private INamedTypeSymbol _eventArgs;
+            private INamedTypeSymbol _comSourceInterfacesAttribute;
 
             public AnalyzerBase(
                 Compilation compilation,
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 INamedTypeSymbol eventArgs,
                 INamedTypeSymbol comSourceInterfacesAttribute)
             {
-                this.compilation = compilation;
-                this.eventHandler = eventHandler;
-                this.genericEventHandler = genericEventHandler;
-                this.eventArgs = eventArgs;
-                this.comSourceInterfacesAttribute = comSourceInterfacesAttribute;
+                _compilation = compilation;
+                _eventHandler = eventHandler;
+                _genericEventHandler = genericEventHandler;
+                _eventArgs = eventArgs;
+                _comSourceInterfacesAttribute = comSourceInterfacesAttribute;
             }
 
             public void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             protected bool IsValidLibraryEventHandlerInstance(INamedTypeSymbol type)
             {
-                if (type == this.eventHandler)
+                if (type == _eventHandler)
                 {
                     return true;
                 }
@@ -133,13 +133,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             protected bool IsGenericEventHandlerInstance(INamedTypeSymbol type)
             {
-                return type.OriginalDefinition == this.genericEventHandler &&
+                return type.OriginalDefinition == _genericEventHandler &&
                     type.TypeArguments.Length == 1;
             }
 
             protected bool IsEventArgs(ITypeSymbol type)
             {
-                if (IsAssignableTo(this.compilation, type, this.eventArgs))
+                if (IsAssignableTo(_compilation, type, _eventArgs))
                 {
                     return true;
                 }
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             private bool HasComSourceInterfacesAttribute(INamedTypeSymbol symbol)
             {
-                return symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass == this.comSourceInterfacesAttribute) != null;
+                return symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass == _comSourceInterfacesAttribute) != null;
             }
         }
     }

@@ -17,39 +17,39 @@ namespace Microsoft.CodeAnalysis.Host
 
         private sealed class Service : IMetadataService
         {
-            private readonly IDocumentationProviderService documentationService;
-            private readonly Provider provider;
+            private readonly IDocumentationProviderService _documentationService;
+            private readonly Provider _provider;
 
             public Service(IDocumentationProviderService documentationService)
             {
-                this.documentationService = documentationService;
-                this.provider = new Provider(this);
+                _documentationService = documentationService;
+                _provider = new Provider(this);
             }
 
             public MetadataFileReferenceProvider GetProvider()
             {
-                return provider;
+                return _provider;
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return MetadataReference.CreateFromFile(resolvedPath, properties, this.documentationService.GetDocumentationProvider(resolvedPath));
+                return MetadataReference.CreateFromFile(resolvedPath, properties, _documentationService.GetDocumentationProvider(resolvedPath));
             }
         }
 
         private sealed class Provider : MetadataFileReferenceProvider
         {
-            private readonly Service service;
+            private readonly Service _service;
 
             internal Provider(Service service)
             {
                 Debug.Assert(service != null);
-                this.service = service;
+                _service = service;
             }
 
             public override PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return service.GetReference(resolvedPath, properties);
+                return _service.GetReference(resolvedPath, properties);
             }
         }
     }

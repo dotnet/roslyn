@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -24,27 +24,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 private const int FormatVersion = 5;
 
-                private readonly string stateName;
-                private readonly VersionStamp version;
-                private readonly string language;
+                private readonly string _stateName;
+                private readonly VersionStamp _version;
+                private readonly string _language;
 
                 public DiagnosticState(string stateName, VersionStamp version, string language)
                 {
                     Contract.ThrowIfNull(stateName);
 
-                    this.stateName = stateName;
-                    this.version = version;
-                    this.language = language;
+                    _stateName = stateName;
+                    _version = version;
+                    _language = language;
                 }
 
                 internal string Name
                 {
-                    get { return stateName; }
+                    get { return _stateName; }
                 }
 
                 internal string Language
                 {
-                    get { return language; }
+                    get { return _language; }
                 }
 
                 protected override object GetCacheKey(object value)
@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var document = value as Document;
                     if (document != null)
                     {
-                        return storage.ReadStreamAsync(document, stateName, cancellationToken);
+                        return storage.ReadStreamAsync(document, _stateName, cancellationToken);
                     }
 
                     var project = (Project)value;
-                    return storage.ReadStreamAsync(project, stateName, cancellationToken);
+                    return storage.ReadStreamAsync(project, _stateName, cancellationToken);
                 }
 
                 protected override AnalysisData TryGetExistingData(Stream stream, object value, CancellationToken cancellationToken)
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                             // saved data is for same provider of different version of dll
                             var providerVersion = VersionStamp.ReadFrom(reader);
-                            if (providerVersion != this.version)
+                            if (providerVersion != _version)
                             {
                                 return null;
                             }
@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var document = value as Document;
                     if (document != null)
                     {
-                        return storage.WriteStreamAsync(document, stateName, stream, cancellationToken);
+                        return storage.WriteStreamAsync(document, _stateName, stream, cancellationToken);
                     }
 
                     var project = (Project)value;
-                    return storage.WriteStreamAsync(project, stateName, stream, cancellationToken);
+                    return storage.WriteStreamAsync(project, _stateName, stream, cancellationToken);
                 }
 
                 protected override void WriteTo(Stream stream, AnalysisData data, CancellationToken cancellationToken)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
                         writer.WriteInt32(FormatVersion);
-                        this.version.WriteTo(writer);
+                        _version.WriteTo(writer);
                         data.TextVersion.WriteTo(writer);
                         data.DataVersion.WriteTo(writer);
 

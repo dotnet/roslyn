@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedGlobalMethodSymbol : MethodSymbol
     {
-        private readonly ModuleSymbol containingModule;
-        private readonly PrivateImplementationDetails privateImplType;
-        private readonly TypeSymbol returnType;
-        private ImmutableArray<ParameterSymbol> parameters;
-        private readonly string name;
+        private readonly ModuleSymbol _containingModule;
+        private readonly PrivateImplementationDetails _privateImplType;
+        private readonly TypeSymbol _returnType;
+        private ImmutableArray<ParameterSymbol> _parameters;
+        private readonly string _name;
 
         internal SynthesizedGlobalMethodSymbol(ModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string name)
         {
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)returnType != null);
             Debug.Assert(name != null);
 
-            this.containingModule = containingModule;
-            this.privateImplType = privateImplType;
-            this.returnType = returnType;
-            this.name = name;
+            _containingModule = containingModule;
+            _privateImplType = privateImplType;
+            _returnType = returnType;
+            _name = name;
         }
 
         protected void SetParameters(ImmutableArray<ParameterSymbol> parameters)
         {
-            ImmutableInterlocked.InterlockedExchange(ref this.parameters, parameters);
+            ImmutableInterlocked.InterlockedExchange(ref _parameters, parameters);
         }
 
         public sealed override bool IsImplicitlyDeclared
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingModule;
+                return _containingModule;
             }
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingModule.ContainingAssembly;
+                return _containingModule.ContainingAssembly;
             }
         }
 
@@ -88,12 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal PrivateImplementationDetails ContainingPrivateImplementationDetailsType
         {
-            get { return this.privateImplType; }
+            get { return _privateImplType; }
         }
 
         public override string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         internal override bool HasSpecialName
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (parameters.IsEmpty)
+                if (_parameters.IsEmpty)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
                 }
 
-                return parameters;
+                return _parameters;
             }
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbol ReturnType
         {
-            get { return returnType; }
+            get { return _returnType; }
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers

@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class ParameterSymbol :
+    internal partial class ParameterSymbol :
         Cci.IParameterTypeInformation,
         Cci.IParameterDefinition
     {

@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class Binder
+    internal partial class Binder
     {
         internal struct ProcessedFieldInitializers
         {

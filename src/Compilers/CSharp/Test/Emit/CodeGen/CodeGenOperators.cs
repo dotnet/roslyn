@@ -262,8 +262,8 @@ enum color
 
             var comp = CompileAndVerify(text, expectedOutput: "False");
             comp.VerifyDiagnostics(
-                // (6,17): warning CS0184: The given expression is never of the provided ('color') type
-                //         var b = 1 is color;
+            // (6,17): warning CS0184: The given expression is never of the provided ('color') type
+            //         var b = 1 is color;
             Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is color").WithArguments("color"));
             comp.VerifyIL("IsTest.Main", @"
 {
@@ -273,7 +273,6 @@ enum color
   IL_0001:  call       ""void System.Console.WriteLine(bool)""
   IL_0006:  ret
 }");
-
         }
 
         [WorkItem(542466, "DevDiv")]
@@ -306,7 +305,6 @@ enum color
   IL_0001:  call       ""void System.Console.WriteLine(bool)""
   IL_0006:  ret
 }");
-
         }
 
         [WorkItem(542466, "DevDiv")]
@@ -337,7 +335,6 @@ class IsTest
   IL_0001:  call       ""void System.Console.WriteLine(bool)""
   IL_0006:  ret
 }");
-
         }
 
         [Fact, WorkItem(542466, "DevDiv")]
@@ -383,7 +380,6 @@ False");
   IL_000d:  call       ""void System.Console.WriteLine(bool)""
   IL_0012:  ret
 }");
-
         }
 
         [Fact, WorkItem(546371, "DevDiv")]
@@ -487,7 +483,6 @@ public class Test
   IL_003c:  ret
 }
 ");
-
         }
 
         // TODO: Add VerifyIL for is and as Codegen tests
@@ -660,7 +655,7 @@ public class C
             var comp = CompileAndVerify(source,
                 additionalRefs: new[] { CSharpRef, SystemCoreRef_v4_0_30319_17929 },
                 expectedOutput: string.Empty);
-            comp.VerifyIL("C.Get", 
+            comp.VerifyIL("C.Get",
 @"{
   // Code size       17 (0x11)
   .maxstack  2
@@ -1376,7 +1371,7 @@ class C : I
         System.Console.Write(Tester(null, null).GetType());
     }
 }";
-            var verify = CompileAndVerify(src, 
+            var verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe, expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
@@ -3233,7 +3228,6 @@ public static class Test
   IL_002a:  ret
 }
 ");
-
         }
 
         [WorkItem(544452, "DevDiv")]
@@ -3368,7 +3362,7 @@ False");
 
         [WorkItem(539398, "DevDiv")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip= "1043494")]
+        [Fact(Skip = "1043494")]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -4021,7 +4015,7 @@ using System.Security;
 ";
 
             var comp = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"");
-//            var comp = CompileAndVerify(source);
+            //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {

@@ -14,26 +14,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class QueryUnboundLambdaState : UnboundLambdaState
         {
-            private readonly ImmutableArray<RangeVariableSymbol> parameters;
-            private readonly LambdaBodyFactory bodyFactory;
-            private readonly RangeVariableMap rangeVariableMap;
+            private readonly ImmutableArray<RangeVariableSymbol> _parameters;
+            private readonly LambdaBodyFactory _bodyFactory;
+            private readonly RangeVariableMap _rangeVariableMap;
 
             public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory)
                 : base(binder, unboundLambdaOpt: null)
             {
-                this.parameters = parameters;
-                this.rangeVariableMap = rangeVariableMap;
-                this.bodyFactory = bodyFactory;
+                _parameters = parameters;
+                _rangeVariableMap = rangeVariableMap;
+                _bodyFactory = bodyFactory;
             }
 
-            public override string ParameterName(int index) { return parameters[index].Name; }
+            public override string ParameterName(int index) { return _parameters[index].Name; }
             public override bool HasSignature { get { return true; } }
             public override bool HasExplicitlyTypedParameterList { get { return false; } }
-            public override int ParameterCount { get { return parameters.Length; } }
+            public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
-            public override Location ParameterLocation(int index) { return parameters[index].Locations[0]; }
+            public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
             public override TypeSymbol ParameterType(int index) { throw new ArgumentException(); } // implicitly typed
 
             public override void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
             {
-                return new WithQueryLambdaParametersBinder(lambdaSymbol, rangeVariableMap, binder);
+                return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
             }
 
             protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics)
             {
-                return bodyFactory(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
+                return _bodyFactory(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
             }
         }
     }

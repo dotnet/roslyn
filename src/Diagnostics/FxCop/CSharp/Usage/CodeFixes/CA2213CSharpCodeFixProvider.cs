@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     public class CA2213CSharpCodeFixProvider : CA2213CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {            
+        {
             //// We are going to add a call Dispose on fields:
             ////
             ////        public void Dispose()

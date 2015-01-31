@@ -378,7 +378,6 @@ public class E : B.N
             TestDiagnostics(c.GetDiagnostics(),
 "'iField' error CS1540: Cannot access protected member 'A.iField' via a qualifier of type 'D'; the qualifier must be of type 'B.N.NN' (or derived from it)"
             );
-
         }
 
         [WorkItem(539561, "DevDiv")]
@@ -460,7 +459,6 @@ public class D : B
 ");
 
             TestDiagnostics(c.GetDiagnostics());
-
         }
 
         [Fact]
@@ -566,7 +564,6 @@ namespace CS1540
 ");
 
             TestDiagnostics(c.GetDiagnostics());
-
         }
 
         [WorkItem(539561, "DevDiv")]
@@ -653,7 +650,6 @@ public class A
 "'c_priv' error CS0122: 'C.c_priv' is inaccessible due to its protection level",
 "'D' error CS0122: 'D' is inaccessible due to its protection level"
 );
-
         }
 
         [Fact]
@@ -692,7 +688,6 @@ public class A: C
 "'c_priv' error CS0122: 'C.c_priv' is inaccessible due to its protection level",
 "'D' error CS0122: 'D' is inaccessible due to its protection level"
 );
-
         }
 
         [Fact]

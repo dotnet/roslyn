@@ -939,7 +939,7 @@ class C
   IL_0005:  starg.s    V_0
   IL_0007:  ret
 }
-"); 
+");
 
             verifier.VerifyIL("C.PostIncNullable", @"{
   // Code size       48 (0x30)
@@ -2067,7 +2067,7 @@ class Program
 ";
             CompileAndVerify(source, expectedOutput: "0");
         }
-        
+
         [Fact]
         public void Test_024_16BitSignedInteger()
         {

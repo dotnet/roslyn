@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter<SyntaxTrivia>
     {
-        private bool succeeded = true;
+        private bool _succeeded = true;
 
         public CSharpTriviaFormatter(
             FormattingContext context,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override bool Succeeded()
         {
-            return succeeded;
+            return _succeeded;
         }
 
         protected override bool IsWhitespace(SyntaxTrivia trivia)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // without a preceding line break
                 if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0 && !implicitLineBreak)
                 {
-                    this.succeeded = false;
+                    _succeeded = false;
                     return LineColumnRule.Preserve();
                 }
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (trivia2.IsKind(SyntaxKind.SkippedTokensTrivia))
             {
                 // if there is any skipped tokens, it is not possible to format this trivia range.
-                this.succeeded = false;
+                _succeeded = false;
             }
 
             return LineColumnRule.Preserve();
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
                 // don't touch anything if it contains skipped tokens
-                this.succeeded = false;
+                _succeeded = false;
                 changes.Add(trivia);
 
                 return GetLineColumnDelta(lineColumn, trivia);
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
                 // don't touch anything if it contains skipped tokens
-                this.succeeded = false;
+                _succeeded = false;
                 return GetLineColumnDelta(lineColumn, trivia);
             }
 

@@ -13,21 +13,21 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public sealed class ProjectReference : IEquatable<ProjectReference>
     {
-        private readonly ProjectId projectId;
-        private readonly ImmutableArray<string> aliases;
-        private readonly bool embedInteropTypes;
+        private readonly ProjectId _projectId;
+        private readonly ImmutableArray<string> _aliases;
+        private readonly bool _embedInteropTypes;
 
         public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
         {
             Contract.ThrowIfNull(projectId);
-            this.projectId = projectId;
-            this.aliases = aliases;
-            this.embedInteropTypes = embedInteropTypes;
+            _projectId = projectId;
+            _aliases = aliases;
+            _embedInteropTypes = embedInteropTypes;
         }
 
-        public ProjectId ProjectId { get { return projectId; } }
-        public ImmutableArray<string> Aliases { get { return aliases; } }
-        public bool EmbedInteropTypes { get { return embedInteropTypes; } }
+        public ProjectId ProjectId { get { return _projectId; } }
+        public ImmutableArray<string> Aliases { get { return _aliases; } }
+        public bool EmbedInteropTypes { get { return _embedInteropTypes; } }
 
         public override bool Equals(object obj)
         {
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.CombineValues(aliases, Hash.Combine(projectId, embedInteropTypes.GetHashCode()));
+            return Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
         }
 
         private string GetDebuggerDisplay()
         {
-            return this.projectId.ToString();
+            return _projectId.ToString();
         }
     }
 }

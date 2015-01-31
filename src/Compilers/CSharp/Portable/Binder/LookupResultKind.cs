@@ -107,6 +107,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
                 return resultKind2;
         }
-
     }
 }

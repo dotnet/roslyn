@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class RootSingleNamespaceDeclaration : SingleNamespaceDeclaration
     {
-        private readonly ImmutableArray<Diagnostic> referenceDirectiveDiagnostics;
-        private readonly ImmutableArray<ReferenceDirective> referenceDirectives;
-        private readonly bool hasAssemblyAttributes;
-        private readonly bool hasUsings;
-        private readonly bool hasExternAliases;
+        private readonly ImmutableArray<Diagnostic> _referenceDirectiveDiagnostics;
+        private readonly ImmutableArray<ReferenceDirective> _referenceDirectives;
+        private readonly bool _hasAssemblyAttributes;
+        private readonly bool _hasUsings;
+        private readonly bool _hasExternAliases;
 
         public RootSingleNamespaceDeclaration(
             bool hasUsings,
@@ -34,18 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!referenceDirectives.IsDefault);
             Debug.Assert(!referenceDirectiveDiagnostics.IsDefault);
 
-            this.referenceDirectives = referenceDirectives;
-            this.referenceDirectiveDiagnostics = referenceDirectiveDiagnostics;
-            this.hasAssemblyAttributes = hasAssemblyAttributes;
-            this.hasUsings = hasUsings;
-            this.hasExternAliases = hasExternAliases;
+            _referenceDirectives = referenceDirectives;
+            _referenceDirectiveDiagnostics = referenceDirectiveDiagnostics;
+            _hasAssemblyAttributes = hasAssemblyAttributes;
+            _hasUsings = hasUsings;
+            _hasExternAliases = hasExternAliases;
         }
 
         public ImmutableArray<Diagnostic> ReferenceDirectiveDiagnostics
         {
             get
             {
-                return referenceDirectiveDiagnostics;
+                return _referenceDirectiveDiagnostics;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return referenceDirectives;
+                return _referenceDirectives;
             }
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return hasAssemblyAttributes;
+                return _hasAssemblyAttributes;
             }
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return hasUsings;
+                return _hasUsings;
             }
         }
 
@@ -77,9 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return hasExternAliases;
+                return _hasExternAliases;
             }
         }
-
     }
 }

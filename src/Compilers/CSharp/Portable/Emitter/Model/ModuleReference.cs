@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class ModuleReference : Cci.IModuleReference, Cci.IFileReference
     {
-        private readonly PEModuleBuilder moduleBeingBuilt;
-        private readonly ModuleSymbol underlyingModule;
+        private readonly PEModuleBuilder _moduleBeingBuilt;
+        private readonly ModuleSymbol _underlyingModule;
 
         internal ModuleReference(PEModuleBuilder moduleBeingBuilt, ModuleSymbol underlyingModule)
         {
             Debug.Assert(moduleBeingBuilt != null);
             Debug.Assert((object)underlyingModule != null);
 
-            this.moduleBeingBuilt = moduleBeingBuilt;
-            this.underlyingModule = underlyingModule;
+            _moduleBeingBuilt = moduleBeingBuilt;
+            _underlyingModule = underlyingModule;
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return underlyingModule.MetadataName;
+                return _underlyingModule.MetadataName;
             }
         }
 
@@ -49,29 +49,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return underlyingModule.Name;
+                return _underlyingModule.Name;
             }
         }
 
         ImmutableArray<byte> Cci.IFileReference.GetHashValue(AssemblyHashAlgorithm algorithmId)
         {
-            return underlyingModule.GetHash(algorithmId);
+            return _underlyingModule.GetHash(algorithmId);
         }
 
         Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
         {
-            if (this.moduleBeingBuilt.OutputKind.IsNetModule() &&
-                ReferenceEquals(moduleBeingBuilt.SourceModule.ContainingAssembly, underlyingModule.ContainingAssembly))
+            if (_moduleBeingBuilt.OutputKind.IsNetModule() &&
+                ReferenceEquals(_moduleBeingBuilt.SourceModule.ContainingAssembly, _underlyingModule.ContainingAssembly))
             {
                 return null;
             }
 
-            return moduleBeingBuilt.Translate(underlyingModule.ContainingAssembly, context.Diagnostics);
+            return _moduleBeingBuilt.Translate(_underlyingModule.ContainingAssembly, context.Diagnostics);
         }
 
         public override string ToString()
         {
-            return underlyingModule.ToString();
+            return _underlyingModule.ToString();
         }
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)

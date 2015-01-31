@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (value is decimal)
             {
-                return GenerateLiteralExpression(type, (decimal)value,  LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                return GenerateLiteralExpression(type, (decimal)value, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
             }
             else if (type == null || type.IsReferenceType || type.IsPointerType())
             {

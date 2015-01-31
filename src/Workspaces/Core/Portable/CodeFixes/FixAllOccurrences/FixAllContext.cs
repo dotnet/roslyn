@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public class FixAllContext
     {
-        private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync;
-        private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync;
-        
+        private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getDocumentDiagnosticsAsync;
+        private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getProjectDiagnosticsAsync;
+
         /// <summary>
         /// Solution to fix all occurrences.
         /// </summary>
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext(
             Document document,
-            CodeFixProvider codeFixProvider, 
+            CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,
@@ -103,8 +104,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.Scope = scope;
             this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            this.getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
-            this.getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
+            _getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
+            _getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
             this.CancellationToken = cancellationToken;
         }
 
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var diagnostics = await this.getDocumentDiagnosticsAsync(document, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
+            var diagnostics = await _getDocumentDiagnosticsAsync(document, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => this.DiagnosticIds.Contains(d.Id)));
             return diagnostics.ToImmutableArray();
         }
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var diagnostics = await this.getProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
+            var diagnostics = await _getProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => this.DiagnosticIds.Contains(d.Id)));
             return diagnostics.ToImmutableArray();
         }
@@ -172,14 +173,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return new FixAllContext(
-                this.Document, 
+                this.Document,
                 this.Project,
                 this.CodeFixProvider,
                 this.Scope,
                 this.CodeActionEquivalenceKey,
                 this.DiagnosticIds,
-                this.getDocumentDiagnosticsAsync,
-                this.getProjectDiagnosticsAsync,
+                _getDocumentDiagnosticsAsync,
+                _getProjectDiagnosticsAsync,
                 cancellationToken);
         }
     }

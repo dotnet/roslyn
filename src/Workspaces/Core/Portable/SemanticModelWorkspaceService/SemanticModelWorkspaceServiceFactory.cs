@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
         private class SemanticModelService : ISemanticModelService
         {
-            private static readonly ConditionalWeakTable<Workspace, ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>> map =
+            private static readonly ConditionalWeakTable<Workspace, ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>> s_map =
                 new ConditionalWeakTable<Workspace, ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>>();
 
-            private static readonly ConditionalWeakTable<Compilation, ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>> semanticModelMap =
+            private static readonly ConditionalWeakTable<Compilation, ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>> s_semanticModelMap =
                 new ConditionalWeakTable<Compilation, ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>>();
 
-            private readonly ReaderWriterLockSlim gate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+            private readonly ReaderWriterLockSlim _gate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
             public async Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
                 CompilationSet compilationSet;
-                using (gate.DisposableRead())
+                using (_gate.DisposableRead())
                 {
                     versionMap.TryGetValue(projectId, out compilationSet);
                 }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 {
                     var newSet = await CompilationSet.CreateAsync(project, compilationSet ?? primarySet, cancellationToken).ConfigureAwait(false);
 
-                    using (gate.DisposableWrite())
+                    using (_gate.DisposableWrite())
                     {
                         // we still don't have it or if someone has beaten us, check what we have is newer
                         if (!versionMap.TryGetValue(project.Id, out compilationSet) || version != compilationSet.Version)
@@ -179,17 +179,17 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             private bool AlreadyHasLatestCompilationSet(
                 Dictionary<ProjectId, CompilationSet> versionMap, ProjectId projectId, VersionStamp version, out CompilationSet compilationSet)
             {
-                using (gate.DisposableRead())
+                using (_gate.DisposableRead())
                 {
                     // we still don't have it or if someone has beaten us, check what we have is newer
                     return versionMap.TryGetValue(projectId, out compilationSet) && version == compilationSet.Version;
                 }
             }
 
-            private static readonly ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>.CreateValueCallback createVersionMap =
+            private static readonly ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>.CreateValueCallback s_createVersionMap =
                 _ => new Dictionary<ProjectId, CompilationSet>();
 
-            private static readonly ConditionalWeakTable<Compilation, ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>>.CreateValueCallback createNodeMap =
+            private static readonly ConditionalWeakTable<Compilation, ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>>.CreateValueCallback s_createNodeMap =
                 _ => new ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>();
 
             private static SemanticModel GetCachedSemanticModel(
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             private static SemanticModel GetCachedSemanticModel(Compilation oldCompilation, SyntaxNode newMember)
             {
-                var nodeMap = semanticModelMap.GetValue(oldCompilation, createNodeMap);
+                var nodeMap = s_semanticModelMap.GetValue(oldCompilation, s_createNodeMap);
 
                 // see whether we have cached one
                 return GetCachedSemanticModel(nodeMap, newMember);
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             private static SemanticModel CacheSemanticModel(Compilation oldCompilation, SyntaxNode newMember, SemanticModel speculativeSemanticModel)
             {
-                var nodeMap = semanticModelMap.GetValue(oldCompilation, createNodeMap);
+                var nodeMap = s_semanticModelMap.GetValue(oldCompilation, s_createNodeMap);
 
                 // check whether somebody already have put one for me
                 var model = GetCachedSemanticModel(nodeMap, newMember);
@@ -258,24 +258,24 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 }
 
                 // okay, create one
-                return branchMap.GetValue(branchId, createVersionMap);
+                return branchMap.GetValue(branchId, s_createVersionMap);
             }
 
             private Dictionary<ProjectId, CompilationSet> GetVersionMapFromBranch(Workspace workspace, BranchId branchId)
             {
                 var branchMap = GetBranchMap(workspace);
 
-                return branchMap.GetValue(branchId, createVersionMap);
+                return branchMap.GetValue(branchId, s_createVersionMap);
             }
 
             private ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>> GetBranchMap(Workspace workspace)
             {
                 ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>> branchMap;
-                if (!map.TryGetValue(workspace, out branchMap))
+                if (!s_map.TryGetValue(workspace, out branchMap))
                 {
                     var newBranchMap = new ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>();
 
-                    branchMap = map.GetValue(workspace, _ => newBranchMap);
+                    branchMap = s_map.GetValue(workspace, _ => newBranchMap);
                     if (branchMap == newBranchMap)
                     {
                         // it is first time we see this workspace. subscribe to it
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
                 var versionMap = GetVersionMapFromBranch(workspace, workspace.PrimaryBranchId);
 
-                using (this.gate.DisposableWrite())
+                using (_gate.DisposableWrite())
                 {
                     versionMap.Remove(documentId.ProjectId);
                 }
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             {
                 var versionMap = GetVersionMapFromBranch(workspace, workspace.PrimaryBranchId);
 
-                using (this.gate.DisposableWrite())
+                using (_gate.DisposableWrite())
                 {
                     versionMap.Remove(projectId);
                 }
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             {
                 var versionMap = GetVersionMapFromBranch(workspace, workspace.PrimaryBranchId);
 
-                using (this.gate.DisposableWrite())
+                using (_gate.DisposableWrite())
                 {
                     using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                     {

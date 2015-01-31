@@ -154,7 +154,7 @@ class Structs
             Action<PEAssembly, TestEmitters> validator = (assembly, _) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
-                
+
                 foreach (var typeHandle in metadataReader.TypeDefinitions)
                 {
                     var type = metadataReader.GetTypeDefinition(typeHandle);
@@ -194,8 +194,8 @@ class Structs
                                     expectedPack = ushort.Parse(part.Substring(1));
                                     break;
 
-                                case 'S': 
-                                    expectedSize = uint.Parse(part.Substring(1)); 
+                                case 'S':
+                                    expectedSize = uint.Parse(part.Substring(1));
                                     break;
                             }
                         }
@@ -608,7 +608,6 @@ partial struct C
 
         private void VerifyStructLayout(string source, bool hasInstanceFields)
         {
-
             CompileAndVerify(source, assemblyValidator: (assembly, _) =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -652,7 +651,5 @@ partial struct C
             VerifyStructLayout(@"struct S { int P { get; set; } }", hasInstanceFields: true);
             VerifyStructLayout(@"delegate void D(); struct S { event D D; }", hasInstanceFields: true);
         }
-
-
     }
 }

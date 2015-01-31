@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class INamespaceOrTypeSymbolExtensions
     {
-        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>> namespaceOrTypeToNameMap =
+        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>> s_namespaceOrTypeToNameMap =
             new ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>>();
 
-        private static readonly SymbolDisplayFormat ShortNameFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_shortNameFormat = new SymbolDisplayFormat(
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.ExpandNullable);
 
         public static readonly Comparison<INamespaceOrTypeSymbol> CompareNamespaceOrTypeSymbols = CompareTo;
 
         public static string GetShortName(this INamespaceOrTypeSymbol symbol)
         {
-            return symbol.ToDisplayString(ShortNameFormat);
+            return symbol.ToDisplayString(s_shortNameFormat);
         }
 
         public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol symbol)
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int CompareTo(this INamespaceOrTypeSymbol n1, INamespaceOrTypeSymbol n2)
         {
-            var names1 = namespaceOrTypeToNameMap.GetValue(n1, GetNameParts);
-            var names2 = namespaceOrTypeToNameMap.GetValue(n2, GetNameParts);
+            var names1 = s_namespaceOrTypeToNameMap.GetValue(n1, GetNameParts);
+            var names2 = s_namespaceOrTypeToNameMap.GetValue(n2, GetNameParts);
 
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
             {

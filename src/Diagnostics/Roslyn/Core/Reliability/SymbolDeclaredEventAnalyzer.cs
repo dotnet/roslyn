@@ -15,19 +15,19 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class SymbolDeclaredEventAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static readonly string fullNameOfSymbol = typeof(ISymbol).FullName;
-        
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
+
         internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             "Reliability",
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -42,7 +42,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var symbolType = compilationContext.Compilation.GetTypeByMetadataName(fullNameOfSymbol);
+                var symbolType = compilationContext.Compilation.GetTypeByMetadataName(s_fullNameOfSymbol);
                 if (symbolType != null)
                 {
                     var compilationAnalyzer = GetCompilationAnalyzer(compilationContext.Compilation, symbolType);
@@ -61,17 +61,17 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class CompilationAnalyzer
         {
-            private readonly INamedTypeSymbol symbolType;
-            private readonly INamedTypeSymbol compilationType;           
-            private readonly HashSet<INamedTypeSymbol> sourceSymbolsToCheck = new HashSet<INamedTypeSymbol>();
-            private readonly HashSet<INamedTypeSymbol> typesWithSymbolDeclaredEventInvoked = new HashSet<INamedTypeSymbol>();
+            private readonly INamedTypeSymbol _symbolType;
+            private readonly INamedTypeSymbol _compilationType;
+            private readonly HashSet<INamedTypeSymbol> _sourceSymbolsToCheck = new HashSet<INamedTypeSymbol>();
+            private readonly HashSet<INamedTypeSymbol> _typesWithSymbolDeclaredEventInvoked = new HashSet<INamedTypeSymbol>();
 
             private const string SymbolDeclaredEventName = "SymbolDeclaredEvent";
-            
+
             protected CompilationAnalyzer(INamedTypeSymbol symbolType, INamedTypeSymbol compilationType)
             {
-                this.symbolType = symbolType;
-                this.compilationType = compilationType;
+                _symbolType = symbolType;
+                _compilationType = compilationType;
 
                 // If the below assert fire then probably the definition of "SymbolDeclaredEvent" has changed and we need to fix this analyzer.
                 var symbolDeclaredEvent = compilationType.GetMembers(SymbolDeclaredEventName).Single();
@@ -94,7 +94,7 @@ namespace Roslyn.Diagnostics.Analyzers
             internal virtual void AnalyzeMethodInvocation(IMethodSymbol invocationSymbol, SyntaxNodeAnalysisContext context)
             {
                 if (invocationSymbol.Name.Equals(SymbolDeclaredEventName) &&
-                    compilationType.Equals(invocationSymbol.ContainingType))
+                    _compilationType.Equals(invocationSymbol.ContainingType))
                 {
                     var argument = GetFirstArgumentOfInvocation(context.Node);
                     AnalyzeSymbolDeclaredEventInvocation(argument, context);
@@ -119,9 +119,9 @@ namespace Roslyn.Diagnostics.Analyzers
                     !type.Name.Equals("Symbol"))
                 {
                     var namedType = (INamedTypeSymbol)type;
-                    if (namedType.AllInterfaces.Contains(symbolType))
+                    if (namedType.AllInterfaces.Contains(_symbolType))
                     {
-                        typesWithSymbolDeclaredEventInvoked.Add(namedType);
+                        _typesWithSymbolDeclaredEventInvoked.Add(namedType);
                         return true;
                     }
                 }
@@ -135,21 +135,21 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (!namedType.IsAbstract &&
                     namedType.Name.StartsWith("Source") &&
                     !namedType.Name.Contains("Backing") &&
-                    namedType.AllInterfaces.Contains(symbolType) &&
+                    namedType.AllInterfaces.Contains(_symbolType) &&
                     namedType.GetBaseTypesAndThis().Any(b => SymbolTypesWithExpectedSymbolDeclaredEvent.Contains(b.Name, StringComparer.Ordinal)))
                 {
-                    sourceSymbolsToCheck.Add(namedType);
+                    _sourceSymbolsToCheck.Add(namedType);
                 }
             }
 
             internal void AnalyzeCompilationEnd(CompilationEndAnalysisContext context)
             {
-                foreach (var sourceSymbol in sourceSymbolsToCheck)
+                foreach (var sourceSymbol in _sourceSymbolsToCheck)
                 {
                     var found = false;
                     foreach (var type in sourceSymbol.GetBaseTypesAndThis())
                     {
-                        if (typesWithSymbolDeclaredEventInvoked.Contains(type))
+                        if (_typesWithSymbolDeclaredEventInvoked.Contains(type))
                         {
                             found = true;
                             break;
@@ -158,7 +158,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     if (!found)
                     {
-                        var diagnostic = Diagnostic.Create(SymbolDeclaredEventRule, sourceSymbol.Locations[0], sourceSymbol.Name, compilationType.Name, SymbolDeclaredEventName);
+                        var diagnostic = Diagnostic.Create(SymbolDeclaredEventRule, sourceSymbol.Locations[0], sourceSymbol.Name, _compilationType.Name, SymbolDeclaredEventName);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

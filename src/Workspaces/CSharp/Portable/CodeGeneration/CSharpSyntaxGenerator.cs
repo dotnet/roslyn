@@ -771,37 +771,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private static ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> declAttributes
+        private static ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes
             = new ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>>();
 
         public override IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration)
         {
             IReadOnlyList<SyntaxNode> attrs;
-            if (!declAttributes.TryGetValue(declaration, out attrs))
+            if (!s_declAttributes.TryGetValue(declaration, out attrs))
             {
                 var tmp = this.Flatten(GetAttributeLists(declaration).Where(al => !IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
-                attrs = declAttributes.GetValue(declaration, _d => tmp);
+                attrs = s_declAttributes.GetValue(declaration, _d => tmp);
             }
 
             return attrs;
         }
 
-        private static ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> declReturnAttributes
+        private static ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declReturnAttributes
             = new ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>>();
 
         public override IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration)
         {
             IReadOnlyList<SyntaxNode> attrs;
-            if (!declReturnAttributes.TryGetValue(declaration, out attrs))
+            if (!s_declReturnAttributes.TryGetValue(declaration, out attrs))
             {
                 var tmp = this.Flatten(GetAttributeLists(declaration).Where(al => IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
-                attrs = declReturnAttributes.GetValue(declaration, _d => tmp);
+                attrs = s_declReturnAttributes.GetValue(declaration, _d => tmp);
             }
 
             return attrs;
         }
 
-        static bool IsReturnAttribute(AttributeListSyntax list)
+        private static bool IsReturnAttribute(AttributeListSyntax list)
         {
             return list.Target != null ? list.Target.Identifier.IsKind(SyntaxKind.ReturnKeyword) : false;
         }
@@ -828,8 +828,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var lists = GetAttributeLists(declaration);
                 var newList = lists.AddRange(newAttributes);
-            return WithAttributeLists(declaration, newList);
-        }
+                return WithAttributeLists(declaration, newList);
+            }
         }
 
         public override SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes)
@@ -1197,29 +1197,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else
             {
                 switch (declaration.Kind())
-            {
-                case SyntaxKind.ClassDeclaration:
-                    var cd = ((ClassDeclarationSyntax)declaration);
+                {
+                    case SyntaxKind.ClassDeclaration:
+                        var cd = ((ClassDeclarationSyntax)declaration);
                         return cd.WithMembers(cd.Members.AddRange(newMembers));
-                case SyntaxKind.StructDeclaration:
-                    var sd = ((StructDeclarationSyntax)declaration);
+                    case SyntaxKind.StructDeclaration:
+                        var sd = ((StructDeclarationSyntax)declaration);
                         return sd.WithMembers(sd.Members.AddRange(newMembers));
-                case SyntaxKind.InterfaceDeclaration:
-                    var id = ((InterfaceDeclarationSyntax)declaration);
+                    case SyntaxKind.InterfaceDeclaration:
+                        var id = ((InterfaceDeclarationSyntax)declaration);
                         return id.WithMembers(id.Members.AddRange(newMembers));
-                case SyntaxKind.EnumDeclaration:
-                    var ed = ((EnumDeclarationSyntax)declaration);
+                    case SyntaxKind.EnumDeclaration:
+                        var ed = ((EnumDeclarationSyntax)declaration);
                         return ed.WithMembers(ed.Members.AddRange(newMembers.OfType<EnumMemberDeclarationSyntax>()));
-                case SyntaxKind.NamespaceDeclaration:
-                    var nd = ((NamespaceDeclarationSyntax)declaration);
+                    case SyntaxKind.NamespaceDeclaration:
+                        var nd = ((NamespaceDeclarationSyntax)declaration);
                         return nd.WithMembers(nd.Members.AddRange(newMembers));
-                case SyntaxKind.CompilationUnit:
-                    var cu = ((CompilationUnitSyntax)declaration);
+                    case SyntaxKind.CompilationUnit:
+                        var cu = ((CompilationUnitSyntax)declaration);
                         return cu.WithMembers(cu.Members.AddRange(newMembers));
-                default:
-                    return declaration;
+                    default:
+                        return declaration;
+                }
             }
-        }
         }
 
         private IEnumerable<MemberDeclarationSyntax> AsMembersOf(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
@@ -1317,23 +1317,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             });
         }
 
-        private static DeclarationModifiers fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.New | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static;
-        private static DeclarationModifiers methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static DeclarationModifiers constructorModifers = DeclarationModifiers.Static;
-        private static DeclarationModifiers propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static DeclarationModifiers eventModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static DeclarationModifiers eventFieldModifiers = DeclarationModifiers.New | DeclarationModifiers.Static;
-        private static DeclarationModifiers indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static DeclarationModifiers classModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
-        private static DeclarationModifiers structModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
-        private static DeclarationModifiers interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
+        private static DeclarationModifiers s_fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.New | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static;
+        private static DeclarationModifiers s_methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        private static DeclarationModifiers s_constructorModifers = DeclarationModifiers.Static;
+        private static DeclarationModifiers s_propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        private static DeclarationModifiers s_eventModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        private static DeclarationModifiers s_eventFieldModifiers = DeclarationModifiers.New | DeclarationModifiers.Static;
+        private static DeclarationModifiers s_indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        private static DeclarationModifiers s_classModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
+        private static DeclarationModifiers s_structModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
+        private static DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
 
         private DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
             switch (kind)
             {
                 case SyntaxKind.ClassDeclaration:
-                    return classModifiers;
+                    return s_classModifiers;
 
                 case SyntaxKind.EnumDeclaration:
                     return DeclarationModifiers.New;
@@ -1342,33 +1342,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return DeclarationModifiers.New;
 
                 case SyntaxKind.InterfaceDeclaration:
-                    return interfaceModifiers;
+                    return s_interfaceModifiers;
 
                 case SyntaxKind.StructDeclaration:
-                    return structModifiers;
+                    return s_structModifiers;
 
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return methodModifiers;
+                    return s_methodModifiers;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    return constructorModifers;
+                    return s_constructorModifers;
 
                 case SyntaxKind.FieldDeclaration:
-                    return fieldModifiers;
+                    return s_fieldModifiers;
 
                 case SyntaxKind.PropertyDeclaration:
-                    return propertyModifiers;
+                    return s_propertyModifiers;
 
                 case SyntaxKind.IndexerDeclaration:
-                    return indexerModifiers;
+                    return s_indexerModifiers;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    return eventFieldModifiers;
+                    return s_eventFieldModifiers;
 
                 case SyntaxKind.EventDeclaration:
-                    return eventModifiers;
+                    return s_eventModifiers;
 
                 case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.Parameter:
@@ -2089,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var vd = (VariableDeclarationSyntax)declaration;
                     if (vd.Variables.Count == 1)
                     {
-                        return ReplaceWithTrivia(declaration,vd.Variables[0].Identifier, id);
+                        return ReplaceWithTrivia(declaration, vd.Variables[0].Identifier, id);
                     }
                     break;
                 case SyntaxKind.VariableDeclarator:
@@ -2310,7 +2310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case DeclarationKind.CompilationUnit:
                     var container = this.GetDeclaration(existingNode.Parent);
                     if (container != null)
-        {
+                    {
                         return this.AsMemberOf(container, newNode);
                     }
                     break;
@@ -2372,7 +2372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList;
                 case SyntaxKind.SimpleLambdaExpression:
-                    return  SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter));
+                    return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter));
                 default:
                     return null;
             }
@@ -3074,7 +3074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
-                ParenthesizeLeft((ExpressionSyntax)expression), 
+                ParenthesizeLeft((ExpressionSyntax)expression),
                 (SimpleNameSyntax)simpleName);
         }
 
@@ -3493,8 +3493,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode CatchClause(SyntaxNode type, string name, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.CatchClause(
-                SyntaxFactory.CatchDeclaration((TypeSyntax)type, name.ToIdentifierToken()), 
-                filter: null, 
+                SyntaxFactory.CatchDeclaration((TypeSyntax)type, name.ToIdentifierToken()),
+                filter: null,
                 block: CreateBlock(statements));
         }
 
@@ -3588,6 +3588,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return list;
         }
-#endregion
+        #endregion
     }
 }

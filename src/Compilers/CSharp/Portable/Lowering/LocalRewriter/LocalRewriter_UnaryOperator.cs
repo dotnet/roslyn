@@ -84,19 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (kind == UnaryOperatorKind.DynamicTrue)
                     {
-                        return factory.Literal(constant.BooleanValue);
+                        return _factory.Literal(constant.BooleanValue);
                     }
                     else if (kind == UnaryOperatorKind.DynamicLogicalNegation)
                     {
-                        return MakeConversion(factory.Literal(!constant.BooleanValue), type, @checked: false);
+                        return MakeConversion(_factory.Literal(!constant.BooleanValue), type, @checked: false);
                     }
                 }
 
-                return dynamicFactory.MakeDynamicUnaryOperator(kind, loweredOperand, type).ToExpression();
+                return _dynamicFactory.MakeDynamicUnaryOperator(kind, loweredOperand, type).ToExpression();
             }
             else if (kind.IsLifted())
             {
-                if (!inExpressionLambda)
+                if (!_inExpressionLambda)
                 {
                     return LowerLiftedUnaryOperator(kind, syntax, method, loweredOperand, type);
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)method != null);
                 Debug.Assert(type == method.ReturnType);
-                if (!inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
+                if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
                     return BoundCall.Synthesized(syntax, null, method, loweredOperand);
                 }
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var upconvertSpecialType = Binder.GetEnumPromotedType(underlyingType.SpecialType);
                 var upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
                     underlyingType :
-                    compilation.GetSpecialType(upconvertSpecialType);
+                    _compilation.GetSpecialType(upconvertSpecialType);
 
 
                 var newOperand = MakeConversion(loweredOperand, upconvertType, false);
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind == UnaryOperatorKind.DecimalUnaryMinus)
             {
-                method = (MethodSymbol)this.compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__op_UnaryNegation);
-                if (!inExpressionLambda)
+                method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__op_UnaryNegation);
+                if (!_inExpressionLambda)
                 {
                     return BoundCall.Synthesized(syntax, null, method, loweredOperand);
                 }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //        default(R?);
 
             BoundAssignmentOperator tempAssignment;
-            BoundLocal boundTemp = factory.StoreToTemp(loweredOperand, out tempAssignment);
+            BoundLocal boundTemp = _factory.StoreToTemp(loweredOperand, out tempAssignment);
             MethodSymbol getValueOrDefault = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
             MethodSymbol hasValue = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_get_HasValue);
 
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType == node.Type);
 
-            LocalSymbol tempSymbol = factory.SynthesizedLocal(operandType);
+            LocalSymbol tempSymbol = _factory.SynthesizedLocal(operandType);
             tempSymbols.Add(tempSymbol);
             // Not adding an entry to tempInitializers because the initial value depends on the case.
 
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.OperatorKind.IsDynamic())
             {
-                return dynamicFactory.MakeDynamicUnaryOperator(node.OperatorKind, rewrittenValueToIncrement, node.Type).ToExpression();
+                return _dynamicFactory.MakeDynamicUnaryOperator(node.OperatorKind, rewrittenValueToIncrement, node.Type).ToExpression();
             }
 
             BoundExpression result;
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = node.MethodOpt.ParameterTypes[0];
             if (isLifted)
             {
-                type = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
+                type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
                 Debug.Assert(node.MethodOpt.ParameterTypes[0] == node.MethodOpt.ReturnType);
             }
 
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // it is always null/never null.
 
             BoundAssignmentOperator tempAssignment;
-            BoundLocal boundTemp = factory.StoreToTemp(rewrittenArgument, out tempAssignment);
+            BoundLocal boundTemp = _factory.StoreToTemp(rewrittenArgument, out tempAssignment);
 
             MethodSymbol getValueOrDefault = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
             MethodSymbol hasValue = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue);
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binaryOperatorKind.OperandTypes() != 0);
 
             // The intput/output type of the binary operand. "int" in the example. 
-            TypeSymbol binaryOperandType = compilation.GetSpecialType(constantOne.SpecialType);
+            TypeSymbol binaryOperandType = _compilation.GetSpecialType(constantOne.SpecialType);
 
             // 1
             BoundExpression boundOne = MakeLiteral(
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (binaryOperatorKind.IsLifted())
             {
-                binaryOperandType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
+                binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
                 MethodSymbol ctor = GetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
                 boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
             }
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            var method = (MethodSymbol)this.compilation.Assembly.GetSpecialTypeMember(member);
+            var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
             Debug.Assert((object)method != null); // Should have been checked during Warnings pass
             return method;
         }
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DynamicMemberAccess:
                     var dynamicMemberAccess = (BoundDynamicMemberAccess)transformedExpression;
-                    return dynamicFactory.MakeDynamicGetMember(dynamicMemberAccess.Receiver, dynamicMemberAccess.Name, resultIndexed: false).ToExpression();
+                    return _dynamicFactory.MakeDynamicGetMember(dynamicMemberAccess.Receiver, dynamicMemberAccess.Name, resultIndexed: false).ToExpression();
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)transformedExpression;
@@ -895,10 +895,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
 
-            NamedTypeSymbol type = compilation.GetSpecialType(specialType);
+            NamedTypeSymbol type = _compilation.GetSpecialType(specialType);
             if (node.OperatorKind.IsLifted())
             {
-                type = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
+                type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
             }
 
             return type;

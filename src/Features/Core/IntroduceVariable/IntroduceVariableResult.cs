@@ -9,24 +9,24 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
     {
         public static readonly IIntroduceVariableResult Failure = new IntroduceVariableResult(null);
 
-        private readonly CodeRefactoring codeRefactoring;
+        private readonly CodeRefactoring _codeRefactoring;
 
         public IntroduceVariableResult(CodeRefactoring codeRefactoring)
         {
-            this.codeRefactoring = codeRefactoring;
+            _codeRefactoring = codeRefactoring;
         }
 
         public bool ContainsChanges
         {
             get
             {
-                return this.codeRefactoring != null;
+                return _codeRefactoring != null;
             }
         }
 
         public CodeRefactoring GetCodeRefactoring(CancellationToken cancellationToken)
         {
-            return this.codeRefactoring;
+            return _codeRefactoring;
         }
     }
 }

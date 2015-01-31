@@ -70,7 +70,7 @@ public interface IBar : IFoo { }
 class Foo : IFoo { }
 
 class Boo : IBar { }";
-            
+
             // Verify no diagnostic since interface is in a friend assembly.
             VerifyCSharpAcrossTwoAssemblies(source1, source2);
         }
@@ -216,7 +216,7 @@ End Class
         {
             return new InternalImplementationOnlyAnalyzer();
         }
-        
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new InternalImplementationOnlyAnalyzer();

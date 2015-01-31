@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SignatureOnlyMethodSymbol : MethodSymbol
     {
-        private readonly string name;
-        private readonly TypeSymbol containingType;
-        private readonly MethodKind methodKind;
-        private readonly Cci.CallingConvention callingConvention;
-        private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
-        private readonly ImmutableArray<ParameterSymbol> parameters;
-        private readonly TypeSymbol returnType;
-        private readonly ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-        private readonly ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
+        private readonly string _name;
+        private readonly TypeSymbol _containingType;
+        private readonly MethodKind _methodKind;
+        private readonly Cci.CallingConvention _callingConvention;
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly TypeSymbol _returnType;
+        private readonly ImmutableArray<CustomModifier> _returnTypeCustomModifiers;
+        private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
         public SignatureOnlyMethodSymbol(
             string name,
@@ -35,42 +35,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> returnTypeCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
-            this.callingConvention = callingConvention;
-            this.typeParameters = typeParameters;
-            this.returnType = returnType;
-            this.returnTypeCustomModifiers = returnTypeCustomModifiers;
-            this.parameters = parameters;
-            this.explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
-            this.containingType = containingType;
-            this.methodKind = methodKind;
-            this.name = name;
+            _callingConvention = callingConvention;
+            _typeParameters = typeParameters;
+            _returnType = returnType;
+            _returnTypeCustomModifiers = returnTypeCustomModifiers;
+            _parameters = parameters;
+            _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
+            _containingType = containingType;
+            _methodKind = methodKind;
+            _name = name;
         }
 
-        internal override Cci.CallingConvention CallingConvention { get { return callingConvention; } }
+        internal override Cci.CallingConvention CallingConvention { get { return _callingConvention; } }
 
-        public override bool IsVararg { get { return new SignatureHeader((byte)callingConvention).CallingConvention == SignatureCallingConvention.VarArgs; } }
+        public override bool IsVararg { get { return new SignatureHeader((byte)_callingConvention).CallingConvention == SignatureCallingConvention.VarArgs; } }
 
         public override bool IsGenericMethod { get { return Arity > 0; } }
 
-        public override int Arity { get { return typeParameters.Length; } }
+        public override int Arity { get { return _typeParameters.Length; } }
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters { get { return typeParameters; } }
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters { get { return _typeParameters; } }
 
-        public override bool ReturnsVoid { get { return returnType.SpecialType == SpecialType.System_Void; } }
+        public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
 
-        public override TypeSymbol ReturnType { get { return returnType; } }
+        public override TypeSymbol ReturnType { get { return _returnType; } }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get { return returnTypeCustomModifiers; } }
+        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get { return _returnTypeCustomModifiers; } }
 
-        public override ImmutableArray<ParameterSymbol> Parameters { get { return parameters; } }
+        public override ImmutableArray<ParameterSymbol> Parameters { get { return _parameters; } }
 
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations { get { return explicitInterfaceImplementations; } }
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations { get { return _explicitInterfaceImplementations; } }
 
-        public override Symbol ContainingSymbol { get { return containingType; } }
+        public override Symbol ContainingSymbol { get { return _containingType; } }
 
-        public override MethodKind MethodKind { get { return methodKind; } }
+        public override MethodKind MethodKind { get { return _methodKind; } }
 
-        public override string Name { get { return name; } }
+        public override string Name { get { return _name; } }
 
         #region Not used by MethodSignatureComparer
 

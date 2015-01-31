@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,21 +10,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        private readonly IDiagnosticAnalyzerService diagnosticService;
-        private DebuggingSession debuggingSession;
-        private EditSession editSession;
+        private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private DebuggingSession _debuggingSession;
+        private EditSession _editSession;
 
         internal EditAndContinueWorkspaceService(IDiagnosticAnalyzerService diagnosticService)
         {
             Debug.Assert(diagnosticService != null);
-            this.diagnosticService = diagnosticService;
+            _diagnosticService = diagnosticService;
         }
 
         public DebuggingSession DebuggingSession
         {
             get
             {
-                return debuggingSession;
+                return _debuggingSession;
             }
         }
 
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return editSession;
+                return _editSession;
             }
         }
 
         public void StartDebuggingSession(Solution currentSolution)
         {
-            Debug.Assert(debuggingSession == null && editSession == null);
+            Debug.Assert(_debuggingSession == null && _editSession == null);
 
-            Interlocked.CompareExchange(ref this.debuggingSession, new DebuggingSession(currentSolution), null);
+            Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(currentSolution), null);
 
             // TODO(tomat): allow changing documents
         }
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
             bool stoppedAtException)
         {
-            Debug.Assert(this.debuggingSession != null && this.editSession == null);
+            Debug.Assert(_debuggingSession != null && _editSession == null);
 
-            var newSession = new EditSession(currentSolution, activeStatements, this.debuggingSession, projects, stoppedAtException);
+            var newSession = new EditSession(currentSolution, activeStatements, _debuggingSession, projects, stoppedAtException);
 
-            Interlocked.CompareExchange(ref this.editSession, newSession, null);
+            Interlocked.CompareExchange(ref _editSession, newSession, null);
 
             // TODO(tomat): allow changing documents
             // TODO(tomat): document added
@@ -63,31 +63,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void EndEditSession()
         {
-            Debug.Assert(this.debuggingSession != null && this.editSession != null);
+            Debug.Assert(_debuggingSession != null && _editSession != null);
 
-            var session = this.editSession;
+            var session = _editSession;
 
             // first, publish null session:
-            this.editSession = null;
+            _editSession = null;
 
             // then cancel all ongoing work bound to the session:
             session.Cancellation.Cancel();
 
             // then clear all reported rude edits:
-            diagnosticService.Reanalyze(debuggingSession.InitialSolution.Workspace, documentIds: session.GetDocumentsWithReportedRudeEdits());
+            _diagnosticService.Reanalyze(_debuggingSession.InitialSolution.Workspace, documentIds: session.GetDocumentsWithReportedRudeEdits());
 
             // TODO(tomat): allow changing documents
         }
 
         public void EndDebuggingSession()
         {
-            Debug.Assert(this.debuggingSession != null && this.editSession == null);
-            this.debuggingSession = null;
+            Debug.Assert(_debuggingSession != null && _editSession == null);
+            _debuggingSession = null;
         }
 
         public bool IsProjectReadOnly(string projectName, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason)
         {
-            if (this.debuggingSession == null)
+            if (_debuggingSession == null)
             {
                 projectReason = ProjectReadOnlyReason.None;
                 sessionReason = SessionReadOnlyReason.None;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // run mode - all documents that belong to the workspace shall be read-only:
-            var editSession = this.editSession;
+            var editSession = _editSession;
             if (editSession == null)
             {
                 projectReason = ProjectReadOnlyReason.None;

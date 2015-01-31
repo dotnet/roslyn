@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public abstract partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
     {
-        private readonly bool visitIntoStructuredTrivia;
+        private readonly bool _visitIntoStructuredTrivia;
 
         public CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false)
         {
-            this.visitIntoStructuredTrivia = visitIntoStructuredTrivia;
+            _visitIntoStructuredTrivia = visitIntoStructuredTrivia;
         }
 
         public virtual bool VisitIntoStructuredTrivia
         {
-            get { return this.visitIntoStructuredTrivia; }
+            get { return _visitIntoStructuredTrivia; }
         }
 
         public virtual SyntaxToken VisitToken(SyntaxToken token)

@@ -5,12 +5,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    partial class SyntaxToken
+    internal partial class SyntaxToken
     {
         internal class SyntaxIdentifierWithTrivia : SyntaxIdentifierExtended
         {
-            private readonly CSharpSyntaxNode leading;
-            private readonly CSharpSyntaxNode trailing;
+            private readonly CSharpSyntaxNode _leading;
+            private readonly CSharpSyntaxNode _trailing;
 
             internal SyntaxIdentifierWithTrivia(
                 SyntaxKind contextualKind,
@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (leading != null)
                 {
                     this.AdjustFlagsAndWidth(leading);
-                    this.leading = leading;
+                    _leading = leading;
                 }
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
-                    this.trailing = trailing;
+                    _trailing = trailing;
                 }
             }
 
@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (leading != null)
                 {
                     this.AdjustFlagsAndWidth(leading);
-                    this.leading = leading;
+                    _leading = leading;
                 }
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
-                    this.trailing = trailing;
+                    _trailing = trailing;
                 }
             }
 
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (leading != null)
                 {
                     this.AdjustFlagsAndWidth(leading);
-                    this.leading = leading;
+                    _leading = leading;
                 }
                 var trailing = (CSharpSyntaxNode)reader.ReadValue();
                 if (trailing != null)
                 {
-                    this.trailing = trailing;
+                    _trailing = trailing;
                     this.AdjustFlagsAndWidth(trailing);
                 }
             }
@@ -79,38 +79,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal override void WriteTo(ObjectWriter writer)
             {
                 base.WriteTo(writer);
-                writer.WriteValue(this.leading);
-                writer.WriteValue(this.trailing);
+                writer.WriteValue(_leading);
+                writer.WriteValue(_trailing);
             }
 
             public override CSharpSyntaxNode GetLeadingTrivia()
             {
-                return this.leading;
+                return _leading;
             }
 
             public override CSharpSyntaxNode GetTrailingTrivia()
             {
-                return this.trailing;
+                return _trailing;
             }
 
             internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
             {
-                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, trivia, this.trailing, this.GetDiagnostics(), this.GetAnnotations());
+                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, trivia, _trailing, this.GetDiagnostics(), this.GetAnnotations());
             }
 
             internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
             {
-                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, this.leading, trivia, this.GetDiagnostics(), this.GetAnnotations());
+                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, _leading, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }
 
             internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
             {
-                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, this.leading, this.trailing, diagnostics, this.GetAnnotations());
+                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, _leading, _trailing, diagnostics, this.GetAnnotations());
             }
 
             internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
             {
-                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, this.leading, this.trailing, this.GetDiagnostics(), annotations);
+                return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, _leading, _trailing, this.GetDiagnostics(), annotations);
             }
         }
     }

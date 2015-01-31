@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedContainer : NamedTypeSymbol
     {
-        private readonly string name;
-        private readonly TypeMap typeMap;
-        private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
+        private readonly string _name;
+        private readonly TypeMap _typeMap;
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
 
         protected SynthesizedContainer(string name, int parameterCount, bool returnsVoid)
         {
             Debug.Assert(name != null);
-            this.name = name;
-            this.typeMap = TypeMap.Empty;
-            this.typeParameters = CreateTypeParameters(parameterCount, returnsVoid);
+            _name = name;
+            _typeMap = TypeMap.Empty;
+            _typeParameters = CreateTypeParameters(parameterCount, returnsVoid);
         }
 
         protected SynthesizedContainer(string name, MethodSymbol topLevelMethod)
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(name != null);
             Debug.Assert(topLevelMethod != null);
 
-            this.name = name;
-            this.typeMap = TypeMap.Empty.WithAlphaRename(topLevelMethod, this, out this.typeParameters);
+            _name = name;
+            _typeMap = TypeMap.Empty.WithAlphaRename(topLevelMethod, this, out _typeParameters);
         }
 
         protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParameters, TypeMap typeMap)
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!typeParameters.IsDefault);
             Debug.Assert(typeMap != null);
 
-            this.name = name;
-            this.typeParameters = typeParameters;
-            this.typeMap = typeMap;
+            _name = name;
+            _typeParameters = typeParameters;
+            _typeMap = typeMap;
         }
 
         private ImmutableArray<TypeParameterSymbol> CreateTypeParameters(int parameterCount, bool returnsVoid)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeMap TypeMap
         {
-            get { return typeMap; }
+            get { return _typeMap; }
         }
 
         internal virtual MethodSymbol Constructor
@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return typeParameters; }
+            get { return _typeParameters; }
         }
 
         public sealed override string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         public override ImmutableArray<Location> Locations

@@ -9,25 +9,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class UsingsBinder : Binder
     {
-        private ImmutableArray<NamespaceOrTypeAndUsingDirective> lazyConsolidatedUsings;
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> _lazyConsolidatedUsings;
 
         internal UsingsBinder(Binder next, ImmutableArray<NamespaceOrTypeAndUsingDirective> usings = default(ImmutableArray<NamespaceOrTypeAndUsingDirective>))
             : base(next)
         {
-            lazyConsolidatedUsings = usings;
+            _lazyConsolidatedUsings = usings;
         }
 
         internal ImmutableArray<NamespaceOrTypeAndUsingDirective> ConsolidatedUsings
         {
             get
             {
-                if (lazyConsolidatedUsings.IsDefault)
+                if (_lazyConsolidatedUsings.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(
-                        ref lazyConsolidatedUsings, GetConsolidatedUsings(), default(ImmutableArray<NamespaceOrTypeAndUsingDirective>));
+                        ref _lazyConsolidatedUsings, GetConsolidatedUsings(), default(ImmutableArray<NamespaceOrTypeAndUsingDirective>));
                 }
 
-                return lazyConsolidatedUsings;
+                return _lazyConsolidatedUsings;
             }
         }
 

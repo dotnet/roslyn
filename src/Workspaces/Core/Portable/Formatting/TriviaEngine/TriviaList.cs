@@ -10,20 +10,20 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal struct TriviaList : IEnumerable<SyntaxTrivia>
     {
-        private readonly SyntaxTriviaList list1;
-        private readonly SyntaxTriviaList list2;
+        private readonly SyntaxTriviaList _list1;
+        private readonly SyntaxTriviaList _list2;
 
         public TriviaList(SyntaxTriviaList list1, SyntaxTriviaList list2)
         {
-            this.list1 = list1;
-            this.list2 = list2;
+            _list1 = list1;
+            _list2 = list2;
         }
 
         public int Count
         {
             get
             {
-                return list1.Count + list2.Count;
+                return _list1.Count + _list2.Count;
             }
         }
 
@@ -44,35 +44,35 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public struct Enumerator : IEnumerator<SyntaxTrivia>
         {
-            private readonly SyntaxTriviaList list1;
-            private readonly SyntaxTriviaList list2;
+            private readonly SyntaxTriviaList _list1;
+            private readonly SyntaxTriviaList _list2;
 
-            private SyntaxTriviaList.Enumerator enumerator;
-            private int index;
+            private SyntaxTriviaList.Enumerator _enumerator;
+            private int _index;
 
             internal Enumerator(TriviaList triviaList)
             {
-                this.list1 = triviaList.list1;
-                this.list2 = triviaList.list2;
+                _list1 = triviaList._list1;
+                _list2 = triviaList._list2;
 
-                this.index = -1;
-                this.enumerator = list1.GetEnumerator();
+                _index = -1;
+                _enumerator = _list1.GetEnumerator();
             }
 
             public bool MoveNext()
             {
-                index++;
-                if (index == list1.Count)
+                _index++;
+                if (_index == _list1.Count)
                 {
-                    enumerator = list2.GetEnumerator();
+                    _enumerator = _list2.GetEnumerator();
                 }
 
-                return enumerator.MoveNext();
+                return _enumerator.MoveNext();
             }
 
             public SyntaxTrivia Current
             {
-                get { return enumerator.Current; }
+                get { return _enumerator.Current; }
             }
 
             void IDisposable.Dispose()

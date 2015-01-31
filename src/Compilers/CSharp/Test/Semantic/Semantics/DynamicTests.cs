@@ -1383,7 +1383,6 @@ class C
         [Fact]
         public void TestDynamicTypeInference()
         {
-           
             string source = @"
 public class E<W> where W : struct {}
 public class F<X> {}

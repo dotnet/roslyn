@@ -34,33 +34,33 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         // never null fields
-        private readonly ISymbol symbol;
-        private readonly Solution solution;
-        private readonly SearchResult mergedResult;
+        private readonly ISymbol _symbol;
+        private readonly Solution _solution;
+        private readonly SearchResult _mergedResult;
 
         // possibly null fields
-        private readonly OptionSet optionSet;
-        private readonly SearchResult originalSymbolResult;
-        private readonly List<SearchResult> overloadsResult;
-        private readonly IEnumerable<RenameLocation> stringsResult;
-        private readonly IEnumerable<RenameLocation> commentsResult;
+        private readonly OptionSet _optionSet;
+        private readonly SearchResult _originalSymbolResult;
+        private readonly List<SearchResult> _overloadsResult;
+        private readonly IEnumerable<RenameLocation> _stringsResult;
+        private readonly IEnumerable<RenameLocation> _commentsResult;
 
         public RenameLocationSet(ISet<RenameLocation> locations, ISymbol symbol, Solution solution, IEnumerable<ISymbol> referencedSymbols, IEnumerable<ReferenceLocation> implicitLocations)
         {
-            this.symbol = symbol;
-            this.solution = solution;
-            this.mergedResult = new SearchResult(locations, implicitLocations, referencedSymbols);
+            _symbol = symbol;
+            _solution = solution;
+            _mergedResult = new SearchResult(locations, implicitLocations, referencedSymbols);
         }
 
         private RenameLocationSet(ISymbol symbol, Solution solution, OptionSet optionSet, SearchResult originalSymbolResult, List<SearchResult> overloadsResult, IEnumerable<RenameLocation> stringsResult, IEnumerable<RenameLocation> commentsResult)
         {
-            this.symbol = symbol;
-            this.solution = solution;
-            this.optionSet = optionSet;
-            this.originalSymbolResult = originalSymbolResult;
-            this.overloadsResult = overloadsResult;
-            this.stringsResult = stringsResult;
-            this.commentsResult = commentsResult;
+            _symbol = symbol;
+            _solution = solution;
+            _optionSet = optionSet;
+            _originalSymbolResult = originalSymbolResult;
+            _overloadsResult = overloadsResult;
+            _stringsResult = stringsResult;
+            _commentsResult = commentsResult;
 
             var mergedLocations = new HashSet<RenameLocation>();
             var mergedReferencedSymbols = new List<ISymbol>();
@@ -84,14 +84,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
             }
 
-            this.mergedResult = new SearchResult(mergedLocations, mergedImplicitLocations, mergedReferencedSymbols);
+            _mergedResult = new SearchResult(mergedLocations, mergedImplicitLocations, mergedReferencedSymbols);
         }
 
-        public ISet<RenameLocation> Locations { get { return mergedResult.Locations; } }
-        public ISymbol Symbol { get { return symbol; } }
-        public Solution Solution { get { return solution; } }
-        public IEnumerable<ISymbol> ReferencedSymbols { get { return mergedResult.ReferencedSymbols; } }
-        public IEnumerable<ReferenceLocation> ImplicitLocations { get { return mergedResult.ImplicitLocations; } }
+        public ISet<RenameLocation> Locations { get { return _mergedResult.Locations; } }
+        public ISymbol Symbol { get { return _symbol; } }
+        public Solution Solution { get { return _solution; } }
+        public IEnumerable<ISymbol> ReferencedSymbols { get { return _mergedResult.ReferencedSymbols; } }
+        public IEnumerable<ReferenceLocation> ImplicitLocations { get { return _mergedResult.ImplicitLocations; } }
 
         /// <summary>
         /// Find the locations that need to be renamed.
@@ -111,25 +111,25 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public async Task<RenameLocationSet> FindWithUpdatedOptionsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(this.optionSet, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
+            Contract.ThrowIfNull(_optionSet, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
-                var overloadsResult = this.overloadsResult ?? (optionSet.GetOption(RenameOptions.RenameOverloads)
-                    ? await GetOverloadsAsync(this.symbol, this.solution, cancellationToken).ConfigureAwait(false)
+                var overloadsResult = _overloadsResult ?? (optionSet.GetOption(RenameOptions.RenameOverloads)
+                    ? await GetOverloadsAsync(_symbol, _solution, cancellationToken).ConfigureAwait(false)
                     : null);
 
                 var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
-                    this.symbol,
-                    this.solution,
-                    this.originalSymbolResult.Locations,
-                    optionSet.GetOption(RenameOptions.RenameInStrings) && this.stringsResult == null,
-                    optionSet.GetOption(RenameOptions.RenameInComments) && this.commentsResult == null,
+                    _symbol,
+                    _solution,
+                    _originalSymbolResult.Locations,
+                    optionSet.GetOption(RenameOptions.RenameInStrings) && _stringsResult == null,
+                    optionSet.GetOption(RenameOptions.RenameInComments) && _commentsResult == null,
                     cancellationToken).ConfigureAwait(false);
 
-                return new RenameLocationSet(this.symbol, this.solution, optionSet, this.originalSymbolResult,
-                    this.overloadsResult ?? overloadsResult,
-                    this.stringsResult ?? stringsAndComments.Item1,
-                    this.commentsResult ?? stringsAndComments.Item2);
+                return new RenameLocationSet(_symbol, _solution, optionSet, _originalSymbolResult,
+                    _overloadsResult ?? overloadsResult,
+                    _stringsResult ?? stringsAndComments.Item1,
+                    _commentsResult ?? stringsAndComments.Item2);
             }
         }
 

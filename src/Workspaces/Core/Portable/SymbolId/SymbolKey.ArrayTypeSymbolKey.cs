@@ -12,33 +12,33 @@ namespace Microsoft.CodeAnalysis
     {
         private class ArrayTypeSymbolKey : AbstractSymbolKey<ArrayTypeSymbolKey>
         {
-            private readonly SymbolKey elementKey;
-            private readonly int rank;
+            private readonly SymbolKey _elementKey;
+            private readonly int _rank;
 
             internal ArrayTypeSymbolKey(IArrayTypeSymbol symbol, Visitor visitor)
             {
-                this.elementKey = GetOrCreate(symbol.ElementType, visitor);
-                this.rank = symbol.Rank;
+                _elementKey = GetOrCreate(symbol.ElementType, visitor);
+                _rank = symbol.Rank;
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                var elementInfo = elementKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementInfo).Select(s => compilation.CreateArrayTypeSymbol(s, rank)));
+                var elementInfo = _elementKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementInfo).Select(s => compilation.CreateArrayTypeSymbol(s, _rank)));
             }
 
             internal override bool Equals(ArrayTypeSymbolKey other, ComparisonOptions options)
             {
                 return
-                    other.rank == this.rank &&
-                    other.elementKey.Equals(this.elementKey, options);
+                    other._rank == _rank &&
+                    other._elementKey.Equals(_elementKey, options);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 return Hash.Combine(
-                    this.rank,
-                    this.elementKey.GetHashCode(options));
+                    _rank,
+                    _elementKey.GetHashCode(options));
             }
         }
     }

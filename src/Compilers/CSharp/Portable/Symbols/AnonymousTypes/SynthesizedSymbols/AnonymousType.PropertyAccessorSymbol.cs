@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed partial class AnonymousTypePropertyGetAccessorSymbol : SynthesizedMethodBase
         {
-            private readonly AnonymousTypePropertySymbol property;
+            private readonly AnonymousTypePropertySymbol _property;
 
             internal AnonymousTypePropertyGetAccessorSymbol(AnonymousTypePropertySymbol property)
                 // winmdobj output only effects setters, so we can always set this to false
                 : base(property.ContainingType, SourcePropertyAccessorSymbol.GetAccessorName(property.Name, getNotSet: true, isWinMdOutput: false))
             {
-                this.property = property;
+                _property = property;
             }
 
             public override MethodKind MethodKind
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbol ReturnType
             {
-                get { return this.property.Type; }
+                get { return _property.Type; }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol AssociatedSymbol
             {
-                get { return this.property; }
+                get { return _property; }
             }
 
             public override ImmutableArray<Location> Locations
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get
                 {
                     // The accessor for a anonymous type property has the same location as the property.
-                    return this.property.Locations;
+                    return _property.Locations;
                 }
             }
 

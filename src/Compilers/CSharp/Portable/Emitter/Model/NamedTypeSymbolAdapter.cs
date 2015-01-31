@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class NamedTypeSymbol :
+    internal partial class NamedTypeSymbol :
         Cci.ITypeReference,
         Cci.ITypeDefinition,
         Cci.INamedTypeReference,
@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericTypeInstanceReference,
         Cci.ISpecializedNestedTypeReference
     {
-
         bool Cci.ITypeReference.IsEnum
         {
             get { return this.TypeKind == TypeKind.Enum; }
@@ -664,10 +663,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                        yield return method;
-                    }
+                    yield return method;
                 }
             }
+        }
 
         IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
         {
@@ -804,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // consumer cannot figure where namespace ends and actual type name starts.
                 // Therefore it is a good practice to avoid type names with dots.
                 // Exception: The EE copies type names from metadata, which may contain dots already.
-                Debug.Assert(this.IsErrorType() || 
+                Debug.Assert(this.IsErrorType() ||
                     !unsuffixedName.Contains(".") ||
                     this.OriginalDefinition is PENamedTypeSymbol, "type name contains dots: " + unsuffixedName);
 
@@ -892,7 +891,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return builder.ToImmutableAndFree();
-
         }
 
         Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GenericType

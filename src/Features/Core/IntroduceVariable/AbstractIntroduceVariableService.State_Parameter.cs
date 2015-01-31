@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool IsInParameterContext(
                 CancellationToken cancellationToken)
             {
-                if (!service.IsInParameterInitializer(this.Expression))
+                if (!_service.IsInParameterInitializer(this.Expression))
                 {
                     return false;
                 }

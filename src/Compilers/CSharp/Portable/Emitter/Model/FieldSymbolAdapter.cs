@@ -9,14 +9,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class FieldSymbol :
+    internal partial class FieldSymbol :
         Cci.IFieldReference,
         Cci.IFieldDefinition,
         Cci.ITypeMemberReference,
         Cci.ITypeDefinitionMember,
         Cci.ISpecializedFieldReference
     {
-
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;

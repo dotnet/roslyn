@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -197,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return symbols;
         }
 
-        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>> symbolToNameMap =
+        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>> s_symbolToNameMap =
             new ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>>();
-        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>>.CreateValueCallback getNameParts = GetNameParts;
+        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, IList<string>>.CreateValueCallback s_getNameParts = GetNameParts;
 
         private static IList<string> GetNameParts(INamespaceOrTypeSymbol symbol)
         {
@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return 1;
             }
 
-            var names1 = symbolToNameMap.GetValue(n1, GetNameParts);
-            var names2 = symbolToNameMap.GetValue(n2, GetNameParts);
+            var names1 = s_symbolToNameMap.GetValue(n1, GetNameParts);
+            var names2 = s_symbolToNameMap.GetValue(n2, GetNameParts);
 
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
             {

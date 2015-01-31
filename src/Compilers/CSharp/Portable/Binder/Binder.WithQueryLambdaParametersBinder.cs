@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // to the appropriate rewriting involving lambda parameters when transparent identifiers are involved.
         private sealed class WithQueryLambdaParametersBinder : WithLambdaParametersBinder
         {
-            readonly RangeVariableMap rangeVariableMap;
-            new readonly MultiDictionary<string, RangeVariableSymbol> parameterMap;
+            private readonly RangeVariableMap _rangeVariableMap;
+            private readonly MultiDictionary<string, RangeVariableSymbol> _parameterMap;
 
             public WithQueryLambdaParametersBinder(LambdaSymbol lambdaSymbol, RangeVariableMap rangeVariableMap, Binder next)
                 : base(lambdaSymbol, next)
             {
-                this.rangeVariableMap = rangeVariableMap;
-                parameterMap = new MultiDictionary<string, RangeVariableSymbol>();
+                _rangeVariableMap = rangeVariableMap;
+                _parameterMap = new MultiDictionary<string, RangeVariableSymbol>();
                 foreach (var qv in rangeVariableMap.Keys)
                 {
-                    parameterMap.Add(qv.Name, qv);
+                    _parameterMap.Add(qv.Name, qv);
                 }
             }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression translation;
                 ImmutableArray<string> path;
-                if (rangeVariableMap.TryGetValue(qv, out path))
+                if (_rangeVariableMap.TryGetValue(qv, out path))
                 {
                     if (path.IsEmpty)
                     {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                foreach (var rangeVariable in parameterMap[name])
+                foreach (var rangeVariable in _parameterMap[name])
                 {
                     result.MergeEqual(originalBinder.CheckViability(rangeVariable, arity, options, null, diagnose, ref useSiteDiagnostics));
                 }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (options.CanConsiderMembers())
                 {
-                    foreach (var kvp in parameterMap)
+                    foreach (var kvp in _parameterMap)
                     {
                         result.AddSymbol(null, kvp.Key, 0);
                     }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             //    the dispose pattern).
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
-            return (idisposable != null) && 
+            return (idisposable != null) &&
                    unimplementedMembers.Any(m => m.Item1.Equals(idisposable)) &&
                    this.CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
         }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private static readonly SyntaxAnnotation implementingTypeAnnotation = new SyntaxAnnotation("ImplementingType");
+            private static readonly SyntaxAnnotation s_implementingTypeAnnotation = new SyntaxAnnotation("ImplementingType");
             public override async Task<Document> GetUpdatedDocumentAsync(
                     Document document,
                     IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
@@ -105,14 +105,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                
+
                 // Add an annotation to the type declaration node so that we can find it again to append the dispose pattern implementation below.
                 result = await result.ReplaceNodeAsync(
                     classOrStructDecl,
-                    classOrStructDecl.WithAdditionalAnnotations(implementingTypeAnnotation),
+                    classOrStructDecl.WithAdditionalAnnotations(s_implementingTypeAnnotation),
                     cancellationToken).ConfigureAwait(false);
                 var root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructDecl = root.GetAnnotatedNodes(implementingTypeAnnotation).Single();
+                classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
                 compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // plate code required for implementing the dispose pattern.
                 var idisposable = TryGetSymbolForIDisposable(compilation);
                 result = await base.GetUpdatedDocumentAsync(
-                                            result, 
+                                            result,
                                             unimplementedMembers.Where(m => !m.Item1.Equals(idisposable)).ToList(),
                                             classOrStructType,
                                             classOrStructDecl,
@@ -130,17 +130,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // Now append the dispose pattern implementation.
                 root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructDecl = root.GetAnnotatedNodes(implementingTypeAnnotation).Single();
+                classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
                 compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
                 result = Service.ImplementDisposePattern(result, root, classOrStructType, classOrStructDecl.SpanStart, Explicitly);
 
                 // Remove the annotation since we don't need it anymore.
                 root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructDecl = root.GetAnnotatedNodes(implementingTypeAnnotation).Single();
+                classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
                 result = await result.ReplaceNodeAsync(
                     classOrStructDecl,
-                    classOrStructDecl.WithoutAnnotations(implementingTypeAnnotation),
+                    classOrStructDecl.WithoutAnnotations(s_implementingTypeAnnotation),
                     cancellationToken).ConfigureAwait(false);
 
                 return result;

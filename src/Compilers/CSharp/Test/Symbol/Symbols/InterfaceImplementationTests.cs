@@ -857,8 +857,8 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
         public void TestExplicitMethodImplementationOnNonDeclaringType()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                new[] 
-                { 
+                new[]
+                {
                     TestReferences.NetFx.v4_0_30319.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
@@ -1956,7 +1956,7 @@ class Derived : Base, I2
 
             var interface1 = global.GetMember<NamedTypeSymbol>("I1");
             var interface1Method = interface1.GetMember<MethodSymbol>("M");
-            
+
             var interface2 = global.GetMember<NamedTypeSymbol>("I2");
             var interface2Method = interface2.GetMember<MethodSymbol>("M");
 
@@ -2011,7 +2011,7 @@ public class D : B, I
 {
 }
 ";
-            
+
             var comp = CreateCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics();
 
@@ -2022,7 +2022,7 @@ public class D : B, I
 
             var baseType = global.GetMember<NamedTypeSymbol>("B");
             var baseMethod = baseType.GetMember<MethodSymbol>("M");
-            
+
             var derivedType = global.GetMember<SourceNamedTypeSymbol>("D");
 
             var byRefType = (ByRefReturnErrorTypeSymbol)interfaceMethod.ReturnType;
@@ -2034,7 +2034,7 @@ public class D : B, I
             // Interface implementation:
             Assert.Equal(byRefType, interfaceMethod.ReturnType);
             Assert.Equal(baseMethod, derivedType.FindImplementationForInterfaceMember(interfaceMethod));
-            
+
             var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
             Assert.Equal(baseMethod, synthesized.ImplementingMethod);
             Assert.Equal(interfaceMethod, synthesized.ExplicitInterfaceImplementations.Single());
@@ -2221,7 +2221,7 @@ Explicit implementation
             var @interface = global.GetMember<NamedTypeSymbol>("I");
             var baseType = global.GetMember<NamedTypeSymbol>("Base");
             var derivedType = global.GetMember<NamedTypeSymbol>("Derived");
-            
+
             var interfaceEvent = @interface.GetMember<EventSymbol>("E");
             var interfaceAdder = interfaceEvent.AddMethod;
 

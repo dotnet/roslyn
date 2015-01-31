@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ConstructedNamedTypeSymbol : SubstitutedNamedTypeSymbol
     {
-        private readonly ImmutableArray<TypeSymbol> typeArguments;
-        private readonly NamedTypeSymbol constructedFrom;
+        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly NamedTypeSymbol _constructedFrom;
 
         internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeSymbol> typeArguments, bool unbound = false)
             : base(newContainer: constructedFrom.ContainingSymbol,
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    originalDefinition: constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom, unbound: unbound)
         {
-            this.typeArguments = typeArguments;
-            this.constructedFrom = constructedFrom;
+            _typeArguments = typeArguments;
+            _constructedFrom = constructedFrom;
 
             Debug.Assert(constructedFrom.Arity == typeArguments.Length);
             Debug.Assert(constructedFrom.Arity != 0);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return constructedFrom;
+                return _constructedFrom;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return typeArguments;
+                return _typeArguments;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             return ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                   GetUnificationUseSiteDiagnosticRecursive(ref result, typeArguments, owner, ref checkedTypes);
+                   GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArguments, owner, ref checkedTypes);
         }
     }
 }

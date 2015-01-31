@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return token;
         }
-        
+
         public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
         {
             return members.FirstOrDefault();

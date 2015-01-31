@@ -12,34 +12,34 @@ namespace Microsoft.CodeAnalysis
     {
         private class EventSymbolKey : AbstractSymbolKey<EventSymbolKey>
         {
-            private readonly SymbolKey containerKey;
-            private readonly string metadataName;
+            private readonly SymbolKey _containerKey;
+            private readonly string _metadataName;
 
             internal EventSymbolKey(IEventSymbol symbol, Visitor visitor)
             {
-                this.containerKey = GetOrCreate(symbol.ContainingType, visitor);
-                this.metadataName = symbol.MetadataName;
+                _containerKey = GetOrCreate(symbol.ContainingType, visitor);
+                _metadataName = symbol.MetadataName;
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                var containerInfo = containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                var events = GetAllSymbols<INamedTypeSymbol>(containerInfo).SelectMany(t => t.GetMembers(this.metadataName)).OfType<IEventSymbol>();
+                var containerInfo = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                var events = GetAllSymbols<INamedTypeSymbol>(containerInfo).SelectMany(t => t.GetMembers(_metadataName)).OfType<IEventSymbol>();
                 return CreateSymbolInfo(events);
             }
 
             internal override bool Equals(EventSymbolKey other, ComparisonOptions options)
             {
                 return
-                    Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
-                    other.containerKey.Equals(this.containerKey, options);
+                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
+                    other._containerKey.Equals(_containerKey, options);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 return Hash.Combine(
-                    GetHashCode(options.IgnoreCase, this.metadataName),
-                    this.containerKey.GetHashCode(options));
+                    GetHashCode(options.IgnoreCase, _metadataName),
+                    _containerKey.GetHashCode(options));
             }
         }
     }

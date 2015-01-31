@@ -10,16 +10,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class FileSet : IEnumerable<KeyValuePair<string, object>>
     {
-        private readonly Dictionary<string, object> nameToContentMap;
+        private readonly Dictionary<string, object> _nameToContentMap;
 
         public FileSet(IEnumerable<KeyValuePair<string, object>> nameToContentMap)
         {
-            this.nameToContentMap = nameToContentMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            _nameToContentMap = nameToContentMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
-            return this.nameToContentMap.GetEnumerator();
+            return _nameToContentMap.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public FileSet WithFile(string fileName, object content)
         {
-            return new FileSet(this.nameToContentMap.Where(kvp => kvp.Key != fileName).Concat(new KeyValuePair<string, object>(fileName, content)));
+            return new FileSet(_nameToContentMap.Where(kvp => kvp.Key != fileName).Concat(new KeyValuePair<string, object>(fileName, content)));
         }
 
         public FileSet ReplaceFileElement(string fileName, string elementName, string elementValue)
         {
             object content;
-            if (this.nameToContentMap.TryGetValue(fileName, out content))
+            if (_nameToContentMap.TryGetValue(fileName, out content))
             {
                 var textContent = content as string;
                 if (textContent != null)

@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Notification
         private const string GlobalOperationStartedEventName = "GlobalOperationStarted";
         private const string GlobalOperationStoppedEventName = "GlobalOperationStopped";
 
-        private readonly object gate = new object();
+        private readonly object _gate = new object();
 
-        private readonly HashSet<GlobalOperationRegistration> registrations = new HashSet<GlobalOperationRegistration>();
-        private readonly HashSet<string> operations = new HashSet<string>();
+        private readonly HashSet<GlobalOperationRegistration> _registrations = new HashSet<GlobalOperationRegistration>();
+        private readonly HashSet<string> _operations = new HashSet<string>();
 
-        private readonly SimpleTaskQueue eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
-        private readonly EventMap eventMap = new EventMap();
+        private readonly SimpleTaskQueue _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+        private readonly EventMap _eventMap = new EventMap();
 
         public GlobalOperationNotificationService()
         {
@@ -27,19 +27,19 @@ namespace Microsoft.CodeAnalysis.Notification
 
         public override GlobalOperationRegistration Start(string operation)
         {
-            lock (gate)
+            lock (_gate)
             {
                 // create new registration
                 var registration = new GlobalOperationRegistration(this, operation);
 
                 // states
-                this.registrations.Add(registration);
-                this.operations.Add(operation);
+                _registrations.Add(registration);
+                _operations.Add(operation);
 
                 // the very first one
-                if (this.registrations.Count == 1)
+                if (_registrations.Count == 1)
                 {
-                    Contract.ThrowIfFalse(this.operations.Count == 1);
+                    Contract.ThrowIfFalse(_operations.Count == 1);
                     RaiseGlobalOperationStarted();
                 }
 
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Notification
 
         protected virtual Task RaiseGlobalOperationStarted()
         {
-            var handlers = this.eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
+            var handlers = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (handlers.Length > 0)
             {
-                return this.eventQueue.ScheduleTask(() =>
+                return _eventQueue.ScheduleTask(() =>
                 {
                     foreach (var handler in handlers)
                     {
@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Notification
 
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            var handlers = this.eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
+            var handlers = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (handlers.Length > 0)
             {
                 var args = new GlobalOperationEventArgs(operations, cancelled);
 
-                return this.eventQueue.ScheduleTask(() =>
+                return _eventQueue.ScheduleTask(() =>
                 {
                     foreach (var handler in handlers)
                     {
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.Notification
             {
                 // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
                 // that one.
-                this.eventMap.AddEventHandler(GlobalOperationStartedEventName, value);
+                _eventMap.AddEventHandler(GlobalOperationStartedEventName, value);
             }
 
             remove
             {
-                this.eventMap.RemoveEventHandler(GlobalOperationStartedEventName, value);
+                _eventMap.RemoveEventHandler(GlobalOperationStartedEventName, value);
             }
         }
 
@@ -104,26 +104,26 @@ namespace Microsoft.CodeAnalysis.Notification
             {
                 // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
                 // that one.
-                this.eventMap.AddEventHandler(GlobalOperationStoppedEventName, value);
+                _eventMap.AddEventHandler(GlobalOperationStoppedEventName, value);
             }
 
             remove
             {
-                this.eventMap.RemoveEventHandler(GlobalOperationStoppedEventName, value);
+                _eventMap.RemoveEventHandler(GlobalOperationStoppedEventName, value);
             }
         }
 
         public override void Cancel(GlobalOperationRegistration registration)
         {
-            lock (gate)
+            lock (_gate)
             {
-                var result = this.registrations.Remove(registration);
+                var result = _registrations.Remove(registration);
                 Contract.ThrowIfFalse(result);
 
-                if (this.registrations.Count == 0)
+                if (_registrations.Count == 0)
                 {
-                    var operations = this.operations.AsImmutable();
-                    this.operations.Clear();
+                    var operations = _operations.AsImmutable();
+                    _operations.Clear();
 
                     // We don't care if an individual operation has canceled.
                     // We only care whether whole thing has cancelled or not.
@@ -134,15 +134,15 @@ namespace Microsoft.CodeAnalysis.Notification
 
         public override void Done(GlobalOperationRegistration registration)
         {
-            lock (gate)
+            lock (_gate)
             {
-                var result = this.registrations.Remove(registration);
+                var result = _registrations.Remove(registration);
                 Contract.ThrowIfFalse(result);
 
-                if (this.registrations.Count == 0)
+                if (_registrations.Count == 0)
                 {
-                    var operations = this.operations.AsImmutable();
-                    this.operations.Clear();
+                    var operations = _operations.AsImmutable();
+                    _operations.Clear();
 
                     RaiseGlobalOperationStopped(operations, cancelled: false);
                 }
@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.Notification
 
         ~GlobalOperationNotificationService()
         {
-            Contract.ThrowIfFalse(this.registrations.Count == 0);
-            Contract.ThrowIfFalse(this.operations.Count == 0);
+            Contract.ThrowIfFalse(_registrations.Count == 0);
+            Contract.ThrowIfFalse(_operations.Count == 0);
         }
     }
 }

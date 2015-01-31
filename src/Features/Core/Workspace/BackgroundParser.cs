@@ -10,23 +10,23 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal class BackgroundParser
     {
-        private readonly Workspace workspace;
-        private readonly IWorkspaceTaskScheduler taskScheduler;
+        private readonly Workspace _workspace;
+        private readonly IWorkspaceTaskScheduler _taskScheduler;
 
-        private readonly ReaderWriterLockSlim stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
-        private readonly object parseGate = new object();
-        private ImmutableDictionary<DocumentId, CancellationTokenSource> workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
+        private readonly object _parseGate = new object();
+        private ImmutableDictionary<DocumentId, CancellationTokenSource> _workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
 
         public bool IsStarted { get; private set; }
 
         public BackgroundParser(Workspace workspace)
         {
-            this.workspace = workspace;
+            _workspace = workspace;
 
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            this.taskScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
-            this.workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+            _taskScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
+            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
 
             var editorWorkspace = workspace as Workspace;
             if (editorWorkspace != null)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void Start()
         {
-            using (this.stateLock.DisposableRead())
+            using (_stateLock.DisposableRead())
             {
                 if (!this.IsStarted)
                 {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void Stop()
         {
-            using (this.stateLock.DisposableWrite())
+            using (_stateLock.DisposableWrite())
             {
                 if (this.IsStarted)
                 {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void CancelAllParses()
         {
-            using (this.stateLock.DisposableWrite())
+            using (_stateLock.DisposableWrite())
             {
                 this.CancelAllParses_NoLock();
             }
@@ -107,27 +107,27 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void CancelAllParses_NoLock()
         {
-            this.stateLock.AssertCanWrite();
+            _stateLock.AssertCanWrite();
 
-            foreach (var tuple in this.workMap)
+            foreach (var tuple in _workMap)
             {
                 tuple.Value.Cancel();
             }
 
-            this.workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
+            _workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
         }
 
         public void CancelParse(DocumentId documentId)
         {
             if (documentId != null)
             {
-                using (this.stateLock.DisposableWrite())
+                using (_stateLock.DisposableWrite())
                 {
                     CancellationTokenSource cancellationTokenSource;
-                    if (this.workMap.TryGetValue(documentId, out cancellationTokenSource))
+                    if (_workMap.TryGetValue(documentId, out cancellationTokenSource))
                     {
                         cancellationTokenSource.Cancel();
-                        this.workMap = this.workMap.Remove(documentId);
+                        _workMap = _workMap.Remove(documentId);
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (document != null)
             {
-                lock (this.parseGate)
+                lock (_parseGate)
                 {
                     this.CancelParse(document.Id);
 
@@ -161,14 +161,14 @@ namespace Microsoft.CodeAnalysis.Host
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using (this.stateLock.DisposableWrite())
+            using (_stateLock.DisposableWrite())
             {
-                this.workMap = this.workMap.Add(document.Id, cancellationTokenSource);
+                _workMap = _workMap.Add(document.Id, cancellationTokenSource);
             }
 
             var cancellationToken = cancellationTokenSource.Token;
 
-            var task = this.taskScheduler.ScheduleTask(
+            var task = _taskScheduler.ScheduleTask(
                 () => document.GetSyntaxTreeAsync(cancellationToken),
                 "BackgroundParser.ParseDocumentAsync",
                 cancellationToken);
@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.Host
             task.SafeContinueWith(
                 _ =>
                 {
-                    using (this.stateLock.DisposableWrite())
+                    using (_stateLock.DisposableWrite())
                     {
-                        this.workMap = this.workMap.Remove(document.Id);
+                        _workMap = _workMap.Remove(document.Id);
                     }
                 }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
         }

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class TouchedFileLoggingTests : CSharpTestBase
     {
-        private static readonly string libDirectory = Environment.GetEnvironmentVariable("LIB");
-        private readonly string baseDirectory = TempRoot.Root;
+        private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
+        private readonly string _baseDirectory = TempRoot.Root;
         private const string helloWorldCS = @"using System;
 
 class C
@@ -36,7 +36,7 @@ class C
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", hello,
+            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
                string.Format(@"/touchedfiles:""{0}""", touchedBase) });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -77,7 +77,7 @@ class C
             var net4_0dll = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, baseDirectory,
+            var cmd = new MockCSharpCompiler(null, _baseDirectory,
                 new[] { "/nologo",
                         "/r:" + silverlight,
                         "/r:" + net4_0dll,
@@ -112,7 +112,7 @@ class C
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, baseDirectory,
+            var cmd = new MockCSharpCompiler(null, _baseDirectory,
                 new[] { "/nologo",
                         "/touchedfiles:" + touchedBase,
                         "/keyfile:" + snkPath,
@@ -150,7 +150,7 @@ public class C { }").Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, baseDirectory, new[]
+            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[]
             {
                 "/nologo",
                 "/target:library",
@@ -198,7 +198,6 @@ public class C { }").Path;
         [Fact]
         public void TrivialMetadataCaching()
         {
-
             List<String> filelist = new List<string>();
 
             // Do the following compilation twice.
@@ -215,8 +214,8 @@ public class C { }").Path;
                 var outWriter = new StringWriter();
                 var cmd = new CSharpCompilerServer(null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    baseDirectory,
-                    libDirectory,
+                    _baseDirectory,
+                    s_libDirectory,
                     Path.GetTempPath());
 
                 List<string> expectedReads;
@@ -248,7 +247,7 @@ public class C { }").Path;
         /// so this method must be called before the execution of
         /// Csc.Run.
         /// </summary>
-        private static void BuildTouchedFiles(CSharpCompiler cmd, 
+        private static void BuildTouchedFiles(CSharpCompiler cmd,
                                               string outputPath,
                                               out List<string> expectedReads,
                                               out List<string> expectedWrites)

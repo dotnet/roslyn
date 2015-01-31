@@ -11,19 +11,19 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class WeakConstantValueSource<T> : ValueSource<T> where T : class
     {
-        private readonly WeakReference<T> weakValue;
+        private readonly WeakReference<T> _weakValue;
 
         public WeakConstantValueSource(T value)
         {
-            this.weakValue = new WeakReference<T>(value);
+            _weakValue = new WeakReference<T>(value);
         }
 
         public override T GetValue(CancellationToken cancellationToken)
         {
-            if (this.weakValue != null)
+            if (_weakValue != null)
             {
                 T value;
-                if (this.weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out value))
                 {
                     return value;
                 }
@@ -34,9 +34,9 @@ namespace Roslyn.Utilities
 
         public override bool TryGetValue(out T value)
         {
-            if (this.weakValue != null)
+            if (_weakValue != null)
             {
-                if (this.weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out value))
                 {
                     return true;
                 }

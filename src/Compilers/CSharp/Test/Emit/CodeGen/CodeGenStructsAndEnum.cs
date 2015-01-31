@@ -1155,7 +1155,7 @@ public class D
 }
 ");
         }
-        
+
         [Fact]
         public void CtorUsed001()
         {

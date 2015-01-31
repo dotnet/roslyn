@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private partial class IncrementalAnalyzerProcessor
             {
-                private static readonly Func<int, object, bool, string> enqueueLogger = (t, i, s) => string.Format("[{0}] {1} : {2}", t, i.ToString(), s);
+                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("[{0}] {1} : {2}", t, i.ToString(), s);
 
-                private readonly int correlationId;
-                private readonly Workspace workspace;
-                private readonly IAsynchronousOperationListener listener;
-                private readonly IDocumentTrackingService documentTracker;
-                private readonly HighPriorityProcessor highPriorityProcessor;
-                private readonly NormalPriorityProcessor normalPriorityProcessor;
-                private readonly LowPriorityProcessor lowPriorityProcessor;
+                private readonly int _correlationId;
+                private readonly Workspace _workspace;
+                private readonly IAsynchronousOperationListener _listener;
+                private readonly IDocumentTrackingService _documentTracker;
+                private readonly HighPriorityProcessor _highPriorityProcessor;
+                private readonly NormalPriorityProcessor _normalPriorityProcessor;
+                private readonly LowPriorityProcessor _lowPriorityProcessor;
 
-                private LogAggregator logAggregator;
+                private LogAggregator _logAggregator;
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
@@ -40,22 +40,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     int highBackOffTimeSpanInMs, int normalBackOffTimeSpanInMs, int lowBackOffTimeSpanInMs, CancellationToken shutdownToken)
                 {
-                    this.logAggregator = new LogAggregator();
-                    this.listener = listener;
+                    _logAggregator = new LogAggregator();
+                    _listener = listener;
 
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(correlationId, workspace, analyzerProviders));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(correlationId, workspace, analyzerProviders));
 
                     // event and worker queues
-                    this.correlationId = correlationId;
-                    this.workspace = workspace;
+                    _correlationId = correlationId;
+                    _workspace = workspace;
 
-                    this.documentTracker = workspace.Services.GetService<IDocumentTrackingService>();
+                    _documentTracker = workspace.Services.GetService<IDocumentTrackingService>();
 
                     var globalNotificationService = workspace.Services.GetService<IGlobalOperationNotificationService>();
-                    this.highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
-                    this.normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
-                    this.lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
+                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
+                    _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
+                    _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
 
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
@@ -89,23 +89,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     Contract.ThrowIfNull(item.DocumentId);
 
-                    this.highPriorityProcessor.Enqueue(item);
-                    this.normalPriorityProcessor.Enqueue(item);
-                    this.lowPriorityProcessor.Enqueue(item);
+                    _highPriorityProcessor.Enqueue(item);
+                    _normalPriorityProcessor.Enqueue(item);
+                    _lowPriorityProcessor.Enqueue(item);
                 }
 
                 public void Shutdown()
                 {
-                    this.highPriorityProcessor.Shutdown();
-                    this.normalPriorityProcessor.Shutdown();
-                    this.lowPriorityProcessor.Shutdown();
+                    _highPriorityProcessor.Shutdown();
+                    _normalPriorityProcessor.Shutdown();
+                    _lowPriorityProcessor.Shutdown();
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers
                 {
                     get
                     {
-                        return this.normalPriorityProcessor.Analyzers;
+                        return _normalPriorityProcessor.Analyzers;
                     }
                 }
 
@@ -114,9 +114,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     get
                     {
                         return Task.WhenAll(
-                            this.highPriorityProcessor.AsyncProcessorTask,
-                            this.normalPriorityProcessor.AsyncProcessorTask,
-                            this.lowPriorityProcessor.AsyncProcessorTask);
+                            _highPriorityProcessor.AsyncProcessorTask,
+                            _normalPriorityProcessor.AsyncProcessorTask,
+                            _lowPriorityProcessor.AsyncProcessorTask);
                     }
                 }
 
@@ -124,18 +124,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     get
                     {
-                        return this.workspace.CurrentSolution;
+                        return _workspace.CurrentSolution;
                     }
                 }
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                 {
-                    return this.workspace.GetOpenDocumentIds();
+                    return _workspace.GetOpenDocumentIds();
                 }
 
                 private void ResetLogAggregator()
                 {
-                    this.logAggregator = new LogAggregator();
+                    _logAggregator = new LogAggregator();
                 }
 
                 private static async Task ProcessDocumentAnalyzersAsync(
@@ -204,11 +204,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
+                    }
 
                 private static async Task<TResult> GetOrDefaultAsync<TData, TResult>(TData value, Func<TData, CancellationToken, Task<TResult>> funcAsync, CancellationToken cancellationToken)
                 {
@@ -220,16 +220,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return default(TResult);
                     }
-                    catch (AggregateException e) when (CrashUnlessCanceled(e))
+                    catch (AggregateException e) when(CrashUnlessCanceled(e))
                     {
                         return default(TResult);
                     }
-                    catch (Exception e) when (FatalError.Report(e))
+                    catch (Exception e) when(FatalError.Report(e))
                     {
                         // TODO: manage bad workers like what code actions does now
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
+                    }
 
                 private static SyntaxNode GetMemberNode(ISyntaxFactsService service, SyntaxNode root, SyntaxPath memberPath)
                 {
@@ -250,9 +250,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 internal ProjectId GetActiveProject()
                 {
                     ProjectId activeProjectId = null;
-                    if (this.documentTracker != null)
+                    if (_documentTracker != null)
                     {
-                        var activeDocument = this.documentTracker.GetActiveDocument();
+                        var activeDocument = _documentTracker.GetActiveDocument();
                         if (activeDocument != null)
                         {
                             activeProjectId = activeDocument.ProjectId;
@@ -276,17 +276,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
                 {
-                    this.normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
+                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
 
                     var projectItems = items
-                        .Select(i => i.With(null, i.ProjectId, this.listener.BeginAsyncOperation("WorkItem")));
-                    this.lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
+                        .Select(i => i.With(null, i.ProjectId, _listener.BeginAsyncOperation("WorkItem")));
+                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
                 }
 
                 internal void WaitUntilCompletion_ForTestingPurposesOnly()
                 {
-                    this.normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
-                    this.lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
                 }
             }
         }

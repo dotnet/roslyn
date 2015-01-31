@@ -2218,13 +2218,13 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
 
         private class NonMoveableVariableVisitor : BoundTreeWalker
         {
-            private readonly Binder binder;
-            private readonly ArrayBuilder<string> builder;
+            private readonly Binder _binder;
+            private readonly ArrayBuilder<string> _builder;
 
             private NonMoveableVariableVisitor(Binder binder, ArrayBuilder<string> builder)
             {
-                this.binder = binder;
-                this.builder = builder;
+                _binder = binder;
+                _builder = builder;
             }
 
             public static void Process(BoundBlock block, Binder binder, ArrayBuilder<string> builder)
@@ -2243,18 +2243,18 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                     {
                         text = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(text, quote: false);
                         Symbol accessedLocalOrParameterOpt;
-                        bool isNonMoveableVariable = binder.IsNonMoveableVariable(expr, out accessedLocalOrParameterOpt);
+                        bool isNonMoveableVariable = _binder.IsNonMoveableVariable(expr, out accessedLocalOrParameterOpt);
 
                         if (isNonMoveableVariable)
                         {
-                            builder.Add(string.Format("Yes, {0} '{1}' is a non-moveable variable{2}",
+                            _builder.Add(string.Format("Yes, {0} '{1}' is a non-moveable variable{2}",
                                 expr.Kind,
                                 text,
                                 accessedLocalOrParameterOpt == null ? "" : string.Format(" with underlying symbol '{0}'", accessedLocalOrParameterOpt.Name)));
                         }
                         else
                         {
-                            builder.Add(string.Format("No, {0} '{1}' is not a non-moveable variable", expr.Kind, text));
+                            _builder.Add(string.Format("No, {0} '{1}' is not a non-moveable variable", expr.Kind, text));
                         }
                     }
                 }
@@ -4428,7 +4428,6 @@ struct S
             Assert.Equal(SpecialType.System_Void, callSummary.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, callSummary.ImplicitConversion.Kind);
             Assert.Equal(0, callSummary.MethodGroup.Length);
-
         }
 
         [Fact]
@@ -4492,7 +4491,6 @@ struct S
             Assert.Equal(callSummary.Type, callSummary.ConvertedType);
             Assert.Equal(ConversionKind.Identity, callSummary.ImplicitConversion.Kind);
             Assert.Equal(0, callSummary.MethodGroup.Length);
-
         }
 
         #endregion PointerMemberAccess SemanticModel tests
@@ -6822,7 +6820,7 @@ class Program
 
         #region sizeof semantic model tests
 
-        private static readonly Dictionary<SpecialType, int> SpecialTypeSizeOfMap = new Dictionary<SpecialType, int>
+        private static readonly Dictionary<SpecialType, int> s_specialTypeSizeOfMap = new Dictionary<SpecialType, int>
         {
             { SpecialType.System_SByte, 1 },
             { SpecialType.System_Byte, 1 },
@@ -6899,7 +6897,7 @@ class Program
                 Assert.Equal(0, sizeOfSummary.MethodGroup.Length);
                 Assert.Null(sizeOfSummary.Alias);
                 Assert.True(sizeOfSummary.IsCompileTimeConstant);
-                Assert.Equal(SpecialTypeSizeOfMap[type.SpecialType], sizeOfSummary.ConstantValue);
+                Assert.Equal(s_specialTypeSizeOfMap[type.SpecialType], sizeOfSummary.ConstantValue);
             }
         }
 
@@ -6962,7 +6960,7 @@ enum E2 : long
                 Assert.Equal(0, sizeOfSummary.MethodGroup.Length);
                 Assert.Null(sizeOfSummary.Alias);
                 Assert.True(sizeOfSummary.IsCompileTimeConstant);
-                Assert.Equal(SpecialTypeSizeOfMap[type.GetEnumUnderlyingType().SpecialType], sizeOfSummary.ConstantValue);
+                Assert.Equal(s_specialTypeSizeOfMap[type.GetEnumUnderlyingType().SpecialType], sizeOfSummary.ConstantValue);
             }
         }
 
@@ -8396,7 +8394,6 @@ namespace ConsoleApplication30
                 options: TestOptions.UnsafeReleaseDll,
                 emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
-
         }
 
         [Fact]
@@ -8486,7 +8483,6 @@ class Program
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"4812");
         }
-
 
         #endregion
     }

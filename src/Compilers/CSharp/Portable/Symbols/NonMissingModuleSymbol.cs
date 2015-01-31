@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// The contents are provided by ReferenceManager and may not be modified.
         /// </remarks>
-        private ModuleReferences<AssemblySymbol> moduleReferences;
+        private ModuleReferences<AssemblySymbol> _moduleReferences;
 
         /// <summary>
         /// Does this symbol represent a missing module.
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()
         {
             AssertReferencesInitialized();
-            return moduleReferences.Names;
+            return _moduleReferences.Names;
         }
 
         /// <summary>
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols()
         {
             AssertReferencesInitialized();
-            return moduleReferences.Symbols;
+            return _moduleReferences.Symbols;
         }
 
         internal ImmutableArray<UnifiedAssembly<AssemblySymbol>> GetUnifiedAssemblies()
         {
             AssertReferencesInitialized();
-            return moduleReferences.UnifiedAssemblies;
+            return _moduleReferences.UnifiedAssemblies;
         }
 
         internal override bool HasUnifiedReferences
@@ -158,19 +158,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AssertReferencesUninitialized();
 
-            this.moduleReferences = moduleReferences;
+            _moduleReferences = moduleReferences;
         }
 
         [Conditional("DEBUG")]
         internal void AssertReferencesUninitialized()
         {
-            Debug.Assert(moduleReferences == null);
+            Debug.Assert(_moduleReferences == null);
         }
 
         [Conditional("DEBUG")]
         internal void AssertReferencesInitialized()
         {
-            Debug.Assert(moduleReferences != null);
+            Debug.Assert(_moduleReferences != null);
         }
 
         /// <summary>

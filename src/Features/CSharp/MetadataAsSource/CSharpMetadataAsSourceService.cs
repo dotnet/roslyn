@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 {
     internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
-        private static readonly IFormattingRule MemberSeparationRule = new FormattingRule();
+        private static readonly IFormattingRule s_memberSeparationRule = new FormattingRule();
 
         public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
             : base(languageServices.GetService<ICodeGenerationService>())
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
         {
-            return MemberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
+            return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         protected override async Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
         private class DocCommentConverter : CSharpSyntaxRewriter
         {
-            private readonly IDocumentationCommentFormattingService formattingService;
-            private readonly CancellationToken cancellationToken;
+            private readonly IDocumentationCommentFormattingService _formattingService;
+            private readonly CancellationToken _cancellationToken;
 
             public static SyntaxNode ConvertToRegularComments(SyntaxNode node, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
             {
@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             private DocCommentConverter(IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
                 : base(visitIntoStructuredTrivia: false)
             {
-                this.formattingService = formattingService;
-                this.cancellationToken = cancellationToken;
+                _formattingService = formattingService;
+                _cancellationToken = cancellationToken;
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                this.cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 if (node == null)
                 {
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
                 var docComment = DocumentationComment.FromXmlFragment(xmlFragment);
 
-                var commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(this.formattingService, docComment);
+                var commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(_formattingService, docComment);
 
                 foreach (var line in commentLines)
                 {

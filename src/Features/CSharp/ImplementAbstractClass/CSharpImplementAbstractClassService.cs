@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
             out INamedTypeSymbol classType, out INamedTypeSymbol abstractClassType)
         {
             var baseClassNode = node as TypeSyntax;
-            if (baseClassNode != null && baseClassNode.Parent is BaseTypeSyntax && 
+            if (baseClassNode != null && baseClassNode.Parent is BaseTypeSyntax &&
                 baseClassNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
                 ((BaseTypeSyntax)baseClassNode.Parent).Type == baseClassNode)
             {

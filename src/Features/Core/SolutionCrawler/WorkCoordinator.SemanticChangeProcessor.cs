@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed class SemanticChangeProcessor : IdleProcessor
             {
-                private static readonly Func<int, DocumentId, bool, string> enqueueLogger = (t, i, b) => string.Format("[{0}] {1} - hint: {2}", t, i.ToString(), b);
+                private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (t, i, b) => string.Format("[{0}] {1} - hint: {2}", t, i.ToString(), b);
 
-                private readonly AsyncSemaphore gate;
+                private readonly AsyncSemaphore _gate;
 
-                private readonly int correlationId;
-                private readonly Workspace workspace;
-                private readonly ProjectProcessor processor;
+                private readonly int _correlationId;
+                private readonly Workspace _workspace;
+                private readonly ProjectProcessor _processor;
 
-                private readonly NonReentrantLock workGate;
-                private readonly Dictionary<DocumentId, Data> pendingWork;
+                private readonly NonReentrantLock _workGate;
+                private readonly Dictionary<DocumentId, Data> _pendingWork;
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -40,15 +40,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     CancellationToken cancellationToken) :
                     base(listener, backOffTimeSpanInMS, cancellationToken)
                 {
-                    this.gate = new AsyncSemaphore(initialCount: 0);
+                    _gate = new AsyncSemaphore(initialCount: 0);
 
-                    this.correlationId = correlationId;
-                    this.workspace = workspace;
+                    _correlationId = correlationId;
+                    _workspace = workspace;
 
-                    this.processor = new ProjectProcessor(listener, correlationId, workspace, documentWorkerProcessor, projectBackOffTimeSpanInMS, cancellationToken);
+                    _processor = new ProjectProcessor(listener, correlationId, workspace, documentWorkerProcessor, projectBackOffTimeSpanInMS, cancellationToken);
 
-                    this.workGate = new NonReentrantLock();
-                    this.pendingWork = new Dictionary<DocumentId, Data>();
+                    _workGate = new NonReentrantLock();
+                    _pendingWork = new Dictionary<DocumentId, Data>();
 
                     Start();
                 }
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     get
                     {
-                        return Task.WhenAll(base.AsyncProcessorTask, this.processor.AsyncProcessorTask);
+                        return Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
                     }
                 }
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                 {
-                    return this.gate.WaitAsync(cancellationToken);
+                    return _gate.WaitAsync(cancellationToken);
                 }
 
                 protected override async Task ExecuteAsync()
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private Data Dequeue()
                 {
-                    return DequeueWorker(this.workGate, this.pendingWork, this.CancellationToken);
+                    return DequeueWorker(_workGate, _pendingWork, this.CancellationToken);
                 }
 
                 private async Task<bool> TryEnqueueFromHint(Document document, SyntaxPath changedMember)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             continue;
                         }
 
-                        this.processor.EnqueueWorkItem(document);
+                        _processor.EnqueueWorkItem(document);
                     }
                 }
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // we can postpond it even further
                     if (internalVisibleToAssembly == null)
                     {
-                        this.processor.Enqueue(self, needDependencyTracking: true);
+                        _processor.Enqueue(self, needDependencyTracking: true);
                         return;
                     }
 
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
                         }
 
-                        this.processor.Enqueue(projectId);
+                        _processor.Enqueue(projectId);
                     }
 
                     Logger.Log(FunctionId.WorkCoordinator_SemanticChange_FullProjects, internalVisibleToAssembly == null ? "full" : "internals");
@@ -255,24 +255,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     this.UpdateLastAccessTime();
 
-                    using (this.workGate.DisposableWait(this.CancellationToken))
+                    using (_workGate.DisposableWait(this.CancellationToken))
                     {
                         Data data;
-                        if (this.pendingWork.TryGetValue(document.Id, out data))
+                        if (_pendingWork.TryGetValue(document.Id, out data))
                         {
                             // create new async token and dispose old one.
                             var newAsyncToken = this.Listener.BeginAsyncOperation("EnqueueSemanticChange");
                             data.AsyncToken.Dispose();
 
-                            this.pendingWork[document.Id] = new Data(document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
+                            _pendingWork[document.Id] = new Data(document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
                             return;
                         }
 
-                        this.pendingWork.Add(document.Id, new Data(document, changedMember, this.Listener.BeginAsyncOperation("EnqueueSemanticChange")));
-                        this.gate.Release();
+                        _pendingWork.Add(document.Id, new Data(document, changedMember, this.Listener.BeginAsyncOperation("EnqueueSemanticChange")));
+                        _gate.Release();
                     }
 
-                    Logger.Log(FunctionId.WorkCoordinator_SemanticChange_Enqueue, enqueueLogger, Environment.TickCount, document.Id, changedMember != null);
+                    Logger.Log(FunctionId.WorkCoordinator_SemanticChange_Enqueue, s_enqueueLogger, Environment.TickCount, document.Id, changedMember != null);
                 }
 
                 private static TValue DequeueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, CancellationToken cancellationToken)
@@ -310,16 +310,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private class ProjectProcessor : IdleProcessor
                 {
-                    private static readonly Func<int, ProjectId, string> enqueueLogger = (t, i) => string.Format("[{0}] {1}", t, i.ToString());
+                    private static readonly Func<int, ProjectId, string> s_enqueueLogger = (t, i) => string.Format("[{0}] {1}", t, i.ToString());
 
-                    private readonly AsyncSemaphore gate;
+                    private readonly AsyncSemaphore _gate;
 
-                    private readonly int correlationId;
-                    private readonly Workspace workspace;
-                    private readonly IncrementalAnalyzerProcessor processor;
+                    private readonly int _correlationId;
+                    private readonly Workspace _workspace;
+                    private readonly IncrementalAnalyzerProcessor _processor;
 
-                    private readonly NonReentrantLock workGate;
-                    private readonly Dictionary<ProjectId, Data> pendingWork;
+                    private readonly NonReentrantLock _workGate;
+                    private readonly Dictionary<ProjectId, Data> _pendingWork;
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
@@ -330,15 +330,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken cancellationToken) :
                         base(listener, backOffTimeSpanInMS, cancellationToken)
                     {
-                        this.correlationId = correlationId;
+                        _correlationId = correlationId;
 
-                        this.workspace = workspace;
-                        this.processor = processor;
+                        _workspace = workspace;
+                        _processor = processor;
 
-                        this.gate = new AsyncSemaphore(initialCount: 0);
+                        _gate = new AsyncSemaphore(initialCount: 0);
 
-                        this.workGate = new NonReentrantLock();
-                        this.pendingWork = new Dictionary<ProjectId, Data>();
+                        _workGate = new NonReentrantLock();
+                        _pendingWork = new Dictionary<ProjectId, Data>();
 
                         Start();
                     }
@@ -347,20 +347,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         this.UpdateLastAccessTime();
 
-                        using (this.workGate.DisposableWait(this.CancellationToken))
+                        using (_workGate.DisposableWait(this.CancellationToken))
                         {
                             // the project is already in the queue. nothing needs to be done
-                            if (this.pendingWork.ContainsKey(projectId))
+                            if (_pendingWork.ContainsKey(projectId))
                             {
                                 return;
                             }
 
                             var data = new Data(projectId, needDependencyTracking, this.Listener.BeginAsyncOperation("EnqueueWorkItemForSemanticChangeAsync"));
-                            this.pendingWork.Add(projectId, data);
-                            this.gate.Release();
+                            _pendingWork.Add(projectId, data);
+                            _gate.Release();
                         }
 
-                        Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, enqueueLogger, Environment.TickCount, projectId);
+                        Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, projectId);
                     }
 
                     public void EnqueueWorkItem(Document document)
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // call to this method is serialized. and only this method does the writing.
                         var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                        this.processor.Enqueue(
+                        _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
                             priorityService != null && priorityService.IsLowPriority(document),
                             this.Listener.BeginAsyncOperation("Semantic WorkItem")));
@@ -378,14 +378,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
                     {
-                        return this.gate.WaitAsync(cancellationToken);
+                        return _gate.WaitAsync(cancellationToken);
                     }
 
                     protected override Task ExecuteAsync()
                     {
                         var data = Dequeue();
 
-                        var project = this.workspace.CurrentSolution.GetProject(data.ProjectId);
+                        var project = _workspace.CurrentSolution.GetProject(data.ProjectId);
                         if (project == null)
                         {
                             data.AsyncToken.Dispose();
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // do dependency tracking here with current solution
-                        var solution = this.workspace.CurrentSolution;
+                        var solution = _workspace.CurrentSolution;
 
                         var graph = solution.GetProjectDependencyGraph();
                         foreach (var projectId in graph.GetProjectsThatTransitivelyDependOnThisProject(data.ProjectId).Concat(data.ProjectId))
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private Data Dequeue()
                     {
-                        return DequeueWorker(this.workGate, this.pendingWork, this.CancellationToken);
+                        return DequeueWorker(_workGate, _pendingWork, this.CancellationToken);
                     }
 
                     private void EnqueueWorkItem(Project project)

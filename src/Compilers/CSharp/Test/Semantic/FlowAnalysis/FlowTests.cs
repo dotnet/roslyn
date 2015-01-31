@@ -2326,6 +2326,5 @@ class C
             CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
     );
         }
-
     }
 }

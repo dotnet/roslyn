@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class SealedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> ValidMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ExternKeyword,
             SyntaxKind.InternalKeyword,
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.UnsafeKeyword,
         };
 
-        private static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InternalKeyword,
             SyntaxKind.NewKeyword,
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 context.IsMemberDeclarationContext(
-                    validModifiers: ValidMemberModifiers,
+                    validModifiers: s_validMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken) ||
                 context.IsTypeDeclarationContext(
-                    validModifiers: ValidTypeModifiers,
+                    validModifiers: s_validTypeModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);

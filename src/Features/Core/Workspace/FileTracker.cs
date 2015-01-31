@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Host
     internal class FileTracker
     {
         // guards watchers and actions
-        private readonly NonReentrantLock guard = new NonReentrantLock();
+        private readonly NonReentrantLock _guard = new NonReentrantLock();
 
-        private readonly Dictionary<string, FileSystemWatcher> watchers =
+        private readonly Dictionary<string, FileSystemWatcher> _watchers =
             new Dictionary<string, FileSystemWatcher>();
 
-        private readonly Dictionary<string, FileActions> fileActionsMap =
+        private readonly Dictionary<string, FileActions> _fileActionsMap =
             new Dictionary<string, FileActions>();
 
         public FileTracker()
@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Host
 
         private FileActions GetFileActions_NoLock(string path)
         {
-            guard.AssertHasLock();
+            _guard.AssertHasLock();
 
             FileActions actions;
 
-            if (!this.fileActionsMap.TryGetValue(path, out actions))
+            if (!_fileActionsMap.TryGetValue(path, out actions))
             {
                 actions = new FileActions(this, path);
-                this.fileActionsMap.Add(path, actions);
+                _fileActionsMap.Add(path, actions);
             }
 
             return actions;
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Host
                 return false;
             }
 
-            using (guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
-                return this.fileActionsMap.ContainsKey(path);
+                return _fileActionsMap.ContainsKey(path);
             }
         }
 
@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.Host
                 throw new ArgumentNullException("path");
             }
 
-            using (guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
                 var fileActions = this.GetFileActions_NoLock(path);
                 fileActions.AddAction_NoLock(action);
 
                 var directory = Path.GetDirectoryName(path);
-                if (!watchers.ContainsKey(directory))
+                if (!_watchers.ContainsKey(directory))
                 {
                     var watcher = new FileSystemWatcher(directory);
                     watcher.Changed += OnFileChanged;
@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (path != null)
             {
-                using (guard.DisposableWait())
+                using (_guard.DisposableWait())
                 {
-                    this.fileActionsMap.Remove(path);
+                    _fileActionsMap.Remove(path);
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             FileActions actions;
 
-            using (this.guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
                 actions = this.GetFileActions_NoLock(args.FullPath);
             }
@@ -104,48 +104,48 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void Dispose()
         {
-            using (this.guard.DisposableWait())
+            using (_guard.DisposableWait())
             {
-                foreach (var watcher in this.watchers.Values)
+                foreach (var watcher in _watchers.Values)
                 {
                     watcher.Dispose();
                 }
 
-                this.watchers.Clear();
-                this.fileActionsMap.Clear();
+                _watchers.Clear();
+                _fileActionsMap.Clear();
             }
         }
 
         private class FileActions
         {
-            private FileTracker tracker;
-            private readonly string path;
-            private ImmutableArray<Action> actions;
-            private Task invokeTask;
+            private FileTracker _tracker;
+            private readonly string _path;
+            private ImmutableArray<Action> _actions;
+            private Task _invokeTask;
 
             public FileActions(FileTracker tracker, string path)
             {
-                this.tracker = tracker;
-                this.path = path;
-                this.actions = ImmutableArray.Create<Action>();
+                _tracker = tracker;
+                _path = path;
+                _actions = ImmutableArray.Create<Action>();
             }
 
             public void AddAction_NoLock(Action action)
             {
-                this.tracker.guard.AssertHasLock();
+                _tracker._guard.AssertHasLock();
 
-                this.actions = this.actions.Add(action);
+                _actions = _actions.Add(action);
             }
 
             public void InvokeActions()
             {
-                using (this.tracker.guard.DisposableWait())
+                using (_tracker._guard.DisposableWait())
                 {
                     // only start invoke task if one is not already running
-                    if (this.invokeTask == null)
+                    if (_invokeTask == null)
                     {
-                        this.invokeTask = Task.Factory.StartNew(() => { });
-                        this.invokeTask.ContinueWithAfterDelay(() => TryInvokeActions(this.actions), CancellationToken.None, 100, TaskContinuationOptions.None, TaskScheduler.Current);
+                        _invokeTask = Task.Factory.StartNew(() => { });
+                        _invokeTask.ContinueWithAfterDelay(() => TryInvokeActions(_actions), CancellationToken.None, 100, TaskContinuationOptions.None, TaskScheduler.Current);
                     }
                 }
             }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 // only invoke actions if the writer that caused the event is done 
                 // determine this by checking to see if we can read the file
-                using (var stream = Kernel32File.Open(this.path, FileAccess.Read, FileMode.Open, throwException: false))
+                using (var stream = Kernel32File.Open(_path, FileAccess.Read, FileMode.Open, throwException: false))
                 {
                     if (stream != null)
                     {
@@ -171,17 +171,17 @@ namespace Microsoft.CodeAnalysis.Host
                         }
 
                         // clear invoke task so any following changes get additional invocations
-                        using (this.tracker.guard.DisposableWait())
+                        using (_tracker._guard.DisposableWait())
                         {
-                            this.invokeTask = null;
+                            _invokeTask = null;
                         }
                     }
                     else
                     {
                         // try again after a short delay
-                        using (this.tracker.guard.DisposableWait())
+                        using (_tracker._guard.DisposableWait())
                         {
-                            this.invokeTask.ContinueWithAfterDelay(() => TryInvokeActions(this.actions), CancellationToken.None, 100, TaskContinuationOptions.None, TaskScheduler.Current);
+                            _invokeTask.ContinueWithAfterDelay(() => TryInvokeActions(_actions), CancellationToken.None, 100, TaskContinuationOptions.None, TaskScheduler.Current);
                         }
                     }
                 }

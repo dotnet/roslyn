@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private class CSharpAnalyzer : Analyzer
         {
-            private static readonly HashSet<int> NonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
+            private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
 
             public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 VariableStyle style,
                 bool variableDeclared)
             {
-                return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(compilation, symbol, type, style, NonNoisySyntaxKindSet);
+                return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(compilation, symbol, type, style, s_nonNoisySyntaxKindSet);
             }
 
             protected override int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo)

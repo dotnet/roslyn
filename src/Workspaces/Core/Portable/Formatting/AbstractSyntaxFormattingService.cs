@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract class AbstractSyntaxFormattingService : ISyntaxFormattingService
     {
-        private static readonly Func<TextSpan, bool> NotEmpty = s => !s.IsEmpty;
-        private static readonly Func<TextSpan, int> SpanLength = s => s.Length;
+        private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
+        private static readonly Func<TextSpan, int> s_spanLength = s => s.Length;
 
         protected AbstractSyntaxFormattingService()
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             CheckArguments(node, spans, options, rules);
 
             // quick exit check
-            var spansToFormat = new NormalizedTextSpanCollection(spans.Where(NotEmpty));
+            var spansToFormat = new NormalizedTextSpanCollection(spans.Where(s_notEmpty));
             if (spansToFormat.Count == 0)
             {
                 return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // check how much area we are formatting
             var formattingSpan = TextSpan.FromBounds(list[0].Start, list[list.Count - 1].End);
-            var actualFormattingSize = list.Sum(SpanLength);
+            var actualFormattingSize = list.Sum(s_spanLength);
 
             // we are formatting more than half of the collapsed span.
             return (formattingSpan.Length / Math.Max(actualFormattingSize, 1)) < 2;

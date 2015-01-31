@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateAccessorDeclaration(property, property.SetMethod, SyntaxKind.SetAccessorDeclaration, destination, options),
             };
 
-            return accessors[0] == null && accessors[1] == null 
+            return accessors[0] == null && accessors[1] == null
                 ? null
                 : SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
         }

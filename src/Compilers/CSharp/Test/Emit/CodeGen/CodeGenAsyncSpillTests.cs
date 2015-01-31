@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncSpillTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] AsyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
 
         public CodeGenAsyncSpillTests()
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions options = null)
         {
-            references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
+            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);
         }
 
@@ -804,7 +804,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -819,10 +819,10 @@ public class C
                 }, module.GetFieldNames("C.<F>d__3"));
             });
 
-            CompileAndVerify(source, additionalRefs: AsyncRefs, verify:false, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
-            {
-                AssertEx.Equal(new[]
-                {
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: false, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+             {
+                 AssertEx.Equal(new[]
+                 {
                     "<>1__state",
                     "<>t__builder",
                     "array",
@@ -835,8 +835,8 @@ public class C
                     "<>s__7",
                     "<>u__1",
                     "<>s__8"
-                }, module.GetFieldNames("C.<F>d__3"));
-            });
+                 }, module.GetFieldNames("C.<F>d__3"));
+             });
         }
 
         [Fact]

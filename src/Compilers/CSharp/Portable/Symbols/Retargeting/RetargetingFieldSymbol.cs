@@ -24,21 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// <summary>
         /// Owning RetargetingModuleSymbol.
         /// </summary>
-        private readonly RetargetingModuleSymbol retargetingModule;
+        private readonly RetargetingModuleSymbol _retargetingModule;
 
         /// <summary>
         /// The underlying FieldSymbol, cannot be another RetargetingFieldSymbol.
         /// </summary>
-        private readonly FieldSymbol underlyingField;
+        private readonly FieldSymbol _underlyingField;
 
-        private ImmutableArray<CustomModifier> lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
         /// </summary>
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private DiagnosticInfo lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         public RetargetingFieldSymbol(RetargetingModuleSymbol retargetingModule, FieldSymbol underlyingField)
         {
@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             Debug.Assert((object)underlyingField != null);
             Debug.Assert(!(underlyingField is RetargetingFieldSymbol));
 
-            this.retargetingModule = retargetingModule;
-            this.underlyingField = underlyingField;
+            _retargetingModule = retargetingModule;
+            _underlyingField = underlyingField;
         }
 
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
         {
             get
             {
-                return retargetingModule.RetargetingTranslator;
+                return _retargetingModule.RetargetingTranslator;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField;
+                return _underlyingField;
             }
         }
 
@@ -70,25 +70,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule;
+                return _retargetingModule;
             }
         }
 
         public override bool IsImplicitlyDeclared
         {
-            get { return underlyingField.IsImplicitlyDeclared; }
+            get { return _underlyingField.IsImplicitlyDeclared; }
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return this.RetargetingTranslator.Retarget(this.underlyingField.GetFieldType(fieldsBeingBound), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+            return this.RetargetingTranslator.Retarget(_underlyingField.GetFieldType(fieldsBeingBound), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
         }
 
         public override ImmutableArray<CustomModifier> CustomModifiers
         {
             get
             {
-                return this.RetargetingTranslator.RetargetModifiers(this.underlyingField.CustomModifiers, ref this.lazyCustomModifiers);
+                return this.RetargetingTranslator.RetargetModifiers(_underlyingField.CustomModifiers, ref _lazyCustomModifiers);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.RetargetingTranslator.Retarget(this.underlyingField.ContainingSymbol);
+                return this.RetargetingTranslator.Retarget(_underlyingField.ContainingSymbol);
             }
         }
 
@@ -104,25 +104,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.DeclaredAccessibility;
+                return _underlyingField.DeclaredAccessibility;
             }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.RetargetingTranslator.GetRetargetedAttributes(this.underlyingField.GetAttributes(), ref this.lazyCustomAttributes);
+            return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingField.GetAttributes(), ref _lazyCustomAttributes);
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingTranslator.RetargetAttributes(this.underlyingField.GetCustomAttributesToEmit(compilationState));
+            return this.RetargetingTranslator.RetargetAttributes(_underlyingField.GetCustomAttributesToEmit(compilationState));
         }
 
         public override AssemblySymbol ContainingAssembly
         {
             get
             {
-                return this.retargetingModule.ContainingAssembly;
+                return _retargetingModule.ContainingAssembly;
             }
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule;
+                return _retargetingModule;
             }
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.Name;
+                return _underlyingField.Name;
             }
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.HasSpecialName;
+                return _underlyingField.HasSpecialName;
             }
         }
 
@@ -154,20 +154,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.HasRuntimeSpecialName;
+                return _underlyingField.HasRuntimeSpecialName;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.underlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _underlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         internal override bool IsNotSerialized
         {
             get
             {
-                return this.underlyingField.IsNotSerialized;
+                return _underlyingField.IsNotSerialized;
             }
         }
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.IsMarshalledExplicitly;
+                return _underlyingField.IsMarshalledExplicitly;
             }
         }
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.RetargetingTranslator.Retarget(this.underlyingField.MarshallingInformation);
+                return this.RetargetingTranslator.Retarget(_underlyingField.MarshallingInformation);
             }
         }
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.MarshallingDescriptor;
+                return _underlyingField.MarshallingDescriptor;
             }
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.TypeLayoutOffset;
+                return _underlyingField.TypeLayoutOffset;
             }
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                var associated = this.underlyingField.AssociatedSymbol;
+                var associated = _underlyingField.AssociatedSymbol;
                 return (object)associated == null ? null : this.RetargetingTranslator.Retarget(associated);
             }
         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.IsReadOnly;
+                return _underlyingField.IsReadOnly;
             }
         }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.IsVolatile;
+                return _underlyingField.IsVolatile;
             }
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.IsConst;
+                return _underlyingField.IsConst;
             }
         }
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingField.ObsoleteAttributeData;
+                return _underlyingField.ObsoleteAttributeData;
             }
         }
 
@@ -248,20 +248,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.ConstantValue;
+                return _underlyingField.ConstantValue;
             }
         }
 
         internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
-            return this.underlyingField.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
+            return _underlyingField.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return this.underlyingField.Locations;
+                return _underlyingField.Locations;
             }
         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.DeclaringSyntaxReferences;
+                return _underlyingField.DeclaringSyntaxReferences;
             }
         }
 
@@ -277,20 +277,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingField.IsStatic;
+                return _underlyingField.IsStatic;
             }
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            if (ReferenceEquals(lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
-                lazyUseSiteDiagnostic = result;
+                _lazyUseSiteDiagnostic = result;
             }
 
-            return lazyUseSiteDiagnostic;
+            return _lazyUseSiteDiagnostic;
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

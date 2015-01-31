@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static SyntaxTree WithReplaceFirst(SyntaxTree syntaxTree, string oldText, string newText)
         {
-            return WithReplace(syntaxTree, 
+            return WithReplace(syntaxTree,
                 startIndex: 0,
                 oldText: oldText,
                 newText: newText);

@@ -16,23 +16,23 @@ namespace Microsoft.CodeAnalysis.Formatting
             public const int BeginningOfTreeKey = -1;
             public const int EndOfTreeKey = -2;
 
-            private readonly ConcurrentDictionary<int, TriviaData> map;
+            private readonly ConcurrentDictionary<int, TriviaData> _map;
 
             public Changes()
             {
-                this.map = new ConcurrentDictionary<int, TriviaData>();
+                _map = new ConcurrentDictionary<int, TriviaData>();
             }
 
             public bool Contains(int key)
             {
-                return this.map.ContainsKey(key);
+                return _map.ContainsKey(key);
             }
 
             public TriviaData this[int key]
             {
                 get
                 {
-                    return this.map[key];
+                    return _map[key];
                 }
             }
 
@@ -40,20 +40,20 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 Contract.ThrowIfTrue(this.Contains(key));
 
-                this.map.TryAdd(key, triviaInfo);
+                _map.TryAdd(key, triviaInfo);
             }
 
             public void Replace(int key, TriviaData triviaInfo)
             {
                 Contract.ThrowIfFalse(this.Contains(key));
 
-                this.map[key] = triviaInfo;
+                _map[key] = triviaInfo;
             }
 
             public void Remove(int pairIndex)
             {
                 TriviaData temp;
-                this.map.TryRemove(pairIndex, out temp);
+                _map.TryRemove(pairIndex, out temp);
             }
 
             public void AddOrReplace(int key, TriviaData triviaInfo)

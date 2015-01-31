@@ -1,17 +1,18 @@
-﻿namespace Microsoft.CodeAnalysis.Diagnostics
+﻿
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticCustomTags
     {
         /// <summary>
         /// it is string[] because DiagnosticDescriptor expects string[]. 
         /// </summary>
-        private static readonly string[] MicrosoftCustomTags = new string[] { WellKnownDiagnosticTags.Telemetry };
+        private static readonly string[] s_microsoftCustomTags = new string[] { WellKnownDiagnosticTags.Telemetry };
 
         public static string[] Microsoft
         {
             get
             {
-                return MicrosoftCustomTags;
+                return s_microsoftCustomTags;
             }
         }
     }

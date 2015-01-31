@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
-    partial class CodeGenerator
+    internal partial class CodeGenerator
     {
         private enum ArrayInitializerStyle
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 ImmutableArray<byte> data = this.GetRawData(initExprs);
-                builder.EmitArrayBlockInitializer(data, inits.Syntax, diagnostics);
+                _builder.EmitArrayBlockInitializer(data, inits.Syntax, _diagnostics);
 
                 if (initializationStyle == ArrayInitializerStyle.Mixed)
                 {
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var init = inits[i];
                 if (ShouldEmitInitExpression(includeConstants, init))
                 {
-                    builder.EmitOpCode(ILOpCode.Dup);
-                    builder.EmitIntConstant(i);
+                    _builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitIntConstant(i);
                     EmitExpression(init, true);
                     EmitVectorElementStore(arrayType, init.Syntax);
                 }
@@ -185,18 +185,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (ShouldEmitInitExpression(includeConstants, init))
                     {
                         // emit array ref
-                        builder.EmitOpCode(ILOpCode.Dup);
+                        _builder.EmitOpCode(ILOpCode.Dup);
 
                         Debug.Assert(indices.Count == arrayType.Rank - 1);
 
                         // emit values of all indices that are in progress
                         foreach (var row in indices)
                         {
-                            builder.EmitIntConstant(row.Index);
+                            _builder.EmitIntConstant(row.Index);
                         }
 
                         // emit the leaf index
-                        builder.EmitIntConstant(i);
+                        _builder.EmitIntConstant(i);
 
                         var initExpr = inits[i];
                         EmitExpression(initExpr, true);
@@ -223,14 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private ArrayInitializerStyle ShouldEmitBlockInitializer(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
-            if (!this.module.SupportsPrivateImplClass)
+            if (!_module.SupportsPrivateImplClass)
             {
                 return ArrayInitializerStyle.Element;
             }
 
             if (elementType.IsEnumType())
             {
-                if (!this.module.Compilation.EnableEnumArrayBlockInitialization)
+                if (!_module.Compilation.EnableEnumArrayBlockInitialization)
                 {
                     return ArrayInitializerStyle.Element;
                 }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (elementType.SpecialType.IsBlittable())
             {
-                if (module.GetInitArrayHelper() == null)
+                if (_module.GetInitArrayHelper() == null)
                 {
                     return ArrayInitializerStyle.Element;
                 }

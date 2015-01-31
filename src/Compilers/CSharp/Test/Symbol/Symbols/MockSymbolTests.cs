@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             NamespaceExtent ne2 = new NamespaceExtent(compilation);
             Assert.IsType<CSharpCompilation>(ne2.Compilation);
             Assert.Throws<InvalidOperationException>(() => ne1.Compilation);
-
         }
 
         private Symbol CreateMockSymbol(NamespaceExtent extent, XElement xel)

@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
     {
         protected class SymbolDescriptionBuilder : AbstractSymbolDescriptionBuilder
         {
-            private static readonly SymbolDisplayFormat minimallyQualifiedFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
+            private static readonly SymbolDisplayFormat s_minimallyQualifiedFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName)
                 .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue)
                 .WithKindOptions(SymbolDisplayKindOptions.None);
 
-            private static readonly SymbolDisplayFormat minimallyQualifiedFormatWithConstants = minimallyQualifiedFormat
+            private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstants = s_minimallyQualifiedFormat
                 .AddLocalOptions(SymbolDisplayLocalOptions.IncludeConstantValue)
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue)
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue);
@@ -184,12 +184,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat
             {
-                get { return minimallyQualifiedFormat; }
+                get { return s_minimallyQualifiedFormat; }
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants
             {
-                get { return minimallyQualifiedFormatWithConstants; }
+                get { return s_minimallyQualifiedFormatWithConstants; }
             }
         }
     }

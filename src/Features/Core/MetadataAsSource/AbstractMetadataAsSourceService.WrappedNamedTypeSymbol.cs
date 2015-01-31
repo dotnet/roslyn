@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedNamedTypeSymbol : AbstractWrappedNamespaceOrTypeSymbol, INamedTypeSymbol
         {
-            private readonly INamedTypeSymbol symbol;
-            private readonly ImmutableArray<ISymbol> members;
+            private readonly INamedTypeSymbol _symbol;
+            private readonly ImmutableArray<ISymbol> _members;
 
             public WrappedNamedTypeSymbol(INamedTypeSymbol symbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(symbol, canImplementImplicitly, docCommentFormattingService)
             {
-                this.symbol = symbol;
+                _symbol = symbol;
 
-                var allMembers = this.symbol.GetMembers();
+                var allMembers = _symbol.GetMembers();
                 var filteredMembers = from m in allMembers
                                       where !m.HasUnsupportedMetadata
                                       where m.DeclaredAccessibility == Accessibility.Public ||
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                             m.Kind == SymbolKind.Property
                                       select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
-                this.members = ImmutableArray.CreateRange<ISymbol>(filteredMembers);
+                _members = ImmutableArray.CreateRange<ISymbol>(filteredMembers);
             }
 
             private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Arity;
+                    return _symbol.Arity;
                 }
             }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsGenericType;
+                    return _symbol.IsGenericType;
                 }
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsUnboundGenericType;
+                    return _symbol.IsUnboundGenericType;
                 }
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsScriptClass;
+                    return _symbol.IsScriptClass;
                 }
             }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsImplicitClass;
+                    return _symbol.IsImplicitClass;
                 }
             }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.TypeParameters;
+                    return _symbol.TypeParameters;
                 }
             }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.TypeArguments;
+                    return _symbol.TypeArguments;
                 }
             }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.DelegateInvokeMethod;
+                    return _symbol.DelegateInvokeMethod;
                 }
             }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.EnumUnderlyingType;
+                    return _symbol.EnumUnderlyingType;
                 }
             }
 
@@ -144,25 +144,25 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ConstructedFrom;
+                    return _symbol.ConstructedFrom;
                 }
             }
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
             {
-                return this.symbol.Construct(typeArguments);
+                return _symbol.Construct(typeArguments);
             }
 
             public INamedTypeSymbol ConstructUnboundGenericType()
             {
-                return this.symbol.ConstructUnboundGenericType();
+                return _symbol.ConstructUnboundGenericType();
             }
 
             public ImmutableArray<IMethodSymbol> InstanceConstructors
             {
                 get
                 {
-                    return this.symbol.InstanceConstructors;
+                    return _symbol.InstanceConstructors;
                 }
             }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.StaticConstructors;
+                    return _symbol.StaticConstructors;
                 }
             }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Constructors;
+                    return _symbol.Constructors;
                 }
             }
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.AssociatedSymbol;
+                    return _symbol.AssociatedSymbol;
                 }
             }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.TypeKind;
+                    return _symbol.TypeKind;
                 }
             }
 
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.BaseType;
+                    return _symbol.BaseType;
                 }
             }
 
@@ -210,20 +210,20 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Interfaces;
+                    return _symbol.Interfaces;
                 }
             }
 
             public ImmutableArray<INamedTypeSymbol> AllInterfaces
             {
-                get { return this.symbol.AllInterfaces; }
+                get { return _symbol.AllInterfaces; }
             }
 
             public bool IsReferenceType
             {
                 get
                 {
-                    return this.symbol.IsReferenceType;
+                    return _symbol.IsReferenceType;
                 }
             }
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsValueType;
+                    return _symbol.IsValueType;
                 }
             }
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsAnonymousType;
+                    return _symbol.IsAnonymousType;
                 }
             }
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.OriginalDefinition;
+                    return _symbol.OriginalDefinition;
                 }
             }
 
@@ -255,18 +255,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.SpecialType;
+                    return _symbol.SpecialType;
                 }
             }
 
             public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
             {
-                return this.symbol.FindImplementationForInterfaceMember(interfaceMember);
+                return _symbol.FindImplementationForInterfaceMember(interfaceMember);
             }
 
             public override ImmutableArray<ISymbol> GetMembers()
             {
-                return this.members;
+                return _members;
             }
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool MightContainExtensionMethods
             {
-                get { return this.symbol.MightContainExtensionMethods; }
+                get { return _symbol.MightContainExtensionMethods; }
             }
         }
     }

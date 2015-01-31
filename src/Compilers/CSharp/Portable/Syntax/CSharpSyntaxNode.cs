@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region serialization
 
 
-        private static readonly RecordingObjectBinder defaultBinder = new ConcurrentRecordingObjectBinder();
+        private static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
 
         /// <summary>
         /// Serialize the syntax node into a byte stream.
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException(CSharpResources.TheStreamCannotBeWritten);
                 }
 
-                using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: defaultBinder, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
                 {
                     writer.WriteValue(this.Green);
                 }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
                 }
 
-                using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: defaultBinder))
+                using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
                 {
                     var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
                     return root.CreateRed();
@@ -320,35 +320,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ObjectWriterData defaultObjectWriterData;
+        private static ObjectWriterData s_defaultObjectWriterData;
         private static ObjectWriterData GetDefaultObjectWriterData()
         {
-            if (defaultObjectWriterData == null)
+            if (s_defaultObjectWriterData == null)
             {
                 var data = new ObjectWriterData(GetSerializationData());
-                Interlocked.CompareExchange(ref defaultObjectWriterData, data, null);
+                Interlocked.CompareExchange(ref s_defaultObjectWriterData, data, null);
             }
 
-            return defaultObjectWriterData;
+            return s_defaultObjectWriterData;
         }
 
-        private static ObjectReaderData defaultObjectReaderData;
+        private static ObjectReaderData s_defaultObjectReaderData;
         private static ObjectReaderData GetDefaultObjectReaderData()
         {
-            if (defaultObjectReaderData == null)
+            if (s_defaultObjectReaderData == null)
             {
                 var data = new ObjectReaderData(GetSerializationData());
-                Interlocked.CompareExchange(ref defaultObjectReaderData, data, null);
+                Interlocked.CompareExchange(ref s_defaultObjectReaderData, data, null);
             }
 
-            return defaultObjectReaderData;
+            return s_defaultObjectReaderData;
         }
 
-        private static IEnumerable<object> serializationData;
+        private static IEnumerable<object> s_serializationData;
 
         private static IEnumerable<object> GetSerializationData()
         {
-            if (serializationData == null)
+            if (s_serializationData == null)
             {
                 var data =
                     // known assemblies names and types (not in generated list)
@@ -398,10 +398,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         })
                     .ToImmutableArray();
 
-                System.Threading.Interlocked.CompareExchange(ref serializationData, data, null);
+                System.Threading.Interlocked.CompareExchange(ref s_serializationData, data, null);
             }
 
-            return serializationData;
+            return s_serializationData;
         }
         #endregion
 

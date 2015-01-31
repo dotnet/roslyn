@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isPossibleEventHandlerOperation && IntroducingReadCanBeObservable(loweredRight))
             {
                 BoundAssignmentOperator assignmentToTemp;
-                var temp = this.factory.StoreToTemp(loweredRight, out assignmentToTemp);
+                var temp = _factory.StoreToTemp(loweredRight, out assignmentToTemp);
                 loweredRight = temp;
                 stores.Add(assignmentToTemp);
                 temps.Add(temp.LocalSymbol);
@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsEvent("Foo", dyn) ? InvokeMember("{add|remove}_Foo", dyn, RHS) : rewrittenAssignment
                 var memberAccess = (BoundDynamicMemberAccess)transformedLHS;
 
-                var isEventCondition = dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
+                var isEventCondition = _dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
 
-                var invokeEventAccessor = dynamicFactory.MakeDynamicEventAccessorInvocation(
+                var invokeEventAccessor = _dynamicFactory.MakeDynamicEventAccessorInvocation(
                     (binaryOperator == BinaryOperatorKind.Addition ? "add_" : "remove_") + memberAccess.Name,
                     memberAccess.Receiver,
                     loweredRight);
 
-                rewrittenAssignment = factory.Conditional(isEventCondition.ToExpression(), invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
+                rewrittenAssignment = _factory.Conditional(isEventCondition.ToExpression(), invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
             }
 
             BoundExpression result = (temps.Count == 0 && stores.Count == 0) ?
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // SPEC VIOLATION: as value types.
                         var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-                        var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+                        var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
                         stores.Add(assignmentToTemp);
                         temps.Add(receiverTemp.LocalSymbol);
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // store receiver to temp:
                         var rewrittenReceiver = VisitExpression(memberAccess.Receiver);
                         BoundAssignmentOperator assignmentToTemp;
-                        var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+                        var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
                         stores.Add(assignmentToTemp);
                         temps.Add(receiverTemp.LocalSymbol);
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC VIOLATION: as value types.
                             var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-                            var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+                            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
                             transformedReceiver = receiverTemp;
                             stores.Add(assignmentToTemp);
                             temps.Add(receiverTemp.LocalSymbol);
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             BoundExpression array = BuildParamsArray(syntax, indexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
                             BoundAssignmentOperator storeToTemp;
-                            var boundTemp = this.factory.StoreToTemp(array, out storeToTemp);
+                            var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                             stores.Add(storeToTemp);
                             temps.Add(boundTemp.LocalSymbol);
                             actualArguments[actualArguments.Length - 1] = boundTemp;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             BoundAssignmentOperator assignmentToTemp;
-                            var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+                            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
                             stores.Add(assignmentToTemp);
                             temps.Add(receiverTemp.LocalSymbol);
                             return new BoundFieldAccess(fieldAccess.Syntax, receiverTemp, fieldAccess.FieldSymbol, null);
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IntroducingReadCanBeObservable(indexerAccess.ReceiverOpt))
                         {
                             BoundAssignmentOperator assignmentToTemp;
-                            var temp = this.factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
+                            var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
                             stores.Add(assignmentToTemp);
                             temps.Add(temp.LocalSymbol);
                             loweredReceiver = temp;
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IntroducingReadCanBeObservable(arguments[i]))
                             {
                                 BoundAssignmentOperator assignmentToTemp;
-                                var temp = this.factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
+                                var temp = _factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
                                 stores.Add(assignmentToTemp);
                                 temps.Add(temp.LocalSymbol);
                                 loweredArguments[i] = temp;
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenVariable = VisitExpression(originalLHS);
 
             BoundAssignmentOperator assignmentToTemp2;
-            var variableTemp = this.factory.StoreToTemp(rewrittenVariable, out assignmentToTemp2, refKind: RefKind.Ref);
+            var variableTemp = _factory.StoreToTemp(rewrittenVariable, out assignmentToTemp2, refKind: RefKind.Ref);
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> temps)
         {
             BoundAssignmentOperator assignmentToArrayTemp;
-            var arrayTemp = this.factory.StoreToTemp(loweredExpression, out assignmentToArrayTemp);
+            var arrayTemp = _factory.StoreToTemp(loweredExpression, out assignmentToArrayTemp);
             stores.Add(assignmentToArrayTemp);
             temps.Add(arrayTemp.LocalSymbol);
             var boundTempArray = arrayTemp;
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IntroducingReadCanBeObservable(loweredIndices[i]))
                 {
                     BoundAssignmentOperator assignmentToTemp;
-                    var temp = this.factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
+                    var temp = _factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
                     stores.Add(assignmentToTemp);
                     temps.Add(temp.LocalSymbol);
                     boundTempIndices[i] = temp;
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return factory.ArrayAccess(boundTempArray, boundTempIndices);
+            return _factory.ArrayAccess(boundTempArray, boundTempIndices);
         }
 
         /// <summary>
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Literal:
                     // don't allocate a temp for simple primitive types:
                     var type = expression.Type;
-                    return (object)type != null && 
+                    return (object)type != null &&
                         !type.SpecialType.IsClrInteger() &&
                         !type.IsReferenceType &&
                         !type.IsEnumType();

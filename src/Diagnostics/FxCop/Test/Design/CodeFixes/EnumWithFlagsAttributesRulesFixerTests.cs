@@ -52,7 +52,7 @@ public enum HexFlagsEnumClass
     All = 0x7
 }";
 
-           var expected = @"
+            var expected = @"
 [System.Flags]
 public enum SimpleFlagsEnumClass
 {
@@ -70,7 +70,7 @@ public enum HexFlagsEnumClass
     Four = 0x4,
     All = 0x7
 }";
-           
+
             // Verify fixes for CA1027
             VerifyCSharpFix(code, expected);
         }
@@ -142,7 +142,7 @@ public enum DuplicateValuesEnumClass
     AnotherFour = 4,
     ThreePlusOne = Two + One + One
 }
-";            
+";
 
             // Verify fixes for CA1027
             VerifyCSharpFix(code, expected);

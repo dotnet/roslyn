@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 /// </summary>
                 private class ProjectAnalyzersAndStates
                 {
-                    private readonly ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> analyzerIdMap;
-                    private readonly DiagnosticState[,] diagnosticStateMaps;
-                    private readonly int startAnalyzerId;
-                    private readonly int analyzerCount;
-                    private readonly string projectLanguage;
+                    private readonly ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> _analyzerIdMap;
+                    private readonly DiagnosticState[,] _diagnosticStateMaps;
+                    private readonly int _startAnalyzerId;
+                    private readonly int _analyzerCount;
+                    private readonly string _projectLanguage;
 
                     public static ProjectAnalyzersAndStates CreateIfAnyAnalyzers(IEnumerable<KeyValuePair<string, IEnumerable<DiagnosticAnalyzer>>> projectSpecificAnalyzers, int sharedWorkspaceAnalyzersCount, string projectLanguage)
                     {
@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         Contract.ThrowIfFalse(projectSpecificAnalyzers != null && projectSpecificAnalyzers.Any());
 
-                        this.startAnalyzerId = sharedWorkspaceAnalyzersCount;
-                        this.projectLanguage = projectLanguage;
-                        this.analyzerIdMap = CreateAnalyzerIdMap(projectSpecificAnalyzers, this.startAnalyzerId);
-                        analyzerCount = analyzerIdMap.Values.Flatten().Count();
-                        Contract.ThrowIfFalse(analyzerCount > 0);
+                        _startAnalyzerId = sharedWorkspaceAnalyzersCount;
+                        _projectLanguage = projectLanguage;
+                        _analyzerIdMap = CreateAnalyzerIdMap(projectSpecificAnalyzers, _startAnalyzerId);
+                        _analyzerCount = _analyzerIdMap.Values.Flatten().Count();
+                        Contract.ThrowIfFalse(_analyzerCount > 0);
 
-                        this.diagnosticStateMaps = new DiagnosticState[stateTypeCount, analyzerCount];
+                        _diagnosticStateMaps = new DiagnosticState[s_stateTypeCount, _analyzerCount];
                     }
 
                     private static ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> CreateAnalyzerIdMap(
@@ -84,15 +84,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         get
                         {
-                            Contract.ThrowIfFalse(analyzerCount > 0);
-                            return analyzerCount;
+                            Contract.ThrowIfFalse(_analyzerCount > 0);
+                            return _analyzerCount;
                         }
                     }
 
                     public IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> GetAllExistingDiagnosticStates()
                     {
                         var current = SpecializedCollections.EmptyEnumerable<Tuple<DiagnosticState, ProviderId, StateType>>();
-                        foreach (var type in DocumentScopeStateTypes)
+                        foreach (var type in s_documentScopeStateTypes)
                         {
                             current = current.Concat(GetAllExistingDiagnosticStates(type));
                         }
@@ -102,23 +102,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     public IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> GetAllExistingDiagnosticStates(StateType type)
                     {
-                        foreach (var analyzerAndId in this.analyzerIdMap.Values.Flatten())
+                        foreach (var analyzerAndId in _analyzerIdMap.Values.Flatten())
                         {
-                            var state = this.diagnosticStateMaps[(int)type, analyzerAndId.Value - startAnalyzerId];
+                            var state = _diagnosticStateMaps[(int)type, analyzerAndId.Value - _startAnalyzerId];
                             yield return Tuple.Create(state, analyzerAndId.Value, type);
                         }
                     }
 
                     public IEnumerable<KeyValuePair<DiagnosticAnalyzer, ProviderId>> GetAllProviderAndIds()
                     {
-                        return this.analyzerIdMap.Values.Flatten();
+                        return _analyzerIdMap.Values.Flatten();
                     }
 
                     public ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>> GetAllDiagnosticAnalyzers()
                     {
                         var analyzers = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticAnalyzer>>();
 
-                        foreach (var item in this.analyzerIdMap)
+                        foreach (var item in _analyzerIdMap)
                         {
                             analyzers.Add(item.Key, item.Value.Keys);
                         }
@@ -128,24 +128,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     public DiagnosticState GetOrCreateDiagnosticState(StateType stateType, ProviderId providerId, DiagnosticAnalyzer provider)
                     {
-                        Contract.ThrowIfFalse(providerId >= this.startAnalyzerId);
-                        Contract.ThrowIfFalse(providerId < this.startAnalyzerId + this.AnalyzerCount);
+                        Contract.ThrowIfFalse(providerId >= _startAnalyzerId);
+                        Contract.ThrowIfFalse(providerId < _startAnalyzerId + this.AnalyzerCount);
 
-                        return DiagnosticAnalyzersAndStates.GetOrCreateDiagnosticState(this.diagnosticStateMaps, stateType, providerId - startAnalyzerId, providerId, provider, this.projectLanguage);
+                        return DiagnosticAnalyzersAndStates.GetOrCreateDiagnosticState(_diagnosticStateMaps, stateType, providerId - _startAnalyzerId, providerId, provider, _projectLanguage);
                     }
 
                     public DiagnosticState GetDiagnosticState(StateType stateType, ProviderId providerId)
                     {
-                        Contract.ThrowIfFalse(providerId >= this.startAnalyzerId);
-                        Contract.ThrowIfFalse(providerId < this.startAnalyzerId + this.AnalyzerCount);
+                        Contract.ThrowIfFalse(providerId >= _startAnalyzerId);
+                        Contract.ThrowIfFalse(providerId < _startAnalyzerId + this.AnalyzerCount);
 
-                        return this.diagnosticStateMaps[(int)stateType, providerId - startAnalyzerId];
+                        return _diagnosticStateMaps[(int)stateType, providerId - _startAnalyzerId];
                     }
 
                     public bool HasAnalyzer(DiagnosticAnalyzer analyzer)
                     {
                         Contract.ThrowIfNull(analyzer);
-                        return this.analyzerIdMap.Values.Any(dict => dict.ContainsKey(analyzer));
+                        return _analyzerIdMap.Values.Any(dict => dict.ContainsKey(analyzer));
                     }
                 }
             }

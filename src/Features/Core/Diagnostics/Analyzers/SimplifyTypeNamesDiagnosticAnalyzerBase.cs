@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -11,42 +11,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 {
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.NameCanBeSimplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.NameCanBeSimplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static LocalizableString localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.SimplifyNames), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor descriptorSimplifyNames = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
-                                                                    localizableTitleSimplifyNames,
-                                                                    localizableMessage,
+        private static LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.SimplifyNames), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+                                                                    s_localizableTitleSimplifyNames,
+                                                                    s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static LocalizableString localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.SimplifyMemberAccess), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                                                                    localizableTitleSimplifyMemberAccess,
-                                                                    localizableMessage,
+        private static LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.SimplifyMemberAccess), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+                                                                    s_localizableTitleSimplifyMemberAccess,
+                                                                    s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static LocalizableString localizableTitleSimplifyThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.SimplifyThisOrMe), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor descriptorSimplifyThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId,
-                                                                    localizableTitleSimplifyThisOrMe,
-                                                                    localizableMessage,
+        private static LocalizableString s_localizableTitleSimplifyThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.SimplifyThisOrMe), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId,
+                                                                    s_localizableTitleSimplifyThisOrMe,
+                                                                    s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private OptionSet lazyDefaultOptionSet;
+        private OptionSet _lazyDefaultOptionSet;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(descriptorSimplifyNames, descriptorSimplifyMemberAccess, descriptorSimplifyThisOrMe);
+                return ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess, s_descriptorSimplifyThisOrMe);
             }
         }
 
@@ -62,16 +62,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return workspaceOptions.Workspace.Options;
             }
 
-            if (this.lazyDefaultOptionSet == null)
+            if (_lazyDefaultOptionSet == null)
             {
-                Interlocked.CompareExchange(ref this.lazyDefaultOptionSet, new OptionSet(null), null);
+                Interlocked.CompareExchange(ref _lazyDefaultOptionSet, new OptionSet(null), null);
             }
 
-            return this.lazyDefaultOptionSet;
+            return _lazyDefaultOptionSet;
         }
 
         protected abstract string GetLanguageName();
-        
+
         protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             diagnostic = default(Diagnostic);
@@ -94,15 +94,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
-                    descriptor = descriptorSimplifyNames;
+                    descriptor = s_descriptorSimplifyNames;
                     break;
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
-                    descriptor = descriptorSimplifyMemberAccess;
+                    descriptor = s_descriptorSimplifyMemberAccess;
                     break;
 
                 case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId:
-                    descriptor = descriptorSimplifyThisOrMe;
+                    descriptor = s_descriptorSimplifyThisOrMe;
                     break;
 
                 default:

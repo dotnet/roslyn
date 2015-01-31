@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly TreeData TreeInfo;
         protected readonly OptionSet OptionSet;
 
-        private readonly Whitespace[] spaces = new Whitespace[SpaceCacheSize];
-        private readonly Whitespace[,] whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+        private readonly Whitespace[] _spaces = new Whitespace[SpaceCacheSize];
+        private readonly Whitespace[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
 
         protected AbstractTriviaDataFactory(TreeData treeInfo, OptionSet optionSet)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             for (int i = 0; i < SpaceCacheSize; i++)
             {
-                this.spaces[i] = new Whitespace(this.OptionSet, space: i, elastic: false, language: treeInfo.Root.Language);
+                _spaces[i] = new Whitespace(this.OptionSet, space: i, elastic: false, language: treeInfo.Root.Language);
             }
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (space < SpaceCacheSize)
             {
-                return this.spaces[space];
+                return _spaces[space];
             }
 
             // create a new space
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     var lineIndex = lineBreaks - 1;
                     EnsureWhitespaceTriviaInfo(lineIndex, indentationLevel);
-                    return this.whitespaces[lineIndex, indentationLevel];
+                    return _whitespaces[lineIndex, indentationLevel];
                 }
             }
 
@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
         {
             Contract.ThrowIfFalse(lineIndex >= 0 && lineIndex < LineBreakCacheSize);
-            Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < this.whitespaces.Length / this.whitespaces.Rank);
+            Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < _whitespaces.Length / _whitespaces.Rank);
 
             // set up caches
-            if (this.whitespaces[lineIndex, indentationLevel] == null)
+            if (_whitespaces[lineIndex, indentationLevel] == null)
             {
                 var indentation = indentationLevel * this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.TreeInfo.Root.Language);
                 var triviaInfo = new Whitespace(this.OptionSet, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false, language: this.TreeInfo.Root.Language);
-                Interlocked.CompareExchange(ref this.whitespaces[lineIndex, indentationLevel], triviaInfo, null);
+                Interlocked.CompareExchange(ref _whitespaces[lineIndex, indentationLevel], triviaInfo, null);
             }
         }
 

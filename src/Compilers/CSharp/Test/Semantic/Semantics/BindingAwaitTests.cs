@@ -900,7 +900,7 @@ public static class EE
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(object)", "EE.GetAwaiter(object)")
                 );
         }
-        
+
         [Fact]
         public void ExtensionParentNamespaceLookupOnOnReturnTypeMismatch()
         {

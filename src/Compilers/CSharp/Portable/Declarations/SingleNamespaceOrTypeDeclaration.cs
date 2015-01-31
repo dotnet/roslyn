@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class SingleNamespaceOrTypeDeclaration : Declaration
     {
-        private readonly SyntaxReference syntaxReference;
-        private readonly SourceLocation nameLocation;
+        private readonly SyntaxReference _syntaxReference;
+        private readonly SourceLocation _nameLocation;
 
         protected SingleNamespaceOrTypeDeclaration(
             string name,
@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocation nameLocation)
             : base(name)
         {
-            this.syntaxReference = syntaxReference;
-            this.nameLocation = nameLocation;
+            _syntaxReference = syntaxReference;
+            _nameLocation = nameLocation;
         }
 
         public SourceLocation Location
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return syntaxReference;
+                return _syntaxReference;
             }
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return nameLocation;
+                return _nameLocation;
             }
         }
 

@@ -15,26 +15,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaFrame : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol topLevelMethod;
-        private readonly MethodSymbol constructor;
-        private readonly MethodSymbol staticConstructor;
-        private readonly FieldSymbol singletonCache;
+        private readonly MethodSymbol _topLevelMethod;
+        private readonly MethodSymbol _constructor;
+        private readonly MethodSymbol _staticConstructor;
+        private readonly FieldSymbol _singletonCache;
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
         internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, MethodSymbol topLevelMethod, MethodDebugId methodId, CSharpSyntaxNode scopeSyntaxOpt, int closureOrdinal)
             : base(MakeName(slotAllocatorOpt, scopeSyntaxOpt, methodId, closureOrdinal), topLevelMethod)
         {
-            this.topLevelMethod = topLevelMethod;
-            this.constructor = new LambdaFrameConstructor(this);
+            _topLevelMethod = topLevelMethod;
+            _constructor = new LambdaFrameConstructor(this);
             this.ClosureOrdinal = closureOrdinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 
             if (scopeSyntaxOpt == null)
             {
-                this.staticConstructor = new SynthesizedStaticConstructor(this);
+                _staticConstructor = new SynthesizedStaticConstructor(this);
                 var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceFieldName();
-                singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
+                _singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
             }
 
             AssertIsLambdaScopeSyntax(scopeSyntaxOpt);
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            
+
             throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());
         }
 
@@ -170,20 +170,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override MethodSymbol Constructor
         {
-            get { return this.constructor; }
+            get { return _constructor; }
         }
 
         internal MethodSymbol StaticConstructor
         {
-            get { return this.staticConstructor; }
+            get { return _staticConstructor; }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
         {
             var members = base.GetMembers();
-            if ((object)this.staticConstructor != null)
+            if ((object)_staticConstructor != null)
             {
-                members = ImmutableArray.Create<Symbol>(this.staticConstructor, this.singletonCache).AddRange(members);
+                members = ImmutableArray.Create<Symbol>(_staticConstructor, _singletonCache).AddRange(members);
             }
 
             return members;
@@ -191,18 +191,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal FieldSymbol SingletonCache
         {
-            get { return this.singletonCache; }
+            get { return _singletonCache; }
         }
 
         // display classes for static lambdas do not have any data and can be serialized.
         internal override bool IsSerializable
         {
-            get { return (object)this.singletonCache != null;}
+            get { return (object)_singletonCache != null; }
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return topLevelMethod.ContainingSymbol; }
+            get { return _topLevelMethod.ContainingSymbol; }
         }
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
-            get { return topLevelMethod; }
+            get { return _topLevelMethod; }
         }
     }
 }

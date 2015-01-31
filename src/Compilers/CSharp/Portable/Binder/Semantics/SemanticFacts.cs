@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
 
-        private static readonly HashSet<string> supportedOperators =
+        private static readonly HashSet<string> s_supportedOperators =
             new HashSet<string>(StringComparer.Ordinal)
             {
                 WellKnownMemberNames.AdditionOperatorName,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsSupportedOperatorName(string name)
         {
-            return supportedOperators.Contains(name);
+            return s_supportedOperators.Contains(name);
         }
     }
 }

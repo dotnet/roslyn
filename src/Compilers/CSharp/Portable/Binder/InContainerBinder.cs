@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class InContainerBinder : Binder
     {
-        private readonly NamespaceOrTypeSymbol container;
-        private readonly CSharpSyntaxNode declarationSyntax;
-        private readonly bool allowStaticClassUsings;
-        private Imports imports; // might be initialized lazily
-        private ConsList<Imports> lazyImportsList;
-        private readonly bool inUsing;
+        private readonly NamespaceOrTypeSymbol _container;
+        private readonly CSharpSyntaxNode _declarationSyntax;
+        private readonly bool _allowStaticClassUsings;
+        private Imports _imports; // might be initialized lazily
+        private ConsList<Imports> _lazyImportsList;
+        private readonly bool _inUsing;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)container != null);
             Debug.Assert(declarationSyntax != null);
 
-            this.declarationSyntax = declarationSyntax;
-            this.container = container;
-            this.allowStaticClassUsings = allowStaticClassUsings;
-            this.inUsing = inUsing;
+            _declarationSyntax = declarationSyntax;
+            _container = container;
+            _allowStaticClassUsings = allowStaticClassUsings;
+            _inUsing = inUsing;
         }
 
         /// <summary>
@@ -45,15 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)container != null);
 
-            this.container = container;
-            this.imports = imports ?? Imports.Empty;
+            _container = container;
+            _imports = imports ?? Imports.Empty;
         }
 
         internal NamespaceOrTypeSymbol Container
         {
             get
             {
-                return this.container;
+                return _container;
             }
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.allowStaticClassUsings;
+                return _allowStaticClassUsings;
             }
         }
 
@@ -72,31 +72,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
-            if (imports == null)
+            if (_imports == null)
             {
-                Interlocked.CompareExchange(ref imports, Imports.FromSyntax(declarationSyntax, this, basesBeingResolved, inUsing), null);
+                Interlocked.CompareExchange(ref _imports, Imports.FromSyntax(_declarationSyntax, this, basesBeingResolved, _inUsing), null);
             }
 
-            return imports;
+            return _imports;
         }
 
         internal override ConsList<Imports> ImportsList
         {
             get
             {
-                if (lazyImportsList == null)
+                if (_lazyImportsList == null)
                 {
                     ConsList<Imports> importsList = this.Next.ImportsList;
-                    if (this.container.Kind == SymbolKind.Namespace)
+                    if (_container.Kind == SymbolKind.Namespace)
                     {
                         importsList = new ConsList<Imports>(GetImports(), importsList);
                     }
-                    Interlocked.CompareExchange(ref lazyImportsList, importsList, null);
+                    Interlocked.CompareExchange(ref _lazyImportsList, importsList, null);
                 }
 
-                Debug.Assert(lazyImportsList != null);
+                Debug.Assert(_lazyImportsList != null);
 
-                return lazyImportsList;
+                return _lazyImportsList;
             }
         }
 
@@ -104,14 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var merged = container as MergedNamespaceSymbol;
-                return ((object)merged != null) ? merged.GetConstituentForCompilation(this.Compilation) : container;
+                var merged = _container as MergedNamespaceSymbol;
+                return ((object)merged != null) ? merged.GetConstituentForCompilation(this.Compilation) : _container;
             }
         }
 
         internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
-            var type = container as NamedTypeSymbol;
+            var type = _container as NamedTypeSymbol;
             if ((object)type != null)
             {
                 return this.IsSymbolAccessibleConditional(symbol, type, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics);
@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (container.Kind == SymbolKind.Namespace)
+                if (_container.Kind == SymbolKind.Namespace)
                 {
-                    ((NamespaceSymbol)container).GetExtensionMethods(methods, name, arity, options);
+                    ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
                 }
             }
         }
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            if (container.IsSubmissionClass)
+            if (_container.IsSubmissionClass)
             {
-                this.LookupMembersInternal(result, container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                 return;
             }
 
@@ -164,14 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // first lookup members of the namespace
             if ((options & LookupOptions.NamespaceAliasesOnly) == 0)
             {
-                this.LookupMembersInternal(result, container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
 
                 if (result.IsMultiViable)
                 {
                     // symbols cannot conflict with using alias names
                     if (arity == 0 && imports.IsUsingAlias(name, originalBinder.IsSemanticModelBinder))
                     {
-                        CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictAliasAndMember, name, container);
+                        CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictAliasAndMember, name, _container);
                         var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
                         result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
                     }
@@ -186,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            this.AddMemberLookupSymbolsInfo(result, container, options, originalBinder);
+            this.AddMemberLookupSymbolsInfo(result, _container, options, originalBinder);
 
             // if we are looking only for labels we do not need to search through the imports
-            if (!container.IsSubmissionClass && ((options & LookupOptions.LabelsOnly) == 0))
+            if (!_container.IsSubmissionClass && ((options & LookupOptions.LabelsOnly) == 0))
             {
                 var imports = GetImports(basesBeingResolved: null);
 

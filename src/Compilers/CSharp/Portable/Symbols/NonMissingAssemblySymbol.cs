@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gives about 8% win on subsequent lookups in some scenarios.     
         /// </summary>
         /// <remarks></remarks>
-        private readonly ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol> emittedNameToTypeMap =
+        private readonly ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol> _emittedNameToTypeMap =
             new ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol>();
 
-        private NamespaceSymbol globalNamespace;
+        private NamespaceSymbol _globalNamespace;
 
         /// <summary>
         /// Does this symbol represent a missing assembly.
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)globalNamespace == null)
+                if ((object)_globalNamespace == null)
                 {
                     // Get the root namespace from each module, and merge them all together. If there is only one, 
                     // then MergedNamespaceSymbol.Create will just return that one.
@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var result = MergedNamespaceSymbol.Create(new NamespaceExtent(this),
                                                         null,
                                                         allGlobalNamespaces.AsImmutable());
-                    Interlocked.CompareExchange(ref globalNamespace, result, null);
+                    Interlocked.CompareExchange(ref _globalNamespace, result, null);
                 }
 
-                return globalNamespace;
+                return _globalNamespace;
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamedTypeSymbol LookupTopLevelMetadataTypeInCache(ref MetadataTypeName emittedName)
         {
             NamedTypeSymbol result = null;
-            if (this.emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), out result))
+            if (_emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), out result))
             {
                 return result;
             }
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NamedTypeSymbol CachedTypeByEmittedName(string emittedname)
         {
             MetadataTypeName mdName = MetadataTypeName.FromFullName(emittedname);
-            return this.emittedNameToTypeMap[mdName.ToKey()];
+            return _emittedNameToTypeMap[mdName.ToKey()];
         }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.emittedNameToTypeMap.Count;
+                return _emittedNameToTypeMap.Count;
             }
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol result)
         {
             NamedTypeSymbol result1 = null;
-            result1 = this.emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result);
+            result1 = _emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result);
             System.Diagnostics.Debug.Assert(result1 == result); // object identity may differ in error cases
         }
     }

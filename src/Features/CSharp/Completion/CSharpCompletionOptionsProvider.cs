@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     [ExportOptionProvider, Shared]
     internal class CSharpCompletionOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> options = new List<IOption>
+        private IEnumerable<IOption> _options = new List<IOption>
             {
                 CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord,
                 CSharpCompletionOptions.IncludeSnippets,
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         public IEnumerable<IOption> GetOptions()
         {
-            return options;
+            return _options;
         }
     }
 }

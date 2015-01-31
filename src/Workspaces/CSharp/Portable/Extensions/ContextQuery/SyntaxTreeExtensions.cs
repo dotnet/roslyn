@@ -2134,7 +2134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         token = ((ArgumentListSyntax)parentMemberAccess.Parent.Parent).OpenParenToken;
                     }
                 }
-                
+
                 // Could have been parsed as a qualified name.
                 if (token.Parent.IsKind(SyntaxKind.QualifiedName))
                 {

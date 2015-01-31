@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private class UnavailableTypeParameterRemover : SymbolVisitor<ITypeSymbol>
         {
-            private readonly Compilation compilation;
-            private readonly ISet<string> availableTypeParameterNames;
+            private readonly Compilation _compilation;
+            private readonly ISet<string> _availableTypeParameterNames;
 
             public UnavailableTypeParameterRemover(Compilation compilation, ISet<string> availableTypeParameterNames)
             {
-                this.compilation = compilation;
-                this.availableTypeParameterNames = availableTypeParameterNames;
+                _compilation = compilation;
+                _availableTypeParameterNames = availableTypeParameterNames;
             }
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return compilation.CreatePointerTypeSymbol(elementType);
+                return _compilation.CreatePointerTypeSymbol(elementType);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (availableTypeParameterNames.Contains(symbol.Name))
+                if (_availableTypeParameterNames.Contains(symbol.Name))
                 {
                     return symbol;
                 }
 
-                return compilation.ObjectType;
+                return _compilation.ObjectType;
             }
         }
     }

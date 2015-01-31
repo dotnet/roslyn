@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract class XmlDocumentationProvider : DocumentationProvider
     {
-        private NonReentrantLock gate = new NonReentrantLock();
-        private Dictionary<string, string> docComments;
+        private NonReentrantLock _gate = new NonReentrantLock();
+        private Dictionary<string, string> _docComments;
 
         public static XmlDocumentationProvider Create(byte[] xmlDocCommentBytes)
         {
@@ -27,20 +27,20 @@ namespace Microsoft.CodeAnalysis
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.docComments == null)
+            if (_docComments == null)
             {
-                using (this.gate.DisposableWait(cancellationToken))
+                using (_gate.DisposableWait(cancellationToken))
                 {
                     try
                     {
-                        this.docComments = new Dictionary<string, string>();
+                        _docComments = new Dictionary<string, string>();
 
                         XDocument doc = this.GetXDocument();
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
                             {
-                                this.docComments[e.Attribute("name").Value] = e.Value;
+                                _docComments[e.Attribute("name").Value] = e.Value;
                             }
                         }
                     }
@@ -51,29 +51,29 @@ namespace Microsoft.CodeAnalysis
             }
 
             string docComment;
-            return this.docComments.TryGetValue(documentationMemberID, out docComment) ? docComment : "";
+            return _docComments.TryGetValue(documentationMemberID, out docComment) ? docComment : "";
         }
 
-        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };
 
         private sealed class ContentBasedXmlDocumentationProvider : XmlDocumentationProvider
         {
-            private readonly byte[] xmlDocCommentBytes;
+            private readonly byte[] _xmlDocCommentBytes;
 
             public ContentBasedXmlDocumentationProvider(byte[] xmlDocCommentBytes)
             {
                 Contract.ThrowIfNull(xmlDocCommentBytes);
 
-                this.xmlDocCommentBytes = xmlDocCommentBytes;
+                _xmlDocCommentBytes = xmlDocCommentBytes;
             }
 
             protected override XDocument GetXDocument()
             {
-                using (var stream = SerializableBytes.CreateReadableStream(this.xmlDocCommentBytes, CancellationToken.None))
-                using (var xmlReader = XmlReader.Create(stream, XmlSettings))
+                using (var stream = SerializableBytes.CreateReadableStream(_xmlDocCommentBytes, CancellationToken.None))
+                using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
                 {
                     return XDocument.Load(xmlReader);
                 }
@@ -88,20 +88,20 @@ namespace Microsoft.CodeAnalysis
             private bool EqualsHelper(ContentBasedXmlDocumentationProvider other)
             {
                 // Check for reference equality first
-                if (this == other || this.xmlDocCommentBytes == other.xmlDocCommentBytes)
+                if (this == other || _xmlDocCommentBytes == other._xmlDocCommentBytes)
                 {
                     return true;
                 }
 
                 // Compare byte sequences
-                if (this.xmlDocCommentBytes.Length != other.xmlDocCommentBytes.Length)
+                if (_xmlDocCommentBytes.Length != other._xmlDocCommentBytes.Length)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < this.xmlDocCommentBytes.Length; i++)
+                for (int i = 0; i < _xmlDocCommentBytes.Length; i++)
                 {
-                    if (this.xmlDocCommentBytes[i] != other.xmlDocCommentBytes[i])
+                    if (_xmlDocCommentBytes[i] != other._xmlDocCommentBytes[i])
                     {
                         return false;
                     }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
 
             public override int GetHashCode()
             {
-                return Hash.CombineValues(this.xmlDocCommentBytes);
+                return Hash.CombineValues(_xmlDocCommentBytes);
             }
         }
     }

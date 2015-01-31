@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
             return source.OrderBy((t1, t2) => t1.CompareTo(t2));
         }
 
-        private static readonly Func<object, bool> NotNullTest = x => x != null;
+        private static readonly Func<object, bool> s_notNullTest = x => x != null;
 
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source) where T : class
         {
@@ -68,21 +68,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
                 return ImmutableArray<T>.Empty;
             }
 
-            return source.Where((Func<T, bool>)NotNullTest);
+            return source.Where((Func<T, bool>)s_notNullTest);
         }
 
         private class ComparisonComparer<T> : Comparer<T>
         {
-            private readonly Comparison<T> compare;
+            private readonly Comparison<T> _compare;
 
             public ComparisonComparer(Comparison<T> compare)
             {
-                this.compare = compare;
+                _compare = compare;
             }
 
             public override int Compare(T x, T y)
             {
-                return compare(x, y);
+                return _compare(x, y);
             }
         }
     }

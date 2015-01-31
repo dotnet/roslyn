@@ -4122,7 +4122,6 @@ using System;
     // [A] class C { }
     Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "assembly, module, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter")
             );
-
         }
 
         [Fact]
@@ -7221,7 +7220,7 @@ class Test
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1)});
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             CompileAndVerify(compilation2, emitOptions: TestEmitters.RefEmitBug, symbolValidator: (m) =>
                                                                    {
@@ -7270,7 +7269,7 @@ class C<T>
 
                                                                 Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
                                                                 Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
-                                                            }, 
+                                                            },
                              emitOptions: TestEmitters.RefEmitBug);
         }
         #endregion

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 
-    static class DictionaryExtensions
+    internal static class DictionaryExtensions
     {
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {

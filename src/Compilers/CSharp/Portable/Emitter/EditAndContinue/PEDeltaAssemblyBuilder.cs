@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase, IPEDeltaAssemblyBuilder
     {
-        private readonly EmitBaseline previousGeneration;
-        private readonly CSharpDefinitionMap previousDefinitions;
-        private readonly SymbolChanges changes;
+        private readonly EmitBaseline _previousGeneration;
+        private readonly CSharpDefinitionMap _previousDefinitions;
+        private readonly SymbolChanges _changes;
 
         public PEDeltaAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
@@ -47,20 +47,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
 
                 matchToPrevious = new CSharpSymbolMatcher(
-                    previousGeneration.AnonymousTypeMap, 
+                    previousGeneration.AnonymousTypeMap,
                     sourceAssembly: sourceAssembly,
-                    sourceContext: context, 
-                    otherAssembly: previousAssembly, 
+                    sourceContext: context,
+                    otherAssembly: previousAssembly,
                     otherContext: previousContext,
                     otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers);
             }
 
-            this.previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
-            this.previousGeneration = previousGeneration;
-            this.changes = new SymbolChanges(this.previousDefinitions, edits, isAddedSymbol);
+            _previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
+            _previousGeneration = previousGeneration;
+            _changes = new SymbolChanges(_previousDefinitions, edits, isAddedSymbol);
         }
 
-        public override int CurrentGenerationOrdinal => this.previousGeneration.Ordinal + 1;
+        public override int CurrentGenerationOrdinal => _previousGeneration.Ordinal + 1;
 
         private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(
             MetadataReader reader,
@@ -131,12 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal EmitBaseline PreviousGeneration
         {
-            get { return this.previousGeneration; }
+            get { return _previousGeneration; }
         }
 
         internal CSharpDefinitionMap PreviousDefinitions
         {
-            get { return this.previousDefinitions; }
+            get { return _previousDefinitions; }
         }
 
         internal override bool SupportsPrivateImplClass
@@ -153,39 +153,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var anonymousTypes = this.Compilation.AnonymousTypeManager.GetAnonymousTypeMap();
             // Should contain all entries in previous generation.
-            Debug.Assert(this.previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
+            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
             return anonymousTypes;
         }
 
         internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
         {
-            return this.previousDefinitions.TryCreateVariableSlotAllocator(this.previousGeneration, method);
+            return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method);
         }
 
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
-            return ImmutableArray.CreateRange(this.previousGeneration.AnonymousTypeMap.Keys);
+            return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys);
         }
 
         internal override int GetNextAnonymousTypeIndex()
         {
-            return this.previousGeneration.GetNextAnonymousTypeIndex();
+            return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
         internal override bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
-            return this.previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
+            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
         }
 
         internal SymbolChanges Changes
         {
-            get { return this.changes; }
+            get { return _changes; }
         }
 
         internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            return this.changes.GetTopLevelTypes(context);
+            return _changes.GetTopLevelTypes(context);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

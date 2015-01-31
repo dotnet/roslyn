@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
     {
         private class FieldDelegatingCodeAction : CodeAction
         {
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
 
             public FieldDelegatingCodeAction(
                 TService service,
                 Document document,
                 State state)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
+                _service = service;
+                _document = document;
+                _state = state;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -40,27 +40,27 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                for (int i = 0; i < state.Parameters.Count; i++)
+                for (int i = 0; i < _state.Parameters.Count; i++)
                 {
-                    parameterToExistingFieldMap[state.Parameters[i].Name] = state.SelectedMembers[i];
+                    parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
                 }
 
-                var factory = this.document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetLanguageService<SyntaxGenerator>();
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var members = factory.CreateFieldDelegatingConstructor(
-                    state.ContainingType.Name,
-                    state.ContainingType,
-                    state.Parameters,
+                    _state.ContainingType.Name,
+                    _state.ContainingType,
+                    _state.Parameters,
                     parameterToExistingFieldMap,
                     parameterToNewFieldMap: null,
                     cancellationToken: cancellationToken);
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    document.Project.Solution,
-                    state.ContainingType,
+                    _document.Project.Solution,
+                    _state.ContainingType,
                     members,
-                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(state.TextSpan)),
+                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(_state.TextSpan)),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -71,19 +71,19 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
             {
                 get
                 {
-                    var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-                    var parameters = state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
+                    var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
+                    var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
-                    if (state.DelegatedConstructor == null)
+                    if (_state.DelegatedConstructor == null)
                     {
                         return string.Format(FeaturesResources.GenerateConstructor,
-                            state.ContainingType.Name, parameterString);
+                            _state.ContainingType.Name, parameterString);
                     }
                     else
                     {
                         return string.Format(FeaturesResources.GenerateFieldAssigningConstructor,
-                            state.ContainingType.Name, parameterString);
+                            _state.ContainingType.Name, parameterString);
                     }
                 }
             }

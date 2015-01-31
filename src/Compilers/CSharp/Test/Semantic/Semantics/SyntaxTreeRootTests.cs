@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         [Fact]
         public void SyntaxNodeSyntaxTreeReturnsParentsSyntaxTree()
         {
-            var node = SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, 
+            var node = SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression,
                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(3)));
             var childTree = node.Operand.SyntaxTree;
             var parentTree = node.SyntaxTree;

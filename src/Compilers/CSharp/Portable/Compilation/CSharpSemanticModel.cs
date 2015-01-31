@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InitializerExpressionSyntax initializer = (InitializerExpressionSyntax)expression.Parent;
 
                     // Skip containing object initializers
-                    while (initializer.Parent != null && 
+                    while (initializer.Parent != null &&
                            initializer.Parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                            ((AssignmentExpressionSyntax)initializer.Parent).Right == initializer &&
                            initializer.Parent.Parent != null &&
@@ -3411,7 +3411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (boundNodeForSyntacticParent.Kind)
                 {
-
                     case BoundKind.Attribute:
                         BoundAttribute boundAttribute = (BoundAttribute)boundNodeForSyntacticParent;
 

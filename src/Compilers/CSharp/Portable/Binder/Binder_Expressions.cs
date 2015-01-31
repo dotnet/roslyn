@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
-            return next.IsUnboundTypeAllowed(syntax);
+            return _next.IsUnboundTypeAllowed(syntax);
         }
 
         /// <summary>
@@ -1518,10 +1518,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             TypeSymbol targetType = this.BindType(node.Type, diagnostics);
 
-            if (targetType.IsNullableType() && 
-                !operand.HasAnyErrors && 
-                operand.Type != null && 
-                !operand.Type.IsNullableType() && 
+            if (targetType.IsNullableType() &&
+                !operand.HasAnyErrors &&
+                operand.Type != null &&
+                !operand.Type.IsNullableType() &&
                 targetType.GetNullableUnderlyingType() != operand.Type)
             {
                 return BindExplicitNullableCastFromNonNullable(node, operand, targetType, diagnostics);
@@ -2675,7 +2675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out candidateConstructors,
                     allowProtectedConstructorsOfBaseType: true))
                 {
-
                     bool hasErrors = false;
                     MethodSymbol resultMember = memberResolutionResult.Member;
 
@@ -3241,7 +3240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
-                case BoundKind.PointerElementAccess: 
+                case BoundKind.PointerElementAccess:
                     return boundMember;
 
                 default:
@@ -4345,7 +4344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SymbolKind.RangeVariable:
                             var leftType = boundValue.Type;
                             Debug.Assert((object)leftType != null);
-                            
+
                             var leftName = node.Identifier.ValueText;
                             if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
                             {
@@ -4362,7 +4361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
 
-                        // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
+                            // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
                     }
                 }
 
@@ -5845,7 +5844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return indexerAccessExpression;
         }
 
-        private static readonly Func<PropertySymbol, bool> IsIndexedPropertyWithNonOptionalArguments = property =>
+        private static readonly Func<PropertySymbol, bool> s_isIndexedPropertyWithNonOptionalArguments = property =>
             {
                 if (property.IsIndexer || !property.IsIndexedProperty)
                 {
@@ -5857,7 +5856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !parameter.IsOptional && !parameter.IsParams;
             };
 
-        private static readonly SymbolDisplayFormat PropertyGroupFormat =
+        private static readonly SymbolDisplayFormat s_propertyGroupFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 memberOptions:
@@ -5872,12 +5871,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverOpt = propertyGroup.ReceiverOpt;
             var properties = propertyGroup.Properties;
 
-            if (properties.All(IsIndexedPropertyWithNonOptionalArguments))
+            if (properties.All(s_isIndexedPropertyWithNonOptionalArguments))
             {
                 Error(diagnostics,
                     mustHaveAllOptionalParameters ? ErrorCode.ERR_IndexedPropertyMustHaveAllOptionalParams : ErrorCode.ERR_IndexedPropertyRequiresParams,
                     syntax,
-                    properties[0].ToDisplayString(PropertyGroupFormat));
+                    properties[0].ToDisplayString(s_propertyGroupFormat));
                 return BoundIndexerAccess.ErrorAccess(
                     syntax,
                     receiverOpt,

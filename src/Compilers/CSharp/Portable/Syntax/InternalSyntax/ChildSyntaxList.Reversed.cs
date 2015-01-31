@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal partial struct Reversed
         {
-            private readonly GreenNode node;
+            private readonly GreenNode _node;
 
             internal Reversed(GreenNode node)
             {
-                this.node = node;
+                _node = node;
             }
 
             public Enumerator GetEnumerator()
             {
-                return new Enumerator(node);
+                return new Enumerator(_node);
             }
 
 #if DEBUG

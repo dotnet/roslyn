@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedEventSymbol : AbstractWrappedSymbol, IEventSymbol
         {
-            private readonly IEventSymbol symbol;
+            private readonly IEventSymbol _symbol;
 
             public WrappedEventSymbol(IEventSymbol eventSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(eventSymbol, canImplementImplicitly, docCommentFormattingService)
             {
-                this.symbol = eventSymbol;
+                _symbol = eventSymbol;
             }
 
             public IMethodSymbol AddMethod
             {
                 get
                 {
-                    return this.symbol.AddMethod;
+                    return _symbol.AddMethod;
                 }
             }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     return this.CanImplementImplicitly
                         ? ImmutableArray.Create<IEventSymbol>()
-                        : this.symbol.ExplicitInterfaceImplementations;
+                        : _symbol.ExplicitInterfaceImplementations;
                 }
             }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsWindowsRuntimeEvent;
+                    return _symbol.IsWindowsRuntimeEvent;
                 }
             }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.OverriddenEvent;
+                    return _symbol.OverriddenEvent;
                 }
             }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.RaiseMethod;
+                    return _symbol.RaiseMethod;
                 }
             }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.RemoveMethod;
+                    return _symbol.RemoveMethod;
                 }
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Type;
+                    return _symbol.Type;
                 }
             }
         }

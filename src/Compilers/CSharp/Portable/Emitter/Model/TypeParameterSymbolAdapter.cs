@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class TypeParameterSymbol :
+    internal partial class TypeParameterSymbol :
         Cci.IGenericParameterReference,
         Cci.IGenericMethodParameterReference,
         Cci.IGenericTypeParameterReference,

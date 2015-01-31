@@ -12,23 +12,23 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected abstract class AbstractComplexTrivia<TToken, TTrivia> : TriviaDataWithList<TTrivia>
         {
-            private readonly SyntaxToken token1;
-            private readonly SyntaxToken token2;
+            private readonly SyntaxToken _token1;
+            private readonly SyntaxToken _token2;
 
             public TreeData TreeInfo { get; private set; }
             public string OriginalString { get; private set; }
 
-            private readonly bool treatAsElastic;
+            private readonly bool _treatAsElastic;
 
             public AbstractComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2) :
                 base(optionSet, token1.Language)
             {
                 Contract.ThrowIfNull(treeInfo);
 
-                this.token1 = token1;
-                this.token2 = token2;
+                _token1 = token1;
+                _token2 = token2;
 
-                this.treatAsElastic = CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(token1, token2);
+                _treatAsElastic = CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(token1, token2);
 
                 this.TreeInfo = treeInfo;
                 this.OriginalString = this.TreeInfo.GetTextBetween(token1, token2);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return ConvertToken(this.token1);
+                    return ConvertToken(_token1);
                 }
             }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return ConvertToken(this.token2);
+                    return ConvertToken(_token2);
                 }
             }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return this.treatAsElastic;
+                    return _treatAsElastic;
                 }
             }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // do expansive check
                 // we need to actually format here to find out indentation
-                var list = new TriviaList(token1.TrailingTrivia, token2.LeadingTrivia);
+                var list = new TriviaList(_token1.TrailingTrivia, _token2.LeadingTrivia);
                 Contract.ThrowIfFalse(list.Count > 0);
 
                 if (ContainsSkippedTokensOrText(list))

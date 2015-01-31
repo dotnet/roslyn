@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Text;
@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
 {
     internal abstract class AbstractDocumentationCommentFormattingService : IDocumentationCommentFormattingService
     {
-        private int position;
-        private SemanticModel semanticModel;
+        private int _position;
+        private SemanticModel _semanticModel;
 
         private class FormatterState
         {
-            private bool anyNonWhitespaceSinceLastPara;
-            private bool pendingParagraphBreak;
-            private bool pendingSingleSpace;
+            private bool _anyNonWhitespaceSinceLastPara;
+            private bool _pendingParagraphBreak;
+            private bool _pendingSingleSpace;
 
-            private static SymbolDisplayPart spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
-            private static SymbolDisplayPart newlinePart = new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
+            private static SymbolDisplayPart s_spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
+            private static SymbolDisplayPart s_newlinePart = new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
             internal readonly List<SymbolDisplayPart> Builder = new List<SymbolDisplayPart>();
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
 
             public void AppendSingleSpace()
             {
-                pendingSingleSpace = true;
+                _pendingSingleSpace = true;
             }
 
             public void AppendString(string s)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
 
                 Builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, s));
 
-                anyNonWhitespaceSinceLastPara = true;
+                _anyNonWhitespaceSinceLastPara = true;
             }
 
             public void AppendParts(IEnumerable<SymbolDisplayPart> parts)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
 
                 Builder.AddRange(parts);
 
-                anyNonWhitespaceSinceLastPara = true;
+                _anyNonWhitespaceSinceLastPara = true;
             }
 
             public bool TryAppendSymbol(ISymbol symbol)
@@ -85,15 +85,15 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
             public void MarkBeginOrEndPara()
             {
                 // If this is a <para> with nothing before it, then skip it.
-                if (anyNonWhitespaceSinceLastPara == false)
+                if (_anyNonWhitespaceSinceLastPara == false)
                 {
                     return;
                 }
 
-                pendingParagraphBreak = true;
+                _pendingParagraphBreak = true;
 
                 // Reset flag.
-                anyNonWhitespaceSinceLastPara = false;
+                _anyNonWhitespaceSinceLastPara = false;
             }
 
             public string GetText()
@@ -103,18 +103,18 @@ namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
 
             private void EmitPendingChars()
             {
-                if (pendingParagraphBreak)
+                if (_pendingParagraphBreak)
                 {
-                    Builder.Add(newlinePart);
-                    Builder.Add(newlinePart);
+                    Builder.Add(s_newlinePart);
+                    Builder.Add(s_newlinePart);
                 }
-                else if (pendingSingleSpace)
+                else if (_pendingSingleSpace)
                 {
-                    Builder.Add(spacePart);
+                    Builder.Add(s_spacePart);
                 }
 
-                pendingParagraphBreak = false;
-                pendingSingleSpace = false;
+                _pendingParagraphBreak = false;
+                _pendingSingleSpace = false;
             }
         }
 

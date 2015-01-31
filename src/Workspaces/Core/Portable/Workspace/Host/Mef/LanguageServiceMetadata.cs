@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public string Layer { get; private set; }
 
         public IReadOnlyDictionary<string, object> Data { get; private set; }
-        
+
         public LanguageServiceMetadata(IDictionary<string, object> data)
             : base(data)
         {

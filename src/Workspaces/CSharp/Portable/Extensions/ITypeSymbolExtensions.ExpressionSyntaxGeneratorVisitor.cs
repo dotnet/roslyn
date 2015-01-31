@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
                 syntax = syntax.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol));
-                 
+
                 return syntax;
             }
 

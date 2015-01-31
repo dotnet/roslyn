@@ -12,26 +12,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// </summary>
     public struct CodeRefactoringContext
     {
-        private readonly Document document;
-        private readonly TextSpan span;
-        private readonly CancellationToken cancellationToken;
+        private readonly Document _document;
+        private readonly TextSpan _span;
+        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
         /// </summary>
-        public Document Document { get { return this.document; } }
+        public Document Document { get { return _document; } }
 
         /// <summary>
         /// Text span within the <see cref="CodeRefactoringContext.Document"/> to refactor.
         /// </summary>
-        public TextSpan Span { get { return this.span; } }
+        public TextSpan Span { get { return _span; } }
 
-        private readonly Action<CodeAction> registerRefactoring;
+        private readonly Action<CodeAction> _registerRefactoring;
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return this.cancellationToken; } }
+        public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 throw new ArgumentNullException(nameof(registerRefactoring));
             }
 
-            this.document = document;
-            this.span = span;
-            this.registerRefactoring = registerRefactoring;
-            this.cancellationToken = cancellationToken;
+            _document = document;
+            _span = span;
+            _registerRefactoring = registerRefactoring;
+            _cancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 throw new ArgumentNullException(nameof(action));
             }
 
-            this.registerRefactoring(action);
+            _registerRefactoring(action);
         }
     }
 }

@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
             analysisContext.RegisterSyntaxNodeAction(
                 (context) =>
             {
-                    var lockStatement = (LockStatementSyntax)context.Node;
-                    GetDiagnosticsForNode(lockStatement.Expression, context.SemanticModel, context.ReportDiagnostic);
-                },
+                var lockStatement = (LockStatementSyntax)context.Node;
+                GetDiagnosticsForNode(lockStatement.Expression, context.SemanticModel, context.ReportDiagnostic);
+            },
                 SyntaxKind.LockStatement);
         }
     }

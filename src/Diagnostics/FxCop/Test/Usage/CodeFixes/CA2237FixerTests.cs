@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             return new CA2237CodeFixProvider();
         }
-                
+
         #region CA2237
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]

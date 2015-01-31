@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal sealed class PatternMatcher
     {
-        private readonly object gate = new object();
-        private readonly Dictionary<string, List<TextSpan>> stringToWordParts = new Dictionary<string, List<TextSpan>>();
-        private readonly Dictionary<string, List<TextSpan>> stringToCharacterParts = new Dictionary<string, List<TextSpan>>();
-        private readonly Func<string, List<TextSpan>> breakIntoWordParts = StringBreaker.BreakIntoWordParts;
-        private readonly Func<string, List<TextSpan>> breakIntoCharacterParts = StringBreaker.BreakIntoCharacterParts;
+        private readonly object _gate = new object();
+        private readonly Dictionary<string, List<TextSpan>> _stringToWordParts = new Dictionary<string, List<TextSpan>>();
+        private readonly Dictionary<string, List<TextSpan>> _stringToCharacterParts = new Dictionary<string, List<TextSpan>>();
+        private readonly Func<string, List<TextSpan>> _breakIntoWordParts = StringBreaker.BreakIntoWordParts;
+        private readonly Func<string, List<TextSpan>> _breakIntoCharacterParts = StringBreaker.BreakIntoCharacterParts;
 
-        private readonly Dictionary<string, string[]> patternToParts = new Dictionary<string, string[]>();
-        private readonly Func<string, string[]> breakPatternIntoParts;
+        private readonly Dictionary<string, string[]> _patternToParts = new Dictionary<string, string[]>();
+        private readonly Func<string, string[]> _breakPatternIntoParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
-        private readonly CompareInfo compareInfo;
+        private readonly CompareInfo _compareInfo;
 
         /// <summary>
         /// Construct a new PatternMatcher using the calling thread's culture for string searching and comparison.
@@ -43,31 +43,31 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <param name="verbatimIdentifierPrefixIsWordCharacter">Whether to consider "@" as a word character</param>
         public PatternMatcher(CultureInfo culture, bool verbatimIdentifierPrefixIsWordCharacter)
         {
-            this.compareInfo = culture.CompareInfo;
-            breakPatternIntoParts = (pattern) => BreakPatternIntoParts(pattern, verbatimIdentifierPrefixIsWordCharacter);
+            _compareInfo = culture.CompareInfo;
+            _breakPatternIntoParts = (pattern) => BreakPatternIntoParts(pattern, verbatimIdentifierPrefixIsWordCharacter);
         }
 
         private List<TextSpan> GetCharacterParts(string pattern)
         {
-            lock (gate)
+            lock (_gate)
             {
-                return stringToCharacterParts.GetOrAdd(pattern, breakIntoCharacterParts);
+                return _stringToCharacterParts.GetOrAdd(pattern, _breakIntoCharacterParts);
             }
         }
 
         private List<TextSpan> GetWordParts(string word)
         {
-            lock (gate)
+            lock (_gate)
             {
-                return stringToWordParts.GetOrAdd(word, breakIntoWordParts);
+                return _stringToWordParts.GetOrAdd(word, _breakIntoWordParts);
             }
         }
 
         private string[] GetPatternParts(string pattern)
         {
-            lock (gate)
+            lock (_gate)
             {
-                return patternToParts.GetOrAdd(pattern, breakPatternIntoParts);
+                return _patternToParts.GetOrAdd(pattern, _breakPatternIntoParts);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             //
             // Only if all parts have some sort of match is the pattern considered matched.
 
-            int index = compareInfo.IndexOf(candidate, pattern, CompareOptions.IgnoreCase);
+            int index = _compareInfo.IndexOf(candidate, pattern, CompareOptions.IgnoreCase);
             if (index == 0)
             {
                 if (pattern.Length == candidate.Length)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     // b) Check if the part is a prefix of the candidate, in a case insensitive or sensitive
                     //    manner.  If it does, return that there was a prefix match.
-                    return new PatternMatch(PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive: compareInfo.IsPrefix(candidate, pattern));
+                    return new PatternMatch(PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive: _compareInfo.IsPrefix(candidate, pattern));
                 }
             }
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // d) If the part was not entirely lowercase, then check if it is contained in the
                 //    candidate in a case *sensitive* manner. If so, return that there was a substring
                 //    match.
-                if (compareInfo.IndexOf(candidate, pattern) > 0)
+                if (_compareInfo.IndexOf(candidate, pattern) > 0)
                 {
                     return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true);
                 }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // (Pattern: fogbar, Candidate: quuxfogbarFogBar).
                 if (pattern.Length < candidate.Length)
                 {
-                    var firstInstance = compareInfo.IndexOf(candidate, pattern, CompareOptions.IgnoreCase);
+                    var firstInstance = _compareInfo.IndexOf(candidate, pattern, CompareOptions.IgnoreCase);
                     if (firstInstance != -1 && char.IsUpper(candidate[firstInstance]))
                     {
                         return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: false);
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            return compareInfo.Compare(candidate, candidatePart.Start, patternPart.Length, pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
+            return _compareInfo.Compare(candidate, candidatePart.Start, patternPart.Length, pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
         }
 
         /// <summary>

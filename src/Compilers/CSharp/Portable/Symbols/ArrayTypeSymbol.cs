@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
     {
-        private readonly TypeSymbol elementType;
-        private readonly int rank;
-        private readonly NamedTypeSymbol baseType;
-        private readonly ImmutableArray<NamedTypeSymbol> interfaces;
-        private readonly ImmutableArray<CustomModifier> customModifiers;
+        private readonly TypeSymbol _elementType;
+        private readonly int _rank;
+        private readonly NamedTypeSymbol _baseType;
+        private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
 
         /// <summary>
         /// Create a new ArrayTypeSymbol.
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(constructedInterfaces.Length == 0 || rank == 1);
             Debug.Assert(rank == 1 || !customModifiers.Any());
 
-            this.elementType = elementType;
-            this.rank = rank;
-            this.baseType = array;
-            this.interfaces = constructedInterfaces;
-            this.customModifiers = customModifiers;
+            _elementType = elementType;
+            _rank = rank;
+            _baseType = array;
+            _interfaces = constructedInterfaces;
+            _customModifiers = customModifiers;
         }
 
         private static ImmutableArray<NamedTypeSymbol> GetArrayInterfaces(
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return customModifiers;
+                return _customModifiers;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return rank;
+                return _rank;
             }
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return elementType;
+                return _elementType;
             }
         }
 
@@ -132,13 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return baseType;
+                return _baseType;
             }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
         {
-            return interfaces;
+            return _interfaces;
         }
 
         public override bool IsReferenceType
@@ -369,8 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return elementType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                   ((object)baseType != null && baseType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes)) ||
+            return _elementType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                   ((object)_baseType != null && _baseType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes)) ||
                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.InterfacesNoUseSiteDiagnostics(), owner, ref checkedTypes) ||
                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         Renamed = 20,
         Insert = 21,
         //// InsertNonPrivate = 22,
-        InsertVirtual = 23,           
-        InsertOverridable = 24,       
+        InsertVirtual = 23,
+        InsertOverridable = 24,
         InsertExtern = 25,
         InsertOperator = 26,
         //// InsertNonPublicConstructor = 27,

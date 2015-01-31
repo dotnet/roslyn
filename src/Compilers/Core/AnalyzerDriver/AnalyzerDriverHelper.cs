@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 analyze();
             }
-            catch (OperationCanceledException oce) when (continueOnAnalyzerException(oce, analyzer))
+            catch (OperationCanceledException oce) when(continueOnAnalyzerException(oce, analyzer))
             {
                 if (oce.CancellationToken != cancellationToken)
                 {
@@ -672,12 +672,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     addDiagnostic(GetAnalyzerDiagnostic(analyzer, oce));
                 }
             }
-            catch (Exception e) when (continueOnAnalyzerException(e, analyzer))
+            catch (Exception e) when(continueOnAnalyzerException(e, analyzer))
             {
                 // Create a info diagnostic saying that the analyzer failed
                 addDiagnostic(GetAnalyzerDiagnostic(analyzer, e));
             }
-        }
+            }
 
         internal static Diagnostic GetAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 TestReferences.NetFx.v4_0_21006.mscorlib
             });
 
-            Assert.Same(assemblies[1], assemblies[0].Modules[0].CorLibrary()); 
+            Assert.Same(assemblies[1], assemblies[0].Modules[0].CorLibrary());
         }
 
         [Fact, WorkItem(760148, "DevDiv")]
@@ -31,7 +31,7 @@ namespace System
     {
     }
 }
-",options: TestOptions.ReleaseDll);
+", options: TestOptions.ReleaseDll);
 
             var obj = corLib.GetSpecialType(SpecialType.System_Object);
 
@@ -42,7 +42,7 @@ namespace System
 public class Test
 {
 }
-", new[] { new CSharpCompilationReference(corLib)}, options: TestOptions.ReleaseDll);
+", new[] { new CSharpCompilationReference(corLib) }, options: TestOptions.ReleaseDll);
 
             Assert.Same(obj, consumer.GetSpecialType(SpecialType.System_Object));
         }

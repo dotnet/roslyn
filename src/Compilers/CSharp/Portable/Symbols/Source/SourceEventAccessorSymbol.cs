@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceEventAccessorSymbol : SourceMethodSymbol
     {
-        private readonly SourceEventSymbol @event;
+        private readonly SourceEventSymbol _event;
 
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private TypeSymbol lazyReturnType;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private TypeSymbol _lazyReturnType;
 
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
@@ -26,36 +26,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations)
             : base(@event.containingType, syntaxReference, blockSyntaxReference, locations)
         {
-            this.@event = @event;
+            _event = @event;
         }
 
         public SourceEventSymbol AssociatedEvent
         {
-            get { return this.@event; }
+            get { return _event; }
         }
 
         public sealed override Symbol AssociatedSymbol
         {
-            get { return this.@event; }
+            get { return _event; }
         }
 
         protected sealed override void MethodChecks(DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.lazyParameters.IsDefault == ((object)this.lazyReturnType == null));
+            Debug.Assert(_lazyParameters.IsDefault == ((object)_lazyReturnType == null));
 
             // CONSIDER: currently, we're copying the custom modifiers of the event overridden
             // by this method's associated event (by using the associated event's type, which is
             // copied from the overridden event).  It would be more correct to copy them from
             // the specific accessor that this method is overriding (as in SourceMemberMethodSymbol).
 
-            if ((object)this.lazyReturnType == null)
+            if ((object)_lazyReturnType == null)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
 
                 // NOTE: LazyMethodChecks calls us within a lock, so we use regular assignments,
                 // rather than Interlocked.CompareExchange.
-                if (this.@event.IsWindowsRuntimeEvent)
+                if (_event.IsWindowsRuntimeEvent)
                 {
                     TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
                     Binder.ReportUseSiteDiagnostics(eventTokenType, diagnostics, this.Location);
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // EventRegistrationToken add_E(EventDelegate d);
 
                         // Leave the returns void bit in this.flags false.
-                        this.lazyReturnType = eventTokenType;
+                        _lazyReturnType = eventTokenType;
 
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, this.@event.Type, 0, ImmutableArray<CustomModifier>.Empty);
-                        this.lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
+                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.Type, 0, ImmutableArray<CustomModifier>.Empty);
+                        _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                     else
                     {
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                         Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
-                        this.lazyReturnType = voidType;
+                        _lazyReturnType = voidType;
                         this.SetReturnsVoid(returnsVoid: true);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, eventTokenType, 0, ImmutableArray<CustomModifier>.Empty);
-                        this.lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
+                        _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                 }
                 else
@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                     Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
-                    this.lazyReturnType = voidType;
+                    _lazyReturnType = voidType;
                     this.SetReturnsVoid(returnsVoid: true);
 
-                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, this.@event.Type, 0, ImmutableArray<CustomModifier>.Empty);
-                    this.lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
+                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.Type, 0, ImmutableArray<CustomModifier>.Empty);
+                    _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                 }
             }
         }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                Debug.Assert((object)this.lazyReturnType != null);
+                Debug.Assert((object)_lazyReturnType != null);
                 return base.ReturnsVoid;
             }
         }
@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                Debug.Assert((object)this.lazyReturnType != null);
-                return this.lazyReturnType;
+                Debug.Assert((object)_lazyReturnType != null);
+                return _lazyReturnType;
             }
         }
 
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                Debug.Assert(!this.lazyParameters.IsDefault);
-                return this.lazyParameters;
+                Debug.Assert(!_lazyParameters.IsDefault);
+                return _lazyParameters;
             }
         }
 

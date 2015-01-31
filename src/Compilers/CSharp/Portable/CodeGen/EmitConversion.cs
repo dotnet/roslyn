@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
-    partial class CodeGenerator
+    internal partial class CodeGenerator
     {
         private void EmitConversionExpression(BoundConversion conversion, bool used)
         {
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
                 case ConversionKind.NullToPointer:
                     // The null pointer is represented as 0u.
-                    builder.EmitIntConstant(0);
-                    builder.EmitOpCode(ILOpCode.Conv_u);
+                    _builder.EmitIntConstant(0);
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
                     return;
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
 #endif
 
-                    builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
+                    _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
                     break;
                 case ConversionKind.NullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var toPredefTypeKind = toType.PrimitiveTypeCode;
             Debug.Assert(toPredefTypeKind.IsNumeric());
 
-            builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
+            _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
         }
 
         private void EmitImplicitReferenceConversion(BoundConversion conversion)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we need to unbox to targetType to keep verifier happy.
             if (!conversion.Type.IsVerifierReference())
             {
-                builder.EmitOpCode(ILOpCode.Unbox_any);
+                _builder.EmitOpCode(ILOpCode.Unbox_any);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
             }
 
@@ -222,12 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // verifier.
             if (conversion.Type.IsVerifierReference())
             {
-                builder.EmitOpCode(ILOpCode.Castclass);
+                _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
             }
             else
             {
-                builder.EmitOpCode(ILOpCode.Unbox_any);
+                _builder.EmitOpCode(ILOpCode.Unbox_any);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
             }
         }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var toPredefTypeKind = toType.PrimitiveTypeCode;
             Debug.Assert(toPredefTypeKind.IsNumeric());
 
-            builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
+            _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
         }
 
         private void EmitDelegateCreation(BoundExpression node, BoundExpression receiver, bool isExtensionMethod, MethodSymbol method, TypeSymbol delegateType, bool used)
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // emit the receiver
             if (isStatic)
             {
-                builder.EmitNullConstant();
+                _builder.EmitNullConstant();
             }
             else
             {
@@ -294,21 +294,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
             {
                 // NOTE: method.IsMetadataVirtual -> receiver != null
-                builder.EmitOpCode(ILOpCode.Dup);
-                builder.EmitOpCode(ILOpCode.Ldvirtftn);
+                _builder.EmitOpCode(ILOpCode.Dup);
+                _builder.EmitOpCode(ILOpCode.Ldvirtftn);
 
                 //  substitute the method with original virtual method
-                method = method.GetConstructedLeastOverriddenMethod(this.method.ContainingType);
+                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType);
             }
             else
             {
-                builder.EmitOpCode(ILOpCode.Ldftn);
+                _builder.EmitOpCode(ILOpCode.Ldftn);
             }
 
             EmitSymbolToken(method, node.Syntax, null);
 
             // call delegate constructor
-            builder.EmitOpCode(ILOpCode.Newobj, -1); // pop 2 args and push delegate object
+            _builder.EmitOpCode(ILOpCode.Newobj, -1); // pop 2 args and push delegate object
 
             var ctor = DelegateConstructor(node.Syntax, delegateType);
             if ((object)ctor != null) EmitSymbolToken(ctor, node.Syntax, null);
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // The delegate '{0}' does not have a valid constructor
-            diagnostics.Add(ErrorCode.ERR_BadDelegateConstructor, syntax.Location, delegateType);
+            _diagnostics.Add(ErrorCode.ERR_BadDelegateConstructor, syntax.Location, delegateType);
             return null;
         }
 

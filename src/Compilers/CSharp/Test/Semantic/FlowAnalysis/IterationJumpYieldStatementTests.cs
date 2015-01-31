@@ -892,7 +892,7 @@ class C {
 
         [Fact]
         public void ForEachVariablesDeclared()
-        {           
+        {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
 public class Program
 {

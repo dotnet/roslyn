@@ -118,6 +118,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return boundStatement;
         }
-
     }
 }

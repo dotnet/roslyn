@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>> where TNode : CSharpSyntaxNode
     {
-        private readonly SyntaxList<CSharpSyntaxNode> list;
+        private readonly SyntaxList<CSharpSyntaxNode> _list;
 
         internal SeparatedSyntaxList(SyntaxList<CSharpSyntaxNode> list)
         {
             Validate(list);
-            this.list = list;
+            _list = list;
         }
 
         [Conditional("DEBUG")]
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return list.Node;
+                return _list.Node;
             }
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return (this.list.Count + 1) >> 1;
+                return (_list.Count + 1) >> 1;
             }
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.list.Count >> 1;
+                return _list.Count >> 1;
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return (TNode)this.list[index << 1];
+                return (TNode)_list[index << 1];
             }
         }
 
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <returns></returns>
         public SyntaxToken GetSeparator(int index)
         {
-            return (SyntaxToken)this.list[(index << 1) + 1];
+            return (SyntaxToken)_list[(index << 1) + 1];
         }
 
         public SyntaxList<CSharpSyntaxNode> GetWithSeparators()
         {
-            return this.list;
+            return _list;
         }
 
         public static bool operator ==(SeparatedSyntaxList<TNode> left, SeparatedSyntaxList<TNode> right)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool Equals(SeparatedSyntaxList<TNode> other)
         {
-            return this.list == other.list;
+            return _list == other._list;
         }
 
         public override bool Equals(object obj)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override int GetHashCode()
         {
-            return this.list.GetHashCode();
+            return _list.GetHashCode();
         }
 
 #if DEBUG

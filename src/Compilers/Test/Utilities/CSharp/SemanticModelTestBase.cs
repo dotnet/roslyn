@@ -8,11 +8,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    using Roslyn.Test.Utilities;
-
     public abstract class SemanticModelTestBase : CSharpTestBase
     {
         protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tagName = string.Format("bind{0}", index == 0 ? String.Empty : index.ToString());
             var startComment = string.Format("/*<{0}>*/", tagName);
             var endComment = string.Format("/*</{0}>*/", tagName);
-            
+
             foreach (var exprSyntax in exprSynList)
             {
                 string exprFullText = exprSyntax.ToFullString();

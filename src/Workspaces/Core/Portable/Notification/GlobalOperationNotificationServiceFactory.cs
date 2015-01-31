@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Notification
     [ExportWorkspaceServiceFactory(typeof(IGlobalOperationNotificationService), ServiceLayer.Default), Shared]
     internal class GlobalOperationNotificationServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly NoOpService singleton = new NoOpService();
+        private static readonly NoOpService s_singleton = new NoOpService();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // all different workspace kinds will share same service
-            return singleton;
+            return s_singleton;
         }
 
         /// <summary>
@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Notification
         /// </summary>
         private class NoOpService : AbstractGlobalOperationNotificationService
         {
-            private readonly GlobalOperationRegistration noOpRegistration;
+            private readonly GlobalOperationRegistration _noOpRegistration;
 
             public NoOpService()
             {
-                this.noOpRegistration = new GlobalOperationRegistration(this, "NoOp");
+                _noOpRegistration = new GlobalOperationRegistration(this, "NoOp");
 
                 // here to shut up never used warnings.
                 var started = Started;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
             public override GlobalOperationRegistration Start(string reason)
             {
-                return this.noOpRegistration;
+                return _noOpRegistration;
             }
 
             public override void Cancel(GlobalOperationRegistration registration)

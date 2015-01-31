@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         internal static int Run(string[] args)
         {
-
             FatalError.Handler = FailFast.OnFatalException;
 
             var responseFile = CommonCompiler.GetResponseFileFullPath(CSharpCompiler.ResponseFileName);
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
                 { // Try to reset the output encoding, ignore if we can't
                 }
             }
-
         }
 
         protected override uint GetSqmAppID()

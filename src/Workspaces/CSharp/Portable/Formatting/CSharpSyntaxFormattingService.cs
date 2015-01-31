@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
-        private readonly Lazy<IEnumerable<IFormattingRule>> lazyExportedRules;
+        private readonly Lazy<IEnumerable<IFormattingRule>> _lazyExportedRules;
 
         [ImportingConstructor]
         public CSharpSyntaxFormattingService([ImportMany] IEnumerable<Lazy<IFormattingRule, OrderableLanguageMetadata>> rules)
         {
-            this.lazyExportedRules = new Lazy<IEnumerable<IFormattingRule>>(() =>
+            _lazyExportedRules = new Lazy<IEnumerable<IFormattingRule>>(() =>
                 ExtensionOrderer.Order(rules)
                                 .Where(x => x.Metadata.Language == LanguageNames.CSharp)
                                 .Select(x => x.Value)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()
         {
-            var rules = this.lazyExportedRules.Value;
+            var rules = _lazyExportedRules.Value;
 
             var spaceFormattingRules = new IFormattingRule[]
                 {

@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    readInside = ((IEnumerable<ISymbol>)walker.readInside).ToImmutableArray();
-                    writtenInside = ((IEnumerable<ISymbol>)walker.writtenInside).ToImmutableArray();
-                    readOutside = ((IEnumerable<ISymbol>)walker.readOutside).ToImmutableArray();
-                    writtenOutside = ((IEnumerable<ISymbol>)walker.writtenOutside).ToImmutableArray();
+                    readInside = ((IEnumerable<ISymbol>)walker._readInside).ToImmutableArray();
+                    writtenInside = ((IEnumerable<ISymbol>)walker._writtenInside).ToImmutableArray();
+                    readOutside = ((IEnumerable<ISymbol>)walker._readOutside).ToImmutableArray();
+                    writtenOutside = ((IEnumerable<ISymbol>)walker._writtenOutside).ToImmutableArray();
 
                     captured = ((IEnumerable<ISymbol>)walker.GetCaptured()).ToImmutableArray();
                     unsafeAddressTaken = ((IEnumerable<ISymbol>)walker.GetUnsafeAddressTaken()).ToImmutableArray();
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly HashSet<Symbol> readInside = new HashSet<Symbol>();
-        private readonly HashSet<Symbol> writtenInside = new HashSet<Symbol>();
-        private readonly HashSet<Symbol> readOutside = new HashSet<Symbol>();
-        private readonly HashSet<Symbol> writtenOutside = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _readInside = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _writtenInside = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _readOutside = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _writtenOutside = new HashSet<Symbol>();
 
         private ReadWriteWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes)
@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var p in m.Parameters)
                 {
-                    if (p.RefKind != RefKind.None) readOutside.Add(p);
+                    if (p.RefKind != RefKind.None) _readOutside.Add(p);
                 }
 
                 var thisParameter = m.ThisParameter;
                 if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
                 {
-                    readOutside.Add(thisParameter);
+                    _readOutside.Add(thisParameter);
                 }
             }
 
@@ -80,14 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void NoteRead(Symbol variable)
         {
             if ((object)variable == null) return;
-            if (variable.Kind != SymbolKind.Field) (IsInside ? readInside : readOutside).Add(variable);
+            if (variable.Kind != SymbolKind.Field) (IsInside ? _readInside : _readOutside).Add(variable);
             base.NoteRead(variable);
         }
 
         protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
         {
             if ((object)variable == null) return;
-            (IsInside ? writtenInside : writtenOutside).Add(variable);
+            (IsInside ? _writtenInside : _writtenOutside).Add(variable);
             base.NoteWrite(variable, value, read);
         }
 
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void NoteReceiverWritten(BoundFieldAccess expr)
         {
-            NoteReceiverReadOrWritten(expr, writtenInside);
+            NoteReceiverReadOrWritten(expr, _writtenInside);
         }
 
         private void NoteReceiverRead(BoundFieldAccess expr)
         {
-            NoteReceiverReadOrWritten(expr, readInside);
+            NoteReceiverReadOrWritten(expr, _readInside);
         }
 
         /// <summary>

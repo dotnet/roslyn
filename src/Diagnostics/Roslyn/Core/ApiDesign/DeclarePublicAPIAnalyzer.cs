@@ -70,7 +70,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static HashSet<MethodKind> ignorableMethodKinds = new HashSet<MethodKind>
+        private static HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
         {
             MethodKind.EventAdd,
             MethodKind.EventRemove
@@ -99,7 +99,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                     var methodSymbol = symbol as IMethodSymbol;
                     if (methodSymbol != null &&
-                        ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                        s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
                     {
                         return;
                     }

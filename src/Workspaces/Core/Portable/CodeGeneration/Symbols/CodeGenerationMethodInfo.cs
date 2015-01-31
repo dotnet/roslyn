@@ -8,15 +8,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationMethodInfo
     {
-        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo> methodToInfoMap =
+        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo> s_methodToInfoMap =
             new ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo>();
 
-        private readonly bool isNew;
-        private readonly bool isUnsafe;
-        private readonly bool isPartial;
-        private readonly bool isAsync;
-        private readonly IList<SyntaxNode> statements;
-        private readonly IList<SyntaxNode> handlesExpressions;
+        private readonly bool _isNew;
+        private readonly bool _isUnsafe;
+        private readonly bool _isPartial;
+        private readonly bool _isAsync;
+        private readonly IList<SyntaxNode> _statements;
+        private readonly IList<SyntaxNode> _handlesExpressions;
 
         private CodeGenerationMethodInfo(
             bool isNew,
@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<SyntaxNode> statements,
             IList<SyntaxNode> handlesExpressions)
         {
-            this.isNew = isNew;
-            this.isUnsafe = isUnsafe;
-            this.isPartial = isPartial;
-            this.isAsync = isAsync;
-            this.statements = statements ?? SpecializedCollections.EmptyList<SyntaxNode>();
-            this.handlesExpressions = handlesExpressions ?? SpecializedCollections.EmptyList<SyntaxNode>();
+            _isNew = isNew;
+            _isUnsafe = isUnsafe;
+            _isPartial = isPartial;
+            _isAsync = isAsync;
+            _statements = statements ?? SpecializedCollections.EmptyList<SyntaxNode>();
+            _handlesExpressions = handlesExpressions ?? SpecializedCollections.EmptyList<SyntaxNode>();
         }
 
         public static void Attach(
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<SyntaxNode> handlesExpressions)
         {
             var info = new CodeGenerationMethodInfo(isNew, isUnsafe, isPartial, isAsync, statements, handlesExpressions);
-            methodToInfoMap.Add(method, info);
+            s_methodToInfoMap.Add(method, info);
         }
 
         private static CodeGenerationMethodInfo GetInfo(IMethodSymbol method)
         {
             CodeGenerationMethodInfo info;
-            methodToInfoMap.TryGetValue(method, out info);
+            s_methodToInfoMap.TryGetValue(method, out info);
             return info;
         }
 
@@ -88,34 +88,34 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return info == null
                 ? SpecializedCollections.EmptyList<SyntaxNode>()
-                : info.statements;
+                : info._statements;
         }
 
         private static IList<SyntaxNode> GetHandlesExpressions(CodeGenerationMethodInfo info)
         {
             return info == null
                 ? SpecializedCollections.EmptyList<SyntaxNode>()
-                : info.handlesExpressions;
+                : info._handlesExpressions;
         }
 
         private static bool GetIsNew(CodeGenerationMethodInfo info)
         {
-            return info != null && info.isNew;
+            return info != null && info._isNew;
         }
 
         private static bool GetIsUnsafe(CodeGenerationMethodInfo info)
         {
-            return info != null && info.isUnsafe;
+            return info != null && info._isUnsafe;
         }
 
         private static bool GetIsPartial(CodeGenerationMethodInfo info)
         {
-            return info != null && info.isPartial;
+            return info != null && info._isPartial;
         }
 
         private static bool GetIsAsync(CodeGenerationMethodInfo info)
         {
-            return info != null && info.isAsync;
+            return info != null && info._isAsync;
         }
     }
 }

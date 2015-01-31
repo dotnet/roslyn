@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 throw new ArgumentNullException("additionalLanguages");
             }
-            
+
             this.Name = null;
 
             string[] languages = new string[additionalLanguages.Length + 1];

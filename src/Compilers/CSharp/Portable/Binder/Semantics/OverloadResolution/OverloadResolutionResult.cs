@@ -8,8 +8,8 @@ using Roslyn.Utilities;
 
 #if DEBUG
 using System.Text;
-#endif
 
+#endif
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class OverloadResolutionResult<TMember> where TMember : Symbol
     {
-        private MemberResolutionResult<TMember> bestResult;
-        private ThreeState bestResultState;
+        private MemberResolutionResult<TMember> _bestResult;
+        private ThreeState _bestResultState;
         internal readonly ArrayBuilder<MemberResolutionResult<TMember>> ResultsBuilder;
 
         // Create an overload resolution result from a single result.
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void Clear()
         {
-            this.bestResult = default(MemberResolutionResult<TMember>);
-            this.bestResultState = ThreeState.Unknown;
+            _bestResult = default(MemberResolutionResult<TMember>);
+            _bestResultState = ThreeState.Unknown;
             this.ResultsBuilder.Clear();
         }
 
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (!this.bestResultState.HasValue())
+                if (!_bestResultState.HasValue())
                 {
-                    this.bestResultState = TryGetBestResult(this.ResultsBuilder, out this.bestResult);
+                    _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
                 }
 
-                return this.bestResultState == ThreeState.True && bestResult.Result.IsValid;
+                return _bestResultState == ThreeState.True && _bestResult.Result.IsValid;
             }
         }
 
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.bestResultState == ThreeState.True && bestResult.Result.IsValid);
-                return bestResult;
+                Debug.Assert(_bestResultState == ThreeState.True && _bestResult.Result.IsValid);
+                return _bestResult;
             }
         }
 
@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.bestResultState == ThreeState.True);
-                return bestResult;
+                Debug.Assert(_bestResultState == ThreeState.True);
+                return _bestResult;
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return bestResultState.Value();
+                return _bestResultState.Value();
             }
         }
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
-                switch(result.Result.Kind)
+                switch (result.Result.Kind)
                 {
                     case MemberResolutionKind.UnsupportedMetadata:
                         if (firstSupported.IsNull)
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportNameUsedForPositional(
             MemberResolutionResult<TMember> bad,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols)
         {
@@ -554,9 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportNoCorrespondingNamedParameter(
             MemberResolutionResult<TMember> bad,
             string methodName,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             AnalyzedArguments arguments,
-            NamedTypeSymbol delegateTypeBeingInvoked, 
+            NamedTypeSymbol delegateTypeBeingInvoked,
             ImmutableArray<Symbol> symbols)
         {
             // We know that there is at least one method that had a number of arguments
@@ -636,12 +636,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void ReportBadParameterCount(
-            DiagnosticBag diagnostics, 
-            string name, 
+            DiagnosticBag diagnostics,
+            string name,
             AnalyzedArguments arguments,
-            ImmutableArray<Symbol> symbols, 
-            Location location, 
-            NamedTypeSymbol typeContainingConstructor, 
+            ImmutableArray<Symbol> symbols,
+            Location location,
+            NamedTypeSymbol typeContainingConstructor,
             NamedTypeSymbol delegateTypeBeingInvoked)
         {
             // error CS1501: No overload for method 'M' takes n arguments
@@ -1216,18 +1216,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static OverloadResolutionResult<TMember> GetInstance()
         {
-            return Pool.Allocate();
+            return s_pool.Allocate();
         }
 
         internal void Free()
         {
             this.Clear();
-            Pool.Free(this);
+            s_pool.Free(this);
         }
 
         //2) Expose the pool or the way to create a pool or the way to get an instance.
         //       for now we will expose both and figure which way works better
-        private static readonly ObjectPool<OverloadResolutionResult<TMember>> Pool = CreatePool();
+        private static readonly ObjectPool<OverloadResolutionResult<TMember>> s_pool = CreatePool();
 
         private static ObjectPool<OverloadResolutionResult<TMember>> CreatePool()
         {

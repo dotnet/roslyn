@@ -13,22 +13,22 @@ namespace Microsoft.CodeAnalysis
     {
         private class ErrorTypeSymbolKey : AbstractSymbolKey<ErrorTypeSymbolKey>
         {
-            private readonly SymbolKey containerKey;
-            private readonly string name;
-            private readonly int arity;
-            private readonly SymbolKey[] typeArgumentKeysOpt;
+            private readonly SymbolKey _containerKey;
+            private readonly string _name;
+            private readonly int _arity;
+            private readonly SymbolKey[] _typeArgumentKeysOpt;
 
             internal ErrorTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
             {
-                this.containerKey = symbol.ContainingSymbol is INamespaceOrTypeSymbol
+                _containerKey = symbol.ContainingSymbol is INamespaceOrTypeSymbol
                     ? GetOrCreate(symbol.ContainingSymbol, visitor)
                     : null;
-                this.name = symbol.Name;
-                this.arity = symbol.Arity;
+                _name = symbol.Name;
+                _arity = symbol.Arity;
 
                 if (!symbol.Equals(symbol.ConstructedFrom))
                 {
-                    this.typeArgumentKeysOpt = symbol.TypeArguments.Select(a => GetOrCreate(a, visitor)).ToArray();
+                    _typeArgumentKeysOpt = symbol.TypeArguments.Select(a => GetOrCreate(a, visitor)).ToArray();
                 }
             }
 
@@ -43,29 +43,29 @@ namespace Microsoft.CodeAnalysis
                 var types = ResolveErrorTypesWorker(compilation, ignoreAssemblyKey);
                 if (!types.Any())
                 {
-                    types = SpecializedCollections.SingletonEnumerable(CreateErrorTypeSymbol(compilation, null, name, arity));
+                    types = SpecializedCollections.SingletonEnumerable(CreateErrorTypeSymbol(compilation, null, _name, _arity));
                 }
 
-                return InstantiateTypes(compilation, ignoreAssemblyKey, types, arity, typeArgumentKeysOpt);
+                return InstantiateTypes(compilation, ignoreAssemblyKey, types, _arity, _typeArgumentKeysOpt);
             }
 
             private IEnumerable<INamedTypeSymbol> ResolveErrorTypesWorker(Compilation compilation, bool ignoreAssemblyKey)
             {
-                return containerKey == null
+                return _containerKey == null
                     ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
                     : ResolveErrorTypeWithContainer(compilation, ignoreAssemblyKey);
             }
 
             private IEnumerable<INamedTypeSymbol> ResolveErrorTypeWithContainer(Compilation compilation, bool ignoreAssemblyKey)
             {
-                var containerInfo = containerKey.Resolve(compilation, ignoreAssemblyKey);
+                var containerInfo = _containerKey.Resolve(compilation, ignoreAssemblyKey);
 
                 return GetAllSymbols<INamespaceOrTypeSymbol>(containerInfo).Select(s => Resolve(compilation, s));
             }
 
             private INamedTypeSymbol Resolve(Compilation compilation, INamespaceOrTypeSymbol container)
             {
-                return CreateErrorTypeSymbol(compilation, container, name, arity);
+                return CreateErrorTypeSymbol(compilation, container, _name, _arity);
             }
 
             private INamedTypeSymbol CreateErrorTypeSymbol(
@@ -78,19 +78,19 @@ namespace Microsoft.CodeAnalysis
             {
                 var comparer = SymbolKeyComparer.GetComparer(options);
                 return
-                    other.arity == this.arity &&
-                    Equals(options.IgnoreCase, other.name, this.name) &&
-                    comparer.Equals(other.containerKey, this.containerKey) &&
-                    SequenceEquals(other.typeArgumentKeysOpt, this.typeArgumentKeysOpt, comparer);
+                    other._arity == _arity &&
+                    Equals(options.IgnoreCase, other._name, _name) &&
+                    comparer.Equals(other._containerKey, _containerKey) &&
+                    SequenceEquals(other._typeArgumentKeysOpt, _typeArgumentKeysOpt, comparer);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 // TODO(cyrusn): Consider hashing the type arguments as well.
                 return
-                    Hash.Combine(this.arity,
-                    Hash.Combine(GetHashCode(options.IgnoreCase, this.name),
-                                 this.containerKey.GetHashCode(options)));
+                    Hash.Combine(_arity,
+                    Hash.Combine(GetHashCode(options.IgnoreCase, _name),
+                                 _containerKey.GetHashCode(options)));
             }
         }
     }

@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public static readonly IComparer<SyntaxToken> NormalInstance = new TokenComparer(specialCaseSystem: false);
         public static readonly IComparer<SyntaxToken> SystemFirstInstance = new TokenComparer(specialCaseSystem: true);
 
-        private readonly bool specialCaseSystem;
+        private readonly bool _specialCaseSystem;
 
         private TokenComparer(bool specialCaseSystem)
         {
-            this.specialCaseSystem = specialCaseSystem;
+            _specialCaseSystem = specialCaseSystem;
         }
 
         private static bool IsSystem(string s)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public int Compare(SyntaxToken x, SyntaxToken y)
         {
-            if (specialCaseSystem &&
+            if (_specialCaseSystem &&
                 x.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword) &&
                 y.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword))
             {

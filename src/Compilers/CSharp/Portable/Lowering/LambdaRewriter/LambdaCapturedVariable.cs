@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaCapturedVariable : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbol type;
-        private readonly bool isThis;
+        private readonly TypeSymbol _type;
+        private readonly bool _isThis;
 
         private LambdaCapturedVariable(SynthesizedContainer frame, TypeSymbol type, string fieldName, bool isThisParameter)
             : base(frame,
@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // lifted fields do not need to have the CompilerGeneratedAttribute attached to it, the closure is already 
             // marked as being compiler generated.
-            this.type = type;
-            this.isThis = isThisParameter;
+            _type = type;
+            _isThis = isThisParameter;
         }
 
         public static LambdaCapturedVariable Create(LambdaFrame frame, Symbol captured, ref int uniqueId)
@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return this.type;
+            return _type;
         }
 
         internal override bool IsCapturedFrame
         {
             get
             {
-                return isThis;
+                return _isThis;
             }
         }
     }

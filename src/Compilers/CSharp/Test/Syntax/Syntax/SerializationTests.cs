@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "public class C {}";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation1 = new SyntaxAnnotation("MyAnnotationId", "SomeData");
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1,annotation1);
+            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1, annotation1);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation1));
             var removedRoot = root.WithoutAnnotations(annotation1);
@@ -285,7 +285,7 @@ class C { }");
             Assert.True(newRoot.ContainsDirectives);
         }
 
-        #if false
+#if false
         [Fact]
         public void RoundTripBigSyntaxNode()
         {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// 
         /// this is not snapshot based so multiple versions of snapshots can re-use same data as long as it is relevant.
         /// </summary>
-        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> cache =
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>>();
 
         public IEnumerable<DeclaredSymbolInfo> DeclaredSymbolInfos { get; private set; }
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public override Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
         {
-            return SaveAsync(document, cache, PersistenceName, SerializationFormat, cancellationToken);
+            return SaveAsync(document, s_cache, PersistenceName, SerializationFormat, cancellationToken);
         }
 
         public static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task<SyntaxTreeDeclarationInfo> LoadAsync(Document document, CancellationToken cancellationToken)
         {
-            var info = await LoadAsync(document, ReadFrom, cache, PersistenceName, SerializationFormat, cancellationToken).ConfigureAwait(false);
+            var info = await LoadAsync(document, ReadFrom, s_cache, PersistenceName, SerializationFormat, cancellationToken).ConfigureAwait(false);
             return (SyntaxTreeDeclarationInfo)info;
         }
 

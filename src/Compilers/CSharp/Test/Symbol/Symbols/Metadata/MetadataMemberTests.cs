@@ -430,7 +430,7 @@ class B {
             var csharp = @"";
 
             var compilation = CreateCompilationWithCustomILSource(csharp, il);
-            
+
             var namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
 
             var members = namespaceA.GetMembers("B");
@@ -472,7 +472,7 @@ class B {
 
             var comp = CreateCompilationWithCustomILSource(csharp, VTableGapClassIL);
             comp.VerifyDiagnostics();
-            
+
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Class");
             AssertEx.None(type.GetMembersUnordered(), symbol => symbol.Name.StartsWith("_VtblGap"));
 
@@ -669,6 +669,5 @@ class Test
                 Assert.True(memberNames2.Contains(m), m);
             }
         }
-
     }
 }

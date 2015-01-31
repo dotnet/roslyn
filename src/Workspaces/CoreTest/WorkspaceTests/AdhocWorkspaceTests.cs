@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddProject_ProjectInfo()
         {
             var info = ProjectInfo.Create(
-                ProjectId.CreateNewId(), 
+                ProjectId.CreateNewId(),
                 version: VersionStamp.Default,
                 name: "TestProject",
                 assemblyName: "TestProject.dll",
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var doc = ws.AddDocument(info);
 
                 Assert.Equal(ws.CurrentSolution.GetDocument(info.Id), doc);
-                Assert.Equal(info.Name, doc.Name);                
+                Assert.Equal(info.Name, doc.Name);
             }
         }
 

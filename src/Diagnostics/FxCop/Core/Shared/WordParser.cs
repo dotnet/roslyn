@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         // <csshex>     -> [#]([0-9] | [A-F] | [a-f])+
 
         private const char NullChar = '\0';
-        private readonly WordParserOptions options;
-        private readonly StringBuilder buffer;
-        private readonly string text;
-        private string peekedWord;
-        private int index;
-        private char prefix;
+        private readonly WordParserOptions _options;
+        private readonly StringBuilder _buffer;
+        private readonly string _text;
+        private string _peekedWord;
+        private int _index;
+        private char _prefix;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="WordParser"/> class with the specified text and options.
@@ -106,17 +106,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
                 throw new InvalidEnumArgumentException("options", (int)options, typeof(WordParserOptions));
             }
 
-            this.text = text;
-            this.options = options;
-            this.buffer = new StringBuilder(text.Length);
-            this.prefix = prefix;
+            _text = text;
+            _options = options;
+            _buffer = new StringBuilder(text.Length);
+            _prefix = prefix;
         }
 
         private bool SkipMnemonics
         {
             get
             {
-                return (options & WordParserOptions.IgnoreMnemonicsIndicators)
+                return (_options & WordParserOptions.IgnoreMnemonicsIndicators)
                   == WordParserOptions.IgnoreMnemonicsIndicators;
             }
         }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         {
             get
             {
-                return (options & WordParserOptions.SplitCompoundWords)
+                return (_options & WordParserOptions.SplitCompoundWords)
                   == WordParserOptions.SplitCompoundWords;
             }
         }
@@ -280,13 +280,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         /// </returns>
         public string NextWord()
         {
-            if (peekedWord == null)
+            if (_peekedWord == null)
             {
                 return NextWordCore();
             }
 
-            string word = peekedWord;
-            peekedWord = null;
+            string word = _peekedWord;
+            _peekedWord = null;
             return word;
         }
 
@@ -298,23 +298,22 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         /// </returns>
         public string PeekWord()
         {
-            if (peekedWord == null)
+            if (_peekedWord == null)
             {
-                peekedWord = NextWordCore();
+                _peekedWord = NextWordCore();
             }
 
-            return peekedWord;
+            return _peekedWord;
         }
 
         private string NextWordCore()
         {
             // Reset buffer
-            buffer.Length = 0;
+            _buffer.Length = 0;
 
             if (ParseNext())
             { // We parsed something
-
-                return buffer.ToString();
+                return _buffer.ToString();
             }
 
             return null;
@@ -336,7 +335,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
                 {
                     if (punctuation != NullChar)
                     { // Intra-word punctuation next to unrecognized character ie 'Foo-?'
-
                         Unread();
                         Skip();
                         return true;
@@ -351,7 +349,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
                 if (IsIntraWordPunctuation(c))
                 { // Intra-word punctuation ie '-' in 'Foo-Bar'
-
                     punctuation = c;
                     Read();
                     continue;
@@ -374,45 +371,38 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         {
             if (SplitCompoundWords)
             {   // Parse both whole and compound words
-
                 if (IsUpper(c))
                 {   // 'ALLCAPS' or 'PascalCased'
-
                     ParseUppercase();
                     return true;
                 }
 
                 if (IsLower(c))
                 {   // 'foo'
-
                     ParseLowercase();
                     return true;
                 }
 
                 if (IsDigit(c))
                 {   // '123' or '0xABCDEF'
-
                     ParseNumeric();
                     return true;
                 }
 
                 if (IsLetterWithoutCase(c))
                 {   // ie Japanese characters
-
                     ParseWithoutCase();
                     return true;
                 }
 
                 if (c == '#' && IsHexDigit(Peek(2)))
                 {   // '#ABC123'
-
                     ParseHex();
                     return true;
                 }
             }
             else if (IsLetterOrDigit(c))
             {   // Parse only whole words
-
                 ParseWholeWord();
                 return true;
             }
@@ -423,31 +413,30 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
         private bool TryParsePrefix()
         {
-            if (prefix == NullChar)
+            if (_prefix == NullChar)
             {
                 return false;
             }
 
             char c = Peek();
 
-            if (c == prefix)
+            if (c == _prefix)
             {
                 c = Peek(2);
 
                 if (!IsLower(c))
                 {   // 'IInterface' or 'T1', but not 'Interface', or 'Type'
-
                     // Consume the prefix
                     Read();
 
                     // We do not want to try and read the prefix again
-                    prefix = NullChar;
+                    _prefix = NullChar;
                     return true;
                 }
             }
 
             // We do not want to try and read the prefix again
-            prefix = NullChar;
+            _prefix = NullChar;
             return false;
         }
 
@@ -494,7 +483,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
                 if ((c == 'x' || c == 'X') && IsHexDigit(Peek(3)))
                 {   // '0xA' or '0XA'
-
                     Read(); // Consume '0'
                     Read(); // Consume 'x' or 'X'
 
@@ -525,12 +513,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
             if (IsUpper(c))
             {   // 'ALLCAPS'
-
                 ParseAllCaps();
             }
             else if (IsLower(c))
             {   // 'PascalCased'
-
                 ParseLowercase();
             }
         }
@@ -579,15 +565,15 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         private void Read()
         {
             char c = Peek();
-            buffer.Append(c);
+            _buffer.Append(c);
             Skip();
         }
 
         private void Skip()
         {
-            while (index < text.Length)
+            while (_index < _text.Length)
             {
-                char c = text[index++];
+                char c = _text[_index++];
 
                 if (!IsIgnored(c))
                 {
@@ -603,9 +589,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
         private char Peek(int lookAhead)
         {
-            for (int index = this.index; index < text.Length; index++)
+            for (int index = _index; index < _text.Length; index++)
             {
-                char c = text[index];
+                char c = _text[index];
 
                 if (IsIgnored(c))
                 {
@@ -623,9 +609,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
         private void Unread()
         {
-            while (index >= 0)
+            while (_index >= 0)
             {
-                char c = text[--index];
+                char c = _text[--_index];
 
                 if (!IsIgnored(c))
                 {
@@ -633,7 +619,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
                 }
             }
 
-            buffer.Length--;
+            _buffer.Length--;
         }
 
         private bool IsIgnored(char c)

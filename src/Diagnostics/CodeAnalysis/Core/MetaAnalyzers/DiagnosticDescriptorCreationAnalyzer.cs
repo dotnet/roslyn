@@ -12,18 +12,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TObjectCreationExpressionSyntax : SyntaxNode
         where TLanguageKindEnum : struct
     {
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             DiagnosticCategory.AnalyzerLocalization,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         protected abstract class CompilationAnalyzer
         {
-            private readonly INamedTypeSymbol diagnosticDescriptorType;
+            private readonly INamedTypeSymbol _diagnosticDescriptorType;
 
             protected CompilationAnalyzer(INamedTypeSymbol diagnosticDescriptorType)
             {
-                this.diagnosticDescriptorType = diagnosticDescriptorType;
+                _diagnosticDescriptorType = diagnosticDescriptorType;
             }
 
             protected abstract SyntaxNode GetObjectCreationType(TObjectCreationExpressionSyntax objectCreation);
@@ -75,16 +75,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var symbol = context.SemanticModel.GetSymbolInfo(objectCreation).Symbol;
                 if (symbol == null ||
                     symbol.Kind != SymbolKind.Method ||
-                    !diagnosticDescriptorType.Equals(symbol.ContainingType) ||
-                    !diagnosticDescriptorType.InstanceConstructors.Any(c => c.Equals(symbol)))
+                    !_diagnosticDescriptorType.Equals(symbol.ContainingType) ||
+                    !_diagnosticDescriptorType.InstanceConstructors.Any(c => c.Equals(symbol)))
                 {
                     return;
                 }
 
                 var method = (IMethodSymbol)symbol;
                 var title = method.Parameters.Where(p => p.Name == "title").FirstOrDefault();
-                if (title != null && 
-                    title.Type != null && 
+                if (title != null &&
+                    title.Type != null &&
                     title.Type.SpecialType == SpecialType.System_String)
                 {
                     var typeName = GetObjectCreationType(objectCreation);

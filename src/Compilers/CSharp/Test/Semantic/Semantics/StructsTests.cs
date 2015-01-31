@@ -337,12 +337,12 @@ class Test
         {
             var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
 
-            var c1 = CSharpCompilation.Create("C1", 
+            var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },
                 new[] { oldMsCorLib },
                 TestOptions.ReleaseDll);
 
-            var c2 = CSharpCompilation.Create("C2", 
+            var c2 = CSharpCompilation.Create("C2",
                 new[] { Parse(@"public class C { void M() { S s = new S(); System.Console.WriteLine(s);} }") },
                 new[] { MscorlibRef, new CSharpCompilationReference(c1) },
                 TestOptions.ReleaseDll);

@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Editing
     /// </summary>
     public class SolutionEditor
     {
-        private readonly Solution solution;
-        private readonly Dictionary<DocumentId, DocumentEditor> documentEditors;
+        private readonly Solution _solution;
+        private readonly Dictionary<DocumentId, DocumentEditor> _documentEditors;
 
         public SolutionEditor(Solution solution)
         {
-            this.solution = solution;
-            this.documentEditors = new Dictionary<DocumentId, DocumentEditor>();
+            _solution = solution;
+            _documentEditors = new Dictionary<DocumentId, DocumentEditor>();
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public Solution OriginalSolution
         {
-            get { return this.solution; }
+            get { return _solution; }
         }
 
         /// <summary>
@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<DocumentEditor> GetDocumentEditorAsync(DocumentId id, CancellationToken cancellationToken = default(CancellationToken))
         {
             DocumentEditor editor;
-            if (!this.documentEditors.TryGetValue(id, out editor))
+            if (!_documentEditors.TryGetValue(id, out editor))
             {
-                editor = await DocumentEditor.CreateAsync(this.solution.GetDocument(id), cancellationToken).ConfigureAwait(false);
-                this.documentEditors.Add(id, editor);
+                editor = await DocumentEditor.CreateAsync(_solution.GetDocument(id), cancellationToken).ConfigureAwait(false);
+                _documentEditors.Add(id, editor);
             }
 
             return editor;
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public Solution GetChangedSolution()
         {
-            var changedSolution = this.solution;
+            var changedSolution = _solution;
 
-            foreach (var docEd in this.documentEditors.Values)
+            foreach (var docEd in _documentEditors.Values)
             {
                 var currentDoc = changedSolution.GetDocument(docEd.OriginalDocument.Id);
                 var newDoc = currentDoc.WithSyntaxRoot(docEd.GetChangedRoot());

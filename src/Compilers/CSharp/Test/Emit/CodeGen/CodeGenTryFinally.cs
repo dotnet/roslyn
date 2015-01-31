@@ -2358,8 +2358,8 @@ class C
         }
     }
 }";
-        CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
-            VerifyIL("C.Test", @"
+            CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
+                VerifyIL("C.Test", @"
 {
   // Code size      129 (0x81)
   .maxstack  2
@@ -3362,7 +3362,5 @@ Out");
 }
 ");
         }
-
-
     }
 }

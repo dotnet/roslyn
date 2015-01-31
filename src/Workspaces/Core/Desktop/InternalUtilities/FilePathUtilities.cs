@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             return fullPath;
         }
 
-        private static char[] pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private static char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         public static string GetRelativePath(string baseDirectory, string fullPath)
         {
@@ -40,8 +40,8 @@ namespace Roslyn.Utilities
                 return GetNestedPath(baseDirectory, fullPath);
             }
 
-            var basePathParts = baseDirectory.Split(pathChars);
-            var fullPathParts = fullPath.Split(pathChars);
+            var basePathParts = baseDirectory.Split(s_pathChars);
+            var fullPathParts = fullPath.Split(s_pathChars);
 
             if (basePathParts.Length == 0 || fullPathParts.Length == 0)
             {

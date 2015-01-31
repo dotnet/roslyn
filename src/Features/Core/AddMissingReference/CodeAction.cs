@@ -53,37 +53,37 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return new AddMissingReferenceCodeAction(project, description, null, missingAssemblyIdentity);
         }
 
-        private readonly Project project;
-        private readonly string title;
-        private readonly ProjectReference projectReferenceToAdd;
-        private readonly AssemblyIdentity missingAssemblyIdentity;
+        private readonly Project _project;
+        private readonly string _title;
+        private readonly ProjectReference _projectReferenceToAdd;
+        private readonly AssemblyIdentity _missingAssemblyIdentity;
 
         public AddMissingReferenceCodeAction(Project project, string title, ProjectReference projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity)
         {
-            this.project = project;
-            this.title = title;
-            this.projectReferenceToAdd = projectReferenceToAdd;
-            this.missingAssemblyIdentity = missingAssemblyIdentity;
+            _project = project;
+            _title = title;
+            _projectReferenceToAdd = projectReferenceToAdd;
+            _missingAssemblyIdentity = missingAssemblyIdentity;
         }
 
         public override string Title
         {
-            get { return title; }
+            get { return _title; }
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             // If we have a project reference to add, then add it
-            if (projectReferenceToAdd != null)
+            if (_projectReferenceToAdd != null)
             {
                 // note: no need to post process since we are just adding a project reference and not making any code changes.
-                return Task.FromResult<IEnumerable<CodeActionOperation>>(new CodeActionOperation[] { new ApplyChangesOperation(project.AddProjectReference(projectReferenceToAdd).Solution) });
+                return Task.FromResult<IEnumerable<CodeActionOperation>>(new CodeActionOperation[] { new ApplyChangesOperation(_project.AddProjectReference(_projectReferenceToAdd).Solution) });
             }
             else
             {
                 // We didn't have any project, so we need to try adding a metadata reference
-                var factoryService = project.Solution.Workspace.Services.GetService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
-                var operation = factoryService.CreateAddMetadataReferenceOperation(project.Id, missingAssemblyIdentity);
+                var factoryService = _project.Solution.Workspace.Services.GetService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
+                var operation = factoryService.CreateAddMetadataReferenceOperation(_project.Id, _missingAssemblyIdentity);
                 return Task.FromResult<IEnumerable<CodeActionOperation>>(new CodeActionOperation[] { operation });
             }
         }

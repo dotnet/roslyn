@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly ISet<UsingDirectiveSyntax> unnecessaryUsingsDoNotAccessDirectly;
-            private readonly CancellationToken cancellationToken;
+            private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
+            private readonly CancellationToken _cancellationToken;
 
             public Rewriter(ISet<UsingDirectiveSyntax> unnecessaryUsings, CancellationToken cancellationToken)
                 : base(visitIntoStructuredTrivia: true)
             {
-                this.unnecessaryUsingsDoNotAccessDirectly = unnecessaryUsings;
-                this.cancellationToken = cancellationToken;
+                _unnecessaryUsingsDoNotAccessDirectly = unnecessaryUsings;
+                _cancellationToken = cancellationToken;
             }
 
             public override SyntaxNode DefaultVisit(SyntaxNode node)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
                 return base.DefaultVisit(node);
             }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var result = new HashSet<UsingDirectiveSyntax>();
                 for (int i = 0; i < oldUsings.Count; i++)
                 {
-                    if (unnecessaryUsingsDoNotAccessDirectly.Contains(oldUsings[i]))
+                    if (_unnecessaryUsingsDoNotAccessDirectly.Contains(oldUsings[i]))
                     {
                         result.Add(newUsings[i]);
                     }

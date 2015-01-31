@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class TypeSymbol
+    internal partial class TypeSymbol
     {
         /// <summary>
         /// Represents the method by which this type implements a given interface type

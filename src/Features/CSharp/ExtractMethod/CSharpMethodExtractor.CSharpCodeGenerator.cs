@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
         {
-            private SyntaxToken methodName;
+            private SyntaxToken _methodName;
 
             public static async Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
 
                 var nameToken = (SyntaxToken)CreateMethodName();
-                this.methodName = nameToken.WithAdditionalAnnotations(this.MethodNameAnnotation);
+                _methodName = nameToken.WithAdditionalAnnotations(this.MethodNameAnnotation);
             }
 
             private CSharpSelectionResult CSharpSelectionResult
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
                     explicitInterfaceSymbol: null,
-                    name: this.methodName.ToString(),
+                    name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
                     parameters: CreateMethodParameters(),
                     statements: result.Data);
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
                 return this.AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
-                    ? (SimpleNameSyntax)SyntaxFactory.IdentifierName(this.methodName)
-                    : SyntaxFactory.GenericName(this.methodName, SyntaxFactory.TypeArgumentList(CreateMethodCallTypeVariables()));
+                    ? (SimpleNameSyntax)SyntaxFactory.IdentifierName(_methodName)
+                    : SyntaxFactory.GenericName(_methodName, SyntaxFactory.TypeArgumentList(CreateMethodCallTypeVariables()));
             }
 
             private SeparatedSyntaxList<TypeSyntax> CreateMethodCallTypeVariables()

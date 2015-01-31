@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
     {
         private partial class GenerateVariableCodeAction : CodeAction
         {
-            private readonly TService service;
-            private readonly State state;
-            private readonly bool generateProperty;
-            private readonly bool isReadonly;
-            private readonly bool isConstant;
-            private readonly Document document;
-            private readonly string equivalenceKey;
+            private readonly TService _service;
+            private readonly State _state;
+            private readonly bool _generateProperty;
+            private readonly bool _isReadonly;
+            private readonly bool _isConstant;
+            private readonly Document _document;
+            private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
                 TService service,
@@ -32,47 +32,47 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool isReadonly,
                 bool isConstant)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
-                this.generateProperty = generateProperty;
-                this.isReadonly = isReadonly;
-                this.isConstant = isConstant;
-                this.equivalenceKey = Title;
+                _service = service;
+                _document = document;
+                _state = state;
+                _generateProperty = generateProperty;
+                _isReadonly = isReadonly;
+                _isConstant = isConstant;
+                _equivalenceKey = Title;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var syntaxTree = await this.document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var generateUnsafe = state.TypeMemberType.IsUnsafe() &&
-                                     !state.IsContainedInUnsafeType;
+                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
+                                     !_state.IsContainedInUnsafeType;
 
-                if (generateProperty)
+                if (_generateProperty)
                 {
                     var getAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         attributes: null,
-                        accessibility: DetermineMaximalAccessibility(state),
+                        accessibility: DetermineMaximalAccessibility(_state),
                         statements: null);
-                    var setAccessor = isReadonly ? null : CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                    var setAccessor = _isReadonly ? null : CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         attributes: null,
-                        accessibility: DetermineMinimalAccessibility(state),
+                        accessibility: DetermineMinimalAccessibility(_state),
                         statements: null);
 
                     var result = await CodeGenerator.AddPropertyDeclarationAsync(
-                        this.document.Project.Solution,
-                        state.TypeToGenerateIn,
+                        _document.Project.Solution,
+                        _state.TypeToGenerateIn,
                         CodeGenerationSymbolFactory.CreatePropertySymbol(
                             attributes: null,
-                            accessibility: DetermineMaximalAccessibility(state),
-                            modifiers: new DeclarationModifiers(isStatic: state.IsStatic, isUnsafe: generateUnsafe),
-                            type: state.TypeMemberType,
+                            accessibility: DetermineMaximalAccessibility(_state),
+                            modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
+                            type: _state.TypeMemberType,
                             explicitInterfaceSymbol: null,
-                            name: state.IdentifierToken.ValueText,
-                            isIndexer: state.IsIndexer,
-                            parameters: state.Parameters,
+                            name: _state.IdentifierToken.ValueText,
+                            isIndexer: _state.IsIndexer,
+                            parameters: _state.Parameters,
                             getMethod: getAccessor,
                             setMethod: setAccessor),
-                        new CodeGenerationOptions(contextLocation: state.IdentifierToken.GetLocation()),
+                        new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
                         cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
 
@@ -81,17 +81,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 else
                 {
                     var result = await CodeGenerator.AddFieldDeclarationAsync(
-                        this.document.Project.Solution,
-                        state.TypeToGenerateIn,
+                        _document.Project.Solution,
+                        _state.TypeToGenerateIn,
                         CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: null,
-                            accessibility: DetermineMinimalAccessibility(state),
-                            modifiers: isConstant ?
+                            accessibility: DetermineMinimalAccessibility(_state),
+                            modifiers: _isConstant ?
                                 new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe) :
-                                new DeclarationModifiers(isStatic: state.IsStatic, isReadOnly: isReadonly, isUnsafe: generateUnsafe),
-                            type: state.TypeMemberType,
-                            name: state.IdentifierToken.ValueText),
-                        new CodeGenerationOptions(contextLocation: state.IdentifierToken.GetLocation()),
+                                new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
+                            type: _state.TypeMemberType,
+                            name: _state.IdentifierToken.ValueText),
+                        new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
                         cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Otherwise, figure out what accessibility modifier to use and optionally mark
                 // it as static.
-                var syntaxFacts = this.document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return Accessibility.Public;
@@ -183,16 +183,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 get
                 {
-                    var text = isConstant
+                    var text = _isConstant
                         ? FeaturesResources.GenerateConstantIn
-                        : generateProperty
-                            ? isReadonly ? FeaturesResources.GenerateReadonlyProperty : FeaturesResources.GeneratePropertyIn
-                            : isReadonly ? FeaturesResources.GenerateReadonlyField : FeaturesResources.GenerateFieldIn;
+                        : _generateProperty
+                            ? _isReadonly ? FeaturesResources.GenerateReadonlyProperty : FeaturesResources.GeneratePropertyIn
+                            : _isReadonly ? FeaturesResources.GenerateReadonlyField : FeaturesResources.GenerateFieldIn;
 
                     return string.Format(
                         text,
-                        state.IdentifierToken.ValueText,
-                        state.TypeToGenerateIn.Name);
+                        _state.IdentifierToken.ValueText,
+                        _state.TypeToGenerateIn.Name);
                 }
             }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 get
                 {
-                    return equivalenceKey;
+                    return _equivalenceKey;
                 }
             }
         }

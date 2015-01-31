@@ -34,18 +34,18 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private class NotificationService : IIncrementalAnalyzer
         {
-            private readonly SemanticChangeNotificationService owner;
-            private readonly ConcurrentDictionary<DocumentId, VersionStamp> map = new ConcurrentDictionary<DocumentId, VersionStamp>(concurrencyLevel: 2, capacity: 10);
+            private readonly SemanticChangeNotificationService _owner;
+            private readonly ConcurrentDictionary<DocumentId, VersionStamp> _map = new ConcurrentDictionary<DocumentId, VersionStamp>(concurrencyLevel: 2, capacity: 10);
 
             public NotificationService(SemanticChangeNotificationService owner)
             {
-                this.owner = owner;
+                _owner = owner;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 VersionStamp unused;
-                map.TryRemove(document.Id, out unused);
+                _map.TryRemove(document.Id, out unused);
 
                 return SpecializedTasks.EmptyTask;
             }
@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.Notification
 
                 // check whether we already saw semantic version change
                 VersionStamp oldVersion;
-                if (this.map.TryGetValue(document.Id, out oldVersion) && oldVersion == newVersion)
+                if (_map.TryGetValue(document.Id, out oldVersion) && oldVersion == newVersion)
                 {
                     return;
                 }
 
                 // update to new version
-                this.map[document.Id] = newVersion;
-                this.owner.RaiseOpenDocumentSemanticChangedEvent(document);
+                _map[document.Id] = newVersion;
+                _owner.RaiseOpenDocumentSemanticChangedEvent(document);
             }
 
             #region unused 

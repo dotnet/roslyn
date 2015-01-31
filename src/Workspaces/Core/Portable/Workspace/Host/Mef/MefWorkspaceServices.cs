@@ -10,24 +10,24 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     internal class MefWorkspaceServices : HostWorkspaceServices
     {
-        private readonly IMefHostExportProvider exportProvider;
-        private readonly Workspace workspace;
+        private readonly IMefHostExportProvider _exportProvider;
+        private readonly Workspace _workspace;
 
-        private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services;
+        private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
 
         // map of type name to workspace service
-        private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> serviceMap
+        private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _serviceMap
             = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>>.Empty;
 
         // accumulated cache for language services
-        private ImmutableDictionary<string, MefLanguageServices> languageServicesMap
+        private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
             = ImmutableDictionary<string, MefLanguageServices>.Empty;
 
         public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
         {
-            this.exportProvider = host;
-            this.workspace = workspace;
-            this.services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
+            _exportProvider = host;
+            _workspace = workspace;
+            _services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
                 .Concat(host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
                             .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata)))
                 .ToImmutableArray();
@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override HostServices HostServices
         {
-            get { return (HostServices)this.exportProvider; }
+            get { return (HostServices)_exportProvider; }
         }
 
         internal IMefHostExportProvider HostExportProvider
         {
-            get { return this.exportProvider; }
+            get { return _exportProvider; }
         }
 
         public override Workspace Workspace
         {
-            get { return this.workspace; }
+            get { return _workspace; }
         }
 
         public override TWorkspaceService GetService<TWorkspaceService>()
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private bool TryGetService(Type serviceType, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
         {
-            if (!this.serviceMap.TryGetValue(serviceType, out service))
+            if (!_serviceMap.TryGetValue(serviceType, out service))
             {
-                service = ImmutableInterlocked.GetOrAdd(ref this.serviceMap, serviceType, svctype =>
+                service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
                 {
                     // pick from list of exported factories and instances
-                    return PickWorkspaceService(this.services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
+                    return PickWorkspaceService(_services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
                 });
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
 
             // workspace specific kind is best
-            if (TryGetServiceByLayer(this.workspace.Kind, services, out service))
+            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
             {
                 return service;
             }
@@ -119,21 +119,21 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
         }
 
-        private IEnumerable<string> languages;
+        private IEnumerable<string> _languages;
 
         private IEnumerable<string> GetSupportedLanguages()
         {
-            if (this.languages == null)
+            if (_languages == null)
             {
-                var list = this.exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
-                           this.exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
+                var list = _exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
+                           _exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
                            .Distinct()
                            .ToImmutableArray();
 
-                Interlocked.CompareExchange(ref this.languages, list, null);
+                Interlocked.CompareExchange(ref _languages, list, null);
             }
 
-            return this.languages;
+            return _languages;
         }
 
         public override IEnumerable<string> SupportedLanguages
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
-            var currentServicesMap = this.languageServicesMap;
+            var currentServicesMap = _languageServicesMap;
 
             MefLanguageServices languageServices;
             if (!currentServicesMap.TryGetValue(languageName, out languageServices))
             {
-                languageServices = ImmutableInterlocked.GetOrAdd(ref this.languageServicesMap, languageName, _ => new MefLanguageServices(this, languageName));
+                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, _ => new MefLanguageServices(this, languageName));
             }
 
             if (languageServices.HasServices)

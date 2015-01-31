@@ -428,7 +428,7 @@ public class C
         }
         [WorkItem(546412, "DevDiv")]
         [Fact]
-        void TestBug15818()
+        private void TestBug15818()
         {
             var source =
 @"using System;
@@ -523,10 +523,10 @@ class C
 }
 ");
         }
-
         [WorkItem(546853, "DevDiv")]
         [Fact]
-        void TestBug16981b()
+
+        private void TestBug16981b()
         {
             var il = @"
 .class public auto ansi beforefieldinit B
@@ -3681,7 +3681,6 @@ CCC
 ");
 #endif
             #endregion
-
         }
 
         [Fact]
@@ -10332,20 +10331,20 @@ class C
                 CreateCompilationWithMscorlib(source).VerifyDiagnostics();
             }
             else
-            { 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "0E1M").WithArguments("decimal").WithLocation(6, 27),
-                // (7,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "0E10M").WithArguments("decimal").WithLocation(7, 27),
-                // (8,28): error CS0594: Floating-point constant is outside the range of type 'decimal'
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "0E10M").WithArguments("decimal").WithLocation(8, 28),
-                // (9,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "0.00E10M").WithArguments("decimal").WithLocation(9, 27),
-                // (10,28): error CS0594: Floating-point constant is outside the range of type 'decimal'
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "0.00E10M").WithArguments("decimal").WithLocation(10, 28),
-                // (11,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
-                Diagnostic(ErrorCode.ERR_FloatOverflow, "0E100M").WithArguments("decimal").WithLocation(11, 27));
+            {
+                CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                    // (6,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
+                    Diagnostic(ErrorCode.ERR_FloatOverflow, "0E1M").WithArguments("decimal").WithLocation(6, 27),
+                    // (7,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
+                    Diagnostic(ErrorCode.ERR_FloatOverflow, "0E10M").WithArguments("decimal").WithLocation(7, 27),
+                    // (8,28): error CS0594: Floating-point constant is outside the range of type 'decimal'
+                    Diagnostic(ErrorCode.ERR_FloatOverflow, "0E10M").WithArguments("decimal").WithLocation(8, 28),
+                    // (9,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
+                    Diagnostic(ErrorCode.ERR_FloatOverflow, "0.00E10M").WithArguments("decimal").WithLocation(9, 27),
+                    // (10,28): error CS0594: Floating-point constant is outside the range of type 'decimal'
+                    Diagnostic(ErrorCode.ERR_FloatOverflow, "0.00E10M").WithArguments("decimal").WithLocation(10, 28),
+                    // (11,27): error CS0594: Floating-point constant is outside the range of type 'decimal'
+                    Diagnostic(ErrorCode.ERR_FloatOverflow, "0E100M").WithArguments("decimal").WithLocation(11, 27));
             }
         }
 
@@ -12094,7 +12093,7 @@ TrueFalseTrueFalse");
         [WorkItem(529593, "DevDiv")]
         [Fact]
         public void FloatToDecimal01()
-        {  
+        {
             var source = @"
 using System;
 
@@ -12271,7 +12270,6 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
 
             compilation.VerifyIL("C.Main", expectedIL);
-
         }
 
         [WorkItem(545862, "DevDiv")]
@@ -12545,12 +12543,12 @@ expectedOutput: "-100");
                 null);
 
             var methodBodyCompiler = new MethodCompiler(
-                compilation: compilation, 
-                moduleBeingBuiltOpt: module, 
-                generateDebugInfo: false, 
-                hasDeclarationErrors: false, 
-                diagnostics: diagnostics, 
-                filterOpt: null, 
+                compilation: compilation,
+                moduleBeingBuiltOpt: module,
+                generateDebugInfo: false,
+                hasDeclarationErrors: false,
+                diagnostics: diagnostics,
+                filterOpt: null,
                 cancellationToken: CancellationToken.None);
 
             // Add diagnostic to MethodBodyCompiler bag, as if
@@ -12609,7 +12607,7 @@ class A
 }
 ";
             var compilation = CompileAndVerify(
-                source, 
+                source,
                 expectedOutput: @"Inside - TestVarArgs::ctor (__arglist)
 Inside - TestVarArgs::ctor (__arglist)
 System.Int32
@@ -12657,7 +12655,7 @@ class C
 }
 ";
 
-            var compRelease = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseExe);
+            var compRelease = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
             var compDebug = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
 
             // (2) is not met.
@@ -12703,7 +12701,7 @@ class C
             // Nop after Debugger.Break(), even though it isn't at the end of a statement.
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
             var v = CompileAndVerify(comp);
-            
+
             v.VerifyIL("C.Main", @"
 {
   // Code size       23 (0x17)
@@ -13983,6 +13981,5 @@ using System;
 }                                                                                         
 ");
         }
-
     }
 }

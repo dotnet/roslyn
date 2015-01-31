@@ -20,24 +20,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private class PathSyntaxReference : SyntaxReference
             {
-                private readonly SyntaxTree tree;
-                private readonly SyntaxKind kind;
-                private readonly TextSpan textSpan;
-                private readonly ImmutableArray<int> pathFromRoot;
+                private readonly SyntaxTree _tree;
+                private readonly SyntaxKind _kind;
+                private readonly TextSpan _textSpan;
+                private readonly ImmutableArray<int> _pathFromRoot;
 
                 public PathSyntaxReference(SyntaxNode node)
                 {
-                    this.tree = node.SyntaxTree;
-                    this.kind = node.Kind();
-                    this.textSpan = node.Span;
-                    this.pathFromRoot = ComputePathFromRoot(node);
+                    _tree = node.SyntaxTree;
+                    _kind = node.Kind();
+                    _textSpan = node.Span;
+                    _pathFromRoot = ComputePathFromRoot(node);
                 }
 
                 public override SyntaxTree SyntaxTree
                 {
                     get
                     {
-                        return this.tree;
+                        return _tree;
                     }
                 }
 
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return this.textSpan;
+                        return _textSpan;
                     }
                 }
 
                 private ImmutableArray<int> ComputePathFromRoot(SyntaxNode node)
                 {
                     var path = new List<int>();
-                    var root = tree.GetRoot();
+                    var root = _tree.GetRoot();
 
                     while (node != root)
                     {
@@ -143,28 +143,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                 {
-                    return this.GetNode(this.tree.GetRoot(cancellationToken));
+                    return this.GetNode(_tree.GetRoot(cancellationToken));
                 }
 
                 public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default(CancellationToken))
                 {
-                    var root = await this.tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await _tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     return this.GetNode(root);
                 }
 
                 private SyntaxNode GetNode(SyntaxNode root)
                 {
                     var node = root;
-                    for (int i = 0, n = this.pathFromRoot.Length; i < n; i++)
+                    for (int i = 0, n = _pathFromRoot.Length; i < n; i++)
                     {
-                        var child = node.ChildNodesAndTokens()[this.pathFromRoot[i]];
+                        var child = node.ChildNodesAndTokens()[_pathFromRoot[i]];
 
                         if (child.IsToken)
                         {
                             // if child is a token then we must be looking for a node in structured trivia
                             i++;
                             System.Diagnostics.Debug.Assert(i < n);
-                            var triviaIndex = this.pathFromRoot[i];
+                            var triviaIndex = _pathFromRoot[i];
                             var trivia = GetTrivia(child.AsToken(), triviaIndex);
                             node = trivia.GetStructure();
                         }
@@ -174,8 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    System.Diagnostics.Debug.Assert(node.Kind() == this.kind);
-                    System.Diagnostics.Debug.Assert(node.Span == this.textSpan);
+                    System.Diagnostics.Debug.Assert(node.Kind() == _kind);
+                    System.Diagnostics.Debug.Assert(node.Span == _textSpan);
 
                     return node;
                 }

@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class AsyncRewriter : StateMachineRewriter
     {
-        private readonly AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection;
-        private readonly bool constructedSuccessfully;
-        private readonly int methodOrdinal;
+        private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
+        private readonly bool _constructedSuccessfully;
+        private readonly int _methodOrdinal;
 
-        private FieldSymbol builderField;
+        private FieldSymbol _builderField;
 
         private AsyncRewriter(
             BoundStatement body,
@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             try
             {
-                constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out this.asyncMethodBuilderMemberCollection);
+                _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                constructedSuccessfully = false;
+                _constructedSuccessfully = false;
             }
 
-            this.methodOrdinal = methodOrdinal;
+            _methodOrdinal = methodOrdinal;
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             var rewriter = new AsyncRewriter(bodyWithAwaitLifted, (SourceMethodSymbol)method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
-            if (!rewriter.constructedSuccessfully)
+            if (!rewriter._constructedSuccessfully)
             {
                 return body;
             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the fields are initialized from async method, so they need to be public:
 
             this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName(), isPublic: true);
-            this.builderField = F.StateMachineField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
+            _builderField = F.StateMachineField(_asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
         }
 
         protected override void GenerateMethodImplementations()
@@ -95,20 +95,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var moveNextMethod = OpenMethodImplementation(
                 IAsyncStateMachine_MoveNext,
-                WellKnownMemberNames.MoveNextMethodName, 
-                debuggerHidden: IsDebuggerHidden(this.method), 
+                WellKnownMemberNames.MoveNextMethodName,
+                debuggerHidden: IsDebuggerHidden(this.method),
                 generateDebugInfo: true,
                 hasMethodBodyDependency: true);
 
             GenerateMoveNext(moveNextMethod);
 
             // Add IAsyncStateMachine.SetStateMachine()
-            
+
             OpenMethodImplementation(
                 IAsyncStateMachine_SetStateMachine,
-                "SetStateMachine", 
-                debuggerHidden: true, 
-                generateDebugInfo: false, 
+                "SetStateMachine",
+                debuggerHidden: true,
+                generateDebugInfo: false,
                 hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Block(
                         F.ExpressionStatement(
                             F.Call(
-                                F.Field(F.This(), builderField),
-                                asyncMethodBuilderMemberCollection.SetStateMachine,
+                                F.Field(F.This(), _builderField),
+                                _asyncMethodBuilderMemberCollection.SetStateMachine,
                                 new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
                         F.Return()));
             }
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // local.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder<typeArgs>.Create();
                 bodyBuilder.Add(
                     F.Assignment(
-                        F.Field(F.Local(stateMachineVariable), builderField.AsMember(frameType)),
+                        F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)),
                         F.StaticCall(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
 
                 // local.$stateField = NotStartedStateMachine
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(builderVariable),
-                        F.Field(F.Local(stateMachineVariable), builderField.AsMember(frameType))));
+                        F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType))));
 
                 // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
                 bodyBuilder.Add(
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bodyBuilder.Add(method.IsVoidReturningAsync()
                     ? F.Return()
-                    : F.Return(F.Property(F.Field(F.Local(stateMachineVariable), builderField.AsMember(frameType)), "Task")));
+                    : F.Return(F.Property(F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)), "Task")));
 
                 return F.Block(
                     ImmutableArray.Create(builderVariable),
@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewriter = new AsyncMethodToStateMachineRewriter(
                 method: method,
-                methodOrdinal: methodOrdinal,
-                asyncMethodBuilderMemberCollection: asyncMethodBuilderMemberCollection,
+                methodOrdinal: _methodOrdinal,
+                asyncMethodBuilderMemberCollection: _asyncMethodBuilderMemberCollection,
                 F: F,
                 state: stateField,
-                builder: builderField,
+                builder: _builderField,
                 hoistedVariables: hoistedVariables,
                 nonReusableLocalProxies: nonReusableLocalProxies,
                 synthesizedLocalOrdinals: synthesizedLocalOrdinals,

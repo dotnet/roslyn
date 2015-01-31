@@ -15,27 +15,27 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal abstract class RecoverableCachedObjectSource<T> : ValueSource<T> where T : class
     {
-        private AsyncSemaphore gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
-        private bool saved;
-        private WeakReference<T> weakInstance;
-        private ValueSource<T> recoverySource;
+        private AsyncSemaphore _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
+        private bool _saved;
+        private WeakReference<T> _weakInstance;
+        private ValueSource<T> _recoverySource;
 
-        private static readonly WeakReference<T> NoReference = new WeakReference<T>(null);
+        private static readonly WeakReference<T> s_noReference = new WeakReference<T>(null);
 
         public RecoverableCachedObjectSource(ValueSource<T> initialValue)
         {
-            this.weakInstance = NoReference;
-            this.recoverySource = initialValue;
+            _weakInstance = s_noReference;
+            _recoverySource = initialValue;
         }
 
         public RecoverableCachedObjectSource(RecoverableCachedObjectSource<T> savedSource)
         {
-            Contract.ThrowIfFalse(savedSource.saved);
+            Contract.ThrowIfFalse(savedSource._saved);
             Contract.ThrowIfFalse(savedSource.GetType() == this.GetType());
 
-            this.saved = true;
-            this.weakInstance = NoReference;
-            this.recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+            _saved = true;
+            _weakInstance = s_noReference;
+            _recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
         }
 
         /// <summary>
@@ -57,20 +57,20 @@ namespace Microsoft.CodeAnalysis.Host
         protected abstract T Recover(CancellationToken cancellationToken);
 
         // enfore saving in a queue so save's don't overload the thread pool.
-        private static Task latestTask = SpecializedTasks.EmptyTask;
-        private static readonly NonReentrantLock taskGuard = new NonReentrantLock();
+        private static Task s_latestTask = SpecializedTasks.EmptyTask;
+        private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 
         private AsyncSemaphore Gate
         {
             get
             {
-                return LazyInitialization.EnsureInitialized(ref this.gateDoNotAccessDirectly, AsyncSemaphore.Factory);
+                return LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, AsyncSemaphore.Factory);
             }
         }
 
         public override bool TryGetValue(out T value)
         {
-            return this.weakInstance.TryGetTarget(out value);
+            return _weakInstance.TryGetTarget(out value);
         }
 
         public override T GetValue(CancellationToken cancellationToken)
@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Host
             cancellationToken.ThrowIfCancellationRequested();
 
             T instance;
-            if (!this.weakInstance.TryGetTarget(out instance))
+            if (!_weakInstance.TryGetTarget(out instance))
             {
                 Task saveTask = null;
                 using (this.Gate.DisposableWait(cancellationToken))
                 {
-                    if (!this.weakInstance.TryGetTarget(out instance))
+                    if (!_weakInstance.TryGetTarget(out instance))
                     {
-                        instance = this.recoverySource.GetValue(cancellationToken);
+                        instance = _recoverySource.GetValue(cancellationToken);
                         saveTask = EnsureInstanceIsSaved(instance);
                     }
                 }
@@ -99,14 +99,14 @@ namespace Microsoft.CodeAnalysis.Host
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
             T instance;
-            if (!this.weakInstance.TryGetTarget(out instance))
+            if (!_weakInstance.TryGetTarget(out instance))
             {
                 Task saveTask = null;
                 using (await this.Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!this.weakInstance.TryGetTarget(out instance))
+                    if (!_weakInstance.TryGetTarget(out instance))
                     {
-                        instance = await this.recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                        instance = await _recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                         saveTask = EnsureInstanceIsSaved(instance);
                     }
                 }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     using (this.Gate.DisposableWait())
                     {
-                        this.recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+                        _recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
 
                         // Need to keep instance alive until recovery source is updated.
                         GC.KeepAlive(instance);
@@ -136,24 +136,24 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Task EnsureInstanceIsSaved(T instance)
         {
-            if (this.weakInstance == NoReference)
+            if (_weakInstance == s_noReference)
             {
-                this.weakInstance = new WeakReference<T>(instance);
+                _weakInstance = new WeakReference<T>(instance);
             }
             else
             {
-                this.weakInstance.SetTarget(instance);
+                _weakInstance.SetTarget(instance);
             }
 
-            if (!saved)
+            if (!_saved)
             {
-                this.saved = true;
-                using (taskGuard.DisposableWait())
+                _saved = true;
+                using (s_taskGuard.DisposableWait())
                 {
                     // force all save tasks to be in sequence so we don't hog all the threads
-                    latestTask = latestTask.SafeContinueWithFromAsync(t =>
+                    s_latestTask = s_latestTask.SafeContinueWithFromAsync(t =>
                          this.SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
-                    return latestTask;
+                    return s_latestTask;
                 }
             }
             else

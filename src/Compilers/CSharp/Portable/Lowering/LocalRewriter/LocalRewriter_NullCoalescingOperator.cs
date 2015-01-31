@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryGetOptimizableNullableConditionalAccess(BoundExpression operand, out BoundConditionalAccess conditionalAccess)
         {
             if (operand.Kind != BoundKind.ConditionalAccess ||
-                            inExpressionLambda ||
-                            factory.CurrentMethod.IsAsync)
+                            _inExpressionLambda ||
+                            _factory.CurrentMethod.IsAsync)
             {
                 conditionalAccess = null;
                 return false;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)rewrittenResultType != null);
             Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, ignoreDynamic: true));
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 TypeSymbol strippedLeftType = rewrittenLeft.Type.StrippedType();
                 Conversion rewrittenConversion = MakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
 
             BoundAssignmentOperator tempAssignment;
-            BoundLocal boundTemp = factory.StoreToTemp(rewrittenLeft, out tempAssignment);
+            BoundLocal boundTemp = _factory.StoreToTemp(rewrittenLeft, out tempAssignment);
 
             // temp != null
             BoundExpression nullCheck = MakeNullCheck(syntax, boundTemp, BinaryOperatorKind.NotEqual);

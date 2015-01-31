@@ -1,5 +1,4 @@
 ﻿#pragma warning disable CS0618 // MetadataFileReference to be removed
-
 using System;
 using System.Collections.Immutable;
 using System.IO;

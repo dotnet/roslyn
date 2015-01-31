@@ -71,7 +71,7 @@ public class X
 }";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("abc.X"));
             compilation.VerifyDiagnostics();
-            
+
             compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"abc.X\""));
             compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
                                           Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
@@ -95,7 +95,6 @@ public class X
 
             compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"решения.X\""));
             compilation.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"решения.X\""));
-
         }
 
         [Fact]
@@ -202,7 +201,7 @@ namespace Foo.Bar
             EmitResult emitResult;
             byte[] mdOnlyImage;
 
-            using (var output = new MemoryStream()) 
+            using (var output = new MemoryStream())
             {
                 emitResult = comp.Emit(output, options: new EmitOptions(metadataOnly: true));
                 mdOnlyImage = output.ToArray();
@@ -1029,8 +1028,8 @@ class C
     }
 }";
             var compilation = CSharpCompilation.Create(
-                "v2Fx.exe", 
-                new[] { Parse(source) }, 
+                "v2Fx.exe",
+                new[] { Parse(source) },
                 new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
 
             //EDMAURER this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
@@ -1100,8 +1099,8 @@ class C
             Assert.False(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
-            Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);   
-            Assert.Equal(0, peHeaders.PEHeader.MinorLinkerVersion); 
+            Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
+            Assert.Equal(0, peHeaders.PEHeader.MinorLinkerVersion);
             Assert.Equal(0x10000000u, peHeaders.PEHeader.ImageBase);
             Assert.Equal(0x200, peHeaders.PEHeader.FileAlignment);
             Assert.Equal(0x8540u, (ushort)peHeaders.PEHeader.DllCharacteristics);  //DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE
@@ -1137,7 +1136,7 @@ class C
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
             Assert.Equal(0, peHeaders.PEHeader.MinorLinkerVersion);
             // the default value is the same as the 32 bit default value
-            Assert.Equal(0x0000000180000000u, peHeaders.PEHeader.ImageBase); 
+            Assert.Equal(0x0000000180000000u, peHeaders.PEHeader.ImageBase);
             Assert.Equal(0x00000200, peHeaders.PEHeader.FileAlignment);      //doesn't change based on architecture.
             Assert.Equal(0x8540u, (ushort)peHeaders.PEHeader.DllCharacteristics);  //DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE
             //Verify additional items
@@ -1150,7 +1149,7 @@ class C
             //default for non-arm, non-appcontainer outputs. EDMAURER: This is an intentional change from Dev11.
             //Should we find that it is too disruptive. We will consider rolling back.
             //It turns out to be too disruptive. Rolling back to 4.0
-            Assert.Equal(4, peHeaders.PEHeader.MajorSubsystemVersion);    
+            Assert.Equal(4, peHeaders.PEHeader.MajorSubsystemVersion);
             Assert.Equal(0, peHeaders.PEHeader.MinorSubsystemVersion);
 
             //The following ensure that the runtime startup stub was not emitted. It is not needed on modern operating systems.
@@ -1266,7 +1265,7 @@ class C
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
             Assert.Equal(0, peHeaders.PEHeader.MinorLinkerVersion);
-            Assert.Equal(0x0000000140000000ul, peHeaders.PEHeader.ImageBase); 
+            Assert.Equal(0x0000000140000000ul, peHeaders.PEHeader.ImageBase);
             Assert.Equal(0x200, peHeaders.PEHeader.FileAlignment);  //doesn't change based on architecture
             Assert.True(peHeaders.IsConsoleApplication); //should change if this is a windows app.
             Assert.Equal(0x8540u, (ushort)peHeaders.PEHeader.DllCharacteristics);  //DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE
@@ -1445,7 +1444,7 @@ using System;
 ";
 
             CompileAndVerify(source,
-                             sourceSymbolValidator: delegate(ModuleSymbol m)
+                             sourceSymbolValidator: delegate (ModuleSymbol m)
                              {
                                  string[] expectedGlobalMembers = { "C1", "B", "A1", "F", "G", "E", "D" };
                                  var actualGlobalMembers = m.GlobalNamespace.GetMembers().ToArray();
@@ -1465,7 +1464,7 @@ using System;
                                                         "add_K", "remove_K", "K",
                                                         "add_J", "remove_J", "J",
                                                         "O", "N", "M",
-                                                        "F", "E", "D", 
+                                                        "F", "E", "D",
                                                         ".ctor", ".cctor"
                                                 };
 
@@ -1485,13 +1484,13 @@ using System;
                                  }
 
                                  string[] expectedCMembers = {".cctor",
-                                                            "C", "B", "F", "A", 
+                                                            "C", "B", "F", "A",
                                                             ".ctor"};
                                  var actualCMembers = ((SourceModuleSymbol)m).GlobalNamespace.GetTypeMembers("C1").Single().GetMembers().ToArray();
 
                                  AssertEx.SetEqual(expectedCMembers, actualCMembers.Select(s => s.Name));
                              },
-                             symbolValidator: delegate(ModuleSymbol m)
+                             symbolValidator: delegate (ModuleSymbol m)
                              {
                                  string[] expectedAMembers = {"C", "B", "A",
                                                         "F",
@@ -1525,7 +1524,6 @@ using System;
                                  AssertEx.SetEqual(expectedCMembers, actualCMembers.Select(s => s.Name));
                              }
                             );
-
         }
 
         [WorkItem(543763, "DevDiv")]
@@ -1879,12 +1877,12 @@ class C
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.RequestMinimum").WithArguments("System.Security.Permissions.SecurityAction.RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
 
-            ValidateDeclSecurity(compilation, 
+            ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
                 {
                     ActionFlags = DeclarativeSecurityAction.RequestMinimum,
                     ParentKind = SymbolKind.Assembly,
-                    PermissionSet =  
+                    PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
                         "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
@@ -1935,7 +1933,7 @@ class C
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0002" + // number of attributes (small enough to fit in 1 byte)
-                        
+
                         "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
                         "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
                         "\u001a" + // number of bytes in the encoding of the named arguments
@@ -1945,7 +1943,7 @@ class C
                         "\u0015" + // length of UTF-8 string (small enough to fit in 1 byte)
                         "RemotingConfiguration" + // property name
                         "\u0001" + // argument value (true)
-                        
+
                         "\u0080\u0084" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
                         "System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
                         "\u0012" + // number of bytes in the encoding of the named arguments
@@ -2138,10 +2136,10 @@ class C
                         "\u0001", // argument value (true)
                 });
         }
-
         [Fact]
         [WorkItem(545651, "DevDiv")]
-        void TestReferenceToNestedGenericType()
+
+        private void TestReferenceToNestedGenericType()
         {
             string p1 = @"public class Foo<T> { }";
             string p2 = @"using System;
@@ -2307,7 +2305,7 @@ public interface IUsePlatform
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch" );
+            var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
@@ -2335,7 +2333,7 @@ public interface IUsePlatform
                 Diagnostic(ErrorCode.ERR_ConflictingMachineModule).WithArguments("PlatformMismatch.netmodule"));
 
             useCompilation = CreateCompilation(useSource,
-                new MetadataReference[] {imageRef},
+                new MetadataReference[] { imageRef },
                 options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
             // no CS8010 when building a module and adding a module that has a conflict.
@@ -2613,7 +2611,7 @@ class Viewable
             foreach (var handle in peReader.TypeDefinitions)
             {
                 var typeDef = peReader.GetTypeDefinition(handle);
-                
+
                 if (peReader.StringComparer.Equals(typeDef.Name, "Viewable"))
                 {
                     foreach (var m in typeDef.GetMethods())
@@ -2682,7 +2680,6 @@ class Viewable
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
             Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
-
         }
     }
 }

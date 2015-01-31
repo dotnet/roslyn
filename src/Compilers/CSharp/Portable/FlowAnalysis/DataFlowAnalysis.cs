@@ -16,25 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class CSharpDataFlowAnalysis : DataFlowAnalysis
     {
-        private readonly RegionAnalysisContext context;
+        private readonly RegionAnalysisContext _context;
 
-        private ImmutableArray<ISymbol> variablesDeclared;
-        private HashSet<Symbol> unassignedVariables;
-        private ImmutableArray<ISymbol> dataFlowsIn;
-        private ImmutableArray<ISymbol> dataFlowsOut;
-        private ImmutableArray<ISymbol> alwaysAssigned;
-        private ImmutableArray<ISymbol> readInside;
-        private ImmutableArray<ISymbol> writtenInside;
-        private ImmutableArray<ISymbol> readOutside;
-        private ImmutableArray<ISymbol> writtenOutside;
-        private ImmutableArray<ISymbol> captured;
-        private ImmutableArray<ISymbol> unsafeAddressTaken;
-        private HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes;
-        private bool? succeeded = null;
+        private ImmutableArray<ISymbol> _variablesDeclared;
+        private HashSet<Symbol> _unassignedVariables;
+        private ImmutableArray<ISymbol> _dataFlowsIn;
+        private ImmutableArray<ISymbol> _dataFlowsOut;
+        private ImmutableArray<ISymbol> _alwaysAssigned;
+        private ImmutableArray<ISymbol> _readInside;
+        private ImmutableArray<ISymbol> _writtenInside;
+        private ImmutableArray<ISymbol> _readOutside;
+        private ImmutableArray<ISymbol> _writtenOutside;
+        private ImmutableArray<ISymbol> _captured;
+        private ImmutableArray<ISymbol> _unsafeAddressTaken;
+        private HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
+        private bool? _succeeded = null;
 
         internal CSharpDataFlowAnalysis(RegionAnalysisContext context)
         {
-            this.context = context;
+            _context = context;
         }
 
         /// <summary>
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or are we to include variables declared in deeper scopes within the region?
             get
             {
-                if (variablesDeclared.IsDefault)
+                if (_variablesDeclared.IsDefault)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<ISymbol>)VariablesDeclaredWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)).ToImmutableArray()
+                        ? ((IEnumerable<ISymbol>)VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).ToImmutableArray()
                         : ImmutableArray<ISymbol>.Empty;
-                    ImmutableInterlocked.InterlockedInitialize(ref variablesDeclared, result);
+                    ImmutableInterlocked.InterlockedInitialize(ref _variablesDeclared, result);
                 }
 
-                return variablesDeclared;
+                return _variablesDeclared;
             }
         }
 
@@ -65,15 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (unassignedVariables == null)
+                if (_unassignedVariables == null)
                 {
                     var result = Succeeded
-                        ? UnassignedVariablesWalker.Analyze(context.Compilation, context.Member, context.BoundNode)
+                        ? UnassignedVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
                         : new HashSet<Symbol>();
-                    Interlocked.CompareExchange(ref unassignedVariables, result, null);
+                    Interlocked.CompareExchange(ref _unassignedVariables, result, null);
                 }
 
-                return unassignedVariables;
+                return _unassignedVariables;
             }
         }
 
@@ -84,15 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (dataFlowsIn == null)
+                if (_dataFlowsIn == null)
                 {
-                    succeeded = !context.Failed;
-                    var result = context.Failed ? ImmutableArray<ISymbol>.Empty :
-                        ((IEnumerable<ISymbol>)DataFlowsInWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out succeeded)).ToImmutableArray();
-                    ImmutableInterlocked.InterlockedInitialize(ref dataFlowsIn, result);
+                    _succeeded = !_context.Failed;
+                    var result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
+                        ((IEnumerable<ISymbol>)DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded)).ToImmutableArray();
+                    ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsIn, result);
                 }
 
-                return dataFlowsIn;
+                return _dataFlowsIn;
             }
         }
 
@@ -105,15 +105,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var discarded = DataFlowsIn; // force DataFlowsIn to be computed
-                if (dataFlowsOut == null)
+                if (_dataFlowsOut == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<ISymbol>)DataFlowsOutWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariables, dataFlowsIn)).ToImmutableArray()
+                        ? ((IEnumerable<ISymbol>)DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn)).ToImmutableArray()
                         : ImmutableArray<ISymbol>.Empty;
-                    ImmutableInterlocked.InterlockedInitialize(ref dataFlowsOut, result);
+                    ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsOut, result);
                 }
 
-                return dataFlowsOut;
+                return _dataFlowsOut;
             }
         }
 
@@ -124,15 +124,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (alwaysAssigned == null)
+                if (_alwaysAssigned == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<ISymbol>)AlwaysAssignedWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)).ToImmutableArray()
+                        ? ((IEnumerable<ISymbol>)AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).ToImmutableArray()
                         : ImmutableArray<ISymbol>.Empty;
-                    ImmutableInterlocked.InterlockedInitialize(ref alwaysAssigned, result);
+                    ImmutableInterlocked.InterlockedInitialize(ref _alwaysAssigned, result);
                 }
 
-                return alwaysAssigned;
+                return _alwaysAssigned;
             }
         }
 
@@ -143,12 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (readInside == null)
+                if (_readInside == null)
                 {
                     AnalyzeReadWrite();
                 }
 
-                return readInside;
+                return _readInside;
             }
         }
 
@@ -159,12 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (writtenInside == null)
+                if (_writtenInside == null)
                 {
                     AnalyzeReadWrite();
                 }
 
-                return writtenInside;
+                return _writtenInside;
             }
         }
 
@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (readOutside == null)
+                if (_readOutside == null)
                 {
                     AnalyzeReadWrite();
                 }
 
-                return readOutside;
+                return _readOutside;
             }
         }
 
@@ -191,12 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (writtenOutside == null)
+                if (_writtenOutside == null)
                 {
                     AnalyzeReadWrite();
                 }
 
-                return writtenOutside;
+                return _writtenOutside;
             }
         }
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ISymbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
             if (Succeeded)
             {
-                ReadWriteWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
+                ReadWriteWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
                     readInside: out readInside, writtenInside: out writtenInside,
                     readOutside: out readOutside, writtenOutside: out writtenOutside,
                     captured: out captured, unsafeAddressTaken: out unsafeAddressTaken);
@@ -215,12 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<ISymbol>.Empty;
             }
 
-            ImmutableInterlocked.InterlockedInitialize(ref this.readInside, readInside);
-            ImmutableInterlocked.InterlockedInitialize(ref this.writtenInside, writtenInside);
-            ImmutableInterlocked.InterlockedInitialize(ref this.readOutside, readOutside);
-            ImmutableInterlocked.InterlockedInitialize(ref this.writtenOutside, writtenOutside);
-            ImmutableInterlocked.InterlockedInitialize(ref this.captured, captured);
-            ImmutableInterlocked.InterlockedInitialize(ref this.unsafeAddressTaken, unsafeAddressTaken);
+            ImmutableInterlocked.InterlockedInitialize(ref _readInside, readInside);
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenInside, writtenInside);
+            ImmutableInterlocked.InterlockedInitialize(ref _readOutside, readOutside);
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenOutside, writtenOutside);
+            ImmutableInterlocked.InterlockedInitialize(ref _captured, captured);
+            ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, unsafeAddressTaken);
         }
 
         /// <summary>
@@ -231,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.captured == null)
+                if (_captured == null)
                 {
                     AnalyzeReadWrite();
                 }
 
-                return this.captured;
+                return _captured;
             }
         }
 
@@ -251,12 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.unsafeAddressTaken == null)
+                if (_unsafeAddressTaken == null)
                 {
                     AnalyzeReadWrite();
                 }
 
-                return this.unsafeAddressTaken;
+                return _unsafeAddressTaken;
             }
         }
 
@@ -264,15 +264,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (unassignedVariableAddressOfSyntaxes == null)
+                if (_unassignedVariableAddressOfSyntaxes == null)
                 {
                     var result = Succeeded
-                        ? UnassignedAddressTakenVariablesWalker.Analyze(context.Compilation, context.Member, context.BoundNode)
+                        ? UnassignedAddressTakenVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
                         : new HashSet<PrefixUnaryExpressionSyntax>();
-                    Interlocked.CompareExchange(ref unassignedVariableAddressOfSyntaxes, result, null);
+                    Interlocked.CompareExchange(ref _unassignedVariableAddressOfSyntaxes, result, null);
                 }
 
-                return unassignedVariableAddressOfSyntaxes;
+                return _unassignedVariableAddressOfSyntaxes;
             }
         }
 
@@ -284,12 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (succeeded == null)
+                if (_succeeded == null)
                 {
                     var discarded = DataFlowsIn;
                 }
 
-                return succeeded.Value;
+                return _succeeded.Value;
             }
         }
     }

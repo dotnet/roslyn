@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private sealed class HighPriorityProcessor : IdleProcessor
                 {
-                    private readonly IncrementalAnalyzerProcessor processor;
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers;
-                    private readonly AsyncDocumentWorkItemQueue workItemQueue;
+                    private readonly IncrementalAnalyzerProcessor _processor;
+                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+                    private readonly AsyncDocumentWorkItemQueue _workItemQueue;
 
                     // whether this processor is running or not
-                    private Task running;
+                    private Task _running;
 
                     public HighPriorityProcessor(
                         IAsynchronousOperationListener listener,
@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken shutdownToken) :
                         base(listener, backOffTimeSpanInMs, shutdownToken)
                     {
-                        this.processor = processor;
-                        this.lazyAnalyzers = lazyAnalyzers;
+                        _processor = processor;
+                        _lazyAnalyzers = lazyAnalyzers;
 
-                        this.running = SpecializedTasks.EmptyTask;
-                        this.workItemQueue = new AsyncDocumentWorkItemQueue();
+                        _running = SpecializedTasks.EmptyTask;
+                        _workItemQueue = new AsyncDocumentWorkItemQueue();
 
                         Start();
                     }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         get
                         {
-                            return this.lazyAnalyzers.Value;
+                            return _lazyAnalyzers.Value;
                         }
                     }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         get
                         {
-                            return this.running;
+                            return _running;
                         }
                     }
 
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // check whether given item is for active document, otherwise, nothing to do here
-                        if (this.processor.documentTracker == null ||
-                            this.processor.documentTracker.GetActiveDocument() != item.DocumentId)
+                        if (_processor._documentTracker == null ||
+                            _processor._documentTracker.GetActiveDocument() != item.DocumentId)
                         {
                             return;
                         }
@@ -85,15 +85,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private void EnqueueActiveFileItem(WorkItem item)
                     {
                         this.UpdateLastAccessTime();
-                        var added = this.workItemQueue.AddOrReplace(item);
+                        var added = _workItemQueue.AddOrReplace(item);
 
-                        Logger.Log(FunctionId.WorkCoordinator_ActivieFileEnqueue, enqueueLogger, Environment.TickCount, item.DocumentId, !added);
-                        SolutionCrawlerLogger.LogActiveFileEnqueue(this.processor.logAggregator);
+                        Logger.Log(FunctionId.WorkCoordinator_ActivieFileEnqueue, s_enqueueLogger, Environment.TickCount, item.DocumentId, !added);
+                        SolutionCrawlerLogger.LogActiveFileEnqueue(_processor._logAggregator);
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
                     {
-                        return this.workItemQueue.WaitAsync(cancellationToken);
+                        return _workItemQueue.WaitAsync(cancellationToken);
                     }
 
                     protected override async Task ExecuteAsync()
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
                             // mark it as running
-                            this.running = source.Task;
+                            _running = source.Task;
 
                             // okay, there must be at least one item in the map
 
@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             CancellationTokenSource documentCancellation;
                             Contract.ThrowIfFalse(GetNextWorkItem(out workItem, out documentCancellation));
 
-                            var solution = this.processor.CurrentSolution;
+                            var solution = _processor.CurrentSolution;
 
                             // okay now we have work to do
                             await ProcessDocumentAsync(solution, this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -134,16 +134,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationTokenSource documentCancellation)
                     {
-                        var documentId = this.processor.documentTracker.GetActiveDocument();
+                        var documentId = _processor._documentTracker.GetActiveDocument();
                         if (documentId != null)
                         {
-                            if (this.workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
+                            if (_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
                             {
                                 return true;
                             }
                         }
 
-                        return this.workItemQueue.TryTakeAnyWork(preferableProjectId: null, workItem: out workItem, source: out documentCancellation);
+                        return _workItemQueue.TryTakeAnyWork(preferableProjectId: null, workItem: out workItem, source: out documentCancellation);
                     }
 
                     private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -183,19 +183,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // let's make sure newly enqueued work item has all the flag needed.
                             if (!processedEverything)
                             {
-                                this.workItemQueue.AddOrReplace(workItem.Retry(this.Listener.BeginAsyncOperation("ReenqueueWorkItem")));
+                                _workItemQueue.AddOrReplace(workItem.Retry(this.Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
-                            SolutionCrawlerLogger.LogProcessActiveFileDocument(this.processor.logAggregator, documentId.Id, processedEverything);
+                            SolutionCrawlerLogger.LogProcessActiveFileDocument(_processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
-                            this.workItemQueue.RemoveCancellationSource(workItem.DocumentId);
+                            _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
                         }
                     }
 
                     public void Shutdown()
                     {
-                        this.workItemQueue.Dispose();
+                        _workItemQueue.Dispose();
                     }
                 }
             }

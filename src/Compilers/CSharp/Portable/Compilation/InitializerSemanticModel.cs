@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) || 
-                syntax.IsKind(SyntaxKind.ThisConstructorInitializer) || 
-                syntax.IsKind(SyntaxKind.BaseConstructorInitializer) || 
+            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) ||
+                syntax.IsKind(SyntaxKind.ThisConstructorInitializer) ||
+                syntax.IsKind(SyntaxKind.BaseConstructorInitializer) ||
                 syntax.IsKind(SyntaxKind.ArgumentList));
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);

@@ -23,7 +23,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
                 return SyntaxKind.AwaitExpression;
             }
         }
-        
+
         protected override SyntaxNode GetAwaitedExpression(SyntaxNode awaitNode)
         {
             return ((AwaitExpressionSyntax)awaitNode).Expression;

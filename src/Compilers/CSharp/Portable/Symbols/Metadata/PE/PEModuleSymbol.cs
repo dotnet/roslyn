@@ -24,26 +24,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// Owning AssemblySymbol. This can be a PEAssemblySymbol or a SourceAssemblySymbol.
         /// </summary>
-        private readonly AssemblySymbol assemblySymbol;
-        private readonly int ordinal;
+        private readonly AssemblySymbol _assemblySymbol;
+        private readonly int _ordinal;
 
         /// <summary>
         /// A Module object providing metadata.
         /// </summary>
-        private readonly PEModule module;
+        private readonly PEModule _module;
 
         /// <summary>
         /// Global namespace.
         /// </summary>
-        private readonly PENamespaceSymbol globalNamespace;
+        private readonly PENamespaceSymbol _globalNamespace;
 
         /// <summary>
         /// Cache the symbol for well-known type System.Type because we use it frequently
         /// (for attributes).
         /// </summary>
-        private NamedTypeSymbol lazySystemTypeSymbol;
-        private NamedTypeSymbol lazyEventRegistrationTokenSymbol;
-        private NamedTypeSymbol lazyEventRegistrationTokenTableSymbol;
+        private NamedTypeSymbol _lazySystemTypeSymbol;
+        private NamedTypeSymbol _lazyEventRegistrationTokenSymbol;
+        private NamedTypeSymbol _lazyEventRegistrationTokenTableSymbol;
 
         /// <summary>
         /// The same value as ConcurrentDictionary.DEFAULT_CAPACITY
@@ -75,18 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// Module's custom attributes
         /// </summary>
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         /// <summary>
         /// Module's assembly attributes
         /// </summary>
-        private ImmutableArray<CSharpAttributeData> lazyAssemblyAttributes;
+        private ImmutableArray<CSharpAttributeData> _lazyAssemblyAttributes;
 
         // Type names from module
-        private ICollection<string> lazyTypeNames;
+        private ICollection<string> _lazyTypeNames;
 
         // Namespace names from module
-        private ICollection<string> lazyNamespaceNames;
+        private ICollection<string> _lazyNamespaceNames;
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)assemblySymbol != null);
             Debug.Assert(module != null);
 
-            this.assemblySymbol = assemblySymbol;
-            this.ordinal = ordinal;
-            this.module = module;
+            _assemblySymbol = assemblySymbol;
+            _ordinal = ordinal;
+            _module = module;
             this.ImportOptions = importOptions;
-            globalNamespace = new PEGlobalNamespaceSymbol(this);
+            _globalNamespace = new PEGlobalNamespaceSymbol(this);
 
             this.MetadataLocation = ImmutableArray.Create<MetadataLocation>(new MetadataLocation(this));
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return ordinal;
+                return _ordinal;
             }
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return module.Machine;
+                return _module.Machine;
             }
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return module.Bit32Required;
+                return _module.Bit32Required;
             }
         }
 
@@ -148,20 +148,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return module;
+                return _module;
             }
         }
 
         public override NamespaceSymbol GlobalNamespace
         {
-            get { return globalNamespace; }
+            get { return _globalNamespace; }
         }
 
         public override string Name
         {
             get
             {
-                return module.Name;
+                return _module.Name;
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return assemblySymbol;
+                return _assemblySymbol;
             }
         }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return assemblySymbol;
+                return _assemblySymbol;
             }
         }
 
@@ -199,16 +199,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (this.lazyCustomAttributes.IsDefault)
+            if (_lazyCustomAttributes.IsDefault)
             {
-                this.LoadCustomAttributes(Token, ref this.lazyCustomAttributes);
+                this.LoadCustomAttributes(Token, ref _lazyCustomAttributes);
             }
-            return this.lazyCustomAttributes;
+            return _lazyCustomAttributes;
         }
 
         internal ImmutableArray<CSharpAttributeData> GetAssemblyAttributes()
         {
-            if (lazyAssemblyAttributes.IsDefault)
+            if (_lazyAssemblyAttributes.IsDefault)
             {
                 ArrayBuilder<CSharpAttributeData> moduleAssemblyAttributesBuilder = null;
 
@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 ImmutableInterlocked.InterlockedCompareExchange(
-                    ref lazyAssemblyAttributes,
+                    ref _lazyAssemblyAttributes,
                     (moduleAssemblyAttributesBuilder != null) ? moduleAssemblyAttributesBuilder.ToImmutableAndFree() : ImmutableArray<CSharpAttributeData>.Empty,
                     default(ImmutableArray<CSharpAttributeData>));
             }
-            return lazyAssemblyAttributes;
+            return _lazyAssemblyAttributes;
         }
 
         internal void LoadCustomAttributes(Handle token, ref ImmutableArray<CSharpAttributeData> customAttributes)
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var customAttributeHandle in this.module.GetCustomAttributesOrThrow(token))
+                foreach (var customAttributeHandle in _module.GetCustomAttributesOrThrow(token))
                 {
                     if (filterOut1.Signatures != null &&
                         Module.GetTargetAttributeSignatureIndex(customAttributeHandle, filterOut1) != -1)
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             try
             {
-                foreach (var attr in this.module.GetCustomAttributesOrThrow(token))
+                foreach (var attr in _module.GetCustomAttributesOrThrow(token))
                 {
                     return true;
                 }
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal TypeSymbol TryDecodeAttributeWithTypeArgument(Handle handle, AttributeDescription attributeDescription)
         {
             string typeName;
-            if (module.HasStringValuedAttribute(handle, attributeDescription, out typeName))
+            if (_module.HasStringValuedAttribute(handle, attributeDescription, out typeName))
             {
                 return new MetadataDecoder(this).GetTypeSymbolForSerializedType(typeName);
             }
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void OnNewTypeDeclarationsLoaded(
             Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict)
         {
-            bool keepLookingForDeclaredCorTypes = (ordinal == 0 && assemblySymbol.KeepLookingForDeclaredSpecialTypes);
+            bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
 
             foreach (var types in typesDict.Values)
             {
@@ -429,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // Register newly loaded COR types
                     if (keepLookingForDeclaredCorTypes && type.SpecialType != SpecialType.None)
                     {
-                        assemblySymbol.RegisterDeclaredSpecialType(type);
-                        keepLookingForDeclaredCorTypes = assemblySymbol.KeepLookingForDeclaredSpecialTypes;
+                        _assemblySymbol.RegisterDeclaredSpecialType(type);
+                        keepLookingForDeclaredCorTypes = _assemblySymbol.KeepLookingForDeclaredSpecialTypes;
                     }
                 }
             }
@@ -440,12 +440,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (this.lazyTypeNames == null)
+                if (_lazyTypeNames == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyTypeNames, module.TypeNames.AsCaseSensitiveCollection(), null);
+                    Interlocked.CompareExchange(ref _lazyTypeNames, _module.TypeNames.AsCaseSensitiveCollection(), null);
                 }
 
-                return this.lazyTypeNames;
+                return _lazyTypeNames;
             }
         }
 
@@ -453,25 +453,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (this.lazyNamespaceNames == null)
+                if (_lazyNamespaceNames == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyNamespaceNames, module.NamespaceNames.AsCaseSensitiveCollection(), null);
+                    Interlocked.CompareExchange(ref _lazyNamespaceNames, _module.NamespaceNames.AsCaseSensitiveCollection(), null);
                 }
 
-                return this.lazyNamespaceNames;
+                return _lazyNamespaceNames;
             }
         }
 
         internal override ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)
         {
-            return module.GetHash(algorithmId);
+            return _module.GetHash(algorithmId);
         }
 
         internal DocumentationProvider DocumentationProvider
         {
             get
             {
-                var assembly = assemblySymbol as PEAssemblySymbol;
+                var assembly = _assemblySymbol as PEAssemblySymbol;
                 if ((object)assembly != null)
                 {
                     return assembly.DocumentationProvider;
@@ -488,16 +488,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)lazyEventRegistrationTokenSymbol == null)
+                if ((object)_lazyEventRegistrationTokenSymbol == null)
                 {
-                    Interlocked.CompareExchange(ref lazyEventRegistrationTokenSymbol,
+                    Interlocked.CompareExchange(ref _lazyEventRegistrationTokenSymbol,
                                                 GetTypeSymbolForWellKnownType(
                                                     WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken
                                                     ),
                                                 null);
-                    Debug.Assert((object)lazyEventRegistrationTokenSymbol != null);
+                    Debug.Assert((object)_lazyEventRegistrationTokenSymbol != null);
                 }
-                return lazyEventRegistrationTokenSymbol;
+                return _lazyEventRegistrationTokenSymbol;
             }
         }
 
@@ -506,16 +506,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)lazyEventRegistrationTokenTableSymbol == null)
+                if ((object)_lazyEventRegistrationTokenTableSymbol == null)
                 {
-                    Interlocked.CompareExchange(ref lazyEventRegistrationTokenTableSymbol,
+                    Interlocked.CompareExchange(ref _lazyEventRegistrationTokenTableSymbol,
                                                 GetTypeSymbolForWellKnownType(
                                                     WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T
                                                     ),
                                                 null);
-                    Debug.Assert((object)lazyEventRegistrationTokenTableSymbol != null);
+                    Debug.Assert((object)_lazyEventRegistrationTokenTableSymbol != null);
                 }
-                return lazyEventRegistrationTokenTableSymbol;
+                return _lazyEventRegistrationTokenTableSymbol;
             }
         }
 
@@ -523,14 +523,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)lazySystemTypeSymbol == null)
+                if ((object)_lazySystemTypeSymbol == null)
                 {
-                    Interlocked.CompareExchange(ref lazySystemTypeSymbol,
+                    Interlocked.CompareExchange(ref _lazySystemTypeSymbol,
                                                 GetTypeSymbolForWellKnownType(WellKnownType.System_Type),
                                                 null);
-                    Debug.Assert((object)lazySystemTypeSymbol != null);
+                    Debug.Assert((object)_lazySystemTypeSymbol != null);
                 }
-                return lazySystemTypeSymbol;
+                return _lazySystemTypeSymbol;
             }
         }
 

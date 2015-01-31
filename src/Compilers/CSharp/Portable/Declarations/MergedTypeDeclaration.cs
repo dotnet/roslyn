@@ -13,21 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     // declarations.
     internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration
     {
-        private readonly ImmutableArray<SingleTypeDeclaration> declarations;
-        private ImmutableArray<MergedTypeDeclaration> lazyChildren;
-        private ICollection<string> lazyMemberNames;
+        private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
+        private ImmutableArray<MergedTypeDeclaration> _lazyChildren;
+        private ICollection<string> _lazyMemberNames;
 
         internal MergedTypeDeclaration(ImmutableArray<SingleTypeDeclaration> declarations)
             : base(declarations[0].Name)
         {
-            this.declarations = declarations;
+            _declarations = declarations;
         }
 
         public ImmutableArray<SingleTypeDeclaration> Declarations
         {
             get
             {
-                return declarations;
+                return _declarations;
             }
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return declarations.SelectAsArray(r => r.SyntaxReference);
+                return _declarations.SelectAsArray(r => r.SyntaxReference);
             }
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
-            foreach (var decl in this.declarations)
+            foreach (var decl in _declarations)
             {
                 if (!decl.HasAnyAttributes)
                 {
@@ -196,12 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.lazyChildren.IsDefault)
+                if (_lazyChildren.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref this.lazyChildren, MakeChildren());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildren, MakeChildren());
                 }
 
-                return this.lazyChildren;
+                return _lazyChildren;
             }
         }
 
@@ -214,13 +214,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (lazyMemberNames == null)
+                if (_lazyMemberNames == null)
                 {
                     var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
-                    Interlocked.CompareExchange(ref lazyMemberNames, names, null);
+                    Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 
-                return lazyMemberNames;
+                return _lazyMemberNames;
             }
         }
     }

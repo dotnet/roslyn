@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editing
     /// </summary>
     public class DocumentEditor : SyntaxEditor
     {
-        private readonly Document document;
-        private readonly SemanticModel model;
+        private readonly Document _document;
+        private readonly SemanticModel _model;
 
         private DocumentEditor(Document document, SemanticModel model, SyntaxNode root)
             : base(root, document.Project.Solution.Workspace)
         {
-            this.document = document;
-            this.model = model;
+            _document = document;
+            _model = model;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public Document OriginalDocument
         {
-            get { return this.document; }
+            get { return _document; }
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SemanticModel SemanticModel
         {
-            get { return this.model; }
+            get { return _model; }
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public Document GetChangedDocument()
         {
-            return this.document.WithSyntaxRoot(this.GetChangedRoot());
+            return _document.WithSyntaxRoot(this.GetChangedRoot());
         }
     }
 }

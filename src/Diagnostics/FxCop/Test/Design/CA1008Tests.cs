@@ -120,7 +120,7 @@ internal enum E2
     None = 0,
     A = None
 }|]";
-            VerifyCSharp(code,                
+            VerifyCSharp(code,
                 GetCSharpResultAt(10, 15, CA1008DiagnosticAnalyzer.RuleId, expectedMessage2));
         }
 

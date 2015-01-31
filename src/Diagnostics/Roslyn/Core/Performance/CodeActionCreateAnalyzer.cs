@@ -14,13 +14,13 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         internal const string CreateMethodName = "Create";
 
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor DontUseCodeActionCreateRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DontUseCodeActionCreateRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -60,34 +60,34 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class AbstractCodeBlockStartedAnalyzer
         {
-            private readonly ImmutableHashSet<ISymbol> symbols;
+            private readonly ImmutableHashSet<ISymbol> _symbols;
 
             public AbstractCodeBlockStartedAnalyzer(ImmutableHashSet<ISymbol> symbols)
             {
-                this.symbols = symbols;
+                _symbols = symbols;
             }
 
             protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TLanguageKindEnum> context, ImmutableHashSet<ISymbol> symbols);
 
             public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
-                GetSyntaxAnalyzer(context, symbols);
+                GetSyntaxAnalyzer(context, _symbols);
             }
         }
 
         protected abstract class AbstractSyntaxAnalyzer
         {
-            private readonly ImmutableHashSet<ISymbol> symbols;
+            private readonly ImmutableHashSet<ISymbol> _symbols;
 
             public AbstractSyntaxAnalyzer(ImmutableHashSet<ISymbol> symbols)
             {
-                this.symbols = symbols;
+                _symbols = symbols;
             }
 
             private bool IsCodeActionCreate(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-                return symbolInfo.Symbol != null && symbols.Contains(symbolInfo.Symbol);
+                return symbolInfo.Symbol != null && _symbols.Contains(symbolInfo.Symbol);
             }
 
             protected void AnalyzeInvocationExpression(SyntaxNode name, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)

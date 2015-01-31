@@ -23,23 +23,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public struct DiagnosticResult
     {
-        private DiagnosticResultLocation[] locations;
+        private DiagnosticResultLocation[] _locations;
 
         public DiagnosticResultLocation[] Locations
         {
             get
             {
-                if (this.locations == null)
+                if (_locations == null)
                 {
-                    this.locations = new DiagnosticResultLocation[] { };
+                    _locations = new DiagnosticResultLocation[] { };
                 }
 
-                return this.locations;
+                return _locations;
             }
 
             set
             {
-                this.locations = value;
+                _locations = value;
             }
         }
 

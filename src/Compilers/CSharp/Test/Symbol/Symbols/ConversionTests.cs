@@ -77,52 +77,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             const ConversionKind Xnl = ConversionKind.ExplicitNullable;
             const ConversionKind Xnm = ConversionKind.ExplicitNumeric;
 
-            ConversionKind[,] conversions = 
+            ConversionKind[,] conversions =
             {
                 // from   obj  str  arr  i64  u64  i32  u32  i16  u16  i08  u08  r64  r32  dec  chr ni64 nu64 ni32 nu32 ni16 nu16  ni8  nu8 nr64 nr32  ndc  nch  exc  ien  ieo  ies  iec  ars  aro  ils  ilo  aex  del  fee  fao  ser  cmp
                 // to:    
-                /*obj*/ { Idn, Irf, Irf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf }, 
-                /*str*/ { Xrf, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Non, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf }, 
-                /*arr*/ { Xrf, Non, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Xrf, Non, Non, Non, Non, Xrf, Xrf }, 
-                /*i64*/ { Ubx, Non, Non, Idn, Xnm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u64*/ { Ubx, Non, Non, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*i32*/ { Ubx, Non, Non, Xnm, Xnm, Idn, Xnm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u32*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*i16*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Inm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u16*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*i08*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u08*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*r64*/ { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Idn, Inm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*r32*/ { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Idn, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*dec*/ { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Idn, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*chr*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*ni64*/ { Ubx, Non, Non, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Idn, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nu64*/ { Ubx, Non, Non, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*ni32*/ { Ubx, Non, Non, Xnl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nu32*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*ni16*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nu16*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*ni8*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*nu8*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nr64*/ { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Idn, Inl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nr32*/ { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Idn, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*ndc*/ { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Idn, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*nch*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*exc*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Idn, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Non, Non, Non, Xrf, Xrf }, 
-                /*ien*/ { Xrf, Irf, Irf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ieo*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Idn, Irf, Xrf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ies*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Idn, Xrf, Irf, Xrf, Irf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*iec*/ { Xrf, Irf, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Idn, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ars*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Idn, Xrf, Xrf, Xrf, Non, Non, Non, Non, Non, Non }, 
-                /*aro*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Irf, Idn, Xrf, Xrf, Non, Non, Non, Non, Non, Non }, 
-                /*ils*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Xrf, Idn, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ilo*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Idn, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*aex*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Idn, Non, Non, Non, Xrf, Xrf }, 
-                /*del*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Non, Idn, Irf, Irf, Xrf, Xrf }, 
-                /*fee*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Xrf, Xrf, Non }, 
-                /*fao*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Irf, Idn, Xrf, Non }, 
-                /*ser*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Irf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Irf, Irf, Irf, Idn, Xrf }, 
-                /*cmp*/ { Xrf, Irf, Xrf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Idn },
+                /*obj*/ { Idn, Irf, Irf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf },
+                /*str*/
+                        { Xrf, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Non, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf },
+                /*arr*/
+                        { Xrf, Non, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Xrf, Non, Non, Non, Non, Xrf, Xrf },
+                /*i64*/
+                        { Ubx, Non, Non, Idn, Xnm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u64*/
+                        { Ubx, Non, Non, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*i32*/
+                        { Ubx, Non, Non, Xnm, Xnm, Idn, Xnm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u32*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*i16*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Inm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u16*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*i08*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u08*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*r64*/
+                        { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Idn, Inm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*r32*/
+                        { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Idn, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*dec*/
+                        { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Idn, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*chr*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni64*/
+                        { Ubx, Non, Non, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Idn, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu64*/
+                        { Ubx, Non, Non, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni32*/
+                        { Ubx, Non, Non, Xnl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu32*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni16*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu16*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni8*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu8*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nr64*/
+                        { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Idn, Inl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nr32*/
+                        { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Idn, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ndc*/
+                        { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Idn, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nch*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*exc*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Idn, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Non, Non, Non, Xrf, Xrf },
+                /*ien*/
+                        { Xrf, Irf, Irf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ieo*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Idn, Irf, Xrf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ies*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Idn, Xrf, Irf, Xrf, Irf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*iec*/
+                        { Xrf, Irf, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Idn, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ars*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Idn, Xrf, Xrf, Xrf, Non, Non, Non, Non, Non, Non },
+                /*aro*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Irf, Idn, Xrf, Xrf, Non, Non, Non, Non, Non, Non },
+                /*ils*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Xrf, Idn, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ilo*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Idn, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*aex*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Idn, Non, Non, Non, Xrf, Xrf },
+                /*del*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Non, Idn, Irf, Irf, Xrf, Xrf },
+                /*fee*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Xrf, Xrf, Non },
+                /*fao*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Irf, Idn, Xrf, Non },
+                /*ser*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Irf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Irf, Irf, Irf, Idn, Xrf },
+                /*cmp*/
+                        { Xrf, Irf, Xrf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Idn },
             };
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1162,7 +1203,7 @@ class C
         [WorkItem(529568, "DevDiv")]
         [Fact()]
         public void AmbiguousConversions()
-        {        
+        {
             var source = @"
 // Tests conversions of generic constructed types - both open and closed.
 using System;
@@ -1936,7 +1977,6 @@ public class Test
                 //             r = 0; //CS0029
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R"));
         }
-
 
         #endregion
     }

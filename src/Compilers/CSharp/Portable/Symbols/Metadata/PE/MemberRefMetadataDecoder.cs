@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// Type context for resolving generic type arguments.
         /// </summary>
-        private readonly TypeSymbol containingType;
+        private readonly TypeSymbol _containingType;
 
         public MemberRefMetadataDecoder(
             PEModuleSymbol moduleSymbol,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             base(moduleSymbol, containingType as PENamedTypeSymbol)
         {
             Debug.Assert((object)containingType != null);
-            this.containingType = containingType;
+            _containingType = containingType;
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         protected override TypeSymbol GetGenericTypeParamSymbol(int position)
         {
-            PENamedTypeSymbol peType = this.containingType as PENamedTypeSymbol;
+            PENamedTypeSymbol peType = _containingType as PENamedTypeSymbol;
             if ((object)peType != null)
             {
                 while ((object)peType != null && (peType.MetadataArity - peType.Arity) > position)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return peType.TypeArgumentsNoUseSiteDiagnostics[position]; //NB: args, not params
             }
 
-            NamedTypeSymbol namedType = this.containingType as NamedTypeSymbol;
+            NamedTypeSymbol namedType = _containingType as NamedTypeSymbol;
             if ((object)namedType != null)
             {
                 int cumulativeArity;

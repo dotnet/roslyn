@@ -283,6 +283,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
             }
         }
-
     }
 }

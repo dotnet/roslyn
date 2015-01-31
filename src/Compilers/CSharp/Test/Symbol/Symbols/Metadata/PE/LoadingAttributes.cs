@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void TestAttributesMultiples()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new []{
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
                 TestReferences.NetFx.v4_0_21006.mscorlib
@@ -1476,6 +1476,5 @@ public class Class1
             Assert.Empty(m1.Parameters[1].GetAttributes());
             Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
         }
-
     }
 }

@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// </summary>
     internal sealed class SpecializedGenericMethodInstanceReference : SpecializedMethodReference, Cci.IGenericMethodInstanceReference
     {
-        private readonly SpecializedMethodReference genericMethod;
+        private readonly SpecializedMethodReference _genericMethod;
 
         public SpecializedGenericMethodInstanceReference(MethodSymbol underlyingMethod)
             : base(underlyingMethod)
         {
             Debug.Assert(PEModuleBuilder.IsGenericType(underlyingMethod.ContainingType) && underlyingMethod.ContainingType.IsDefinition);
-            genericMethod = new SpecializedMethodReference(underlyingMethod);
+            _genericMethod = new SpecializedMethodReference(underlyingMethod);
         }
 
         IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
         {
-            return genericMethod;
+            return _genericMethod;
         }
 
         public override Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
@@ -51,6 +51,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             visitor.Visit((Cci.IGenericMethodInstanceReference)this);
         }
-
     }
 }

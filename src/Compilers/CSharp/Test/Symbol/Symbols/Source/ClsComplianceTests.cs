@@ -2067,7 +2067,7 @@ public class C
                 // false.netmodule: warning CS3017: You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly
                 Diagnostic(ErrorCode.WRN_CLS_NotOnModules2));
 
-            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics( 
+            CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(true)]", new[] { noneModuleRef }).VerifyDiagnostics(
                 // none.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
 
@@ -2853,7 +2853,7 @@ public class C
                     type = type.Construct(ArrayBuilder<TypeSymbol>.GetInstance(type.Arity, intType).ToImmutableAndFree());
                 }
                 var qualifiedName = type.ToTestDisplayString();
-                
+
                 var source = string.Format(sourceTemplate, qualifiedName);
                 var comp = CreateCompilationWithMscorlib45(source);
 
@@ -3223,7 +3223,7 @@ namespace N{0}
                 // (22,18): warning CS3015: 'N2.MyAttribute' has no accessible constructors which use only CLS-compliant types
                 //     public class MyAttribute : Attribute
                 Diagnostic(ErrorCode.WRN_CLS_BadAttributeType, "MyAttribute").WithArguments("N2.MyAttribute"),
-                
+
                 // Not interesting:
 
                 // (4,11): error CS0579: Duplicate 'CLSCompliant' attribute

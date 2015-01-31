@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AttributeSemanticModel : MemberSemanticModel
     {
-        private readonly AliasSymbol aliasOpt;
+        private readonly AliasSymbol _aliasOpt;
 
         private AttributeSemanticModel(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
             : base(compilation, syntax, attributeType, rootBinder, parentSemanticModelOpt, speculatedPosition)
         {
             Debug.Assert(syntax != null);
-            this.aliasOpt = aliasOpt;
+            _aliasOpt = aliasOpt;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {
-                return new BoundTypeExpression((NameSyntax)node, aliasOpt, inferredType: false, type: AttributeType);
+                return new BoundTypeExpression((NameSyntax)node, _aliasOpt, inferredType: false, type: AttributeType);
             }
             else
             {

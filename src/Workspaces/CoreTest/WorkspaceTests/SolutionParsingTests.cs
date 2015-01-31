@@ -12,8 +12,8 @@ namespace Roslyn.Editor.UnitTests.SolutionParsing
     public class SolutionParsingTests
     {
 #pragma warning disable 414
-        private static string visualStudio2010 = @"# Visual Studio 2010";
-        private static string visualStudio2012 = @"# Visual Studio 2012";
+        private static string s_visualStudio2010 = @"# Visual Studio 2010";
+        private static string s_visualStudio2012 = @"# Visual Studio 2012";
 #pragma warning restore 414
 
 #if MSBUILD12

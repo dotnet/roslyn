@@ -298,6 +298,5 @@ unsafe struct S
                 //     fixed int F[3, 4];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
         }
-
     }
 }

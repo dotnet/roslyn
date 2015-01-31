@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal class NavigationOperation : CodeActionOperation
     {
-        private readonly DocumentId documentId;
-        private readonly int position;
+        private readonly DocumentId _documentId;
+        private readonly int _position;
 
         public NavigationOperation(DocumentId documentId, int position)
         {
-            this.documentId = documentId;
-            this.position = position;
+            _documentId = documentId;
+            _position = position;
         }
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             if (workspace.CanOpenDocuments)
             {
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, documentId, position);
+                navigationService.TryNavigateToPosition(workspace, _documentId, _position);
             }
         }
     }

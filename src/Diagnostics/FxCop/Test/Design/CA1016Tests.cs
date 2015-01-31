@@ -35,7 +35,7 @@ imports System
         End Sub
     End class
 ",
-                diagnostic);
+                s_diagnostic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -56,7 +56,7 @@ class AssemblyVersionAttribute : Attribute {
     public AssemblyVersionAttribute(string s) {}
 }
 ",
-                diagnostic);
+                s_diagnostic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -73,7 +73,7 @@ class AssemblyVersionAttribute : Attribute {
         }
     }
 ",
-                diagnostic);
+                s_diagnostic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -150,14 +150,14 @@ using System.Reflection;
 ");
         }
 
-        private static string number = "CA1016";
-        private static string message = "Assemblies should be marked with AssemblyVersionAttribute";
+        private static string s_number = "CA1016";
+        private static string s_message = "Assemblies should be marked with AssemblyVersionAttribute";
 
-        private static DiagnosticResult diagnostic = new DiagnosticResult
+        private static DiagnosticResult s_diagnostic = new DiagnosticResult
         {
-            Id = number,
+            Id = s_number,
             Severity = DiagnosticSeverity.Warning,
-            Message = message
+            Message = s_message
         };
     }
 }

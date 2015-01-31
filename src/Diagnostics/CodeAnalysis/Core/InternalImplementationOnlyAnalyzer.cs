@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.Analyzers
     {
         private const string InternalImplementationOnlyAttributeName = "InternalImplementationOnlyAttribute";
         private const string InternalImplementationOnlyAttributeFullName = "System.Runtime.CompilerServices.InternalImplementationOnlyAttribute";
-        private readonly static LocalizableString localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private readonly static LocalizableString localizableMessageFormat = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private readonly static LocalizableString localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        
+        private readonly static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private readonly static LocalizableString s_localizableMessageFormat = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private readonly static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
                                                         DiagnosticIds.InternalImplementationOnlyRuleId,
-                                                        localizableTitle,
-                                                        localizableMessageFormat,
+                                                        s_localizableTitle,
+                                                        s_localizableMessageFormat,
                                                         DiagnosticCategory.Compatibility,
                                                         DiagnosticSeverity.Error,
                                                         true,
-                                                        localizableDescription);
+                                                        s_localizableDescription);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 // We are doing a string comparison of the name here because we don't care where the attribute comes from.
                 // CodeAnalysis.dll itself has this attribute and if the user assembly also had it, symbol equality will fail
                 // but we should still issue the error.
-                if (attributes.Any(a => a.AttributeClass.Name.Equals(InternalImplementationOnlyAttributeName) 
+                if (attributes.Any(a => a.AttributeClass.Name.Equals(InternalImplementationOnlyAttributeName)
                                         && a.AttributeClass.ToDisplayString().Equals(InternalImplementationOnlyAttributeFullName)))
                 {
                     if (!iface.ContainingAssembly.GivesAccessTo(namedTypeSymbol.ContainingAssembly))

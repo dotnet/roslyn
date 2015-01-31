@@ -23,26 +23,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Cache of created anonymous type templates used as an implementation of anonymous 
         /// types in emit phase.
         /// </summary>
-        private ConcurrentDictionary<string, AnonymousTypeTemplateSymbol> lazyAnonymousTypeTemplates;
+        private ConcurrentDictionary<string, AnonymousTypeTemplateSymbol> _lazyAnonymousTypeTemplates;
 
         /// <summary>
         /// Maps delegate signature shape (number of parameters and their ref-ness) to a synthesized generic delegate symbol.
         /// Unlike anonymous types synthesized delegates are not available thru symbol APIs. They are only used in lowered bound trees.
         /// Currently used for dynamic call-site sites whose signature doesn't match any of the well-known Func or Action types.
         /// </summary>
-        private ConcurrentDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> lazySynthesizedDelegates;
+        private ConcurrentDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> _lazySynthesizedDelegates;
 
         private struct SynthesizedDelegateKey : IEquatable<SynthesizedDelegateKey>
         {
-            private readonly BitArray byRefs;
-            private readonly ushort parameterCount;
-            private readonly byte returnsVoid;
+            private readonly BitArray _byRefs;
+            private readonly ushort _parameterCount;
+            private readonly byte _returnsVoid;
 
             public SynthesizedDelegateKey(int parameterCount, BitArray byRefs, bool returnsVoid)
             {
-                this.parameterCount = (ushort)parameterCount;
-                this.returnsVoid = (byte)(returnsVoid ? 1 : 0);
-                this.byRefs = byRefs;
+                _parameterCount = (ushort)parameterCount;
+                _returnsVoid = (byte)(returnsVoid ? 1 : 0);
+                _byRefs = byRefs;
             }
 
             /// <summary>
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public string MakeTypeName()
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
-                pooledBuilder.Builder.Append(returnsVoid != 0 ? "<>A" : "<>F");
+                pooledBuilder.Builder.Append(_returnsVoid != 0 ? "<>A" : "<>F");
 
-                if (!byRefs.IsNull)
+                if (!_byRefs.IsNull)
                 {
                     pooledBuilder.Builder.Append("{");
 
                     int i = 0;
-                    foreach (int byRefIndex in byRefs.Words())
+                    foreach (int byRefIndex in _byRefs.Words())
                     {
                         if (i > 0)
                         {
@@ -84,14 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool Equals(SynthesizedDelegateKey other)
             {
-                return parameterCount == other.parameterCount
-                    && returnsVoid == other.returnsVoid
-                    && byRefs.Equals(other.byRefs);
+                return _parameterCount == other._parameterCount
+                    && _returnsVoid == other._returnsVoid
+                    && _byRefs.Equals(other._byRefs);
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine((int)parameterCount, Hash.Combine((int)returnsVoid, byRefs.GetHashCode()));
+                return Hash.Combine((int)_parameterCount, Hash.Combine((int)_returnsVoid, _byRefs.GetHashCode()));
             }
         }
 
@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.AreTemplatesSealed)
                 {
-                    Debug.Assert(this._sourceLocationsSeen.ContainsKey(location));
+                    Debug.Assert(_sourceLocationsSeen.ContainsKey(location));
                 }
                 else
                 {
-                    this._sourceLocationsSeen.TryAdd(location, true);
+                    _sourceLocationsSeen.TryAdd(location, true);
                 }
             }
 #endif
@@ -141,21 +141,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // Lazily create a template types cache
-                if (this.lazyAnonymousTypeTemplates == null)
+                if (_lazyAnonymousTypeTemplates == null)
                 {
                     CSharpCompilation previousSubmission = this.Compilation.PreviousSubmission;
 
                     // TODO (tomat): avoid recursion
                     var previousCache = (previousSubmission == null) ? null : previousSubmission.AnonymousTypeManager.AnonymousTypeTemplates;
 
-                    Interlocked.CompareExchange(ref this.lazyAnonymousTypeTemplates,
+                    Interlocked.CompareExchange(ref _lazyAnonymousTypeTemplates,
                                                 previousCache == null
                                                     ? new ConcurrentDictionary<string, AnonymousTypeTemplateSymbol>()
                                                     : new ConcurrentDictionary<string, AnonymousTypeTemplateSymbol>(previousCache),
                                                 null);
                 }
 
-                return this.lazyAnonymousTypeTemplates;
+                return _lazyAnonymousTypeTemplates;
             }
         }
 
@@ -163,21 +163,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.lazySynthesizedDelegates == null)
+                if (_lazySynthesizedDelegates == null)
                 {
                     CSharpCompilation previousSubmission = this.Compilation.PreviousSubmission;
 
                     // TODO (tomat): avoid recursion
-                    var previousCache = (previousSubmission == null) ? null : previousSubmission.AnonymousTypeManager.lazySynthesizedDelegates;
+                    var previousCache = (previousSubmission == null) ? null : previousSubmission.AnonymousTypeManager._lazySynthesizedDelegates;
 
-                    Interlocked.CompareExchange(ref this.lazySynthesizedDelegates,
+                    Interlocked.CompareExchange(ref _lazySynthesizedDelegates,
                                                 previousCache == null
                                                     ? new ConcurrentDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>()
                                                     : new ConcurrentDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>(previousCache),
                                                 null);
                 }
 
-                return this.lazySynthesizedDelegates;
+                return _lazySynthesizedDelegates;
             }
         }
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Get all anonymous types owned by this manager
             var builder = ArrayBuilder<AnonymousTypeTemplateSymbol>.GetInstance();
 
-            var anonymousTypes = lazyAnonymousTypeTemplates;
+            var anonymousTypes = _lazyAnonymousTypeTemplates;
             if (anonymousTypes != null)
             {
                 foreach (var template in anonymousTypes.Values)
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             builder.Free();
 
-            var delegates = lazySynthesizedDelegates;
+            var delegates = _lazySynthesizedDelegates;
             if (delegates != null)
             {
                 foreach (var template in delegates.Values)
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-            var anonymousTypes = lazyAnonymousTypeTemplates;
+            var anonymousTypes = _lazyAnonymousTypeTemplates;
             if (anonymousTypes != null)
             {
                 foreach (var template in anonymousTypes.Values)
@@ -474,11 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class AnonymousTypeComparer : IComparer<AnonymousTypeTemplateSymbol>
         {
-            private readonly CSharpCompilation compilation;
+            private readonly CSharpCompilation _compilation;
 
             public AnonymousTypeComparer(CSharpCompilation compilation)
             {
-                this.compilation = compilation;
+                _compilation = compilation;
             }
 
             public int Compare(AnonymousTypeTemplateSymbol x, AnonymousTypeTemplateSymbol y)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    return this.compilation.CompareSourceLocations(x, y);
+                    return _compilation.CompareSourceLocations(x, y);
                 }
             }
         }

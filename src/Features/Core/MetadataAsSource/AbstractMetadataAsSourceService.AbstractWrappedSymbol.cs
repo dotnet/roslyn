@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private abstract class AbstractWrappedSymbol : ISymbol
         {
-            private readonly ISymbol symbol;
+            private readonly ISymbol _symbol;
             protected readonly bool CanImplementImplicitly;
             protected readonly IDocumentationCommentFormattingService DocCommentFormattingService;
 
             protected AbstractWrappedSymbol(ISymbol symbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
             {
-                this.symbol = symbol;
+                _symbol = symbol;
                 this.CanImplementImplicitly = canImplementImplicitly;
                 this.DocCommentFormattingService = docCommentFormattingService;
             }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.CanBeReferencedByName;
+                    return _symbol.CanBeReferencedByName;
                 }
             }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ContainingAssembly;
+                    return _symbol.ContainingAssembly;
                 }
             }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ContainingModule;
+                    return _symbol.ContainingModule;
                 }
             }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ContainingNamespace;
+                    return _symbol.ContainingNamespace;
                 }
             }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ContainingSymbol;
+                    return _symbol.ContainingSymbol;
                 }
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.ContainingType;
+                    return _symbol.ContainingType;
                 }
             }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.DeclaredAccessibility;
+                    return _symbol.DeclaredAccessibility;
                 }
             }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.DeclaringSyntaxReferences;
+                    return _symbol.DeclaringSyntaxReferences;
                 }
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsAbstract;
+                    return _symbol.IsAbstract;
                 }
             }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsDefinition;
+                    return _symbol.IsDefinition;
                 }
             }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsExtern;
+                    return _symbol.IsExtern;
                 }
             }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsImplicitlyDeclared;
+                    return _symbol.IsImplicitlyDeclared;
                 }
             }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsOverride;
+                    return _symbol.IsOverride;
                 }
             }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsSealed;
+                    return _symbol.IsSealed;
                 }
             }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsStatic;
+                    return _symbol.IsStatic;
                 }
             }
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsVirtual;
+                    return _symbol.IsVirtual;
                 }
             }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Kind;
+                    return _symbol.Kind;
                 }
             }
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Language;
+                    return _symbol.Language;
                 }
             }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Locations;
+                    return _symbol.Locations;
                 }
             }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.MetadataName;
+                    return _symbol.MetadataName;
                 }
             }
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Name;
+                    return _symbol.Name;
                 }
             }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.OriginalDefinition;
+                    return _symbol.OriginalDefinition;
                 }
             }
 
@@ -204,53 +204,53 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.HasUnsupportedMetadata;
+                    return _symbol.HasUnsupportedMetadata;
                 }
             }
 
             public void Accept(SymbolVisitor visitor)
             {
-                this.symbol.Accept(visitor);
+                _symbol.Accept(visitor);
             }
 
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             {
-                return this.symbol.Accept<TResult>(visitor);
+                return _symbol.Accept<TResult>(visitor);
             }
 
             public ImmutableArray<AttributeData> GetAttributes()
             {
-                return this.symbol.GetAttributes();
+                return _symbol.GetAttributes();
             }
 
             public string GetDocumentationCommentId()
             {
-                return this.symbol.GetDocumentationCommentId();
+                return _symbol.GetDocumentationCommentId();
             }
 
             public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return this.symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+                return _symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             }
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
             {
-                return this.symbol.ToDisplayParts(format);
+                return _symbol.ToDisplayParts(format);
             }
 
             public string ToDisplayString(SymbolDisplayFormat format = null)
             {
-                return this.symbol.ToDisplayString(format);
+                return _symbol.ToDisplayString(format);
             }
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
             {
-                return this.symbol.ToMinimalDisplayString(semanticModel, position, format);
+                return _symbol.ToMinimalDisplayString(semanticModel, position, format);
             }
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
             {
-                return this.symbol.ToMinimalDisplayParts(semanticModel, position, format);
+                return _symbol.ToMinimalDisplayParts(semanticModel, position, format);
             }
 
             public bool Equals(ISymbol other)

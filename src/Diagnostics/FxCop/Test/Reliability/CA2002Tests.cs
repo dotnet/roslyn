@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     lock (values1) { }
                 }
             }
-            ", 
+            ",
             GetCA2002CSharpResultAt(8, 27, "string"),
             GetCA2002CSharpResultAt(9, 27, "string"),
             GetCA2002CSharpResultAt(12, 27, "System.OutOfMemoryException"),

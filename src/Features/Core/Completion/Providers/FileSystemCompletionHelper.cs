@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,19 +16,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal sealed class FileSystemCompletionHelper
     {
-        private readonly ICurrentWorkingDirectoryDiscoveryService fileSystemDiscoveryService;
-        private readonly Func<string, bool> exclude;
-        private readonly Glyph folderGlyph;
-        private readonly Glyph fileGlyph;
+        private readonly ICurrentWorkingDirectoryDiscoveryService _fileSystemDiscoveryService;
+        private readonly Func<string, bool> _exclude;
+        private readonly Glyph _folderGlyph;
+        private readonly Glyph _fileGlyph;
 
         // absolute paths
-        private readonly ImmutableArray<string> searchPaths;
+        private readonly ImmutableArray<string> _searchPaths;
 
-        private readonly ISet<string> allowableExtensions;
+        private readonly ISet<string> _allowableExtensions;
 
-        private readonly Lazy<string[]> lazyGetDrives;
-        private readonly ICompletionProvider completionProvider;
-        private readonly TextSpan textChangeSpan;
+        private readonly Lazy<string[]> _lazyGetDrives;
+        private readonly ICompletionProvider _completionProvider;
+        private readonly TextSpan _textChangeSpan;
 
         public FileSystemCompletionHelper(
             ICompletionProvider completionProvider,
@@ -42,22 +42,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             Debug.Assert(searchPaths.All(path => PathUtilities.IsAbsolute(path)));
 
-            this.completionProvider = completionProvider;
-            this.textChangeSpan = textChangeSpan;
-            this.searchPaths = searchPaths;
-            this.allowableExtensions = allowableExtensions.Select(e => e.ToLowerInvariant()).ToSet();
-            this.fileSystemDiscoveryService = fileSystemDiscoveryService;
-            this.folderGlyph = folderGlyph;
-            this.fileGlyph = fileGlyph;
-            this.exclude = exclude;
+            _completionProvider = completionProvider;
+            _textChangeSpan = textChangeSpan;
+            _searchPaths = searchPaths;
+            _allowableExtensions = allowableExtensions.Select(e => e.ToLowerInvariant()).ToSet();
+            _fileSystemDiscoveryService = fileSystemDiscoveryService;
+            _folderGlyph = folderGlyph;
+            _fileGlyph = fileGlyph;
+            _exclude = exclude;
 
-            this.lazyGetDrives = new Lazy<string[]>(() =>
+            _lazyGetDrives = new Lazy<string[]>(() =>
                 IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
         }
 
         public IEnumerable<CompletionItem> GetItems(string pathSoFar, string documentPath)
         {
-            if (exclude != null && exclude(pathSoFar))
+            if (_exclude != null && _exclude(pathSoFar))
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }
@@ -67,17 +67,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private CompletionItem CreateCurrentDirectoryItem()
         {
-            return new CompletionItem(completionProvider, ".", textChangeSpan);
+            return new CompletionItem(_completionProvider, ".", _textChangeSpan);
         }
 
         private CompletionItem CreateParentDirectoryItem()
         {
-            return new CompletionItem(completionProvider, "..", textChangeSpan);
+            return new CompletionItem(_completionProvider, "..", _textChangeSpan);
         }
 
         private CompletionItem CreateNetworkRoot(TextSpan textChangeSpan)
         {
-            return new CompletionItem(completionProvider, "\\\\", textChangeSpan);
+            return new CompletionItem(_completionProvider, "\\\\", textChangeSpan);
         }
 
         private IList<CompletionItem> GetFilesAndDirectories(string path, string basePath)
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 case PathKind.Empty:
                     result.Add(CreateCurrentDirectoryItem());
 
-                    if (!IsDriveRoot(fileSystemDiscoveryService.CurrentDirectory))
+                    if (!IsDriveRoot(_fileSystemDiscoveryService.CurrentDirectory))
                     {
                         result.Add(CreateParentDirectoryItem());
                     }
 
-                    result.Add(CreateNetworkRoot(textChangeSpan));
+                    result.Add(CreateNetworkRoot(_textChangeSpan));
                     result.AddRange(GetLogicalDrives());
                     result.AddRange(GetFilesAndDirectoriesInSearchPaths());
                     break;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var fullPath = FileUtilities.ResolveRelativePath(
                             path,
                             basePath,
-                            fileSystemDiscoveryService.CurrentDirectory);
+                            _fileSystemDiscoveryService.CurrentDirectory);
 
                         if (fullPath != null)
                         {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                 // The user has typed only "\".  In this case, we want to add "\\" to
                                 // the list.  Also, the textChangeSpan needs to be backed up by one
                                 // so that it will consume the "\" when "\\" is inserted.
-                                result.Add(CreateNetworkRoot(TextSpan.FromBounds(textChangeSpan.Start - 1, textChangeSpan.End)));
+                                result.Add(CreateNetworkRoot(TextSpan.FromBounds(_textChangeSpan.Start - 1, _textChangeSpan.End)));
                             }
                         }
                         else
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // although it is possible to type "." here, it doesn't make any sense to do so:
                     result.Add(CreateParentDirectoryItem());
 
-                    foreach (var searchPath in searchPaths)
+                    foreach (var searchPath in _searchPaths)
                     {
                         var fullPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
 
@@ -189,10 +189,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private CompletionItem CreateCompletion(FileSystemInfo child)
         {
             return new CompletionItem(
-                completionProvider,
+                _completionProvider,
                 child.Name,
-                textChangeSpan,
-                glyph: child is DirectoryInfo ? folderGlyph : fileGlyph,
+                _textChangeSpan,
+                glyph: child is DirectoryInfo ? _folderGlyph : _fileGlyph,
                 description: child.FullName.ToSymbolDisplayParts());
         }
 
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (child is FileInfo)
             {
                 return
-                    allowableExtensions.Count == 0 ||
-                    allowableExtensions.Contains(Path.GetExtension(child.Name).ToLowerInvariant());
+                    _allowableExtensions.Count == 0 ||
+                    _allowableExtensions.Contains(Path.GetExtension(child.Name).ToLowerInvariant());
             }
 
             return false;
@@ -262,16 +262,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private IEnumerable<CompletionItem> GetFilesAndDirectoriesInSearchPaths()
         {
-            return searchPaths.SelectMany(GetFilesAndDirectoriesInDirectory);
+            return _searchPaths.SelectMany(GetFilesAndDirectoriesInDirectory);
         }
 
         private IEnumerable<CompletionItem> GetLogicalDrives()
         {
             // First, we may have a filename, so let's include all drives
-            return from d in lazyGetDrives.Value
+            return from d in _lazyGetDrives.Value
                    where d.Length > 0 && (d.Last() == Path.DirectorySeparatorChar || d.Last() == Path.AltDirectorySeparatorChar)
                    let text = d.Substring(0, d.Length - 1)
-                   select new CompletionItem(completionProvider, text, textChangeSpan, glyph: folderGlyph);
+                   select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: _folderGlyph);
         }
 
         private static FileSystemInfo[] GetFileSystemInfos(DirectoryInfo directoryInfo)

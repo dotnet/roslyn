@@ -345,7 +345,6 @@ class name2
         [Fact]
         private void TestCollisionOfLocalWithMethodOrProperty()
         {
-
             var source = @"
 using System;
 namespace name1
@@ -904,14 +903,14 @@ class Program
     }
 }";
 
-    CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (7,28): error CS0100: The parameter name 'x' is a duplicate
-    //         D d1 = (int x, int x) => { return 1; };
-    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 28),
-    // (8,20): error CS0100: The parameter name 'x' is a duplicate
-    //         D d2 = (x, x) => { return 1; };
-    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(8, 20)
-    );
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            // (7,28): error CS0100: The parameter name 'x' is a duplicate
+            //         D d1 = (int x, int x) => { return 1; };
+            Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 28),
+            // (8,20): error CS0100: The parameter name 'x' is a duplicate
+            //         D d2 = (x, x) => { return 1; };
+            Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(8, 20)
+            );
         }
 
         [Fact]
@@ -1524,7 +1523,7 @@ class Base
     //                     var name5 = string.Empty;   // 0136 on name5
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name5").WithArguments("name5").WithLocation(40, 25)
     );
-    }
+        }
 
         [Fact]
         public void DifferentArities()

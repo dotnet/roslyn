@@ -46,12 +46,12 @@ public class Class6<TTypeParameter>
             AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnAnalyzerException: DiagnosticExtensions.AlwaysCatchAnalyzerExceptions);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
-            Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "The method or operation is not implemented."), 
+            Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "The method or operation is not implemented."),
                 DiagnosticFormatter.Instance.Format(diagnostics[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
-#region "Test_Class"
-        private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(CA1715DiagnosticAnalyzer.InterfaceRule, CA1715DiagnosticAnalyzer.TypeParameterRule);
+        #region "Test_Class"
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedRules = ImmutableArray.Create(CA1715DiagnosticAnalyzer.InterfaceRule, CA1715DiagnosticAnalyzer.TypeParameterRule);
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         internal class ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest : DiagnosticAnalyzer
@@ -71,7 +71,7 @@ public class Class6<TTypeParameter>
             {
                 get
                 {
-                    return SupportedRules;
+                    return s_supportedRules;
                 }
             }
 
@@ -82,6 +82,6 @@ public class Class6<TTypeParameter>
                     SymbolKindsOfInterest);
             }
         }
-#endregion
+        #endregion
     }
 }

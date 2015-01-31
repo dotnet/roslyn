@@ -1862,7 +1862,6 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(MyEnum)null").WithArguments("Program.MyEnum").WithLocation(12, 20));
-
         }
 
         [Fact(), WorkItem(528875, "DevDiv")]
@@ -2903,7 +2902,6 @@ class F
                 //   [DefaultValue(Prop.Privacy)] // CS0120
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "Prop.Privacy").WithArguments("ProtectionLevel.Privacy")  // Extra In Roslyn
                 );
-
         }
 
         [Fact]
@@ -4530,7 +4528,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
                 // (36,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
-                    // (36,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                // (36,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
                 // (41,13): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw"),
@@ -6578,7 +6576,6 @@ public class C
                 //     N(h2); // Error: hoisted to field
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h2").WithArguments("System.RuntimeArgumentHandle")
                 );
-
         }
 
         [Fact, WorkItem(538008, "DevDiv")]
@@ -12720,7 +12717,7 @@ class C : B
                 new ErrorDescription[] {
                     new ErrorDescription { Code = (int)ErrorCode.WRN_NewRequired, Line = 8, Column = 16, IsWarning = true },
                     new ErrorDescription { Code = (int)ErrorCode.WRN_NewRequired, Line = 12, Column = 22, IsWarning = true },
-                //new ErrorDescription { Code = (int)ErrorCode.ERR_BadArgTypes, Line = 16, Column = 5 },  //specifically omitted by roslyn
+                    //new ErrorDescription { Code = (int)ErrorCode.ERR_BadArgTypes, Line = 16, Column = 5 },  //specifically omitted by roslyn
                     new ErrorDescription { Code = (int)ErrorCode.ERR_BadArgType, Line = 16, Column = 13 }
                 });
         }
@@ -13309,7 +13306,6 @@ class Program
                 // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
                 //         md1(1);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9));
-
         }
 
         [Fact]
@@ -13328,7 +13324,6 @@ class Program
 ";
             CreateCompilationWithMscorlib(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadDelArgCount, "new Action<int>(Console.WriteLine)").WithArguments("System.Action<int>", "2"));
-
         }
 
         [Fact()]
@@ -14844,7 +14839,7 @@ class ErrorCS1676
                     new ErrorDescription { Code = (int)ErrorCode.ERR_NewlineInConst, Line = 11, Column = 31 },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_CloseParenExpected, Line = 11, Column = 34 },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 11, Column = 34 },
-                // new ErrorDescription { Code = (int)ErrorCode.ERR_CantConvAnonMethNoParams, Line = 9, Column = 13 },
+                    // new ErrorDescription { Code = (int)ErrorCode.ERR_CantConvAnonMethNoParams, Line = 9, Column = 13 },
                 });
         }
 
@@ -19243,7 +19238,6 @@ ftftftft";
                 //         W((E?)null != 0);
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
                     );
-
         }
 
         [Fact]
@@ -21433,8 +21427,6 @@ class C
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + longE + 5),
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, longE + 1).WithArguments(longE + 1)
             );
-
-
         }
         #endregion
 
@@ -22229,6 +22221,5 @@ class Program
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.ToString()[1]").WithLocation(10, 9)
                );
         }
-
     }
 }

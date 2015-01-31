@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis
 {
     public class FileTextLoader : TextLoader
     {
-        private readonly string path;
-        private readonly Encoding defaultEncoding;
+        private readonly string _path;
+        private readonly Encoding _defaultEncoding;
 
         /// <summary>
         /// Creates a content loader for specified file.
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis
         {
             FilePathUtilities.RequireAbsolutePath(path, "path");
 
-            this.path = path;
-            this.defaultEncoding = defaultEncoding;
+            _path = path;
+            _defaultEncoding = defaultEncoding;
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string Path
         {
-            get { return path; }
+            get { return _path; }
         }
 
         /// <summary>
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Encoding DefaultEncoding
         {
-            get { return defaultEncoding; }
+            get { return _defaultEncoding; }
         }
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
             var factory = workspace.Services.GetService<ITextFactoryService>();
-            return factory.CreateText(stream, defaultEncoding);
+            return factory.CreateText(stream, _defaultEncoding);
         }
 
         /// <summary>
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(this.path);
+            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
-            using (var stream = FileUtilities.OpenAsyncRead(this.path))
+            using (var stream = FileUtilities.OpenAsyncRead(_path))
             {
                 System.Diagnostics.Debug.Assert(stream.IsAsync);
                 var version = VersionStamp.Create(prevLastWriteTime);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                 using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false))
                 {
                     var text = CreateText(readStream, workspace);
-                    textAndVersion = TextAndVersion.Create(text, version, path);
+                    textAndVersion = TextAndVersion.Create(text, version, _path);
                 }
             }
 
@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis
             // I am letting it to return what we have read so far. and hopefully, file change event let us re-read this file.
             // (* but again, there is still a chance where file change event happens even before writing has finished which ends up
             //    let us stay in corrupted state)
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(this.path);
+            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
                 // TODO: remove this once we know how often this can happen.
                 //       I am leaving this here for now for diagnostic purpose.
-                var message = string.Format(WorkspacesResources.FileWasExternallyModified, this.path);
+                var message = string.Format(WorkspacesResources.FileWasExternallyModified, _path);
                 workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, documentId));
             }
 

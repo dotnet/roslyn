@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editing
     [Flags]
     public enum SpecialTypeConstraintKind
     {
-        None          = 0x0000,
+        None = 0x0000,
 
         /// <summary>
         /// Has the reference type constraint (i.e. 'class' constraint in C#)

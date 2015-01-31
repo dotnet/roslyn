@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var closeQuote = closeQuoteMissing
                 ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).WithTrailingTrivia(originalToken.GetTrailingTrivia())
                 : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, originalToken.GetTrailingTrivia());
-            var builder = this.pool.Allocate<InterpolatedStringContentSyntax>();
+            var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
             if (interpolations.Count == 0)
             {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var interpolation = interpolations[i];
 
                     // Add a token for text preceding the interpolation
-                    var text = Substring(originalText, (i==0) ? (openQuoteIndex + 1) : (interpolations[i-1].CloseBracePosition + 1), interpolation.OpenBracePosition - 1);
+                    var text = Substring(originalText, (i == 0) ? (openQuoteIndex + 1) : (interpolations[i - 1].CloseBracePosition + 1), interpolation.OpenBracePosition - 1);
                     if (text.Length > 0)
                     {
                         var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             interpolations.Free();
             var result = SyntaxFactory.InterpolatedStringExpression(openQuote, builder, closeQuote);
-            this.pool.Free(builder);
+            _pool.Free(builder);
             if (error != null)
             {
                 result = result.WithDiagnosticsGreen(new[] { error });
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <param name="bodyText">The text for the string literal's contents, excluding surrounding quotes</param>
         /// <param name="isVerbatim">True if the string contents should be scanned using the rules for verbatim strings</param>
         /// <param name="kind">The token kind to be assigned to the resulting token</param>
-        SyntaxToken MakeStringToken(string text, string bodyText, bool isVerbatim, SyntaxKind kind)
+        private SyntaxToken MakeStringToken(string text, string bodyText, bool isVerbatim, SyntaxKind kind)
         {
             var prefix = isVerbatim ? "@\"" : "\"";
             var fakeString = prefix + bodyText + "\"";
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
+        private DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
         {
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance();
             foreach (var info in infos)

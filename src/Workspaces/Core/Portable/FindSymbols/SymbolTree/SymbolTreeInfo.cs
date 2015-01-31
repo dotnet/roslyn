@@ -12,27 +12,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private readonly VersionStamp version;
+        private readonly VersionStamp _version;
 
         /// <summary>
         /// The list of nodes that represent symbols. The primary key into the sorting of this list is the name.
-        /// They are sorted case-insensitively with the <see cref="NodeSortComparer" />. Finding case-sensitive
+        /// They are sorted case-insensitively with the <see cref="s_nodeSortComparer" />. Finding case-sensitive
         /// matches can be found by binary searching for something that matches insensitively, and then searching
         /// around that equivalence class for one that matches.
         /// </summary>
-        private readonly IReadOnlyList<Node> nodes;
+        private readonly IReadOnlyList<Node> _nodes;
 
-        private static readonly StringComparer NodeSortComparer = CaseInsensitiveComparison.Comparer;
+        private static readonly StringComparer s_nodeSortComparer = CaseInsensitiveComparison.Comparer;
 
         private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes)
         {
-            this.version = version;
-            this.nodes = orderedNodes;
+            _version = version;
+            _nodes = orderedNodes;
         }
 
         public int Count
         {
-            get { return this.nodes.Count; }
+            get { return _nodes.Count; }
         }
 
         public bool HasSymbols(string name, bool ignoreCase)
@@ -76,27 +76,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (startingPosition != -1)
             {
                 // yield if this matches by the actual given comparer
-                if (comparer.Equals(name, nodes[startingPosition].Name))
+                if (comparer.Equals(name, _nodes[startingPosition].Name))
                 {
                     yield return startingPosition;
                 }
 
                 int position = startingPosition;
-                while (position > 0 && NodeSortComparer.Equals(nodes[position - 1].Name, name))
+                while (position > 0 && s_nodeSortComparer.Equals(_nodes[position - 1].Name, name))
                 {
                     position--;
 
-                    if (comparer.Equals(nodes[position].Name, name))
+                    if (comparer.Equals(_nodes[position].Name, name))
                     {
                         yield return position;
                     }
                 }
 
                 position = startingPosition;
-                while (position + 1 < nodes.Count && NodeSortComparer.Equals(nodes[position + 1].Name, name))
+                while (position + 1 < _nodes.Count && s_nodeSortComparer.Equals(_nodes[position + 1].Name, name))
                 {
                     position++;
-                    if (comparer.Equals(nodes[position].Name, name))
+                    if (comparer.Equals(_nodes[position].Name, name))
                     {
                         yield return position;
                     }
@@ -105,18 +105,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Searches for a name in the ordered list that matches per the <see cref="NodeSortComparer" />.
+        /// Searches for a name in the ordered list that matches per the <see cref="s_nodeSortComparer" />.
         /// </summary>
         private int BinarySearch(string name)
         {
-            int max = nodes.Count - 1;
+            int max = _nodes.Count - 1;
             int min = 0;
 
             while (max >= min)
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison = NodeSortComparer.Compare(nodes[mid].Name, name);
+                var comparison = s_nodeSortComparer.Compare(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             string lastName = null;
 
-            foreach (var node in this.nodes)
+            foreach (var node in _nodes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string lastName = null;
             bool lastGood = false;
 
-            for (int i = 0; i < this.nodes.Count; i++)
+            for (int i = 0; i < _nodes.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var node = this.nodes[i];
+                var node = _nodes[i];
                 var isSameName = (object)node.Name == (object)lastName;
                 if ((isSameName && lastGood) // check for same string instance to avoid invoking predicate when we already know the outcome (assumes no side effects of predicate.)
                     || (!string.IsNullOrEmpty(node.Name) // don't consider unnamed things like the global namespace itself.
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        private static readonly ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo> assemblyInfos = new ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo>();
+        private static readonly ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo> s_assemblyInfos = new ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo>();
 
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<SymbolTreeInfo> GetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
         {
             SymbolTreeInfo info;
-            if (assemblyInfos.TryGetValue(assembly, out info))
+            if (s_assemblyInfos.TryGetValue(assembly, out info))
             {
                 return info;
             }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // now, we can't use AsyncLazy here since constructing information requires a solution. if we ever get cancellation before
             // finishing calculating, async lazy will hold onto solution graph until next call (if it ever gets called)
             info = await LoadOrCreateAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-            return assemblyInfos.GetValue(assembly, _ => info);
+            return s_assemblyInfos.GetValue(assembly, _ => info);
         }
 
         internal static SymbolTreeInfo Create(VersionStamp version, IAssemblySymbol assembly, CancellationToken cancellationToken)
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static int CompareNodes(Node x, Node y, IReadOnlyList<Node> nodeList)
         {
-            var comp = NodeSortComparer.Compare(x.Name, y.Name);
+            var comp = s_nodeSortComparer.Compare(x.Name, y.Name);
             if (comp == 0)
             {
                 if (x.ParentIndex != y.ParentIndex)
@@ -383,9 +383,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var node = this.nodes[index];
+            var node = _nodes[index];
 
-            if (this.nodes[node.ParentIndex].IsRoot)
+            if (_nodes[node.ParentIndex].IsRoot)
             {
                 results.AddRange(rootContainer.GetMembers(node.Name));
             }
@@ -408,14 +408,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal bool IsEquivalent(SymbolTreeInfo other)
         {
-            if (!this.version.Equals(other.version) || this.nodes.Count != other.nodes.Count)
+            if (!_version.Equals(other._version) || _nodes.Count != other._nodes.Count)
             {
                 return false;
             }
 
-            for (int i = 0, n = this.nodes.Count; i < n; i++)
+            for (int i = 0, n = _nodes.Count; i < n; i++)
             {
-                if (!this.nodes[i].IsEquivalent(other.nodes[i]))
+                if (!_nodes[i].IsEquivalent(other._nodes[i]))
                 {
                     return false;
                 }

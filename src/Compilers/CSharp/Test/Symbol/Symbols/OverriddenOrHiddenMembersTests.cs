@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void TestOverridingGenericMethods()
         {
-
             // When dealing with one generic method that overrides another, things get a bit
             // complicated. Basically we need to draw a distinction between the method
             // *definition* that is overridden, and the method *reference* that is overridden.
@@ -1131,7 +1130,6 @@ class Program
         [Fact]
         public void OverrideAccessorOnly()
         {
-
             var text = @"
 public class Base
 {
@@ -1174,7 +1172,7 @@ public class CSClass : Metadata.VBClass02
 
             var comp = CreateCompilationWithMscorlib(
                 text1,
-                references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBClasses02 }, 
+                references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBClasses02 },
                 assemblyName: "OHI_OverrideSealNotVisibleMember001",
                 options: TestOptions.ReleaseDll);
 
@@ -1621,28 +1619,28 @@ class Derived : AccessorModifierMismatch
                 // (8,41): error CS0239: 'Derived.NoneSealed': cannot override inherited member 'AccessorModifierMismatch.NoneSealed' because it is sealed
                 //     public override event System.Action NoneSealed { add { } remove { } } // CS1545 (bogus)
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "NoneSealed").WithArguments("Derived.NoneSealed", "AccessorModifierMismatch.NoneSealed"),
-                
+
                 // (10,64): error CS0506: 'Derived.AbstractNone.remove': cannot override inherited member 'AccessorModifierMismatch.NoneNone.remove' because it is not marked virtual, abstract, or override
                 //     public override event System.Action AbstractNone { add { } remove { } } // CS0506 (remove not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "remove").WithArguments("Derived.AbstractNone.remove", "AccessorModifierMismatch.NoneNone.remove"),
                 // (14,41): error CS0239: 'Derived.AbstractSealed': cannot override inherited member 'AccessorModifierMismatch.AbstractSealed' because it is sealed
                 //     public override event System.Action AbstractSealed { add { } remove { } } // CS1545 (bogus)
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "AbstractSealed").WithArguments("Derived.AbstractSealed", "AccessorModifierMismatch.AbstractSealed"),
-                
+
                 // (16,63): error CS0506: 'Derived.VirtualNone.remove': cannot override inherited member 'AccessorModifierMismatch.NoneNone.remove' because it is not marked virtual, abstract, or override
                 //     public override event System.Action VirtualNone { add { } remove { } } // CS0506 (remove not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "remove").WithArguments("Derived.VirtualNone.remove", "AccessorModifierMismatch.NoneNone.remove"),
                 // (20,41): error CS0239: 'Derived.VirtualSealed': cannot override inherited member 'AccessorModifierMismatch.VirtualSealed' because it is sealed
                 //     public override event System.Action VirtualSealed { add { } remove { } } // CS1545 (bogus)
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "VirtualSealed").WithArguments("Derived.VirtualSealed", "AccessorModifierMismatch.VirtualSealed"),
-                
+
                 // (22,64): error CS0506: 'Derived.OverrideNone.remove': cannot override inherited member 'AccessorModifierMismatch.NoneNone.remove' because it is not marked virtual, abstract, or override
                 //     public override event System.Action OverrideNone { add { } remove { } } // CS0506 (remove not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "remove").WithArguments("Derived.OverrideNone.remove", "AccessorModifierMismatch.NoneNone.remove"),
                 // (26,41): error CS0239: 'Derived.OverrideSealed': cannot override inherited member 'AccessorModifierMismatch.OverrideSealed' because it is sealed
                 //     public override event System.Action OverrideSealed { add { } remove { } } // CS1545 (bogus)
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "OverrideSealed").WithArguments("Derived.OverrideSealed", "AccessorModifierMismatch.OverrideSealed"),
-                
+
                 // (28,41): error CS0239: 'Derived.SealedNone': cannot override inherited member 'AccessorModifierMismatch.SealedNone' because it is sealed
                 //     public override event System.Action SealedNone { add { } remove { } } // CS1545 (bogus)
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "SealedNone").WithArguments("Derived.SealedNone", "AccessorModifierMismatch.SealedNone"),
@@ -2234,7 +2232,7 @@ internal partial class CSharpGenerateMethodService :
             //repro requires two separate compilations
             c2.GetDiagnostics().Verify();
         }
-        
+
         [Fact]
         public void CS0570ERR_BindToBogus_RefParametersWithCustomModifiers()
         {
@@ -2749,7 +2747,7 @@ class D : C
 
 } // end of class SubC
 ";
-            
+
             var csharp = @"
 using System;
 
@@ -2891,13 +2889,13 @@ public class C : B
             var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new [] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
             var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
-            var properties = new []
+            var properties = new[]
             {
                 comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>("P"),
 
@@ -2909,7 +2907,7 @@ public class C : B
                 comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PropertySymbol>("P"),
             };
 
-            AssertEx.All(properties, p => 
+            AssertEx.All(properties, p =>
                 p.DeclaredAccessibility == (p.ContainingType.Name == "A" ? Accessibility.ProtectedOrInternal : Accessibility.Protected));
         }
 
@@ -3264,10 +3262,10 @@ public class C : B
             var events = new[]
             {
                 comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E"),
-                                                                                                 
+
                 comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E"),
                 comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<EventSymbol>("E"),
-                                                                                                 
+
                 comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E"),
                 comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<EventSymbol>("E"),
                 comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E"),
@@ -3573,11 +3571,11 @@ public class Derived2 : Base
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M").WithArguments("Base", "M"));
 
             var global = comp.GlobalNamespace;
-            
+
             var baseClass = global.GetMember<NamedTypeSymbol>("Base");
             var baseMethod = baseClass.GetMembers("M").OfType<MethodSymbol>().Single();
             var baseProperty = baseClass.GetMembers("M").OfType<PropertySymbol>().Single();
-            
+
             var derivedClass1 = global.GetMember<NamedTypeSymbol>("Derived1");
             var derivedMethod = derivedClass1.GetMember<MethodSymbol>("M");
 

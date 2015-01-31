@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var matchingFieldsAndPropertiesAsync = await this.GetNamespacesForMatchingFieldsAndPropertiesAsync(project, diagnostic, node, semanticModel, namespacesInScope, syntaxFacts, cancellationToken).ConfigureAwait(false);
                         var queryPatternsNamespaces = await this.GetNamespacesForQueryPatternsAsync(project, diagnostic, node, semanticModel, namespacesInScope, cancellationToken).ConfigureAwait(false);
 
-                        if (matchingTypesNamespaces != null || matchingNamespaces != null || matchingExtensionMethodsNamespaces != null || matchingFieldsAndPropertiesAsync  != null || queryPatternsNamespaces != null || matchingTypes != null)
+                        if (matchingTypesNamespaces != null || matchingNamespaces != null || matchingExtensionMethodsNamespaces != null || matchingFieldsAndPropertiesAsync != null || queryPatternsNamespaces != null || matchingTypes != null)
                         {
                             matchingTypesNamespaces = matchingTypesNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
                             matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();

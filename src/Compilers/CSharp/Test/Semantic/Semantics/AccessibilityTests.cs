@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AccessibilityTests : CSharpTestBase
     {
-        private static readonly SemanticModel testModel;
-        private static readonly int testPosition;
-        private static readonly Symbol testSymbol;
+        private static readonly SemanticModel s_testModel;
+        private static readonly int s_testPosition;
+        private static readonly Symbol s_testSymbol;
 
         static AccessibilityTests()
         {
@@ -27,33 +27,33 @@ class C1
 
 ");
             CSharpCompilation c = CreateCompilation(new[] { t });
-            testModel = c.GetSemanticModel(t);
-            testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
-            testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
+            s_testModel = c.GetSemanticModel(t);
+            s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
+            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
         }
 
         [Fact]
         public void IsAccessibleNullArguments()
         {
             Assert.Throws(typeof(ArgumentNullException), () =>
-                testModel.IsAccessible(testPosition, null));
+                s_testModel.IsAccessible(s_testPosition, null));
         }
 
         [Fact]
         public void IsAccessibleLocationNotInSource()
         {
             Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
-                testModel.IsAccessible(-1, testSymbol));
+                s_testModel.IsAccessible(-1, s_testSymbol));
 
             Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
-                testModel.IsAccessible(testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, testSymbol));
+                s_testModel.IsAccessible(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, s_testSymbol));
         }
 
         [Fact]
         public void IsAccessibleSymbolErrorType()
         {
             Assert.True(
-                testModel.IsAccessible(testPosition, testSymbol));
+                s_testModel.IsAccessible(s_testPosition, s_testSymbol));
         }
 
         [WorkItem(527516, "DevDiv")]
@@ -65,7 +65,7 @@ class C1
                 references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
 
             Assert.True(
-                testModel.IsAccessible(testPosition, symbol));
+                s_testModel.IsAccessible(s_testPosition, symbol));
         }
 
         [WorkItem(545450, "DevDiv")]
@@ -201,7 +201,7 @@ class C : G<int>
         [WorkItem(545450, "DevDiv")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypesLegacy()
-        {          
+        {
             var source = @"
 public class Bar<T> { }               
 

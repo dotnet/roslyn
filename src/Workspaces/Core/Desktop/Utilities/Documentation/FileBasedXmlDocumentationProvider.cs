@@ -12,30 +12,30 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
     {
-        private readonly string filePath;
+        private readonly string _filePath;
 
         public FileBasedXmlDocumentationProvider(string filePath)
         {
             Contract.ThrowIfNull(filePath);
             Contract.Requires(PathUtilities.IsAbsolute(filePath));
 
-            this.filePath = filePath;
+            _filePath = filePath;
         }
 
         protected override XDocument GetXDocument()
         {
-            return XDocument.Load(filePath);
+            return XDocument.Load(_filePath);
         }
 
         public override bool Equals(object obj)
         {
             var other = obj as FileBasedXmlDocumentationProvider;
-            return other != null && this.filePath == other.filePath;
+            return other != null && _filePath == other._filePath;
         }
 
         public override int GetHashCode()
         {
-            return this.filePath.GetHashCode();
+            return _filePath.GetHashCode();
         }
     }
 }

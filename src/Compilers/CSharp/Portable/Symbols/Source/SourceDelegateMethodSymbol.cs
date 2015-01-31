@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceDelegateMethodSymbol : SourceMethodSymbol
     {
-        private ImmutableArray<ParameterSymbol> parameters;
-        private readonly TypeSymbol returnType;
+        private ImmutableArray<ParameterSymbol> _parameters;
+        private readonly TypeSymbol _returnType;
 
         protected SourceDelegateMethodSymbol(
             SourceMemberContainerTypeSymbol delegateType,
@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers declarationModifiers)
             : base(delegateType, syntax.GetReference(), bodySyntaxReferenceOpt: null, location: syntax.Identifier.GetLocation())
         {
-            this.returnType = returnType;
-            this.MakeFlags(methodKind, declarationModifiers, this.returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
+            _returnType = returnType;
+            this.MakeFlags(methodKind, declarationModifiers, _returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
         }
 
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
         {
-            Debug.Assert(this.parameters.IsDefault);
-            this.parameters = parameters;
+            Debug.Assert(_parameters.IsDefault);
+            _parameters = parameters;
         }
 
         internal static void AddDelegateMembers(
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.parameters;
+                return _parameters;
             }
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.returnType;
+                return _returnType;
             }
         }
 
@@ -220,7 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
-
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol

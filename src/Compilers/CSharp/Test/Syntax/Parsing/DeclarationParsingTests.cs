@@ -5141,7 +5141,6 @@ System.Console.WriteLine(""Bad, breaking change"");
         [Fact]
         public void TestBadlyPlacedParams()
         {
-            
             var text1 = @"
 class C 
 {
@@ -5227,6 +5226,5 @@ unsafe struct s
             var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
-
     }
 }

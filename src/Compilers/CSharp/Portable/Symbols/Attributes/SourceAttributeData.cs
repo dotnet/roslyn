@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class SourceAttributeData : CSharpAttributeData
     {
-        private readonly NamedTypeSymbol attributeClass;
-        private readonly MethodSymbol attributeConstructor;
-        private readonly ImmutableArray<TypedConstant> constructorArguments;
-        private readonly ImmutableArray<int> constructorArgumentsSourceIndices;
-        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments;
-        private readonly bool isConditionallyOmitted;
-        private readonly bool hasErrors;
-        private readonly SyntaxReference applicationNode;
+        private readonly NamedTypeSymbol _attributeClass;
+        private readonly MethodSymbol _attributeConstructor;
+        private readonly ImmutableArray<TypedConstant> _constructorArguments;
+        private readonly ImmutableArray<int> _constructorArgumentsSourceIndices;
+        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
+        private readonly bool _isConditionallyOmitted;
+        private readonly bool _hasErrors;
+        private readonly SyntaxReference _applicationNode;
 
         internal SourceAttributeData(
             SyntaxReference applicationNode,
@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(constructorArgumentsSourceIndices.IsDefault ||
                 constructorArgumentsSourceIndices.Any() && constructorArgumentsSourceIndices.Length == constructorArguments.Length);
 
-            this.attributeClass = attributeClass;
-            this.attributeConstructor = attributeConstructor;
-            this.constructorArguments = constructorArguments;
-            this.constructorArgumentsSourceIndices = constructorArgumentsSourceIndices;
-            this.namedArguments = namedArguments;
-            this.isConditionallyOmitted = isConditionallyOmitted;
-            this.hasErrors = hasErrors;
-            this.applicationNode = applicationNode;
+            _attributeClass = attributeClass;
+            _attributeConstructor = attributeConstructor;
+            _constructorArguments = constructorArguments;
+            _constructorArgumentsSourceIndices = constructorArgumentsSourceIndices;
+            _namedArguments = namedArguments;
+            _isConditionallyOmitted = isConditionallyOmitted;
+            _hasErrors = hasErrors;
+            _applicationNode = applicationNode;
         }
 
         internal SourceAttributeData(SyntaxReference applicationNode, NamedTypeSymbol attributeClass, MethodSymbol attributeConstructor, bool hasErrors)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.attributeClass;
+                return _attributeClass;
             }
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.attributeConstructor;
+                return _attributeConstructor;
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return applicationNode;
+                return _applicationNode;
             }
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.constructorArgumentsSourceIndices;
+                return _constructorArgumentsSourceIndices;
             }
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(parameterIndex < this.AttributeConstructor.ParameterCount);
             Debug.Assert(attributeSyntax != null);
 
-            if (this.constructorArgumentsSourceIndices.IsDefault)
+            if (_constructorArgumentsSourceIndices.IsDefault)
             {
                 // We have no named ctor arguments AND no default arguments.
                 Debug.Assert(attributeSyntax.ArgumentList != null);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                int sourceArgIndex = this.constructorArgumentsSourceIndices[parameterIndex];
+                int sourceArgIndex = _constructorArgumentsSourceIndices[parameterIndex];
 
                 if (sourceArgIndex == -1)
                 {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return isConditionallyOmitted;
+                return _isConditionallyOmitted;
             }
         }
 
@@ -160,18 +160,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return hasErrors;
+                return _hasErrors;
             }
         }
 
         internal protected sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
-            get { return this.constructorArguments; }
+            get { return _constructorArguments; }
         }
 
         internal protected sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
-            get { return this.namedArguments; }
+            get { return _namedArguments; }
         }
 
         /// <summary>

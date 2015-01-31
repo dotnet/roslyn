@@ -21,7 +21,7 @@ namespace CSharpSyntaxGenerator
             }
 
             string inputFile = args[0];
-            
+
             if (!File.Exists(inputFile))
             {
                 Console.WriteLine(inputFile + " not found.");

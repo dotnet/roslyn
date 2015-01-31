@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
-        private DiagnosticBag ignoredDiagnostics = new DiagnosticBag();
+        private DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
 
         private MethodBodySemanticModel(CSharpCompilation compilation, Symbol owner, Binder rootBinder, CSharpSyntaxNode syntax, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
             : base(compilation, syntax, owner, rootBinder, parentSemanticModelOpt, speculatedPosition)

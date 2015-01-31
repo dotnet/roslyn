@@ -44,8 +44,8 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                 var symbol = FindDeclaration(root, location, semanticModel, context.CancellationToken);
 
-                    if (symbol != null)
-                    {
+                if (symbol != null)
+                {
                     var minimalSymbolName = symbol.ToMinimalDisplayString(semanticModel, location.SourceSpan.Start, DeclarePublicAPIAnalyzer.ShortSymbolNameFormat);
                     var publicSurfaceAreaSymbolName = symbol.ToDisplayString(DeclarePublicAPIAnalyzer.PublicApiFormat);
 
@@ -54,9 +54,9 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                                 $"Add {minimalSymbolName} to public API",
                                 c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
                             diagnostic);
-                    }
                 }
             }
+        }
 
         private static TextDocument GetPublicSurfaceAreaDocument(Project project)
         {
@@ -122,32 +122,32 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
         private class AdditionalDocumentChangeAction : CodeAction
         {
-            private readonly Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument;
+            private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
 
             public AdditionalDocumentChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
             {
                 this.Title = title;
-                this.createChangedAdditionalDocument = createChangedAdditionalDocument;
+                _createChangedAdditionalDocument = createChangedAdditionalDocument;
             }
 
             public override string Title { get; }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                return this.createChangedAdditionalDocument(cancellationToken);
+                return _createChangedAdditionalDocument(cancellationToken);
             }
         }
 
         private class FixAllAdditionalDocumentChangeAction : CodeAction
         {
-            private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix;
-            private readonly Solution solution;
+            private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
+            private readonly Solution _solution;
 
             public FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
             {
                 this.Title = title;
-                this.solution = solution;
-                this.diagnosticsToFix = diagnosticsToFix;
+                _solution = solution;
+                _diagnosticsToFix = diagnosticsToFix;
             }
 
             public override string Title { get; }
@@ -156,7 +156,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             {
                 var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
 
-                foreach (var pair in diagnosticsToFix)
+                foreach (var pair in _diagnosticsToFix)
                 {
                     var project = pair.Key;
                     var diagnostics = pair.Value;
@@ -211,7 +211,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                     updatedPublicSurfaceAreaText.Add(new KeyValuePair<DocumentId, SourceText>(publicSurfaceAreaAdditionalDocument.Id, newSourceText));
                 }
 
-                var newSolution = this.solution;
+                var newSolution = _solution;
 
                 foreach (var pair in updatedPublicSurfaceAreaText)
                 {
@@ -232,39 +232,39 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                 switch (fixAllContext.Scope)
                 {
-                case FixAllScope.Document:
-                    {
-                        var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
-                        diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                        title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
-                        break;
-                    }
-
-                case FixAllScope.Project:
-                    {
-                        var project = fixAllContext.Project;
-                        ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
-                        diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                        title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
-                        break;
-                    }
-
-                case FixAllScope.Solution:
-                    {
-                        foreach (var project in fixAllContext.Solution.Projects)
+                    case FixAllScope.Document:
                         {
-                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
-                            diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));
+                            var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                            diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
+                            title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
+                            break;
                         }
 
-                        title = "Add all items in the solution to the public API";
-                        break;
-                    }
+                    case FixAllScope.Project:
+                        {
+                            var project = fixAllContext.Project;
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+                            diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
+                            title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
+                            break;
+                        }
 
-                case FixAllScope.Custom:
-                    return null;
-                default:
-                    break;
+                    case FixAllScope.Solution:
+                        {
+                            foreach (var project in fixAllContext.Solution.Projects)
+                            {
+                                ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+                                diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));
+                            }
+
+                            title = "Add all items in the solution to the public API";
+                            break;
+                        }
+
+                    case FixAllScope.Custom:
+                        return null;
+                    default:
+                        break;
                 }
 
                 return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);

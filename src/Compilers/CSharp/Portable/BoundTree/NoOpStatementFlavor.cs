@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    enum NoOpStatementFlavor
+    internal enum NoOpStatementFlavor
     {
         Default,
 

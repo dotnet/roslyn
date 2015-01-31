@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 //test
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 {
     // These tests handle changing between constructors/destructors and methods.

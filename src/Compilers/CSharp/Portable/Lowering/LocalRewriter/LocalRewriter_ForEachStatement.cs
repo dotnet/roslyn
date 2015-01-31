@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class LocalRewriter
+    internal partial class LocalRewriter
     {
         /// <summary>
         /// This is the entry point for foreach-loop lowering.  It delegates to
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
-            LocalSymbol enumeratorVar = factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
+            LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
 
             // Reference to e.
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
@@ -144,19 +144,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol disposeMethod;
             if (enumeratorInfo.NeedsDisposeMethod && TryGetSpecialTypeMember(forEachSyntax, SpecialMember.System_IDisposable__Dispose, out disposeMethod))
             {
-                Binder.ReportDiagnosticsIfObsolete(diagnostics, disposeMethod, forEachSyntax,
+                Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
                                                    hasBaseReceiver: false,
-                                                   containingMember: this.factory.CurrentMethod,
-                                                   containingType: this.factory.CurrentType,
+                                                   containingMember: _factory.CurrentMethod,
+                                                   containingType: _factory.CurrentType,
                                                    location: enumeratorInfo.Location);
 
                 BoundBlock finallyBlockOpt;
                 var idisposableTypeSymbol = disposeMethod.ContainingType;
-                var conversions = new TypeConversions(this.factory.CurrentMethod.ContainingAssembly.CorLibrary);
+                var conversions = new TypeConversions(_factory.CurrentMethod.ContainingAssembly.CorLibrary);
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 var isImplicit = conversions.ClassifyImplicitConversion(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
-                diagnostics.Add(forEachSyntax, useSiteDiagnostics);
+                _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
 
                 if (isImplicit)
                 {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     syntax: forEachSyntax,
                                     rewrittenOperand: boundEnumeratorVar,
                                     conversion: enumeratorInfo.EnumeratorConversion,
-                                    rewrittenType: this.compilation.GetSpecialType(SpecialType.System_Object),
+                                    rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
                                     @checked: false),
                                 right: MakeLiteral(forEachSyntax,
                                     constantValue: ConstantValue.Null,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 constantValueOpt: null,
                                 methodOpt: null,
                                 resultKind: LookupResultKind.Viable,
-                                type: this.compilation.GetSpecialType(SpecialType.System_Boolean)),
+                                type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                             rewrittenConsequence: disposeCall,
                             rewrittenAlternativeOpt: null,
                             hasErrors: false);
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!enumeratorType.IsSealed);
 
                     // IDisposable d
-                    LocalSymbol disposableVar = factory.SynthesizedLocal(idisposableTypeSymbol);
+                    LocalSymbol disposableVar = _factory.SynthesizedLocal(idisposableTypeSymbol);
 
                     // Reference to d.
                     BoundLocal boundDisposableVar = MakeBoundLocal(forEachSyntax, disposableVar, idisposableTypeSymbol);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             constantValueOpt: null,
                             methodOpt: null,
                             resultKind: LookupResultKind.Viable,
-                            type: this.compilation.GetSpecialType(SpecialType.System_Boolean)),
+                            type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                         rewrittenConsequence: new BoundExpressionStatement(forEachSyntax,
                             expression: BoundCall.Synthesized(
                                 syntax: forEachSyntax,
@@ -384,16 +384,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol stringType = collectionExpression.Type;
             Debug.Assert(stringType.SpecialType == SpecialType.System_String);
 
-            TypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
             // string s;
-            LocalSymbol stringVar = factory.SynthesizedLocal(stringType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
+            LocalSymbol stringVar = _factory.SynthesizedLocal(stringType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
             // int p;
-            LocalSymbol positionVar = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
+            LocalSymbol positionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
 
             // Reference to s.
             BoundLocal boundStringVar = MakeBoundLocal(forEachSyntax, stringVar, stringType);
@@ -511,14 +511,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(arrayType.Rank == 1);
 
-            TypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
             // A[] a
-            LocalSymbol arrayVar = factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
+            LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
 
             // A[] a = /*node.Expression*/;
             BoundStatement arrayVarDecl = MakeLocalDeclaration(forEachSyntax, arrayVar, rewrittenExpression);
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, arrayVar, arrayType);
 
             // int p
-            LocalSymbol positionVar = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
+            LocalSymbol positionVar = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
 
             // Reference to p.
             BoundLocal boundPositionVar = MakeBoundLocal(forEachSyntax, positionVar, intType);
@@ -638,8 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int rank = arrayType.Rank;
             Debug.Assert(rank > 1);
 
-            TypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            TypeSymbol boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            TypeSymbol intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             // Values we'll use every iteration
             MethodSymbol getLowerBoundMethod = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetLowerBound);
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
             // A[...] a
-            LocalSymbol arrayVar = factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
+            LocalSymbol arrayVar = _factory.SynthesizedLocal(arrayType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArray);
             BoundLocal boundArrayVar = MakeBoundLocal(forEachSyntax, arrayVar, arrayType);
 
             // A[...] a = /*node.Expression*/;
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int dimension = 0; dimension < rank; dimension++)
             {
                 // int q_dimension
-                upperVar[dimension] = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayLimit);
+                upperVar[dimension] = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayLimit);
                 boundUpperVar[dimension] = MakeBoundLocal(forEachSyntax, upperVar[dimension], intType);
 
                 ImmutableArray<BoundExpression> dimensionArgument = ImmutableArray.Create(
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal[] boundPositionVar = new BoundLocal[rank];
             for (int dimension = 0; dimension < rank; dimension++)
             {
-                positionVar[dimension] = factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
+                positionVar[dimension] = _factory.SynthesizedLocal(intType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachArrayIndex);
                 boundPositionVar[dimension] = MakeBoundLocal(forEachSyntax, positionVar[dimension], intType);
             }
 

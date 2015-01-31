@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics>";
 
-                private readonly DiagnosticIncrementalAnalyzer owner;
-                private readonly WorkspaceAnalyzersAndStates sharedAnalyzersAndStates;
-                private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates> projectAnalyzersAndStatesMap;
+                private readonly DiagnosticIncrementalAnalyzer _owner;
+                private readonly WorkspaceAnalyzersAndStates _sharedAnalyzersAndStates;
+                private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates> _projectAnalyzersAndStatesMap;
 
                 public readonly Workspace Workspace;
 
                 public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, ImmutableArray<AnalyzerReference> workspaceAnalyzers)
                 {
-                    this.owner = owner;
-                    this.sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(workspaceAnalyzers);
-                    this.projectAnalyzersAndStatesMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates>();
+                    _owner = owner;
+                    _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(workspaceAnalyzers);
+                    _projectAnalyzersAndStatesMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates>();
 
                     this.Workspace = workspace;
                 }
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> GetAllExistingDiagnosticStates(ProjectId projectId, string language)
                 {
-                    var current = sharedAnalyzersAndStates.GetAllExistingDiagnosticStates(language);
+                    var current = _sharedAnalyzersAndStates.GetAllExistingDiagnosticStates(language);
 
                     ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                    if (projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) &&
+                    if (_projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) &&
                         projectAnalyzersAndStates != null)
                     {
                         current = current.Concat(projectAnalyzersAndStates.GetAllExistingDiagnosticStates());
@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> GetAllExistingDiagnosticStates(ProjectId projectId, StateType type, string language)
                 {
-                    var current = sharedAnalyzersAndStates.GetAllExistingDiagnosticStates(type, language);
+                    var current = _sharedAnalyzersAndStates.GetAllExistingDiagnosticStates(type, language);
 
                     ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                    if (projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) &&
+                    if (_projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) &&
                         projectAnalyzersAndStates != null)
                     {
                         current = current.Concat(projectAnalyzersAndStates.GetAllExistingDiagnosticStates(type));
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public IEnumerable<KeyValuePair<DiagnosticAnalyzer, ProviderId>> GetAllExistingProviderAndIds(Project project)
                 {
-                    var current = sharedAnalyzersAndStates.GetAllProviderAndIds(project.Language);
+                    var current = _sharedAnalyzersAndStates.GetAllProviderAndIds(project.Language);
 
                     ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                    if (projectAnalyzersAndStatesMap.TryGetValue(project.Id, out projectAnalyzersAndStates) &&
+                    if (_projectAnalyzersAndStatesMap.TryGetValue(project.Id, out projectAnalyzersAndStates) &&
                         projectAnalyzersAndStates != null)
                     {
                         current = current.Concat(projectAnalyzersAndStates.GetAllProviderAndIds());
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public async Task<IEnumerable<KeyValuePair<DiagnosticAnalyzer, ProviderId>>> GetAllProviderAndIdsAsync(Project project, CancellationToken cancellationToken)
                 {
-                    var current = sharedAnalyzersAndStates.GetAllProviderAndIds(project.Language);
+                    var current = _sharedAnalyzersAndStates.GetAllProviderAndIds(project.Language);
 
                     var projectAnalyzersAndStates = await GetOrCreateProjectAnalyzersAndStatesAsync(project, cancellationToken).ConfigureAwait(false);
                     if (projectAnalyzersAndStates != null)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var builder = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticAnalyzer>>();
 
-                    builder.AddRange(sharedAnalyzersAndStates.GetAllDiagnosticAnalyzers(project.Language));
+                    builder.AddRange(_sharedAnalyzersAndStates.GetAllDiagnosticAnalyzers(project.Language));
 
                     var projectAnalyzersAndStates = await GetOrCreateProjectAnalyzersAndStatesAsync(project, cancellationToken).ConfigureAwait(false);
                     if (projectAnalyzersAndStates != null)
@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     Contract.ThrowIfFalse(providerId >= 0);
 
-                    var sharedAnalyzersCount = this.sharedAnalyzersAndStates.GetAnalyzerCount(language);
+                    var sharedAnalyzersCount = _sharedAnalyzersAndStates.GetAnalyzerCount(language);
                     if (providerId < sharedAnalyzersCount)
                     {
-                        return this.sharedAnalyzersAndStates.GetOrCreateDiagnosticState(stateType, providerId, provider, language);
+                        return _sharedAnalyzersAndStates.GetOrCreateDiagnosticState(stateType, providerId, provider, language);
                     }
 
                     ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                    if (!projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) ||
+                    if (!_projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) ||
                         projectAnalyzersAndStates == null)
                     {
                         return null;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
 #if DEBUG
                         // Ensure diagnostic state name is indeed unique.
-                        foreach (var type in DocumentScopeStateTypes)
+                        foreach (var type in s_documentScopeStateTypes)
                         {
                             for (var pId = 0; pId < diagnosticStateMaps.GetLength(1); pId++)
                             {
@@ -215,14 +215,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     Contract.ThrowIfFalse(providerId >= 0);
 
-                    var sharedAnalyzersCount = this.sharedAnalyzersAndStates.GetAnalyzerCount(language);
+                    var sharedAnalyzersCount = _sharedAnalyzersAndStates.GetAnalyzerCount(language);
                     if (providerId < sharedAnalyzersCount)
                     {
-                        return this.sharedAnalyzersAndStates.GetDiagnosticState(stateType, providerId, language);
+                        return _sharedAnalyzersAndStates.GetDiagnosticState(stateType, providerId, language);
                     }
 
                     ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                    if (!projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) ||
+                    if (!_projectAnalyzersAndStatesMap.TryGetValue(projectId, out projectAnalyzersAndStates) ||
                         projectAnalyzersAndStates == null)
                     {
                         return null;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public bool RemoveProjectAnalyzersAndStates(ProjectId projectId)
                 {
                     ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                    return this.projectAnalyzersAndStatesMap.TryRemove(projectId, out projectAnalyzersAndStates);
+                    return _projectAnalyzersAndStatesMap.TryRemove(projectId, out projectAnalyzersAndStates);
                 }
 
                 private async Task<ProjectAnalyzersAndStates> GetOrCreateProjectAnalyzersAndStatesAsync(Project project, CancellationToken cancellationToken)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (removedStates.Any())
                     {
                         // Analyzers got updated, so clear the existing persistent states.
-                        await this.owner.RemoveCacheDataAsync(project, removedStates, cancellationToken).ConfigureAwait(false);
+                        await _owner.RemoveCacheDataAsync(project, removedStates, cancellationToken).ConfigureAwait(false);
                     }
 
                     return projectAnalyzersAndStates;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (var analyzerReference in project.AnalyzerReferences)
                     {
                         // Filter out duplicate analyzer references.
-                        if (this.sharedAnalyzersAndStates.HasAnalyzerReference(analyzerReference, project.Language))
+                        if (_sharedAnalyzersAndStates.HasAnalyzerReference(analyzerReference, project.Language))
                         {
                             continue;
                         }
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // However, we can also have AnalyzerImageReference, which might contain the same DiagnosticAnalyzer instance across different AnalyzerImageReference instances
                         // and we want to avoid duplicate analyzers for that case. Hence we apply the HasAnalyzer filter here.
                         var analyzers = analyzerReference.GetAnalyzers(project.Language)
-                            .Where(a => !this.sharedAnalyzersAndStates.HasAnalyzer(a, project.Language));
+                            .Where(a => !_sharedAnalyzersAndStates.HasAnalyzer(a, project.Language));
 
                         if (analyzers.Any())
                         {
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ProjectAnalyzersAndStates newProjectAnalyzersAndStates = null;
 
                     ProjectAnalyzersAndStates currentProjectAnalyzersAndStates;
-                    if (this.projectAnalyzersAndStatesMap.TryGetValue(project.Id, out currentProjectAnalyzersAndStates))
+                    if (_projectAnalyzersAndStatesMap.TryGetValue(project.Id, out currentProjectAnalyzersAndStates))
                     {
                         var newAnalyzersCount = newAnalyzers.Sum(kv => kv.Value.Count());
                         if (currentProjectAnalyzersAndStates != null && currentProjectAnalyzersAndStates.AnalyzerCount == newAnalyzersCount)
@@ -320,9 +320,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         removedStates = currentProjectAnalyzersAndStates.GetAllExistingDiagnosticStates();
                     }
 
-                    var workspaceAnalyzersCount = this.sharedAnalyzersAndStates.GetAnalyzerCount(project.Language);
+                    var workspaceAnalyzersCount = _sharedAnalyzersAndStates.GetAnalyzerCount(project.Language);
                     newProjectAnalyzersAndStates = ProjectAnalyzersAndStates.CreateIfAnyAnalyzers(newAnalyzers, workspaceAnalyzersCount, project.Language);
-                    return this.projectAnalyzersAndStatesMap.AddOrUpdate(project.Id, newProjectAnalyzersAndStates, (k, c) => newProjectAnalyzersAndStates);
+                    return _projectAnalyzersAndStatesMap.AddOrUpdate(project.Id, newProjectAnalyzersAndStates, (k, c) => newProjectAnalyzersAndStates);
                 }
             }
         }

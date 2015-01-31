@@ -853,7 +853,7 @@ public class Program
             Assert.Equal("get_" + fieldName, getter.Name);
         }
 
-        struct TestData
+        private struct TestData
         {
             public CSharpCompilation Compilation;
             public SyntaxTree Tree;
@@ -976,7 +976,7 @@ public class Program
                 {
                     if (!line.Trim().StartsWith("//"))
                     {
-                        for (int index = line.IndexOf("new "); index >= 0; )
+                        for (int index = line.IndexOf("new "); index >= 0;)
                         {
                             cnt++;
                             index = line.IndexOf("new ", index + 1);

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class SourceMemberContainerTypeSymbol
+    internal partial class SourceMemberContainerTypeSymbol
     {
         /// <summary>
         /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> GetSynthesizedExplicitImplementations(
             CancellationToken cancellationToken)
         {
-            if (this.lazySynthesizedExplicitImplementations.IsDefault)
+            if (_lazySynthesizedExplicitImplementations.IsDefault)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
                 try
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     if (ImmutableInterlocked.InterlockedCompareExchange(
-                            ref this.lazySynthesizedExplicitImplementations,
+                            ref _lazySynthesizedExplicitImplementations,
                             ComputeInterfaceImplementations(diagnostics, cancellationToken),
                             default(ImmutableArray<SynthesizedExplicitImplementationForwardingMethod>)).IsDefault)
                     {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return this.lazySynthesizedExplicitImplementations;
+            return _lazySynthesizedExplicitImplementations;
         }
 
         private void CheckAbstractClassImplementations(DiagnosticBag diagnostics)
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.Field:
-                        var sourceField = member as SourceFieldSymbol; 
+                        var sourceField = member as SourceFieldSymbol;
                         var isNewField = (object)sourceField != null && sourceField.IsNew;
 
                         // We don't want to report diagnostics for field-like event backing fields (redundant),

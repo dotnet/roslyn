@@ -1150,7 +1150,6 @@ class A
 5";
 
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-
         }
 
         [Fact]
@@ -1254,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef },expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3078,7 +3077,7 @@ public class B
   IL_005b:  ret
 }");
         }
-        
+
         [Fact]
         public void CollectionInitializerTest_CtorAddsToCollection()
         {
@@ -3405,7 +3404,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: 
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput:
 @"get_Index
 2
 3");

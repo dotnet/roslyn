@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class DiagnosticsPass : BoundTreeWalker
     {
-        private readonly DiagnosticBag diagnostics;
-        private readonly CSharpCompilation compilation;
-        private bool inExpressionLambda;
-        private bool reportedUnsafe;
-        private readonly MethodSymbol containingSymbol;
+        private readonly DiagnosticBag _diagnostics;
+        private readonly CSharpCompilation _compilation;
+        private bool _inExpressionLambda;
+        private bool _reportedUnsafe;
+        private readonly MethodSymbol _containingSymbol;
 
         public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
             Debug.Assert((object)containingSymbol != null);
 
-            this.compilation = compilation;
-            this.diagnostics = diagnostics;
-            this.containingSymbol = containingSymbol;
+            _compilation = compilation;
+            _diagnostics = diagnostics;
+            _containingSymbol = containingSymbol;
         }
 
         private void Error(ErrorCode code, BoundNode node, params object[] args)
         {
-            diagnostics.Add(code, node.Syntax.Location, args);
+            _diagnostics.Add(code, node.Syntax.Location, args);
         }
 
         private void CheckUnsafeType(BoundExpression e)
@@ -52,17 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void NoteUnsafe(BoundNode node)
         {
-            if (inExpressionLambda && !reportedUnsafe)
+            if (_inExpressionLambda && !_reportedUnsafe)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node);
-                reportedUnsafe = true;
+                _reportedUnsafe = true;
             }
         }
 
         public override BoundNode VisitArrayCreation(BoundArrayCreation node)
         {
             var arrayType = (ArrayTypeSymbol)node.Type;
-            if (inExpressionLambda && node.InitializerOpt != null && arrayType.Rank != 1)
+            if (_inExpressionLambda && node.InitializerOpt != null && arrayType.Rank != 1)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, node);
             }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
         {
-            if (inExpressionLambda && node.ConstantValue == null)
+            if (_inExpressionLambda && node.ConstantValue == null)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node);
             }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, node);
             }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
-            if (!CheckForAssignmentToSelf(node) && inExpressionLambda && node.Left.Kind != BoundKind.ObjectInitializerMember && node.Left.Kind != BoundKind.DynamicObjectInitializerMember)
+            if (!CheckForAssignmentToSelf(node) && _inExpressionLambda && node.Left.Kind != BoundKind.ObjectInitializerMember && node.Left.Kind != BoundKind.DynamicObjectInitializerMember)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsUsableAsField)
             {
                 bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
-                Binder.ReportDiagnosticsIfObsolete(diagnostics, node.EventSymbol.AssociatedField, node.Syntax, hasBaseReceiver, this.containingSymbol, this.containingSymbol.ContainingType, BinderFlags.None);
+                Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.EventSymbol.AssociatedField, node.Syntax, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
             }
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAccess(node);
@@ -156,13 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
             }
 
             bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
-            Binder.ReportDiagnosticsIfObsolete(diagnostics, node.Event, ((AssignmentExpressionSyntax)node.Syntax).Left, hasBaseReceiver, this.containingSymbol, this.containingSymbol.ContainingType, BinderFlags.None);
+            Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.Event, ((AssignmentExpressionSyntax)node.Syntax).Left, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAssignmentOperator(node);
         }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             CheckLiftedCompoundAssignment(node);
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
             }
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckArguments(argumentRefKindsOpt, arguments, method);
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 if (method.CallsAreOmitted(node.SyntaxTree))
                 {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, "__reftype");
             }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, "__refvalue");
             }
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, "__makeref");
             }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_VarArgsInExpressionTree, node);
             }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_NullPropagatingOpInExpressionTree, node);
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
-            if (inExpressionLambda && ! node.Arguments.IsDefaultOrEmpty)
+            if (_inExpressionLambda && !node.Arguments.IsDefaultOrEmpty)
             {
                 Error(ErrorCode.ERR_DictionaryInitializerInExpressionTree, node);
             }
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 switch (node.Syntax.Kind())
                 {
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     if (p.RefKind != RefKind.None && p.Locations.Length != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
                                     }
                                 }
                             }
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckDynamic(BoundUnaryOperator node)
         {
-            if (inExpressionLambda && node.OperatorKind.IsDynamic())
+            if (_inExpressionLambda && node.OperatorKind.IsDynamic())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckDynamic(BoundBinaryOperator node)
         {
-            if (inExpressionLambda && node.OperatorKind.IsDynamic())
+            if (_inExpressionLambda && node.OperatorKind.IsDynamic())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
             }
@@ -467,8 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckUnsafeType(node.Operand);
             CheckUnsafeType(node);
-            bool wasInExpressionLambda = inExpressionLambda;
-            bool oldReportedUnsafe = reportedUnsafe;
+            bool wasInExpressionLambda = _inExpressionLambda;
+            bool oldReportedUnsafe = _reportedUnsafe;
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
@@ -478,15 +478,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.AnonymousFunction:
                     if (!wasInExpressionLambda && node.Type.IsExpressionTree())
                     {
-                        inExpressionLambda = true;
+                        _inExpressionLambda = true;
                         // we report "unsafe in expression tree" at most once for each expression tree
-                        reportedUnsafe = false;
+                        _reportedUnsafe = false;
                     }
                     break;
 
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
-                    if (inExpressionLambda)
+                    if (_inExpressionLambda)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
                     }
@@ -497,8 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = base.VisitConversion(node);
-            inExpressionLambda = wasInExpressionLambda;
-            reportedUnsafe = oldReportedUnsafe;
+            _inExpressionLambda = wasInExpressionLambda;
+            _reportedUnsafe = oldReportedUnsafe;
             return result;
         }
 
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Formerly reported ERR_MemGroupInExpressionTree when this occurred, but the expanded 
             // ERR_LambdaInIsAs makes this impossible (since the node will always be wrapped in
             // a failed conversion).
-            Debug.Assert(!(!parentIsConversion && inExpressionLambda));
+            Debug.Assert(!(!parentIsConversion && _inExpressionLambda));
 
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitMethodGroup(node);
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            if (inExpressionLambda && node.LeftOperand.ConstantValue != null && node.LeftOperand.ConstantValue.IsNull)
+            if (_inExpressionLambda && node.LeftOperand.ConstantValue != null && node.LeftOperand.ConstantValue.IsNull)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, node.LeftOperand);
             }
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
 
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }

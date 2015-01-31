@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -13,18 +13,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected abstract class TriviaResult
         {
-            private readonly int endOfLineKind;
-            private readonly int whitespaceKind;
+            private readonly int _endOfLineKind;
+            private readonly int _whitespaceKind;
 
-            private readonly ITriviaSavedResult result;
+            private readonly ITriviaSavedResult _result;
 
             public TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
             {
                 this.SemanticDocument = document;
 
-                this.result = result;
-                this.endOfLineKind = endOfLineKind;
-                this.whitespaceKind = whitespaceKind;
+                _result = result;
+                _endOfLineKind = endOfLineKind;
+                _whitespaceKind = whitespaceKind;
             }
 
             protected abstract AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode methodDefinition);
@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return OperationStatus.Succeeded.With(
-                    await document.WithSyntaxRootAsync(this.result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
+                    await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
             }
 
             protected IEnumerable<SyntaxTrivia> FilterTriviaList(IEnumerable<SyntaxTrivia> list)
             {
                 // has noisy token
-                if (list.Any(t => t.RawKind != endOfLineKind && t.RawKind != whitespaceKind))
+                if (list.Any(t => t.RawKind != _endOfLineKind && t.RawKind != _whitespaceKind))
                 {
                     return RemoveLeadingElasticBeforeEndOfLine(list);
                 }
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     i++;
 
-                    if (trivia.RawKind == endOfLineKind)
+                    if (trivia.RawKind == _endOfLineKind)
                     {
                         if (seenFirstEndOfLine)
                         {
                             // empty line. remove it
-                            if (currentLine.All(t => t.RawKind == endOfLineKind || t.RawKind == whitespaceKind))
+                            if (currentLine.All(t => t.RawKind == _endOfLineKind || t.RawKind == _whitespaceKind))
                             {
                                 continue;
                             }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var listWithoutHead = list.Skip(1);
                 trivia = listWithoutHead.FirstOrDefault();
-                if (trivia.RawKind == endOfLineKind)
+                if (trivia.RawKind == _endOfLineKind)
                 {
                     return listWithoutHead;
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    if (trivia.RawKind == endOfLineKind)
+                    if (trivia.RawKind == _endOfLineKind)
                     {
                         numberOfEndOfLinesWithoutAnyNoisyTrivia++;
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         {
                             // get rid of any whitespace trivia from stack
                             var top = stack.Peek();
-                            while (!top.IsElastic() && top.RawKind == whitespaceKind)
+                            while (!top.IsElastic() && top.RawKind == _whitespaceKind)
                             {
                                 stack.Pop();
                                 top = stack.Peek();

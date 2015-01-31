@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.Host
 
         private class Service : IProjectCacheService
         {
-            private readonly IProjectCacheHostService hostService;
+            private readonly IProjectCacheHostService _hostService;
 
             public Service(IProjectCacheHostService hostService)
             {
-                this.hostService = hostService;
+                _hostService = hostService;
             }
 
             public IDisposable EnableCaching(ProjectId key)
             {
-                return this.hostService != null
-                    ? this.hostService.EnableCaching(key)
+                return _hostService != null
+                    ? _hostService.EnableCaching(key)
                     : null;
             }
         }

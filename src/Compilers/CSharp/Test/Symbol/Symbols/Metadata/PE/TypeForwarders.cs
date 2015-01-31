@@ -1738,6 +1738,5 @@ public class Forwarded<T>
                 }
             }
         }
-
     }
 }

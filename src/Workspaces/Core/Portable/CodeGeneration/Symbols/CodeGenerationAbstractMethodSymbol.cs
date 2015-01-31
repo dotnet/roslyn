@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public new IMethodSymbol OriginalDefinition { get; protected set; }
 
-        private readonly ImmutableArray<AttributeData> returnTypeAttributes;
+        private readonly ImmutableArray<AttributeData> _returnTypeAttributes;
 
         public virtual ImmutableArray<AttributeData> GetReturnTypeAttributes()
         {
-            return this.returnTypeAttributes;
+            return _returnTypeAttributes;
         }
 
         protected CodeGenerationAbstractMethodSymbol(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<AttributeData> returnTypeAttributes)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
-            this.returnTypeAttributes = returnTypeAttributes.AsImmutableOrEmpty();
+            _returnTypeAttributes = returnTypeAttributes.AsImmutableOrEmpty();
         }
 
         public abstract int Arity { get; }

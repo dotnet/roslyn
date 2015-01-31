@@ -24,19 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ourselves, rather than calling MakeSizeOfMultiplication (which inserts various checks 
             // and conversions).
 
-            TypeSymbol uintType = factory.SpecialType(SpecialType.System_UInt32);
-            TypeSymbol uintPtrType = factory.SpecialType(SpecialType.System_UIntPtr);
+            TypeSymbol uintType = _factory.SpecialType(SpecialType.System_UInt32);
+            TypeSymbol uintPtrType = _factory.SpecialType(SpecialType.System_UIntPtr);
 
             // Why convert twice?  Because dev10 actually uses an explicit conv_u instruction and the normal conversion
             // from int32 to native uint is emitted as conv_i.  The behavior we want to emulate is to re-interpret
             // (i.e. unchecked) an int32 as unsigned (i.e. uint32) and then convert it to a native uint *without* sign
             // extension.
-            BoundExpression convertedCount = factory.Convert(uintType, rewrittenCount, Conversion.ExplicitNumeric);
-            convertedCount = factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
+            BoundExpression convertedCount = _factory.Convert(uintType, rewrittenCount, Conversion.ExplicitNumeric);
+            convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 
-            BoundExpression sizeOfExpression = factory.Sizeof(((PointerTypeSymbol)node.Type).PointedAtType);
+            BoundExpression sizeOfExpression = _factory.Sizeof(((PointerTypeSymbol)node.Type).PointedAtType);
             BinaryOperatorKind multiplicationKind = BinaryOperatorKind.Checked | BinaryOperatorKind.UIntMultiplication; //"UInt" just to make it unsigned
-            BoundExpression product = factory.Binary(multiplicationKind, uintPtrType, convertedCount, sizeOfExpression);
+            BoundExpression product = _factory.Binary(multiplicationKind, uintPtrType, convertedCount, sizeOfExpression);
 
             return node.Update(product, node.Type);
         }

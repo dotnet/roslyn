@@ -27,26 +27,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
-            private static readonly int stateTypeCount = Enum.GetNames(typeof(StateType)).Count();
-            private static readonly ImmutableArray<StateType> DocumentScopeStateTypes = ImmutableArray.Create<StateType>(StateType.Syntax, StateType.Document);
+            private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Count();
+            private static readonly ImmutableArray<StateType> s_documentScopeStateTypes = ImmutableArray.Create<StateType>(StateType.Syntax, StateType.Document);
 
-            private readonly int correlationId;
-            private readonly DiagnosticAnalyzerService owner;
-            private readonly MemberRangeMap memberRangeMap;
-            private readonly DiagnosticAnalyzersAndStates analyzersAndState;
-            private readonly AnalyzerExecutor executor;
+            private readonly int _correlationId;
+            private readonly DiagnosticAnalyzerService _owner;
+            private readonly MemberRangeMap _memberRangeMap;
+            private readonly DiagnosticAnalyzersAndStates _analyzersAndState;
+            private readonly AnalyzerExecutor _executor;
 
-            private DiagnosticLogAggregator diagnosticLogAggregator;
+            private DiagnosticLogAggregator _diagnosticLogAggregator;
 
             public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, ImmutableArray<AnalyzerReference> workspaceAnalyzers)
             {
-                this.owner = owner;
-                this.correlationId = correlationId;
-                this.memberRangeMap = new MemberRangeMap();
-                this.analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzers);
-                this.executor = new AnalyzerExecutor(this);
+                _owner = owner;
+                _correlationId = correlationId;
+                _memberRangeMap = new MemberRangeMap();
+                _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzers);
+                _executor = new AnalyzerExecutor(this);
 
-                this.diagnosticLogAggregator = new DiagnosticLogAggregator(this.owner);
+                _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
                 {
                     // we don't need the info for closed file
-                    this.memberRangeMap.Remove(document.Id);
+                    _memberRangeMap.Remove(document.Id);
 
                     // we remove whatever information we used to have on document open/close and re-calcuate diagnostics
                     // we had to do this since some diagnostic provider change its behavior based on whether the document is opend or not.
@@ -118,11 +118,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                    var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this.diagnosticLogAggregator, cancellationToken);
+                    var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
                     var options = document.Project.CompilationOptions;
                     var openedDocument = document.IsOpen();
 
-                    foreach (var providerAndId in await analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
+                    foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                     {
                         var provider = providerAndId.Key;
                         var providerId = providerAndId.Value;
@@ -134,25 +134,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         else if (ShouldRunProviderForStateType(StateType.Syntax, provider, userDiagnosticDriver, diagnosticIds) &&
                             (skipClosedFileChecks || ShouldRunProviderForClosedFile(openedDocument, provider)))
                         {
-                            var data = await this.executor.GetSyntaxAnalysisDataAsync(provider, providerId, versions, userDiagnosticDriver).ConfigureAwait(false);
+                            var data = await _executor.GetSyntaxAnalysisDataAsync(provider, providerId, versions, userDiagnosticDriver).ConfigureAwait(false);
                             if (data.FromCache)
                             {
                                 RaiseDiagnosticsUpdated(StateType.Syntax, document.Id, providerId, new SolutionArgument(document), data.Items);
                                 continue;
                             }
 
-                            var state = this.analyzersAndState.GetOrCreateDiagnosticState(StateType.Syntax, providerId, provider, document.Project.Id, document.Project.Language);
+                            var state = _analyzersAndState.GetOrCreateDiagnosticState(StateType.Syntax, providerId, provider, document.Project.Id, document.Project.Language);
                             await state.PersistAsync(document, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
 
                             RaiseDiagnosticsUpdatedIfNeeded(StateType.Syntax, document, providerId, data.OldItems, data.Items);
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
             {
@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await AnalyzeBodyDocumentAsync(document, bodyOpt, versions, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task AnalyzeBodyDocumentAsync(Document document, SyntaxNode member, VersionArgument versions, CancellationToken cancellationToken)
             {
@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var memberId = syntaxFacts.GetMethodLevelMemberId(root, member);
 
-                    var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, this.diagnosticLogAggregator, cancellationToken);
-                    var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this.diagnosticLogAggregator, cancellationToken);
+                    var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, cancellationToken);
+                    var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, cancellationToken);
                     var options = document.Project.CompilationOptions;
 
-                    foreach (var providerAndId in await this.analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
+                    foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                     {
                         var provider = providerAndId.Key;
                         var providerId = providerAndId.Value;
@@ -216,13 +216,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
 
-                            var ranges = this.memberRangeMap.GetSavedMemberRange(providerId, document);
-                            var data = await this.executor.GetDocumentBodyAnalysisDataAsync(
+                            var ranges = _memberRangeMap.GetSavedMemberRange(providerId, document);
+                            var data = await _executor.GetDocumentBodyAnalysisDataAsync(
                                 provider, providerId, versions, userDiagnosticDriver, root, member, memberId, supportsSemanticInSpan, ranges).ConfigureAwait(false);
 
-                            this.memberRangeMap.UpdateMemberRange(providerId, document, versions.TextVersion, memberId, member.FullSpan, ranges);
+                            _memberRangeMap.UpdateMemberRange(providerId, document, versions.TextVersion, memberId, member.FullSpan, ranges);
 
-                            var state = this.analyzersAndState.GetOrCreateDiagnosticState(StateType.Document, providerId, provider, document.Project.Id, document.Project.Language);
+                            var state = _analyzersAndState.GetOrCreateDiagnosticState(StateType.Document, providerId, provider, document.Project.Id, document.Project.Language);
                             await state.PersistAsync(document, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
 
                             if (data.FromCache)
@@ -235,11 +235,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task AnalyzeDocumentAsync(Document document, VersionArgument versions, ImmutableHashSet<string> diagnosticIds, bool skipClosedFileChecks, CancellationToken cancellationToken)
             {
@@ -248,11 +248,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                    var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this.diagnosticLogAggregator, cancellationToken);
+                    var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
                     bool openedDocument = document.IsOpen();
                     var options = document.Project.CompilationOptions;
 
-                    foreach (var providerAndId in await analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
+                    foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                     {
                         var provider = providerAndId.Key;
                         var providerId = providerAndId.Value;
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         else if (ShouldRunProviderForStateType(StateType.Document, provider, userDiagnosticDriver, diagnosticIds) &&
                             (skipClosedFileChecks || ShouldRunProviderForClosedFile(openedDocument, provider)))
                         {
-                            var data = await this.executor.GetDocumentAnalysisDataAsync(provider, providerId, versions, userDiagnosticDriver).ConfigureAwait(false);
+                            var data = await _executor.GetDocumentAnalysisDataAsync(provider, providerId, versions, userDiagnosticDriver).ConfigureAwait(false);
                             if (data.FromCache)
                             {
                                 RaiseDiagnosticsUpdated(StateType.Document, document.Id, providerId, new SolutionArgument(document), data.Items);
@@ -273,21 +273,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                             if (openedDocument)
                             {
-                                this.memberRangeMap.Touch(providerId, document, versions.TextVersion);
+                                _memberRangeMap.Touch(providerId, document, versions.TextVersion);
                             }
 
-                            var state = this.analyzersAndState.GetOrCreateDiagnosticState(StateType.Document, providerId, provider, document.Project.Id, document.Project.Language);
+                            var state = _analyzersAndState.GetOrCreateDiagnosticState(StateType.Document, providerId, provider, document.Project.Id, document.Project.Language);
                             await state.PersistAsync(document, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
 
                             RaiseDiagnosticsUpdatedIfNeeded(StateType.Document, document, providerId, data.OldItems, data.Items);
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
@@ -305,11 +305,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
                     var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                    var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, this.diagnosticLogAggregator, cancellationToken);
+                    var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, cancellationToken);
                     var options = project.CompilationOptions;
 
                     var versions = new VersionArgument(VersionStamp.Default, semanticVersion, projectVersion);
-                    foreach (var providerAndId in await analyzersAndState.GetAllProviderAndIdsAsync(project, cancellationToken).ConfigureAwait(false))
+                    foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(project, cancellationToken).ConfigureAwait(false))
                     {
                         var provider = providerAndId.Key;
                         var providerId = providerAndId.Value;
@@ -321,33 +321,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         else if (ShouldRunProviderForStateType(StateType.Project, provider, userDiagnosticDriver, diagnosticIds) &&
                             (skipClosedFileChecks || ShouldRunProviderForClosedFile(openedDocument: false, provider: provider)))
                         {
-                            var data = await this.executor.GetProjectAnalysisDataAsync(provider, providerId, versions, userDiagnosticDriver).ConfigureAwait(false);
+                            var data = await _executor.GetProjectAnalysisDataAsync(provider, providerId, versions, userDiagnosticDriver).ConfigureAwait(false);
                             if (data.FromCache)
                             {
                                 RaiseDiagnosticsUpdated(StateType.Project, project.Id, providerId, new SolutionArgument(project), data.Items);
                                 continue;
                             }
 
-                            var state = this.analyzersAndState.GetOrCreateDiagnosticState(StateType.Project, providerId, provider, project.Id, project.Language);
+                            var state = _analyzersAndState.GetOrCreateDiagnosticState(StateType.Project, providerId, provider, project.Id, project.Language);
                             await state.PersistAsync(project, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
 
                             RaiseDiagnosticsUpdatedIfNeeded(project, providerId, data.OldItems, data.Items);
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             public void RemoveDocument(DocumentId documentId)
             {
                 using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
                 {
-                    this.memberRangeMap.Remove(documentId);
+                    _memberRangeMap.Remove(documentId);
 
-                    foreach (var stateProviderIdAndType in this.analyzersAndState.GetAllExistingDiagnosticStates(documentId.ProjectId))
+                    foreach (var stateProviderIdAndType in _analyzersAndState.GetAllExistingDiagnosticStates(documentId.ProjectId))
                     {
                         var state = stateProviderIdAndType.Item1;
                         var providerId = stateProviderIdAndType.Item2;
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
                 {
-                    foreach (var stateProviderIdAndType in this.analyzersAndState.GetAllExistingDiagnosticStates(projectId, StateType.Project))
+                    foreach (var stateProviderIdAndType in _analyzersAndState.GetAllExistingDiagnosticStates(projectId, StateType.Project))
                     {
                         var state = stateProviderIdAndType.Item1;
                         var providerId = stateProviderIdAndType.Item2;
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         RaiseDiagnosticsUpdated(StateType.Project, projectId, providerId, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                     }
 
-                    this.analyzersAndState.RemoveProjectAnalyzersAndStates(projectId);
+                    _analyzersAndState.RemoveProjectAnalyzersAndStates(projectId);
                 }
             }
 
@@ -411,11 +411,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return result;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsAsync(Document document, TextSpan range, CancellationToken cancellationToken)
             {
@@ -450,11 +450,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task<bool> TryGetLatestDiagnosticsAsync(
                 StateType stateType,
@@ -470,11 +470,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
                     // Share the diagnostic analyzer driver across all analyzers.
-                    var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, this.diagnosticLogAggregator, cancellationToken);
-                    var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this.diagnosticLogAggregator, cancellationToken);
+                    var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, cancellationToken);
+                    var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
                     var options = document.Project.CompilationOptions;
 
-                    foreach (var providerAndId in await analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
+                    foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                     {
                         var provider = providerAndId.Key;
                         var providerId = providerAndId.Value;
@@ -494,11 +494,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return result;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task<bool> TryGetLatestDiagnosticsAsync(
                 DiagnosticAnalyzer provider, ProviderId providerId,
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // make sure we get state even when none of our analyzer has ran yet. 
                     // but this shouldn't create analyzer that doesnt belong to this project (language)
-                    var state = this.analyzersAndState.GetOrCreateDiagnosticState(stateType, providerId, provider, document.Project.Id, document.Project.Language);
+                    var state = _analyzersAndState.GetOrCreateDiagnosticState(stateType, providerId, provider, document.Project.Id, document.Project.Language);
                     if (state == null)
                     {
                         if (!requireUpToDateDocumentDiagnostic)
@@ -556,11 +556,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return true;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private bool ShouldRunProviderForClosedFile(bool openedDocument, DiagnosticAnalyzer provider)
             {
@@ -570,13 +570,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return true;
                 }
 
-                return this.owner.GetDiagnosticDescriptors(provider).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
+                return _owner.GetDiagnosticDescriptors(provider).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
             }
 
             private bool ShouldRunProviderForStateType(StateType stateTypeId, DiagnosticAnalyzer provider,
                 DiagnosticAnalyzerDriver driver, ImmutableHashSet<string> diagnosticIds)
             {
-                return ShouldRunProviderForStateType(stateTypeId, provider, driver, diagnosticIds, this.owner.GetDiagnosticDescriptors);
+                return ShouldRunProviderForStateType(stateTypeId, provider, driver, diagnosticIds, _owner.GetDiagnosticDescriptors);
             }
 
             private static bool ShouldRunProviderForStateType(StateType stateTypeId, DiagnosticAnalyzer provider, DiagnosticAnalyzerDriver driver,
@@ -627,17 +627,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // internal for testing purposes only.
             internal void ForceAnalyzeAllDocuments(Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
-                var diagnosticIds = this.owner.GetDiagnosticDescriptors(analyzer).Select(d => d.Id).ToImmutableHashSet();
+                var diagnosticIds = _owner.GetDiagnosticDescriptors(analyzer).Select(d => d.Id).ToImmutableHashSet();
                 ReanalyzeAllDocumentsAsync(project, diagnosticIds, cancellationToken).Wait(cancellationToken);
             }
 
             public void LogAnalyzerCountSummary()
             {
-                DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(this.correlationId, this.diagnosticLogAggregator);
-                DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(this.correlationId, this.diagnosticLogAggregator);
+                DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, _diagnosticLogAggregator);
+                DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, _diagnosticLogAggregator);
 
                 // reset the log aggregator
-                diagnosticLogAggregator = new DiagnosticLogAggregator(this.owner);
+                _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
             }
 
             private static bool CheckSyntaxVersions(Document document, AnalysisData existingData, VersionArgument versions)
@@ -694,11 +694,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private void RaiseDiagnosticsUpdated(
                 StateType type, object key, ProviderId providerId, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics)
             {
-                if (this.owner != null)
+                if (_owner != null)
                 {
                     var id = new ArgumentKey(providerId, type, key);
-                    this.owner.RaiseDiagnosticsUpdated(this,
-                        new DiagnosticsUpdatedArgs(id, this.analyzersAndState.Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
+                    _owner.RaiseDiagnosticsUpdated(this,
+                        new DiagnosticsUpdatedArgs(id, _analyzersAndState.Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
                 }
             }
 
@@ -840,12 +840,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await userDiagnosticDriver.GetSyntaxDiagnosticsAsync(provider).ConfigureAwait(false);
                         return GetDiagnosticData(userDiagnosticDriver.Document, userDiagnosticDriver.Span, diagnostics);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
+                    }
                 }
-            }
 
             private static async Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(ProviderId providerId, DiagnosticAnalyzer provider, DiagnosticAnalyzerDriver userDiagnosticDriver)
             {
@@ -858,12 +858,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await userDiagnosticDriver.GetSemanticDiagnosticsAsync(provider).ConfigureAwait(false);
                         return GetDiagnosticData(userDiagnosticDriver.Document, userDiagnosticDriver.Span, diagnostics);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
+                    }
                 }
-            }
 
             private static async Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsAsync(ProviderId providerId, DiagnosticAnalyzer provider, DiagnosticAnalyzerDriver userDiagnosticDriver, Action<Project, DiagnosticAnalyzer, CancellationToken> forceAnalyzeAllDocuments)
             {
@@ -876,16 +876,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await userDiagnosticDriver.GetProjectDiagnosticsAsync(provider, forceAnalyzeAllDocuments).ConfigureAwait(false);
                         return GetDiagnosticData(userDiagnosticDriver.Project, diagnostics);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
+                    }
                 }
-            }
 
             private async Task RemoveAllCacheDataAsync(Document document, CancellationToken cancellationToken)
             {
-                var allExistingStates = this.analyzersAndState.GetAllExistingDiagnosticStates(document.Project.Id, document.Project.Language);
+                var allExistingStates = _analyzersAndState.GetAllExistingDiagnosticStates(document.Project.Id, document.Project.Language);
                 await RemoveCacheDataAsync(document, allExistingStates, cancellationToken).ConfigureAwait(false);
             }
 
@@ -907,11 +907,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await RemoveCacheDataAsync(document, state, providerId, type, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task RemoveCacheDataAsync(Document document, DiagnosticState state, ProviderId providerId, StateType type, CancellationToken cancellationToken)
             {
@@ -931,11 +931,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     RaiseDiagnosticsUpdated(type, key, providerId, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task RemoveCacheDataAsync(Project project, DiagnosticState state, ProviderId providerId, CancellationToken cancellationToken)
             {
@@ -951,11 +951,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var solutionArgs = new SolutionArgument(project);
                     RaiseDiagnosticsUpdated(StateType.Project, project.Id, providerId, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task RemoveCacheDataAsync(Project project, IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> states, CancellationToken cancellationToken)
             {
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task HandleSuppressedAnalyzerAsync(Document document, StateType type, ProviderId providerId, DiagnosticAnalyzer provider, CancellationToken cancellationToken)
             {
-                var state = this.analyzersAndState.GetOrCreateDiagnosticState(type, providerId, provider, document.Project.Id, document.Project.Language);
+                var state = _analyzersAndState.GetOrCreateDiagnosticState(type, providerId, provider, document.Project.Id, document.Project.Language);
                 var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
                 if (existingData != null && existingData.Items.Length > 0)
                 {
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task HandleSuppressedAnalyzerAsync(Project project, ProviderId providerId, DiagnosticAnalyzer provider, CancellationToken cancellationToken)
             {
-                var state = this.analyzersAndState.GetOrCreateDiagnosticState(StateType.Project, providerId, provider, project.Id, project.Language);
+                var state = _analyzersAndState.GetOrCreateDiagnosticState(StateType.Project, providerId, provider, project.Id, project.Language);
                 var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
                 if (existingData != null && existingData.Items.Length > 0)
                 {
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             internal async Task<ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>>> GetAllDiagnosticAnalyzersAsync(Project project, CancellationToken cancellationToken)
             {
-                return await this.analyzersAndState.GetAllDiagnosticAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                return await _analyzersAndState.GetAllDiagnosticAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
             }
 
             private static string GetSyntaxLogMessage(Document document, TextSpan? span, int providerId)

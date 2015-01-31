@@ -8,18 +8,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedStaticConstructor : MethodSymbol
     {
-        private readonly NamedTypeSymbol containingType;
+        private readonly NamedTypeSymbol _containingType;
 
         internal SynthesizedStaticConstructor(NamedTypeSymbol containingType)
         {
-            this.containingType = containingType;
+            _containingType = containingType;
         }
 
         public override Symbol ContainingSymbol
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 

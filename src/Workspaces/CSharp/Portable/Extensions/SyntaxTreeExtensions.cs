@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 position, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
-        private static readonly Func<SyntaxKind, bool> IsDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
-        private static readonly Func<SyntaxKind, bool> IsDotOrArrowOrColonColon =
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
             k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
 
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -160,12 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsRightOf(position, IsDotOrArrowOrColonColon, cancellationToken);
+            return syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
         }
 
         public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsRightOf(position, IsDotOrArrow, cancellationToken);
+            return syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
         }
 
         private static bool IsRightOf(

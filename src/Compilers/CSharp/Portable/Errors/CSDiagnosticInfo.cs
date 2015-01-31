@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly DiagnosticInfo EmptyErrorInfo = new CSDiagnosticInfo(0);
         public static readonly DiagnosticInfo VoidDiagnosticInfo = new CSDiagnosticInfo(ErrorCode.Void);
 
-        private readonly ImmutableArray<Location> additionalLocations;
+        private readonly ImmutableArray<Location> _additionalLocations;
 
         internal CSDiagnosticInfo(ErrorCode code)
             : this(code, SpecializedCollections.EmptyArray<object>(), ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty)
@@ -31,20 +31,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal CSDiagnosticInfo(ErrorCode code, object[] args, ImmutableArray<Symbol> symbols, ImmutableArray<Location> additionalLocations)
             : base(code, args, symbols)
         {
-            this.additionalLocations = additionalLocations;
+            _additionalLocations = additionalLocations;
         }
 
         private CSDiagnosticInfo(bool isWarningAsError, ErrorCode code, object[] args, ImmutableArray<Symbol> symbols, ImmutableArray<Location> additionalLocations)
             : base(isWarningAsError, code, args, symbols)
         {
-            this.additionalLocations = additionalLocations;
+            _additionalLocations = additionalLocations;
         }
 
         public override IReadOnlyList<Location> AdditionalLocations
         {
             get
             {
-                return additionalLocations;
+                return _additionalLocations;
             }
         }
 

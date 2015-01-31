@@ -135,23 +135,23 @@ public class C
 }";
             // Extra errors
             ParseAndValidate(test,
-                // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // {
+    // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // {
     Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-                // (3,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
+    // (3,5): error CS1022: Type or namespace definition, or end-of-file expected
+    //     {
     Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-                // (3,6): error CS1520: Method must have a return type
-                //     {
+    // (3,6): error CS1520: Method must have a return type
+    //     {
     Diagnostic(ErrorCode.ERR_MemberNeedsType, ""),
-                // (2,5): error CS0116: A namespace does not directly contain members such as fields or methods
-                //     get
+    // (2,5): error CS0116: A namespace does not directly contain members such as fields or methods
+    //     get
     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "get"),
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
+    // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+    //     }
     Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
+    // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
     Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
@@ -195,14 +195,14 @@ public class mine {
 ";
 
             ParseAndValidate(test,
-                // (2,7): error CS1041: Identifier expected; 'namespace' is a keyword
-                // using namespace System;
+    // (2,7): error CS1041: Identifier expected; 'namespace' is a keyword
+    // using namespace System;
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace"),
-                // (2,23): error CS1514: { expected
-                // using namespace System;
+    // (2,23): error CS1514: { expected
+    // using namespace System;
     Diagnostic(ErrorCode.ERR_LbraceExpected, ";"),
-                // (4,42): error CS0150: A constant value is expected
-                //     public enum e1 {one=1, two=2, three= };
+    // (4,42): error CS0150: A constant value is expected
+    //     public enum e1 {one=1, two=2, three= };
     Diagnostic(ErrorCode.ERR_ConstantExpected, ""));
         }
 
@@ -223,17 +223,17 @@ class A
 ";
 
             ParseAndValidate(test,
-                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
-                //         int[] arr = new int[5][5;
+    // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
+    //         int[] arr = new int[5][5;
     Diagnostic(ErrorCode.ERR_InvalidArray, "5"),
-                // (6,33): error CS1003: Syntax error, ',' expected
-                //         int[] arr = new int[5][5;
+    // (6,33): error CS1003: Syntax error, ',' expected
+    //         int[] arr = new int[5][5;
     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";"),
-                // (6,33): error CS0443: Syntax error; value expected
-                //         int[] arr = new int[5][5;
+    // (6,33): error CS0443: Syntax error; value expected
+    //         int[] arr = new int[5][5;
     Diagnostic(ErrorCode.ERR_ValueExpected, ""),
-                // (6,33): error CS1003: Syntax error, ']' expected
-                //         int[] arr = new int[5][5;
+    // (6,33): error CS1003: Syntax error, ']' expected
+    //         int[] arr = new int[5][5;
     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
         }
 
@@ -276,12 +276,12 @@ class MyClass
 }
 ";
             ParseAndValidate(test,
-// (7,22): error CS1001: Identifier expected
+    // (7,22): error CS1001: Identifier expected
     //         foreach (int in myarray)   // CS0230
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
     // (7,22): error CS0230: Type and identifier are both required in a foreach statement
     //         foreach (int in myarray)   // CS0230
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in") );
+    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
         }
 
         [Fact]
@@ -299,11 +299,11 @@ public class Test
 }
 ";
             ParseAndValidate(test,
-                // (7,20): error CS1001: Identifier expected
-                //         foreach (x in myarray) { }// Invalid
+    // (7,20): error CS1001: Identifier expected
+    //         foreach (x in myarray) { }// Invalid
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-                // (7,20): error CS0230: Type and identifier are both required in a foreach statement
-                //         foreach (x in myarray) { }// Invalid
+    // (7,20): error CS0230: Type and identifier are both required in a foreach statement
+    //         foreach (x in myarray) { }// Invalid
     Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
         }
 
@@ -324,11 +324,11 @@ public struct st { }
 ";
 
             ParseAndValidate(test,
-                // (7,23): error CS1001: Identifier expected
-                //         foreach (st[] in myarray) { }
+    // (7,23): error CS1001: Identifier expected
+    //         foreach (st[] in myarray) { }
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-                // (7,23): error CS0230: Type and identifier are both required in a foreach statement
-                //         foreach (st[] in myarray) { }
+    // (7,23): error CS0230: Type and identifier are both required in a foreach statement
+    //         foreach (st[] in myarray) { }
     Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
         }
 
@@ -361,8 +361,8 @@ class Foo
 ";
 
             ParseAndValidate(test,
-                // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
-                //   public void Bar(__arglist,  int b)
+    // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+    //   public void Bar(__arglist,  int b)
     Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
 
@@ -384,7 +384,7 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial") );
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
         }
 
         [Fact]
@@ -406,26 +406,26 @@ partial delegate E { }
 
             // Extra errors
             ParseAndValidate(test,
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-                // partial delegate E { }
+    // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"),
-                // (2,20): error CS1001: Identifier expected
-                // partial delegate E { }
+    // (2,20): error CS1001: Identifier expected
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "{"),
-                // (2,20): error CS1003: Syntax error, '(' expected
-                // partial delegate E { }
+    // (2,20): error CS1003: Syntax error, '(' expected
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{"),
-                // (2,20): error CS1026: ) expected
-                // partial delegate E { }
+    // (2,20): error CS1026: ) expected
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_CloseParenExpected, "{"),
-                // (2,20): error CS1002: ; expected
-                // partial delegate E { }
+    // (2,20): error CS1002: ; expected
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "{"),
-                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // partial delegate E { }
+    // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-                // partial delegate E { }
+    // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+    // partial delegate E { }
     Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
@@ -449,47 +449,47 @@ public class MyClass
 ";
 
             ParseAndValidate(test,
-                // (7,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         int myarray[2]; 
+    // (7,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         int myarray[2]; 
     Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
-                // (7,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         int myarray[2]; 
+    // (7,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         int myarray[2]; 
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
-                // (8,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         MyClass m[0];
+    // (8,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         MyClass m[0];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[0]"),
-                // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         MyClass m[0];
+    // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         MyClass m[0];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "0"),
-                // (9,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         byte b[13,5];
+    // (9,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         byte b[13,5];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[13,5]"),
-                // (9,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         byte b[13,5];
+    // (9,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         byte b[13,5];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "13"),
-                // (9,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         byte b[13,5];
+    // (9,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         byte b[13,5];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-                // (10,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         double d[14,5,6];
+    // (10,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[14,5,6]"),
-                // (10,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         double d[14,5,6];
+    // (10,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "14"),
-                // (10,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         double d[14,5,6];
+    // (10,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-                // (10,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         double d[14,5,6];
+    // (10,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6"),
-                // (11,12): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         E e[,50];
+    // (11,12): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         E e[,50];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[,50]"),
-                // (11,13): error CS0443: Syntax error; value expected
-                //         E e[,50];
+    // (11,13): error CS0443: Syntax error; value expected
+    //         E e[,50];
     Diagnostic(ErrorCode.ERR_ValueExpected, ""),
-                // (11,14): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         E e[,50];
+    // (11,14): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         E e[,50];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "50"));
         }
 
@@ -743,45 +743,44 @@ public class MyClass
 ";
 
             ParseAndValidate(test,
-                // (6,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         int myarray[2]; 
+    // (6,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         int myarray[2]; 
     Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
-                // (6,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         int myarray[2]; 
+    // (6,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         int myarray[2]; 
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
-                // (7,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         MyClass m[0];
+    // (7,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         MyClass m[0];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[0]"),
-                // (7,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         MyClass m[0];
+    // (7,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         MyClass m[0];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "0"),
-                // (8,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         byte b[13,5];
+    // (8,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         byte b[13,5];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[13,5]"),
-                // (8,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         byte b[13,5];
+    // (8,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         byte b[13,5];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "13"),
-                // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         byte b[13,5];
+    // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         byte b[13,5];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-                // (9,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-                //         double d[14,5,6];
+    // (9,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_CStyleArray, "[14,5,6]"),
-                // (9,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         double d[14,5,6];
+    // (9,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "14"),
-                // (9,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         double d[14,5,6];
+    // (9,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         double d[14,5,6];
     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-                // (9,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6") );
+    // (9,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //         double d[14,5,6];
+    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6"));
         }
 
         [Fact, WorkItem(535883, "DevDiv")]
         public void CS0687ERR_AliasQualAsExpression()
         {
-
             var test = @"
 class Test
 {
@@ -961,8 +960,8 @@ public class C
 }
 ";
             ParseAndValidate(test,
-                // (8,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
-                //         var t = new { s.Length = 1 };
+    // (8,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+    //         var t = new { s.Length = 1 };
     Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1"));
         }
 
@@ -1006,26 +1005,26 @@ class C
 ";
 
             ParseAndValidate(test,
-                // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
+    // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-                // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
+    // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
+    // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
-                // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
+    // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-                // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+    // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+    // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+    // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+    //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
     Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
         }
 
@@ -1082,7 +1081,7 @@ public class clx
 enum 
 ";
 
-            ParseAndValidate(test, 
+            ParseAndValidate(test,
 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
 Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
@@ -1118,11 +1117,11 @@ class NamedExample
 }
 ";
             ParseAndValidate(test,
-                // (9,52): error CS1001: Identifier expected
-                //     static void ExampleMethod(int required, string 1 = "default string",int optionalint = 10)
+    // (9,52): error CS1001: Identifier expected
+    //     static void ExampleMethod(int required, string 1 = "default string",int optionalint = 10)
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "1"),
-                // (9,52): error CS1003: Syntax error, ',' expected
-                //     static void ExampleMethod(int required, string 1 = "default string",int optionalint = 10)
+    // (9,52): error CS1003: Syntax error, ',' expected
+    //     static void ExampleMethod(int required, string 1 = "default string",int optionalint = 10)
     Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",", ""));
         }
 
@@ -1143,11 +1142,11 @@ class NamedExample
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (9,45): error CS1031: Type expected
-                //     static void ExampleMethod(int required, ,int optionalint = 10)
+    // (9,45): error CS1031: Type expected
+    //     static void ExampleMethod(int required, ,int optionalint = 10)
     Diagnostic(ErrorCode.ERR_TypeExpected, ","),
-                // (9,45): error CS1001: Identifier expected
-                //     static void ExampleMethod(int required, ,int optionalint = 10)
+    // (9,45): error CS1001: Identifier expected
+    //     static void ExampleMethod(int required, ,int optionalint = 10)
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ","));
         }
 
@@ -1170,17 +1169,17 @@ class Program
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (5,40): error CS1003: Syntax error, ':' expected
-                //     static void M(int p2 = max is int?1,)
+    // (5,40): error CS1003: Syntax error, ':' expected
+    //     static void M(int p2 = max is int?1,)
     Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":", ","),
-                // (5,40): error CS1525: Invalid expression term ','
-                //     static void M(int p2 = max is int?1,)
+    // (5,40): error CS1525: Invalid expression term ','
+    //     static void M(int p2 = max is int?1,)
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
-                // (5,41): error CS1031: Type expected
-                //     static void M(int p2 = max is int?1,)
+    // (5,41): error CS1031: Type expected
+    //     static void M(int p2 = max is int?1,)
     Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-                // (5,41): error CS1001: Identifier expected
-                //     static void M(int p2 = max is int?1,)
+    // (5,41): error CS1001: Identifier expected
+    //     static void M(int p2 = max is int?1,)
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
@@ -1221,11 +1220,11 @@ class Program
 }
 ";
             ParseAndValidate(test,
-                // (6,18): error CS1002: ; expected
-                //         goto Lab2,Lab1;
+    // (6,18): error CS1002: ; expected
+    //         goto Lab2,Lab1;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
-                // (6,18): error CS1513: } expected
-                //         goto Lab2,Lab1;
+    // (6,18): error CS1513: } expected
+    //         goto Lab2,Lab1;
     Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
         }
 
@@ -1245,11 +1244,11 @@ class Program
 }
 ";
             ParseAndValidate(test,
-                // (8,8): error CS1525: Invalid expression term '}'
-                //     L1: //invalid
+    // (8,8): error CS1525: Invalid expression term '}'
+    //     L1: //invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
-                // (8,8): error CS1002: ; expected
-                //     L1: //invalid
+    // (8,8): error CS1002: ; expected
+    //     L1: //invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ""));
         }
 
@@ -1273,26 +1272,26 @@ class Program
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (8,10): error CS1513: } expected
-                //         {
+    // (8,10): error CS1513: } expected
+    //         {
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (9,16): error CS1525: Invalid expression term 'case'
-                //         label1:
+    // (9,16): error CS1525: Invalid expression term 'case'
+    //         label1:
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case"),
-                // (9,16): error CS1002: ; expected
-                //         label1:
+    // (9,16): error CS1002: ; expected
+    //         label1:
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
-                // (9,16): error CS1513: } expected
-                //         label1:
+    // (9,16): error CS1513: } expected
+    //         label1:
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (10,18): error CS1002: ; expected
-                //         case "t1":
+    // (10,18): error CS1002: ; expected
+    //         case "t1":
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-                // (10,18): error CS1513: } expected
-                //         case "t1":
+    // (10,18): error CS1513: } expected
+    //         case "t1":
     Diagnostic(ErrorCode.ERR_RbraceExpected, ":"),
-                // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
+    // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
     Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
@@ -1314,14 +1313,14 @@ namespace x
 ";
 
             ParseAndValidate(test,
-                // (8,15): error CS1003: Syntax error, ']' expected
-                //             a[);
+    // (8,15): error CS1003: Syntax error, ']' expected
+    //             a[);
     Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")"),
-                // (8,15): error CS1002: ; expected
-                //             a[);
+    // (8,15): error CS1002: ; expected
+    //             a[);
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (8,15): error CS1513: } expected
-                //             a[);
+    // (8,15): error CS1513: } expected
+    //             a[);
     Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
         }
 
@@ -1379,7 +1378,7 @@ public class Container
 ";
 
             ParseAndValidate(test,
-// (5,65): error CS1007: Property accessor already defined
+    // (5,65): error CS1007: Property accessor already defined
     //     public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
     Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
     // (6,70): error CS1007: Property accessor already defined
@@ -1467,7 +1466,7 @@ class Program
     }
 }
 ";
-            ParseAndValidate(text, 
+            ParseAndValidate(text,
                 // (7,14): error CS1009: Unrecognized escape sequence
                 Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u"),
                 // (8,14): error CS1009: Unrecognized escape sequence
@@ -1507,12 +1506,12 @@ class Program
     }
 }
 ";
-            ParseAndValidate(text, 
+            ParseAndValidate(text,
         // (6,13): error CS1009: Unrecognized escape sequence
-                //         int \u;
+        //         int \u;
         Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u"),
         // (7,13): error CS1009: Unrecognized escape sequence
-                //         int \u0;
+        //         int \u0;
         Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u0"),
         // (7,13): error CS1056: Unexpected character '\u0'
         //         int \u0;
@@ -1547,8 +1546,8 @@ class Program
         // (14,14): error CS1009: Unrecognized escape sequence
         //         int a\u000z;
         Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u000"),
-        // (14,14): error CS1056: Unexpected character '\u000'
-        //         int a\u000z;
+                // (14,14): error CS1056: Unexpected character '\u000'
+                //         int a\u000z;
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u000"),
 
                 // NOTE: Dev11 doesn't report these cascading diagnostics.
@@ -1698,8 +1697,8 @@ public class mine {
 }
 ";
 
-            ParseAndValidate(test, 
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"), 
+            ParseAndValidate(test,
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
                 Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
                 Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"));
         }
@@ -1820,7 +1819,7 @@ namespace x
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "++") );
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "++"));
         }
 
         [Fact]
@@ -1878,7 +1877,7 @@ public class a {
             var test = @"#import System;";
 
             ParseAndValidate(test, // (1,2): error CS1024: Preprocessor directive expected
-                // #import System;
+                                   // #import System;
     Diagnostic(ErrorCode.ERR_PPDirectiveExpected, "import"));
         }
 
@@ -1901,15 +1900,15 @@ public class Test
 }
 ";
             // Extra Errors
-            ParseAndValidate(test,  
-                // (4,15): error CS1025: Single-line comment or end-of-line expected
-                // # line hidden 123
+            ParseAndValidate(test,
+    // (4,15): error CS1025: Single-line comment or end-of-line expected
+    // # line hidden 123
     Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "123"),
-                // (9,6): error CS1032: Cannot define/undefine preprocessor symbols after first token in file
-                //     #undef x y
+    // (9,6): error CS1032: Cannot define/undefine preprocessor symbols after first token in file
+    //     #undef x y
     Diagnostic(ErrorCode.ERR_PPDefFollowsToken, "undef"),
-                // (9,14): error CS1025: Single-line comment or end-of-line expected
-                //     #undef x y
+    // (9,14): error CS1025: Single-line comment or end-of-line expected
+    //     #undef x y
     Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "y"));
         }
 
@@ -1966,11 +1965,11 @@ class Test
 ";
 
             ParseAndValidate(test,
-                // (4,3): error CS1028: Unexpected preprocessor directive
-                //   #endregion
+    // (4,3): error CS1028: Unexpected preprocessor directive
+    //   #endregion
     Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#endregion"),
-                // (9,1): error CS1028: Unexpected preprocessor directive
-                // #  endif
+    // (9,1): error CS1028: Unexpected preprocessor directive
+    // #  endif
     Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#  endif"));
         }
 
@@ -2023,7 +2022,7 @@ namespace x
 }
 ";
 
-            ParseAndValidate(test, 
+            ParseAndValidate(test,
                 // (13,16): error CS1003: Syntax error, 'explicit' expected
                 //         public operator ii(a aa)
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit", "operator")
@@ -2048,26 +2047,26 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text,
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
+    // (7,21): error CS1031: Type expected
+    //             e = new base;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_TypeExpected, "base"),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new base;   // CS1031, not a type
+    // (7,21): error CS1526: A new expression requires (), [], or {} after type
+    //             e = new base;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_BadNewExpr, "base"),
-                // (7,21): error CS1002: ; expected
-                //             e = new base;   // CS1031, not a type
+    // (7,21): error CS1002: ; expected
+    //             e = new base;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "base"),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
+    // (8,21): error CS1031: Type expected
+    //             e = new this;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_TypeExpected, "this"),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new this;   // CS1031, not a type
+    // (8,21): error CS1526: A new expression requires (), [], or {} after type
+    //             e = new this;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_BadNewExpr, "this"),
-                // (8,21): error CS1002: ; expected
-                //             e = new this;   // CS1031, not a type
+    // (8,21): error CS1002: ; expected
+    //             e = new this;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "this"),
-                // (9,21): error CS1031: Type expected
-                //             e = new ();     // CS1031, not a type
+    // (9,21): error CS1031: Type expected
+    //             e = new ();     // CS1031, not a type
     Diagnostic(ErrorCode.ERR_TypeExpected, "(")
              );
         }
@@ -2108,7 +2107,7 @@ public class Extensions
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"));
         }
 
-        [Fact] 
+        [Fact]
         public void CS1037ERR_OvlOperatorExpected()
         {
             var test = @"
@@ -2176,7 +2175,7 @@ class MyClass {
 ";
 
             ParseAndValidate(test,
- // (3,23): error CS1001: Identifier expected
+    // (3,23): error CS1001: Identifier expected
     //     public void f(int long) {    // CS1041
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "long"),
     // (3,23): error CS1003: Syntax error, ',' expected
@@ -2226,7 +2225,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         get { return null; }
     }
 }";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this") );
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
         }
 
         [Fact, WorkItem(541347, "DevDiv")]
@@ -2303,14 +2302,14 @@ return 1;
 ";
 
             ParseAndValidate(test,
-                // (7,13): error CS1043: { or ; expected
-                //         get return 1;
+    // (7,13): error CS1043: { or ; expected
+    //         get return 1;
     Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
-                // (9,15): error CS1014: A get or set accessor expected
-                // public static int Main()
+    // (9,15): error CS1014: A get or set accessor expected
+    // public static int Main()
     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "int"),
-                // (9,15): error CS1513: } expected
-                // public static int Main()
+    // (9,15): error CS1513: } expected
+    // public static int Main()
     Diagnostic(ErrorCode.ERR_RbraceExpected, "int"));
         }
 
@@ -2363,17 +2362,17 @@ public class Test
 ";
             // Extra Errors
             ParseAndValidate(test,
-                // (36,9): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
-                //         Res2 res2 = new Res2())
+    // (36,9): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
+    //         Res2 res2 = new Res2())
     Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "Res2"),
-                // (36,14): error CS1026: ) expected
-                //         Res2 res2 = new Res2())
+    // (36,14): error CS1026: ) expected
+    //         Res2 res2 = new Res2())
     Diagnostic(ErrorCode.ERR_CloseParenExpected, "res2"),
-                // (36,31): error CS1002: ; expected
-                //         Res2 res2 = new Res2())
+    // (36,31): error CS1002: ; expected
+    //         Res2 res2 = new Res2())
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (36,31): error CS1513: } expected
-                //         Res2 res2 = new Res2())
+    // (36,31): error CS1513: } expected
+    //         Res2 res2 = new Res2())
     Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
         }
 
@@ -2398,14 +2397,14 @@ return 1;
 ";
 
             ParseAndValidate(test,
-                // (7,9): error CS1055: An add or remove accessor expected
-                //         return value; 
+    // (7,9): error CS1055: An add or remove accessor expected
+    //         return value; 
     Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
-                // (7,16): error CS1055: An add or remove accessor expected
-                //         return value; 
+    // (7,16): error CS1055: An add or remove accessor expected
+    //         return value; 
     Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"),
-                // (7,21): error CS0073: An add or remove accessor must have a body
-                //         return value; 
+    // (7,21): error CS0073: An add or remove accessor must have a body
+    //         return value; 
     Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
         }
 
@@ -2459,14 +2458,14 @@ class Program
 ";
 
             ParseAndValidate(test,
-                // (10,13): error CS7014: Attributes are not valid in this context.
-                //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+    // (10,13): error CS7014: Attributes are not valid in this context.
+    //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
     Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"),
-                // (10,42): error CS7014: Attributes are not valid in this context.
-                //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+    // (10,42): error CS7014: Attributes are not valid in this context.
+    //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
     Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"),
-                // (11,13): error CS7014: Attributes are not valid in this context.
-                //             [ObsoleteAttribute(message)] int y
+    // (11,13): error CS7014: Attributes are not valid in this context.
+    //             [ObsoleteAttribute(message)] int y
     Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"));
         }
 
@@ -2614,38 +2613,38 @@ public static class Extensions
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (6,33): error CS1107: A parameter can only have one 'this' modifier
-                //     public static void Foo(this this t) {}
+    // (6,33): error CS1107: A parameter can only have one 'this' modifier
+    //     public static void Foo(this this t) {}
     Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this"),
-                // (6,39): error CS1001: Identifier expected
-                //     public static void Foo(this this t) {}
+    // (6,39): error CS1001: Identifier expected
+    //     public static void Foo(this this t) {}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-                // (7,37): error CS1001: Identifier expected
-                //     public static void Foo(this int this) {}
+    // (7,37): error CS1001: Identifier expected
+    //     public static void Foo(this int this) {}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-                // (7,37): error CS1003: Syntax error, ',' expected
-                //     public static void Foo(this int this) {}
+    // (7,37): error CS1003: Syntax error, ',' expected
+    //     public static void Foo(this int this) {}
     Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-                // (7,41): error CS1031: Type expected
-                //     public static void Foo(this int this) {}
+    // (7,41): error CS1031: Type expected
+    //     public static void Foo(this int this) {}
     Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-                // (7,41): error CS1001: Identifier expected
-                //     public static void Foo(this int this) {}
+    // (7,41): error CS1001: Identifier expected
+    //     public static void Foo(this int this) {}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-                // (9,34): error CS1001: Identifier expected
-                //     public static void Foo(this t) {}
+    // (9,34): error CS1001: Identifier expected
+    //     public static void Foo(this t) {}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-                // (10,32): error CS1001: Identifier expected
-                //     public static void Foo(int this) {}
+    // (10,32): error CS1001: Identifier expected
+    //     public static void Foo(int this) {}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-                // (10,32): error CS1003: Syntax error, ',' expected
-                //     public static void Foo(int this) {}
+    // (10,32): error CS1003: Syntax error, ',' expected
+    //     public static void Foo(int this) {}
     Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-                // (10,36): error CS1031: Type expected
-                //     public static void Foo(int this) {}
+    // (10,36): error CS1031: Type expected
+    //     public static void Foo(int this) {}
     Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-                // (10,36): error CS1001: Identifier expected
-                //     public static void Foo(int this) {}
+    // (10,36): error CS1001: Identifier expected
+    //     public static void Foo(int this) {}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
@@ -2703,7 +2702,7 @@ public class a {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_RbraceExpected, "") );
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
         // Infinite loop 
@@ -2727,23 +2726,23 @@ namespace x
 ";
 
             ParseAndValidate(test,
-                // (1,15): error CS1514: { expected
-                // public class S.D 
+   // (1,15): error CS1514: { expected
+   // public class S.D 
    Diagnostic(ErrorCode.ERR_LbraceExpected, "."),
-                // (1,15): error CS1513: } expected
-                // public class S.D 
+   // (1,15): error CS1513: } expected
+   // public class S.D 
    Diagnostic(ErrorCode.ERR_RbraceExpected, "."),
-                // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
-                // public class S.D 
+   // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
+   // public class S.D 
    Diagnostic(ErrorCode.ERR_EOFExpected, "."),
-                // (1,16): error CS0116: A namespace does not directly contain members such as fields or methods
-                // public class S.D 
+   // (1,16): error CS0116: A namespace does not directly contain members such as fields or methods
+   // public class S.D 
    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D"),
-                // (2,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // {
+   // (2,1): error CS1022: Type or namespace definition, or end-of-file expected
+   // {
    Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
+   // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+   // }
    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         }
 
@@ -2786,14 +2785,14 @@ class C
 ";
 
             ParseAndValidate(test,
-                // (6,18): error CS1031: Type expected
-                //         foreach (1)
+    // (6,18): error CS1031: Type expected
+    //         foreach (1)
     Diagnostic(ErrorCode.ERR_TypeExpected, "1"),
-                // (6,18): error CS1001: Identifier expected
-                //         foreach (1)
+    // (6,18): error CS1001: Identifier expected
+    //         foreach (1)
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "1"),
-                // (6,18): error CS1515: 'in' expected
-                //         foreach (1)
+    // (6,18): error CS1515: 'in' expected
+    //         foreach (1)
     Diagnostic(ErrorCode.ERR_InExpected, "1"));
         }
 
@@ -2816,17 +2815,17 @@ class Test
 ";
             // TODO: Extra errors
             ParseAndValidate(test,
-                // (4,5): error CS1517: Invalid preprocessor expression
-                // #if 1=2
+    // (4,5): error CS1517: Invalid preprocessor expression
+    // #if 1=2
     Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, "1"),
-                // (4,5): error CS1025: Single-line comment or end-of-line expected
-                // #if 1=2
+    // (4,5): error CS1025: Single-line comment or end-of-line expected
+    // #if 1=2
     Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "1"),
-                // (8,5): error CS1517: Invalid preprocessor expression
-                // #if 0
+    // (8,5): error CS1517: Invalid preprocessor expression
+    // #if 0
     Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, "0"),
-                // (8,5): error CS1025: Single-line comment or end-of-line expected
-                // #if 0
+    // (8,5): error CS1025: Single-line comment or end-of-line expected
+    // #if 0
     Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "0"));
         }
 
@@ -2882,20 +2881,20 @@ struct s1
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (4,5): error CS1519: Invalid token 'goto' in class, struct, or interface member declaration
-                //     goto Labl; // Invalid
+    // (4,5): error CS1519: Invalid token 'goto' in class, struct, or interface member declaration
+    //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "goto").WithArguments("goto"),
-                // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     goto Labl; // Invalid
+    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-                // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     goto Labl; // Invalid
+    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-                // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
-                //     Lab1:
+    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"),
-                // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
-                //     Lab1:
+    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"));
         }
 
@@ -2964,23 +2963,23 @@ namespace nms
 ";
             // Extra Errors
             ParseAndValidate(test,
-                // (12,13): error CS1524: Expected catch or finally
-                //             }
+    // (12,13): error CS1524: Expected catch or finally
+    //             }
     Diagnostic(ErrorCode.ERR_ExpectedEndTry, "}"),
-                // (11,21): error CS1031: Type expected
-                //             sizeof (throw new RecoverableException("An exception has occurred"));
+    // (11,21): error CS1031: Type expected
+    //             sizeof (throw new RecoverableException("An exception has occurred"));
     Diagnostic(ErrorCode.ERR_TypeExpected, "throw"),
-                // (11,21): error CS1026: ) expected
-                //             sizeof (throw new RecoverableException("An exception has occurred"));
+    // (11,21): error CS1026: ) expected
+    //             sizeof (throw new RecoverableException("An exception has occurred"));
     Diagnostic(ErrorCode.ERR_CloseParenExpected, "throw"),
-                // (11,21): error CS1002: ; expected
-                //             sizeof (throw new RecoverableException("An exception has occurred"));
+    // (11,21): error CS1002: ; expected
+    //             sizeof (throw new RecoverableException("An exception has occurred"));
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "throw"),
-                // (11,80): error CS1002: ; expected
-                //             sizeof (throw new RecoverableException("An exception has occurred"));
+    // (11,80): error CS1002: ; expected
+    //             sizeof (throw new RecoverableException("An exception has occurred"));
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (11,80): error CS1513: } expected
-                //             sizeof (throw new RecoverableException("An exception has occurred"));
+    // (11,80): error CS1513: } expected
+    //             sizeof (throw new RecoverableException("An exception has occurred"));
     Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
         }
 
@@ -2998,11 +2997,11 @@ namespace nms
 ";
 
             ParseAndValidate(test,
-                // (5,18): error CS1525: Invalid expression term '}'
-                //             throw
+    // (5,18): error CS1525: Invalid expression term '}'
+    //             throw
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
-                // (5,18): error CS1002: ; expected
-                //             throw
+    // (5,18): error CS1002: ; expected
+    //             throw
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ""));
         }
 
@@ -3077,29 +3076,29 @@ Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?"));
 ";
 
             ParseAndValidate(test,
-                // (7,27): error CS1003: Syntax error, ':' expected
-                //         int s = true ? x++, y++ : y++; // Invalid
+    // (7,27): error CS1003: Syntax error, ':' expected
+    //         int s = true ? x++, y++ : y++; // Invalid
     Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":", ","),
-                // (7,27): error CS1525: Invalid expression term ','
-                //         int s = true ? x++, y++ : y++; // Invalid
+    // (7,27): error CS1525: Invalid expression term ','
+    //         int s = true ? x++, y++ : y++; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
-                // (7,30): error CS1002: ; expected
-                //         int s = true ? x++, y++ : y++; // Invalid
+    // (7,30): error CS1002: ; expected
+    //         int s = true ? x++, y++ : y++; // Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "++"),
-                // (7,33): error CS1525: Invalid expression term ':'
-                //         int s = true ? x++, y++ : y++; // Invalid
+    // (7,33): error CS1525: Invalid expression term ':'
+    //         int s = true ? x++, y++ : y++; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
-                // (7,33): error CS1002: ; expected
-                //         int s = true ? x++, y++ : y++; // Invalid
+    // (7,33): error CS1002: ; expected
+    //         int s = true ? x++, y++ : y++; // Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-                // (7,33): error CS1513: } expected
-                //         int s = true ? x++, y++ : y++; // Invalid
+    // (7,33): error CS1513: } expected
+    //         int s = true ? x++, y++ : y++; // Invalid
     Diagnostic(ErrorCode.ERR_RbraceExpected, ":"),
-                // (8,29): error CS1002: ; expected
-                //         s = true ? x++ : x++, y++; // Invalid
+    // (8,29): error CS1002: ; expected
+    //         s = true ? x++ : x++, y++; // Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
-                // (8,29): error CS1513: } expected
-                //         s = true ? x++ : x++, y++; // Invalid
+    // (8,29): error CS1513: } expected
+    //         s = true ? x++ : x++, y++; // Invalid
     Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
         }
 
@@ -3131,23 +3130,23 @@ class Program
 }
 ";
             ParseAndValidate(test,
-                // (5,23): error CS1525: Invalid expression term 'return'
-                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+    // (5,23): error CS1525: Invalid expression term 'return'
+    //         int s = 1>2 ? return 0: return 1; 	// Invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return"),
-                // (5,23): error CS1003: Syntax error, ':' expected
-                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+    // (5,23): error CS1003: Syntax error, ':' expected
+    //         int s = 1>2 ? return 0: return 1; 	// Invalid
     Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(":", "return"),
-                // (5,23): error CS1525: Invalid expression term 'return'
-                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+    // (5,23): error CS1525: Invalid expression term 'return'
+    //         int s = 1>2 ? return 0: return 1; 	// Invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return"),
-                // (5,23): error CS1002: ; expected
-                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+    // (5,23): error CS1002: ; expected
+    //         int s = 1>2 ? return 0: return 1; 	// Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "return"),
-                // (5,31): error CS1002: ; expected
-                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+    // (5,31): error CS1002: ; expected
+    //         int s = 1>2 ? return 0: return 1; 	// Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-                // (5,31): error CS1513: } expected
-                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+    // (5,31): error CS1513: } expected
+    //         int s = 1>2 ? return 0: return 1; 	// Invalid
     Diagnostic(ErrorCode.ERR_RbraceExpected, ":"));
         }
 
@@ -3167,23 +3166,23 @@ class Program
 }
 ";
             ParseAndValidate(test,
-                // (5,24): error CS1525: Invalid expression term 'goto'
-                //         int s = true ? goto lab1: goto lab2; // Invalid
+    // (5,24): error CS1525: Invalid expression term 'goto'
+    //         int s = true ? goto lab1: goto lab2; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto"),
-                // (5,24): error CS1003: Syntax error, ':' expected
-                //         int s = true ? goto lab1: goto lab2; // Invalid
+    // (5,24): error CS1003: Syntax error, ':' expected
+    //         int s = true ? goto lab1: goto lab2; // Invalid
     Diagnostic(ErrorCode.ERR_SyntaxError, "goto").WithArguments(":", "goto"),
-                // (5,24): error CS1525: Invalid expression term 'goto'
-                //         int s = true ? goto lab1: goto lab2; // Invalid
+    // (5,24): error CS1525: Invalid expression term 'goto'
+    //         int s = true ? goto lab1: goto lab2; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto"),
-                // (5,24): error CS1002: ; expected
-                //         int s = true ? goto lab1: goto lab2; // Invalid
+    // (5,24): error CS1002: ; expected
+    //         int s = true ? goto lab1: goto lab2; // Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "goto"),
-                // (5,33): error CS1002: ; expected
-                //         int s = true ? goto lab1: goto lab2; // Invalid
+    // (5,33): error CS1002: ; expected
+    //         int s = true ? goto lab1: goto lab2; // Invalid
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-                // (5,33): error CS1513: } expected
-                //         int s = true ? goto lab1: goto lab2; // Invalid
+    // (5,33): error CS1513: } expected
+    //         int s = true ? goto lab1: goto lab2; // Invalid
     Diagnostic(ErrorCode.ERR_RbraceExpected, ":"));
         }
 
@@ -3229,14 +3228,14 @@ public class mine {
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (12,17): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                //         try {B b(3);
+    // (12,17): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+    //         try {B b(3);
     Diagnostic(ErrorCode.ERR_BadVarDecl, "(3)"),
-                // (12,17): error CS1003: Syntax error, '[' expected
-                //         try {B b(3);
+    // (12,17): error CS1003: Syntax error, '[' expected
+    //         try {B b(3);
     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-                // (12,20): error CS1003: Syntax error, ']' expected
-                //         try {B b(3);
+    // (12,20): error CS1003: Syntax error, ']' expected
+    //         try {B b(3);
     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
         }
 
@@ -3251,17 +3250,17 @@ class C
 ";
             // Extra errors
             ParseAndValidate(test,
-                // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                //     event System.Action E();
+    // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+    //     event System.Action E();
     Diagnostic(ErrorCode.ERR_BadVarDecl, "()"),
-                // (4,26): error CS1003: Syntax error, '[' expected
-                //     event System.Action E();
+    // (4,26): error CS1003: Syntax error, '[' expected
+    //     event System.Action E();
     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-                // (4,27): error CS1525: Invalid expression term ')'
-                //     event System.Action E();
+    // (4,27): error CS1525: Invalid expression term ')'
+    //     event System.Action E();
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                // (4,28): error CS1003: Syntax error, ']' expected
-                //     event System.Action E();
+    // (4,28): error CS1003: Syntax error, ']' expected
+    //     event System.Action E();
     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
         }
 
@@ -3299,8 +3298,8 @@ class MyClass {
 ";
 
             ParseAndValidate(test,
-                // (4,36): error CS1534: Overloaded binary operator '+' takes two parameters
-                //     public static MyClass operator + (MyClass MC1, MyClass MC2, MyClass MC3) {
+    // (4,36): error CS1534: Overloaded binary operator '+' takes two parameters
+    //     public static MyClass operator + (MyClass MC1, MyClass MC2, MyClass MC3) {
     Diagnostic(ErrorCode.ERR_BadBinOpArgs, "+").WithArguments("+"));
         }
 
@@ -3336,11 +3335,11 @@ class Test
 ";
 
             ParseAndValidate(test,
-                // (4,21): error CS1536: Invalid parameter type 'void'
-                //     public void foo(void){}
+    // (4,21): error CS1536: Invalid parameter type 'void'
+    //     public void foo(void){}
     Diagnostic(ErrorCode.ERR_NoVoidParameter, "void"),
-                // (4,25): error CS1001: Identifier expected
-                //     public void foo(void){}
+    // (4,25): error CS1001: Identifier expected
+    //     public void foo(void){}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
@@ -3432,20 +3431,20 @@ public class MainClass
 ";
 
             ParseAndValidate(test,
-                // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+    // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+    //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+"),
-                // (3,23): error CS1003: Syntax error, 'operator' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+    // (3,23): error CS1003: Syntax error, 'operator' expected
+    //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit"),
-                // (3,23): error CS1019: Overloadable unary operator expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+    // (3,23): error CS1019: Overloadable unary operator expected
+    //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit"),
-                // (3,32): error CS1003: Syntax error, '(' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+    // (3,32): error CS1003: Syntax error, '(' expected
+    //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator"),
-                // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+    // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
+    //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator"));
         }
 
@@ -3516,11 +3515,11 @@ public class Test
 ";
 
             ParseAndValidate(test,
-                // (4,12): error CS1576: The line number specified for #line directive is missing or invalid
-                //     # line abc hidden
+    // (4,12): error CS1576: The line number specified for #line directive is missing or invalid
+    //     # line abc hidden
     Diagnostic(ErrorCode.ERR_InvalidLineNumber, "abc"),
-                // (7,7): error CS1576: The line number specified for #line directive is missing or invalid
-                // #line 0
+    // (7,7): error CS1576: The line number specified for #line directive is missing or invalid
+    // #line 0
     Diagnostic(ErrorCode.ERR_InvalidLineNumber, "0"));
         }
 
@@ -3534,11 +3533,11 @@ public class Test
 ";
 
             ParseAndValidate(test,
-                // (2,7): error CS1576: The line number specified for #line directive is missing or invalid
-                // #line 0
+    // (2,7): error CS1576: The line number specified for #line directive is missing or invalid
+    // #line 0
     Diagnostic(ErrorCode.ERR_InvalidLineNumber, "0"),
-                // (3,7): error CS1029: #error: ''
-                // #error
+    // (3,7): error CS1029: #error: ''
+    // #error
     Diagnostic(ErrorCode.ERR_ErrorDirective, "").WithArguments(""));
         }
 
@@ -3579,11 +3578,11 @@ public static int Main(){return 0;}
 ";
 
             ParseAndValidate(test,
-                // (7,24): error CS1585: Member modifier 'virtual' must precede the member type and name
-                //     public static void virtual f() {}
+    // (7,24): error CS1585: Member modifier 'virtual' must precede the member type and name
+    //     public static void virtual f() {}
     Diagnostic(ErrorCode.ERR_BadModifierLocation, "virtual").WithArguments("virtual"),
-                // (7,32): error CS1520: Method must have a return type
-                //     public static void virtual f() {}
+    // (7,32): error CS1520: Method must have a return type
+    //     public static void virtual f() {}
     Diagnostic(ErrorCode.ERR_MemberNeedsType, "f"));
         }
 
@@ -3623,7 +3622,7 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";") );
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";"));
         }
 
         [Fact]
@@ -3828,7 +3827,7 @@ static class Test
 }
 ";
 
-            ParseAndValidate(test, 
+            ParseAndValidate(test,
                 // (7,31): error CS1001: Identifier expected
                 //         Func<int,int> f1 = (x,) => 1;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
@@ -3959,11 +3958,11 @@ namespace N1
 
             // Native compiler : CS1003
             ParseAndValidate(test,
-                // (6,15): error CS7000: Unexpected use of an aliased name
-                //     namespace N1Alias::N2 {}
+    // (6,15): error CS7000: Unexpected use of an aliased name
+    //     namespace N1Alias::N2 {}
     Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2"),
-                // (12,22): error CS7000: Unexpected use of an aliased name
-                //             N1.global::Test.M1();
+    // (12,22): error CS7000: Unexpected use of an aliased name
+    //             N1.global::Test.M1();
     Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::"));
         }
 
@@ -3980,12 +3979,12 @@ public class Test
 
             // Native Compiler : CS1675 etc.
             ParseAndValidate(test,
-  // (1,6): error CS7002: Unexpected use of a generic name
+    // (1,6): error CS7002: Unexpected use of a generic name
     // enum E<T> {    One, Two, Three   }
     Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "E"),
     // (5,16): error CS7002: Unexpected use of a generic name
     //     public int this<V>[V v]  {    get { return 0; }   } 
-    Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this") );
+    Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this"));
         }
 
         [Fact, WorkItem(546212, "DevDiv")]
@@ -4011,74 +4010,73 @@ public class QueryExpressionTest
             // error CS1031: Type expected
             // error CS1525: Invalid expression term 'in' ... ...
             ParseAndValidate(text,
-                // (12,29): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,29): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-                // (12,35): error CS1031: Type expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,35): error CS1031: Type expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_TypeExpected, "in"),
-                // (12,35): error CS1001: Identifier expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,35): error CS1001: Identifier expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-                // (12,35): error CS0145: A const field requires a value to be provided
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,35): error CS0145: A const field requires a value to be provided
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_ConstValueRequired, "in"),
-                // (12,35): error CS1003: Syntax error, ',' expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,35): error CS1003: Syntax error, ',' expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in"),
-                // (12,38): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,38): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "expr1"),
-                // (12,50): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,50): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "i"),
-                // (12,52): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,52): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "in"),
-                // (12,52): error CS1513: } expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,52): error CS1513: } expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_RbraceExpected, "in"),
-                // (12,64): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,64): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-                // (12,77): error CS0145: A const field requires a value to be provided
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,77): error CS0145: A const field requires a value to be provided
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_ConstValueRequired, "i"),
-                // (12,79): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,79): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "select"),
-                // (12,86): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,86): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "new"),
-                // (12,92): error CS1513: } expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,92): error CS1513: } expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_RbraceExpected, "const"),
-                // (12,92): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,92): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-                // (12,97): error CS1031: Type expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,97): error CS1031: Type expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_TypeExpected, ","),
-                // (12,97): error CS1001: Identifier expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,97): error CS1001: Identifier expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_IdentifierExpected, ","),
-                // (12,97): error CS0145: A const field requires a value to be provided
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,97): error CS0145: A const field requires a value to be provided
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_ConstValueRequired, ","),
-                // (12,99): error CS0145: A const field requires a value to be provided
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,99): error CS0145: A const field requires a value to be provided
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_ConstValueRequired, "i"),
-                // (12,101): error CS1002: ; expected
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,101): error CS1002: ; expected
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "}"),
-                // (12,102): error CS1597: Semicolon after method or accessor block is not valid
-                //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
+              // (12,102): error CS1597: Semicolon after method or accessor block is not valid
+              //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";"),
-                // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
+              // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
+              // }
               Diagnostic(ErrorCode.ERR_EOFExpected, "}")
                 );
-        
         }
 
         [Fact]

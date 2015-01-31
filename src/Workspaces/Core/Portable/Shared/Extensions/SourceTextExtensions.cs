@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return -1;
         }
 
-        private static readonly TextInfo invariantTextInfo = CultureInfo.InvariantCulture.TextInfo;
+        private static readonly TextInfo s_invariantTextInfo = CultureInfo.InvariantCulture.TextInfo;
 
         private static bool Match(char nomalizedLeft, char right, bool caseSensitive)
         {
-            return caseSensitive ? nomalizedLeft == right : nomalizedLeft == invariantTextInfo.ToLower(right);
+            return caseSensitive ? nomalizedLeft == right : nomalizedLeft == s_invariantTextInfo.ToLower(right);
         }
     }
 }

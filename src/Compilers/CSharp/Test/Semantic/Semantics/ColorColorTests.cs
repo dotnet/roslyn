@@ -580,7 +580,7 @@ class F
             var comp = CreateCompilationWithMscorlib(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             var model = comp.GetSemanticModel(tree);
 
-            var expr = (IdentifierNameSyntax) GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var alias = model.GetAliasInfo(expr);
             Assert.Equal(SymbolKind.Alias, alias.Kind);
             Assert.Equal("Q=E", alias.ToTestDisplayString());
@@ -879,7 +879,6 @@ class F
         [Fact]
         public void TestAliasNameCollisionWithParameter1()
         {
- 
             var text = @"
 using U = C;
 
@@ -902,7 +901,7 @@ class C
 
         [Fact]
         public void TestAliasNameCollisionWithParameter2()
-        {           
+        {
             var text = @"
 using U = C;
 
@@ -1983,6 +1982,5 @@ class C
     Diagnostic(ErrorCode.ERR_UseDefViolation, "E").WithArguments("E").WithLocation(11, 17)
                 );
         }
-
     }
 }

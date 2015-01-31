@@ -422,7 +422,7 @@ class Program
             Assert.Equal(expected, actual);
         }
 
-        private static readonly string[] EnumTypeQualifiers =
+        private static readonly string[] s_enumTypeQualifiers =
             {
                 "",
                 " : sbyte",
@@ -438,7 +438,7 @@ class Program
         [Fact]
         public void TestExplicitEnumIntConversions()
         {
-            foreach (var typeQualifier in EnumTypeQualifiers)
+            foreach (var typeQualifier in s_enumTypeQualifiers)
             {
                 var source =
 @"enum E" + typeQualifier + @" { A, B = 64, C }
@@ -508,7 +508,7 @@ class C
         [Fact]
         public void TestExplicitEnumEnumConversions()
         {
-            foreach (var typeQualifier in EnumTypeQualifiers)
+            foreach (var typeQualifier in s_enumTypeQualifiers)
             {
                 var source =
 @"enum E" + typeQualifier + @" { A, B = 3, C }
@@ -553,7 +553,7 @@ class C
         [Fact]
         public void TestConstantEnumOperations()
         {
-            foreach (var typeQualifier in EnumTypeQualifiers)
+            foreach (var typeQualifier in s_enumTypeQualifiers)
             {
                 var source =
 @"enum E" + typeQualifier + @" { A, B, C }
@@ -2839,22 +2839,22 @@ void f() { if () const int i = 0; }
         {
             var s = new BoundTreeSequencer();
             s.Visit(root);
-            foreach (var node in s.list)
+            foreach (var node in s._list)
                 yield return node;
         }
 
-        private readonly List<BoundNode> list;
+        private readonly List<BoundNode> _list;
 
         private BoundTreeSequencer()
         {
-            list = new List<BoundNode>();
+            _list = new List<BoundNode>();
         }
 
         public override BoundNode Visit(BoundNode node)
         {
             if (node != null) //e.g. static method invocations have null receivers
             {
-                list.Add(node);
+                _list.Add(node);
             }
             return base.Visit(node);
         }

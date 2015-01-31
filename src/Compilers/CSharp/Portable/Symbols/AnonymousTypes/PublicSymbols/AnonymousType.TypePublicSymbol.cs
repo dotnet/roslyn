@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class AnonymousTypePublicSymbol : NamedTypeSymbol
         {
-            private readonly ImmutableArray<Symbol> members;
+            private readonly ImmutableArray<Symbol> _members;
 
             /// <summary> Properties defined in the type </summary>
             internal readonly ImmutableArray<AnonymousTypePropertySymbol> Properties;
 
             /// <summary> Maps member names to symbol(s) </summary>
-            private readonly MultiDictionary<string, Symbol> nameToSymbols = new MultiDictionary<string, Symbol>();
+            private readonly MultiDictionary<string, Symbol> _nameToSymbols = new MultiDictionary<string, Symbol>();
 
             /// <summary> Anonymous type manager owning this template </summary>
             internal readonly AnonymousTypeManager Manager;
@@ -78,19 +78,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Add a constructor
                 members[memberIndex++] = new AnonymousTypeConstructorSymbol(this, this.Properties);
-                this.members = members.AsImmutableOrNull();
-                Debug.Assert(memberIndex == this.members.Length);
+                _members = members.AsImmutableOrNull();
+                Debug.Assert(memberIndex == _members.Length);
 
                 //  fill nameToSymbols map
-                foreach (var symbol in this.members)
+                foreach (var symbol in _members)
                 {
-                    this.nameToSymbols.Add(symbol.Name, symbol);
+                    _nameToSymbols.Add(symbol.Name, symbol);
                 }
             }
 
             public override ImmutableArray<Symbol> GetMembers()
             {
-                return this.members;
+                return _members;
             }
 
             internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
-                var symbols = this.nameToSymbols[name];
+                var symbols = _nameToSymbols[name];
                 var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Count);
                 foreach (var symbol in symbols)
                 {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override IEnumerable<string> MemberNames
             {
-                get { return this.nameToSymbols.Keys; }
+                get { return _nameToSymbols.Keys; }
             }
 
             public override Symbol ContainingSymbol

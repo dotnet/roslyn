@@ -10,22 +10,22 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal abstract partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly object gate = new object();
+        private readonly object _gate = new object();
 
-        private readonly HashSet<TaskCompletionSource<bool>> pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
 
-        private int counter;
-        private bool trackActiveTokens = false;
-        private HashSet<DiagnosticAsyncToken> activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
+        private int _counter;
+        private bool _trackActiveTokens = false;
+        private HashSet<DiagnosticAsyncToken> _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null)
         {
-            lock (gate)
+            lock (_gate)
             {
-                if (trackActiveTokens)
+                if (_trackActiveTokens)
                 {
                     var token = new DiagnosticAsyncToken(this, name, tag);
-                    activeDiagnosticTokens.Add(token);
+                    _activeDiagnosticTokens.Add(token);
                     return token;
                 }
                 else
@@ -37,34 +37,34 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private void Increment()
         {
-            lock (gate)
+            lock (_gate)
             {
-                counter++;
+                _counter++;
             }
         }
 
         private void Decrement(AsyncToken token)
         {
-            lock (gate)
+            lock (_gate)
             {
-                counter--;
-                if (counter == 0)
+                _counter--;
+                if (_counter == 0)
                 {
-                    foreach (var task in pendingTasks)
+                    foreach (var task in _pendingTasks)
                     {
                         task.SetResult(true);
                     }
 
-                    pendingTasks.Clear();
+                    _pendingTasks.Clear();
                 }
 
-                if (trackActiveTokens)
+                if (_trackActiveTokens)
                 {
                     var diagnosticAsyncToken = token as DiagnosticAsyncToken;
 
                     if (diagnosticAsyncToken != null)
                     {
-                        activeDiagnosticTokens.Remove(diagnosticAsyncToken);
+                        _activeDiagnosticTokens.Remove(diagnosticAsyncToken);
                     }
                 }
             }
@@ -72,17 +72,17 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public virtual Task CreateWaitTask()
         {
-            lock (gate)
+            lock (_gate)
             {
                 var source = new TaskCompletionSource<bool>();
-                if (counter == 0)
+                if (_counter == 0)
                 {
                     // There is nothing to wait for, so we are immediately done
                     source.SetResult(true);
                 }
                 else
                 {
-                    pendingTasks.Add(source);
+                    _pendingTasks.Add(source);
                 }
 
                 return source.Task;
@@ -93,27 +93,27 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             get
             {
-                return trackActiveTokens;
+                return _trackActiveTokens;
             }
 
             set
             {
-                lock (gate)
+                lock (_gate)
                 {
-                    if (trackActiveTokens == value)
+                    if (_trackActiveTokens == value)
                     {
                         return;
                     }
 
-                    trackActiveTokens = value;
+                    _trackActiveTokens = value;
 
-                    if (trackActiveTokens)
+                    if (_trackActiveTokens)
                     {
-                        activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
+                        _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
                     }
                     else
                     {
-                        activeDiagnosticTokens = null;
+                        _activeDiagnosticTokens = null;
                     }
                 }
             }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             get
             {
-                return counter != 0;
+                return _counter != 0;
             }
         }
 
@@ -131,14 +131,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             get
             {
-                lock (gate)
+                lock (_gate)
                 {
-                    if (activeDiagnosticTokens == null)
+                    if (_activeDiagnosticTokens == null)
                     {
                         return ImmutableArray<DiagnosticAsyncToken>.Empty;
                     }
 
-                    return activeDiagnosticTokens.ToImmutableArray();
+                    return _activeDiagnosticTokens.ToImmutableArray();
                 }
             }
         }

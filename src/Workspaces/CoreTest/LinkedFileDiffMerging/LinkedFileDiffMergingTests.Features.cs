@@ -165,5 +165,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 }",
                 LanguageNames.CSharp);
         }
-    }   
+    }
 }

@@ -117,16 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expressionSyntax,
                     rewrittenExpression,
                     node.IDisposableConversion.Kind,
-                    this.compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
 
-                boundTemp = this.factory.StoreToTemp(tempInit, out tempAssignment);
+                boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment);
             }
             else
             {
                 // ResourceType temp = expr;
-                boundTemp = this.factory.StoreToTemp(rewrittenExpression, out tempAssignment, syntaxOpt: usingSyntax, kind: SynthesizedLocalKind.Using);
+                boundTemp = _factory.StoreToTemp(rewrittenExpression, out tempAssignment, syntaxOpt: usingSyntax, kind: SynthesizedLocalKind.Using);
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
@@ -179,11 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declarationSyntax,
                     boundLocal,
                     idisposableConversion,
-                    compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false);
 
                 BoundAssignmentOperator tempAssignment;
-                BoundLocal boundTemp = this.factory.StoreToTemp(tempInit, out tempAssignment);
+                BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment);
 
                 BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
 

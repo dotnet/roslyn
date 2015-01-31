@@ -17,68 +17,68 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
     public class Failure
     {
-        private string m_File;
+        private string _file;
         public string File
         {
             get
             {
-                if (m_File == null)
+                if (_file == null)
                 {
-                    m_File = string.Empty;
+                    _file = string.Empty;
                 }
 
-                return m_File;
+                return _file;
             }
         }
 
-        private readonly Rule m_Rule;
+        private readonly Rule _rule;
         public Rule Rule
         {
             get
             {
-                return m_Rule;
+                return _rule;
             }
         }
 
-        private string m_ErrorText;
+        private string _errorText;
         public string ErrorText
         {
             get
             {
-                if (m_ErrorText == null)
+                if (_errorText == null)
                 {
-                    m_ErrorText = string.Empty;
+                    _errorText = string.Empty;
                 }
 
-                return m_ErrorText;
+                return _errorText;
             }
         }
 
-        private Location m_Location;
+        private Location _location;
         public Location Location
         {
             get
             {
-                if (m_Location == null)
+                if (_location == null)
                 {
-                    m_Location = FailureLocation.Default;
+                    _location = FailureLocation.Default;
                 }
 
-                return m_Location;
+                return _location;
             }
         }
 
-        private string m_NodeKind;
+        private string _nodeKind;
         public string NodeKind
         {
             get
             {
-                if (m_NodeKind == null)
+                if (_nodeKind == null)
                 {
-                    m_NodeKind = string.Empty;
+                    _nodeKind = string.Empty;
                 }
 
-                return m_NodeKind;
+                return _nodeKind;
             }
         }
 
@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public Failure(string file, Rule rule, string nodeKind, string errorText, Location location)
         {
-            m_File = file;
-            m_Rule = rule;
-            m_NodeKind = nodeKind;
-            m_ErrorText = errorText;
-            m_Location = location;
+            _file = file;
+            _rule = rule;
+            _nodeKind = nodeKind;
+            _errorText = errorText;
+            _location = location;
         }
     }
 
@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private readonly Dictionary<string, TreeRule> m_TreeRules = new Dictionary<string, TreeRule>();
-        private readonly Dictionary<string, NonTerminalRule> m_NonTerminalRules = new Dictionary<string, NonTerminalRule>();
-        private readonly Dictionary<string, TokenRule> m_TokenRules = new Dictionary<string, TokenRule>();
-        private readonly Dictionary<string, TriviaRule> m_TriviaRules = new Dictionary<string, TriviaRule>();
+        private readonly Dictionary<string, TreeRule> _treeRules = new Dictionary<string, TreeRule>();
+        private readonly Dictionary<string, NonTerminalRule> _nonTerminalRules = new Dictionary<string, NonTerminalRule>();
+        private readonly Dictionary<string, TokenRule> _tokenRules = new Dictionary<string, TokenRule>();
+        private readonly Dictionary<string, TriviaRule> _triviaRules = new Dictionary<string, TriviaRule>();
         private event ErrorHandlerDelegate ValidationFailed;
 
         public TreeValidator(ISyntaxNodeKindProvider nodeKindProvider)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (rule != null)
             {
-                m_TreeRules[rule.Name] = rule;
+                _treeRules[rule.Name] = rule;
             }
         }
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (rule != null)
             {
-                m_NonTerminalRules[rule.Name] = rule;
+                _nonTerminalRules[rule.Name] = rule;
             }
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (rule != null)
             {
-                m_TokenRules[rule.Name] = rule;
+                _tokenRules[rule.Name] = rule;
             }
         }
 
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (rule != null)
             {
-                m_TriviaRules[rule.Name] = rule;
+                _triviaRules[rule.Name] = rule;
             }
         }
 
@@ -373,24 +373,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (!string.IsNullOrEmpty(ruleName))
             {
-                if (m_TreeRules.ContainsKey(ruleName))
+                if (_treeRules.ContainsKey(ruleName))
                 {
-                    m_TreeRules.Remove(ruleName);
+                    _treeRules.Remove(ruleName);
                 }
 
-                if (m_NonTerminalRules.ContainsKey(ruleName))
+                if (_nonTerminalRules.ContainsKey(ruleName))
                 {
-                    m_NonTerminalRules.Remove(ruleName);
+                    _nonTerminalRules.Remove(ruleName);
                 }
 
-                if (m_TokenRules.ContainsKey(ruleName))
+                if (_tokenRules.ContainsKey(ruleName))
                 {
-                    m_TokenRules.Remove(ruleName);
+                    _tokenRules.Remove(ruleName);
                 }
 
-                if (m_TriviaRules.ContainsKey(ruleName))
+                if (_triviaRules.ContainsKey(ruleName))
                 {
-                    m_TriviaRules.Remove(ruleName);
+                    _triviaRules.Remove(ruleName);
                 }
             }
         }
@@ -399,35 +399,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (!string.IsNullOrEmpty(group))
             {
-                foreach (var r in m_TreeRules)
+                foreach (var r in _treeRules)
                 {
                     if (r.Value.Group == group)
                     {
-                        m_TreeRules.Remove(r.Value.Name);
+                        _treeRules.Remove(r.Value.Name);
                     }
                 }
 
-                foreach (var r in m_NonTerminalRules)
+                foreach (var r in _nonTerminalRules)
                 {
                     if (r.Value.Group == group)
                     {
-                        m_NonTerminalRules.Remove(r.Value.Name);
+                        _nonTerminalRules.Remove(r.Value.Name);
                     }
                 }
 
-                foreach (var r in m_TokenRules)
+                foreach (var r in _tokenRules)
                 {
                     if (r.Value.Group == group)
                     {
-                        m_TokenRules.Remove(r.Value.Name);
+                        _tokenRules.Remove(r.Value.Name);
                     }
                 }
 
-                foreach (var r in m_TriviaRules)
+                foreach (var r in _triviaRules)
                 {
                     if (r.Value.Group == group)
                     {
-                        m_TriviaRules.Remove(r.Value.Name);
+                        _triviaRules.Remove(r.Value.Name);
                     }
                 }
             }
@@ -435,22 +435,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void UnregisterAllTreeRules()
         {
-            m_TreeRules.Clear();
+            _treeRules.Clear();
         }
 
         public void UnregisterAllNonTerminalRules()
         {
-            m_NonTerminalRules.Clear();
+            _nonTerminalRules.Clear();
         }
 
         public void UnregisterAllTokenRules()
         {
-            m_TokenRules.Clear();
+            _tokenRules.Clear();
         }
 
         public void UnregisterAllTriviaRules()
         {
-            m_TriviaRules.Clear();
+            _triviaRules.Clear();
         }
 
         public void UnregisterAllRules()
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool pass = false;
             if (tree != null)
             {
-                foreach (var rule in m_TreeRules.Values)
+                foreach (var rule in _treeRules.Values)
                 {
                     var errorText = string.Empty;
                     pass = rule.Test(tree, codeText, filename, ref errorText);
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 bool pass = false;
-                foreach (var rule in m_NonTerminalRules.Values)
+                foreach (var rule in _nonTerminalRules.Values)
                 {
                     var errorText = string.Empty;
                     pass = rule.Test(nonTerminal, tree, ref errorText);
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             bool pass = false;
-            foreach (var rule in m_TokenRules.Values)
+            foreach (var rule in _tokenRules.Values)
             {
                 var errorText = string.Empty;
                 pass = rule.Test(token, tree, ref errorText);
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             bool pass = false;
-            foreach (var rule in m_TriviaRules.Values)
+            foreach (var rule in _triviaRules.Values)
             {
                 var errorText = string.Empty;
                 pass = rule.Test(trivia, tree, ref errorText);
@@ -632,12 +632,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 filename = string.Empty;
             }
 
-            if (m_TreeRules.Count > 0)
+            if (_treeRules.Count > 0)
             {
                 retVal = retVal & ValidateTree(tree, codeText, filename, failures);
             }
 
-            if (m_NonTerminalRules.Count > 0)
+            if (_nonTerminalRules.Count > 0)
             {
                 retVal = retVal & ValidateNonTerminal(tree.GetRoot(), tree, filename, failures);
             }

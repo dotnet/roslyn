@@ -9,34 +9,34 @@ namespace Microsoft.CodeAnalysis
 {
     public struct ProjectChanges
     {
-        private readonly Project newProject;
-        private readonly Project oldProject;
+        private readonly Project _newProject;
+        private readonly Project _oldProject;
 
         internal ProjectChanges(Project newProject, Project oldProject)
         {
-            this.newProject = newProject;
-            this.oldProject = oldProject;
+            _newProject = newProject;
+            _oldProject = oldProject;
         }
 
         public ProjectId ProjectId
         {
-            get { return this.newProject.Id; }
+            get { return _newProject.Id; }
         }
 
         public Project OldProject
         {
-            get { return this.oldProject; }
+            get { return _oldProject; }
         }
 
         public Project NewProject
         {
-            get { return this.newProject; }
+            get { return _newProject; }
         }
 
         public IEnumerable<ProjectReference> GetAddedProjectReferences()
         {
-            var oldRefs = new HashSet<ProjectReference>(this.oldProject.ProjectReferences);
-            foreach (var reference in this.newProject.ProjectReferences)
+            var oldRefs = new HashSet<ProjectReference>(_oldProject.ProjectReferences);
+            foreach (var reference in _newProject.ProjectReferences)
             {
                 if (!oldRefs.Contains(reference))
                 {
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<ProjectReference> GetRemovedProjectReferences()
         {
-            var newRefs = new HashSet<ProjectReference>(this.newProject.ProjectReferences);
-            foreach (var reference in this.oldProject.ProjectReferences)
+            var newRefs = new HashSet<ProjectReference>(_newProject.ProjectReferences);
+            foreach (var reference in _oldProject.ProjectReferences)
             {
                 if (!newRefs.Contains(reference))
                 {
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<MetadataReference> GetAddedMetadataReferences()
         {
-            var oldMetadata = new HashSet<MetadataReference>(this.oldProject.MetadataReferences);
-            foreach (var metadata in this.newProject.MetadataReferences)
+            var oldMetadata = new HashSet<MetadataReference>(_oldProject.MetadataReferences);
+            foreach (var metadata in _newProject.MetadataReferences)
             {
                 if (!oldMetadata.Contains(metadata))
                 {
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<MetadataReference> GetRemovedMetadataReferences()
         {
-            var newMetadata = new HashSet<MetadataReference>(this.newProject.MetadataReferences);
-            foreach (var metadata in this.oldProject.MetadataReferences)
+            var newMetadata = new HashSet<MetadataReference>(_newProject.MetadataReferences);
+            foreach (var metadata in _oldProject.MetadataReferences)
             {
                 if (!newMetadata.Contains(metadata))
                 {
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
         {
-            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(this.oldProject.AnalyzerReferences);
-            foreach (var analyzerReference in this.newProject.AnalyzerReferences)
+            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldProject.AnalyzerReferences);
+            foreach (var analyzerReference in _newProject.AnalyzerReferences)
             {
                 if (!oldAnalyzerReferences.Contains(analyzerReference))
                 {
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
         {
-            var newAnalyzerReferences = new HashSet<AnalyzerReference>(this.newProject.AnalyzerReferences);
-            foreach (var analyzerReference in this.oldProject.AnalyzerReferences)
+            var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newProject.AnalyzerReferences);
+            foreach (var analyzerReference in _oldProject.AnalyzerReferences)
             {
                 if (!newAnalyzerReferences.Contains(analyzerReference))
                 {
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<DocumentId> GetAddedDocuments()
         {
-            foreach (var id in this.newProject.DocumentIds)
+            foreach (var id in _newProject.DocumentIds)
             {
-                if (!this.oldProject.ContainsDocument(id))
+                if (!_oldProject.ContainsDocument(id))
                 {
                     yield return id;
                 }
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<DocumentId> GetAddedAdditionalDocuments()
         {
-            foreach (var id in this.newProject.AdditionalDocumentIds)
+            foreach (var id in _newProject.AdditionalDocumentIds)
             {
-                if (!this.oldProject.ContainsAdditionalDocument(id))
+                if (!_oldProject.ContainsAdditionalDocument(id))
                 {
                     yield return id;
                 }
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<DocumentId> GetChangedDocuments()
         {
             // if the document states are different then there is a change.
-            foreach (var id in this.newProject.DocumentIds)
+            foreach (var id in _newProject.DocumentIds)
             {
-                var newState = this.newProject.GetDocumentState(id);
-                var oldState = this.oldProject.GetDocumentState(id);
+                var newState = _newProject.GetDocumentState(id);
+                var oldState = _oldProject.GetDocumentState(id);
                 if (oldState != null && newState != oldState)
                 {
                     yield return id;
@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<DocumentId> GetChangedAdditionalDocuments()
         {
             // if the document states are different then there is a change.
-            foreach (var id in this.newProject.AdditionalDocumentIds)
+            foreach (var id in _newProject.AdditionalDocumentIds)
             {
-                var newState = this.newProject.GetAdditionalDocumentState(id);
-                var oldState = this.oldProject.GetAdditionalDocumentState(id);
+                var newState = _newProject.GetAdditionalDocumentState(id);
+                var oldState = _oldProject.GetAdditionalDocumentState(id);
                 if (oldState != null && newState != oldState)
                 {
                     yield return id;
@@ -157,9 +157,9 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<DocumentId> GetRemovedDocuments()
         {
-            foreach (var id in this.oldProject.DocumentIds)
+            foreach (var id in _oldProject.DocumentIds)
             {
-                if (!this.newProject.ContainsDocument(id))
+                if (!_newProject.ContainsDocument(id))
                 {
                     yield return id;
                 }
@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerable<DocumentId> GetRemovedAdditionalDocuments()
         {
-            foreach (var id in this.oldProject.AdditionalDocumentIds)
+            foreach (var id in _oldProject.AdditionalDocumentIds)
             {
-                if (!this.newProject.ContainsAdditionalDocument(id))
+                if (!_newProject.ContainsAdditionalDocument(id))
                 {
                     yield return id;
                 }

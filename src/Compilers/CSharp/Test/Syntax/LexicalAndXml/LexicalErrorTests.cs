@@ -201,14 +201,14 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,17): error CS1039: Unterminated string literal
-                //       string s =@"string;
+    // (6,17): error CS1039: Unterminated string literal
+    //       string s =@"string;
     Diagnostic(ErrorCode.ERR_UnterminatedStringLit, ""),
-                // (10,1): error CS1002: ; expected
+    // (10,1): error CS1002: ; expected
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
-                // (10,1): error CS1513: } expected
+    // (10,1): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (10,1): error CS1513: } expected
+    // (10,1): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
@@ -267,22 +267,22 @@ int x = 0;
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,// (1,8): error CS1002: ; expected
-                // using S\u005Cu0065 = System;
+                                                          // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\u005C"),
-                // (1,14): error CS0116: A namespace does not directly contain members such as fields or methods
-                // using S\u005Cu0065 = System;
+    // (1,14): error CS0116: A namespace does not directly contain members such as fields or methods
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "u0065"),
-                // (1,22): error CS0116: A namespace does not directly contain members such as fields or methods
-                // using S\u005Cu0065 = System;
+    // (1,22): error CS0116: A namespace does not directly contain members such as fields or methods
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "System"),
-                // (1,8): error CS1056: Unexpected character '\u005C'
-                // using S\u005Cu0065 = System;
+    // (1,8): error CS1056: Unexpected character '\u005C'
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u005C"),
-                // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // using S\u005Cu0065 = System;
+    // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_EOFExpected, "="),
-                // (1,28): error CS1022: Type or namespace definition, or end-of-file expected
-                // using S\u005Cu0065 = System;
+    // (1,28): error CS1022: Type or namespace definition, or end-of-file expected
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_EOFExpected, ";"));
         }
 
@@ -318,16 +318,16 @@ class Test
 
             // Roslyn more errors
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (7,17): error CS1525: Invalid expression term ''
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1525: Invalid expression term ''
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments(""),
-                // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""),
                 // (7,18): error CS1056: Unexpected character '\u0303'
                 //         int i = @\u0303;  // CS1646
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "5"));
-    // Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
+            // Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
         }
 
         [Fact]
@@ -346,14 +346,14 @@ class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (7,17): error CS1525: Invalid expression term ''
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1525: Invalid expression term ''
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments(""),
-                // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""),
-                // (7,18): error CS1056: Unexpected character '\u0303'
-                //         int i = @\u0303;  // CS1646
+    // (7,18): error CS1056: Unexpected character '\u0303'
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
         }
 

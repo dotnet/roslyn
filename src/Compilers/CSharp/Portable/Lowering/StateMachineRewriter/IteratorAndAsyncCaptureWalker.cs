@@ -25,23 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // In Release builds we hoist only variables (locals and parameters) that are captured. 
         // This set will contain such variables after the bound tree is visited.
-        private readonly OrderedSet<Symbol> variablesToHoist;
+        private readonly OrderedSet<Symbol> _variablesToHoist;
 
         // Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         // The value is a list of all uses of each such variable.
-        private MultiDictionary<Symbol, CSharpSyntaxNode> lazyDisallowedCaptures;
+        private MultiDictionary<Symbol, CSharpSyntaxNode> _lazyDisallowedCaptures;
 
-        private bool seenYieldInCurrentTry;
+        private bool _seenYieldInCurrentTry;
 
         private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, NeverEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
-            : base(compilation, 
-                  method, 
-                  node, 
-                  emptyStructCache, 
-                  trackUnassignments: true, 
+            : base(compilation,
+                  method,
+                  node,
+                  emptyStructCache,
+                  trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
-            this.variablesToHoist = new OrderedSet<Symbol>();
+            _variablesToHoist = new OrderedSet<Symbol>();
         }
 
         // Returns deterministically ordered list of variables that ought to be hoisted.
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.CaptureVariable(method.ThisParameter, node.Syntax);
             }
 
-            var variablesToHoist = walker.variablesToHoist;
-            var lazyDisallowedCaptures = walker.lazyDisallowedCaptures;
+            var variablesToHoist = walker._variablesToHoist;
+            var lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
             var allVariables = walker.variableBySlot;
 
             walker.Free();
@@ -156,14 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitYieldReturnStatement(node);
             MarkLocalsUnassigned();
-            seenYieldInCurrentTry = true;
+            _seenYieldInCurrentTry = true;
             return null;
         }
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            variablesToHoist.Clear();
-            lazyDisallowedCaptures?.Clear();
+            _variablesToHoist.Clear();
+            _lazyDisallowedCaptures?.Clear();
 
             return base.Scan(ref badRegion);
         }
@@ -179,16 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (lazyDisallowedCaptures == null)
+                if (_lazyDisallowedCaptures == null)
                 {
-                    lazyDisallowedCaptures = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+                    _lazyDisallowedCaptures = new MultiDictionary<Symbol, CSharpSyntaxNode>();
                 }
 
-                lazyDisallowedCaptures.Add(variable, syntax);
+                _lazyDisallowedCaptures.Add(variable, syntax);
             }
             else if (compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
-                variablesToHoist.Add(variable);
+                _variablesToHoist.Add(variable);
             }
         }
 
@@ -264,16 +264,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            var origSeenYieldInCurrentTry = this.seenYieldInCurrentTry;
-            this.seenYieldInCurrentTry = false;
+            var origSeenYieldInCurrentTry = _seenYieldInCurrentTry;
+            _seenYieldInCurrentTry = false;
             base.VisitTryStatement(node);
-            this.seenYieldInCurrentTry |= origSeenYieldInCurrentTry;
+            _seenYieldInCurrentTry |= origSeenYieldInCurrentTry;
             return null;
         }
 
         protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
         {
-            if (seenYieldInCurrentTry)
+            if (_seenYieldInCurrentTry)
             {
                 // Locals cannot be used to communicate between the finally block and the rest of the method.
                 // So we just capture any outside variables that are used inside.
@@ -285,15 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class OutsideVariablesUsedInside : BoundTreeWalker
         {
-            private readonly HashSet<Symbol> localsInScope;
-            private readonly IteratorAndAsyncCaptureWalker analyzer;
-            private readonly MethodSymbol topLevelMethod;
+            private readonly HashSet<Symbol> _localsInScope;
+            private readonly IteratorAndAsyncCaptureWalker _analyzer;
+            private readonly MethodSymbol _topLevelMethod;
 
             public OutsideVariablesUsedInside(IteratorAndAsyncCaptureWalker analyzer, MethodSymbol topLevelMethod)
             {
-                this.analyzer = analyzer;
-                this.topLevelMethod = topLevelMethod;
-                this.localsInScope = new HashSet<Symbol>();
+                _analyzer = analyzer;
+                _topLevelMethod = topLevelMethod;
+                _localsInScope = new HashSet<Symbol>();
             }
 
             public override BoundNode VisitBlock(BoundBlock node)
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void AddVariable(Symbol local)
             {
-                if ((object)local != null) localsInScope.Add(local);
+                if ((object)local != null) _localsInScope.Add(local);
             }
 
             public override BoundNode VisitSequence(BoundSequence node)
@@ -329,13 +329,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitThisReference(BoundThisReference node)
             {
-                Capture(this.topLevelMethod.ThisParameter, node.Syntax);
+                Capture(_topLevelMethod.ThisParameter, node.Syntax);
                 return base.VisitThisReference(node);
             }
 
             public override BoundNode VisitBaseReference(BoundBaseReference node)
             {
-                Capture(this.topLevelMethod.ThisParameter, node.Syntax);
+                Capture(_topLevelMethod.ThisParameter, node.Syntax);
                 return base.VisitBaseReference(node);
             }
 
@@ -353,9 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Capture(Symbol s, CSharpSyntaxNode syntax)
             {
-                if ((object)s != null && !localsInScope.Contains(s))
+                if ((object)s != null && !_localsInScope.Contains(s))
                 {
-                    analyzer.CaptureVariable(s, syntax);
+                    _analyzer.CaptureVariable(s, syntax);
                 }
             }
         }

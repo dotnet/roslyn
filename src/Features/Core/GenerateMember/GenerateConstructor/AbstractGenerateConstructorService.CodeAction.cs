@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -12,24 +12,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
     {
         private class GenerateConstructorCodeAction : CodeAction
         {
-            private readonly State state;
-            private readonly Document document;
-            private readonly TService service;
+            private readonly State _state;
+            private readonly Document _document;
+            private readonly TService _service;
 
             public GenerateConstructorCodeAction(
                 TService service,
                 Document document,
                 State state)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
+                _service = service;
+                _document = document;
+                _state = state;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(this.document, cancellationToken).ConfigureAwait(false);
-                var editor = new Editor(service, semanticDocument, state, cancellationToken);
+                var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
+                var editor = new Editor(_service, semanticDocument, _state, cancellationToken);
                 return await editor.GetEditAsync().ConfigureAwait(false);
             }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 get
                 {
                     return string.Format(FeaturesResources.GenerateNewConstructorIn,
-                        state.TypeToGenerateIn.Name);
+                        _state.TypeToGenerateIn.Name);
                 }
             }
         }

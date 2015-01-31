@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 // Note: if we're in a lambda that has a block body, then we don't ever get here
                 // because of the early check for IsInBlockContext.
-                if (!service.IsInFieldInitializer(this.Expression))
+                if (!_service.IsInFieldInitializer(this.Expression))
                 {
                     return false;
                 }

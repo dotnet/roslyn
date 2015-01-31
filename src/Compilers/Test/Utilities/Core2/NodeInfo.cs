@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private readonly string _className;
         private readonly FieldInfo[] _fieldInfos;
-        private static readonly FieldInfo[] _emptyFieldInfos = { };
+        private static readonly FieldInfo[] s_emptyFieldInfos = { };
 
         public string ClassName
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (_fieldInfos == null)
                 {
-                    return _emptyFieldInfos;
+                    return s_emptyFieldInfos;
                 }
                 else
                 {

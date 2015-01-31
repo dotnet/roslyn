@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a property declaration using an existing property symbol as a signature.
         /// </summary>
         public SyntaxNode PropertyDeclaration(
-            IPropertySymbol property, 
-            IEnumerable<SyntaxNode> getAccessorStatements = null, 
+            IPropertySymbol property,
+            IEnumerable<SyntaxNode> getAccessorStatements = null,
             IEnumerable<SyntaxNode> setAccessorStatements = null)
         {
             return PropertyDeclaration(
@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an indexer declaration matching an existing indexer symbol.
         /// </summary>
         public SyntaxNode IndexerDeclaration(
-            IPropertySymbol indexer, 
-            IEnumerable<SyntaxNode> getAccessorStatements = null, 
+            IPropertySymbol indexer,
+            IEnumerable<SyntaxNode> getAccessorStatements = null,
             IEnumerable<SyntaxNode> setAccessorStatements = null)
         {
             return IndexerDeclaration(
@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 throw new ArgumentNullException("dottedName");
             }
 
-            var parts = dottedName.Split(dotSeparator);
+            var parts = dottedName.Split(s_dotSeparator);
 
             SyntaxNode name = null;
             foreach (var part in parts)
@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return name;
         }
 
-        private static readonly char[] dotSeparator = new char[] { '.' };
+        private static readonly char[] s_dotSeparator = new char[] { '.' };
 
         /// <summary>
         /// Creates an expression that denotes a type.

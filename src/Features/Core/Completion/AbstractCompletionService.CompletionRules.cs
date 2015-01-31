@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.Completion.Rules;
@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private class CompletionRules : ICompletionRules
         {
-            private readonly AbstractCompletionService completionService;
-            private readonly PatternMatcher patternMatcher = new PatternMatcher(verbatimIdentifierPrefixIsWordCharacter: true);
+            private readonly AbstractCompletionService _completionService;
+            private readonly PatternMatcher _patternMatcher = new PatternMatcher(verbatimIdentifierPrefixIsWordCharacter: true);
 
             public CompletionRules(AbstractCompletionService completionService)
             {
-                this.completionService = completionService;
+                _completionService = completionService;
             }
 
             public bool? MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 // MRU list, then we definitely want to include it.
                 if (filterText.Length == 0)
                 {
-                    if (item.Preselect || this.completionService.GetMRUIndex(item) < 0)
+                    if (item.Preselect || _completionService.GetMRUIndex(item) < 0)
                     {
                         return true;
                     }
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     return false;
                 }
 
-                var match = patternMatcher.MatchPatternFirstOrNullable(
-                            this.completionService.GetCultureSpecificQuirks(item.FilterText),
-                            this.completionService.GetCultureSpecificQuirks(filterText));
+                var match = _patternMatcher.MatchPatternFirstOrNullable(
+                            _completionService.GetCultureSpecificQuirks(item.FilterText),
+                            _completionService.GetCultureSpecificQuirks(filterText));
                 return match != null;
             }
 
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
             public bool? IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
             {
-                var match1 = patternMatcher.MatchPatternFirstOrNullable(
-                            this.completionService.GetCultureSpecificQuirks(item1.FilterText),
-                            this.completionService.GetCultureSpecificQuirks(filterText));
-                var match2 = patternMatcher.MatchPatternFirstOrNullable(
-                            this.completionService.GetCultureSpecificQuirks(item2.FilterText),
-                            this.completionService.GetCultureSpecificQuirks(filterText));
+                var match1 = _patternMatcher.MatchPatternFirstOrNullable(
+                            _completionService.GetCultureSpecificQuirks(item1.FilterText),
+                            _completionService.GetCultureSpecificQuirks(filterText));
+                var match2 = _patternMatcher.MatchPatternFirstOrNullable(
+                            _completionService.GetCultureSpecificQuirks(item2.FilterText),
+                            _completionService.GetCultureSpecificQuirks(filterText));
 
                 if (match1 != null && match2 != null)
                 {
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 // They matched on everything, including preselection values.  Item1 is better if it
                 // has a lower MRU index.
 
-                var item1MRUIndex = this.completionService.GetMRUIndex(item1);
-                var item2MRUIndex = this.completionService.GetMRUIndex(item2);
+                var item1MRUIndex = _completionService.GetMRUIndex(item1);
+                var item2MRUIndex = _completionService.GetMRUIndex(item2);
 
                 // The one with the lower index is the better one.
                 return item1MRUIndex < item2MRUIndex;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             public void CompletionItemComitted(CompletionItem item)
             {
-                this.completionService.CompletionItemComitted(item);
+                _completionService.CompletionItemComitted(item);
             }
 
             public bool? ItemsMatch(CompletionItem item1, CompletionItem item2)

@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         internal class SignatureTypeSymbolEquivalenceComparer : IEqualityComparer<ITypeSymbol>
         {
-            private readonly SymbolEquivalenceComparer symbolEquivalenceComparer;
+            private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 
             public SignatureTypeSymbolEquivalenceComparer(SymbolEquivalenceComparer symbolEquivalenceComparer)
             {
-                this.symbolEquivalenceComparer = symbolEquivalenceComparer;
+                _symbolEquivalenceComparer = symbolEquivalenceComparer;
             }
 
             public bool Equals(ITypeSymbol x, ITypeSymbol y)
@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             public bool Equals(ITypeSymbol x, ITypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
-                return symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
+                return _symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
             }
 
             public int GetHashCode(ITypeSymbol x)
             {
-                return symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).GetHashCode(x, currentHash: 0);
+                return _symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).GetHashCode(x, currentHash: 0);
             }
         }
     }

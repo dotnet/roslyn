@@ -15,39 +15,39 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [ExportWorkspaceService(typeof(IWorkCoordinatorRegistrationService), ServiceLayer.Host), Shared]
     internal partial class WorkCoordinatorRegistrationService : IWorkCoordinatorRegistrationService
     {
-        private readonly object gate;
-        private readonly IAsynchronousOperationListener listener;
-        private readonly ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders;
-        private readonly Dictionary<Workspace, WorkCoordinator> documentWorkCoordinatorMap;
+        private readonly object _gate;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
+        private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
 
         [ImportingConstructor]
         public WorkCoordinatorRegistrationService(
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            this.gate = new object();
+            _gate = new object();
 
-            this.analyzerProviders = analyzerProviders.ToImmutableArray();
-            this.documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            this.listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
+            _analyzerProviders = analyzerProviders.ToImmutableArray();
+            _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
         }
 
         public void Register(Workspace workspace)
         {
             var correlationId = LogAggregator.GetNextId();
 
-            lock (this.gate)
+            lock (_gate)
             {
-                if (this.documentWorkCoordinatorMap.ContainsKey(workspace))
+                if (_documentWorkCoordinatorMap.ContainsKey(workspace))
                 {
                     // already registered.
                     return;
                 }
 
                 var coordinator = new WorkCoordinator(
-                    this.listener, this.analyzerProviders.Where(l => l.Metadata.WorkspaceKinds.Any(wk => wk == workspace.Kind)), correlationId, workspace);
+                    _listener, _analyzerProviders.Where(l => l.Metadata.WorkspaceKinds.Any(wk => wk == workspace.Kind)), correlationId, workspace);
 
-                this.documentWorkCoordinatorMap.Add(workspace, coordinator);
+                _documentWorkCoordinatorMap.Add(workspace, coordinator);
             }
 
             SolutionCrawlerLogger.LogRegistration(correlationId, workspace);
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             var coordinator = default(WorkCoordinator);
 
-            lock (this.gate)
+            lock (_gate)
             {
-                if (!this.documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
+                if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
                 {
                     // already unregistered
                     return;
                 }
 
-                this.documentWorkCoordinatorMap.Remove(workspace);
+                _documentWorkCoordinatorMap.Remove(workspace);
                 coordinator.Shutdown(blockingShutdown);
             }
 
@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds, IEnumerable<DocumentId> documentIds)
         {
-            lock (this.gate)
+            lock (_gate)
             {
                 var coordinator = default(WorkCoordinator);
-                if (!this.documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
+                if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
                 {
                     throw new ArgumentException("workspace");
                 }
@@ -106,17 +106,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace, ImmutableArray<IIncrementalAnalyzer> workers)
         {
-            if (this.documentWorkCoordinatorMap.ContainsKey(workspace))
+            if (_documentWorkCoordinatorMap.ContainsKey(workspace))
             {
-                this.documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly(workers);
+                _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly(workers);
             }
         }
 
         internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace)
         {
-            if (this.documentWorkCoordinatorMap.ContainsKey(workspace))
+            if (_documentWorkCoordinatorMap.ContainsKey(workspace))
             {
-                this.documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly();
+                _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly();
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected class ParameterVariableSymbol : NotMovableVariableSymbol, IComparable<ParameterVariableSymbol>
         {
-            private readonly IParameterSymbol parameterSymbol;
+            private readonly IParameterSymbol _parameterSymbol;
 
             public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type) :
                 base(compilation, type)
             {
                 Contract.ThrowIfNull(parameterSymbol);
-                this.parameterSymbol = parameterSymbol;
+                _parameterSymbol = parameterSymbol;
             }
 
             public override int DisplayOrder
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return 0;
                 }
 
-                var compare = CompareTo((IMethodSymbol)this.parameterSymbol.ContainingSymbol, (IMethodSymbol)other.parameterSymbol.ContainingSymbol);
+                var compare = CompareTo((IMethodSymbol)_parameterSymbol.ContainingSymbol, (IMethodSymbol)other._parameterSymbol.ContainingSymbol);
                 if (compare != 0)
                 {
                     return compare;
                 }
 
-                Contract.ThrowIfFalse(this.parameterSymbol.Ordinal != other.parameterSymbol.Ordinal);
-                return (this.parameterSymbol.Ordinal > other.parameterSymbol.Ordinal) ? 1 : -1;
+                Contract.ThrowIfFalse(_parameterSymbol.Ordinal != other._parameterSymbol.Ordinal);
+                return (_parameterSymbol.Ordinal > other._parameterSymbol.Ordinal) ? 1 : -1;
             }
 
             private int CompareTo(IMethodSymbol left, IMethodSymbol right)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.parameterSymbol.ToDisplayString(
+                    return _parameterSymbol.ToDisplayString(
                         new SymbolDisplayFormat(
                             parameterOptions: SymbolDisplayParameterOptions.IncludeName,
                             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
@@ -179,9 +179,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
         {
-            private readonly SyntaxAnnotation annotation;
-            private readonly ILocalSymbol localSymbol;
-            private readonly HashSet<int> nonNoisySet;
+            private readonly SyntaxAnnotation _annotation;
+            private readonly ILocalSymbol _localSymbol;
+            private readonly HashSet<int> _nonNoisySet;
 
             public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet) :
                 base(compilation, type)
@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
 
-                this.annotation = new SyntaxAnnotation();
-                this.localSymbol = localSymbol;
-                this.nonNoisySet = nonNoisySet;
+                _annotation = new SyntaxAnnotation();
+                _localSymbol = localSymbol;
+                _nonNoisySet = nonNoisySet;
             }
 
             public override int DisplayOrder
@@ -213,21 +213,21 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return 0;
                 }
 
-                Contract.ThrowIfFalse(this.localSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(other.localSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(this.localSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(other.localSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(this.localSymbol.Locations[0].SourceTree == other.localSymbol.Locations[0].SourceTree);
-                Contract.ThrowIfFalse(this.localSymbol.Locations[0].SourceSpan.Start != other.localSymbol.Locations[0].SourceSpan.Start);
+                Contract.ThrowIfFalse(_localSymbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(other._localSymbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(_localSymbol.Locations[0].IsInSource);
+                Contract.ThrowIfFalse(other._localSymbol.Locations[0].IsInSource);
+                Contract.ThrowIfFalse(_localSymbol.Locations[0].SourceTree == other._localSymbol.Locations[0].SourceTree);
+                Contract.ThrowIfFalse(_localSymbol.Locations[0].SourceSpan.Start != other._localSymbol.Locations[0].SourceSpan.Start);
 
-                return this.localSymbol.Locations[0].SourceSpan.Start - other.localSymbol.Locations[0].SourceSpan.Start;
+                return _localSymbol.Locations[0].SourceSpan.Start - other._localSymbol.Locations[0].SourceSpan.Start;
             }
 
             public override string Name
             {
                 get
                 {
-                    return this.localSymbol.ToDisplayString(
+                    return _localSymbol.ToDisplayString(
                         new SymbolDisplayFormat(
                             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
                 }
@@ -235,12 +235,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
             {
-                Contract.ThrowIfFalse(this.localSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(this.localSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfNull(this.localSymbol.Locations[0].SourceTree);
+                Contract.ThrowIfFalse(_localSymbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(_localSymbol.Locations[0].IsInSource);
+                Contract.ThrowIfNull(_localSymbol.Locations[0].SourceTree);
 
-                var tree = this.localSymbol.Locations[0].SourceTree;
-                var span = this.localSymbol.Locations[0].SourceSpan;
+                var tree = _localSymbol.Locations[0].SourceTree;
+                var span = _localSymbol.Locations[0].SourceSpan;
 
                 var token = tree.GetRoot(cancellationToken).FindToken(span.Start);
                 Contract.ThrowIfFalse(token.Span.Equals(span));
@@ -250,13 +250,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public override SyntaxAnnotation IdentifierTokenAnnotation
             {
-                get { return this.annotation; }
+                get { return _annotation; }
             }
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
             {
-                annotations.Add(Tuple.Create(this.GetOriginalIdentifierToken(cancellationToken), this.annotation));
+                annotations.Add(Tuple.Create(this.GetOriginalIdentifierToken(cancellationToken), _annotation));
             }
 
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
@@ -298,19 +298,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private bool ContainsNoisyTrivia(SyntaxTriviaList list)
             {
-                return list.Any(t => !this.nonNoisySet.Contains(t.RawKind));
+                return list.Any(t => !_nonNoisySet.Contains(t.RawKind));
             }
         }
 
         protected class QueryVariableSymbol : NotMovableVariableSymbol, IComparable<QueryVariableSymbol>
         {
-            private readonly IRangeVariableSymbol symbol;
+            private readonly IRangeVariableSymbol _symbol;
 
             public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type) :
                 base(compilation, type)
             {
                 Contract.ThrowIfNull(symbol);
-                this.symbol = symbol;
+                _symbol = symbol;
             }
 
             public override int DisplayOrder
@@ -332,8 +332,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return 0;
                 }
 
-                var locationLeft = this.symbol.Locations.First();
-                var locationRight = other.symbol.Locations.First();
+                var locationLeft = _symbol.Locations.First();
+                var locationRight = other._symbol.Locations.First();
 
                 Contract.ThrowIfFalse(locationLeft.IsInSource);
                 Contract.ThrowIfFalse(locationRight.IsInSource);
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.symbol.ToDisplayString(
+                    return _symbol.ToDisplayString(
                         new SymbolDisplayFormat(
                             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
                 }

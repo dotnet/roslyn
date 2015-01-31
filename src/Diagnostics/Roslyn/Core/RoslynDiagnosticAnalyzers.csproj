@@ -66,15 +66,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiDesign\CancellationTokenMustBeLastAnalyzer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="ApiDesign\DeclarePublicAPIAnalyzer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="ApiDesign\DeclarePublicAPIFix.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="ApiDesign\CancellationTokenMustBeLastAnalyzer.cs" />
+    <Compile Include="ApiDesign\DeclarePublicAPIAnalyzer.cs" />
+    <Compile Include="ApiDesign\DeclarePublicAPIFix.cs" />
     <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Documentation\DoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="DocumentChangedAction.cs" />
@@ -112,7 +106,6 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

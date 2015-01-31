@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var result = new AssemblyDataForCompilation(csReference.Compilation, csReference.Properties.EmbedInteropTypes);
-                Debug.Assert((object)csReference.Compilation.lazyAssemblySymbol != null);
+                Debug.Assert((object)csReference.Compilation._lazyAssemblySymbol != null);
                 return result;
             }
 
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     AssertBound();
-                    Debug.Assert((object)compilation.lazyAssemblySymbol != null);
+                    Debug.Assert((object)compilation._lazyAssemblySymbol != null);
                 }
             }
 
@@ -274,14 +274,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 InitializeAssemblyReuseData(assemblySymbol, this.ReferencedAssemblies, this.UnifiedAssemblies);
 
-                if ((object)compilation.lazyAssemblySymbol == null)
+                if ((object)compilation._lazyAssemblySymbol == null)
                 {
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        if ((object)compilation.lazyAssemblySymbol == null)
+                        if ((object)compilation._lazyAssemblySymbol == null)
                         {
-                            compilation.lazyAssemblySymbol = assemblySymbol;
-                            Debug.Assert(ReferenceEquals(compilation.referenceManager, this));
+                            compilation._lazyAssemblySymbol = assemblySymbol;
+                            Debug.Assert(ReferenceEquals(compilation._referenceManager, this));
                         }
                     }
                 }
@@ -445,11 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if ((object)compilation.lazyAssemblySymbol == null)
+                if ((object)compilation._lazyAssemblySymbol == null)
                 {
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        if ((object)compilation.lazyAssemblySymbol == null)
+                        if ((object)compilation._lazyAssemblySymbol == null)
                         {
                             if (IsBound)
                             {
@@ -474,12 +474,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sourceModule.GetUnifiedAssemblies());
 
                             // Make sure that the given compilation holds on this instance of reference manager.
-                            Debug.Assert(ReferenceEquals(compilation.referenceManager, this) || HasCircularReference);
-                            compilation.referenceManager = this;
+                            Debug.Assert(ReferenceEquals(compilation._referenceManager, this) || HasCircularReference);
+                            compilation._referenceManager = this;
 
                             // Finally, publish the source symbol after all data have been written.
                             // Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
-                            compilation.lazyAssemblySymbol = assemblySymbol;
+                            compilation._lazyAssemblySymbol = assemblySymbol;
                         }
                     }
                 }
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private abstract class AssemblyDataForMetadataOrCompilation : AssemblyData
             {
-                private List<AssemblySymbol> assemblies;
+                private List<AssemblySymbol> _assemblies;
                 protected AssemblyIdentity assemblyIdentity;
                 protected ImmutableArray<AssemblyIdentity> referencedAssemblies;
                 protected readonly bool EmbedInteropTypes;
@@ -824,17 +824,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        if (assemblies == null)
+                        if (_assemblies == null)
                         {
-                            assemblies = new List<AssemblySymbol>();
+                            _assemblies = new List<AssemblySymbol>();
 
                             // This should be done lazy because while we creating
                             // instances of this type, creation of new SourceAssembly symbols
                             // might change the set of available AssemblySymbols.
-                            AddAvailableSymbols(assemblies);
+                            AddAvailableSymbols(_assemblies);
                         }
 
-                        return assemblies;
+                        return _assemblies;
                     }
                 }
 
@@ -865,26 +865,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private sealed class AssemblyDataForFile : AssemblyDataForMetadataOrCompilation
             {
-                private readonly PEAssembly assembly;
-                private readonly WeakList<IAssemblySymbol> cachedSymbols;
-                private readonly DocumentationProvider documentationProvider;
+                private readonly PEAssembly _assembly;
+                private readonly WeakList<IAssemblySymbol> _cachedSymbols;
+                private readonly DocumentationProvider _documentationProvider;
 
                 /// <summary>
                 /// Import options of the compilation being built.
                 /// </summary>
-                private readonly MetadataImportOptions compilationImportOptions;
+                private readonly MetadataImportOptions _compilationImportOptions;
 
                 // This is the name of the compilation that is being built. 
                 // This should be the assembly name w/o the extension. It is
                 // used to compute whether or not it is possible that this
                 // assembly will give friend access to the compilation.
-                private readonly string sourceAssemblySimpleName;
+                private readonly string _sourceAssemblySimpleName;
 
                 public PEAssembly Assembly
                 {
                     get
                     {
-                        return this.assembly;
+                        return _assembly;
                     }
                 }
 
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return this.cachedSymbols;
+                        return _cachedSymbols;
                     }
                 }
 
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return this.documentationProvider;
+                        return _documentationProvider;
                     }
                 }
 
@@ -920,35 +920,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(documentationProvider != null);
                     Debug.Assert(cachedSymbols != null);
 
-                    this.cachedSymbols = cachedSymbols;
-                    this.assembly = assembly;
-                    this.documentationProvider = documentationProvider;
-                    this.compilationImportOptions = compilationImportOptions;
-                    this.sourceAssemblySimpleName = sourceAssemblySimpleName;
+                    _cachedSymbols = cachedSymbols;
+                    _assembly = assembly;
+                    _documentationProvider = documentationProvider;
+                    _compilationImportOptions = compilationImportOptions;
+                    _sourceAssemblySimpleName = sourceAssemblySimpleName;
 
                     assemblyIdentity = assembly.Identity;
                     referencedAssemblies = assembly.AssemblyReferences;
                 }
 
-                private bool internalsVisibleComputed = false;
-                private bool internalsPotentiallyVisibleToCompilation = false;
+                private bool _internalsVisibleComputed = false;
+                private bool _internalsPotentiallyVisibleToCompilation = false;
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {
-                    return new PEAssemblySymbol(this.assembly, this.documentationProvider, this.IsLinked, this.EffectiveImportOptions);
+                    return new PEAssemblySymbol(_assembly, _documentationProvider, this.IsLinked, this.EffectiveImportOptions);
                 }
 
                 internal bool InternalsMayBeVisibleToCompilation
                 {
                     get
                     {
-                        if (!internalsVisibleComputed)
+                        if (!_internalsVisibleComputed)
                         {
-                            internalsPotentiallyVisibleToCompilation = InternalsMayBeVisibleToAssemblyBeingCompiled(sourceAssemblySimpleName, assembly);
-                            internalsVisibleComputed = true;
+                            _internalsPotentiallyVisibleToCompilation = InternalsMayBeVisibleToAssemblyBeingCompiled(_sourceAssemblySimpleName, _assembly);
+                            _internalsVisibleComputed = true;
                         }
 
-                        return internalsPotentiallyVisibleToCompilation;
+                        return _internalsPotentiallyVisibleToCompilation;
                     }
                 }
 
@@ -957,12 +957,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     get
                     {
                         // We need to import internal members if they might be visible to the compilation being compiled:
-                        if (InternalsMayBeVisibleToCompilation && compilationImportOptions == MetadataImportOptions.Public)
+                        if (InternalsMayBeVisibleToCompilation && _compilationImportOptions == MetadataImportOptions.Public)
                         {
                             return MetadataImportOptions.Internal;
                         }
 
-                        return compilationImportOptions;
+                        return _compilationImportOptions;
                     }
                 }
 
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // accessing cached symbols requires a lock
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        foreach (var assembly in cachedSymbols)
+                        foreach (var assembly in _cachedSymbols)
                         {
                             var peAssembly = assembly as PEAssemblySymbol;
                             if (IsMatchingAssembly(peAssembly))
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (!ReferenceEquals(peAssembly.Assembly, this.assembly))
+                    if (!ReferenceEquals(peAssembly.Assembly, _assembly))
                     {
                         return false;
                     }
@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return assembly.ContainsNoPiaLocalTypes();
+                        return _assembly.ContainsNoPiaLocalTypes();
                     }
                 }
 
@@ -1028,25 +1028,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return assembly.DeclaresTheObjectClass;
+                        return _assembly.DeclaresTheObjectClass;
                     }
                 }
 
                 public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
                 {
-                    var reader = this.assembly.ManifestModule.MetadataReader;
+                    var reader = _assembly.ManifestModule.MetadataReader;
                     return reader.GetWinMdVersion(out majorVersion, out minorVersion);
                 }
             }
 
             private sealed class AssemblyDataForCompilation : AssemblyDataForMetadataOrCompilation
             {
-                private readonly CSharpCompilation compilation;
+                private readonly CSharpCompilation _compilation;
                 public CSharpCompilation Compilation
                 {
                     get
                     {
-                        return compilation;
+                        return _compilation;
                     }
                 }
 
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : base(embedInteropTypes)
                 {
                     Debug.Assert(compilation != null);
-                    this.compilation = compilation;
+                    _compilation = compilation;
 
                     // Force creation of the SourceAssemblySymbol
                     AssemblySymbol assembly = compilation.Assembly;
@@ -1092,17 +1092,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {
-                    return new Symbols.Retargeting.RetargetingAssemblySymbol(this.compilation.SourceAssembly, this.IsLinked);
+                    return new Symbols.Retargeting.RetargetingAssemblySymbol(_compilation.SourceAssembly, this.IsLinked);
                 }
 
                 protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
                 {
-                    assemblies.Add(compilation.Assembly);
+                    assemblies.Add(_compilation.Assembly);
 
                     // accessing cached symbols requires a lock
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        compilation.AddRetargetingAssemblySymbolsNoLock(assemblies);
+                        _compilation.AddRetargetingAssemblySymbolsNoLock(assemblies);
                     }
                 }
 
@@ -1122,14 +1122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(!(asm is Symbols.Retargeting.RetargetingAssemblySymbol));
 
-                    return ReferenceEquals(asm, compilation.Assembly);
+                    return ReferenceEquals(asm, _compilation.Assembly);
                 }
 
                 public override bool ContainsNoPiaLocalTypes
                 {
                     get
                     {
-                        return compilation.MightContainNoPiaLocalTypes();
+                        return _compilation.MightContainNoPiaLocalTypes();
                     }
                 }
 
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get
                     {
-                        return compilation.DeclaresTheObjectClass;
+                        return _compilation.DeclaresTheObjectClass;
                     }
                 }
 
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal static bool IsSourceAssemblySymbolCreated(CSharpCompilation compilation)
             {
-                return (object)compilation.lazyAssemblySymbol != null;
+                return (object)compilation._lazyAssemblySymbol != null;
             }
 
             /// <summary>
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal static bool IsReferenceManagerInitialized(CSharpCompilation compilation)
             {
-                return compilation.referenceManager.IsBound;
+                return compilation._referenceManager.IsBound;
             }
         }
     }

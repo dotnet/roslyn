@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis
     {
         public HostLanguageServices LanguageServices
         {
-            get { return this.languageServices; }
+            get { return _languageServices; }
         }
 
         public ParseOptions ParseOptions
         {
-            get { return this.options; }
+            get { return _options; }
         }
 
         public SourceCodeKind SourceCodeKind

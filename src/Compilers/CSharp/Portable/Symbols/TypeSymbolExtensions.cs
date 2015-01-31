@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.Arity == 1 &&
                 type.MangleName &&
                 type.Name == "Expression" &&
-                CheckFullName(type.ContainingSymbol, expressionsNamespaceName);
+                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName);
         }
 
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static readonly string[] expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
+        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
 
         private static bool CheckFullName(Symbol symbol, string[] names)
         {
@@ -685,7 +685,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         throw ExceptionUtilities.UnexpectedValue(acc1);
                 }
-
             }
             return false;
         }
@@ -709,22 +708,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsTypeParameter(this TypeSymbol type, TypeParameterSymbol parameter = null)
         {
-            var result = type.VisitType(ContainsTypeParameterPredicate, parameter);
+            var result = type.VisitType(s_containsTypeParameterPredicate, parameter);
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> ContainsTypeParameterPredicate =
+        private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> s_containsTypeParameterPredicate =
             (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || type == parameter);
 
         public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
         {
             Debug.Assert((object)parameterContainer != null);
 
-            var result = type.VisitType(IsTypeParameterWithSpecificContainerPredicate, parameterContainer);
+            var result = type.VisitType(s_isTypeParameterWithSpecificContainerPredicate, parameterContainer);
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, Symbol, bool, bool> IsTypeParameterWithSpecificContainerPredicate =
+        private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
         /// <summary>
@@ -732,11 +731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsDynamic(this TypeSymbol type)
         {
-            var result = type.VisitType(ContainsDynamicPredicate, null);
+            var result = type.VisitType(s_containsDynamicPredicate, null);
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, object, bool, bool> ContainsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
+        private static readonly Func<TypeSymbol, object, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.

@@ -6,7 +6,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
 namespace FakeSign
-{    
+{
     /// <summary>
     /// Takes a delay-signed assembly and flips its CLI header "strong-name signed" bit without
     /// adding a correct signature. This creates an assembly that can be loaded in full trust

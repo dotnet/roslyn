@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class AggregateLogger : ILogger
     {
-        private readonly ImmutableArray<ILogger> loggers;
+        private readonly ImmutableArray<ILogger> _loggers;
 
         public static AggregateLogger Create(params ILogger[] loggers)
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 var aggregateLogger = logger as AggregateLogger;
                 if (aggregateLogger != null)
                 {
-                    set.UnionWith(aggregateLogger.loggers);
+                    set.UnionWith(aggregateLogger._loggers);
                     continue;
                 }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
             var set = new HashSet<ILogger>();
 
-            foreach (var logger in aggregateLogger.loggers)
+            foreach (var logger in aggregateLogger._loggers)
             {
                 // replace this logger with new logger
                 if (predicate(logger))
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private AggregateLogger(ImmutableArray<ILogger> loggers)
         {
-            this.loggers = loggers;
+            _loggers = loggers;
         }
 
         public bool IsEnabled(FunctionId functionId)
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            for (var i = 0; i < this.loggers.Length; i++)
+            for (var i = 0; i < _loggers.Length; i++)
             {
-                var logger = this.loggers[i];
+                var logger = _loggers[i];
                 if (!logger.IsEnabled(functionId))
                 {
                     continue;
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-            for (var i = 0; i < this.loggers.Length; i++)
+            for (var i = 0; i < _loggers.Length; i++)
             {
-                var logger = this.loggers[i];
+                var logger = _loggers[i];
                 if (!logger.IsEnabled(functionId))
                 {
                     continue;
@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
-            for (var i = 0; i < this.loggers.Length; i++)
+            for (var i = 0; i < _loggers.Length; i++)
             {
-                var logger = this.loggers[i];
+                var logger = _loggers[i];
                 if (!logger.IsEnabled(functionId))
                 {
                     continue;

@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private struct CodeShapeAnalyzer
         {
-            private readonly FormattingContext context;
-            private readonly OptionSet optionSet;
-            private readonly TriviaList triviaList;
+            private readonly FormattingContext _context;
+            private readonly OptionSet _optionSet;
+            private readonly TriviaList _triviaList;
 
-            private int indentation;
-            private bool hasTrailingSpace;
-            private int lastLineBreakIndex;
-            private bool touchedNoisyCharacterOnCurrentLine;
+            private int _indentation;
+            private bool _hasTrailingSpace;
+            private int _lastLineBreakIndex;
+            private bool _touchedNoisyCharacterOnCurrentLine;
 
             public static bool ShouldFormatMultiLine(FormattingContext context, bool firstTriviaInTree, TriviaList triviaList)
             {
@@ -95,19 +95,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private CodeShapeAnalyzer(FormattingContext context, bool firstTriviaInTree, TriviaList triviaList)
             {
-                this.context = context;
-                this.optionSet = context.OptionSet;
-                this.triviaList = triviaList;
+                _context = context;
+                _optionSet = context.OptionSet;
+                _triviaList = triviaList;
 
-                this.indentation = 0;
-                this.hasTrailingSpace = false;
-                this.lastLineBreakIndex = firstTriviaInTree ? 0 : -1;
-                this.touchedNoisyCharacterOnCurrentLine = false;
+                _indentation = 0;
+                _hasTrailingSpace = false;
+                _lastLineBreakIndex = firstTriviaInTree ? 0 : -1;
+                _touchedNoisyCharacterOnCurrentLine = false;
             }
 
             private bool UseIndentation
             {
-                get { return this.lastLineBreakIndex >= 0; }
+                get { return _lastLineBreakIndex >= 0; }
             }
 
             private bool OnElastic(SyntaxTrivia trivia)
@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // there was noisy char after end of line trivia
-                if (!this.UseIndentation || this.touchedNoisyCharacterOnCurrentLine)
+                if (!this.UseIndentation || _touchedNoisyCharacterOnCurrentLine)
                 {
-                    this.hasTrailingSpace = true;
+                    _hasTrailingSpace = true;
                     return false;
                 }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                this.indentation += text.ConvertTabToSpace(this.optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), this.indentation, text.Length);
+                _indentation += text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), _indentation, text.Length);
 
                 return false;
             }
@@ -153,14 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // end of line trivia right after whitespace trivia
-                if (this.hasTrailingSpace)
+                if (_hasTrailingSpace)
                 {
                     // has trailing whitespace
                     return true;
                 }
 
                 // empty line with spaces. remove it.
-                if (this.indentation > 0 && !this.touchedNoisyCharacterOnCurrentLine)
+                if (_indentation > 0 && !_touchedNoisyCharacterOnCurrentLine)
                 {
                     return true;
                 }
@@ -172,12 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private void ResetStateAfterNewLine(int currentIndex)
             {
                 // reset states for current line
-                this.indentation = 0;
-                this.touchedNoisyCharacterOnCurrentLine = false;
-                this.hasTrailingSpace = false;
+                _indentation = 0;
+                _touchedNoisyCharacterOnCurrentLine = false;
+                _hasTrailingSpace = false;
 
                 // remember last line break index
-                this.lastLineBreakIndex = currentIndex;
+                _lastLineBreakIndex = currentIndex;
             }
 
             private bool OnComment(SyntaxTrivia trivia, int currentIndex)
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // check whether indentation are right
-                if (this.UseIndentation && this.indentation != this.context.GetBaseIndentation(trivia.SpanStart))
+                if (this.UseIndentation && _indentation != _context.GetBaseIndentation(trivia.SpanStart))
                 {
                     // comment has wrong indentation
                     return true;
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 // go deep down for single line documentation comment
                 if (trivia.IsSingleLineDocComment() &&
-                    ShouldFormatSingleLineDocumentationComment(this.indentation, this.optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), trivia))
+                    ShouldFormatSingleLineDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), trivia))
                 {
                     return true;
                 }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                if (indentation != this.context.GetBaseIndentation(trivia.SpanStart))
+                if (_indentation != _context.GetBaseIndentation(trivia.SpanStart))
                 {
                     return true;
                 }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // preprocessor must be at from column 0
-                if (this.indentation != 0)
+                if (_indentation != 0)
                 {
                     return true;
                 }
@@ -268,8 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return false;
                 }
 
-                this.touchedNoisyCharacterOnCurrentLine = true;
-                this.hasTrailingSpace = false;
+                _touchedNoisyCharacterOnCurrentLine = true;
+                _hasTrailingSpace = false;
 
                 return false;
             }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private bool ShouldFormat()
             {
                 var index = -1;
-                foreach (var commonTrivia in triviaList)
+                foreach (var commonTrivia in _triviaList)
                 {
                     index++;
                     var trivia = (SyntaxTrivia)commonTrivia;

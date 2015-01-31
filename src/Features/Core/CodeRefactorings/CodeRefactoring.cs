@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// </summary>
     internal class CodeRefactoring : ICodeRefactoring
     {
-        private readonly CodeRefactoringProvider provider;
-        private readonly IReadOnlyList<CodeAction> actions;
+        private readonly CodeRefactoringProvider _provider;
+        private readonly IReadOnlyList<CodeAction> _actions;
 
         public CodeRefactoringProvider Provider
         {
-            get { return this.provider; }
+            get { return _provider; }
         }
 
         /// <summary>
@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             get
             {
-                return actions;
+                return _actions;
             }
         }
 
         public CodeRefactoring(CodeRefactoringProvider provider, IEnumerable<CodeAction> actions)
         {
-            this.provider = provider;
-            this.actions = actions.ToImmutableArrayOrEmpty();
+            _provider = provider;
+            _actions = actions.ToImmutableArrayOrEmpty();
 
-            if (this.actions.Count == 0)
+            if (_actions.Count == 0)
             {
                 throw new ArgumentException(FeaturesResources.ActionsCanNotBeEmpty, "actions");
             }

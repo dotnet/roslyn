@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedEntryPointSymbol : MethodSymbol
     {
-        private readonly NamedTypeSymbol containingType;
-        private readonly ImmutableArray<ParameterSymbol> parameters;
-        private readonly TypeSymbol returnType;
-        private readonly string name;
+        private readonly NamedTypeSymbol _containingType;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly TypeSymbol _returnType;
+        private readonly string _name;
 
         internal SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)containingType != null);
-            this.containingType = containingType;
+            _containingType = containingType;
 
             if (containingType.ContainingAssembly.IsInteractive)
             {
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, NoLocation.Singleton);
                 }
 
-                this.parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
-                this.name = "<Factory>";
+                _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
+                _name = "<Factory>";
             }
             else
             {
-                this.parameters = ImmutableArray<ParameterSymbol>.Empty;
-                this.name = "<Main>";
+                _parameters = ImmutableArray<ParameterSymbol>.Empty;
+                _name = "<Main>";
             }
 
             if (this.DeclaringCompilation.IsSubmission)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 returnType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object);
             }
 
-            this.returnType = returnType;
+            _returnType = returnType;
         }
 
         internal override bool GenerateDebugInfo
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // }
         private BoundBlock CreateScriptBody()
         {
-            Debug.Assert(containingType.IsScriptClass);
+            Debug.Assert(_containingType.IsScriptClass);
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.Dummy;
             CSharpSyntaxNode syntax = (CSharpSyntaxNode)syntaxTree.GetRoot();
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new BoundExpressionStatement(syntax,
                         new BoundObjectCreationExpression(
                             syntax,
-                            containingType.InstanceConstructors.Single())
-            { WasCompilerGenerated = true })
-            { WasCompilerGenerated = true },
+                            _containingType.InstanceConstructors.Single())
+                        { WasCompilerGenerated = true })
+                    { WasCompilerGenerated = true },
                     new BoundReturnStatement(syntax, null) { WasCompilerGenerated = true })
             );
         }
@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // }
         private BoundBlock CreateSubmissionFactoryBody()
         {
-            Debug.Assert(containingType.TypeKind == TypeKind.Submission);
+            Debug.Assert(_containingType.TypeKind == TypeKind.Submission);
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.Dummy;
             CSharpSyntaxNode syntax = (CSharpSyntaxNode)syntaxTree.GetRoot();
 
-            var interactiveSessionParam = new BoundParameter(syntax, parameters[0]) { WasCompilerGenerated = true };
+            var interactiveSessionParam = new BoundParameter(syntax, _parameters[0]) { WasCompilerGenerated = true };
 
-            var ctor = containingType.InstanceConstructors.Single();
+            var ctor = _containingType.InstanceConstructors.Single();
             Debug.Assert(ctor is SynthesizedInstanceConstructor);
             Debug.Assert(ctor.ParameterCount == 2);
 
@@ -115,10 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var localReference = new BoundLocal(syntax, resultLocal, null, submissionResultType) { WasCompilerGenerated = true };
 
             BoundExpression submissionResult = localReference;
-            if (submissionResultType.IsStructType() && this.returnType.SpecialType == SpecialType.System_Object)
+            if (submissionResultType.IsStructType() && _returnType.SpecialType == SpecialType.System_Object)
             {
-                submissionResult = new BoundConversion(syntax, submissionResult, Conversion.Boxing, false, true, ConstantValue.NotAvailable, this.returnType)
-                                        { WasCompilerGenerated = true };
+                submissionResult = new BoundConversion(syntax, submissionResult, Conversion.Boxing, false, true, ConstantValue.NotAvailable, _returnType)
+                { WasCompilerGenerated = true };
             }
 
             return new BoundBlock(syntax,
@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             default(ImmutableArray<int>),
                             null,
                             null,
-                            containingType
+                            _containingType
                         )
-            { WasCompilerGenerated = true })
-            { WasCompilerGenerated = true },
+                        { WasCompilerGenerated = true })
+                    { WasCompilerGenerated = true },
                     // return submissionResult;
                     new BoundReturnStatement(syntax, submissionResult) { WasCompilerGenerated = true }))
             { WasCompilerGenerated = true };
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return containingType; }
+            get { return _containingType; }
         }
 
         public override string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         internal override bool HasSpecialName
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
-            get { return parameters; }
+            get { return _parameters; }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbol ReturnType
         {
-            get { return returnType; }
+            get { return _returnType; }
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers

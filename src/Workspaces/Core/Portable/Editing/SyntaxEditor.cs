@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Editing
     /// </summary>
     public class SyntaxEditor
     {
-        private readonly SyntaxGenerator generator;
-        private readonly SyntaxNode root;
-        private readonly List<Change> changes;
+        private readonly SyntaxGenerator _generator;
+        private readonly SyntaxNode _root;
+        private readonly List<Change> _changes;
 
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            this.root = root;
-            this.generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
-            this.changes = new List<Change>();
+            _root = root;
+            _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
+            _changes = new List<Change>();
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode OriginalRoot
         {
-            get { return this.root; }
+            get { return _root; }
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxGenerator Generator
         {
-            get { return this.generator; }
+            get { return _generator; }
         }
 
         /// <summary>
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode GetChangedRoot()
         {
-            var nodes = Enumerable.Distinct(this.changes.Select(c => c.Node));
-            var newRoot = this.root.TrackNodes(nodes);
+            var nodes = Enumerable.Distinct(_changes.Select(c => c.Node));
+            var newRoot = _root.TrackNodes(nodes);
 
-            foreach (var change in this.changes)
+            foreach (var change in _changes)
             {
-                newRoot = change.Apply(newRoot, this.generator);
+                newRoot = change.Apply(newRoot, _generator);
             }
 
             return newRoot;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void TrackNode(SyntaxNode node)
         {
             CheckNodeInTree(node);
-            this.changes.Add(new NoChange(node));
+            _changes.Add(new NoChange(node));
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void RemoveNode(SyntaxNode node)
         {
             CheckNodeInTree(node);
-            this.changes.Add(new RemoveChange(node));
+            _changes.Add(new RemoveChange(node));
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> computeReplacement)
         {
             CheckNodeInTree(node);
-            this.changes.Add(new ReplaceChange(node, computeReplacement));
+            _changes.Add(new ReplaceChange(node, computeReplacement));
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertBefore(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
             CheckNodeInTree(node);
-            this.changes.Add(new InsertChange(node, newNodes, isBefore: true));
+            _changes.Add(new InsertChange(node, newNodes, isBefore: true));
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertAfter(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
             CheckNodeInTree(node);
-            this.changes.Add(new InsertChange(node, newNodes, isBefore: false));
+            _changes.Add(new InsertChange(node, newNodes, isBefore: false));
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private void CheckNodeInTree(SyntaxNode node)
         {
-            if (!this.root.Contains(node))
+            if (!_root.Contains(node))
             {
                 throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.TheNodeIsNotPartOfTheTree, nameof(node));
             }
@@ -204,43 +204,43 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private class ReplaceChange : Change
         {
-            private Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier;
+            private Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
 
             public ReplaceChange(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier)
                 : base(node)
             {
-                this.modifier = modifier;
+                _modifier = modifier;
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
-                var newNode = modifier(current, generator);
+                var newNode = _modifier(current, generator);
                 return generator.ReplaceNode(root, current, newNode);
             }
         }
 
         private class InsertChange : Change
         {
-            private List<SyntaxNode> newNodes;
-            private bool isBefore;
+            private List<SyntaxNode> _newNodes;
+            private bool _isBefore;
 
             public InsertChange(SyntaxNode node, IEnumerable<SyntaxNode> newNodes, bool isBefore)
                 : base(node)
             {
-                this.newNodes = newNodes.ToList();
-                this.isBefore = isBefore;
+                _newNodes = newNodes.ToList();
+                _isBefore = isBefore;
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
-                if (this.isBefore)
+                if (_isBefore)
                 {
-                    return generator.InsertNodesBefore(root, root.GetCurrentNode(this.Node), this.newNodes);
+                    return generator.InsertNodesBefore(root, root.GetCurrentNode(this.Node), _newNodes);
                 }
                 else
                 {
-                    return generator.InsertNodesAfter(root, root.GetCurrentNode(this.Node), this.newNodes);
+                    return generator.InsertNodesAfter(root, root.GetCurrentNode(this.Node), _newNodes);
                 }
             }
         }

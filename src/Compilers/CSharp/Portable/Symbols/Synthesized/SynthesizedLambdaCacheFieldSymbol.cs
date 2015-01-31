@@ -6,16 +6,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedLambdaCacheFieldSymbol : SynthesizedFieldSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol topLevelMethod;
+        private readonly MethodSymbol _topLevelMethod;
 
         public SynthesizedLambdaCacheFieldSymbol(NamedTypeSymbol containingType, TypeSymbol type, string name, MethodSymbol topLevelMethod, bool isReadOnly, bool isStatic)
             : base(containingType, type, name, isPublic: true, isReadOnly: isReadOnly, isStatic: isStatic)
         {
             Debug.Assert(topLevelMethod != null);
-            this.topLevelMethod = topLevelMethod;
+            _topLevelMethod = topLevelMethod;
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => topLevelMethod;
+        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 
         // When the containing top-level method body is updated we don't need to attempt to update the cache field
         // since a field update is a no-op.

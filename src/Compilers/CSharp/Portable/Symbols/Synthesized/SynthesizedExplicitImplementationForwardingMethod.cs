@@ -18,25 +18,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class SynthesizedExplicitImplementationForwardingMethod : SynthesizedImplementationMethod
     {
-        private readonly MethodSymbol implementingMethod;
+        private readonly MethodSymbol _implementingMethod;
 
-        public SynthesizedExplicitImplementationForwardingMethod(MethodSymbol interfaceMethod, MethodSymbol implementingMethod, NamedTypeSymbol implementingType) 
+        public SynthesizedExplicitImplementationForwardingMethod(MethodSymbol interfaceMethod, MethodSymbol implementingMethod, NamedTypeSymbol implementingType)
             : base(interfaceMethod, implementingType, generateDebugInfo: false)
         {
-            this.implementingMethod = implementingMethod;
+            _implementingMethod = implementingMethod;
         }
 
         public MethodSymbol ImplementingMethod
         {
-            get { return this.implementingMethod; }
+            get { return _implementingMethod; }
         }
 
         public override MethodKind MethodKind
         {
             get
             {
-                return implementingMethod.IsAccessor() ?
-                    implementingMethod.MethodKind :
+                return _implementingMethod.IsAccessor() ?
+                    _implementingMethod.MethodKind :
                     MethodKind.ExplicitInterfaceImplementation;
             }
         }

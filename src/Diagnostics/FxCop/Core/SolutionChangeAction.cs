@@ -9,23 +9,23 @@ namespace Microsoft.CodeAnalysis
 {
     internal class SolutionChangeAction : CodeAction
     {
-        private readonly string title;
-        private readonly Func<CancellationToken, Task<Solution>> createChangedSolution;
+        private readonly string _title;
+        private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
         public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
         {
-            this.title = title;
-            this.createChangedSolution = createChangedSolution;
+            _title = title;
+            _createChangedSolution = createChangedSolution;
         }
 
         public override string Title
         {
-            get { return this.title; }
+            get { return _title; }
         }
-        
+
         protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
-            return this.createChangedSolution(cancellationToken);
+            return _createChangedSolution(cancellationToken);
         }
     }
 }

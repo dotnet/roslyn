@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor<SemanticModel>
     {
-        private readonly bool escapeKeywordIdentifiers;
-        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> lazyAliasMap;
+        private readonly bool _escapeKeywordIdentifiers;
+        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> _lazyAliasMap;
 
         internal SymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int positionOpt)
             : base(builder, format, true, semanticModelOpt, positionOpt)
         {
-            this.escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+            _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
         }
 
         private SymbolDisplayVisitor(
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isFirstSymbolVisited)
             : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
         {
-            this.escapeKeywordIdentifiers = escapeKeywordIdentifiers;
-            this.lazyAliasMap = aliasMap;
+            _escapeKeywordIdentifiers = escapeKeywordIdentifiers;
+            _lazyAliasMap = aliasMap;
         }
 
         protected override AbstractSymbolDisplayVisitor<SemanticModel> MakeNotFirstVisitor()
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.format,
                 this.semanticModelOpt,
                 this.positionOpt,
-                this.escapeKeywordIdentifiers,
-                this.lazyAliasMap,
+                _escapeKeywordIdentifiers,
+                _lazyAliasMap,
                 isFirstSymbolVisited: false);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
         {
-            text = (text == null) ? "?" : 
-                   (escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text) : text;
+            text = (text == null) ? "?" :
+                   (_escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text) : text;
 
             return new SymbolDisplayPart(kind, symbol, text);
         }

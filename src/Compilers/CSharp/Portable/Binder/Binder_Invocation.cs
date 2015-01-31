@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-
         private BoundExpression BindMethodGroup(ExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
         {
             switch (node.Kind())
@@ -1359,6 +1358,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         //    }
         //    return true;
         //}
-
     }
 }

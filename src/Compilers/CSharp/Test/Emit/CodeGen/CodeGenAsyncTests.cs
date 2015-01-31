@@ -504,7 +504,7 @@ class Driver
 }";
             CompileAndVerify(source, "0");
         }
-        
+
         [Fact]
         public void AwaitInDelegateConstructor()
         {
@@ -557,7 +557,7 @@ class Driver
         Console.Write(Result);
     }
 }";
-            CompileAndVerify(source, expectedOutput:"0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [Fact]
@@ -1980,7 +1980,7 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            var compOptions= new CSharpCompilationOptions(OutputKind.ConsoleApplication, allowUnsafe: true);
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, allowUnsafe: true);
             CompileAndVerify(source, "0", compOptions: compOptions);
         }
 

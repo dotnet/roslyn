@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operatorKind == BinaryOperatorKind.StringAndObjectConcatenation ||
                 operatorKind == BinaryOperatorKind.ObjectAndStringConcatenation);
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 return RewriteStringConcatInExpressionLambda(syntax, operatorKind, loweredLeft, loweredRight, type);
             }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (leftFlattened.Count)
             {
                 case 0:
-                    result = factory.StringLiteral(string.Empty);
+                    result = _factory.StringLiteral(string.Empty);
                     break;
 
                 case 1:
@@ -122,19 +122,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = boundCall.Method;
                     if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
                     {
-                        if ((object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
+                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
                         {
                             flattened.AddRange(boundCall.Arguments);
                             return;
                         }
 
-                        if ((object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
+                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
                         {
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
                             if (args != null)
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantValue concatenated = TryFoldTwoConcatConsts(leftConst, rightConst);
                 if (concatenated != null)
                 {
-                    return factory.StringLiteral(concatenated);
+                    return _factory.StringLiteral(concatenated);
                 }
             }
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsNullOrEmptyStringConstant(loweredRight))
                 {
-                    return factory.Literal((string)null + (string)null);
+                    return _factory.Literal((string)null + (string)null);
                 }
 
                 return RewriteStringConcatenationOneExpr(syntax, loweredRight);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (loweredOperand.Type.SpecialType == SpecialType.System_String)
             {
                 // loweredOperand ?? ""
-                return factory.Coalesce(loweredOperand, factory.Literal(""));
+                return _factory.Coalesce(loweredOperand, _factory.Literal(""));
             }
 
             var method = GetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = GetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
-                var array = factory.Array(elementType, loweredArgs);
+                var array = _factory.Array(elementType, loweredArgs);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
             }
@@ -346,6 +346,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), method, default(LookupResultKind), type);
         }
-
     }
 }

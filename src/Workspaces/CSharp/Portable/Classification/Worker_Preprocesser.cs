@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     {
         private void ClassifyPreprocessorDirective(DirectiveTriviaSyntax node)
         {
-            if (!textSpan.OverlapsWith(node.Span))
+            if (!_textSpan.OverlapsWith(node.Span))
             {
                 return;
             }

@@ -119,9 +119,7 @@
     <Compile Include="UtilityTest\DocumentationCommentTests.cs" />
     <Compile Include="UtilityTest\EditDistanceTests.cs" />
     <Compile Include="UtilityTest\EtwLoggingTests.cs" />
-    <Compile Include="UtilityTest\ExceptionHelpersTests.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="UtilityTest\ExceptionHelpersTests.cs" />
     <Compile Include="WorkspaceTests\FileSet.cs" />
     <Compile Include="FindAllDeclarationsTests.cs" />
     <Compile Include="FindAllDeclarationsTests.TestSolutionsAndProject.cs" />

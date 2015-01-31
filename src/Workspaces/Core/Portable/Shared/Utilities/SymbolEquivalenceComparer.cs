@@ -42,20 +42,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal partial class SymbolEquivalenceComparer :
         IEqualityComparer<ISymbol>
     {
-        private readonly ImmutableArray<EquivalenceVisitor> equivalenceVisitors;
-        private readonly ImmutableArray<GetHashCodeVisitor> getHashCodeVisitors;
+        private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
+        private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
         public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(assembliesCanDiffer: false);
         public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assembliesCanDiffer: true);
 
-        private readonly bool assembliesCanDiffer;
+        private readonly bool _assembliesCanDiffer;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; private set; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; private set; }
 
         private SymbolEquivalenceComparer(bool assembliesCanDiffer)
         {
-            this.assembliesCanDiffer = assembliesCanDiffer;
+            _assembliesCanDiffer = assembliesCanDiffer;
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
 
@@ -66,14 +66,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
             equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
             equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
-            this.equivalenceVisitors = equivalenceVisitorsBuilder.ToImmutable();
+            _equivalenceVisitors = equivalenceVisitorsBuilder.ToImmutable();
 
             var getHashCodeVisitorsBuilder = ImmutableArray.CreateBuilder<GetHashCodeVisitor>();
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true));
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
             getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
-            this.getHashCodeVisitors = getHashCodeVisitorsBuilder.ToImmutable();
+            _getHashCodeVisitors = getHashCodeVisitorsBuilder.ToImmutable();
         }
 
         // Very subtle logic here.  When checking if two parameters are the same, we can end up with
@@ -87,14 +87,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
             int visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
-            return this.equivalenceVisitors[visitorIndex];
+            return _equivalenceVisitors[visitorIndex];
         }
 
         private GetHashCodeVisitor GetGetHashCodeVisitor(
             bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
             int visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
-            return this.getHashCodeVisitors[visitorIndex];
+            return _getHashCodeVisitors[visitorIndex];
         }
 
         private static int GetVisitorIndex(
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <remarks>This API is only supported for <see cref="SymbolEquivalenceComparer.IgnoreAssembliesInstance"/>.</remarks>
         public bool Equals(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
         {
-            Contract.ThrowIfFalse(assembliesCanDiffer);
+            Contract.ThrowIfFalse(_assembliesCanDiffer);
             return EqualsCore(x, y, equivalentTypesWithDifferingAssemblies);
         }
 

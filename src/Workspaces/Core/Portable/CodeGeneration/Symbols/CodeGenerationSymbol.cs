@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable =
             new ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]>();
 
-        private ImmutableArray<AttributeData> attributes;
+        private ImmutableArray<AttributeData> _attributes;
 
         public Accessibility DeclaredAccessibility { get; private set; }
         protected internal DeclarationModifiers Modifiers { get; private set; }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name)
         {
             this.ContainingType = containingType;
-            this.attributes = attributes.AsImmutableOrEmpty();
+            _attributes = attributes.AsImmutableOrEmpty();
             this.DeclaredAccessibility = declaredAccessibility;
             this.Modifiers = modifiers;
             this.Name = name;
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<AttributeData> GetAttributes()
         {
-            return this.attributes;
+            return _attributes;
         }
 
         public ImmutableArray<AttributeData> GetAttributes(INamedTypeSymbol attributeType)

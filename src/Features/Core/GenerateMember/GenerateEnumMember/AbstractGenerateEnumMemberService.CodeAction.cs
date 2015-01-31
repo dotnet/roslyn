@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,43 +15,43 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
     {
         private partial class GenerateEnumMemberCodeAction : CodeAction
         {
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
 
             public GenerateEnumMemberCodeAction(
                 TService service,
                 Document document,
                 State state)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
+                _service = service;
+                _document = document;
+                _state = state;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var languageServices = this.document.Project.Solution.Workspace.Services.GetLanguageServices(state.TypeToGenerateIn.Language);
+                var languageServices = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var codeGenerator = languageServices.GetService<ICodeGenerationService>();
                 var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 
-                var value = semanticFacts.LastEnumValueHasInitializer(state.TypeToGenerateIn)
-                    ? EnumValueUtilities.GetNextEnumValue(state.TypeToGenerateIn, cancellationToken)
+                var value = semanticFacts.LastEnumValueHasInitializer(_state.TypeToGenerateIn)
+                    ? EnumValueUtilities.GetNextEnumValue(_state.TypeToGenerateIn, cancellationToken)
                     : null;
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var result = await codeGenerator.AddFieldAsync(
-                    document.Project.Solution,
-                    state.TypeToGenerateIn,
+                    _document.Project.Solution,
+                    _state.TypeToGenerateIn,
                     CodeGenerationSymbolFactory.CreateFieldSymbol(
                         attributes: null,
                         accessibility: Accessibility.Public,
                         modifiers: default(DeclarationModifiers),
-                        type: state.TypeToGenerateIn,
-                        name: state.IdentifierToken.ValueText,
+                        type: _state.TypeToGenerateIn,
+                        name: _state.IdentifierToken.ValueText,
                         hasConstantValue: value != null,
                         constantValue: value),
-                    new CodeGenerationOptions(contextLocation: state.IdentifierToken.GetLocation()),
+                    new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 
                     return string.Format(
                         text,
-                        state.IdentifierToken.ValueText,
-                        state.TypeToGenerateIn.Name);
+                        _state.IdentifierToken.ValueText,
+                        _state.TypeToGenerateIn.Name);
                 }
             }
         }

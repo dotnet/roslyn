@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             // Assume value of expression is used.
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // dyn.m = expr
                         var memberAccess = (BoundDynamicMemberAccess)left;
                         var loweredReceiver = VisitExpression(memberAccess.Receiver);
-                        return dynamicFactory.MakeDynamicSetMember(loweredReceiver, memberAccess.Name, loweredRight).ToExpression();
+                        return _dynamicFactory.MakeDynamicSetMember(loweredReceiver, memberAccess.Name, loweredRight).ToExpression();
                     }
 
                 case BoundKind.DynamicIndexerAccess:
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DynamicMemberAccess:
                     var memberAccess = (BoundDynamicMemberAccess)rewrittenLeft;
-                    return dynamicFactory.MakeDynamicSetMember(
+                    return _dynamicFactory.MakeDynamicSetMember(
                         memberAccess.Receiver,
                         memberAccess.Name,
                         rewrittenRight,
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with the matching name of this dynamic invocation.
             EmbedIfNeedTo(loweredReceiver, indexerAccess.ApplicableIndexers, indexerAccess.Syntax);
 
-            return dynamicFactory.MakeDynamicSetIndex(
+            return _dynamicFactory.MakeDynamicSetIndex(
                 MakeDynamicIndexerAccessReceiver(indexerAccess, loweredReceiver),
                 loweredArguments,
                 argumentNames,
@@ -209,14 +208,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
 
-            if((object)setMethod == null)
+            if ((object)setMethod == null)
             {
                 Debug.Assert((property as SourcePropertySymbol)?.IsAutoProperty == true,
                     "only autoproperties can be assignable without having setters");
 
                 var backingField = (property as SourcePropertySymbol).BackingField;
-                return factory.AssignmentExpression(
-                    factory.Field(rewrittenReceiver, backingField),
+                return _factory.AssignmentExpression(
+                    _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);
             }
 
@@ -232,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // assignment can be used as an embedded expression.
                 TypeSymbol exprType = rewrittenRight.Type;
 
-                LocalSymbol rhsTemp = factory.SynthesizedLocal(exprType);
+                LocalSymbol rhsTemp = _factory.SynthesizedLocal(exprType);
 
                 BoundExpression boundRhs = new BoundLocal(syntax, rhsTemp, null, exprType);
 

@@ -11,28 +11,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private const string CS_DLL = "Microsoft.CodeAnalysis.CSharp.dll";
         private const string CS_KIND_TYPE = "Roslyn.Compilers.CSharp.SyntaxKind";
-        private Type m_CSKindType = null;
-        private readonly string m_Folder = null;
+        private Type _CSKindType = null;
+        private readonly string _folder = null;
 
         public CSReflectionBasedKindProvider(string folder)
         {
-            m_Folder = Path.GetFullPath(folder);
+            _folder = Path.GetFullPath(folder);
             GetKindTypes();
         }
 
         private void GetKindTypes()
         {
-            if (m_CSKindType == null)
+            if (_CSKindType == null)
             {
-                var asm = Assembly.LoadFrom(Path.Combine(m_Folder, CS_DLL));
-                m_CSKindType = asm.GetType(CS_KIND_TYPE);
+                var asm = Assembly.LoadFrom(Path.Combine(_folder, CS_DLL));
+                _CSKindType = asm.GetType(CS_KIND_TYPE);
             }
         }
 
         private string GetKind(object o)
         {
             string kind = (string)o.GetType().GetProperty("Kind").GetValue(o, new object[] { });
-            return Enum.Parse(m_CSKindType, kind).ToString();
+            return Enum.Parse(_CSKindType, kind).ToString();
         }
 
         public string Kind(object node)

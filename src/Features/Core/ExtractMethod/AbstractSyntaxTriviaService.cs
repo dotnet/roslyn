@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         private const int TriviaLocationsCount = 4;
 
-        private readonly ISyntaxFactsService syntaxFactsService;
-        private readonly int endOfLineKind;
+        private readonly ISyntaxFactsService _syntaxFactsService;
+        private readonly int _endOfLineKind;
 
         protected AbstractSyntaxTriviaService(ISyntaxFactsService syntaxFactsService, int endOfLineKind)
         {
-            this.syntaxFactsService = syntaxFactsService;
-            this.endOfLineKind = endOfLineKind;
+            _syntaxFactsService = syntaxFactsService;
+            _endOfLineKind = endOfLineKind;
         }
 
         public ITriviaSavedResult SaveTriviaAroundSelection(SyntaxNode root, TextSpan textSpan)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Dictionary<TriviaLocation, SyntaxAnnotation> annotations,
             Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> triviaList)
         {
-            return new Result(root, endOfLineKind, annotations, triviaList);
+            return new Result(root, _endOfLineKind, annotations, triviaList);
         }
 
         private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         private Dictionary<TriviaLocation, SyntaxToken> GetTokensAtEdges(SyntaxNode root, TextSpan textSpan)
         {
             var tokens = new Dictionary<TriviaLocation, SyntaxToken>();
-            tokens[TriviaLocation.AfterBeginningOfSpan] = this.syntaxFactsService.FindTokenOnRightOfPosition(root, textSpan.Start, includeSkipped: false);
+            tokens[TriviaLocation.AfterBeginningOfSpan] = _syntaxFactsService.FindTokenOnRightOfPosition(root, textSpan.Start, includeSkipped: false);
             tokens[TriviaLocation.BeforeBeginningOfSpan] = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true);
-            tokens[TriviaLocation.BeforeEndOfSpan] = this.syntaxFactsService.FindTokenOnLeftOfPosition(root, textSpan.End, includeSkipped: false);
+            tokens[TriviaLocation.BeforeEndOfSpan] = _syntaxFactsService.FindTokenOnLeftOfPosition(root, textSpan.End, includeSkipped: false);
             tokens[TriviaLocation.AfterEndOfSpan] = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true);
             return tokens;
         }

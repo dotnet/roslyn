@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static DebuggerBrowsableState GetDebuggerBrowsableState(ImmutableArray<SynthesizedAttributeData> attributes)
         {
-            return (DebuggerBrowsableState) attributes.Single(a => a.AttributeClass.Name == "DebuggerBrowsableAttribute").ConstructorArguments.First().Value;
+            return (DebuggerBrowsableState)attributes.Single(a => a.AttributeClass.Name == "DebuggerBrowsableAttribute").ConstructorArguments.First().Value;
         }
 
         [Fact, WorkItem(546632, "DevDiv")]
@@ -37,7 +37,7 @@ class C
 ";
             var reference = CreateCompilationWithMscorlib(source).EmitToImageReference();
 
-            var comp = CreateCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal)); 
+            var comp = CreateCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>")).Single();
 
@@ -298,14 +298,13 @@ public class C
                 Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", GetDebuggerDisplayString(assembly, 9, 9));
                 Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", GetDebuggerDisplayString(assembly, 10, 10));
                 Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", GetDebuggerDisplayString(assembly, 11, 11));
-              
+
                 Assert.Equal(@"\{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
                     GetDebuggerDisplayString(assembly, 12, 48));
-
             });
         }
 
-        private static string GetDebuggerDisplayString(AssemblySymbol assembly, int ordinal, int fieldCount) 
+        private static string GetDebuggerDisplayString(AssemblySymbol assembly, int ordinal, int fieldCount)
         {
             NamedTypeSymbol anon;
             if (fieldCount == 0)
@@ -633,7 +632,7 @@ public class Test
                 else
                 {
                     Assert.Equal(0, synthesizedAttributes.Length);
-                }                
+                }
             }
         }
 
@@ -793,11 +792,11 @@ public class Test
         private void VerifySynthesizedDebuggableAttribute(CSharpAttributeData attribute, SourceAssemblySymbol sourceAssembly, OptimizationLevel optimizations)
         {
             var expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints;
-            
+
             if (optimizations == OptimizationLevel.Debug)
             {
-                expectedDebuggingMode |= 
-                    DebuggableAttribute.DebuggingModes.Default | 
+                expectedDebuggingMode |=
+                    DebuggableAttribute.DebuggingModes.Default |
                     DebuggableAttribute.DebuggingModes.DisableOptimizations |
                     DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
             }
@@ -813,7 +812,7 @@ public class Test
             OutputKind outputKind,
             OptimizationLevel optimizations)
         {
-            var compilation = CSharpCompilation.Create("comp", 
+            var compilation = CSharpCompilation.Create("comp",
                 new[] { Parse(source) },
                 includeMscorlibRef ? new[] { MscorlibRef } : null,
                 new CSharpCompilationOptions(outputKind, optimizationLevel: optimizations));
@@ -945,7 +944,7 @@ public class Test
                     Assert.Equal(3, synthesizedAttributes.Length);
                     VerifyCompilationRelaxationsAttribute(synthesizedAttributes[0], sourceAssembly, isSynthesized: true);
                     VerifyRuntimeCompatibilityAttribute(synthesizedAttributes[1], sourceAssembly, isSynthesized: true);
-                    VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, options.OptimizationLevel);                    
+                    VerifySynthesizedDebuggableAttribute(synthesizedAttributes[2], sourceAssembly, options.OptimizationLevel);
                 }
                 else
                 {

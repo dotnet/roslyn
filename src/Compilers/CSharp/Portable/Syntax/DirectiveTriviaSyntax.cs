@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                token = token.GetNextToken(hasDirectivesFunction);
+                token = token.GetNextToken(s_hasDirectivesFunction);
             }
 
             return null;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                token = token.GetPreviousToken(hasDirectivesFunction);
+                token = token.GetPreviousToken(s_hasDirectivesFunction);
             }
 
             return null;
@@ -337,6 +337,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        private static readonly Func<SyntaxToken, bool> hasDirectivesFunction = t => t.ContainsDirectives;
+        private static readonly Func<SyntaxToken, bool> s_hasDirectivesFunction = t => t.ContainsDirectives;
     }
 }

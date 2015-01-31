@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return flowDiagnostics.ToReadOnlyAndFree<Diagnostic>();
         }
 
-        IEnumerable<MethodSymbol> AllMethods(Symbol symbol)
+        private IEnumerable<MethodSymbol> AllMethods(Symbol symbol)
         {
             switch (symbol.Kind)
             {

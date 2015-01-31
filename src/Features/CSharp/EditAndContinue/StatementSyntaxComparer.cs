@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     {
         internal static readonly StatementSyntaxComparer Default = new StatementSyntaxComparer();
 
-        private readonly SyntaxNode oldRootChild;
-        private readonly SyntaxNode newRootChild;
-        private readonly SyntaxNode oldRoot;
-        private readonly SyntaxNode newRoot;
+        private readonly SyntaxNode _oldRootChild;
+        private readonly SyntaxNode _newRootChild;
+        private readonly SyntaxNode _oldRoot;
+        private readonly SyntaxNode _newRoot;
 
         private StatementSyntaxComparer()
         {
@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal StatementSyntaxComparer(SyntaxNode oldRootChild, SyntaxNode newRootChild)
         {
-            this.oldRootChild = oldRootChild;
-            this.newRootChild = newRootChild;
-            this.oldRoot = oldRootChild.Parent;
-            this.newRoot = newRootChild.Parent;
+            _oldRootChild = oldRootChild;
+            _newRootChild = newRootChild;
+            _oldRoot = oldRootChild.Parent;
+            _newRoot = newRootChild.Parent;
         }
 
         #region Tree Traversal
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             Debug.Assert(GetLabel(node) != IgnoredNode);
 
-            if (node == oldRoot || node == newRoot)
+            if (node == _oldRoot || node == _newRoot)
             {
                 return EnumerateRootChildren(node);
             }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private IEnumerable<SyntaxNode> EnumerateRootChildren(SyntaxNode root)
         {
-            var childNode = (root == oldRoot) ? oldRootChild : newRootChild;
+            var childNode = (root == _oldRoot) ? _oldRootChild : _newRootChild;
 
             if (GetLabel(childNode) != IgnoredNode)
             {
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
-            if (node == oldRoot || node == newRoot)
+            if (node == _oldRoot || node == _newRoot)
             {
-                var descendantNode = (node == oldRoot) ? oldRootChild : newRootChild;
+                var descendantNode = (node == _oldRoot) ? _oldRootChild : _newRootChild;
 
                 if (GetLabel(descendantNode) != IgnoredNode)
                 {
@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // (e.g. lambdas, declaration expressions). Descending to these nodes is handled in EnumerateChildren.
 
             isLeaf = false;
-           
-             if (nodeOpt != null && nodeOpt.Parent.IsKind(SyntaxKind.ForStatement) && nodeOpt is ExpressionSyntax)
+
+            if (nodeOpt != null && nodeOpt.Parent.IsKind(SyntaxKind.ForStatement) && nodeOpt is ExpressionSyntax)
             {
                 return Label.ForStatementPart;
             }

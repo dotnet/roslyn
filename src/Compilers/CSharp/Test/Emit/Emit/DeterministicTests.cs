@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact(Skip="900646"), WorkItem(900646)]
+        [Fact(Skip = "900646"), WorkItem(900646)]
         public void Simple()
         {
             var source =
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var comparer = new ImmutableByteArrayEqualityComparer();
 
             var result1 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: true, deterministic: true);
-            var result2 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred,  debug: true, deterministic: true);
+            var result2 = GetBytesEmitted(source, platform: Platform.AnyCpu32BitPreferred, debug: true, deterministic: true);
             Assert.Equal(result1, result2, comparer);
 
             var result3 = GetBytesEmitted(source, platform: Platform.X64, debug: false, deterministic: true);
@@ -114,23 +114,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             compilation.Emit(output);
         }
 
-        class WriteOnlyStream : Stream
+        private class WriteOnlyStream : Stream
         {
-            int length = 0;
+            private int _length = 0;
             public override bool CanRead { get { return false; } }
             public override bool CanSeek { get { return false; } }
             public override bool CanWrite { get { return true; } }
-            public override long Length { get { return length; } }
+            public override long Length { get { return _length; } }
             public override long Position
             {
-                get { return length; }
+                get { return _length; }
                 set { throw new NotSupportedException(); }
             }
             public override void Flush() { }
             public override int Read(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
             public override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
             public override void SetLength(long value) { throw new NotSupportedException(); }
-            public override void Write(byte[] buffer, int offset, int count) { length += count; }
+            public override void Write(byte[] buffer, int offset, int count) { _length += count; }
         }
     }
 }

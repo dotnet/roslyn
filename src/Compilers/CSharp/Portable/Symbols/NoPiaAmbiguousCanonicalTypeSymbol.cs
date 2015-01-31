@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class NoPiaAmbiguousCanonicalTypeSymbol : ErrorTypeSymbol
     {
-        private readonly AssemblySymbol embeddingAssembly;
-        private readonly NamedTypeSymbol firstCandidate;
-        private readonly NamedTypeSymbol secondCandidate;
+        private readonly AssemblySymbol _embeddingAssembly;
+        private readonly NamedTypeSymbol _firstCandidate;
+        private readonly NamedTypeSymbol _secondCandidate;
 
         public NoPiaAmbiguousCanonicalTypeSymbol(
             AssemblySymbol embeddingAssembly,
             NamedTypeSymbol firstCandidate,
             NamedTypeSymbol secondCandidate)
         {
-            this.embeddingAssembly = embeddingAssembly;
-            this.firstCandidate = firstCandidate;
-            this.secondCandidate = secondCandidate;
+            _embeddingAssembly = embeddingAssembly;
+            _firstCandidate = firstCandidate;
+            _secondCandidate = secondCandidate;
         }
 
         internal override bool MangleName
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.embeddingAssembly;
+                return _embeddingAssembly;
             }
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.firstCandidate;
+                return _firstCandidate;
             }
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.secondCandidate;
+                return _secondCandidate;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, firstCandidate);
+                return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, _firstCandidate);
             }
         }
 

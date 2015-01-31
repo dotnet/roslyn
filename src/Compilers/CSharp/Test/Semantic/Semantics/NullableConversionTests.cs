@@ -210,7 +210,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput:"TrueTrue");
+            CompileAndVerify(source, expectedOutput: "TrueTrue");
         }
 
         [Fact, WorkItem(543997, "DevDiv")]
@@ -312,7 +312,6 @@ class A
         [Fact]
         public void TestLiftedVsUnlifted()
         {
-
             // The correct behaviour here is to choose operator 2. Binary operator overload
             // resolution should determine that the best built-in addition operator is
             // lifted int + int, which has signature int? + int? --> int?. However, the 

@@ -4,17 +4,18 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceLabelSymbol : LabelSymbol
     {
-        private readonly MethodSymbol containingMethod;
-        private readonly SyntaxNodeOrToken identifierNodeOrToken;
+        private readonly MethodSymbol _containingMethod;
+        private readonly SyntaxNodeOrToken _identifierNodeOrToken;
 
         /// <summary>
         /// Switch case labels have a constant expression associated with them.
         /// </summary>
-        private readonly ConstantValue switchCaseLabelConstant;
+        private readonly ConstantValue _switchCaseLabelConstant;
 
         public SourceLabelSymbol(
             MethodSymbol containingMethod,
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstantValue switchCaseLabelConstant = null)
             : base(identifierNodeOrToken.IsToken ? identifierNodeOrToken.AsToken().ValueText : identifierNodeOrToken.ToString())
         {
-            this.containingMethod = containingMethod;
-            this.identifierNodeOrToken = identifierNodeOrToken;
-            this.switchCaseLabelConstant = switchCaseLabelConstant;
+            _containingMethod = containingMethod;
+            _identifierNodeOrToken = identifierNodeOrToken;
+            _switchCaseLabelConstant = switchCaseLabelConstant;
         }
 
         public SourceLabelSymbol(
@@ -32,18 +33,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstantValue switchCaseLabelConstant = null)
             : base(switchCaseLabelConstant.ToString())
         {
-            this.containingMethod = containingMethod;
-            this.identifierNodeOrToken = default(SyntaxToken);
-            this.switchCaseLabelConstant = switchCaseLabelConstant;
+            _containingMethod = containingMethod;
+            _identifierNodeOrToken = default(SyntaxToken);
+            _switchCaseLabelConstant = switchCaseLabelConstant;
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return identifierNodeOrToken.IsToken && identifierNodeOrToken.Parent == null
+                return _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
                     ? ImmutableArray<Location>.Empty
-                    : ImmutableArray.Create<Location>(identifierNodeOrToken.GetLocation());
+                    : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation());
             }
         }
 
@@ -53,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CSharpSyntaxNode node = null;
 
-                if (identifierNodeOrToken.IsToken)
+                if (_identifierNodeOrToken.IsToken)
                 {
-                    if (identifierNodeOrToken.Parent != null)
-                        node = identifierNodeOrToken.Parent.FirstAncestorOrSelf<LabeledStatementSyntax>();
+                    if (_identifierNodeOrToken.Parent != null)
+                        node = _identifierNodeOrToken.Parent.FirstAncestorOrSelf<LabeledStatementSyntax>();
                 }
                 else
                 {
-                    node = identifierNodeOrToken.AsNode().FirstAncestorOrSelf<SwitchLabelSyntax>();
+                    node = _identifierNodeOrToken.AsNode().FirstAncestorOrSelf<SwitchLabelSyntax>();
                 }
 
                 return node == null ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create<SyntaxReference>(node.GetReference());
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingMethod;
+                return _containingMethod;
             }
         }
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingMethod;
+                return _containingMethod;
             }
         }
 
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return identifierNodeOrToken;
+                return _identifierNodeOrToken;
             }
         }
 
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.switchCaseLabelConstant;
+                return _switchCaseLabelConstant;
             }
         }
 
@@ -115,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var symbol = obj as SourceLabelSymbol;
             return (object)symbol != null
-                && symbol.identifierNodeOrToken.Kind() != SyntaxKind.None
-                && symbol.identifierNodeOrToken.Equals(this.identifierNodeOrToken)
-                && Equals(symbol.containingMethod, this.containingMethod);
+                && symbol._identifierNodeOrToken.Kind() != SyntaxKind.None
+                && symbol._identifierNodeOrToken.Equals(_identifierNodeOrToken)
+                && Equals(symbol._containingMethod, _containingMethod);
         }
 
         public override int GetHashCode()
         {
-            return this.identifierNodeOrToken.GetHashCode();
+            return _identifierNodeOrToken.GetHashCode();
         }
     }
 }

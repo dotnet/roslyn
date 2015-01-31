@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return TryCreateSpanForNode(switchSection.Statements[0], position);
         }
 
-        private static TextSpan CreateSpanForBlock(BlockSyntax block, int position) 
+        private static TextSpan CreateSpanForBlock(BlockSyntax block, int position)
         {
             // If the user was on the close curly of the block, then set the breakpoint
             // there.  Otherwise, set it on the open curly.

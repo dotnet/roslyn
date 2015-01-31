@@ -11,20 +11,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class WithMethodTypeParametersBinder : WithTypeParametersBinder
     {
-        private readonly MethodSymbol methodSymbol;
-        private MultiDictionary<string, TypeParameterSymbol> lazyTypeParameterMap;
+        private readonly MethodSymbol _methodSymbol;
+        private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
         internal WithMethodTypeParametersBinder(MethodSymbol methodSymbol, Binder next)
             : base(next)
         {
-            this.methodSymbol = methodSymbol;
+            _methodSymbol = methodSymbol;
         }
 
         internal override Symbol ContainingMemberOrLambda
         {
             get
             {
-                return this.methodSymbol;
+                return _methodSymbol;
             }
         }
 
@@ -32,18 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.lazyTypeParameterMap == null)
+                if (_lazyTypeParameterMap == null)
                 {
                     var result = new MultiDictionary<string, TypeParameterSymbol>();
-                    foreach (var typeParameter in this.methodSymbol.TypeParameters)
+                    foreach (var typeParameter in _methodSymbol.TypeParameters)
                     {
                         result.Add(typeParameter.Name, typeParameter);
                     }
 
-                    Interlocked.CompareExchange(ref this.lazyTypeParameterMap, result, null);
+                    Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
 
-                return lazyTypeParameterMap;
+                return _lazyTypeParameterMap;
             }
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanConsiderTypeParameters(options))
             {
-                foreach (var parameter in this.methodSymbol.TypeParameters)
+                foreach (var parameter in _methodSymbol.TypeParameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
                     {

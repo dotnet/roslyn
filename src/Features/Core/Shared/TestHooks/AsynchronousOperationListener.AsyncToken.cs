@@ -8,28 +8,28 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         protected internal class AsyncToken : IAsyncToken
         {
-            private readonly AsynchronousOperationListener listener;
+            private readonly AsynchronousOperationListener _listener;
 
-            private bool disposed;
+            private bool _disposed;
 
             public AsyncToken(AsynchronousOperationListener listener)
             {
-                this.listener = listener;
+                _listener = listener;
 
                 listener.Increment();
             }
 
             public void Dispose()
             {
-                lock (listener.gate)
+                lock (_listener._gate)
                 {
-                    if (disposed)
+                    if (_disposed)
                     {
                         throw new InvalidOperationException("Double disposing of an async token");
                     }
 
-                    disposed = true;
-                    listener.Decrement(this);
+                    _disposed = true;
+                    _listener.Decrement(this);
                 }
             }
         }

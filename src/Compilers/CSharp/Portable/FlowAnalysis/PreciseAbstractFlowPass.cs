@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead.
         /// </summary>
-        private readonly Symbol member;
+        private readonly Symbol _member;
 
         /// <summary>
         /// The bound node of the method or initializer being analyzed.
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
         /// 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         /// </summary>
-        private readonly PooledDictionary<LabelSymbol, LocalState> labels;
+        private readonly PooledDictionary<LabelSymbol, LocalState> _labels;
 
         /// <summary>
         /// Set to true after an analysis scan if the analysis was incomplete due to a backward
@@ -59,18 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// See property PendingBranches
         /// </summary>
-        private ArrayBuilder<PendingBranch> pendingBranches;
+        private ArrayBuilder<PendingBranch> _pendingBranches;
 
         /// <summary>
         /// All of the labels seen so far in this forward scan of the body
         /// </summary>
-        private PooledHashSet<BoundStatement> labelsSeen;
+        private PooledHashSet<BoundStatement> _labelsSeen;
 
         /// <summary>
         /// If we are tracking exceptions, then by convention the first entry in the pending braches
         /// buffer contains a summary of the states that can arise from exceptions.
         /// </summary>
-        private bool trackExceptions;
+        private bool _trackExceptions;
 
         /// <summary>
         /// Pending escapes generated in the current scope (or more deeply nested scopes). When jump
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.pendingBranches;
+                return _pendingBranches;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Split()
         {
-            Debug.Assert(!this.trackExceptions || this.pendingBranches[0].Branch == null);
+            Debug.Assert(!_trackExceptions || _pendingBranches[0].Branch == null);
             if (!IsConditionalState)
             {
                 SetConditionalState(State, State.Clone());
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Unsplit()
         {
-            Debug.Assert(!this.trackExceptions || this.pendingBranches[0].Branch == null);
+            Debug.Assert(!_trackExceptions || _pendingBranches[0].Branch == null);
             if (IsConditionalState)
             {
                 IntersectWith(ref StateWhenTrue, ref StateWhenFalse);
@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected enum RegionPlace { Before, Inside, After };
         protected RegionPlace regionPlace; // tells whether we are currently analyzing code before, during, or after the region
         protected readonly BoundNode firstInRegion, lastInRegion;
-        private readonly bool trackRegions;
+        private readonly bool _trackRegions;
 
         /// <summary>
         /// A cache of the state at the backward branch point of each loop.  This is not needed
         /// during normal flow analysis, but is needed for DataFlowsOut region analysis.
         /// </summary>
-        private readonly Dictionary<BoundLoopStatement, LocalState> loopHeadState;
+        private readonly Dictionary<BoundLoopStatement, LocalState> _loopHeadState;
         #endregion Region
 
         protected PreciseAbstractFlowPass(
@@ -176,18 +176,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
-            this.pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
-            this.labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
-            this.labels = PooledDictionary<LabelSymbol, LocalState>.GetInstance();
+            _pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
+            _labels = PooledDictionary<LabelSymbol, LocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
-            this.member = member;
+            _member = member;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
-            this.loopHeadState = new Dictionary<BoundLoopStatement, LocalState>(ReferenceEqualityComparer.Instance);
-            this.trackRegions = trackRegions;
-            this.trackExceptions = trackExceptions;
+            _loopHeadState = new Dictionary<BoundLoopStatement, LocalState>(ReferenceEqualityComparer.Instance);
+            _trackRegions = trackRegions;
+            _trackExceptions = trackExceptions;
         }
 
         protected abstract string Dump(LocalState state);
@@ -203,12 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             StringBuilder result = new StringBuilder();
             result.Append("Labels{");
             bool first = true;
-            foreach (var key in labels.Keys)
+            foreach (var key in _labels.Keys)
             {
                 if (!first) result.Append(", ");
                 string name = key.Name;
                 if (string.IsNullOrEmpty(name)) name = "<Label>" + key.GetHashCode();
-                result.Append(name).Append(": ").Append(this.Dump(labels[key]));
+                result.Append(name).Append(": ").Append(this.Dump(_labels[key]));
                 first = false;
             }
             result.Append("}");
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We scan even expressions, because we must process lambdas contained within them.
             if (node != null)
             {
-                if (trackRegions)
+                if (_trackRegions)
                 {
                     if (node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
                     result = base.Visit(node);
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldPending = SavePending();
             Visit(methodMainNode);
             RestorePending(oldPending);
-            if (trackRegions && regionPlace != RegionPlace.After) badRegion = true;
+            if (_trackRegions && regionPlace != RegionPlace.After) badRegion = true;
             ImmutableArray<PendingBranch> result = RemoveReturns();
             return result;
         }
@@ -348,8 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
                 this.State = ReachableState();
-                this.pendingBranches.Clear();
-                if (trackExceptions) this.pendingBranches.Add(new PendingBranch(null, ReachableState()));
+                _pendingBranches.Clear();
+                if (_trackExceptions) _pendingBranches.Add(new PendingBranch(null, ReachableState()));
                 this.backwardBranchChanged = false;
                 this.Diagnostics.Clear();
                 returns = this.Scan(ref badRegion);
@@ -362,9 +362,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void Free()
         {
             this.Diagnostics.Free();
-            this.pendingBranches.Free();
-            this.labelsSeen.Free();
-            this.labels.Free();
+            _pendingBranches.Free();
+            _labelsSeen.Free();
+            _labels.Free();
         }
 
         /// <summary>
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = member as MethodSymbol;
+                var method = _member as MethodSymbol;
                 return (object)method == null ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
             }
         }
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = member as MethodSymbol;
+                var method = _member as MethodSymbol;
                 return (object)method == null ? null : method.ThisParameter;
             }
         }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the out parameters of the method should be analyzed</returns>
         protected bool ShouldAnalyzeOutParameters(out Location location)
         {
-            var method = member as MethodSymbol;
+            var method = _member as MethodSymbol;
             if ((object)method == null || method.Locations.Length != 1)
             {
                 location = null;
@@ -423,13 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual LocalState LabelState(LabelSymbol label)
         {
             LocalState result;
-            if (labels.TryGetValue(label, out result))
+            if (_labels.TryGetValue(label, out result))
             {
                 return result;
             }
 
             result = UnreachableState();
-            labels.Add(label, result);
+            _labels.Add(label, result);
             return result;
         }
 
@@ -440,27 +440,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual ImmutableArray<PendingBranch> RemoveReturns()
         {
             ImmutableArray<PendingBranch> result;
-            if (trackExceptions)
+            if (_trackExceptions)
             {
                 // when we are tracking exceptions, we use pendingBranches[0] to
                 // track exception states.
-                result = this.pendingBranches
+                result = _pendingBranches
                         .Where(b => b.Branch != null)
                         .AsImmutableOrNull();
 
-                var oldExceptions = this.pendingBranches[0];
+                var oldExceptions = _pendingBranches[0];
                 Debug.Assert(oldExceptions.Branch == null);
-                this.pendingBranches.Clear();
-                this.pendingBranches.Add(oldExceptions);
+                _pendingBranches.Clear();
+                _pendingBranches.Add(oldExceptions);
             }
             else
             {
-                result = this.pendingBranches.ToImmutable();
-                this.pendingBranches.Clear();
+                result = _pendingBranches.ToImmutable();
+                _pendingBranches.Clear();
             }
 
             // The caller should have handled and cleared labelsSeen.
-            Debug.Assert(this.labelsSeen.Count == 0);
+            Debug.Assert(_labelsSeen.Count == 0);
             return result;
         }
 
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void VisitLvalue(BoundExpression node)
         {
-            if (trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
+            if (_trackRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
             switch (node.Kind)
             {
                 case BoundKind.Parameter:
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutopropertyFromConstructor(access, this.member))
+                    if (Binder.AccessingAutopropertyFromConstructor(access, _member))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
                         if (backingField != null)
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (trackRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside) LeaveRegion();
+            if (_trackRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside) LeaveRegion();
         }
 
         /// <summary>
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node"></param>
         protected BoundNode VisitRvalue(BoundExpression node)
         {
-            Debug.Assert(!trackExceptions || this.PendingBranches.Count > 0 && this.PendingBranches[0].Branch == null);
+            Debug.Assert(!_trackExceptions || this.PendingBranches.Count > 0 && this.PendingBranches[0].Branch == null);
             var result = Visit(node);
             Unsplit();
             return result;
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerHidden]
         protected virtual void VisitStatement(BoundStatement statement)
         {
-            Debug.Assert(!trackExceptions || this.PendingBranches.Count > 0 && this.PendingBranches[0].Branch == null);
+            Debug.Assert(!_trackExceptions || this.PendingBranches.Count > 0 && this.PendingBranches[0].Branch == null);
             Visit(statement);
         }
 
@@ -595,12 +595,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LoopHead(BoundLoopStatement node)
         {
             LocalState previousState;
-            if (loopHeadState.TryGetValue(node, out previousState))
+            if (_loopHeadState.TryGetValue(node, out previousState))
             {
                 IntersectWith(ref this.State, ref previousState);
             }
 
-            loopHeadState[node] = this.State.Clone();
+            _loopHeadState[node] = this.State.Clone();
         }
 
         /// <summary>
@@ -608,10 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void LoopTail(BoundLoopStatement node)
         {
-            var oldState = loopHeadState[node];
+            var oldState = _loopHeadState[node];
             if (IntersectWith(ref oldState, ref this.State))
             {
-                loopHeadState[node] = oldState;
+                _loopHeadState[node] = oldState;
                 this.backwardBranchChanged = true;
             }
         }
@@ -622,13 +622,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveBreaks(LocalState breakState, LabelSymbol label)
         {
-            var pendingBranches = this.pendingBranches;
+            var pendingBranches = _pendingBranches;
             var count = pendingBranches.Count;
 
             if (count != 0)
             {
                 int stillPending = 0;
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     var pending = pendingBranches[i];
                     if (pending.Label == label)
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveContinues(LabelSymbol continueLabel)
         {
-            var pendingBranches = this.pendingBranches;
+            var pendingBranches = _pendingBranches;
             var count = pendingBranches.Count;
 
             if (count != 0)
@@ -702,8 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void NotePossibleException(BoundNode node)
         {
-            Debug.Assert(this.trackExceptions);
-            IntersectWith(ref pendingBranches[0].State, ref this.State);
+            Debug.Assert(_trackExceptions);
+            IntersectWith(ref _pendingBranches[0].State, ref this.State);
         }
 
         /// <summary>
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool labelStateChanged = false;
-            var pendingBranches = this.pendingBranches;
+            var pendingBranches = _pendingBranches;
             var count = pendingBranches.Count;
 
             if (count != 0)
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (changed)
             {
                 labelStateChanged = true;
-                labels[label] = state;
+                _labels[label] = state;
             }
         }
 
@@ -787,10 +787,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected SavedPending SavePending()
         {
-            var result = new SavedPending(ref this.pendingBranches, ref this.labelsSeen);
-            if (trackExceptions)
+            var result = new SavedPending(ref _pendingBranches, ref _labelsSeen);
+            if (_trackExceptions)
             {
-                this.pendingBranches.Add(new PendingBranch(null, this.State.Clone()));
+                _pendingBranches.Add(new PendingBranch(null, this.State.Clone()));
             }
 
             return result;
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="oldPending">The old pending branches, which are to be merged with the current ones</param>
         protected void RestorePending(SavedPending oldPending)
         {
-            foreach (var node in labelsSeen)
+            foreach (var node in _labelsSeen)
             {
                 switch (node.Kind)
                 {
@@ -835,8 +835,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int i = 0;
-            int n = this.pendingBranches.Count;
-            if (trackExceptions)
+            int n = _pendingBranches.Count;
+            if (_trackExceptions)
             {
                 Debug.Assert(oldPending.PendingBranches[0].Branch == null);
                 Debug.Assert(this.PendingBranches[0].Branch == null);
@@ -848,14 +848,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 oldPending.PendingBranches.Add(this.PendingBranches[i]);
             }
-            this.pendingBranches.Free();
-            this.pendingBranches = oldPending.PendingBranches;
+            _pendingBranches.Free();
+            _pendingBranches = oldPending.PendingBranches;
 
             // We only use SavePending/RestorePending when there could be no branch into the region between them.
             // So there is no need to save the labels seen between the calls.  If there were such a need, we would
             // do "this.labelsSeen.UnionWith(oldPending.LabelsSeen);" instead of the following assignment
-            this.labelsSeen.Free();
-            this.labelsSeen = oldPending.LabelsSeen;
+            _labelsSeen.Free();
+            _labelsSeen = oldPending.LabelsSeen;
         }
 
         #region visitors
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
             VisitRvalue(node.InitializerExpressionOpt);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -888,14 +888,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.ReceiverOpt);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
         {
             VisitRvalue(node.Receiver);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
 
             // Control-flow analysis does NOT dive into a lambda, while data-flow analysis does.
             return null;
@@ -1036,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void UpdateStateForCall(BoundCall node)
         {
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
         }
 
         private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.ReceiverOpt);
             var method = node.Indexer.GetOwnOrInheritedGetMethod() ?? node.Indexer.SetMethod;
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method);
-            if (trackExceptions && (object)method != null) NotePossibleException(node);
+            if (_trackExceptions && (object)method != null) NotePossibleException(node);
             if ((object)method != null) VisitReceiverAfterCall(node.ReceiverOpt, method);
             return null;
         }
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.ReceiverOpt);
             VisitRvalue(node.Argument);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(child as BoundExpression);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(child as BoundExpression);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)node.MethodOpt != null && !node.MethodOpt.IsStatic)
                 {
-                    if (trackRegions)
+                    if (_trackRegions)
                     {
                         if (methodGroup == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
                         VisitRvalue(methodGroup.ReceiverOpt);
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(node.Argument);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression receiver = ((BoundMethodGroup)node.Operand).ReceiverOpt;
                     // A method group's "implicit this" is only used for instance methods.
-                    if (trackRegions)
+                    if (_trackRegions)
                     {
                         if (node.Operand == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
                         Visit(receiver);
@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Visit(node.Operand);
-                if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+                if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
 
             return null;
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitRvalue(node.ExpressionOpt);
-            this.pendingBranches.Add(new PendingBranch(node, this.State));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return result;
         }
@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
 
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor);
             VisitRvalue(node.InitializerExpressionOpt);
@@ -1403,21 +1403,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNewT(BoundNewT node)
         {
             VisitRvalue(node.InitializerExpressionOpt);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
             VisitRvalue(node.InitializerExpressionOpt);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         // represents anything that occurs at the invocation of the property setter
         protected virtual void PropertySetter(BoundExpression node, BoundExpression receiver, MethodSymbol setter, BoundExpression value = null)
         {
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             VisitReceiverAfterCall(receiver, setter);
         }
 
@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutopropertyFromConstructor((BoundPropertyAccess)expr, this.member);
+            return !Binder.AccessingAutopropertyFromConstructor((BoundPropertyAccess)expr, _member);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1466,18 +1466,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
                 Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
-                if (trackExceptions) NotePossibleException(node);
+                if (_trackExceptions) NotePossibleException(node);
                 VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
                 VisitRvalue(node.Right);
                 PropertySetter(node, left.ReceiverOpt, writeMethod);
-                if (trackExceptions) NotePossibleException(node);
+                if (_trackExceptions) NotePossibleException(node);
                 VisitReceiverAfterCall(left.ReceiverOpt, writeMethod);
             }
             else
             {
                 VisitRvalue(node.Left);
                 VisitRvalue(node.Right);
-                if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+                if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
 
             return null;
@@ -1526,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if(Binder.AccessingAutopropertyFromConstructor(node, this.member))
+            if (Binder.AccessingAutopropertyFromConstructor(node, _member))
             {
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
                 if (backingField != null)
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var method = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
             VisitReceiverBeforeCall(node.ReceiverOpt, method);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             VisitReceiverAfterCall(node.ReceiverOpt, method);
             return null;
             // TODO: In an expression such as
@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
             VisitFieldAccessInternal(node.ReceiverOpt, node.EventSymbol.AssociatedField);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(i);
             }
 
-            if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+            if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
         }
 
@@ -1715,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitBinaryOperatorChildren(node);
             }
 
-            if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+            if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
         }
 
@@ -1723,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitBinaryLogicalOperatorChildren(node.OperatorKind, node.Left, node.Right);
 
-            if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+            if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
         }
 
@@ -1805,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 VisitRvalue(node.Operand);
-                if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+                if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
             return null;
         }
@@ -1813,8 +1813,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);
-            this.pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
-            if (trackExceptions) NotePossibleException(node);
+            _pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -1829,14 +1829,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
                 Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
-                if (trackExceptions) NotePossibleException(node); // a read
+                if (_trackExceptions) NotePossibleException(node); // a read
                 VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
                 PropertySetter(node, left.ReceiverOpt, writeMethod); // followed by a write
             }
             else
             {
                 VisitRvalue(node.Operand);
-                if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+                if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
 
             return null;
@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(element);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -2039,7 +2039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
         {
-            this.pendingBranches.Add(new PendingBranch(node, this.State));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2048,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // While continue statements do no affect definite assignment, subclasses
             // such as region flow analysis depend on their presence as pending branches.
-            this.pendingBranches.Add(new PendingBranch(node, this.State));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2076,7 +2076,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-
                 SetState(consequenceState);
                 Visit(node.Consequence);
                 Unsplit();
@@ -2113,7 +2112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
-            this.pendingBranches.Add(new PendingBranch(node, this.State));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2124,8 +2123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResolveBranches(label, node);
             var state = LabelState(label);
             IntersectWith(ref this.State, ref state);
-            labels[label] = this.State.Clone();
-            labelsSeen.Add(node);
+            _labels[label] = this.State.Clone();
+            _labelsSeen.Add(node);
         }
 
         protected virtual void VisitLabel(BoundLabeledStatement node)
@@ -2154,7 +2153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLockStatement(BoundLockStatement node)
         {
             VisitRvalue(node.Argument);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             VisitStatement(node.Body);
             return null;
         }
@@ -2181,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitStatement(node.DeclarationsOpt);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             VisitStatement(node.Body);
             return null;
         }
@@ -2207,14 +2206,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(expr);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             SetUnreachable();
             return null;
         }
 
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
-            this.pendingBranches.Add(new PendingBranch(node, this.State));
+            _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
             return null;
         }
@@ -2222,7 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             VisitRvalue(node.Expression);
-            this.pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
+            _pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
             return null;
         }
 
@@ -2303,7 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //  ignore declarations
             //node.Declarations
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
@@ -2316,7 +2315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
             VisitRvalue(node.Condition);
-            this.pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
+            _pendingBranches.Add(new PendingBranch(node, this.State.Clone()));
             return null;
         }
 
@@ -2335,7 +2334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var initializer in initializers)
             {
                 VisitRvalue(initializer);
-                if (trackExceptions) NotePossibleException(initializer);
+                if (_trackExceptions) NotePossibleException(initializer);
             }
 
             return null;
@@ -2346,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             if (!arguments.IsDefaultOrEmpty)
             {
-                foreach( var argument in arguments)
+                foreach (var argument in arguments)
                 {
                     VisitRvalue(argument);
                 }
@@ -2380,14 +2379,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod);
             }
 
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), method: null);
-            if (trackExceptions) NotePossibleException(node);
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 

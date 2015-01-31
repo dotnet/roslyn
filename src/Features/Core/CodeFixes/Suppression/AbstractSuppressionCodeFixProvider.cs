@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
         public static string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute";
-        private static string globalSuppressionsFileName = "GlobalSuppressions";
-        private static string suppressionsFileCommentTemplate =
+        private static string s_globalSuppressionsFileName = "GlobalSuppressions";
+        private static string s_suppressionsFileCommentTemplate =
 @"
 {0} This file is used by Code Analysis to maintain SuppressMessage 
 {0} attributes that are applied to this project.
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             get
             {
-                return string.Format(suppressionsFileCommentTemplate, this.SingleLineCommentStart);
+                return string.Format(s_suppressionsFileCommentTemplate, this.SingleLineCommentStart);
             }
         }
 

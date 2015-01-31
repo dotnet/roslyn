@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Lazily filled by GetSpecialType method.
         /// </summary>
         /// <remarks></remarks>
-        private NamedTypeSymbol[] lazySpecialTypes;
+        private NamedTypeSymbol[] _lazySpecialTypes;
 
         /// <summary>
         /// How many Cor types have we cached so far.
         /// </summary>
-        private int cachedSpecialTypes;
+        private int _cachedSpecialTypes;
 
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
 
-            if (lazySpecialTypes == null || (object)lazySpecialTypes[(int)type] == null)
+            if (_lazySpecialTypes == null || (object)_lazySpecialTypes[(int)type] == null)
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
                 ModuleSymbol module = this.Modules[0];
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RegisterDeclaredSpecialType(result);
             }
 
-            return lazySpecialTypes[(int)type];
+            return _lazySpecialTypes[(int)type];
         }
 
         /// <summary>
@@ -74,22 +74,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(corType.ContainingModule.Ordinal == 0);
             Debug.Assert(ReferenceEquals(this.CorLibrary, this));
 
-            if (lazySpecialTypes == null)
+            if (_lazySpecialTypes == null)
             {
-                Interlocked.CompareExchange(ref lazySpecialTypes,
+                Interlocked.CompareExchange(ref _lazySpecialTypes,
                     new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
             }
 
-            if ((object)Interlocked.CompareExchange(ref lazySpecialTypes[(int)typeId], corType, null) != null)
+            if ((object)Interlocked.CompareExchange(ref _lazySpecialTypes[(int)typeId], corType, null) != null)
             {
-                Debug.Assert(ReferenceEquals(corType, lazySpecialTypes[(int)typeId]) ||
+                Debug.Assert(ReferenceEquals(corType, _lazySpecialTypes[(int)typeId]) ||
                                         (corType.Kind == SymbolKind.ErrorType &&
-                                        lazySpecialTypes[(int)typeId].Kind == SymbolKind.ErrorType));
+                                        _lazySpecialTypes[(int)typeId].Kind == SymbolKind.ErrorType));
             }
             else
             {
-                Interlocked.Increment(ref cachedSpecialTypes);
-                Debug.Assert(cachedSpecialTypes > 0 && cachedSpecialTypes <= (int)SpecialType.Count);
+                Interlocked.Increment(ref _cachedSpecialTypes);
+                Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes <= (int)SpecialType.Count);
             }
         }
 
@@ -102,23 +102,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ReferenceEquals(this.CorLibrary, this) && cachedSpecialTypes < (int)SpecialType.Count;
+                return ReferenceEquals(this.CorLibrary, this) && _cachedSpecialTypes < (int)SpecialType.Count;
             }
         }
 
-        private ICollection<string> lazyTypeNames;
-        private ICollection<string> lazyNamespaceNames;
+        private ICollection<string> _lazyTypeNames;
+        private ICollection<string> _lazyNamespaceNames;
 
         public override ICollection<string> TypeNames
         {
             get
             {
-                if (lazyTypeNames == null)
+                if (_lazyTypeNames == null)
                 {
-                    Interlocked.CompareExchange(ref lazyTypeNames, UnionCollection<string>.Create(this.Modules, m => m.TypeNames), null);
+                    Interlocked.CompareExchange(ref _lazyTypeNames, UnionCollection<string>.Create(this.Modules, m => m.TypeNames), null);
                 }
 
-                return lazyTypeNames;
+                return _lazyTypeNames;
             }
         }
 
@@ -126,19 +126,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (lazyNamespaceNames == null)
+                if (_lazyNamespaceNames == null)
                 {
-                    Interlocked.CompareExchange(ref lazyNamespaceNames, UnionCollection<string>.Create(this.Modules, m => m.NamespaceNames), null);
+                    Interlocked.CompareExchange(ref _lazyNamespaceNames, UnionCollection<string>.Create(this.Modules, m => m.NamespaceNames), null);
                 }
 
-                return lazyNamespaceNames;
+                return _lazyNamespaceNames;
             }
         }
 
         /// <summary>
         /// Not yet known value is represented by ErrorTypeSymbol.UnknownResultType
         /// </summary>
-        private Symbol[] lazySpecialTypeMembers;
+        private Symbol[] _lazySpecialTypeMembers;
 
         /// <summary>
         /// Lookup member declaration in predefined CorLib type in this Assembly. Only valid if this 
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
 
-            if (lazySpecialTypeMembers == null || ReferenceEquals(lazySpecialTypeMembers[(int)member], ErrorTypeSymbol.UnknownResultType))
+            if (_lazySpecialTypeMembers == null || ReferenceEquals(_lazySpecialTypeMembers[(int)member], ErrorTypeSymbol.UnknownResultType))
             {
-                if (lazySpecialTypeMembers == null)
+                if (_lazySpecialTypeMembers == null)
                 {
                     var specialTypeMembers = new Symbol[(int)SpecialMember.Count];
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         specialTypeMembers[i] = ErrorTypeSymbol.UnknownResultType;
                     }
 
-                    Interlocked.CompareExchange(ref lazySpecialTypeMembers, specialTypeMembers, null);
+                    Interlocked.CompareExchange(ref _lazySpecialTypeMembers, specialTypeMembers, null);
                 }
 
                 var descriptor = SpecialMembers.GetDescriptor(member);
@@ -176,10 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result = CSharpCompilation.GetRuntimeMember(type, ref descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: null);
                 }
 
-                Interlocked.CompareExchange(ref lazySpecialTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
+                Interlocked.CompareExchange(ref _lazySpecialTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
             }
 
-            return lazySpecialTypeMembers[(int)member];
+            return _lazySpecialTypeMembers[(int)member];
         }
 
         /// <summary>
@@ -218,15 +218,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         //EDMAURER This is a cache mapping from assemblies which we have analyzed whether or not they grant
         //internals access to us to the conclusion reached.
-        private ConcurrentDictionary<AssemblySymbol, IVTConclusion> assembliesToWhichInternalAccessHasBeenAnalyzed;
+        private ConcurrentDictionary<AssemblySymbol, IVTConclusion> _assembliesToWhichInternalAccessHasBeenAnalyzed;
 
         private ConcurrentDictionary<AssemblySymbol, IVTConclusion> AssembliesToWhichInternalAccessHasBeenDetermined
         {
             get
             {
-                if (assembliesToWhichInternalAccessHasBeenAnalyzed == null)
-                    Interlocked.CompareExchange(ref assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
-                return assembliesToWhichInternalAccessHasBeenAnalyzed;
+                if (_assembliesToWhichInternalAccessHasBeenAnalyzed == null)
+                    Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
+                return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }
     }

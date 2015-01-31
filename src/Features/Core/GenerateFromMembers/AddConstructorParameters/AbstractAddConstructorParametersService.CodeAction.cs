@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
     {
         private class AddConstructorParametersCodeAction : CodeAction
         {
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
-            private readonly IList<IParameterSymbol> parameters;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
+            private readonly IList<IParameterSymbol> _parameters;
 
             public AddConstructorParametersCodeAction(
                 TService service,
@@ -30,33 +30,33 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
                 State state,
                 IList<IParameterSymbol> parameters)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
-                this.parameters = parameters;
+                _service = service;
+                _document = document;
+                _state = state;
+                _parameters = parameters;
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var workspace = document.Project.Solution.Workspace;
-                var declarationService = document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
-                var constructor = declarationService.GetDeclarations(state.DelegatedConstructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                var workspace = _document.Project.Solution.Workspace;
+                var declarationService = _document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
+                var constructor = declarationService.GetDeclarations(_state.DelegatedConstructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, parameters.Skip(state.DelegatedConstructor.Parameters.Length), workspace);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(state), workspace)
+                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _parameters.Skip(_state.DelegatedConstructor.Parameters.Length), workspace);
+                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_state), workspace)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return Task.FromResult(document.WithSyntaxRoot(newRoot));
+                return Task.FromResult(_document.WithSyntaxRoot(newRoot));
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(
                 State state)
             {
-                var factory = this.document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetLanguageService<SyntaxGenerator>();
                 for (int i = state.DelegatedConstructor.Parameters.Length; i < state.Parameters.Count; i++)
                 {
                     var symbolName = state.SelectedMembers[i].Name;
@@ -73,19 +73,19 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
             {
                 get
                 {
-                    var parameters = state.DelegatedConstructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                    var parameters = _state.DelegatedConstructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var optional = this.parameters.First().IsOptional;
+                    var optional = _parameters.First().IsOptional;
 
                     if (optional)
                     {
                         return string.Format(FeaturesResources.AddOptionalParametersTo,
-                            state.ContainingType.Name, parameterString);
+                            _state.ContainingType.Name, parameterString);
                     }
                     else
                     {
                         return string.Format(FeaturesResources.AddParametersTo,
-                            state.ContainingType.Name, parameterString);
+                            _state.ContainingType.Name, parameterString);
                     }
                 }
             }

@@ -385,6 +385,5 @@ public struct Struct
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
                 );
         }
-
     }
 }

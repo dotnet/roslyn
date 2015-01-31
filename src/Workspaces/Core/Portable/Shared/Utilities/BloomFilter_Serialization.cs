@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            writer.WriteBoolean(isCaseSensitive);
-            writer.WriteInt32(hashFunctionCount);
-            bitArray.WriteTo(writer);
+            writer.WriteBoolean(_isCaseSensitive);
+            writer.WriteInt32(_hashFunctionCount);
+            _bitArray.WriteTo(writer);
         }
 
         public static BloomFilter ReadFrom(ObjectReader reader)

@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal class DocCommentFormatter
         {
-            private static int indentSize = 2;
-            private static int wrapLength = 80;
+            private static int s_indentSize = 2;
+            private static int s_wrapLength = 80;
 
-            private static string summaryHeader = FeaturesResources.Summary;
-            private static string paramHeader = FeaturesResources.Parameters;
-            private static string labelFormat = "{0}:";
-            private static string typeParameterHeader = FeaturesResources.TypeParameters;
-            private static string returnsHeader = FeaturesResources.Returns;
-            private static string exceptionsHeader = FeaturesResources.Exceptions;
-            private static string remarksHeader = FeaturesResources.Remarks;
+            private static string s_summaryHeader = FeaturesResources.Summary;
+            private static string s_paramHeader = FeaturesResources.Parameters;
+            private static string s_labelFormat = "{0}:";
+            private static string s_typeParameterHeader = FeaturesResources.TypeParameters;
+            private static string s_returnsHeader = FeaturesResources.Returns;
+            private static string s_exceptionsHeader = FeaturesResources.Exceptions;
+            private static string s_remarksHeader = FeaturesResources.Remarks;
 
             internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
             {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 var formattedSummaryText = docCommentFormattingService.Format(docComment.SummaryText);
                 if (!string.IsNullOrWhiteSpace(formattedSummaryText))
                 {
-                    formattedCommentLinesBuilder.Add(summaryHeader);
+                    formattedCommentLinesBuilder.Add(s_summaryHeader);
                     formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedSummaryText));
                 }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (parameterNames.Length > 0)
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(paramHeader);
+                    formattedCommentLinesBuilder.Add(s_paramHeader);
 
                     for (int i = 0; i < parameterNames.Length; i++)
                     {
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         }
 
                         lineBuilder.Clear();
-                        lineBuilder.Append(' ', indentSize);
-                        lineBuilder.Append(string.Format(labelFormat, parameterNames[i]));
+                        lineBuilder.Append(' ', s_indentSize);
+                        lineBuilder.Append(string.Format(s_labelFormat, parameterNames[i]));
                         formattedCommentLinesBuilder.Add(lineBuilder.ToString());
 
                         var rawParameterText = docComment.GetParameterText(parameterNames[i]);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (typeParameterNames.Length > 0)
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(typeParameterHeader);
+                    formattedCommentLinesBuilder.Add(s_typeParameterHeader);
 
                     for (int i = 0; i < typeParameterNames.Length; i++)
                     {
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         }
 
                         lineBuilder.Clear();
-                        lineBuilder.Append(' ', indentSize);
-                        lineBuilder.Append(string.Format(labelFormat, typeParameterNames[i]));
+                        lineBuilder.Append(' ', s_indentSize);
+                        lineBuilder.Append(string.Format(s_labelFormat, typeParameterNames[i]));
                         formattedCommentLinesBuilder.Add(lineBuilder.ToString());
 
                         var rawTypeParameterText = docComment.GetTypeParameterText(typeParameterNames[i]);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!string.IsNullOrWhiteSpace(formattedReturnsText))
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(returnsHeader);
+                    formattedCommentLinesBuilder.Add(s_returnsHeader);
                     formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedReturnsText));
                 }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (exceptionTypes.Length > 0)
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(exceptionsHeader);
+                    formattedCommentLinesBuilder.Add(s_exceptionsHeader);
 
                     for (int i = 0; i < exceptionTypes.Length; i++)
                     {
@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                             }
 
                             lineBuilder.Clear();
-                            lineBuilder.Append(' ', indentSize);
-                            lineBuilder.Append(string.Format(labelFormat, exceptionTypes[i]));
+                            lineBuilder.Append(' ', s_indentSize);
+                            lineBuilder.Append(string.Format(s_labelFormat, exceptionTypes[i]));
                             formattedCommentLinesBuilder.Add(lineBuilder.ToString());
 
                             var formattedExceptionText = docCommentFormattingService.Format(rawExceptionTexts[j]);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!string.IsNullOrWhiteSpace(formattedRemarksText))
                 {
                     formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(remarksHeader);
+                    formattedCommentLinesBuilder.Add(s_remarksHeader);
                     formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedRemarksText));
                 }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             private static void SplitRawLineIntoFormattedLines(string line, ImmutableArray<string>.Builder lines)
             {
-                var indent = new StringBuilder().Append(' ', indentSize * 2).ToString();
+                var indent = new StringBuilder().Append(' ', s_indentSize * 2).ToString();
 
                 var words = line.Split(' ');
                 bool firstInLine = true;
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     sb.Append(word);
 
-                    if (sb.Length >= wrapLength)
+                    if (sb.Length >= s_wrapLength)
                     {
                         lines.Add(sb.ToString());
                         sb.Clear();

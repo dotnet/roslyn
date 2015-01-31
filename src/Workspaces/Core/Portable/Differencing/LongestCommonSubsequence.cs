@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 yield return new SequenceEdit(-1, j);
             }
         }
-        
+
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
         /// The smaller distance the more of their elements match.

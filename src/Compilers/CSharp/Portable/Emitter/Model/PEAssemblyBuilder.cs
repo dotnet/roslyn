@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssembly
     {
-        private readonly SourceAssemblySymbol sourceAssembly;
-        private readonly ImmutableArray<NamedTypeSymbol> additionalTypes;
-        private ImmutableArray<Cci.IFileReference> lazyFiles;
+        private readonly SourceAssemblySymbol _sourceAssembly;
+        private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
+        private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <remarks>
         /// In cases 1 and 2b, we expect (metadataName == sourceAssembly.MetadataName).
         /// </remarks>
-        private readonly string metadataName;
+        private readonly string _metadataName;
 
         public PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert((object)sourceAssembly != null);
 
-            this.sourceAssembly = sourceAssembly;
-            this.additionalTypes = additionalTypes.NullToEmpty();
-            this.metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
+            _sourceAssembly = sourceAssembly;
+            _additionalTypes = additionalTypes.NullToEmpty();
+            _metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
@@ -63,17 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
-            return this.additionalTypes;
+            return _additionalTypes;
         }
 
         IEnumerable<Cci.IFileReference> Cci.IAssembly.GetFiles(EmitContext context)
         {
-            if (lazyFiles.IsDefault)
+            if (_lazyFiles.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.IFileReference>.GetInstance();
                 try
                 {
-                    var modules = sourceAssembly.Modules;
+                    var modules = _sourceAssembly.Modules;
                     for (int i = 1; i < modules.Length; i++)
                     {
                         builder.Add((Cci.IFileReference)Translate(modules[i], context.Diagnostics));
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
 
                     // Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
-                    if (ImmutableInterlocked.InterlockedInitialize(ref lazyFiles, builder.ToImmutable()) && lazyFiles.Length > 0)
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyFiles, builder.ToImmutable()) && _lazyFiles.Length > 0)
                     {
-                        if (!CryptographicHashProvider.IsSupportedAlgorithm(sourceAssembly.AssemblyHashAlgorithm))
+                        if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.AssemblyHashAlgorithm))
                         {
                             context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CryptoHashFailed), NoLocation.Singleton));
                         }
@@ -102,16 +102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            return lazyFiles;
+            return _lazyFiles;
         }
 
         uint Cci.IAssembly.Flags
         {
             get
             {
-                AssemblyNameFlags result = sourceAssembly.Flags & ~AssemblyNameFlags.PublicKey;
+                AssemblyNameFlags result = _sourceAssembly.Flags & ~AssemblyNameFlags.PublicKey;
 
-                if (!sourceAssembly.PublicKey.IsDefaultOrEmpty)
+                if (!_sourceAssembly.PublicKey.IsDefaultOrEmpty)
                     result |= AssemblyNameFlags.PublicKey;
 
                 return (uint)result;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return sourceAssembly.SignatureKey;
+                return _sourceAssembly.SignatureKey;
             }
         }
 
@@ -130,13 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return sourceAssembly.Identity.PublicKey;
+                return _sourceAssembly.Identity.PublicKey;
             }
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
         {
-            var modules = sourceAssembly.Modules;
+            var modules = _sourceAssembly.Modules;
             int count = modules.Length;
 
             for (int i = 1; i < count; i++)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return sourceAssembly.Identity.CultureName;
+                return _sourceAssembly.Identity.CultureName;
             }
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return sourceAssembly.Identity.IsRetargetable;
+                return _sourceAssembly.Identity.IsRetargetable;
             }
         }
 
@@ -182,30 +182,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return sourceAssembly.Identity.ContentType;
+                return _sourceAssembly.Identity.ContentType;
             }
         }
 
         ImmutableArray<byte> Cci.IAssemblyReference.PublicKeyToken
         {
-            get { return sourceAssembly.Identity.PublicKeyToken; }
+            get { return _sourceAssembly.Identity.PublicKeyToken; }
         }
 
         Version Cci.IAssemblyReference.Version
         {
-            get { return sourceAssembly.Identity.Version; }
+            get { return _sourceAssembly.Identity.Version; }
         }
 
         internal override string Name
         {
-            get { return metadataName; }
+            get { return _metadataName; }
         }
 
         AssemblyHashAlgorithm Cci.IAssembly.HashAlgorithm
         {
             get
             {
-                return sourceAssembly.AssemblyHashAlgorithm;
+                return _sourceAssembly.AssemblyHashAlgorithm;
             }
         }
     }

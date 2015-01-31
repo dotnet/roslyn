@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             spaceOrIndentation = text.ConvertTabToSpace(tabSize, baseToken.ToString().GetTextColumn(tabSize, initialColumn), text.Length);
         }
 
-        private static char[] trimChars = new char[] { '\r', '\n' };
+        private static char[] s_trimChars = new char[] { '\r', '\n' };
 
         public static string AdjustIndentForXmlDocExteriorTrivia(
             this string triviaText,
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var isEmptyString = false;
             var builder = StringBuilderPool.Allocate();
 
-            var trimmedTriviaText = triviaText.TrimEnd(trimChars);
+            var trimmedTriviaText = triviaText.TrimEnd(s_trimChars);
             var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(triviaText);
             if (nonWhitespaceCharIndex == -1)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             Contract.ThrowIfFalse(lines.Length > 0);
 
             // add first line and append new line iff it is not a single line xml doc comment
-            builder.Append(lines[0].Trim(trimChars));
+            builder.Append(lines[0].Trim(s_trimChars));
             if (0 < lines.Length - 1)
             {
                 builder.AppendLine();
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // add rest of xml doc comments
             for (int i = 1; i < lines.Length; i++)
             {
-                var line = lines[i].TrimEnd(trimChars);
+                var line = lines[i].TrimEnd(s_trimChars);
                 var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(line);
                 if (nonWhitespaceCharIndex >= 0)
                 {

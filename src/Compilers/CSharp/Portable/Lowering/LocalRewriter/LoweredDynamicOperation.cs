@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct LoweredDynamicOperation
     {
-        private readonly SyntheticBoundNodeFactory Factory;
-        private readonly TypeSymbol resultType;
+        private readonly SyntheticBoundNodeFactory _factory;
+        private readonly TypeSymbol _resultType;
         public readonly BoundExpression SiteInitialization;
         public readonly BoundExpression SiteInvocation;
 
         public LoweredDynamicOperation(SyntheticBoundNodeFactory factory, BoundExpression siteInitialization, BoundExpression siteInvocation, TypeSymbol resultType)
         {
-            this.Factory = factory;
-            this.resultType = resultType;
+            _factory = factory;
+            _resultType = resultType;
             this.SiteInitialization = siteInitialization;
             this.SiteInvocation = siteInvocation;
         }
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression ToExpression()
         {
-            if (Factory == null)
+            if (_factory == null)
             {
                 Debug.Assert(SiteInitialization == null && SiteInvocation is BoundBadExpression);
                 return SiteInvocation;
             }
 
             // TODO (tomat): we might be able to using SiteInvocation.Type instead of resultType once we stop using GetLoweredType
-            return Factory.Sequence(new[] { SiteInitialization }, SiteInvocation, resultType);
+            return _factory.Sequence(new[] { SiteInitialization }, SiteInvocation, _resultType);
         }
     }
 }

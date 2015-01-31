@@ -31,7 +31,7 @@ namespace Microsoft.OpenSourceDebug
         private const string VisualStudioHive = "VisualStudio";
         private const string MSBuildDirectory = @"Microsoft\MSBuild\14.0";
 
-        private string CSharpTargetsTemplate =
+        private string _CSharpTargetsTemplate =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)'=='{0}'"">
@@ -78,7 +78,7 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
                 {
                     WriteFile(
                         Path.Combine(msbuildExtensionsPath, string.Format(@"Microsoft.CSharp.targets\ImportAfter\Microsoft.CSharp.Roslyn.{0}.{1}.targets", regDirs[2], regDirs[3])),
-                        string.Format(CSharpTargetsTemplate, roslynHive, packagePath));
+                        string.Format(_CSharpTargetsTemplate, roslynHive, packagePath));
                     WriteFile(
                         Path.Combine(msbuildExtensionsPath, string.Format(@"Microsoft.VisualBasic.targets\ImportAfter\Microsoft.VisualBasic.Roslyn.{0}.{1}.targets", regDirs[2], regDirs[3])),
                         string.Format(VisualBasicTargetsTemplate, roslynHive, packagePath));

@@ -29,7 +29,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: false),
                 expectedSignatures: new[]
                 {
@@ -703,8 +703,8 @@ class C
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
-            var verifier = CompileAndVerify(compilation, 
-                                            expectedOutput: "TrueFalseTrue", 
+            var verifier = CompileAndVerify(compilation,
+                                            expectedOutput: "TrueFalseTrue",
                                             symbolValidator: module =>
                                                                 {
                                                                     var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -819,6 +819,5 @@ struct C
 }
 ");
         }
-
     }
 }

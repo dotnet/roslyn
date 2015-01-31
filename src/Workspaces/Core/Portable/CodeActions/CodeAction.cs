@@ -266,59 +266,59 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class DocumentChangeAction : CodeAction
         {
-            private readonly string title;
-            private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
-            private readonly string equivalenceKey;
+            private readonly string _title;
+            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
+            private readonly string _equivalenceKey;
 
             public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
             {
-                this.title = title;
-                this.createChangedDocument = createChangedDocument;
-                this.equivalenceKey = equivalenceKey;
+                _title = title;
+                _createChangedDocument = createChangedDocument;
+                _equivalenceKey = equivalenceKey;
             }
 
             public override string Title
             {
-                get { return this.title; }
+                get { return _title; }
             }
 
             public override string EquivalenceKey
             {
-                get { return this.equivalenceKey; }
+                get { return _equivalenceKey; }
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                return this.createChangedDocument(cancellationToken);
+                return _createChangedDocument(cancellationToken);
             }
         }
 
         internal class SolutionChangeAction : CodeAction
         {
-            private readonly string title;
-            private readonly Func<CancellationToken, Task<Solution>> createChangedSolution;
-            private readonly string equivalenceKey;
+            private readonly string _title;
+            private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
+            private readonly string _equivalenceKey;
 
             public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
             {
-                this.title = title;
-                this.createChangedSolution = createChangedSolution;
-                this.equivalenceKey = equivalenceKey;
+                _title = title;
+                _createChangedSolution = createChangedSolution;
+                _equivalenceKey = equivalenceKey;
             }
 
             public override string Title
             {
-                get { return this.title; }
+                get { return _title; }
             }
 
             public override string EquivalenceKey
             {
-                get { return this.equivalenceKey; }
+                get { return _equivalenceKey; }
             }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                return this.createChangedSolution(cancellationToken);
+                return _createChangedSolution(cancellationToken);
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal class ExtractMethodMatrix
     {
-        private static readonly Dictionary<Key, VariableStyle> matrix;
+        private static readonly Dictionary<Key, VariableStyle> s_matrix;
 
         static ExtractMethodMatrix()
         {
-            matrix = new Dictionary<Key, VariableStyle>();
+            s_matrix = new Dictionary<Key, VariableStyle>();
             BuildMatrix();
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 writtenOutside);
 
             // special cases
-            if (!matrix.ContainsKey(key))
+            if (!s_matrix.ContainsKey(key))
             {
                 // Interesting case.  Due to things like constant analysis there can be regions that
                 // the compiler considers data not to flow in (because analysis proves that that
@@ -75,84 +75,84 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            Contract.ThrowIfFalse(matrix.ContainsKey(key));
+            Contract.ThrowIfFalse(s_matrix.ContainsKey(key));
 
-            return matrix[key];
+            return s_matrix[key];
         }
 
         private static void BuildMatrix()
         {
             // meaning of each boolean values (total of 69 different cases)
             // data flowin/data flow out/always assigned/variable declared/ read inside/written inside/read outside/written outside
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.MoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.MoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: false, writtenOutside: false), VariableStyle.None);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitIn);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Ref);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Ref);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: true, writtenOutside: false), VariableStyle.NotUsed);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.NotUsed);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Out);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Out);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Out);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Out);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
-            matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.MoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.MoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: false, writtenOutside: false), VariableStyle.None);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.MoveIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitIn);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.None);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.SplitOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Ref);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Ref);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: true, writtenOutside: false), VariableStyle.NotUsed);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.NotUsed);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: false, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Out);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Out);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.Out);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Out);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: false, dataFlowOut: true, alwaysAssigned: true, variableDeclared: true, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.OutWithMoveOut);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
         }
 
         private struct Key : IEquatable<Key>

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public PatternMatchKind Kind { get; private set; }
 
-        private bool punctuationStripped;
+        private bool _punctuationStripped;
 
         internal PatternMatch(PatternMatchKind resultType, bool punctuationStripped, bool isCaseSensitive, int? camelCaseWeight = null)
             : this()
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             this.Kind = resultType;
             this.IsCaseSensitive = isCaseSensitive;
             this.CamelCaseWeight = camelCaseWeight;
-            this.punctuationStripped = punctuationStripped;
+            _punctuationStripped = punctuationStripped;
 
             if ((resultType == PatternMatchKind.CamelCase) != camelCaseWeight.HasValue)
             {
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             // Consider a match to be better if it was successful without stripping punctuation
             // versus a match that had to strip punctuation to succeed.
-            if (result1.punctuationStripped != result2.punctuationStripped)
+            if (result1._punctuationStripped != result2._punctuationStripped)
             {
-                return result1.punctuationStripped ? 1 : -1;
+                return result1._punctuationStripped ? 1 : -1;
             }
 
             return 0;

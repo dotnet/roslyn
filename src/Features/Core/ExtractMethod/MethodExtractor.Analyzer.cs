@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected abstract partial class Analyzer
         {
-            private readonly SemanticDocument semanticDocument;
+            private readonly SemanticDocument _semanticDocument;
 
             protected readonly CancellationToken CancellationToken;
             protected readonly SelectionResult SelectionResult;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(selectionResult);
 
                 this.SelectionResult = selectionResult;
-                this.semanticDocument = selectionResult.SemanticDocument;
+                _semanticDocument = selectionResult.SemanticDocument;
                 this.CancellationToken = cancellationToken;
             }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public async Task<AnalyzerResult> AnalyzeAsync()
             {
                 // do data flow analysis
-                var model = this.semanticDocument.SemanticModel;
+                var model = _semanticDocument.SemanticModel;
                 var dataFlowAnalysisData = GetDataFlowAnalysisData(model);
 
                 // build symbol map for the identifiers used inside of the selection
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 bool awaitTaskReturn = returnTypeTuple.Item3;
 
                 // create new document
-                var newDocument = await CreateDocumentWithAnnotationsAsync(this.semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
+                var newDocument = await CreateDocumentWithAnnotationsAsync(_semanticDocument, parameters, CancellationToken).ConfigureAwait(false);
 
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var returnType = default(ITypeSymbol);
                     if (variableToUseAsReturnValue != null)
                     {
-                        returnType = variableToUseAsReturnValue.GetVariableType(this.semanticDocument);
+                        returnType = variableToUseAsReturnValue.GetVariableType(_semanticDocument);
                     }
                     else
                     {
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
             {
-                var syntaxFactsService = this.semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = _semanticDocument.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
                 var context = this.SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, this.SelectionResult.FinalSpan, CancellationToken);
 
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // we probably need to move the API to syntaxFact service not semanticFact.
                 //
                 // if one wants to get result that also considers semantic, he should use data control flow analysis API.
-                var semanticFacts = this.semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
             }
 
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 List<string> names = null;
-                var semanticFacts = this.semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = _semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
                 {
                     var field = (IFieldSymbol)pair.Key;

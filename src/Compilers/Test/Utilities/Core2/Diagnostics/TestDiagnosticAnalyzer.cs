@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         protected abstract void OnAbstractMember(string abstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null);
-        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName]string callerName=null) { }
+        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName]string callerName = null) { }
 
         #region Implementation
 
@@ -54,19 +54,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
         }
 
-        void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
+        private void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
         {
             OnAbstractMember("CodeBlock", context.CodeBlock, context.OwningSymbol);
             OnOptions(context.Options);
         }
 
-        void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
         {
             OnAbstractMember("Compilation");
             OnOptions(context.Options);
         }
 
-        void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
             OnAbstractMember("SemanticModel");
             OnOptions(context.Options);
@@ -81,19 +81,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        void AnalyzeSymbol(SymbolAnalysisContext context)
+        private void AnalyzeSymbol(SymbolAnalysisContext context)
         {
             OnAbstractMember("Symbol", symbol: context.Symbol);
             OnOptions(context.Options);
         }
 
-        void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             OnAbstractMember("SyntaxTree");
             OnOptions(context.Options);
         }
 
-        void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             OnAbstractMember("SyntaxNode", context.Node);
             OnOptions(context.Options);
@@ -101,18 +101,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private class NestedCodeBlockAnalyzer
         {
-            private TestDiagnosticAnalyzer<TLanguageKindEnum> container;
+            private TestDiagnosticAnalyzer<TLanguageKindEnum> _container;
 
             public NestedCodeBlockAnalyzer(TestDiagnosticAnalyzer<TLanguageKindEnum> container)
             {
-                this.container = container;
+                _container = container;
             }
 
             public void Initialize(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
             {
-                this.container.OnAbstractMember("CodeBlockStart", context.CodeBlock, context.OwningSymbol);
-                context.RegisterCodeBlockEndAction(this.container.AnalyzeCodeBlock);
-                context.RegisterSyntaxNodeAction(this.container.AnalyzeNode, TestDiagnosticAnalyzer<TLanguageKindEnum>.AllSyntaxKinds.ToArray());
+                _container.OnAbstractMember("CodeBlockStart", context.CodeBlock, context.OwningSymbol);
+                context.RegisterCodeBlockEndAction(_container.AnalyzeCodeBlock);
+                context.RegisterSyntaxNodeAction(_container.AnalyzeNode, TestDiagnosticAnalyzer<TLanguageKindEnum>.AllSyntaxKinds.ToArray());
             }
         }
 

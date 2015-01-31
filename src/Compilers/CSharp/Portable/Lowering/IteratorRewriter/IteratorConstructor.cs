@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class IteratorConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly ImmutableArray<ParameterSymbol> parameters;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal IteratorConstructor(IteratorStateMachine container)
             : base(container)
         {
             var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
-            parameters = ImmutableArray.Create<ParameterSymbol>(
+            _parameters = ImmutableArray.Create<ParameterSymbol>(
                 new SynthesizedParameterSymbol(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
-            get { return parameters; }
+            get { return _parameters; }
         }
 
         public override Accessibility DeclaredAccessibility

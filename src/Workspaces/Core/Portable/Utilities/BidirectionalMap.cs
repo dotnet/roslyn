@@ -11,79 +11,79 @@ namespace Roslyn.Utilities
         public static readonly IBidirectionalMap<TKey, TValue> Empty =
             new BidirectionalMap<TKey, TValue>(ImmutableDictionary.Create<TKey, TValue>(), ImmutableDictionary.Create<TValue, TKey>());
 
-        private readonly ImmutableDictionary<TKey, TValue> forwardMap;
-        private readonly ImmutableDictionary<TValue, TKey> backwardMap;
+        private readonly ImmutableDictionary<TKey, TValue> _forwardMap;
+        private readonly ImmutableDictionary<TValue, TKey> _backwardMap;
 
         public BidirectionalMap(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
         {
-            this.forwardMap = ImmutableDictionary.CreateRange<TKey, TValue>(pairs);
-            this.backwardMap = ImmutableDictionary.CreateRange<TValue, TKey>(pairs.Select(p => KeyValuePair.Create(p.Value, p.Key)));
+            _forwardMap = ImmutableDictionary.CreateRange<TKey, TValue>(pairs);
+            _backwardMap = ImmutableDictionary.CreateRange<TValue, TKey>(pairs.Select(p => KeyValuePair.Create(p.Value, p.Key)));
         }
 
         private BidirectionalMap(ImmutableDictionary<TKey, TValue> forwardMap, ImmutableDictionary<TValue, TKey> backwardMap)
         {
-            this.forwardMap = forwardMap;
-            this.backwardMap = backwardMap;
+            _forwardMap = forwardMap;
+            _backwardMap = backwardMap;
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            return forwardMap.TryGetValue(key, out value);
+            return _forwardMap.TryGetValue(key, out value);
         }
 
         public bool TryGetKey(TValue value, out TKey key)
         {
-            return backwardMap.TryGetValue(value, out key);
+            return _backwardMap.TryGetValue(value, out key);
         }
 
         public bool ContainsKey(TKey key)
         {
-            return forwardMap.ContainsKey(key);
+            return _forwardMap.ContainsKey(key);
         }
 
         public bool ContainsValue(TValue value)
         {
-            return backwardMap.ContainsKey(value);
+            return _backwardMap.ContainsKey(value);
         }
 
         public IBidirectionalMap<TKey, TValue> RemoveKey(TKey key)
         {
             TValue value;
-            if (!forwardMap.TryGetValue(key, out value))
+            if (!_forwardMap.TryGetValue(key, out value))
             {
                 return this;
             }
 
             return new BidirectionalMap<TKey, TValue>(
-                forwardMap.Remove(key),
-                backwardMap.Remove(value));
+                _forwardMap.Remove(key),
+                _backwardMap.Remove(value));
         }
 
         public IBidirectionalMap<TKey, TValue> RemoveValue(TValue value)
         {
             TKey key;
-            if (!backwardMap.TryGetValue(value, out key))
+            if (!_backwardMap.TryGetValue(value, out key))
             {
                 return this;
             }
 
             return new BidirectionalMap<TKey, TValue>(
-                forwardMap.Remove(key),
-                backwardMap.Remove(value));
+                _forwardMap.Remove(key),
+                _backwardMap.Remove(value));
         }
 
         public IBidirectionalMap<TKey, TValue> Add(TKey key, TValue value)
         {
             return new BidirectionalMap<TKey, TValue>(
-                forwardMap.Add(key, value),
-                backwardMap.Add(value, key));
+                _forwardMap.Add(key, value),
+                _backwardMap.Add(value, key));
         }
 
         public IEnumerable<TKey> Keys
         {
             get
             {
-                return forwardMap.Keys;
+                return _forwardMap.Keys;
             }
         }
 
@@ -91,7 +91,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return backwardMap.Keys;
+                return _backwardMap.Keys;
             }
         }
 
@@ -99,7 +99,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return backwardMap.Count == 0;
+                return _backwardMap.Count == 0;
             }
         }
 
@@ -107,8 +107,8 @@ namespace Roslyn.Utilities
         {
             get
             {
-                Contract.Requires(forwardMap.Count == backwardMap.Count);
-                return backwardMap.Count;
+                Contract.Requires(_forwardMap.Count == _backwardMap.Count);
+                return _backwardMap.Count;
             }
         }
 

@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructorInfo
     {
-        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo> constructorToInfoMap =
+        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo> s_constructorToInfoMap =
             new ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo>();
 
-        private readonly string typeName;
-        private readonly IList<SyntaxNode> baseConstructorArguments;
-        private readonly IList<SyntaxNode> thisConstructorArguments;
-        private readonly IList<SyntaxNode> statements;
+        private readonly string _typeName;
+        private readonly IList<SyntaxNode> _baseConstructorArguments;
+        private readonly IList<SyntaxNode> _thisConstructorArguments;
+        private readonly IList<SyntaxNode> _statements;
 
         private CodeGenerationConstructorInfo(
             string typeName,
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<SyntaxNode> baseConstructorArguments,
             IList<SyntaxNode> thisConstructorArguments)
         {
-            this.typeName = typeName;
-            this.statements = statements;
-            this.baseConstructorArguments = baseConstructorArguments;
-            this.thisConstructorArguments = thisConstructorArguments;
+            _typeName = typeName;
+            _statements = statements;
+            _baseConstructorArguments = baseConstructorArguments;
+            _thisConstructorArguments = thisConstructorArguments;
         }
 
         public static void Attach(
@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<SyntaxNode> thisConstructorArguments)
         {
             var info = new CodeGenerationConstructorInfo(typeName, statements, baseConstructorArguments, thisConstructorArguments);
-            constructorToInfoMap.Add(constructor, info);
+            s_constructorToInfoMap.Add(constructor, info);
         }
 
         private static CodeGenerationConstructorInfo GetInfo(IMethodSymbol method)
         {
             CodeGenerationConstructorInfo info;
-            constructorToInfoMap.TryGetValue(method, out info);
+            s_constructorToInfoMap.TryGetValue(method, out info);
             return info;
         }
 
@@ -68,22 +68,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static IList<SyntaxNode> GetThisConstructorArgumentsOpt(CodeGenerationConstructorInfo info)
         {
-            return info == null ? null : info.thisConstructorArguments;
+            return info == null ? null : info._thisConstructorArguments;
         }
 
         private static IList<SyntaxNode> GetBaseConstructorArgumentsOpt(CodeGenerationConstructorInfo info)
         {
-            return info == null ? null : info.baseConstructorArguments;
+            return info == null ? null : info._baseConstructorArguments;
         }
 
         private static IList<SyntaxNode> GetStatements(CodeGenerationConstructorInfo info)
         {
-            return info == null ? null : info.statements;
+            return info == null ? null : info._statements;
         }
 
         private static string GetTypeName(CodeGenerationConstructorInfo info, IMethodSymbol constructor)
         {
-            return info == null ? constructor.ContainingType.Name : info.typeName;
+            return info == null ? constructor.ContainingType.Name : info._typeName;
         }
     }
 }

@@ -62,7 +62,6 @@ class EntryPoint
 
 ";
             CompileAndVerify(source, expectedOutput: "121314");
-
         }
 
         [WorkItem(544936, "DevDiv")]
@@ -321,7 +320,7 @@ public class Test
 ";
             var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
-            CreateCompilationWithMscorlib(text, new[] { asm}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, new[] { asm }).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("Metadata.ModoptPropAmbiguous.P", "Metadata.ModoptPropAmbiguous.P")
             );
         }
@@ -979,7 +978,7 @@ public class Derived : Base
 
         [Fact]
         public void ModOptTestWithErrors()
-        {           
+        {
             // NOTE: removed Microsoft.VisualC attributes
             var il = @"
 .class public sequential ansi sealed beforefieldinit ModA
@@ -1158,7 +1157,7 @@ class M
 
         [Fact]
         public void ModOptTest()
-        {            
+        {
             // NOTE: removed Microsoft.VisualC attributes
             var il = @"
 .class public sequential ansi sealed beforefieldinit ModA
@@ -1306,7 +1305,7 @@ class M
     }
 }
 ";
-            
+
             var reference = CompileIL(il, appendDefaultHeader: true);
 
             var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"

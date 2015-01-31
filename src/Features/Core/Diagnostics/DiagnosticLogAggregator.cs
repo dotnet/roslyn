@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,26 +21,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             "Analyzer.SyntaxTree"
         };
 
-        private readonly DiagnosticAnalyzerService owner;
-        private ImmutableDictionary<Type, AnalyzerInfo> analyzerInfoMap;
+        private readonly DiagnosticAnalyzerService _owner;
+        private ImmutableDictionary<Type, AnalyzerInfo> _analyzerInfoMap;
 
         public DiagnosticLogAggregator(DiagnosticAnalyzerService owner)
         {
-            this.owner = owner;
-            analyzerInfoMap = ImmutableDictionary<Type, AnalyzerInfo>.Empty;
+            _owner = owner;
+            _analyzerInfoMap = ImmutableDictionary<Type, AnalyzerInfo>.Empty;
         }
 
         public IEnumerable<KeyValuePair<Type, AnalyzerInfo>> AnalyzerInfoMap
         {
-            get { return this.analyzerInfoMap; }
+            get { return _analyzerInfoMap; }
         }
 
         public void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerActions analyzerActions)
         {
-            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(this.owner, analyzer);
+            var telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(_owner, analyzer);
 
             ImmutableInterlocked.AddOrUpdate(
-                ref analyzerInfoMap,
+                ref _analyzerInfoMap,
                 analyzer.GetType(),
                 addValue: new AnalyzerInfo(analyzer, analyzerActions, telemetry),
                 updateValueFactory: (k, ai) =>

@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Organizing
 {
     internal abstract class AbstractOrganizingService : IOrganizingService
     {
-        private readonly IEnumerable<ISyntaxOrganizer> organizers;
+        private readonly IEnumerable<ISyntaxOrganizer> _organizers;
         protected AbstractOrganizingService(IEnumerable<ISyntaxOrganizer> organizers)
         {
-            this.organizers = organizers.ToImmutableArrayOrEmpty();
+            _organizers = organizers.ToImmutableArrayOrEmpty();
         }
 
         public IEnumerable<ISyntaxOrganizer> GetDefaultOrganizers()
         {
-            return this.organizers;
+            return _organizers;
         }
 
         protected abstract Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken);

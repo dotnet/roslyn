@@ -62,10 +62,10 @@ class B : IFace<B.C.D>
             // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
-
         [WorkItem(540371, "DevDiv"), WorkItem(530792, "DevDiv")]
         [Fact]
-        void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
+
+        private void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
         {
             var source1 = @"
 using System.Collections.Generic;
@@ -250,10 +250,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""DEF"" ?? null").WithArguments("c"),
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null ?? 123").WithArguments("d"));
         }
-
         [Fact, WorkItem(528676, "DevDiv"), WorkItem(528676, "DevDiv")]
-        // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
-        void CS1730ERR_CantUseAttributeOnInvaildLocation()
+
+        private         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
+                void CS1730ERR_CantUseAttributeOnInvaildLocation()
         {
             var test = @"using System;
 
@@ -508,7 +508,6 @@ class Program
 ";
 
             CompileAndVerify(source, expectedOutput: "OV 9");
-
         }
 
         [WorkItem(529262)]
@@ -947,7 +946,7 @@ public class Test
                     // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | false").WithArguments("bool?"),
                     // Diagnostic(ErrorCode.WRN_AlwaysNull, "false | null").WithArguments("bool?"),
                     Diagnostic(ErrorCode.WRN_AlwaysNull, "ct & null ^ null").WithArguments("bool?") //,
-                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | cf").WithArguments("bool?")
+                                                                                                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | cf").WithArguments("bool?")
                     );
         }
 
@@ -1011,9 +1010,9 @@ Console.WriteLine(testExpr2);
 x => Convert(Convert(Convert(x)))
 ");
         }
-
         [Fact, WorkItem(530531, "DevDiv")]
-        void ExpressionTreeNoCovertForIdentityConversion()
+
+        private void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
 using System;
@@ -1056,11 +1055,11 @@ public class Test
 ";
             // Native compiler no error (print -123)
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (8,13): warning CS0219: The variable 'b1' is assigned but its value is never used
-                //         var b1 = new Derived(); // Both Warning CS0219
+    // (8,13): warning CS0219: The variable 'b1' is assigned but its value is never used
+    //         var b1 = new Derived(); // Both Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
-                // (10,13): warning CS0219: The variable 'b3' is assigned but its value is never used
-                //         var b3 = (Derived)((Base)new Derived()); // Rolsyn Warning CS0219
+    // (10,13): warning CS0219: The variable 'b3' is assigned but its value is never used
+    //         var b3 = (Derived)((Base)new Derived()); // Rolsyn Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
         }
 
@@ -1196,8 +1195,8 @@ namespace VS7_336319
 ";
             // Native compiler no warn
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (10,40): warning CS0414: The field 'VS7_336319.ExpressionBinder.PredefinedTypes' is assigned but its value is never used
-                //         private static PredefinedTypes PredefinedTypes = null;
+    // (10,40): warning CS0414: The field 'VS7_336319.ExpressionBinder.PredefinedTypes' is assigned but its value is never used
+    //         private static PredefinedTypes PredefinedTypes = null;
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
         }
 
@@ -1255,8 +1254,8 @@ static int Main()
 ";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
-                //             M();
+    // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
+    //             M();
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public readonly string InsertionText;
         public readonly int Position;
         public readonly List<ISymbol> Symbols;
-        private readonly SupportedPlatformData supportedPlatorms;
+        private readonly SupportedPlatformData _supportedPlatorms;
 
         public SymbolCompletionItem(
             ICompletionProvider completionProvider,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
-            bool preselect = false, 
+            bool preselect = false,
             SupportedPlatformData supportedPlatforms = null)
         : base(completionProvider, displayText, filterSpan,
            descriptionFactory: null, glyph: symbols[0].GetGlyph(),
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             this.Position = position;
             this.Symbols = symbols;
             this.Context = context;
-            this.supportedPlatorms = supportedPlatforms;
+            _supportedPlatorms = supportedPlatforms;
         }
 
         public SymbolCompletionItem(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             this.Position = position;
             this.Symbols = symbols;
             this.Context = context;
-            this.supportedPlatorms = supportedPlatforms;
+            _supportedPlatorms = supportedPlatforms;
         }
 
         public override async Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Interlocked.CompareExchange(
                     ref this.LazyDescription,
                     new AsyncLazy<ImmutableArray<SymbolDisplayPart>>(
-                        CommonCompletionUtilities.CreateDescriptionFactory(this.Context.Workspace, this.Context.SemanticModel, this.Position, this.Symbols, this.supportedPlatorms), cacheResult: true),
+                        CommonCompletionUtilities.CreateDescriptionFactory(this.Context.Workspace, this.Context.SemanticModel, this.Position, this.Symbols, _supportedPlatorms), cacheResult: true),
                     null);
             }
 

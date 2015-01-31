@@ -2371,6 +2371,5 @@ class Derived2 : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("Derived.x").WithLocation(8, 17)
                 );
         }
-
     }
 }

@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
-    partial class CodeGenerator
+    internal partial class CodeGenerator
     {
         private enum AddressKind
         {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None, "taking address of a stack value?");
-                    builder.EmitOpCode(ILOpCode.Dup);
+                    _builder.EmitOpCode(ILOpCode.Dup);
                     break;
 
                 case BoundKind.ConditionalReceiver:
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ThisReference:
                     Debug.Assert(expression.Type.IsValueType, "only valuetypes may need a ref to this");
-                    builder.EmitOpCode(ILOpCode.Ldarg_0);
+                    _builder.EmitOpCode(ILOpCode.Ldarg_0);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                builder.EmitLocalAddress(GetLocal(localAccess));
+                _builder.EmitLocalAddress(GetLocal(localAccess));
             }
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // push typed reference
             // refanyval type -- pops typed reference, pushes address of variable
             EmitExpression(refValue.Operand, true);
-            builder.EmitOpCode(ILOpCode.Refanyval);
+            _builder.EmitOpCode(ILOpCode.Refanyval);
             EmitSymbolToken(refValue.Type, refValue.Syntax);
         }
 
@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitExpression(expression, true);
             var value = this.AllocateTemp(expression.Type, expression.Syntax);
-            builder.EmitLocalStore(value);
-            builder.EmitLocalAddress(value);
+            _builder.EmitLocalStore(value);
+            _builder.EmitLocalAddress(value);
 
             return value;
         }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (hasLocals)
             {
-                builder.OpenLocalScope();
+                _builder.OpenLocalScope();
 
                 foreach (var local in sequence.Locals)
                 {
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (hasLocals)
             {
-                builder.CloseLocalScope();
+                _builder.CloseLocalScope();
 
                 foreach (var local in sequence.Locals)
                 {
@@ -290,18 +290,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (field.ContainingType != method.ContainingType)
+            if (field.ContainingType != _method.ContainingType)
             {
                 return false;
             }
 
             if (field.IsStatic)
             {
-                return method.MethodKind == MethodKind.StaticConstructor;
+                return _method.MethodKind == MethodKind.StaticConstructor;
             }
             else
             {
-                return method.MethodKind == MethodKind.Constructor &&
+                return _method.MethodKind == MethodKind.Constructor &&
                     fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }
@@ -326,19 +326,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(arrayAccess.Type.TypeKind == TypeKind.TypeParameter,
                     ".readonly is only needed when element type is a type param");
 
-                builder.EmitOpCode(ILOpCode.Readonly);
+                _builder.EmitOpCode(ILOpCode.Readonly);
             }
 
             if (arrayAccess.Indices.Length == 1)
             {
-                builder.EmitOpCode(ILOpCode.Ldelema);
+                _builder.EmitOpCode(ILOpCode.Ldelema);
                 var elementType = arrayAccess.Type;
                 EmitSymbolToken(elementType, arrayAccess.Syntax);
             }
             else
             {
-                builder.EmitArrayElementAddress(Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
-                                                arrayAccess.Syntax, diagnostics);
+                _builder.EmitArrayElementAddress(Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
+                                                arrayAccess.Syntax, _diagnostics);
             }
         }
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitStaticFieldAddress(FieldSymbol field, CSharpSyntaxNode syntaxNode)
         {
-            builder.EmitOpCode(ILOpCode.Ldsflda);
+            _builder.EmitOpCode(ILOpCode.Ldsflda);
             EmitSymbolToken(field, syntaxNode);
         }
 
@@ -376,11 +376,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             int slot = ParameterSlot(parameter);
             if (parameter.ParameterSymbol.RefKind == RefKind.None)
             {
-                builder.EmitLoadArgumentAddrOpcode(slot);
+                _builder.EmitLoadArgumentAddrOpcode(slot);
             }
             else
             {
-                builder.EmitLoadArgumentOpcode(slot);
+                _builder.EmitLoadArgumentOpcode(slot);
             }
         }
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt);
 
-            builder.EmitOpCode(ILOpCode.Ldflda);
+            _builder.EmitOpCode(ILOpCode.Ldflda);
             EmitSymbolToken(field, fieldAccess.Syntax);
 
             // when loading an address of a fixed field, we actually 
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // PEVerify errors because the struct has unexpected type. (Ex: struct& when int& is expected)
             if (field.IsFixed)
             {
-                var fixedImpl = field.FixedImplementationType(this.module);
+                var fixedImpl = field.FixedImplementationType(_module);
                 var fixedElementField = fixedImpl.FixedElementField;
 
                 // if we get a mildly corrupted FixedImplementationType which does
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 //    and that only matters to the verifier and we are in unsafe context anyways.
                 if ((object)fixedElementField != null)
                 {
-                    builder.EmitOpCode(ILOpCode.Ldflda);
+                    _builder.EmitOpCode(ILOpCode.Ldflda);
                     EmitSymbolToken(fixedElementField, fieldAccess.Syntax);
                 }
             }

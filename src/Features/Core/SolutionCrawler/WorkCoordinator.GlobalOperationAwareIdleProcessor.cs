@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private abstract class GlobalOperationAwareIdleProcessor : IdleProcessor
                 {
                     protected readonly IncrementalAnalyzerProcessor Processor;
-                    private readonly IGlobalOperationNotificationService globalOperationNotificationService;
+                    private readonly IGlobalOperationNotificationService _globalOperationNotificationService;
 
-                    private TaskCompletionSource<object> globalOperation;
-                    private Task globalOperationTask;
-                    
+                    private TaskCompletionSource<object> _globalOperation;
+                    private Task _globalOperationTask;
+
                     public GlobalOperationAwareIdleProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
@@ -37,47 +37,47 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base(listener, backOffTimeSpanInMs, shutdownToken)
                     {
                         this.Processor = processor;
-                        this.globalOperation = null;
-                        this.globalOperationTask = SpecializedTasks.EmptyTask;
+                        _globalOperation = null;
+                        _globalOperationTask = SpecializedTasks.EmptyTask;
 
-                        this.globalOperationNotificationService = globalOperationNotificationService;
-                        this.globalOperationNotificationService.Started += OnGlobalOperationStarted;
-                        this.globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
+                        _globalOperationNotificationService = globalOperationNotificationService;
+                        _globalOperationNotificationService.Started += OnGlobalOperationStarted;
+                        _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
                     }
-                    
+
                     private void OnGlobalOperationStarted(object sender, EventArgs e)
                     {
-                        Contract.ThrowIfFalse(this.globalOperation == null);
+                        Contract.ThrowIfFalse(_globalOperation == null);
 
                         // events are serialized. no lock is needed
-                        this.globalOperation = new TaskCompletionSource<object>();
-                        this.globalOperationTask = this.globalOperation.Task;
+                        _globalOperation = new TaskCompletionSource<object>();
+                        _globalOperationTask = _globalOperation.Task;
 
-                        SolutionCrawlerLogger.LogGlobalOperation(this.Processor.logAggregator);
+                        SolutionCrawlerLogger.LogGlobalOperation(this.Processor._logAggregator);
                     }
 
                     private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
                     {
-                        Contract.ThrowIfFalse(this.globalOperation != null);
+                        Contract.ThrowIfFalse(_globalOperation != null);
 
                         // events are serialized. no lock is needed
-                        this.globalOperation.SetResult(null);
-                        this.globalOperation = null;
+                        _globalOperation.SetResult(null);
+                        _globalOperation = null;
 
                         // set to empty task so that we don't need a lock
-                        this.globalOperationTask = SpecializedTasks.EmptyTask;
+                        _globalOperationTask = SpecializedTasks.EmptyTask;
                     }
 
                     protected async Task GlobalOperationWaitAsync()
                     {
                         // we wait for global operation if there is anything going on
-                        await this.globalOperationTask.ConfigureAwait(false);
+                        await _globalOperationTask.ConfigureAwait(false);
                     }
 
                     public virtual void Shutdown()
                     {
-                        this.globalOperationNotificationService.Started -= OnGlobalOperationStarted;
-                        this.globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
+                        _globalOperationNotificationService.Started -= OnGlobalOperationStarted;
+                        _globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
                     }
                 }
             }

@@ -183,7 +183,7 @@ class Program
         public void TestTriviaList_getItemFailures()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(" class foo {}");
-            
+
             var trivia = tree.GetCompilationUnitRoot().Members[0].GetLeadingTrivia();
             var t1 = trivia[0];
             Assert.Equal(1, trivia.Count);

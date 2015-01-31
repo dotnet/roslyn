@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public event Action<string> FileFound;
 
-        private readonly string m_rootPath = null;
+        private readonly string _rootPath = null;
         public DirectoryHelper(string path)
         {
             if (!Directory.Exists(path))
@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 throw new ArgumentException("Directory '" + path + "' does not exist.", "path");
             }
 
-            m_rootPath = path;
+            _rootPath = path;
         }
 
         public void IterateFiles(string[] searchPatterns)
         {
-            IterateFiles(searchPatterns, m_rootPath);
+            IterateFiles(searchPatterns, _rootPath);
         }
 
         private void IterateFiles(string[] searchPatterns, string directoryPath)

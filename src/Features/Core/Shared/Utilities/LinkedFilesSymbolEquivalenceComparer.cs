@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,25 +19,25 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static readonly LinkedFilesSymbolEquivalenceComparer IgnoreAssembliesInstance = new LinkedFilesSymbolEquivalenceComparer(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
         public static readonly LinkedFilesSymbolEquivalenceComparer Instance = new LinkedFilesSymbolEquivalenceComparer(SymbolEquivalenceComparer.Instance);
 
-        private readonly SymbolEquivalenceComparer symbolEquivalenceComparer;
+        private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 
         public LinkedFilesSymbolEquivalenceComparer(SymbolEquivalenceComparer symbolEquivalenceComparer)
         {
-            this.symbolEquivalenceComparer = symbolEquivalenceComparer;
+            _symbolEquivalenceComparer = symbolEquivalenceComparer;
         }
 
         bool IEqualityComparer<ISymbol>.Equals(ISymbol x, ISymbol y)
         {
             return x.Kind == y.Kind && (x.IsKind(SymbolKind.Local) || x.IsKind(SymbolKind.Label) || x.IsKind(SymbolKind.RangeVariable))
                  ? x.Name == y.Name
-                 : symbolEquivalenceComparer.Equals(x, y);
+                 : _symbolEquivalenceComparer.Equals(x, y);
         }
 
         int IEqualityComparer<ISymbol>.GetHashCode(ISymbol symbol)
         {
             return symbol.IsKind(SymbolKind.Local) || symbol.IsKind(SymbolKind.Label) || symbol.IsKind(SymbolKind.RangeVariable)
                 ? symbol.Name.GetHashCode()
-                : symbolEquivalenceComparer.GetHashCode(symbol);
+                : _symbolEquivalenceComparer.GetHashCode(symbol);
         }
     }
 }

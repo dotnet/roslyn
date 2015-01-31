@@ -7,11 +7,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationCommentFormatting
 {
     internal static class DocumentationCommentUtilities
     {
-        private static readonly string[] newLineStrings = new[] { "\r\n" };
+        private static readonly string[] s_newLineStrings = new[] { "\r\n" };
 
         public static string ExtractXMLFragment(string input)
         {
-            var splitLines = input.Split(newLineStrings, StringSplitOptions.None);
+            var splitLines = input.Split(s_newLineStrings, StringSplitOptions.None);
 
             for (int i = 0; i < splitLines.Length; i++)
             {

@@ -11,28 +11,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private const string VB_DLL = "Microsoft.CodeAnalysis.VisualBasic.dll";
         private const string VB_KIND_TYPE = "Roslyn.Compilers.VisualBasic.SyntaxKind";
-        private Type m_VBKindType = null;
-        private readonly string m_Folder = null;
+        private Type _VBKindType = null;
+        private readonly string _folder = null;
 
         public VBReflectionBasedKindProvider(string folder)
         {
-            m_Folder = Path.GetFullPath(folder);
+            _folder = Path.GetFullPath(folder);
             GetKindTypes();
         }
 
         private void GetKindTypes()
         {
-            if (m_VBKindType == null)
+            if (_VBKindType == null)
             {
-                var asm = Assembly.LoadFrom(Path.Combine(m_Folder, VB_DLL));
-                m_VBKindType = asm.GetType(VB_KIND_TYPE);
+                var asm = Assembly.LoadFrom(Path.Combine(_folder, VB_DLL));
+                _VBKindType = asm.GetType(VB_KIND_TYPE);
             }
         }
 
         private string GetKind(object o)
         {
             string kind = (string)o.GetType().GetProperty("Kind").GetValue(o, new object[] { });
-            return Enum.Parse(m_VBKindType, kind).ToString();
+            return Enum.Parse(_VBKindType, kind).ToString();
         }
 
         public string Kind(object node)

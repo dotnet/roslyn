@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class MethodSymbol :
+    internal partial class MethodSymbol :
         Cci.ITypeMemberReference,
         Cci.IMethodReference,
         Cci.IGenericMethodInstanceReference,

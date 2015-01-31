@@ -7,21 +7,21 @@ namespace Microsoft.CodeAnalysis.Options
 {
     public sealed class OptionSet
     {
-        private readonly IOptionService service;
+        private readonly IOptionService _service;
 
-        private readonly object gate = new object();
-        private ImmutableDictionary<OptionKey, object> values;
+        private readonly object _gate = new object();
+        private ImmutableDictionary<OptionKey, object> _values;
 
         internal OptionSet(IOptionService service)
         {
-            this.service = service;
-            this.values = ImmutableDictionary.Create<OptionKey, object>();
+            _service = service;
+            _values = ImmutableDictionary.Create<OptionKey, object>();
         }
 
         private OptionSet(IOptionService service, ImmutableDictionary<OptionKey, object> values)
         {
-            this.service = service;
-            this.values = values;
+            _service = service;
+            _values = values;
         }
 
         /// <summary>
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public object GetOption(OptionKey optionKey)
         {
-            lock (gate)
+            lock (_gate)
             {
                 object value;
 
-                if (!values.TryGetValue(optionKey, out value))
+                if (!_values.TryGetValue(optionKey, out value))
                 {
-                    value = this.service != null ? this.service.GetOption(optionKey) : optionKey.Option.DefaultValue;
-                    values = values.Add(optionKey, value);
+                    value = _service != null ? _service.GetOption(optionKey) : optionKey.Option.DefaultValue;
+                    _values = _values.Add(optionKey, value);
                 }
 
                 return value;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Options
             // make sure we first load this in current optionset
             this.GetOption(optionAndLanguage);
 
-            return new OptionSet(this.service, this.values.SetItem(optionAndLanguage, value));
+            return new OptionSet(_service, _values.SetItem(optionAndLanguage, value));
         }
 
         /// <summary>
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         internal IEnumerable<OptionKey> GetAccessedOptions()
         {
-            var optionSet = this.service.GetOptions();
+            var optionSet = _service.GetOptions();
             return GetChangedOptions(optionSet);
         }
 
         internal IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
-            foreach (var kvp in this.values)
+            foreach (var kvp in _values)
             {
                 var currentValue = optionSet.GetOption(kvp.Key);
                 if (!object.Equals(currentValue, kvp.Value))

@@ -13,27 +13,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal static class DocumentationCommentXmlTokens
     {
         // Well-known tags that typically have no leading trivia
-        private static readonly SyntaxToken seeToken = Identifier(DocumentationCommentXmlNames.SeeElementName);
-        private static readonly SyntaxToken codeToken = Identifier(DocumentationCommentXmlNames.CodeElementName);
-        private static readonly SyntaxToken listToken = Identifier(DocumentationCommentXmlNames.ListElementName);
-        private static readonly SyntaxToken paramToken = Identifier(DocumentationCommentXmlNames.ParameterElementName);
-        private static readonly SyntaxToken valueToken = Identifier(DocumentationCommentXmlNames.ValueElementName);
-        private static readonly SyntaxToken exampleToken = Identifier(DocumentationCommentXmlNames.ExampleElementName);
-        private static readonly SyntaxToken includeToken = Identifier(DocumentationCommentXmlNames.IncludeElementName);
-        private static readonly SyntaxToken remarksToken = Identifier(DocumentationCommentXmlNames.RemarksElementName);
-        private static readonly SyntaxToken seealsoToken = Identifier(DocumentationCommentXmlNames.SeeAlsoElementName);
-        private static readonly SyntaxToken summaryToken = Identifier(DocumentationCommentXmlNames.SummaryElementName);
-        private static readonly SyntaxToken exceptionToken = Identifier(DocumentationCommentXmlNames.ExceptionElementName);
-        private static readonly SyntaxToken typeparamToken = Identifier(DocumentationCommentXmlNames.TypeParameterElementName);
-        private static readonly SyntaxToken permissionToken = Identifier(DocumentationCommentXmlNames.PermissionElementName);
-        private static readonly SyntaxToken typeparamrefToken = Identifier(DocumentationCommentXmlNames.TypeParameterReferenceElementName);
+        private static readonly SyntaxToken s_seeToken = Identifier(DocumentationCommentXmlNames.SeeElementName);
+        private static readonly SyntaxToken s_codeToken = Identifier(DocumentationCommentXmlNames.CodeElementName);
+        private static readonly SyntaxToken s_listToken = Identifier(DocumentationCommentXmlNames.ListElementName);
+        private static readonly SyntaxToken s_paramToken = Identifier(DocumentationCommentXmlNames.ParameterElementName);
+        private static readonly SyntaxToken s_valueToken = Identifier(DocumentationCommentXmlNames.ValueElementName);
+        private static readonly SyntaxToken s_exampleToken = Identifier(DocumentationCommentXmlNames.ExampleElementName);
+        private static readonly SyntaxToken s_includeToken = Identifier(DocumentationCommentXmlNames.IncludeElementName);
+        private static readonly SyntaxToken s_remarksToken = Identifier(DocumentationCommentXmlNames.RemarksElementName);
+        private static readonly SyntaxToken s_seealsoToken = Identifier(DocumentationCommentXmlNames.SeeAlsoElementName);
+        private static readonly SyntaxToken s_summaryToken = Identifier(DocumentationCommentXmlNames.SummaryElementName);
+        private static readonly SyntaxToken s_exceptionToken = Identifier(DocumentationCommentXmlNames.ExceptionElementName);
+        private static readonly SyntaxToken s_typeparamToken = Identifier(DocumentationCommentXmlNames.TypeParameterElementName);
+        private static readonly SyntaxToken s_permissionToken = Identifier(DocumentationCommentXmlNames.PermissionElementName);
+        private static readonly SyntaxToken s_typeparamrefToken = Identifier(DocumentationCommentXmlNames.TypeParameterReferenceElementName);
 
         // Well-known tags that typically have a single space in leading trivia
-        private static readonly SyntaxToken crefToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.CrefAttributeName);
-        private static readonly SyntaxToken fileToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.FileAttributeName);
-        private static readonly SyntaxToken nameToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.NameAttributeName);
-        private static readonly SyntaxToken pathToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.PathAttributeName);
-        private static readonly SyntaxToken typeToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.TypeAttributeName);
+        private static readonly SyntaxToken s_crefToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.CrefAttributeName);
+        private static readonly SyntaxToken s_fileToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.FileAttributeName);
+        private static readonly SyntaxToken s_nameToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.NameAttributeName);
+        private static readonly SyntaxToken s_pathToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.PathAttributeName);
+        private static readonly SyntaxToken s_typeToken = IdentifierWithLeadingSpace(DocumentationCommentXmlNames.TypeAttributeName);
 
         private static SyntaxToken Identifier(string text)
         {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 3:
                     if (text == DocumentationCommentXmlNames.SeeElementName)
                     {
-                        return seeToken;
+                        return s_seeToken;
                     }
                     break;
 
@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     switch (text)
                     {
                         case DocumentationCommentXmlNames.CodeElementName:
-                            return codeToken;
+                            return s_codeToken;
 
                         case DocumentationCommentXmlNames.ListElementName:
-                            return listToken;
+                            return s_listToken;
                     }
                     break;
 
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     switch (text)
                     {
                         case DocumentationCommentXmlNames.ParameterElementName:
-                            return paramToken;
+                            return s_paramToken;
 
                         case DocumentationCommentXmlNames.ValueElementName:
-                            return valueToken;
+                            return s_valueToken;
                     }
                     break;
 
@@ -109,19 +109,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     switch (text)
                     {
                         case DocumentationCommentXmlNames.ExampleElementName:
-                            return exampleToken;
+                            return s_exampleToken;
 
                         case DocumentationCommentXmlNames.IncludeElementName:
-                            return includeToken;
+                            return s_includeToken;
 
                         case DocumentationCommentXmlNames.RemarksElementName:
-                            return remarksToken;
+                            return s_remarksToken;
 
                         case DocumentationCommentXmlNames.SeeAlsoElementName:
-                            return seealsoToken;
+                            return s_seealsoToken;
 
                         case DocumentationCommentXmlNames.SummaryElementName:
-                            return summaryToken;
+                            return s_summaryToken;
                     }
                     break;
 
@@ -129,24 +129,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     switch (text)
                     {
                         case DocumentationCommentXmlNames.ExceptionElementName:
-                            return exceptionToken;
+                            return s_exceptionToken;
 
                         case DocumentationCommentXmlNames.TypeParameterElementName:
-                            return typeparamToken;
+                            return s_typeparamToken;
                     }
                     break;
 
                 case 10:
                     if (text == DocumentationCommentXmlNames.PermissionElementName)
                     {
-                        return permissionToken;
+                        return s_permissionToken;
                     }
                     break;
 
                 case 12:
                     if (text == DocumentationCommentXmlNames.TypeParameterElementName)
                     {
-                        return typeparamrefToken;
+                        return s_typeparamrefToken;
                     }
                     break;
             }
@@ -166,19 +166,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (text)
             {
                 case DocumentationCommentXmlNames.CrefAttributeName:
-                    return crefToken;
+                    return s_crefToken;
 
                 case DocumentationCommentXmlNames.FileAttributeName:
-                    return fileToken;
+                    return s_fileToken;
 
                 case DocumentationCommentXmlNames.NameAttributeName:
-                    return nameToken;
+                    return s_nameToken;
 
                 case DocumentationCommentXmlNames.PathAttributeName:
-                    return pathToken;
+                    return s_pathToken;
 
                 case DocumentationCommentXmlNames.TypeAttributeName:
-                    return typeToken;
+                    return s_typeToken;
             }
 
             return null;

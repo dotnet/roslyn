@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal sealed class WithLotsOfChildren : WithManyChildrenBase
         {
-            private readonly int[] childOffsets;
+            private readonly int[] _childOffsets;
 
             internal WithLotsOfChildren(ArrayElement<CSharpSyntaxNode>[] children)
                 : base(children)
             {
-                this.childOffsets = CalculateOffsets(children);
+                _childOffsets = CalculateOffsets(children);
             }
 
             internal WithLotsOfChildren(ObjectReader reader)
                 : base(reader)
             {
-                this.childOffsets = CalculateOffsets(this.children);
+                _childOffsets = CalculateOffsets(this.children);
             }
 
             internal override void WriteTo(ObjectWriter writer)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             public override int GetSlotOffset(int index)
             {
-                return this.childOffsets[index];
+                return _childOffsets[index];
             }
 
             private static int[] CalculateOffsets(ArrayElement<CSharpSyntaxNode>[] children)

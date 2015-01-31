@@ -25,26 +25,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         // identity comparison on the key. We could implement our own comparer to detect equivalent ConsList<Imports>,
         // but that only provides benefit when many file share the exactly same set of Imports in the same order. This would
         // be a complex comparer to implement, and the benefit wouldn't be very high.
-        private readonly ConcurrentDictionary<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> cache = new ConcurrentDictionary<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>>();
+        private readonly ConcurrentDictionary<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> _cache = new ConcurrentDictionary<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>>();
 
         // Cache to map from namespace or type to the string used to represent that namespace/type in the debug info.
-        private readonly ConcurrentDictionary<NamespaceOrTypeSymbol, string> stringCache = new ConcurrentDictionary<NamespaceOrTypeSymbol, string>();
+        private readonly ConcurrentDictionary<NamespaceOrTypeSymbol, string> _stringCache = new ConcurrentDictionary<NamespaceOrTypeSymbol, string>();
 
-        private readonly CSharpCompilation compilation;
+        private readonly CSharpCompilation _compilation;
 
-        private readonly EmitContext context;
+        private readonly EmitContext _context;
 
         // Cached delegates.
-        private Func<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> buildNamespaceScopes;
-        private Func<NamespaceOrTypeSymbol, string> buildNamespaceOrTypeString;
+        private Func<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> _buildNamespaceScopes;
+        private Func<NamespaceOrTypeSymbol, string> _buildNamespaceOrTypeString;
 
         public NamespaceScopeBuilder(CSharpCompilation compilation, EmitContext context)
         {
-            this.compilation = compilation;
-            this.context = context;
+            _compilation = compilation;
+            _context = context;
 
-            buildNamespaceScopes = BuildNamespaceScopes;
-            buildNamespaceOrTypeString = BuildNamespaceOrTypeString;
+            _buildNamespaceScopes = BuildNamespaceScopes;
+            _buildNamespaceOrTypeString = BuildNamespaceOrTypeString;
         }
 
         /// <remarks>
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return cache.GetOrAdd(debugImports, buildNamespaceScopes);
+                return _cache.GetOrAdd(debugImports, _buildNamespaceScopes);
             }
         }
 
@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GuessExternAlias(NamespaceSymbol @namespace, HashSet<string> validAliases)
         {
             AssemblySymbol containingAssembly = @namespace.ContainingAssembly;
-            if ((object)containingAssembly != null && containingAssembly != this.compilation.Assembly)
+            if ((object)containingAssembly != null && containingAssembly != _compilation.Assembly)
             {
-                MetadataReference reference = this.compilation.GetMetadataReference(containingAssembly);
+                MetadataReference reference = _compilation.GetMetadataReference(containingAssembly);
                 if (reference != null)
                 {
                     ImmutableArray<string> aliases = reference.Properties.Aliases;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private string GetNamespaceOrTypeString(NamespaceOrTypeSymbol symbol)
         {
-            return stringCache.GetOrAdd(symbol, buildNamespaceOrTypeString);
+            return _stringCache.GetOrAdd(symbol, _buildNamespaceOrTypeString);
         }
 
         private string BuildNamespaceOrTypeString(NamespaceOrTypeSymbol symbol)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var context = this.context;
+                var context = _context;
                 return context.ModuleBuilder.Translate((ITypeSymbol)symbol, context.SyntaxNodeOpt, context.Diagnostics).GetSerializedTypeName(context);
             }
         }

@@ -11,26 +11,26 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly SyntaxAnnotation replacementAnnotation = new SyntaxAnnotation();
-            private readonly SyntaxNode replacementNode;
-            private readonly ISet<ExpressionSyntax> matches;
+            private readonly SyntaxAnnotation _replacementAnnotation = new SyntaxAnnotation();
+            private readonly SyntaxNode _replacementNode;
+            private readonly ISet<ExpressionSyntax> _matches;
 
             private Rewriter(SyntaxNode replacementNode, ISet<ExpressionSyntax> matches)
             {
-                this.replacementNode = replacementNode;
-                this.matches = matches;
+                _replacementNode = replacementNode;
+                _matches = matches;
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
                 var expression = node as ExpressionSyntax;
                 if (expression != null &&
-                    matches.Contains(expression))
+                    _matches.Contains(expression))
                 {
-                    return replacementNode
+                    return _replacementNode
                         .WithLeadingTrivia(expression.GetLeadingTrivia())
                         .WithTrailingTrivia(expression.GetTrailingTrivia())
-                        .WithAdditionalAnnotations(replacementAnnotation);
+                        .WithAdditionalAnnotations(_replacementAnnotation);
                 }
 
                 return base.Visit(node);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 {
                     var parenthesizedExpression = (ParenthesizedExpressionSyntax)newNode;
                     var innerExpression = parenthesizedExpression.OpenParenToken.GetNextToken().Parent;
-                    if (innerExpression.HasAnnotation(replacementAnnotation))
+                    if (innerExpression.HasAnnotation(_replacementAnnotation))
                     {
                         return newNode.WithAdditionalAnnotations(Simplifier.Annotation);
                     }

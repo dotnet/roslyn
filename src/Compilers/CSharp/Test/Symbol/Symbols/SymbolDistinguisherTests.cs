@@ -140,7 +140,7 @@ public class C
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var distinguisher = new SymbolDistinguisher(null, sourceType, referencedType); 
+            var distinguisher = new SymbolDistinguisher(null, sourceType, referencedType);
             Assert.Equal(@"C [a\..\file.cs(1)]", distinguisher.First.ToString()); // File path comes out of tree.
             Assert.Equal("C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
         }

@@ -20,32 +20,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class SyntaxTreeSemanticModel : CSharpSemanticModel
     {
-        private readonly CSharpCompilation compilation;
-        private readonly SyntaxTree syntaxTree;
-        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> memberModels = ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel>.Empty;
+        private readonly CSharpCompilation _compilation;
+        private readonly SyntaxTree _syntaxTree;
+        private ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel> _memberModels = ImmutableDictionary<CSharpSyntaxNode, MemberSemanticModel>.Empty;
 
-        private readonly BinderFactory binderFactory;
-        private Func<CSharpSyntaxNode, MemberSemanticModel> createMemberModelFunction;
+        private readonly BinderFactory _binderFactory;
+        private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
 
-        private static readonly Func<CSharpSyntaxNode, bool> isMemberDeclarationFunction = IsMemberDeclaration;
+        private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
         internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree)
         {
-            this.compilation = compilation;
-            this.syntaxTree = syntaxTree;
+            _compilation = compilation;
+            _syntaxTree = syntaxTree;
             if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
             {
                 throw new ArgumentOutOfRangeException("tree", CSharpResources.TreeNotPartOfCompilation);
             }
 
-            this.binderFactory = compilation.GetBinderFactory(SyntaxTree);
+            _binderFactory = compilation.GetBinderFactory(SyntaxTree);
         }
 
         internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree)
         {
-            this.compilation = parentCompilation;
-            this.syntaxTree = speculatedSyntaxTree;
-            this.binderFactory = compilation.GetBinderFactory(parentSyntaxTree);
+            _compilation = parentCompilation;
+            _syntaxTree = speculatedSyntaxTree;
+            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.compilation;
+                return _compilation;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (CSharpSyntaxNode)this.syntaxTree.GetRoot();
+                return (CSharpSyntaxNode)_syntaxTree.GetRoot();
             }
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.syntaxTree;
+                return _syntaxTree;
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the binder for the compilation unit.
             if (position == 0 && position != token.SpanStart)
             {
-                return this.binderFactory.GetBinder(this.Root, position).WithAdditionalFlags(BinderFlags.SemanticModel);
+                return _binderFactory.GetBinder(this.Root, position).WithAdditionalFlags(BinderFlags.SemanticModel);
             }
 
             MemberSemanticModel memberModel = GetMemberModel(position);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return memberModel.GetEnclosingBinder(position);
             }
 
-            return binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(BinderFlags.SemanticModel);
+            return _binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(BinderFlags.SemanticModel);
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static CSharpSyntaxNode GetMemberDeclaration(CSharpSyntaxNode node)
         {
-            return node.FirstAncestorOrSelf(isMemberDeclarationFunction);
+            return node.FirstAncestorOrSelf(s_isMemberDeclarationFunction);
         }
 
         private MemberSemanticModel GetOrAddModelIfContains(CSharpSyntaxNode node, TextSpan span)
@@ -879,10 +879,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MemberSemanticModel GetOrAddModel(CSharpSyntaxNode node)
         {
-            var createMemberModelFunction = this.createMemberModelFunction ??
-                                            (this.createMemberModelFunction = this.CreateMemberModel);
+            var createMemberModelFunction = _createMemberModelFunction ??
+                                            (_createMemberModelFunction = this.CreateMemberModel);
 
-            return ImmutableInterlocked.GetOrAdd(ref this.memberModels, node, createMemberModelFunction);
+            return ImmutableInterlocked.GetOrAdd(ref _memberModels, node, createMemberModelFunction);
         }
 
         // Create a member model for the given declaration syntax. In certain very malformed
@@ -890,34 +890,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         // (although we try to minimize such cases). In such cases, null is returned.
         private MemberSemanticModel CreateMemberModel(CSharpSyntaxNode node)
         {
-            var outer = this.binderFactory.GetBinder(node);
+            var outer = _binderFactory.GetBinder(node);
             switch (node.Kind())
             {
                 case SyntaxKind.Block:
 
-                        MemberDeclarationSyntax memberDecl;
-                        AccessorDeclarationSyntax accessorDecl;
-                        if ((memberDecl = node.Parent as MemberDeclarationSyntax) != null)
-                        {
-                            var symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberDecl);
-                            if ((object)symbol == null)
-                                return null;
-
-                            return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, memberDecl);
-                        }
-                        else if ((accessorDecl = node.Parent as AccessorDeclarationSyntax) != null)
-                        {
-                            var symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorDecl);
-                            if ((object)symbol == null)
-                                return null;
-
-                            return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, accessorDecl);
-                        }
-                        else
-                        {
-                            Debug.Assert(false, "Unexpected node: " + node.Parent);
+                    MemberDeclarationSyntax memberDecl;
+                    AccessorDeclarationSyntax accessorDecl;
+                    if ((memberDecl = node.Parent as MemberDeclarationSyntax) != null)
+                    {
+                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberDecl);
+                        if ((object)symbol == null)
                             return null;
-                        }
+
+                        return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, memberDecl);
+                    }
+                    else if ((accessorDecl = node.Parent as AccessorDeclarationSyntax) != null)
+                    {
+                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorDecl);
+                        if ((object)symbol == null)
+                            return null;
+
+                        return MethodBodySemanticModel.Create(this.Compilation, symbol, outer, accessorDecl);
+                    }
+                    else
+                    {
+                        Debug.Assert(false, "Unexpected node: " + node.Parent);
+                        return null;
+                    }
 
                 case SyntaxKind.EqualsValueClause:
                     switch (node.Parent.Kind())
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)symbol == null)
                             return null;
                         return MethodBodySemanticModel.Create(
-                            this.compilation, symbol, outer.WithContainingMemberOrLambda(symbol), exprDecl);
+                            _compilation, symbol, outer.WithContainingMemberOrLambda(symbol), exprDecl);
                     }
 
                 case SyntaxKind.GlobalStatement:
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         discarded.Free();
 
                         return AttributeSemanticModel.Create(
-                            this.compilation,
+                            _compilation,
                             attribute,
                             attributeType,
                             aliasOpt,
@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol container;
             if (declarationSyntax.Parent.Kind() == SyntaxKind.CompilationUnit)
             {
-                container = compilation.Assembly.GlobalNamespace;
+                container = _compilation.Assembly.GlobalNamespace;
             }
             else
             {
@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
 
             // Map to compilation-scoped namespace (Roslyn bug 9538)
-            symbol = compilation.GetCompilationNamespace(symbol);
+            symbol = _compilation.GetCompilationNamespace(symbol);
             Debug.Assert((object)symbol != null);
 
             return symbol;
@@ -1535,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Option 2: detect explicit impl and return null
             //  Option 3: get a binder and figure out the name
             // For now, we're going with Option 3
-            return ExplicitInterfaceHelpers.GetMemberName(binderFactory.GetBinder(declaration), explicitInterfaceSpecifierOpt, memberName);
+            return ExplicitInterfaceHelpers.GetMemberName(_binderFactory.GetBinder(declaration), explicitInterfaceSpecifierOpt, memberName);
         }
 
         private Symbol GetDeclaredMember(NamespaceOrTypeSymbol container, TextSpan declarationSpan, NameSyntax name)
@@ -1714,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                InContainerBinder binder = this.binderFactory.GetImportsBinder(declarationSyntax.Parent);
+                InContainerBinder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
                 var imports = binder.GetImports();
                 var alias = imports.UsingAliases[declarationSyntax.Alias.Name.Identifier.ValueText];
 
@@ -1748,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckSyntaxNode(declarationSyntax);
 
-                var binder = this.binderFactory.GetImportsBinder(declarationSyntax.Parent);
+                var binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
                 var imports = binder.GetImports();
 
                 // TODO: If this becomes a bottleneck, put the extern aliases in a dictionary, as for using aliases.
@@ -1808,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method;
 
-                method = GetDeclaredSymbol(memberDecl, cancellationToken) as MethodSymbol;
+            method = GetDeclaredSymbol(memberDecl, cancellationToken) as MethodSymbol;
 
             if ((object)method == null)
             {
@@ -2060,7 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // top-level namespace:
                 if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration)
                 {
-                    return compilation.Assembly.GlobalNamespace;
+                    return _compilation.Assembly.GlobalNamespace;
                 }
 
                 // top-level members in script or interactive code:
@@ -2072,11 +2072,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // top-level type type in an explicitly declared namespace:
                 if (SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
                 {
-                    return compilation.Assembly.GlobalNamespace;
+                    return _compilation.Assembly.GlobalNamespace;
                 }
 
                 // other top-level members:
-                return compilation.Assembly.GlobalNamespace.ImplicitType;
+                return _compilation.Assembly.GlobalNamespace.ImplicitType;
             }
 
             var container = GetDeclaredNamespaceOrType(memberDeclaration.Parent);

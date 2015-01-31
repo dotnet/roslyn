@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 var option2 = new Option<bool>("Test Feature", null, false);
             });
-                      
+
             Assert.Throws<System.ArgumentNullException>(delegate
             {
                 var option3 = new Option<bool>(" ", "Test Name", false);

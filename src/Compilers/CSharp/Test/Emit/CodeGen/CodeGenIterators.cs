@@ -516,7 +516,7 @@ class Program
 }
 ");
         }
-        
+
         [Fact]
         public void TestIteratorWithBaseAccess()
         {
@@ -1220,7 +1220,7 @@ class Program
   IL_0011:  ret
 }");
         }
-        
+
         [Fact]
         public void HoistedParameters_Enumerable()
         {
@@ -1782,7 +1782,6 @@ Finally1012Finally4Finally3Finally2L1
 Finally10123Finally5Finally4Finally3Finally2L1
 Finally101234Finally5Finally4Finally3Finally2L1
 Finally1");
-
         }
 
         [Fact]
@@ -1884,7 +1883,6 @@ class S<T1, T2>
 
 ";
             CompileAndVerify(source, expectedOutput: @"M");
-
         }
 
         [Fact]
@@ -1925,7 +1923,6 @@ class A
 ";
             CompileAndVerify(source, expectedOutput: @"5
 42");
-
         }
 
         [Fact]
@@ -1945,7 +1942,7 @@ class Program
 }
 ";
             //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
-            var parsed = new [] {Parse(source)};
+            var parsed = new[] { Parse(source) };
             var comp = CreateCompilationWithMscorlib45(parsed);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
@@ -2014,7 +2011,6 @@ class Program
 
 ";
             CompileAndVerify(source, expectedOutput: @"DONE");
-
         }
 
         [Fact]

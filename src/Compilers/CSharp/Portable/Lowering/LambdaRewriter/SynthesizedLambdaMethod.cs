@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SynthesizedLambdaMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol topLevelMethod;
+        private readonly MethodSymbol _topLevelMethod;
 
         internal SynthesizedLambdaMethod(
             NamedTypeSymbol containingType,
             ClosureKind closureKind,
             MethodSymbol topLevelMethod,
-            MethodDebugId topLevelMethodId, 
+            MethodDebugId topLevelMethodId,
             BoundLambda lambdaNode,
             int lambdaOrdinal)
             : base(containingType,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
                        | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
-            this.topLevelMethod = topLevelMethod;
+            _topLevelMethod = topLevelMethod;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => topLevelMethod;
+        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 
         // The lambda method body needs to be updated when the containing top-level method body is updated.
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;

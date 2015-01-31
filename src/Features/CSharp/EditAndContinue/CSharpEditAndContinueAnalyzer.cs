@@ -1337,13 +1337,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private struct EditClassifier
         {
-            private readonly CSharpEditAndContinueAnalyzer analyzer;
-            private readonly List<RudeEditDiagnostic> diagnostics;
-            private readonly Match<SyntaxNode> match;
-            private readonly SyntaxNode oldNode;
-            private readonly SyntaxNode newNode;
-            private readonly EditKind kind;
-            private readonly TextSpan? span;
+            private readonly CSharpEditAndContinueAnalyzer _analyzer;
+            private readonly List<RudeEditDiagnostic> _diagnostics;
+            private readonly Match<SyntaxNode> _match;
+            private readonly SyntaxNode _oldNode;
+            private readonly SyntaxNode _newNode;
+            private readonly EditKind _kind;
+            private readonly TextSpan? _span;
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
@@ -1354,68 +1354,68 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Match<SyntaxNode> match = null,
                 TextSpan? span = null)
             {
-                this.analyzer = analyzer;
-                this.diagnostics = diagnostics;
-                this.oldNode = oldNode;
-                this.newNode = newNode;
-                this.kind = kind;
-                this.span = span;
-                this.match = match;
+                _analyzer = analyzer;
+                _diagnostics = diagnostics;
+                _oldNode = oldNode;
+                _newNode = newNode;
+                _kind = kind;
+                _span = span;
+                _match = match;
             }
 
             private void ReportError(RudeEditKind kind, SyntaxNode spanNode = null, SyntaxNode displayNode = null)
             {
-                var span = (spanNode != null) ? GetDiagnosticSpanImpl(spanNode, this.kind) : GetSpan();
-                var node = displayNode ?? newNode ?? oldNode;
-                var displayName = (displayNode != null) ? GetTopLevelDisplayNameImpl(displayNode, this.kind) : GetDisplayName();
+                var span = (spanNode != null) ? GetDiagnosticSpanImpl(spanNode, _kind) : GetSpan();
+                var node = displayNode ?? _newNode ?? _oldNode;
+                var displayName = (displayNode != null) ? GetTopLevelDisplayNameImpl(displayNode, _kind) : GetDisplayName();
 
-                diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: new[] { displayName }));
+                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: new[] { displayName }));
             }
 
             private string GetDisplayName()
             {
-                return GetTopLevelDisplayNameImpl(newNode ?? oldNode, this.kind);
+                return GetTopLevelDisplayNameImpl(_newNode ?? _oldNode, _kind);
             }
 
             private TextSpan GetSpan()
             {
-                if (span.HasValue)
+                if (_span.HasValue)
                 {
-                    return span.Value;
+                    return _span.Value;
                 }
 
-                if (newNode == null)
+                if (_newNode == null)
                 {
-                    return analyzer.GetDeletedNodeDiagnosticSpan(match, oldNode);
+                    return _analyzer.GetDeletedNodeDiagnosticSpan(_match, _oldNode);
                 }
                 else
                 {
-                    return GetDiagnosticSpanImpl(newNode, kind);
+                    return GetDiagnosticSpanImpl(_newNode, _kind);
                 }
             }
 
             public void ClassifyEdit()
             {
-                switch (kind)
+                switch (_kind)
                 {
                     case EditKind.Delete:
-                        ClassifyDelete(oldNode);
+                        ClassifyDelete(_oldNode);
                         return;
 
                     case EditKind.Update:
-                        ClassifyUpdate(oldNode, newNode);
+                        ClassifyUpdate(_oldNode, _newNode);
                         return;
 
                     case EditKind.Move:
-                        ClassifyMove(oldNode, newNode);
+                        ClassifyMove(_oldNode, _newNode);
                         return;
 
                     case EditKind.Insert:
-                        ClassifyInsert(newNode);
+                        ClassifyInsert(_newNode);
                         return;
 
                     case EditKind.Reorder:
-                        ClassifyReorder(oldNode, newNode);
+                        ClassifyReorder(_oldNode, _newNode);
                         return;
 
                     default:
@@ -2396,28 +2396,28 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     switch (node.Kind())
                     {
                         case SyntaxKind.StackAllocArrayCreationExpression:
-                            ReportError(RudeEditKind.StackAllocUpdate, node, newNode);
+                            ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
 
                         case SyntaxKind.ParenthesizedLambdaExpression:
                         case SyntaxKind.SimpleLambdaExpression:
                             // TODO (tomat): allow 
-                            ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, newNode);
+                            ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, _newNode);
                             return;
 
                         case SyntaxKind.AnonymousMethodExpression:
                             // TODO (tomat): allow 
-                            ReportError(RudeEditKind.RUDE_EDIT_ANON_METHOD, node, newNode);
+                            ReportError(RudeEditKind.RUDE_EDIT_ANON_METHOD, node, _newNode);
                             return;
 
                         case SyntaxKind.QueryExpression:
                             // TODO (tomat): allow 
-                            ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, newNode);
+                            ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, _newNode);
                             return;
 
                         case SyntaxKind.AnonymousObjectCreationExpression:
                             // TODO (tomat): allow 
-                            ReportError(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, node, newNode);
+                            ReportError(RudeEditKind.RUDE_EDIT_ANONYMOUS_TYPE, node, _newNode);
                             return;
                     }
                 }
@@ -2809,7 +2809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.UncheckedStatement:
                         return (CheckedStatementSyntax)node;
                 }
-                 
+
                 node = node.Parent;
             }
 

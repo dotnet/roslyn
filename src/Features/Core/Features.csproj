@@ -116,9 +116,7 @@
     <Compile Include="ChangeSignature\SignatureChange.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
-    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAsyncAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
@@ -181,9 +179,7 @@
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer.AnalyzerExecutor.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer.AnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.NestedTypes.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.StateType.cs" />
@@ -227,29 +223,21 @@
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
     <Compile Include="Completion\Rules\ICompletionRules.cs" />
     <Compile Include="Diagnostics\AbstractSyntaxNodeAnalyzerService.cs" />
-    <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\AddImportDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\IProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryImportsDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerDriver.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Diagnostics\DiagnosticAnalyzerDriver.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerCategory.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\DiagnosticCategory.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.DiagnosticAnalyzersAndStates.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.DiagnosticState.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.ProjectAnalyzersAndStates.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.WorkspaceAnalyzersAndStates.cs" />
     <Compile Include="Diagnostics\DiagnosticsUpdatedArgs.cs" />
@@ -261,9 +249,7 @@
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
     <Compile Include="DocumentationCommentFormatting\AbstractDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationCommentFormatting\IDocumentationCommentFormattingService.cs" />
-    <Compile Include="EditAndContinue\AbstractEditAndContinueAnalyzer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="EditAndContinue\AbstractEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\ActiveStatementFlags.cs" />
     <Compile Include="EditAndContinue\ActiveStatementId.cs" />
     <Compile Include="EditAndContinue\ActiveStatementSpan.cs" />
@@ -273,9 +259,7 @@
     <Compile Include="EditAndContinue\DocumentAnalysisResults.cs" />
     <Compile Include="EditAndContinue\EditAndContinueWorkspaceService.cs" />
     <Compile Include="EditAndContinue\EditAndContinueWorkspaceServiceFactory.cs" />
-    <Compile Include="EditAndContinue\EditSession.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="EditAndContinue\EditSession.cs" />
     <Compile Include="EditAndContinue\IActiveStatementTrackingService.cs" />
     <Compile Include="EditAndContinue\IEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\IEditAndContinueWorkspaceService.cs" />
@@ -501,9 +485,7 @@
     <Compile Include="SolutionCrawler\Extensibility\IPerLanguageIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\Extensibility\PerLanguageIncrementalAnalyzerProviderMetadata.cs" />
     <Compile Include="SolutionCrawler\Extensions.cs" />
-    <Compile Include="SolutionCrawler\IdleProcessor.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="SolutionCrawler\IdleProcessor.cs" />
     <Compile Include="SolutionCrawler\IDocumentDifferenceService.cs" />
     <Compile Include="SolutionCrawler\IDocumentTrackingService.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
@@ -523,19 +505,11 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.AsyncProjectWorkItemQueue.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.AsyncWorkItemQueue.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinator.HighPriorityProcessor.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="SolutionCrawler\WorkCoordinator.IncrementalAnalyzerProcessor.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="SolutionCrawler\WorkCoordinator.HighPriorityProcessor.cs" />
+    <Compile Include="SolutionCrawler\WorkCoordinator.IncrementalAnalyzerProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.GlobalOperationAwareIdleProcessor.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinator.LowPriorityProcessor.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="SolutionCrawler\WorkCoordinator.LowPriorityProcessor.cs" />
+    <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinatorRegistrationService.cs" />
@@ -560,7 +534,6 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

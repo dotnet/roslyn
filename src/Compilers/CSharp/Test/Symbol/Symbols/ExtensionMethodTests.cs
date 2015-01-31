@@ -3351,7 +3351,7 @@ namespace N
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput:  "1");
+            CompileAndVerify(source, expectedOutput: "1");
         }
 
         [Fact, WorkItem(1085744, "DevDiv")]
@@ -3413,7 +3413,7 @@ namespace N
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput:  "1");
+            CompileAndVerify(source, expectedOutput: "1");
         }
 
         [Fact, WorkItem(1010648, "DevDiv")]

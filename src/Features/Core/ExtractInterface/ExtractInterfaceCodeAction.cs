@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -10,26 +10,26 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal class ExtractInterfaceCodeAction : CodeActionWithOptions
     {
-        private readonly ExtractInterfaceTypeAnalysisResult typeAnalysisResult;
-        private readonly AbstractExtractInterfaceService extractInterfaceService;
-        private readonly Task<IEnumerable<CodeActionOperation>> taskReturningNoCodeActionOperations = Task.FromResult(SpecializedCollections.EmptyEnumerable<CodeActionOperation>());
+        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
+        private readonly AbstractExtractInterfaceService _extractInterfaceService;
+        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = Task.FromResult(SpecializedCollections.EmptyEnumerable<CodeActionOperation>());
 
         public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
         {
-            this.extractInterfaceService = extractInterfaceService;
-            this.typeAnalysisResult = typeAnalysisResult;
+            _extractInterfaceService = extractInterfaceService;
+            _typeAnalysisResult = typeAnalysisResult;
         }
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            var containingNamespaceDisplay = typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
+            var containingNamespaceDisplay = _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
-                : typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
+                : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            return extractInterfaceService.GetExtractInterfaceOptions(
-                typeAnalysisResult.DocumentToExtractFrom,
-                typeAnalysisResult.TypeToExtractFrom,
-                typeAnalysisResult.ExtractableMembers,
+            return _extractInterfaceService.GetExtractInterfaceOptions(
+                _typeAnalysisResult.DocumentToExtractFrom,
+                _typeAnalysisResult.TypeToExtractFrom,
+                _typeAnalysisResult.ExtractableMembers,
                 containingNamespaceDisplay,
                 cancellationToken);
         }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var extractInterfaceOptions = options as ExtractInterfaceOptionsResult;
             if (extractInterfaceOptions != null && !extractInterfaceOptions.IsCancelled)
             {
-                var extractInterfaceResult = extractInterfaceService.ExtractInterfaceFromAnalyzedType(typeAnalysisResult, extractInterfaceOptions, cancellationToken);
+                var extractInterfaceResult = _extractInterfaceService.ExtractInterfaceFromAnalyzedType(_typeAnalysisResult, extractInterfaceOptions, cancellationToken);
 
                 if (extractInterfaceResult.Succeeded)
                 {

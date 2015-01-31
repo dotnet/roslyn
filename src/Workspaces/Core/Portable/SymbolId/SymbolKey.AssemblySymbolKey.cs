@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis
     {
         private class AssemblySymbolKey : AbstractSymbolKey<AssemblySymbolKey>
         {
-            private readonly string assemblyName;
+            private readonly string _assemblyName;
 
             internal AssemblySymbolKey(IAssemblySymbol symbol)
             {
-                this.assemblyName = symbol.Identity.Name;
+                _assemblyName = symbol.Identity.Name;
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
 
             private IEnumerable<IAssemblySymbol> GetAssemblySymbols(Compilation compilation, bool ignoreAssemblyKey)
             {
-                if (ignoreAssemblyKey || compilation.Assembly.Identity.Name == this.assemblyName)
+                if (ignoreAssemblyKey || compilation.Assembly.Identity.Name == _assemblyName)
                 {
                     yield return compilation.Assembly;
                 }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var reference in compilation.References)
                 {
                     var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null && (ignoreAssemblyKey || assembly.Identity.Name == this.assemblyName))
+                    if (assembly != null && (ignoreAssemblyKey || assembly.Identity.Name == _assemblyName))
                     {
                         yield return assembly;
                     }
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis
             {
                 // isCaseSensitive doesn't apply here as AssemblyIdentity is always case
                 // insensitive.
-                return options.IgnoreAssemblyKey || other.assemblyName == this.assemblyName;
+                return options.IgnoreAssemblyKey || other._assemblyName == _assemblyName;
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 // isCaseSensitive doesn't apply here as AssemblyIdentity is always case
                 // insensitive.
-                return options.IgnoreAssemblyKey ? 1 : this.assemblyName.GetHashCode();
+                return options.IgnoreAssemblyKey ? 1 : _assemblyName.GetHashCode();
             }
         }
     }

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                     simpleNameOrMemberAccessExpression = (ExpressionSyntax)memberAccess;
                 }
                 else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
-                { 
+                {
                     simpleNameOrMemberAccessExpression = conditionalMemberAccess;
                 }
                 else

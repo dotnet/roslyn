@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DestructorDocumentationCommentTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamespaceSymbol acmeNamespace;
-        private readonly NamedTypeSymbol widgetClass;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
 
         public DestructorDocumentationCommentTests()
         {
-            compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
 {
 	class Widget: IProcess
 	{
@@ -27,19 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ");
 
-            acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
-            widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
+            _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
         }
 
         [Fact]
         public void TestDestructor()
         {
-            Assert.Equal("M:Acme.Widget.Finalize", widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.Finalize", _widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""M:Acme.Widget.Finalize"">
     <summary>Destructor Documentation</summary>
 </member>
-", widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentXml());
+", _widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentXml());
         }
     }
 }

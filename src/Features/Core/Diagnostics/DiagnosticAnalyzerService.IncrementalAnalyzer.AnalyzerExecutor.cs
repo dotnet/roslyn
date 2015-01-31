@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             internal class AnalyzerExecutor
             {
-                private readonly DiagnosticIncrementalAnalyzer owner;
+                private readonly DiagnosticIncrementalAnalyzer _owner;
 
                 public AnalyzerExecutor(DiagnosticIncrementalAnalyzer owner)
                 {
-                    this.owner = owner;
+                    _owner = owner;
                 }
 
                 public async Task<AnalysisData> GetSyntaxAnalysisDataAsync(
@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnosticData = await GetSyntaxDiagnosticsAsync(providerId, provider, analyzerDriver).ConfigureAwait(false);
                         return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
+                    }
 
                 public async Task<AnalysisData> GetDocumentAnalysisDataAsync(
                     DiagnosticAnalyzer provider, ProviderId providerId, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDrvier)
@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnosticData = await GetSemanticDiagnosticsAsync(providerId, provider, analyzerDrvier).ConfigureAwait(false);
                         return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
+                    }
 
                 public async Task<AnalysisData> GetDocumentBodyAnalysisDataAsync(
                     DiagnosticAnalyzer provider, ProviderId providerId, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             var memberDxData = await GetSemanticDiagnosticsAsync(providerId, provider, analyzerDriver).ConfigureAwait(false);
 
-                            diagnosticData = this.owner.UpdateDocumentDiagnostics(existingData, ranges.Ranges, memberDxData.AsImmutableOrEmpty(), root.SyntaxTree, member, memberId);
+                            diagnosticData = _owner.UpdateDocumentDiagnostics(existingData, ranges.Ranges, memberDxData.AsImmutableOrEmpty(), root.SyntaxTree, member, memberId);
                             ValidateMemberDiagnostics(providerId, provider, document, root, diagnosticData);
                         }
                         else
@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
+                    }
 
                 public async Task<AnalysisData> GetProjectAnalysisDataAsync(
                     DiagnosticAnalyzer provider, ProviderId providerId, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver)
@@ -132,18 +132,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
 
                         // TODO: remove ForceAnalyzeAllDocuments at some point
-                        var diagnosticData = await GetProjectDiagnosticsAsync(providerId, provider, analyzerDriver, this.owner.ForceAnalyzeAllDocuments).ConfigureAwait(false);
+                        var diagnosticData = await GetProjectDiagnosticsAsync(providerId, provider, analyzerDriver, _owner.ForceAnalyzeAllDocuments).ConfigureAwait(false);
                         return new AnalysisData(VersionStamp.Default, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
+                    }
 
                 private DiagnosticAnalyzersAndStates AnalyzersAndState
                 {
-                    get { return this.owner.analyzersAndState; }
+                    get { return _owner._analyzersAndState; }
                 }
 
                 private bool CanUseDocumentState(AnalysisData existingData, VersionStamp textVersion, VersionStamp dataVersion)

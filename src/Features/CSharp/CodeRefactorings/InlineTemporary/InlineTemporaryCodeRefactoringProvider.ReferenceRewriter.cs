@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
     {
         private class ReferenceRewriter : CSharpSyntaxRewriter
         {
-            private readonly SemanticModel semanticModel;
-            private readonly ILocalSymbol localSymbol;
-            private readonly VariableDeclaratorSyntax variableDeclarator;
-            private readonly ExpressionSyntax expressionToInline;
-            private readonly CancellationToken cancellationToken;
+            private readonly SemanticModel _semanticModel;
+            private readonly ILocalSymbol _localSymbol;
+            private readonly VariableDeclaratorSyntax _variableDeclarator;
+            private readonly ExpressionSyntax _expressionToInline;
+            private readonly CancellationToken _cancellationToken;
 
             private ReferenceRewriter(
                 SemanticModel semanticModel,
@@ -27,37 +27,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
-                this.semanticModel = semanticModel;
-                this.localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-                this.variableDeclarator = variableDeclarator;
-                this.expressionToInline = expressionToInline;
-                this.cancellationToken = cancellationToken;
+                _semanticModel = semanticModel;
+                _localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+                _variableDeclarator = variableDeclarator;
+                _expressionToInline = expressionToInline;
+                _cancellationToken = cancellationToken;
             }
 
             private bool IsReference(SimpleNameSyntax name)
             {
-                if (name.Identifier.ValueText != variableDeclarator.Identifier.ValueText)
+                if (name.Identifier.ValueText != _variableDeclarator.Identifier.ValueText)
                 {
                     return false;
                 }
 
-                var symbol = semanticModel.GetSymbolInfo(name).Symbol;
+                var symbol = _semanticModel.GetSymbolInfo(name).Symbol;
                 return symbol != null
-                    && symbol.Equals(this.localSymbol);
+                    && symbol.Equals(_localSymbol);
             }
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 if (IsReference(node))
                 {
-                    if (HasConflict(node, variableDeclarator))
+                    if (HasConflict(node, _variableDeclarator))
                     {
                         return node.Update(node.Identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
                     }
 
-                    return this.expressionToInline
+                    return _expressionToInline
                         .Parenthesize()
                         .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
                 }
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 var expression = node.Expression;
                 var identifier = expression as IdentifierNameSyntax;
 
-                if (nameEquals != null || identifier == null || !IsReference(identifier) || HasConflict(identifier, variableDeclarator))
+                if (nameEquals != null || identifier == null || !IsReference(identifier) || HasConflict(identifier, _variableDeclarator))
                 {
                     return base.VisitAnonymousObjectMemberDeclarator(node);
                 }

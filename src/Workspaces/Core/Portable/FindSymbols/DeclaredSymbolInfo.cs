@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Event,
         Field,
         Indexer,
-        Interface,        
+        Interface,
         Method,
         Module,
         Property,

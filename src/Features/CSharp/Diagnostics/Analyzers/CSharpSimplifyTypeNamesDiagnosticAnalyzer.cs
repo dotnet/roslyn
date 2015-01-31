@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly ImmutableArray<SyntaxKind> kindsOfInterest = ImmutableArray.Create(SyntaxKind.QualifiedName,
+        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.QualifiedName,
             SyntaxKind.AliasQualifiedName,
             SyntaxKind.GenericName,
             SyntaxKind.IdentifierName,
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, kindsOfInterest.ToArray());
+            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest.ToArray());
         }
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => kindsOfInterest.Contains(n.Kind())))
+            if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => s_kindsOfInterest.Contains(n.Kind())))
             {
                 // Already simplified an ancestor of this node.
                 return;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private static bool IsRegularCandidate(SyntaxNode node)
         {
-            return node != null && kindsOfInterest.Contains(node.Kind());
+            return node != null && s_kindsOfInterest.Contains(node.Kind());
         }
 
         private static bool IsCrefCandidate(SyntaxNode node)

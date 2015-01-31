@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static partial class ConflictResolver
     {
-        private static SymbolDisplayFormat metadataSymbolDisplayFormat = new SymbolDisplayFormat(
+        private static SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private static readonly string MetadataNameSeparators = " .,:<`>()\r\n";
+        private static readonly string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         /// <summary>
         /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically resolves them where possible.
@@ -284,13 +284,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             if (symbol.IsAnonymousType())
             {
-                return symbol.ToDisplayParts(metadataSymbolDisplayFormat)
+                return symbol.ToDisplayParts(s_metadataSymbolDisplayFormat)
                     .WhereAsArray(p => p.Kind != SymbolDisplayPartKind.PropertyName && p.Kind != SymbolDisplayPartKind.FieldName)
                     .ToDisplayString();
             }
             else
             {
-                return symbol.ToDisplayString(metadataSymbolDisplayFormat);
+                return symbol.ToDisplayString(s_metadataSymbolDisplayFormat);
             }
         }
 
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static bool IsIdentifierSeparator(char element)
         {
-            return MetadataNameSeparators.IndexOf(element) != -1;
+            return s_metadataNameSeparators.IndexOf(element) != -1;
         }
     }
 }

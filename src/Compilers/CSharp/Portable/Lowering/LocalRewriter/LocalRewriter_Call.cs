@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         loweredReceiver = new BoundTypeExpression(node.Syntax, null, firstContainer);
                     }
-                    else if (hasImplicitReceiver && factory.TopLevelMethod.IsStatic)
+                    else if (hasImplicitReceiver && _factory.TopLevelMethod.IsStatic)
                     {
                         // Calling a static method defined on the current class via its simple name.
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, factory.CurrentType);
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
                     }
                     else
                     {
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // delegate invocation
                     var loweredExpression = VisitExpression(node.Expression);
-                    return dynamicFactory.MakeDynamicInvocation(loweredExpression, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, resultDiscarded).ToExpression();
+                    return _dynamicFactory.MakeDynamicInvocation(loweredExpression, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, resultDiscarded).ToExpression();
             }
 
             Debug.Assert(loweredReceiver != null);
-            return dynamicFactory.MakeDynamicMemberInvocation(
+            return _dynamicFactory.MakeDynamicMemberInvocation(
                 name,
                 loweredReceiver,
                 typeArguments,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var m in methods)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition, syntaxNode, diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition, syntaxNode, _diagnostics);
                     }
                 }
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var p in properties)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition, syntaxNode, diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition, syntaxNode, _diagnostics);
                     }
                 }
             }
@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsStatic &&
                 method.ContainingType.IsObjectType() &&
-                !inExpressionLambda &&
-                (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals))
+                !_inExpressionLambda &&
+                (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals))
             {
                 Debug.Assert(rewrittenArguments.Length == 2);
 
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     BoundAssignmentOperator assignment;
-                    var temp = factory.StoreToTemp(argument, out assignment, refKind: refKind);
+                    var temp = _factory.StoreToTemp(argument, out assignment, refKind: refKind);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
@@ -620,11 +620,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
                 {
-                    MethodSymbol arrayEmpty = this.compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
+                    MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                     {
                         // return an invocation of "Array.Empty<T>()"
-                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType)); 
+                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
                         return new BoundCall(
                             syntax,
                             null,
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
                 int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
-                BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), compilation.GetSpecialType(SpecialType.System_Int32));
+                BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), _compilation.GetSpecialType(SpecialType.System_Int32));
 
                 if (parameterType.IsNullableType())
                 {
@@ -891,15 +891,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
-                string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, compilation.Options.SourceReferenceResolver);
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String));
+                string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, _compilation.Options.SourceReferenceResolver);
+                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), _compilation.GetSpecialType(SpecialType.System_String));
                 defaultValue = MakeConversion(memberNameLiteral, parameterType, false);
             }
             else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
                 string memberName;
 
-                switch (this.factory.TopLevelMethod.MethodKind)
+                switch (_factory.TopLevelMethod.MethodKind)
                 {
                     case MethodKind.Constructor:
                     case MethodKind.StaticConstructor:
@@ -946,11 +946,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto default;
 
                     default:
-                        memberName = this.factory.TopLevelMethod.GetMemberCallerName();
+                        memberName = _factory.TopLevelMethod.GetMemberCallerName();
                         break;
                 }
 
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String));
+                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), _compilation.GetSpecialType(SpecialType.System_String));
                 defaultValue = MakeConversion(memberNameLiteral, parameterType, false);
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We have something like M(double? x = 1.23), so replace the argument
                 // with new double?(1.23).
 
-                TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
                 defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
 
                 // The parameter's underlying type might not match the constant type. For example, we might have
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We have something like M(double x = 1.23), so replace the argument with 1.23.
 
-                TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
                 defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
                 // The parameter type might not match the constant type.
                 defaultValue = MakeConversion(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
@@ -1032,21 +1032,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (parameter.IsIUnknownConstant)
             {
                 // new UnknownWrapper(default(object))
-                var methodSymbol = (MethodSymbol)this.compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
+                var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
                 var argument = new BoundDefaultOperator(syntax, parameter.Type);
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
-                var methodSymbol = (MethodSymbol)this.compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
+                var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
                 var argument = new BoundDefaultOperator(syntax, parameter.Type);
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
             }
             else
             {
                 // Type.Missing
-                var fieldSymbol = (FieldSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing);
+                var fieldSymbol = (FieldSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing);
                 defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable);
             }
 
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundAssignmentOperator boundAssignmentToTemp;
-                BoundLocal boundTemp = factory.StoreToTemp(argument, out boundAssignmentToTemp);
+                BoundLocal boundTemp = _factory.StoreToTemp(argument, out boundAssignmentToTemp);
 
                 actualArguments[argIndex] = new BoundSequence(
                     argument.Syntax,
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // GetMember operation:
             Debug.Assert(node.TypeArgumentsOpt.IsDefault);
             var loweredReceiver = VisitExpression(node.Receiver);
-            return dynamicFactory.MakeDynamicGetMember(loweredReceiver, node.Name, node.Indexed).ToExpression();
+            return _dynamicFactory.MakeDynamicGetMember(loweredReceiver, node.Name, node.Indexed).ToExpression();
         }
     }
 }

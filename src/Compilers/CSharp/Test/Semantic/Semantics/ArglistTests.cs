@@ -407,7 +407,6 @@ public class C
         [Fact]
         public void ArglistTest03()
         {
-
             // The native parser produces "type expected" when __arglist is preceded by an illegal
             // modifier. The Roslyn compiler produces the more informative "__arglist not valid" error.
 
@@ -793,7 +792,7 @@ public struct C
 
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
         }
-        
+
         [Fact]
         public void TestBug13263()
         {

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         public static readonly InvocationReasons Empty = new InvocationReasons(ImmutableHashSet.Create<string>());
 
-        private ImmutableHashSet<string> reasons;
+        private ImmutableHashSet<string> _reasons;
 
         public InvocationReasons(string reason)
             : this(ImmutableHashSet.Create<string>(reason))
@@ -20,30 +20,30 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private InvocationReasons(ImmutableHashSet<string> reasons)
         {
-            this.reasons = reasons;
+            _reasons = reasons;
         }
 
         public bool Contains(string reason)
         {
-            return this.reasons.Contains(reason);
+            return _reasons.Contains(reason);
         }
 
         public InvocationReasons With(InvocationReasons invocationReasons)
         {
-            return new InvocationReasons((reasons ?? ImmutableHashSet.Create<string>()).Union(invocationReasons.reasons));
+            return new InvocationReasons((_reasons ?? ImmutableHashSet.Create<string>()).Union(invocationReasons._reasons));
         }
 
         public bool IsEmpty
         {
             get
             {
-                return this.reasons == null || this.reasons.Count == 0;
+                return _reasons == null || _reasons.Count == 0;
             }
         }
 
         public IEnumerator<string> GetEnumerator()
         {
-            return this.reasons.GetEnumerator();
+            return _reasons.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

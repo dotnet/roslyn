@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class PreciseAbstractFlowPass<LocalState>
+    internal partial class PreciseAbstractFlowPass<LocalState>
     {
         protected abstract bool IntersectWith(ref LocalState self, ref LocalState other);
 

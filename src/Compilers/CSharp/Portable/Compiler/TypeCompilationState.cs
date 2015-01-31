@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary> Flat array of created methods, non-empty if not-null </summary>
-        private ArrayBuilder<MethodWithBody> synthesizedMethods;
+        private ArrayBuilder<MethodWithBody> _synthesizedMethods;
 
         /// <summary> 
         /// Map of wrapper methods created for base access of base type virtual methods from 
         /// other classes (like those created for lambdas...); actually each method symbol will 
         /// only need one wrapper to call it non-virtually.
         /// </summary>
-        private Dictionary<MethodSymbol, MethodSymbol> wrappers;
-        
-        private readonly NamedTypeSymbol type;
+        private Dictionary<MethodSymbol, MethodSymbol> _wrappers;
+
+        private readonly NamedTypeSymbol _type;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
             this.Compilation = compilation;
-            this.type = type;
+            _type = type;
             this.ModuleBuilderOpt = moduleBuilderOpt;
         }
 
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // NOTE: currently it can be null if only private implementation type methods are compiled
                 // TODO: is it used? if yes, make sure it is not accessed when type is not available; 
-                Debug.Assert((object)this.type != null);
-                return type;
+                Debug.Assert((object)_type != null);
+                return _type;
             }
         }
 
@@ -93,22 +93,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public bool HasSynthesizedMethods
         {
-            get { return this.synthesizedMethods != null; }
+            get { return _synthesizedMethods != null; }
         }
 
         public ArrayBuilder<MethodWithBody> SynthesizedMethods
         {
-            get { return this.synthesizedMethods; }
+            get { return _synthesizedMethods; }
         }
 
         public void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
         {
-            if (this.synthesizedMethods == null)
+            if (_synthesizedMethods == null)
             {
-                this.synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
+                _synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
             }
 
-            synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentDebugImports : null));
+            _synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentDebugImports : null));
         }
 
         /// <summary> 
@@ -122,18 +122,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.AddSynthesizedMethod(wrapper, body);
 
-            if (this.wrappers == null)
+            if (_wrappers == null)
             {
-                this.wrappers = new Dictionary<MethodSymbol, MethodSymbol>();
+                _wrappers = new Dictionary<MethodSymbol, MethodSymbol>();
             }
 
-            this.wrappers.Add(method, wrapper);
+            _wrappers.Add(method, wrapper);
         }
 
         /// <summary> The index of the next wrapped method to be used </summary>
         public int NextWrapperMethodIndex
         {
-            get { return this.wrappers == null ? 0 : this.wrappers.Count; }
+            get { return _wrappers == null ? 0 : _wrappers.Count; }
         }
 
         /// <summary> 
@@ -146,19 +146,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol GetMethodWrapper(MethodSymbol method)
         {
             MethodSymbol wrapper = null;
-            return this.wrappers != null && this.wrappers.TryGetValue(method, out wrapper) ? wrapper : null;
+            return _wrappers != null && _wrappers.TryGetValue(method, out wrapper) ? wrapper : null;
         }
 
         /// <summary> Free resources allocated for this method collection </summary>
         public void Free()
         {
-            if (this.synthesizedMethods != null)
+            if (_synthesizedMethods != null)
             {
-                this.synthesizedMethods.Free();
-                this.synthesizedMethods = null;
+                _synthesizedMethods.Free();
+                _synthesizedMethods = null;
             }
 
-            this.wrappers = null;
+            _wrappers = null;
         }
     }
 }

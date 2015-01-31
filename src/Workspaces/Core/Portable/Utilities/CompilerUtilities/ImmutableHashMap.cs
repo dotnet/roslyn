@@ -24,22 +24,22 @@ namespace Roslyn.Collections.Immutable
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     internal sealed class ImmutableHashMap<TKey, TValue> : IImmutableDictionary<TKey, TValue>
     {
-        private static readonly ImmutableHashMap<TKey, TValue> EmptySingleton = new ImmutableHashMap<TKey, TValue>();
+        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new ImmutableHashMap<TKey, TValue>();
 
         /// <summary>
         /// The root node of the tree that stores this map.
         /// </summary>
-        private readonly Bucket root;
+        private readonly Bucket _root;
 
         /// <summary>
         /// The comparer used to sort keys in this map.
         /// </summary>
-        private readonly IEqualityComparer<TKey> keyComparer;
+        private readonly IEqualityComparer<TKey> _keyComparer;
 
         /// <summary>
         /// The comparer used to detect equivalent values in this map.
         /// </summary>
-        private readonly IEqualityComparer<TValue> valueComparer;
+        private readonly IEqualityComparer<TValue> _valueComparer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImmutableHashMap&lt;TKey, TValue&gt;"/> class.
@@ -54,7 +54,7 @@ namespace Roslyn.Collections.Immutable
             Contract.Requires(comparer != null);
             Contract.Requires(valueComparer != null);
 
-            this.root = root;
+            _root = root;
         }
 
         /// <summary>
@@ -64,8 +64,8 @@ namespace Roslyn.Collections.Immutable
         /// <param name="valueComparer">The value comparer.</param>
         internal ImmutableHashMap(IEqualityComparer<TKey> comparer = null, IEqualityComparer<TValue> valueComparer = null)
         {
-            this.keyComparer = comparer ?? EqualityComparer<TKey>.Default;
-            this.valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
+            _keyComparer = comparer ?? EqualityComparer<TKey>.Default;
+            _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Roslyn.Collections.Immutable
         /// </summary>
         public static ImmutableHashMap<TKey, TValue> Empty
         {
-            get { return EmptySingleton; }
+            get { return s_emptySingleton; }
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Roslyn.Collections.Immutable
         /// </summary>
         public ImmutableHashMap<TKey, TValue> Clear()
         {
-            return this.IsEmpty ? this : Empty.WithComparers(this.keyComparer, this.valueComparer);
+            return this.IsEmpty ? this : Empty.WithComparers(_keyComparer, _valueComparer);
         }
 
         #region Public methods
@@ -94,14 +94,14 @@ namespace Roslyn.Collections.Immutable
         {
             Requires.NotNullAllowStructs(key, "key");
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
-            var vb = new ValueBucket(key, value, this.keyComparer.GetHashCode(key));
-            if (this.root == null)
+            var vb = new ValueBucket(key, value, _keyComparer.GetHashCode(key));
+            if (_root == null)
             {
                 return this.Wrap(vb);
             }
             else
             {
-                return this.Wrap(this.root.Add(0, vb, this.keyComparer, this.valueComparer, false));
+                return this.Wrap(_root.Add(0, vb, _keyComparer, _valueComparer, false));
             }
         }
 
@@ -126,14 +126,14 @@ namespace Roslyn.Collections.Immutable
             Requires.NotNullAllowStructs(key, "key");
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
             Contract.Ensures(!Contract.Result<ImmutableHashMap<TKey, TValue>>().IsEmpty);
-            var vb = new ValueBucket(key, value, this.keyComparer.GetHashCode(key));
-            if (this.root == null)
+            var vb = new ValueBucket(key, value, _keyComparer.GetHashCode(key));
+            if (_root == null)
             {
                 return this.Wrap(vb);
             }
             else
             {
-                return this.Wrap(this.root.Add(0, vb, this.keyComparer, this.valueComparer, true));
+                return this.Wrap(_root.Add(0, vb, _keyComparer, _valueComparer, true));
             }
         }
 
@@ -159,9 +159,9 @@ namespace Roslyn.Collections.Immutable
         {
             Requires.NotNullAllowStructs(key, "key");
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
-            if (this.root != null)
+            if (_root != null)
             {
-                return this.Wrap(this.root.Remove(this.keyComparer.GetHashCode(key), key, this.keyComparer));
+                return this.Wrap(_root.Remove(_keyComparer.GetHashCode(key), key, _keyComparer));
             }
 
             return this;
@@ -175,12 +175,12 @@ namespace Roslyn.Collections.Immutable
         {
             Requires.NotNull(keys, "keys");
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
-            var map = this.root;
+            var map = _root;
             if (map != null)
             {
                 foreach (var key in keys)
                 {
-                    map = map.Remove(this.keyComparer.GetHashCode(key), key, this.keyComparer);
+                    map = map.Remove(_keyComparer.GetHashCode(key), key, _keyComparer);
                     if (map == null)
                     {
                         break;
@@ -213,9 +213,9 @@ namespace Roslyn.Collections.Immutable
                 valueComparer = EqualityComparer<TValue>.Default;
             }
 
-            if (this.keyComparer == keyComparer)
+            if (_keyComparer == keyComparer)
             {
-                if (this.valueComparer == valueComparer)
+                if (_valueComparer == valueComparer)
                 {
                     return this;
                 }
@@ -224,7 +224,7 @@ namespace Roslyn.Collections.Immutable
                     // When the key comparer is the same but the value comparer is different, we don't need a whole new tree
                     // because the structure of the tree does not depend on the value comparer.
                     // We just need a new root node to store the new value comparer.
-                    return new ImmutableHashMap<TKey, TValue>(this.root, this.keyComparer, valueComparer);
+                    return new ImmutableHashMap<TKey, TValue>(_root, _keyComparer, valueComparer);
                 }
             }
             else
@@ -246,7 +246,7 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         public ImmutableHashMap<TKey, TValue> WithComparers(IEqualityComparer<TKey> keyComparer)
         {
-            return this.WithComparers(keyComparer, this.valueComparer);
+            return this.WithComparers(keyComparer, _valueComparer);
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         public bool ContainsValue(TValue value)
         {
-            return this.Values.Contains(value, this.valueComparer);
+            return this.Values.Contains(value, _valueComparer);
         }
 
         #endregion
@@ -276,7 +276,7 @@ namespace Roslyn.Collections.Immutable
         /// </summary>
         public int Count
         {
-            get { return this.root != null ? this.root.Count : 0; }
+            get { return _root != null ? _root.Count : 0; }
         }
 
         /// <summary>
@@ -297,13 +297,13 @@ namespace Roslyn.Collections.Immutable
         {
             get
             {
-                if (this.root == null)
+                if (_root == null)
                 {
                     yield break;
                 }
 
                 var stack = new Stack<IEnumerator<Bucket>>();
-                stack.Push(this.root.GetAll().GetEnumerator());
+                stack.Push(_root.GetAll().GetEnumerator());
                 while (stack.Count > 0)
                 {
                     var en = stack.Peek();
@@ -363,9 +363,9 @@ namespace Roslyn.Collections.Immutable
         /// </returns>
         public bool ContainsKey(TKey key)
         {
-            if (this.root != null)
+            if (_root != null)
             {
-                var vb = this.root.Get(this.keyComparer.GetHashCode(key), key, this.keyComparer);
+                var vb = _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer);
                 return vb != null;
             }
 
@@ -381,10 +381,10 @@ namespace Roslyn.Collections.Immutable
         /// </returns>
         public bool Contains(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            if (this.root != null)
+            if (_root != null)
             {
-                var vb = this.root.Get(this.keyComparer.GetHashCode(keyValuePair.Key), keyValuePair.Key, this.keyComparer);
-                return vb != null && this.valueComparer.Equals(vb.Value, keyValuePair.Value);
+                var vb = _root.Get(_keyComparer.GetHashCode(keyValuePair.Key), keyValuePair.Key, _keyComparer);
+                return vb != null && _valueComparer.Equals(vb.Value, keyValuePair.Value);
             }
 
             return false;
@@ -395,9 +395,9 @@ namespace Roslyn.Collections.Immutable
         /// </summary>
         public bool TryGetValue(TKey key, out TValue value)
         {
-            if (this.root != null)
+            if (_root != null)
             {
-                var vb = this.root.Get(this.keyComparer.GetHashCode(key), key, this.keyComparer);
+                var vb = _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer);
                 if (vb != null)
                 {
                     value = vb.Value;
@@ -414,9 +414,9 @@ namespace Roslyn.Collections.Immutable
         /// </summary>
         public bool TryGetKey(TKey equalKey, out TKey actualKey)
         {
-            if (this.root != null)
+            if (_root != null)
             {
-                var vb = this.root.Get(this.keyComparer.GetHashCode(equalKey), equalKey, this.keyComparer);
+                var vb = _root.Get(_keyComparer.GetHashCode(equalKey), equalKey, _keyComparer);
                 if (vb != null)
                 {
                     actualKey = vb.Key;
@@ -489,7 +489,7 @@ namespace Roslyn.Collections.Immutable
         /// <returns>A value indicating whether an equal and existing key was found in the map.</returns>
         internal bool TryExchangeKey(TKey key, out TKey existingKey)
         {
-            var vb = this.root != null ? this.root.Get(this.keyComparer.GetHashCode(key), key, this.keyComparer) : null;
+            var vb = _root != null ? _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer) : null;
             if (vb != null)
             {
                 existingKey = vb.Key;
@@ -527,9 +527,9 @@ namespace Roslyn.Collections.Immutable
                 return this.Clear();
             }
 
-            if (this.root != root)
+            if (_root != root)
             {
-                return root.Count == 0 ? this.Clear() : new ImmutableHashMap<TKey, TValue>(root, this.keyComparer, this.valueComparer);
+                return root.Count == 0 ? this.Clear() : new ImmutableHashMap<TKey, TValue>(root, _keyComparer, _valueComparer);
             }
 
             return this;
@@ -555,7 +555,7 @@ namespace Roslyn.Collections.Immutable
                 ImmutableHashMap<TKey, TValue> other;
                 if (TryCastToImmutableMap(pairs, out other))
                 {
-                    return other.WithComparers(this.keyComparer, this.valueComparer);
+                    return other.WithComparers(_keyComparer, _valueComparer);
                 }
             }
 
@@ -572,13 +572,13 @@ namespace Roslyn.Collections.Immutable
 
         private IEnumerable<ValueBucket> GetValueBuckets()
         {
-            if (this.root == null)
+            if (_root == null)
             {
                 yield break;
             }
 
             var stack = new Stack<IEnumerator<Bucket>>();
-            stack.Push(this.root.GetAll().GetEnumerator());
+            stack.Push(_root.GetAll().GetEnumerator());
             while (stack.Count > 0)
             {
                 var en = stack.Peek();
@@ -714,7 +714,7 @@ namespace Roslyn.Collections.Immutable
 
         private sealed class ListBucket : ValueOrListBucket
         {
-            private readonly ValueBucket[] buckets;
+            private readonly ValueBucket[] _buckets;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="ImmutableHashMap&lt;TKey, TValue&gt;.ListBucket"/> class.
@@ -725,12 +725,12 @@ namespace Roslyn.Collections.Immutable
             {
                 Contract.Requires(buckets != null);
                 Contract.Requires(buckets.Length >= 2);
-                this.buckets = buckets;
+                _buckets = buckets;
             }
 
             internal override int Count
             {
-                get { return this.buckets.Length; }
+                get { return _buckets.Length; }
             }
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
@@ -741,7 +741,7 @@ namespace Roslyn.Collections.Immutable
                     if (pos >= 0)
                     {
                         // If the value hasn't changed for this key, return the original bucket.
-                        if (valueComparer.Equals(bucket.Value, this.buckets[pos].Value))
+                        if (valueComparer.Equals(bucket.Value, _buckets[pos].Value))
                         {
                             return this;
                         }
@@ -749,7 +749,7 @@ namespace Roslyn.Collections.Immutable
                         {
                             if (overwriteExistingValue)
                             {
-                                return new ListBucket(this.buckets.ReplaceAt(pos, bucket));
+                                return new ListBucket(_buckets.ReplaceAt(pos, bucket));
                             }
                             else
                             {
@@ -759,7 +759,7 @@ namespace Roslyn.Collections.Immutable
                     }
                     else
                     {
-                        return new ListBucket(this.buckets.InsertAt(this.buckets.Length, bucket));
+                        return new ListBucket(_buckets.InsertAt(_buckets.Length, bucket));
                     }
                 }
                 else
@@ -775,17 +775,17 @@ namespace Roslyn.Collections.Immutable
                     int pos = this.Find(key, comparer);
                     if (pos >= 0)
                     {
-                        if (this.buckets.Length == 1)
+                        if (_buckets.Length == 1)
                         {
                             return null;
                         }
-                        else if (this.buckets.Length == 2)
+                        else if (_buckets.Length == 2)
                         {
-                            return pos == 0 ? this.buckets[1] : this.buckets[0];
+                            return pos == 0 ? _buckets[1] : _buckets[0];
                         }
                         else
                         {
-                            return new ListBucket(this.buckets.RemoveAt(pos));
+                            return new ListBucket(_buckets.RemoveAt(pos));
                         }
                     }
                 }
@@ -800,7 +800,7 @@ namespace Roslyn.Collections.Immutable
                     int pos = this.Find(key, comparer);
                     if (pos >= 0)
                     {
-                        return this.buckets[pos];
+                        return _buckets[pos];
                     }
                 }
 
@@ -809,9 +809,9 @@ namespace Roslyn.Collections.Immutable
 
             private int Find(TKey key, IEqualityComparer<TKey> comparer)
             {
-                for (int i = 0; i < this.buckets.Length; i++)
+                for (int i = 0; i < _buckets.Length; i++)
                 {
-                    if (comparer.Equals(key, this.buckets[i].Key))
+                    if (comparer.Equals(key, _buckets[i].Key))
                     {
                         return i;
                     }
@@ -822,16 +822,16 @@ namespace Roslyn.Collections.Immutable
 
             internal override IEnumerable<Bucket> GetAll()
             {
-                return this.buckets;
+                return _buckets;
             }
         }
 
         private sealed class HashBucket : Bucket
         {
-            private readonly int hashRoll;
-            private readonly uint used;
-            private readonly Bucket[] buckets;
-            private readonly int count;
+            private readonly int _hashRoll;
+            private readonly uint _used;
+            private readonly Bucket[] _buckets;
+            private readonly int _count;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="ImmutableHashMap&lt;TKey, TValue&gt;.HashBucket"/> class.
@@ -845,10 +845,10 @@ namespace Roslyn.Collections.Immutable
                 Contract.Requires(buckets != null);
                 Contract.Requires(buckets.Length == CountBits(used));
 
-                this.hashRoll = hashRoll & 31;
-                this.used = used;
-                this.buckets = buckets;
-                this.count = count;
+                _hashRoll = hashRoll & 31;
+                _used = used;
+                _buckets = buckets;
+                _count = count;
             }
 
             /// <summary>
@@ -870,16 +870,16 @@ namespace Roslyn.Collections.Immutable
                 int s2;
                 for (int i = 0; i < 32; i++)
                 {
-                    this.hashRoll = (suggestedHashRoll + i) & 31;
+                    _hashRoll = (suggestedHashRoll + i) & 31;
                     s1 = this.ComputeLogicalSlot(h1);
                     s2 = this.ComputeLogicalSlot(h2);
                     if (s1 != s2)
                     {
-                        this.count = 2;
-                        this.used = (1u << s1) | (1u << s2);
-                        this.buckets = new Bucket[2];
-                        this.buckets[this.ComputePhysicalSlot(s1)] = bucket1;
-                        this.buckets[this.ComputePhysicalSlot(s2)] = bucket2;
+                        _count = 2;
+                        _used = (1u << s1) | (1u << s2);
+                        _buckets = new Bucket[2];
+                        _buckets[this.ComputePhysicalSlot(s1)] = bucket1;
+                        _buckets[this.ComputePhysicalSlot(s2)] = bucket2;
                         return;
                     }
                 }
@@ -889,7 +889,7 @@ namespace Roslyn.Collections.Immutable
 
             internal override int Count
             {
-                get { return this.count; }
+                get { return _count; }
             }
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
@@ -899,15 +899,15 @@ namespace Roslyn.Collections.Immutable
                 {
                     // if this slot is in use, then add the new item to the one in this slot
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
-                    var existing = this.buckets[physicalSlot];
+                    var existing = _buckets[physicalSlot];
 
                     // suggest hash roll that will cause any nested hash bucket to use entirely new bits for picking logical slot
                     // note: we ignore passed in suggestion, and base new suggestion off current hash roll.
-                    var added = existing.Add(this.hashRoll + 5, bucket, keyComparer, valueComparer, overwriteExistingValue);
+                    var added = existing.Add(_hashRoll + 5, bucket, keyComparer, valueComparer, overwriteExistingValue);
                     if (added != existing)
                     {
-                        var newBuckets = this.buckets.ReplaceAt(physicalSlot, added);
-                        return new HashBucket(this.hashRoll, this.used, newBuckets, this.count - existing.Count + added.Count);
+                        var newBuckets = _buckets.ReplaceAt(physicalSlot, added);
+                        return new HashBucket(_hashRoll, _used, newBuckets, _count - existing.Count + added.Count);
                     }
                     else
                     {
@@ -917,9 +917,9 @@ namespace Roslyn.Collections.Immutable
                 else
                 {
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
-                    var newBuckets = this.buckets.InsertAt(physicalSlot, bucket);
-                    var newUsed = InsertBit(logicalSlot, this.used);
-                    return new HashBucket(this.hashRoll, newUsed, newBuckets, this.count + bucket.Count);
+                    var newBuckets = _buckets.InsertAt(physicalSlot, bucket);
+                    var newUsed = InsertBit(logicalSlot, _used);
+                    return new HashBucket(_hashRoll, newUsed, newBuckets, _count + bucket.Count);
                 }
             }
 
@@ -929,26 +929,26 @@ namespace Roslyn.Collections.Immutable
                 if (IsInUse(logicalSlot))
                 {
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
-                    var existing = this.buckets[physicalSlot];
+                    var existing = _buckets[physicalSlot];
                     Bucket result = existing.Remove(hash, key, comparer);
                     if (result == null)
                     {
-                        if (this.buckets.Length == 1)
+                        if (_buckets.Length == 1)
                         {
                             return null;
                         }
-                        else if (this.buckets.Length == 2)
+                        else if (_buckets.Length == 2)
                         {
-                            return physicalSlot == 0 ? this.buckets[1] : this.buckets[0];
+                            return physicalSlot == 0 ? _buckets[1] : _buckets[0];
                         }
                         else
                         {
-                            return new HashBucket(this.hashRoll, RemoveBit(logicalSlot, this.used), this.buckets.RemoveAt(physicalSlot), this.count - existing.Count);
+                            return new HashBucket(_hashRoll, RemoveBit(logicalSlot, _used), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
                         }
                     }
-                    else if (this.buckets[physicalSlot] != result)
+                    else if (_buckets[physicalSlot] != result)
                     {
-                        return new HashBucket(this.hashRoll, this.used, this.buckets.ReplaceAt(physicalSlot, result), this.count - existing.Count + result.Count);
+                        return new HashBucket(_hashRoll, _used, _buckets.ReplaceAt(physicalSlot, result), _count - existing.Count + result.Count);
                     }
                 }
 
@@ -961,7 +961,7 @@ namespace Roslyn.Collections.Immutable
                 if (IsInUse(logicalSlot))
                 {
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
-                    return this.buckets[physicalSlot].Get(hash, key, comparer);
+                    return _buckets[physicalSlot].Get(hash, key, comparer);
                 }
 
                 return null;
@@ -969,18 +969,18 @@ namespace Roslyn.Collections.Immutable
 
             internal override IEnumerable<Bucket> GetAll()
             {
-                return this.buckets;
+                return _buckets;
             }
 
             private bool IsInUse(int logicalSlot)
             {
-                return ((1 << logicalSlot) & this.used) != 0;
+                return ((1 << logicalSlot) & _used) != 0;
             }
 
             private int ComputeLogicalSlot(int hc)
             {
                 uint uc = unchecked((uint)hc);
-                uint rotated = RotateRight(uc, this.hashRoll);
+                uint rotated = RotateRight(uc, _hashRoll);
                 return unchecked((int)(rotated & 31));
             }
 
@@ -1000,7 +1000,7 @@ namespace Roslyn.Collections.Immutable
             {
                 Contract.Requires(logicalSlot >= 0 && logicalSlot < 32);
                 Contract.Ensures(Contract.Result<int>() >= 0);
-                if (this.buckets.Length == 32)
+                if (_buckets.Length == 32)
                 {
                     return logicalSlot;
                 }
@@ -1011,7 +1011,7 @@ namespace Roslyn.Collections.Immutable
                 }
 
                 uint mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
-                return CountBits(this.used & mask);
+                return CountBits(_used & mask);
             }
 
             [Pure]
@@ -1087,12 +1087,12 @@ namespace Roslyn.Collections.Immutable
             /// <summary>
             /// The collection to be enumerated.
             /// </summary>
-            private readonly ImmutableHashMap<TKey, TValue> map;
+            private readonly ImmutableHashMap<TKey, TValue> _map;
 
             /// <summary>
             /// The simple view of the collection.
             /// </summary>
-            private KeyValuePair<TKey, TValue>[] contents;
+            private KeyValuePair<TKey, TValue>[] _contents;
 
             /// <summary>   
             /// Initializes a new instance of the <see cref="DebuggerProxy"/> class.
@@ -1101,7 +1101,7 @@ namespace Roslyn.Collections.Immutable
             public DebuggerProxy(ImmutableHashMap<TKey, TValue> map)
             {
                 Requires.NotNull(map, "map");
-                this.map = map;
+                _map = map;
             }
 
             /// <summary>
@@ -1112,12 +1112,12 @@ namespace Roslyn.Collections.Immutable
             {
                 get
                 {
-                    if (this.contents == null)
+                    if (_contents == null)
                     {
-                        this.contents = this.map.ToArray();
+                        _contents = _map.ToArray();
                     }
 
-                    return this.contents;
+                    return _contents;
                 }
             }
         }

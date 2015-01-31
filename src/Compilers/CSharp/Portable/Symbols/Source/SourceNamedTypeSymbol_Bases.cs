@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal partial class SourceNamedTypeSymbol
     {
-        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> lazyDeclaredBases = null;
+        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> _lazyDeclaredBases = null;
 
-        private NamedTypeSymbol lazyBaseType = ErrorTypeSymbol.UnknownResultType;
-        private ImmutableArray<NamedTypeSymbol> lazyInterfaces;
+        private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
+        private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
 
         /// <summary>
         /// Gets the BaseType of this type. If the base type could not be determined, then 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (ReferenceEquals(lazyBaseType, ErrorTypeSymbol.UnknownResultType))
+                if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
                 {
                     // force resolution of bases in containing type
                     // to make base resolution errors more deterministic
@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var diagnostics = DiagnosticBag.GetInstance();
                     var acyclicBase = this.MakeAcyclicBaseType(diagnostics);
-                    if (ReferenceEquals(Interlocked.CompareExchange(ref lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
+                    if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
                     {
                         AddSemanticDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
 
-                return lazyBaseType;
+                return _lazyBaseType;
             }
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            if (lazyInterfaces.IsDefault)
+            if (_lazyInterfaces.IsDefault)
             {
                 if (basesBeingResolved != null && basesBeingResolved.ContainsReference(this.OriginalDefinition))
                 {
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var diagnostics = DiagnosticBag.GetInstance();
                 var acyclicInterfaces = MakeAcyclicInterfaces(basesBeingResolved, diagnostics);
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, acyclicInterfaces, default(ImmutableArray<NamedTypeSymbol>)).IsDefault)
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, acyclicInterfaces, default(ImmutableArray<NamedTypeSymbol>)).IsDefault)
                 {
                     AddSemanticDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
 
-            return lazyInterfaces;
+            return _lazyInterfaces;
         }
 
         protected override void CheckBase(DiagnosticBag diagnostics)
@@ -187,10 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> GetDeclaredBases(ConsList<Symbol> basesBeingResolved)
         {
-            if (ReferenceEquals(lazyDeclaredBases, null))
+            if (ReferenceEquals(_lazyDeclaredBases, null))
             {
                 DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-                if (Interlocked.CompareExchange(ref lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, diagnostics), null) == null)
+                if (Interlocked.CompareExchange(ref _lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, diagnostics), null) == null)
                 {
                     AddSemanticDiagnostics(diagnostics);
                 }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Free();
             }
 
-            return lazyDeclaredBases;
+            return _lazyDeclaredBases;
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)

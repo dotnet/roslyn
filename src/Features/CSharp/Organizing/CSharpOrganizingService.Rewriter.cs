@@ -13,26 +13,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> nodeToOrganizersGetter;
-            private readonly SemanticModel semanticModel;
-            private readonly CancellationToken cancellationToken;
+            private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter;
+            private readonly SemanticModel _semanticModel;
+            private readonly CancellationToken _cancellationToken;
 
             public Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                this.nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
-                this.semanticModel = semanticModel;
-                this.cancellationToken = cancellationToken;
+                _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
+                _semanticModel = semanticModel;
+                _cancellationToken = cancellationToken;
             }
 
             public override SyntaxNode DefaultVisit(SyntaxNode node)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
                 return node;
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 if (node == null)
                 {
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
                 node = base.Visit(node);
 
                 // Now, try to update this new node itself.
-                var organizers = this.nodeToOrganizersGetter(node);
+                var organizers = _nodeToOrganizersGetter(node);
                 foreach (var organizer in organizers)
                 {
-                    node = organizer.OrganizeNode(semanticModel, node, cancellationToken);
+                    node = organizer.OrganizeNode(_semanticModel, node, _cancellationToken);
                 }
 
                 return node;

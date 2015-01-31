@@ -8,17 +8,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal class IncrementalAnalyzerProviderBase : IIncrementalAnalyzerProvider
     {
-        private readonly List<Lazy<IPerLanguageIncrementalAnalyzerProvider, PerLanguageIncrementalAnalyzerProviderMetadata>> providers;
+        private readonly List<Lazy<IPerLanguageIncrementalAnalyzerProvider, PerLanguageIncrementalAnalyzerProviderMetadata>> _providers;
 
         protected IncrementalAnalyzerProviderBase(
             string name, IEnumerable<Lazy<IPerLanguageIncrementalAnalyzerProvider, PerLanguageIncrementalAnalyzerProviderMetadata>> providers)
         {
-            this.providers = providers.Where(p => p.Metadata.Name == name).ToList();
+            _providers = providers.Where(p => p.Metadata.Name == name).ToList();
         }
 
         public virtual IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            return new AggregateIncrementalAnalyzer(workspace, this, this.providers);
+            return new AggregateIncrementalAnalyzer(workspace, this, _providers);
         }
     }
 }

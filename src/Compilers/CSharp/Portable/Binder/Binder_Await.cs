@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return true iff an await with this subexpression would be legal where the expression appears.
         /// </summary>
-        bool CouldBeAwaited(BoundExpression expression)
+        private bool CouldBeAwaited(BoundExpression expression)
         {
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if ((object)containingMethod == null || !containingMethod.IsAsync) return false;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             getAwaiterMethod = ((BoundCall)getAwaiterCall).Method;
-            if (getAwaiterMethod is ErrorMethodSymbol || 
+            if (getAwaiterMethod is ErrorMethodSymbol ||
                 HasOptionalOrVariableParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
                 getAwaiterMethod.ReturnsVoid) // If GetAwaiter returns void, don't bother checking that it returns an Awaiter.
             {

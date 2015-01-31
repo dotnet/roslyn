@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return x.Arity - y.Arity;
         }
     }
-    
+
     internal static class SymbolUtilities
     {
         public static NamespaceSymbol ChildNamespace(this NamespaceSymbol ns, string name)

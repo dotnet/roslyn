@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Shared
             }
             else
             {
-                sorted.Sort(delegate(TextSpan s1, TextSpan s2) { return s1.Start.CompareTo(s2.Start); });
+                sorted.Sort(delegate (TextSpan s1, TextSpan s2) { return s1.Start.CompareTo(s2.Start); });
 
                 IList<TextSpan> normalized = new List<TextSpan>(sorted.Count);
 

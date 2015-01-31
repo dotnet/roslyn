@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         {
             var source1 = "public class C1 { public C1() { } }";
             var source256 = "public class C256 { public C256() { } }";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs"); 
-            var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs"); 
+            var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
+            var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
 
             var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { tree1, tree256 });
 
@@ -100,7 +100,7 @@ class C
     }
 }
 ";
-            
+
             CompileAndVerify(text, options: TestOptions.DebugExe).
                 VerifyDiagnostics(
                 // (20,1): warning CS1697: Different checksum values given for 'bogus1.cs'
@@ -187,7 +187,7 @@ class C1
 }
 ";
 
-            CompileAndVerify(new string[] {text1, text2}).
+            CompileAndVerify(new string[] { text1, text2 }).
                 VerifyDiagnostics(
                 // (11,1): warning CS1697: Different checksum values given for 'bogus.cs'
                 // #pragma checksum "bogus.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"

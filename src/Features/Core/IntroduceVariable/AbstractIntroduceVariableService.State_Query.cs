@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool IsInQueryContext(
                 CancellationToken cancellationToken)
             {
-                if (!service.IsInNonFirstQueryClause(this.Expression))
+                if (!_service.IsInNonFirstQueryClause(this.Expression))
                 {
                     return false;
                 }

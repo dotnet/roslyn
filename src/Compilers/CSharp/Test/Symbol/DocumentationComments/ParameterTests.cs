@@ -641,7 +641,7 @@ class C
 
             int start = source.IndexOf("param");
             int end = source.LastIndexOf("param");
-            for (int position = start; position < end; position++) 
+            for (int position = start; position < end; position++)
             {
                 Assert.Equal(type, model.GetEnclosingSymbol(position));
             }

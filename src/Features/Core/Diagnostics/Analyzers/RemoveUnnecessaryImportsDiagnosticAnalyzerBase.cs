@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,25 +17,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
         internal const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
 
-        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(WorkspacesResources.RemoveUnnecessaryImportsOrUsings), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(WorkspacesResources.RemoveUnnecessaryImportsOrUsings), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static readonly DiagnosticDescriptor classificationIdDescriptor = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
-                                                                                            localizableMessageAndTitle,
-                                                                                            localizableMessageAndTitle,
+        private static readonly DiagnosticDescriptor s_classificationIdDescriptor = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
+                                                                                            s_localizableMessageAndTitle,
+                                                                                            s_localizableMessageAndTitle,
                                                                                             DiagnosticCategory.Style,
                                                                                             DiagnosticSeverity.Hidden,
                                                                                             isEnabledByDefault: true,
                                                                                             customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static readonly DiagnosticDescriptor fixableIdDescriptor = new TriggerDiagnosticDescriptor(DiagnosticFixableId);
+        private static readonly DiagnosticDescriptor s_fixableIdDescriptor = new TriggerDiagnosticDescriptor(DiagnosticFixableId);
 
-        private static readonly ImmutableArray<DiagnosticDescriptor> descriptors = ImmutableArray.Create(fixableIdDescriptor, classificationIdDescriptor);
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_descriptors = ImmutableArray.Create(s_fixableIdDescriptor, s_classificationIdDescriptor);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return descriptors;
+                return s_descriptors;
             }
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
                     continue;
                 }
 
-                yield return Diagnostic.Create(classificationIdDescriptor, tree.GetLocation(span));
+                yield return Diagnostic.Create(s_classificationIdDescriptor, tree.GetLocation(span));
             }
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
 
             foreach (var span in spans)
             {
-                yield return Diagnostic.Create(fixableIdDescriptor, tree.GetLocation(span));
+                yield return Diagnostic.Create(s_fixableIdDescriptor, tree.GetLocation(span));
             }
         }
     }

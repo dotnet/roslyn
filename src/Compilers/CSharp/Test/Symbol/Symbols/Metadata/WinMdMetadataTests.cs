@@ -21,7 +21,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-
     // Unit tests for programs that use the Windows.winmd file.
     // 
     // Checks to see that types are forwarded correctly, that 
@@ -202,7 +201,7 @@ public class C
         Console.WriteLine(result);
     }
 }";
-            var verifier = CompileAndVerifyOnWin8Only(source, 
+            var verifier = CompileAndVerifyOnWin8Only(source,
                 emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: WinRtRefs,
                 expectedOutput: "10\r\n0");

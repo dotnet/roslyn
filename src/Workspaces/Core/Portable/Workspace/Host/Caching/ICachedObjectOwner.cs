@@ -1,4 +1,5 @@
-﻿namespace Microsoft.CodeAnalysis.Host
+﻿
+namespace Microsoft.CodeAnalysis.Host
 {
     internal interface ICachedObjectOwner
     {

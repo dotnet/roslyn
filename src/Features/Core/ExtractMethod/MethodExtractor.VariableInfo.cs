@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,26 +12,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected class VariableInfo
         {
-            private readonly VariableSymbol variableSymbol;
-            private readonly VariableStyle variableStyle;
-            private readonly bool useAsReturnValue;
+            private readonly VariableSymbol _variableSymbol;
+            private readonly VariableStyle _variableStyle;
+            private readonly bool _useAsReturnValue;
 
             public VariableInfo(
                 VariableSymbol variableSymbol,
                 VariableStyle variableStyle,
                 bool useAsReturnValue = false)
             {
-                this.variableSymbol = variableSymbol;
-                this.variableStyle = variableStyle;
-                this.useAsReturnValue = useAsReturnValue;
+                _variableSymbol = variableSymbol;
+                _variableStyle = variableStyle;
+                _useAsReturnValue = useAsReturnValue;
             }
 
             public bool UseAsReturnValue
             {
                 get
                 {
-                    Contract.ThrowIfFalse(!this.useAsReturnValue || this.variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None);
-                    return this.useAsReturnValue;
+                    Contract.ThrowIfFalse(!_useAsReturnValue || _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None);
+                    return _useAsReturnValue;
                 }
             }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None;
+                    return _variableStyle.ReturnStyle.ReturnBehavior != ReturnBehavior.None;
                 }
             }
 
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return (!this.useAsReturnValue && this.variableStyle.ParameterStyle.ParameterBehavior != ParameterBehavior.None) ||
-                           (this.useAsReturnValue && this.variableStyle.ReturnStyle.ParameterBehavior != ParameterBehavior.None);
+                    return (!_useAsReturnValue && _variableStyle.ParameterStyle.ParameterBehavior != ParameterBehavior.None) ||
+                           (_useAsReturnValue && _variableStyle.ReturnStyle.ParameterBehavior != ParameterBehavior.None);
                 }
             }
 
@@ -56,32 +56,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.useAsReturnValue ? this.variableStyle.ReturnStyle.ParameterBehavior : this.variableStyle.ParameterStyle.ParameterBehavior;
+                    return _useAsReturnValue ? _variableStyle.ReturnStyle.ParameterBehavior : _variableStyle.ParameterStyle.ParameterBehavior;
                 }
             }
 
             public DeclarationBehavior GetDeclarationBehavior(CancellationToken cancellationToken)
             {
-                if (this.useAsReturnValue)
+                if (_useAsReturnValue)
                 {
-                    return this.variableStyle.ReturnStyle.DeclarationBehavior;
+                    return _variableStyle.ReturnStyle.DeclarationBehavior;
                 }
 
-                if (this.variableSymbol.GetUseSaferDeclarationBehavior(cancellationToken))
+                if (_variableSymbol.GetUseSaferDeclarationBehavior(cancellationToken))
                 {
-                    return this.variableStyle.ParameterStyle.SaferDeclarationBehavior;
+                    return _variableStyle.ParameterStyle.SaferDeclarationBehavior;
                 }
 
-                return this.variableStyle.ParameterStyle.DeclarationBehavior;
+                return _variableStyle.ParameterStyle.DeclarationBehavior;
             }
 
             public ReturnBehavior ReturnBehavior
             {
                 get
                 {
-                    if (this.useAsReturnValue)
+                    if (_useAsReturnValue)
                     {
-                        return this.variableStyle.ReturnStyle.ReturnBehavior;
+                        return _variableStyle.ReturnStyle.ReturnBehavior;
                     }
 
                     return ReturnBehavior.None;
@@ -94,43 +94,43 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
                 Contract.ThrowIfFalse(variable.ParameterModifier == ParameterBehavior.Out || variable.ParameterModifier == ParameterBehavior.Ref);
 
-                return new VariableInfo(variable.variableSymbol, variable.variableStyle, useAsReturnValue: true);
+                return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
             }
 
             public void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
             {
-                this.variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
+                _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }
 
             public string Name
             {
-                get { return this.variableSymbol.Name; }
+                get { return _variableSymbol.Name; }
             }
 
             public bool OriginalTypeHadAnonymousTypeOrDelegate
             {
-                get { return this.variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate; }
+                get { return _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate; }
             }
 
             public ITypeSymbol GetVariableType(SemanticDocument document)
             {
-                return document.SemanticModel.ResolveType(this.variableSymbol.OriginalType);
+                return document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
             }
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
             {
-                return document.GetTokenWithAnnotaton(this.variableSymbol.IdentifierTokenAnnotation);
+                return document.GetTokenWithAnnotaton(_variableSymbol.IdentifierTokenAnnotation);
             }
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
             {
-                return node.GetAnnotatedTokens(this.variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
+                return node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
             }
 
             public static int Compare(VariableInfo left, VariableInfo right)
             {
-                return VariableSymbol.Compare(left.variableSymbol, right.variableSymbol);
+                return VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
             }
         }
     }

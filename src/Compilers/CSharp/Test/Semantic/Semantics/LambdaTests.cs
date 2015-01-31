@@ -445,7 +445,7 @@ class Program
 }
 ";
             var metadataStream = new MemoryStream();
-            var emitResult = vbProject.Emit(metadataStream, options:new EmitOptions(metadataOnly:true));
+            var emitResult = vbProject.Emit(metadataStream, options: new EmitOptions(metadataOnly: true));
             Assert.True(emitResult.Success);
 
             var csProject = CreateCompilationWithMscorlib(
@@ -972,7 +972,7 @@ class TestDataPointBase
 
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var oReference =
@@ -982,7 +982,7 @@ class TestDataPointBase
                 .OfType<ExpressionSyntax>()
                 .OrderByDescending(s => s.SpanStart);
 
-            foreach(var name in oReference)
+            foreach (var name in oReference)
             {
                 CSharpExtensions.GetSymbolInfo(model, name);
             }

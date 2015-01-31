@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class ClassKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> ValidModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.NewKeyword,
                 SyntaxKind.PublicKeyword,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 context.IsTypeDeclarationContext(
-                    validModifiers: ValidModifiers,
+                    validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken) ||

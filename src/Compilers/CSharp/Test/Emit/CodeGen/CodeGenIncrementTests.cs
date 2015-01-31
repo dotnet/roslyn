@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         //{0} is a numeric type
         //{1} is some value
         //{2} is one greater than {1}
-        const string NUMERIC_INCREMENT_TEMPLATE = @"
+        private const string NUMERIC_INCREMENT_TEMPLATE = @"
 class C
 {{
     static void Main()
@@ -45,7 +45,7 @@ class C
 ";
 
         //{0} is some value, {1} is one greater
-        const string NUMERIC_OUTPUT_TEMPLATE = @"
+        private const string NUMERIC_OUTPUT_TEMPLATE = @"
 {1}
 {0}
 {1}
@@ -1030,7 +1030,7 @@ public class Test
     }
 }
 ";
-            base.CompileAndVerify(source, expectedOutput:"12").
+            base.CompileAndVerify(source, expectedOutput: "12").
                 VerifyIL("Test.Main",
 @"
 {

@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpCompilationFactoryService : ICompilationFactoryService
     {
-        private static readonly CSharpCompilationOptions defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
+        private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
 
         Compilation ICompilationFactoryService.CreateCompilation(string assemblyName, CompilationOptions options)
         {
             return CSharpCompilation.Create(
-                assemblyName, 
-                options: (CSharpCompilationOptions)options ?? defaultOptions);
+                assemblyName,
+                options: (CSharpCompilationOptions)options ?? s_defaultOptions);
         }
 
         Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
         {
-            return defaultOptions;
+            return s_defaultOptions;
         }
     }
 }

@@ -1392,13 +1392,13 @@ class Program
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.Captured));
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysis.UnsafeAddressTaken));
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.VariablesDeclared));
-            
+
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.DataFlowsIn));
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut));
-            
+
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.ReadInside));
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.ReadOutside));
-            
+
             Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysis.WrittenInside));
             Assert.Equal("px", GetSymbolNamesSortedAndJoined(analysis.WrittenOutside));
         }
@@ -4687,7 +4687,6 @@ class Program
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Empty(dataFlowAnalysisResults.WrittenInside);
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
-
         }
 
         [Fact]
@@ -4723,7 +4722,6 @@ class C
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Empty(dataFlowAnalysisResults.WrittenInside);
             Assert.Equal("p, this", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside));
-
         }
 
         #endregion

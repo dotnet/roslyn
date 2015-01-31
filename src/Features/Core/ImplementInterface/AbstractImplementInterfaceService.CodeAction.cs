@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             protected readonly Document Document;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
-            private readonly string equivalenceKey;
+            private readonly string _equivalenceKey;
 
             internal ImplementInterfaceCodeAction(
                 AbstractImplementInterfaceService service,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 this.Abstractly = abstractly;
                 this.Explicitly = explicitly;
                 this.ThroughMember = throughMember;
-                this.equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, this.GetType().FullName);
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, this.GetType().FullName);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 get
                 {
-                    return this.equivalenceKey;
+                    return _equivalenceKey;
                 }
             }
 

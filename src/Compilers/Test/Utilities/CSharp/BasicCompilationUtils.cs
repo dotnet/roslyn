@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references = new[] { TestBase.MscorlibRef };
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = Instance.CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, verify: verify);
+            var verifier = s_instance.CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }
 
-        private static BasicTestBase Instance = new BasicTestBase();
+        private static BasicTestBase s_instance = new BasicTestBase();
 
         private sealed class BasicTestBase : CommonTestBase
         {

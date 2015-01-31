@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class Symbol : Cci.IReference
+    internal partial class Symbol : Cci.IReference
     {
         /// <summary>
         /// Checks if this symbol is a definition and its containing module is a SourceModuleSymbol.

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SyntaxBinderTests : CompilingTestBase
     {
         #region "Source"
-        private string userDefinedConversionTestTemplate = @"
+        private string _userDefinedConversionTestTemplate = @"
 class C1 { }
 class C2 { }
 class D 
@@ -112,7 +112,7 @@ struct T
         [Fact]
         public void TestUserDefinedImplicitConversionOverloadResolution()
         {
-            string source1 = userDefinedConversionTestTemplate.Replace("XXX", "implicit");
+            string source1 = _userDefinedConversionTestTemplate.Replace("XXX", "implicit");
             string source2 = @"
 class Z
 {
@@ -252,32 +252,32 @@ class Z
 
             comp = CreateCompilationWithMscorlib(source1 + source3);
             comp.VerifyDiagnostics(
-                // (115,8): error CS1503: Argument 1: cannot convert from 'H?' to 'G'
-                //     MG(default(H?));
+// (115,8): error CS1503: Argument 1: cannot convert from 'H?' to 'G'
+//     MG(default(H?));
 Diagnostic(ErrorCode.ERR_BadArgType, "default(H?)").WithArguments("1", "H?", "G"),
 
 // (116,8): error CS1503: Argument 1: cannot convert from 'J' to 'G'
-                //     MG(default(J));
+//     MG(default(J));
 Diagnostic(ErrorCode.ERR_BadArgType, "default(J)").WithArguments("1", "J", "G"),
 
 // (117,8): error CS1503: Argument 1: cannot convert from 'J?' to 'G'
-                //     MG(default(J?));
+//     MG(default(J?));
 Diagnostic(ErrorCode.ERR_BadArgType, "default(J?)").WithArguments("1", "J?", "G"),
 
 // (119,8): error CS1503: Argument 1: cannot convert from 'K' to 'G'
-                //     MG(default(K));  
+//     MG(default(K));  
 Diagnostic(ErrorCode.ERR_BadArgType, "default(K)").WithArguments("1", "K", "G"),
 
 // (120,8): error CS1503: Argument 1: cannot convert from 'K?' to 'G'
-                //     MG(default(K?)); 
+//     MG(default(K?)); 
 Diagnostic(ErrorCode.ERR_BadArgType, "default(K?)").WithArguments("1", "K?", "G"),
 
 // (121,8): error CS1503: Argument 1: cannot convert from 'M?' to 'G'
-                //     MG(default(M?)); 
+//     MG(default(M?)); 
 Diagnostic(ErrorCode.ERR_BadArgType, "default(M?)").WithArguments("1", "M?", "G"),
 
 // (122,8): error CS1503: Argument 1: cannot convert from 'R?' to 'G'
-                //     MG(default(R?)); 
+//     MG(default(R?)); 
 Diagnostic(ErrorCode.ERR_BadArgType, "default(R?)").WithArguments("1", "R?", "G"));
         }
 
@@ -288,7 +288,7 @@ Diagnostic(ErrorCode.ERR_BadArgType, "default(R?)").WithArguments("1", "R?", "G"
             // or be ambiguous, but the native compiler allows the conversion. Roslyn emulates the
             // native compiler's behaviour to avoid the breaking change.
 
-            string implicitConversions = userDefinedConversionTestTemplate.Replace("XXX", "implicit");
+            string implicitConversions = _userDefinedConversionTestTemplate.Replace("XXX", "implicit");
             string implicitConversionBadSuccess = @"
 class Z
 {
@@ -316,7 +316,7 @@ class Z
             // More cases where the specification says that the conversion should be bad, but
             // the native compiler and Roslyn allow it.
 
-            string explicitConversions = userDefinedConversionTestTemplate.Replace("XXX", "explicit");
+            string explicitConversions = _userDefinedConversionTestTemplate.Replace("XXX", "explicit");
             string explicitConversionsBadSuccess = @"
 class Z
 {
@@ -382,7 +382,6 @@ Diagnostic(ErrorCode.ERR_AmbigUDConv, "(G?)default(N?)").WithArguments("N.explic
 //     MNG((G?)default(P?)); 
 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(G?)default(P?)").WithArguments("P.explicit operator G(P)", "P.explicit operator G(P?)", "P?", "G?")
                 );
-
         }
 
         [Fact]
@@ -536,14 +535,14 @@ public class B : A<dynamic>
             // TODO (tomat): This should report ERR_ConversionWithBase 
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
-        
+
         [Fact]
         public void TestUserDefinedExplicitConversionOverloadResolution()
         {
             // Explicit conversions should use implicit conversions.
-            string source1 = userDefinedConversionTestTemplate.Replace("XXX", "implicit");
+            string source1 = _userDefinedConversionTestTemplate.Replace("XXX", "implicit");
 
-            string source2 = userDefinedConversionTestTemplate.Replace("XXX", "explicit");
+            string source2 = _userDefinedConversionTestTemplate.Replace("XXX", "explicit");
 
             string source3 = @"
 class Z
@@ -694,8 +693,6 @@ class Z
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(G)default(N)").WithArguments("N.explicit operator G(N?)", "N.explicit operator G?(N)", "N", "G"),
                 // (106,9): error CS0457: Ambiguous user defined conversions 'N.explicit operator G(N?)' and 'N.explicit operator G?(N)' when converting from 'N?' to 'G?'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(G)default(S)").WithArguments("S.explicit operator G(S?)", "S.explicit operator G?(S)", "S", "G"));
-
-
         }
 
         [Fact]
@@ -782,7 +779,7 @@ class F : E
         {
             // IntPtr and UIntPtr violate the rules of user-defined conversions for 
             // backwards-compatibility reasons. All of these should compile without error.
-            
+
             string source1 = @"
 using System;
 unsafe class P
@@ -1154,13 +1151,11 @@ unsafe class P
             // the straightforward intptr/number conversions:
 
             var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
-
         }
 
         [Fact, WorkItem(543427, "DevDiv")]
         public void Bug11203()
         {
-
             string source = @"
 class Program
 {
@@ -1186,13 +1181,11 @@ class A
             comp.VerifyDiagnostics(
                 // (6,15): error CS0457: Ambiguous user defined conversions 'A.implicit operator A(ulong)' and 'A.implicit operator A(long)' when converting from 'int' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "1").WithArguments("A.implicit operator A(ulong)", "A.implicit operator A(long)", "int", "A"));
-
         }
 
         [Fact, WorkItem(543430, "DevDiv")]
         public void Bug11205()
         {
-
             string source1 = @"
 using System;
 class A
@@ -1326,7 +1319,7 @@ class C
             //
             // We should update the specification to say that the algorithm takes the 
             // expression being converted into account, not just its type.
-            
+
             string source = @"
 struct C
 {
@@ -1380,7 +1373,7 @@ class C
             // for the purposes of overload resolution; that is, this program should say that
             // Foo(B) and Foo(C) are both applicable candidates, and that neither is better,
             // even though the conversion from A to B is ambiguous.
-            
+
             string source = @"
         class Program
         {

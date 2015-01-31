@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal abstract class AbstractTriviaFormatter<TTrivia> where TTrivia : struct
     {
         #region Caches
-        private static readonly string[] SpaceCache;
+        private static readonly string[] s_spaceCache;
 
         /// <summary>
         /// set up space string caches
         /// </summary>
         static AbstractTriviaFormatter()
         {
-            SpaceCache = new string[20];
+            s_spaceCache = new string[20];
             for (int i = 0; i < 20; i++)
             {
-                SpaceCache[i] = new string(' ', i);
+                s_spaceCache[i] = new string(' ', i);
             }
         }
         #endregion
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly SyntaxToken Token1;
         protected readonly SyntaxToken Token2;
 
-        private readonly string language;
-        private readonly int indentation;
-        private readonly bool firstLineBlank;
+        private readonly string _language;
+        private readonly int _indentation;
+        private readonly bool _firstLineBlank;
 
         public AbstractTriviaFormatter(
             FormattingContext context,
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (token1 == default(SyntaxToken))
             {
-                this.language = token2.Language;
+                _language = token2.Language;
             }
             else
             {
-                this.language = token1.Language;
+                _language = token1.Language;
             }
 
             this.LineBreaks = lineBreaks;
@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             //
             // ex) [indentation]/** */ token2
             //     [spaces            ]
-            this.indentation = (this.LineBreaks > 0) ? GetIndentation() : -1;
+            _indentation = (this.LineBreaks > 0) ? GetIndentation() : -1;
 
             // check whether first line between two tokens contains only whitespace
             // depends on this we decide where to insert blank lines at the end
-            this.firstLineBlank = FirstLineBlank();
+            _firstLineBlank = FirstLineBlank();
         }
 
         /// <summary>
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected string Language
         {
-            get { return this.language; }
+            get { return _language; }
         }
 
         protected TokenStream TokenStream
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart);
 
                     case LineColumnRule.IndentationOperations.Given:
-                        return (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, this.indentation);
+                        return (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation);
 
                     case LineColumnRule.IndentationOperations.Follow:
                         return Math.Max(0, lineColumnBeforeTrivia1.Column);
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // first line is blank or there is no changes. 
             // just insert at the head
-            if (this.firstLineBlank ||
+            if (_firstLineBlank ||
                 changes.Count == 0)
             {
                 return 0;
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // first line is blank or there is no changes. 
             // just insert at the head
-            if (this.firstLineBlank ||
+            if (_firstLineBlank ||
                 changes.Count == 0)
             {
                 return new TextSpan(this.StartPosition, 0);
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // well, give up and insert at the top
-            return new TextSpan(this.firstLineBlank ? this.StartPosition : this.EndPosition, 0);
+            return new TextSpan(_firstLineBlank ? this.StartPosition : this.EndPosition, 0);
         }
 
         private void AddWhitespaceTrivia(
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (space >= 0 && space < 20)
             {
-                return SpaceCache[space];
+                return s_spaceCache[space];
             }
 
             return new string(' ', space);

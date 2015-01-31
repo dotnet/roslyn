@@ -837,11 +837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private struct AttributeExpressionVisitor
         {
-            private readonly Binder binder;
+            private readonly Binder _binder;
 
             public AttributeExpressionVisitor(Binder binder)
             {
-                this.binder = binder;
+                _binder = binder;
             }
 
             public ImmutableArray<TypedConstant> VisitArguments(ImmutableArray<BoundExpression> arguments, DiagnosticBag diagnostics, ref bool attrHasErrors, bool parentHasErrors = false)
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Validate Statement 1) of the spec comment above.
 
-                var typedConstantKind = node.Type.GetAttributeParameterTypedConstantKind(binder.Compilation);
+                var typedConstantKind = node.Type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
 
                 return VisitExpression(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors || typedConstantKind == TypedConstantKind.Error);
             }
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandType.IsArray() && type.IsArray() &&
                         ((ArrayTypeSymbol)type).ElementType.SpecialType == SpecialType.System_Object)
                     {
-                        var typedConstantKind = operandType.GetAttributeParameterTypedConstantKind(binder.Compilation);
+                        var typedConstantKind = operandType.GetAttributeParameterTypedConstantKind(_binder.Compilation);
                         return VisitExpression(operand, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                     }
                 }
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var type = (ArrayTypeSymbol)node.Type;
-                var typedConstantKind = type.GetAttributeParameterTypedConstantKind(binder.Compilation);
+                var typedConstantKind = type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
 
                 ImmutableArray<TypedConstant> initializer;
                 if (node.InitializerOpt == null)

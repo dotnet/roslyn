@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Editing
     /// </summary>
     public sealed class SymbolEditor
     {
-        private readonly Solution originalSolution;
-        private Solution currentSolution;
+        private readonly Solution _originalSolution;
+        private Solution _currentSolution;
 
         private SymbolEditor(Solution solution)
         {
-            this.originalSolution = solution;
-            this.currentSolution = solution;
+            _originalSolution = solution;
+            _currentSolution = solution;
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public Solution OriginalSolution
         {
-            get { return this.originalSolution; }
+            get { return _originalSolution; }
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public Solution ChangedSolution
         {
-            get { return this.currentSolution; }
+            get { return _currentSolution; }
         }
 
         /// <summary>
@@ -72,18 +72,18 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public IEnumerable<Document> GetChangedDocuments()
         {
-            var solutionChanges = this.currentSolution.GetChanges(this.originalSolution);
+            var solutionChanges = _currentSolution.GetChanges(_originalSolution);
 
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
                 foreach (var id in projectChanges.GetAddedDocuments())
                 {
-                    yield return this.currentSolution.GetDocument(id);
+                    yield return _currentSolution.GetDocument(id);
                 }
 
                 foreach (var id in projectChanges.GetChangedDocuments())
                 {
-                    yield return this.currentSolution.GetDocument(id);
+                    yield return _currentSolution.GetDocument(id);
                 }
             }
 
@@ -104,23 +104,23 @@ namespace Microsoft.CodeAnalysis.Editing
             var symbolId = DocumentationCommentId.CreateDeclarationId(symbol);
 
             // check to see if symbol is from current solution
-            var project = this.currentSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
+            var project = _currentSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null)
             {
-                return await GetSymbolAsync(this.currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
+                return await GetSymbolAsync(_currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
             }
 
             // check to see if it is from original solution
-            project = this.originalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
+            project = _originalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null)
             {
-                return await GetSymbolAsync(this.currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
+                return await GetSymbolAsync(_currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
             }
 
             // try to find symbol from any project (from current solution) with matching assembly name
             foreach (var projectId in this.GetProjectsForAssembly(symbol.ContainingAssembly))
             {
-                var currentSymbol = await GetSymbolAsync(this.currentSolution, projectId, symbolId, cancellationToken).ConfigureAwait(false);
+                var currentSymbol = await GetSymbolAsync(_currentSolution, projectId, symbolId, cancellationToken).ConfigureAwait(false);
                 if (currentSymbol != null)
                 {
                     return currentSymbol;
@@ -130,19 +130,19 @@ namespace Microsoft.CodeAnalysis.Editing
             return null;
         }
 
-        private ImmutableDictionary<string, ImmutableArray<ProjectId>> assemblyNameToProjectIdMap;
+        private ImmutableDictionary<string, ImmutableArray<ProjectId>> _assemblyNameToProjectIdMap;
 
         private ImmutableArray<ProjectId> GetProjectsForAssembly(IAssemblySymbol assembly)
         {
-            if (this.assemblyNameToProjectIdMap == null)
+            if (_assemblyNameToProjectIdMap == null)
             {
-                this.assemblyNameToProjectIdMap = this.originalSolution.Projects
+                _assemblyNameToProjectIdMap = _originalSolution.Projects
                     .ToLookup(p => p.AssemblyName, p => p.Id)
                     .ToImmutableDictionary(g => g.Key, g => ImmutableArray.CreateRange(g));
             }
 
             ImmutableArray<ProjectId> projectIds;
-            if (!this.assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out projectIds))
+            if (!_assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out projectIds))
             {
                 projectIds = ImmutableArray<ProjectId>.Empty;
             }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(sr => sr.GetSyntax())
-                         .Select(n => SyntaxGenerator.GetGenerator(this.originalSolution.Workspace, n.Language).GetDeclaration(n))
+                         .Select(n => SyntaxGenerator.GetGenerator(_originalSolution.Workspace, n.Language).GetDeclaration(n))
                          .Where(d => d != null);
         }
 
@@ -287,14 +287,14 @@ namespace Microsoft.CodeAnalysis.Editing
             AsyncDeclarationEditAction editAction,
             CancellationToken cancellationToken)
         {
-            var doc = this.currentSolution.GetDocument(declaration.SyntaxTree);
+            var doc = _currentSolution.GetDocument(declaration.SyntaxTree);
             var editor = await DocumentEditor.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
 
             editor.TrackNode(declaration);
             await editAction(editor, declaration, cancellationToken).ConfigureAwait(false);
 
             var newDoc = editor.GetChangedDocument();
-            this.currentSolution = newDoc.Project.Solution;
+            _currentSolution = newDoc.Project.Solution;
 
             // try to find new symbol by looking up via original declaration
             var model = await newDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -329,13 +329,13 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var sourceTree = location.SourceTree;
 
-            var doc = this.currentSolution.GetDocument(sourceTree);
+            var doc = _currentSolution.GetDocument(sourceTree);
             if (doc != null)
             {
                 return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
             }
 
-            doc = this.originalSolution.GetDocument(sourceTree);
+            doc = _originalSolution.GetDocument(sourceTree);
             if (doc != null)
             {
                 return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             var decl = this.GetDeclarations(currentSymbol).FirstOrDefault(d =>
             {
-                var doc = this.currentSolution.GetDocument(d.SyntaxTree);
+                var doc = _currentSolution.GetDocument(d.SyntaxTree);
                 return doc != null && doc.Id == documentId && d.FullSpan.IntersectsWith(position);
             });
 
@@ -469,9 +469,9 @@ namespace Microsoft.CodeAnalysis.Editing
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
             CheckSymbolArgument(currentSymbol, symbol);
 
-            var declsByDocId = this.GetDeclarations(currentSymbol).ToLookup(d => this.currentSolution.GetDocument(d.SyntaxTree).Id);
+            var declsByDocId = this.GetDeclarations(currentSymbol).ToLookup(d => _currentSolution.GetDocument(d.SyntaxTree).Id);
 
-            var solutionEditor = new SolutionEditor(this.currentSolution);
+            var solutionEditor = new SolutionEditor(_currentSolution);
 
             foreach (var declGroup in declsByDocId)
             {
@@ -485,12 +485,12 @@ namespace Microsoft.CodeAnalysis.Editing
                 }
             }
 
-            this.currentSolution = solutionEditor.GetChangedSolution();
+            _currentSolution = solutionEditor.GetChangedSolution();
 
             // try to find new symbol by looking up via original declarations
             foreach (var declGroup in declsByDocId)
             {
-                var doc = this.currentSolution.GetDocument(declGroup.Key);
+                var doc = _currentSolution.GetDocument(declGroup.Key);
                 var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var decl in declGroup)

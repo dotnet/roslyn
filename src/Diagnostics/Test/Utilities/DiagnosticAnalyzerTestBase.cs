@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public abstract class DiagnosticAnalyzerTestBase
     {
-        private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
-        private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromAssembly(typeof(Enumerable).Assembly);
-        private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromAssembly(typeof(CSharpCompilation).Assembly);
-        private static readonly MetadataReference VisualBasicSymbolsReference = MetadataReference.CreateFromAssembly(typeof(VisualBasicCompilation).Assembly);
-        private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromAssembly(typeof(Compilation).Assembly);
-        private static readonly MetadataReference ImmutableCollectionsReference = MetadataReference.CreateFromAssembly(typeof(ImmutableArray<int>).Assembly);
-        private static readonly CompilationOptions CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-        private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
+        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromAssembly(typeof(Enumerable).Assembly);
+        private static readonly MetadataReference s_CSharpSymbolsReference = MetadataReference.CreateFromAssembly(typeof(CSharpCompilation).Assembly);
+        private static readonly MetadataReference s_visualBasicSymbolsReference = MetadataReference.CreateFromAssembly(typeof(VisualBasicCompilation).Assembly);
+        private static readonly MetadataReference s_codeAnalysisReference = MetadataReference.CreateFromAssembly(typeof(Compilation).Assembly);
+        private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromAssembly(typeof(ImmutableArray<int>).Assembly);
+        private static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         internal static string DefaultFilePathPrefix = "Test";
         internal static string CSharpDefaultFileExt = "cs";
@@ -256,23 +256,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
-            var options = language == LanguageNames.CSharp ? CSharpDefaultOptions : VisualBasicDefaultOptions;
-            
+            var options = language == LanguageNames.CSharp ? s_CSharpDefaultOptions : s_visualBasicDefaultOptions;
+
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
             var solution = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
-                .AddMetadataReference(projectId, CorlibReference)
-                .AddMetadataReference(projectId, SystemCoreReference)
-                .AddMetadataReference(projectId, CodeAnalysisReference)
+                .AddMetadataReference(projectId, s_corlibReference)
+                .AddMetadataReference(projectId, s_systemCoreReference)
+                .AddMetadataReference(projectId, s_codeAnalysisReference)
                 .AddMetadataReference(projectId, TestBase.SystemRef)
                 .AddMetadataReference(projectId, TestBase.FacadeSystemRuntimeRef)
-                .AddMetadataReference(projectId, ImmutableCollectionsReference)
+                .AddMetadataReference(projectId, s_immutableCollectionsReference)
                 .WithProjectCompilationOptions(projectId, options);
 
             if (addLanguageSpecificCodeAnalysisReference)
             {
-                var symbolsReference = language == LanguageNames.CSharp ? CSharpSymbolsReference : VisualBasicSymbolsReference;
+                var symbolsReference = language == LanguageNames.CSharp ? s_CSharpSymbolsReference : s_visualBasicSymbolsReference;
                 var project = solution.GetProject(projectId);
                 project = project.AddMetadataReference(symbolsReference);
                 solution = project.Solution;

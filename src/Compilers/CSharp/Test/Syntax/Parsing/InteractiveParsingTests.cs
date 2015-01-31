@@ -1387,7 +1387,6 @@ delegate { }();
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         [Fact]
@@ -1430,7 +1429,6 @@ delegate(){ }();
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         [Fact]
@@ -1551,7 +1549,6 @@ public partial bool this[int index] {}
             var tree = UsingTree(@"
 new public bool this[int index] { get; }
 ");
-
         }
 
         [Fact]
@@ -1560,7 +1557,6 @@ new public bool this[int index] { get; }
             var tree = UsingTree(@"
 new public bool this[int index] { get; }
 ");
-
         }
 
         [Fact]
@@ -1654,7 +1650,6 @@ extern alias Foo<T> { get; }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         #endregion
@@ -1898,7 +1893,6 @@ partial partial<int> Foo() { }
                                 {
                                     N(SyntaxKind.IdentifierToken);
                                 }
-
                             }
                         }
                     }
@@ -2415,7 +2409,6 @@ fixed int x[10];
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         #endregion
@@ -5758,7 +5751,6 @@ fixed int x[10];
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         [Fact]
@@ -6807,7 +6799,6 @@ fixed int x[10];
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-
         }
 
         [Fact]

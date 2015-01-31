@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
-
         [Fact]
         public void TestMethodGroupConversionError()
         {
@@ -28,7 +27,7 @@ class C
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(source)
-                .VerifyDiagnostics(    
+                .VerifyDiagnostics(
 // (9,32): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.Linq.Expressions.Expression<System.Action>'. Did you intend to invoke the method?
 //         Expression<Action> e = Main;
 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Linq.Expressions.Expression<System.Action>")
@@ -105,7 +104,6 @@ class C
 ",
 "'N' error CS0118: 'N' is a namespace but is used like a variable",
 "'N.D' error CS0119: 'D' is a type, which is not valid in the given context");
-
         }
 
         [Fact]
@@ -125,7 +123,6 @@ class C
 ",
 "'10m % 0m' error CS0020: Division by constant zero",
 "'10 / 0' error CS0020: Division by constant zero");
-
         }
 
         [Fact]
@@ -173,7 +170,6 @@ static class D4 { }
 "'D3' error CS0718: 'D3': static types cannot be used as type arguments",
 "'D4' error CS0719: 'D4': array elements cannot be of static type"
 );
-
         }
 
         [Fact]
@@ -648,21 +644,21 @@ class C
             }
         }
         ",
-                // (Note that in these three cases overload resolution succeeds. See above.)
+        // (Note that in these three cases overload resolution succeeds. See above.)
         "'123' error CS1510: A ref or out argument must be an assignable variable",
         "'x' error CS1510: A ref or out argument must be an assignable variable",
         "'y + y' error CS1510: A ref or out argument must be an assignable variable",
 
         "'null' error CS1510: A ref or out argument must be an assignable variable",
-                //"'N3' error CS1502: The best overloaded method match for 'C.N3(ref int)' has some invalid arguments",
+        //"'N3' error CS1502: The best overloaded method match for 'C.N3(ref int)' has some invalid arguments",
 
         "'M' error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'",
-                //"'N4' error CS1502: The best overloaded method match for 'C.N4(ref int)' has some invalid arguments",
+        //"'N4' error CS1502: The best overloaded method match for 'C.N4(ref int)' has some invalid arguments",
 
         "'C' error CS0118: 'C' is a type but is used like a variable"
-                // UNDONE: Note that the native compiler gives a slightly different error message; it says
-                // UNDONE: cannot convert from 'ref C' to 'ref int'. Do we want to replicate that error message?
-                //"'N5' error CS1502: The best overloaded method match for 'C.N5(ref int)' has some invalid arguments",
+ // UNDONE: Note that the native compiler gives a slightly different error message; it says
+ // UNDONE: cannot convert from 'ref C' to 'ref int'. Do we want to replicate that error message?
+ //"'N5' error CS1502: The best overloaded method match for 'C.N5(ref int)' has some invalid arguments",
  );
         }
 
@@ -815,51 +811,51 @@ class C
     }
 }
 ",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'false' error CS1503: Argument 1: cannot convert from 'bool' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(char)(One - 1)' error CS1503: Argument 1: cannot convert from 'char' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(F)(One - 1)' error CS1503: Argument 1: cannot convert from 'F' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'Null' error CS1503: Argument 1: cannot convert from 'object' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'null' error CS1503: Argument 1: cannot convert from '<null>' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'F.Zero' error CS1503: Argument 1: cannot convert from 'F' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'true' error CS1503: Argument 1: cannot convert from 'bool' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(char)One' error CS1503: Argument 1: cannot convert from 'char' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(sbyte)One' error CS1503: Argument 1: cannot convert from 'sbyte' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(byte)One' error CS1503: Argument 1: cannot convert from 'byte' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(short)One' error CS1503: Argument 1: cannot convert from 'short' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(ushort)One' error CS1503: Argument 1: cannot convert from 'ushort' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(int)One' error CS1503: Argument 1: cannot convert from 'int' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(uint)One' error CS1503: Argument 1: cannot convert from 'uint' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(long)One' error CS1503: Argument 1: cannot convert from 'long' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(ulong)One' error CS1503: Argument 1: cannot convert from 'ulong' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(decimal)One' error CS1503: Argument 1: cannot convert from 'decimal' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(float)One' error CS1503: Argument 1: cannot convert from 'float' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(double)One' error CS1503: Argument 1: cannot convert from 'double' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'(F)One' error CS1503: Argument 1: cannot convert from 'F' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'new object()' error CS1503: Argument 1: cannot convert from 'object' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'1' error CS1503: Argument 1: cannot convert from 'int' to 'E'",
-                //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
+                 //"'M' error CS1502: The best overloaded method match for 'C.M(E)' has some invalid arguments",  //specifically omitted by roslyn
                  "'F.One' error CS1503: Argument 1: cannot convert from 'F' to 'E'");
         }
 

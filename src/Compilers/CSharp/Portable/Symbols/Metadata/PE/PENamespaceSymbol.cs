@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Maps type name (non-qualified) to the row id. Note, for VB we should use
         /// full name.
         /// </summary>
-        private Dictionary<string, TypeDefinitionHandle> lazyNoPiaLocalTypes;
+        private Dictionary<string, TypeDefinitionHandle> _lazyNoPiaLocalTypes;
 
         /// <summary>
         /// All type members in a flat array
         /// </summary>
-        private ImmutableArray<PENamedTypeSymbol> lazyFlattenedTypes;
+        private ImmutableArray<PENamedTypeSymbol> _lazyFlattenedTypes;
 
         internal sealed override NamespaceExtent Extent
         {
@@ -62,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
         {
             //assume that EnsureAllMembersLoaded() has initialize lazyTypes
-            if (this.lazyFlattenedTypes.IsDefault)
+            if (_lazyFlattenedTypes.IsDefault)
             {
                 var flattened = lazyTypes.Flatten();
-                ImmutableInterlocked.InterlockedExchange(ref this.lazyFlattenedTypes, flattened);
+                ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedTypes, flattened);
             }
 
-            return StaticCast<NamedTypeSymbol>.From(this.lazyFlattenedTypes);
+            return StaticCast<NamedTypeSymbol>.From(_lazyFlattenedTypes);
         }
 
         private IEnumerable<PENestedNamespaceSymbol> GetMemberNamespacesPrivate()
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (noPiaLocalTypes != null)
                 {
-                    Interlocked.CompareExchange(ref lazyNoPiaLocalTypes, noPiaLocalTypes, null);
+                    Interlocked.CompareExchange(ref _lazyNoPiaLocalTypes, noPiaLocalTypes, null);
                 }
 
                 var original = Interlocked.CompareExchange(ref this.lazyTypes, typesDict, null);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // See if this is a NoPia local type, which we should unify.
                 // Note, VB should use FullName.
-                if (lazyNoPiaLocalTypes != null && lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.TypeName, out typeDef))
+                if (_lazyNoPiaLocalTypes != null && _lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.TypeName, out typeDef))
                 {
                     result = (NamedTypeSymbol)new MetadataDecoder(ContainingPEModule).GetTypeOfToken(typeDef, out isNoPiaLocalType);
                     Debug.Assert(isNoPiaLocalType);

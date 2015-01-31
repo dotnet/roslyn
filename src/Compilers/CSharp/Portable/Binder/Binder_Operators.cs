@@ -255,7 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CONSIDER: better error code?  ERR_EventNeedsBothAccessors?
                     Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, node, delegateType, SourceEventSymbol.GetAccessorName(eventSymbol.Name, isAddition));
                 }
-
             }
             else if (eventSymbol.IsWindowsRuntimeEvent)
             {
@@ -2632,7 +2631,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ConstantValue GetIsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue)
         {
-
             Debug.Assert((object)targetType != null);
 
             // SPEC:    The result of the operation depends on D and T as follows:

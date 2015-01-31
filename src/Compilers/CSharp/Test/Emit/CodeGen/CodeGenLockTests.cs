@@ -1239,7 +1239,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL ("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2

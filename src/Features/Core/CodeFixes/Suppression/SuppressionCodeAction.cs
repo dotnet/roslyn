@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal sealed class SuppressionCodeAction : CodeAction
     {
-        private readonly string title;
+        private readonly string _title;
         public override string Title
         {
             get
             {
-                return title;
+                return _title;
             }
         }
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public SuppressionCodeAction(Diagnostic diagnostic, IEnumerable<CodeAction> nestedActions)
         {
-            this.title = string.Format(FeaturesResources.SuppressionCodeActionTitle, diagnostic.Id);
+            _title = string.Format(FeaturesResources.SuppressionCodeActionTitle, diagnostic.Id);
             this.NestedActions = nestedActions;
         }
     }

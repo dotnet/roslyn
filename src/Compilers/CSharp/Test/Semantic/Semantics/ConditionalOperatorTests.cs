@@ -681,7 +681,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput:"1");
+            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -965,7 +965,7 @@ class Program
         [WorkItem(545408, "DevDiv")]
         [Fact]
         public void TestVarianceConversions()
-        {          
+        {
             string source = @"
 using System;
 using System.Linq.Expressions;

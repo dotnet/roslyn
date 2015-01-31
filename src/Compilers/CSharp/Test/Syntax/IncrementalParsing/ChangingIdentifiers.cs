@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         {
             MakeIncrementalNameChange(NameTypes.SingleName, NameTypes.AliassedName, expressionValidator: nameTree =>
             {
-            NodeValidators.AliassedNameVerification(nameTree, "b", "d");
+                NodeValidators.AliassedNameVerification(nameTree, "b", "d");
             });
         }
 

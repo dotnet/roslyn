@@ -12,33 +12,33 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private const string IEquatableMetadataName = "System.IEquatable`1";
 
-        private static LocalizableString localizableTitleImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitleImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessageImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
-        private static readonly DiagnosticDescriptor ImplementIEquatableDescriptor = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_implementIEquatableDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.ImplementIEquatableRuleId,
-            localizableTitleImplementIEquatable,
-            localizableMessageImplementIEquatable,
+            s_localizableTitleImplementIEquatable,
+            s_localizableMessageImplementIEquatable,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        private static LocalizableString localizableTitleOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitleOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessageOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
-        private static readonly DiagnosticDescriptor OverridesObjectEqualsDescriptor = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_overridesObjectEqualsDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.OverrideObjectEqualsRuleId,
-            localizableTitleOverridesObjectEquals,
-            localizableMessageOverridesObjectEquals,
+            s_localizableTitleOverridesObjectEquals,
+            s_localizableMessageOverridesObjectEquals,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-       
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(ImplementIEquatableDescriptor, OverridesObjectEqualsDescriptor);
+                return ImmutableArray.Create(s_implementIEquatableDescriptor, s_overridesObjectEqualsDescriptor);
             }
         }
 
@@ -80,13 +80,13 @@ namespace Roslyn.Diagnostics.Analyzers
             var implementsEquatable = implementation != null;
 
             if (overridesObjectEquals && !implementsEquatable && namedType.TypeKind == TypeKind.Struct)
-            { 
-                context.ReportDiagnostic(Diagnostic.Create(ImplementIEquatableDescriptor, methodSymbol.Locations[0], namedType));
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_implementIEquatableDescriptor, methodSymbol.Locations[0], namedType));
             }
 
             if (!overridesObjectEquals && implementsEquatable)
             {
-                context.ReportDiagnostic(Diagnostic.Create(OverridesObjectEqualsDescriptor, namedType.Locations[0], namedType));
+                context.ReportDiagnostic(Diagnostic.Create(s_overridesObjectEqualsDescriptor, namedType.Locations[0], namedType));
             }
         }
 
@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return false;
             }
 
-            if (methodSymbol.Parameters.Length != 1 || 
+            if (methodSymbol.Parameters.Length != 1 ||
                 !methodSymbol.Parameters[0].Type.Equals(objectType))
             {
                 return false;
@@ -111,7 +111,7 @@ namespace Roslyn.Diagnostics.Analyzers
             do
             {
                 methodSymbol = methodSymbol.OverriddenMethod;
-            } 
+            }
             while (methodSymbol.IsOverride);
 
             return methodSymbol.ContainingType.Equals(objectType);

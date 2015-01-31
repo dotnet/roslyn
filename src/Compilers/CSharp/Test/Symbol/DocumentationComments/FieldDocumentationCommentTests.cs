@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FieldDocumentationCommentTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamespaceSymbol acmeNamespace;
-        private readonly NamedTypeSymbol widgetClass;
-        private readonly NamedTypeSymbol enumSymbol;
-        private readonly NamedTypeSymbol valueType;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
+        private readonly NamedTypeSymbol _enumSymbol;
+        private readonly NamedTypeSymbol _valueType;
 
         public FieldDocumentationCommentTests()
         {
-            compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
+            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"
 namespace Acme
 {
 	struct ValueType
@@ -51,17 +51,17 @@ namespace Acme
 }
 ");
 
-            acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
-            widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
-            enumSymbol = acmeNamespace.GetTypeMembers("E").Single();
-            valueType = acmeNamespace.GetTypeMembers("ValueType").Single();
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
+            _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
+            _enumSymbol = _acmeNamespace.GetTypeMembers("E").Single();
+            _valueType = _acmeNamespace.GetTypeMembers("ValueType").Single();
         }
 
         [Fact]
         public void TestFieldInStruct()
         {
-            var total1 = valueType.GetMembers("total1").Single();
-            var total2 = valueType.GetMembers("total2").Single();
+            var total1 = _valueType.GetMembers("total1").Single();
+            var total2 = _valueType.GetMembers("total2").Single();
             Assert.Equal("F:Acme.ValueType.total1", total1.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""F:Acme.ValueType.total1"">
@@ -79,62 +79,62 @@ namespace Acme
         [Fact]
         public void TestFieldInNestedClass()
         {
-            Assert.Equal("F:Acme.Widget.NestedClass.value", widgetClass.GetTypeMembers("NestedClass").Single()
+            Assert.Equal("F:Acme.Widget.NestedClass.value", _widgetClass.GetTypeMembers("NestedClass").Single()
                                                                        .GetMembers("value").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestSimpleField()
         {
-            Assert.Equal("F:Acme.Widget.message", widgetClass.GetMembers("message").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.message", _widgetClass.GetMembers("message").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestStatic()
         {
-            Assert.Equal("F:Acme.Widget.defaultColor", widgetClass.GetMembers("defaultColor").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.defaultColor", _widgetClass.GetMembers("defaultColor").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestConst()
         {
-            Assert.Equal("F:Acme.Widget.PI", widgetClass.GetMembers("PI").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.PI", _widgetClass.GetMembers("PI").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestReadOnly()
         {
-            Assert.Equal("F:Acme.Widget.monthlyAverage", widgetClass.GetMembers("monthlyAverage").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.monthlyAverage", _widgetClass.GetMembers("monthlyAverage").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestArray1()
         {
-            Assert.Equal("F:Acme.Widget.array1", widgetClass.GetMembers("array1").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.array1", _widgetClass.GetMembers("array1").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestArray2()
         {
-            Assert.Equal("F:Acme.Widget.array2", widgetClass.GetMembers("array2").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.array2", _widgetClass.GetMembers("array2").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestUnsafePointer()
         {
-            Assert.Equal("F:Acme.Widget.pCount", widgetClass.GetMembers("pCount").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.pCount", _widgetClass.GetMembers("pCount").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestUnsafePointerToPointer()
         {
-            Assert.Equal("F:Acme.Widget.ppValues", widgetClass.GetMembers("ppValues").Single().GetDocumentationCommentId());
+            Assert.Equal("F:Acme.Widget.ppValues", _widgetClass.GetMembers("ppValues").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestEnumField()
         {
-            var field = enumSymbol.GetMembers("A").Single();
+            var field = _enumSymbol.GetMembers("A").Single();
             Assert.Equal("F:Acme.E.A", field.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""F:Acme.E.A"">

@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static readonly SyntaxTrivia ElasticZeroSpace = Whitespace(string.Empty, elastic: true);
 
-        private static SyntaxToken xmlCarriageReturnLineFeed;
+        private static SyntaxToken s_xmlCarriageReturnLineFeed;
         private static SyntaxToken XmlCarriageReturnLineFeed
         {
             get
             {
-                return xmlCarriageReturnLineFeed ?? (xmlCarriageReturnLineFeed = XmlTextNewLine(CrLf));
+                return s_xmlCarriageReturnLineFeed ?? (s_xmlCarriageReturnLineFeed = XmlTextNewLine(CrLf));
             }
         }
 

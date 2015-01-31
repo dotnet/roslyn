@@ -18,20 +18,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class EmptyStructTypeCache
     {
-        private SmallDictionary<NamedTypeSymbol, bool> cache;
+        private SmallDictionary<NamedTypeSymbol, bool> _cache;
 
         /// <summary>
         /// When set, we ignore private reference fields of structs loaded from metadata.
         /// </summary>
-        private readonly bool dev12CompilerCompatibility;
+        private readonly bool _dev12CompilerCompatibility;
 
-        private readonly SourceAssemblySymbol sourceAssembly;
+        private readonly SourceAssemblySymbol _sourceAssembly;
 
         private SmallDictionary<NamedTypeSymbol, bool> Cache
         {
             get
             {
-                return this.cache ?? (this.cache = new SmallDictionary<NamedTypeSymbol, bool>());
+                return _cache ?? (_cache = new SmallDictionary<NamedTypeSymbol, bool>());
             }
         }
 
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="dev12CompilerCompatibility">Enable compatibility with the native compiler, which
         ///  ignores inaccessible fields of reference type for structs loaded from metadata.</param>
-        /// <param name="compilation">if <see cref="dev12CompilerCompatibility"/> is true, set to the compilation from
+        /// <param name="compilation">if <see cref="_dev12CompilerCompatibility"/> is true, set to the compilation from
         /// which to check accessibility.</param>
         internal EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
         {
             Debug.Assert(compilation != null || !dev12CompilerCompatibility);
-            this.dev12CompilerCompatibility = dev12CompilerCompatibility;
-            this.sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
+            _dev12CompilerCompatibility = dev12CompilerCompatibility;
+            _sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
         }
 
         /// <summary>
@@ -178,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ShouldIgnoreStructField(Symbol member, TypeSymbol memberType)
         {
-            return this.dev12CompilerCompatibility &&                             // when we're trying to be compatible with the native compiler, we ignore
-                   ((object)member.ContainingAssembly != this.sourceAssembly ||   // imported fields
+            return _dev12CompilerCompatibility &&                             // when we're trying to be compatible with the native compiler, we ignore
+                   ((object)member.ContainingAssembly != _sourceAssembly ||   // imported fields
                     member.ContainingModule.Ordinal != 0) &&                      //     (an added module is imported)
                    IsIgnorableType(memberType) &&                                 // of reference type (but not type parameters, looking through arrays)
-                   !IsAccessibleInAssembly(member, this.sourceAssembly);          // that are inaccessible to our assembly.
+                   !IsAccessibleInAssembly(member, _sourceAssembly);          // that are inaccessible to our assembly.
         }
 
         /// <summary>
@@ -231,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
-
     }
 
     /// <summary>

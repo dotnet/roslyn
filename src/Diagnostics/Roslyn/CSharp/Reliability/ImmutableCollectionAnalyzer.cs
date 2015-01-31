@@ -13,12 +13,12 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
     {
         private const string ImmutableArrayMetadataName = "System.Collections.Immutable.ImmutableArray`1";
 
-        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         public static readonly DiagnosticDescriptor DoNotCallToImmutableArrayDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotCallToImmutableArrayRuleId,
-            localizableMessageAndTitle,
-            localizableMessageAndTitle,
+            s_localizableMessageAndTitle,
+            s_localizableMessageAndTitle,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -54,7 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
             }
 
             var memberSyntax = invokeSyntax.Expression as MemberAccessExpressionSyntax;
-            if (memberSyntax == null || 
+            if (memberSyntax == null ||
                 memberSyntax.Name == null ||
                 memberSyntax.Name.Identifier.ValueText != "ToImmutableArray")
             {

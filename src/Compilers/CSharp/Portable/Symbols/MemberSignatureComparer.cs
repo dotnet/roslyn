@@ -246,25 +246,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCustomModifiers: true);
 
         // Compare the "unqualified" part of the member name (no explicit part)
-        private readonly bool considerName;
+        private readonly bool _considerName;
 
         // Compare the interfaces implemented (as symbols, to avoid ambiguous representations)
-        private readonly bool considerExplicitlyImplementedInterfaces;
+        private readonly bool _considerExplicitlyImplementedInterfaces;
 
         // Compare the type symbols of the return types
-        private readonly bool considerReturnType;
+        private readonly bool _considerReturnType;
 
         // Compare the type constraints
-        private readonly bool considerTypeConstraints;
+        private readonly bool _considerTypeConstraints;
 
         // Compare the full calling conventions.  Still compares varargs if false.
-        private readonly bool considerCallingConvention;
+        private readonly bool _considerCallingConvention;
 
         // True to consider RefKind.Ref and RefKind.Out different, false to consider them the same.
-        private readonly bool considerRefOutDifference;
+        private readonly bool _considerRefOutDifference;
 
         // Consider custom modifiers on/in parameters and return types (if return is considered).
-        private readonly bool considerCustomModifiers;
+        private readonly bool _considerCustomModifiers;
 
         private MemberSignatureComparer(
             bool considerName,
@@ -277,13 +277,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
 
-            this.considerName = considerName;
-            this.considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
-            this.considerReturnType = considerReturnType;
-            this.considerTypeConstraints = considerTypeConstraints;
-            this.considerCallingConvention = considerCallingConvention;
-            this.considerRefOutDifference = considerRefOutDifference;
-            this.considerCustomModifiers = considerCustomModifiers;
+            _considerName = considerName;
+            _considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
+            _considerReturnType = considerReturnType;
+            _considerTypeConstraints = considerTypeConstraints;
+            _considerCallingConvention = considerCallingConvention;
+            _considerRefOutDifference = considerRefOutDifference;
+            _considerCustomModifiers = considerCustomModifiers;
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool sawInterfaceInName1 = false;
             bool sawInterfaceInName2 = false;
 
-            if (considerName)
+            if (_considerName)
             {
                 string name1 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member1.Name);
                 string name2 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member2.Name);
@@ -328,17 +328,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap1 = GetTypeMap(member1);
             var typeMap2 = GetTypeMap(member2);
 
-            if (considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, considerCustomModifiers))
+            if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _considerCustomModifiers))
             {
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, this.considerRefOutDifference, this.considerCustomModifiers))
+            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, _considerRefOutDifference, _considerCustomModifiers))
             {
                 return false;
             }
 
-            if (considerCallingConvention)
+            if (_considerCallingConvention)
             {
                 if (GetCallingConvention(member1) != GetCallingConvention(member2))
                 {
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (considerExplicitlyImplementedInterfaces)
+            if (_considerExplicitlyImplementedInterfaces)
             {
                 if (sawInterfaceInName1 != sawInterfaceInName2)
                 {
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return !considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2);
+            return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2);
         }
 
         public int GetHashCode(Symbol member)
@@ -403,13 +403,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 hash = Hash.Combine(hash, (int)member.Kind);
 
-                if (considerName)
+                if (_considerName)
                 {
                     hash = Hash.Combine(ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name), hash);
                     // CONSIDER: could use interface type, but that might be quite expensive
                 }
 
-                if (considerReturnType && member.GetMemberArity() == 0 && !considerCustomModifiers) // If it is generic, then type argument might be in return type.
+                if (_considerReturnType && member.GetMemberArity() == 0 && !_considerCustomModifiers) // If it is generic, then type argument might be in return type.
                 {
                     hash = Hash.Combine(member.GetTypeOrReturnType(), hash);
                 }

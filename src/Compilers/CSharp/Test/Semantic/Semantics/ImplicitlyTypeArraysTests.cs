@@ -30,13 +30,13 @@ class C
 
             compilation.VerifyDiagnostics();
 
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("F").Single();    
+            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("F").Single();
             var diagnostics = new DiagnosticBag();
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
 
-            var locDecl =(BoundLocalDeclaration)block.Statements.Single();
+            var locDecl = (BoundLocalDeclaration)block.Statements.Single();
             var localA = (ArrayTypeSymbol)locDecl.DeclaredType.Display;
-    
+
             var typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
 
             Assert.Equal(typeM, localA.ElementType);

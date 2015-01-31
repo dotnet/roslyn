@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Host
     [Shared]
     internal class WorkspaceTaskSchedulerFactoryFactory : IWorkspaceServiceFactory
     {
-        private readonly WorkspaceTaskSchedulerFactory singleton = new WorkspaceTaskSchedulerFactory();
+        private readonly WorkspaceTaskSchedulerFactory _singleton = new WorkspaceTaskSchedulerFactory();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return singleton;
+            return _singleton;
         }
     }
 }

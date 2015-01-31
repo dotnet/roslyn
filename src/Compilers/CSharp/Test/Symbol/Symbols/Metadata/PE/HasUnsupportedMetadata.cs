@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //unsupported MD in the return type should propagate up to the method.
             var tok = typeX.GetMember("Token");
             Assert.True(tok.HasUnsupportedMetadata);
-
         }
     }
 }

@@ -296,7 +296,7 @@ class C : I, J, K
 
             method = c.GetMember<SourceMethodSymbol>("O");
             Assert.False(method.IsExplicitInterfaceImplementation);
-        } 
+        }
 
         [Fact]
         public void Emit01()

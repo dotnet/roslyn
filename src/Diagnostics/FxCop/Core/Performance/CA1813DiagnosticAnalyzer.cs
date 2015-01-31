@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
     public sealed class CA1813DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1813";
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.AvoidUnsealedAttributes), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.SealAttributeTypesForImprovedPerf), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.AvoidUnsealedAttributes), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.SealAttributeTypesForImprovedPerf), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         localizableTitle,
-                                                                         localizableMessage,
+                                                                         s_localizableTitle,
+                                                                         s_localizableMessage,
                                                                          FxCopDiagnosticCategory.Performance,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,

@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // NOTE: we are not interested in potential badness of Array.Length property.
                     // If it is bad reference compare will not succeed.
-                    if (ReferenceEquals(propertySymbol, compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)) ||
-                        !inExpressionLambda && ReferenceEquals(propertySymbol, compilation.GetSpecialTypeMember(SpecialMember.System_Array__LongLength)))
+                    if (ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)) ||
+                        !_inExpressionLambda && ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__LongLength)))
                     {
                         return new BoundArrayLength(syntax, rewrittenReceiverOpt, type);
                     }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getMethodOpt = null,
             BoundPropertyAccess oldNodeOpt = null)
         {
-            if (inExpressionLambda && rewrittenArguments.IsEmpty)
+            if (_inExpressionLambda && rewrittenArguments.IsEmpty)
             {
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.Type) :

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return SpecializedCollections.SingletonEnumerable(alias);
                 }
             }
-            
+
             return result;
         }
 

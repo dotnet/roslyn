@@ -3,11 +3,12 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal struct SyntaxListBuilder<TNode> where TNode : CSharpSyntaxNode
     {
-        private readonly SyntaxListBuilder builder;
+        private readonly SyntaxListBuilder _builder;
 
         public SyntaxListBuilder(int size)
             : this(new SyntaxListBuilder(size))
@@ -15,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
         internal SyntaxListBuilder(SyntaxListBuilder builder)
         {
-            this.builder = builder;
+            _builder = builder;
         }
 
         public bool IsNull
         {
             get
             {
-                return this.builder == null;
+                return _builder == null;
             }
         }
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.builder.Count;
+                return _builder.Count;
             }
         }
 
@@ -38,64 +39,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return (TNode)this.builder[index];
+                return (TNode)_builder[index];
             }
 
             set
             {
-                this.builder[index] = value;
+                _builder[index] = value;
             }
         }
 
         public void Clear()
         {
-            this.builder.Clear();
+            _builder.Clear();
         }
 
         public SyntaxListBuilder<TNode> Add(TNode node)
         {
-            this.builder.Add(node);
+            _builder.Add(node);
             return this;
         }
 
         public void AddRange(TNode[] items, int offset, int length)
         {
-            this.builder.AddRange(items, offset, length);
+            _builder.AddRange(items, offset, length);
         }
 
         public void AddRange(SyntaxList<TNode> nodes)
         {
-            this.builder.AddRange(nodes);
+            _builder.AddRange(nodes);
         }
 
         public void AddRange(SyntaxList<TNode> nodes, int offset, int length)
         {
-            this.builder.AddRange(nodes, offset, length);
+            _builder.AddRange(nodes, offset, length);
         }
 
         public bool Any(SyntaxKind kind)
         {
-            return this.builder.Any(kind);
+            return _builder.Any(kind);
         }
 
         public SyntaxList<TNode> ToList()
         {
-            return this.builder.ToList();
+            return _builder.ToList();
         }
 
         public CSharpSyntaxNode ToListNode()
         {
-            return this.builder.ToListNode();
+            return _builder.ToListNode();
         }
 
         public static implicit operator SyntaxListBuilder(SyntaxListBuilder<TNode> builder)
         {
-            return builder.builder;
+            return builder._builder;
         }
 
         public static implicit operator SyntaxList<TNode>(SyntaxListBuilder<TNode> builder)
         {
-            if (builder.builder != null)
+            if (builder._builder != null)
             {
                 return builder.ToList();
             }

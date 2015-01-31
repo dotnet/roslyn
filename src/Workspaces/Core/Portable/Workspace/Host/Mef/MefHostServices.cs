@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     public class MefHostServices : HostServices, IMefHostExportProvider
     {
-        private readonly CompositionContext compositionContext;
+        private readonly CompositionContext _compositionContext;
 
         public MefHostServices(CompositionContext compositionContext)
         {
-            this.compositionContext = compositionContext;
+            _compositionContext = compositionContext;
         }
 
         public static MefHostServices Create(CompositionContext compositionContext)
@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
         {
-            return compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
+            return _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
         }
 
         IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
         {
             var importer = new WithMetadataImporter<TExtension, TMetadata>();
-            compositionContext.SatisfyImports(importer);
+            _compositionContext.SatisfyImports(importer);
             return importer.Exports;
         }
 
@@ -68,32 +68,32 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         #region Defaults
 
-        private static MefHostServices defaultHost;
+        private static MefHostServices s_defaultHost;
         public static MefHostServices DefaultHost
         {
             get
             {
-                if (defaultHost == null)
+                if (s_defaultHost == null)
                 {
                     var host = MefHostServices.Create(MefHostServices.DefaultAssemblies);
-                    Interlocked.CompareExchange(ref defaultHost, host, null);
+                    Interlocked.CompareExchange(ref s_defaultHost, host, null);
                 }
 
-                return defaultHost;
+                return s_defaultHost;
             }
         }
 
-        private static ImmutableArray<Assembly> defaultAssemblies;
+        private static ImmutableArray<Assembly> s_defaultAssemblies;
         public static ImmutableArray<Assembly> DefaultAssemblies
         {
             get
             {
-                if (defaultAssemblies.IsDefault)
+                if (s_defaultAssemblies.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref defaultAssemblies, LoadDefaultAssemblies());
+                    ImmutableInterlocked.InterlockedInitialize(ref s_defaultAssemblies, LoadDefaultAssemblies());
                 }
 
-                return defaultAssemblies;
+                return s_defaultAssemblies;
             }
         }
 

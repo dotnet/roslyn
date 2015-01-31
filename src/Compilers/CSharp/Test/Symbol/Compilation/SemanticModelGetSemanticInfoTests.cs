@@ -7331,7 +7331,6 @@ class Program
         [Fact]
         public void ImplicitConversionElementsInArrayInit()
         {
-
             string sourceCode = @"
 class MyClass 
 {
@@ -7360,7 +7359,6 @@ class MyClass
         [Fact]
         public void ImplicitConversionArrayInitializer_01()
         {
-
             string sourceCode = @"
 class MyClass 
 {
@@ -7386,7 +7384,6 @@ class MyClass
         [Fact]
         public void ImplicitConversionArrayInitializer_02()
         {
-
             string sourceCode = @"
 class MyClass 
 {
@@ -14993,7 +14990,7 @@ public class C
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-        
+
         [Fact]
         public void ConditionalAccess003()
         {

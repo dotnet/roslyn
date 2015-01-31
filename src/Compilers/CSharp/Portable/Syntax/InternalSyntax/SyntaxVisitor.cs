@@ -88,5 +88,4 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
     }
-
 }

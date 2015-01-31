@@ -1,4 +1,5 @@
-﻿namespace Microsoft.CodeAnalysis.Analyzers
+﻿
+namespace Microsoft.CodeAnalysis.Analyzers
 {
     internal static class DiagnosticIds
     {

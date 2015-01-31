@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SingleNamespaceDeclaration : SingleNamespaceOrTypeDeclaration
     {
-        private readonly ImmutableArray<SingleNamespaceOrTypeDeclaration> children;
+        private readonly ImmutableArray<SingleNamespaceOrTypeDeclaration> _children;
 
         protected SingleNamespaceDeclaration(
             string name,
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
             : base(name, syntaxReference, nameLocation)
         {
-            this.children = children;
+            _children = children;
         }
 
         public override DeclarationKind Kind
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
-            return this.children;
+            return _children;
         }
 
         public virtual bool HasUsings

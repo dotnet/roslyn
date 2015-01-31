@@ -614,7 +614,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<T, TypeSymbol> extract,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-
             // SPEC: The most encompassed type is the one type in the set that 
             // SPEC: is encompassed by all the other types.
 
@@ -677,7 +676,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<T, TypeSymbol> extract,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-
             // See comments above.
             HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
             int? best = UniqueBestValidIndex(items, valid,

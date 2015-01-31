@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private partial class CompilationTracker
         {
-            private static readonly Func<ProjectState, string> logBuildCompilationAsync = LogBuildCompilationAsync;
+            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
 
             public ProjectState ProjectState { get; private set; }
 
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
             /// </summary>
-            private State stateDoNotAccessDirectly;
+            private State _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly AsyncSemaphore buildLock = new AsyncSemaphore(initialCount: 1);
+            private readonly AsyncSemaphore _buildLock = new AsyncSemaphore(initialCount: 1);
 
             private CompilationTracker(
                 ProjectState project,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
-                this.stateDoNotAccessDirectly = state;
+                _stateDoNotAccessDirectly = state;
             }
 
             /// <summary>
@@ -57,18 +57,18 @@ namespace Microsoft.CodeAnalysis
 
             private State ReadState()
             {
-                return Volatile.Read(ref this.stateDoNotAccessDirectly);
+                return Volatile.Read(ref _stateDoNotAccessDirectly);
             }
 
             private void WriteState(State state, Solution solution)
             {
-                if (solution.solutionServices.SupportsCachingRecoverableObjects)
+                if (solution._solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation
-                    solution.solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(this.ProjectState.Id, state, state.Compilation.GetValue());
+                    solution._solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(this.ProjectState.Id, state, state.Compilation.GetValue());
                 }
 
-                Volatile.Write(ref this.stateDoNotAccessDirectly, state);
+                Volatile.Write(ref _stateDoNotAccessDirectly, state);
             }
 
             /// <summary>
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                    using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                     {
                         var state = this.ReadState();
 
@@ -365,11 +365,11 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task<Compilation> GetOrBuildCompilationAsync(
                 Solution solution,
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     using (Logger.LogBlock(FunctionId.Workspace_Project_CompilationTracker_BuildCompilationAsync,
-                                           logBuildCompilationAsync, this.ProjectState, cancellationToken))
+                                           s_logBuildCompilationAsync, this.ProjectState, cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis
                         // build this compilation at a time.
                         if (lockGate)
                         {
-                            using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
                                 return await BuildCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
                             }
@@ -407,11 +407,11 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             /// <summary>
             /// Builds the compilation matching the project state. In the process of building, also
@@ -471,11 +471,11 @@ namespace Microsoft.CodeAnalysis
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
                 Solution solution, CancellationToken cancellationToken)
@@ -493,11 +493,11 @@ namespace Microsoft.CodeAnalysis
                     this.WriteState(new FullDeclarationState(compilation), solution);
                     return compilation;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private Compilation CreateEmptyCompilation()
             {
@@ -526,11 +526,11 @@ namespace Microsoft.CodeAnalysis
                     var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             private async Task<Compilation> BuildDeclarationCompilationFromInProgressAsync(
                 Solution solution, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
@@ -556,11 +556,11 @@ namespace Microsoft.CodeAnalysis
 
                     return inProgressCompilation;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             // Add all appropriate references to the compilation and set it as our final compilation
             // state.
@@ -618,11 +618,11 @@ namespace Microsoft.CodeAnalysis
 
                     return compilation;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             /// <summary>
             /// Get a metadata reference to this compilation info's compilation with respect to
@@ -660,11 +660,11 @@ namespace Microsoft.CodeAnalysis
                         return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             /// <summary>
             /// Attempts to get (without waiting) a metadata reference to a possibly in progress
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis
                         if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out reference))
                         {
                             // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
-                            using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
                                 // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
                                 var compilation = await this.GetOrBuildCompilationAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -719,11 +719,11 @@ namespace Microsoft.CodeAnalysis
                         return reference;
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
+                }
 
             /// <summary>
             /// check whether the compilation contains any declaration symbol from syntax trees with given name
@@ -762,18 +762,18 @@ namespace Microsoft.CodeAnalysis
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
-            private AsyncLazy<VersionStamp> lazyDependentVersion;
-            private AsyncLazy<VersionStamp> lazyDependentSemanticVersion;
+            private AsyncLazy<VersionStamp> _lazyDependentVersion;
+            private AsyncLazy<VersionStamp> _lazyDependentSemanticVersion;
 
             public async Task<VersionStamp> GetDependentVersionAsync(Solution solution, CancellationToken cancellationToken)
             {
-                if (this.lazyDependentVersion == null)
+                if (_lazyDependentVersion == null)
                 {
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref this.lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(solution, c), cacheResult: true), null);
                 }
 
-                return await this.lazyDependentVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return await _lazyDependentVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<VersionStamp> ComputeDependentVersionAsync(Solution solution, CancellationToken cancellationToken)
@@ -799,13 +799,13 @@ namespace Microsoft.CodeAnalysis
 
             public async Task<VersionStamp> GetDependentSemanticVersionAsync(Solution solution, CancellationToken cancellationToken)
             {
-                if (this.lazyDependentSemanticVersion == null)
+                if (_lazyDependentSemanticVersion == null)
                 {
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref this.lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(solution, c), cacheResult: true), null);
                 }
 
-                return await this.lazyDependentSemanticVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return await _lazyDependentSemanticVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<VersionStamp> ComputeDependentSemanticVersionAsync(Solution solution, CancellationToken cancellationToken)

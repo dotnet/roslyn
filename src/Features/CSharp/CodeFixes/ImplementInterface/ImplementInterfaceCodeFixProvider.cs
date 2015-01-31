@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementAbstractClass)]
     internal class ImplementInterfaceCodeFixProvider : CodeFixProvider
     {
-        private readonly Func<TypeSyntax, bool> interfaceName = n => n.Parent is BaseTypeSyntax && n.Parent.Parent is BaseListSyntax && ((BaseTypeSyntax)n.Parent).Type == n;
-        private readonly Func<IEnumerable<CodeAction>, bool> codeActionAvailable = actions => actions != null && actions.Any();
+        private readonly Func<TypeSyntax, bool> _interfaceName = n => n.Parent is BaseTypeSyntax && n.Parent.Parent is BaseListSyntax && ((BaseTypeSyntax)n.Parent).Type == n;
+        private readonly Func<IEnumerable<CodeAction>, bool> _codeActionAvailable = actions => actions != null && actions.Any();
 
         internal const string CS0535 = "CS0535"; // 'Program' does not implement interface member 'System.Collections.IEnumerable.GetEnumerator()'
         internal const string CS0737 = "CS0737"; // 'Class' does not implement interface member 'IInterface.M()'. 'Class.M()' cannot implement an interface member because it is not public.
@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
-                                      .Where(interfaceName)
+                                      .Where(_interfaceName)
                                       .Select(n => service.GetCodeActions(document, model, n, cancellationToken))
-                                      .FirstOrDefault(codeActionAvailable);
+                                      .FirstOrDefault(_codeActionAvailable);
 
-            if (codeActionAvailable(actions))
+            if (_codeActionAvailable(actions))
             {
                 context.RegisterFixes(actions, context.Diagnostics);
             }

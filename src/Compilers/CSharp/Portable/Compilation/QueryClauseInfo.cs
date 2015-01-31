@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public struct QueryClauseInfo : IEquatable<QueryClauseInfo>
     {
-        private readonly SymbolInfo castInfo;
-        private readonly SymbolInfo operationInfo;
+        private readonly SymbolInfo _castInfo;
+        private readonly SymbolInfo _operationInfo;
 
         internal QueryClauseInfo(SymbolInfo castInfo, SymbolInfo operationInfo)
         {
-            this.castInfo = castInfo;
-            this.operationInfo = operationInfo;
+            _castInfo = castInfo;
+            _operationInfo = operationInfo;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public SymbolInfo CastInfo
         {
-            get { return castInfo; }
+            get { return _castInfo; }
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public SymbolInfo OperationInfo
         {
-            get { return operationInfo; }
+            get { return _operationInfo; }
         }
 
         public override bool Equals(object obj)
@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(QueryClauseInfo other)
         {
-            return this.castInfo.Equals(other.castInfo)
-                && this.operationInfo.Equals(other.operationInfo);
+            return _castInfo.Equals(other._castInfo)
+                && _operationInfo.Equals(other._operationInfo);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.CastInfo.GetHashCode(), this.operationInfo.GetHashCode());
+            return Hash.Combine(this.CastInfo.GetHashCode(), _operationInfo.GetHashCode());
         }
     }
 }

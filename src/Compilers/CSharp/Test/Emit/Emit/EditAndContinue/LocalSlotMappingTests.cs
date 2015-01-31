@@ -2161,7 +2161,7 @@ class C
  -IL_0037:  ret       
 }", methodToken: diff1.UpdatedMethods.Single());
         }
-        
+
         [Fact]
         public void Switch_Integer()
         {
@@ -2766,7 +2766,6 @@ class C
   IL_0021:  br.s       IL_0023
   IL_0023:  ret
 }");
-
 
 #if TODO // identify the lambda in a semantic edit
             var methodData0 = v0.TestData.GetMethodData("C.<M>b__0");

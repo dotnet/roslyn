@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This isn't particularly elegant, but hopefully locking on null is
                 // not very common.
                 Debug.Assert(rewrittenArgument.ConstantValue == ConstantValue.Null);
-                argumentType = this.compilation.GetSpecialType(SpecialType.System_Object);
+                argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
                 rewrittenArgument = MakeLiteral(
                     rewrittenArgument.Syntax,
                     rewrittenArgument.ConstantValue,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the argument has a type parameter type, then we'll box it right away
                 // so that the same object is passed to both Monitor.Enter and Monitor.Exit.
-                argumentType = this.compilation.GetSpecialType(SpecialType.System_Object);
+                argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
 
                 rewrittenArgument = MakeConversion(
                     rewrittenArgument.Syntax,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundAssignmentOperator assignmentToLockTemp;
-            BoundLocal boundLockTemp = this.factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, syntaxOpt: lockSyntax, kind: SynthesizedLocalKind.Lock);
+            BoundLocal boundLockTemp = _factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, syntaxOpt: lockSyntax, kind: SynthesizedLocalKind.Lock);
 
             BoundStatement boundLockTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTemp);
             BoundExpression exitCallExpr;
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     if ($lockTaken) Monitor.Exit($lock);   
                 // }
 
-                TypeSymbol boolType = this.compilation.GetSpecialType(SpecialType.System_Boolean);
+                TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
                 BoundAssignmentOperator assignmentToLockTakenTemp;
 
-                BoundLocal boundLockTakenTemp = this.factory.StoreToTemp(
+                BoundLocal boundLockTakenTemp = _factory.StoreToTemp(
                     MakeLiteral(rewrittenArgument.Syntax, ConstantValue.False, boolType),
                     store: out assignmentToLockTakenTemp,
                     syntaxOpt: lockSyntax,
@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new BoundTryStatement(
                             lockSyntax,
                             BoundBlock.SynthesizedNoLocals(lockSyntax, ImmutableArray.Create(
-                                enterCall, 
+                                enterCall,
                                 rewrittenBody)),
                             ImmutableArray<BoundCatchBlock>.Empty,
-                            BoundBlock.SynthesizedNoLocals(lockSyntax, 
+                            BoundBlock.SynthesizedNoLocals(lockSyntax,
                                 exitCall))));
             }
             else
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement MakeInitialLockSequencePoint(BoundStatement statement, LockStatementSyntax lockSyntax)
         {
-            return this.GenerateDebugInfo ? 
+            return this.GenerateDebugInfo ?
                 new BoundSequencePointWithSpan(lockSyntax, statement, TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End)) :
                 statement;
         }

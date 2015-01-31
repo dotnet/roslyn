@@ -9,30 +9,30 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DocumentChangeAction : CodeAction
     {
-        private readonly string title;
-        private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
-        private readonly string equivalenceKey;
+        private readonly string _title;
+        private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
+        private readonly string _equivalenceKey;
 
         public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
         {
-            this.title = title;
-            this.createChangedDocument = createChangedDocument;
-            this.equivalenceKey = equivalenceKey;
+            _title = title;
+            _createChangedDocument = createChangedDocument;
+            _equivalenceKey = equivalenceKey;
         }
 
         public override string Title
         {
-            get { return this.title; }
+            get { return _title; }
         }
 
         public override string EquivalenceKey
         {
-            get { return this.equivalenceKey; }
+            get { return _equivalenceKey; }
         }
 
         protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-            return this.createChangedDocument(cancellationToken);
+            return _createChangedDocument(cancellationToken);
         }
     }
 }

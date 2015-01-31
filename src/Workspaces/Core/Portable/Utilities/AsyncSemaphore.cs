@@ -12,9 +12,9 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class AsyncSemaphore
     {
-        private SemaphoreSlim semaphoreDontAccessDirectly; // Initialized lazily. Access via the Semaphore property
-        private HeldSemaphore releaserDontAccessDirectly; // Initialized lazily. Access via the Releaser property
-        private Task<IDisposable> completedDontAccessDirectly; // Initialized lazily. Access via the Completed property
+        private SemaphoreSlim _semaphoreDontAccessDirectly; // Initialized lazily. Access via the Semaphore property
+        private HeldSemaphore _releaserDontAccessDirectly; // Initialized lazily. Access via the Releaser property
+        private Task<IDisposable> _completedDontAccessDirectly; // Initialized lazily. Access via the Completed property
 
         public AsyncSemaphore(int initialCount)
         {
@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
             // lazily. Otherwise, create it now.
             if (initialCount != 1)
             {
-                semaphoreDontAccessDirectly = new SemaphoreSlim(initialCount);
+                _semaphoreDontAccessDirectly = new SemaphoreSlim(initialCount);
             }
         }
 
@@ -39,33 +39,33 @@ namespace Roslyn.Utilities
             return DisposableWaitAsync(cancellationToken);
         }
 
-        private static readonly Func<SemaphoreSlim> semaphoreFactory = () => new SemaphoreSlim(initialCount: 1);
+        private static readonly Func<SemaphoreSlim> s_semaphoreFactory = () => new SemaphoreSlim(initialCount: 1);
 
         private SemaphoreSlim Semaphore
         {
             get
             {
-                return LazyInitialization.EnsureInitialized(ref semaphoreDontAccessDirectly, semaphoreFactory);
+                return LazyInitialization.EnsureInitialized(ref _semaphoreDontAccessDirectly, s_semaphoreFactory);
             }
         }
 
-        private static readonly Func<AsyncSemaphore, HeldSemaphore> releaserFactory = a => new HeldSemaphore(a);
+        private static readonly Func<AsyncSemaphore, HeldSemaphore> s_releaserFactory = a => new HeldSemaphore(a);
 
         private HeldSemaphore Releaser
         {
             get
             {
-                return LazyInitialization.EnsureInitialized(ref releaserDontAccessDirectly, releaserFactory, this);
+                return LazyInitialization.EnsureInitialized(ref _releaserDontAccessDirectly, s_releaserFactory, this);
             }
         }
 
-        private static readonly Func<AsyncSemaphore, Task<IDisposable>> completedFactory = a => Task.FromResult<IDisposable>(a.Releaser);
+        private static readonly Func<AsyncSemaphore, Task<IDisposable>> s_completedFactory = a => Task.FromResult<IDisposable>(a.Releaser);
 
         private Task<IDisposable> Completed
         {
             get
             {
-                return LazyInitialization.EnsureInitialized(ref completedDontAccessDirectly, completedFactory, this);
+                return LazyInitialization.EnsureInitialized(ref _completedDontAccessDirectly, s_completedFactory, this);
             }
         }
 
@@ -130,16 +130,16 @@ namespace Roslyn.Utilities
 
         private sealed class HeldSemaphore : IDisposable
         {
-            private readonly AsyncSemaphore asyncSemaphore;
+            private readonly AsyncSemaphore _asyncSemaphore;
 
             public HeldSemaphore(AsyncSemaphore asyncLock)
             {
-                this.asyncSemaphore = asyncLock;
+                _asyncSemaphore = asyncLock;
             }
 
             void IDisposable.Dispose()
             {
-                this.asyncSemaphore.Release();
+                _asyncSemaphore.Release();
             }
         }
     }

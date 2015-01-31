@@ -1527,7 +1527,7 @@ class Program
 }
 ";
             string expectedOutput = @"100";
-            CompileAndVerify(source, additionalRefs: new [] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1558,7 +1558,7 @@ public struct TestStruct
 }
 ";
             string expectedOutput = @"10";
-            CompileAndVerify(source, additionalRefs: new [] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2101,7 +2101,7 @@ class Class1
     }
 }
 ";
-   
+
             string expectedOutput = @"";
             string expectedIL = @"
 {
@@ -2167,7 +2167,7 @@ public class C : I
             var verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
-            verify.VerifyIL("C.Tester",@"
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       32 (0x20)
   .maxstack  2
@@ -2267,6 +2267,5 @@ class Class1
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
-
     }
 }

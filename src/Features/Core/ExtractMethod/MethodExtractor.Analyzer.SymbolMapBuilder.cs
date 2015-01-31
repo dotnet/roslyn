@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private class SymbolMapBuilder : SyntaxWalker
             {
-                private readonly SemanticModel semanticModel;
-                private readonly ISyntaxFactsService service;
-                private readonly TextSpan span;
-                private readonly Dictionary<ISymbol, List<SyntaxToken>> symbolMap;
-                private readonly CancellationToken cancellationToken;
+                private readonly SemanticModel _semanticModel;
+                private readonly ISyntaxFactsService _service;
+                private readonly TextSpan _span;
+                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap;
+                private readonly CancellationToken _cancellationToken;
 
                 public static Dictionary<ISymbol, List<SyntaxToken>> Build(
                     ISyntaxFactsService service,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var builder = new SymbolMapBuilder(service, semanticModel, span, cancellationToken);
                     builder.Visit(root);
 
-                    return builder.symbolMap;
+                    return builder._symbolMap;
                 }
 
                 private SymbolMapBuilder(
@@ -45,29 +45,29 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CancellationToken cancellationToken)
                     : base(SyntaxWalkerDepth.Token)
                 {
-                    this.semanticModel = semanticModel;
-                    this.service = service;
-                    this.span = span;
-                    this.symbolMap = new Dictionary<ISymbol, List<SyntaxToken>>();
-                    this.cancellationToken = cancellationToken;
+                    _semanticModel = semanticModel;
+                    _service = service;
+                    _span = span;
+                    _symbolMap = new Dictionary<ISymbol, List<SyntaxToken>>();
+                    _cancellationToken = cancellationToken;
                 }
 
                 protected override void VisitToken(SyntaxToken token)
                 {
                     if (token.IsMissing ||
                         token.Width() <= 0 ||
-                        !this.service.IsIdentifier(token) ||
-                        !this.span.Contains(token.Span) ||
-                        this.service.IsNamedParameter(token.Parent))
+                        !_service.IsIdentifier(token) ||
+                        !_span.Contains(token.Span) ||
+                        _service.IsNamedParameter(token.Parent))
                     {
                         return;
                     }
 
-                    var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
+                    var symbolInfo = _semanticModel.GetSymbolInfo(token, _cancellationToken);
                     foreach (var sym in symbolInfo.GetAllSymbols())
                     {
                         // add binding result to map
-                        var list = this.symbolMap.GetOrAdd(sym, _ => new List<SyntaxToken>());
+                        var list = _symbolMap.GetOrAdd(sym, _ => new List<SyntaxToken>());
                         list.Add(token);
                     }
                 }

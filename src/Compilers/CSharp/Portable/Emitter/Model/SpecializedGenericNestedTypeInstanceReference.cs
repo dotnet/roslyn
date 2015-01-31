@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return builder.ToImmutableAndFree();
-
         }
 
         Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GenericType

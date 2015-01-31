@@ -8,26 +8,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class ErrorTypeSymbol
+    internal partial class ErrorTypeSymbol
     {
         protected sealed class ErrorTypeParameterSymbol : TypeParameterSymbol
         {
-            private readonly ErrorTypeSymbol container;
-            private readonly string name;
-            private readonly int ordinal;
+            private readonly ErrorTypeSymbol _container;
+            private readonly string _name;
+            private readonly int _ordinal;
 
             public ErrorTypeParameterSymbol(ErrorTypeSymbol container, string name, int ordinal)
             {
-                this.container = container;
-                this.name = name;
-                this.ordinal = ordinal;
+                _container = container;
+                _name = name;
+                _ordinal = ordinal;
             }
 
             public override string Name
             {
                 get
                 {
-                    return this.name;
+                    return _name;
                 }
             }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return this.container;
+                    return _container;
                 }
             }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return this.ordinal;
+                    return _ordinal;
                 }
             }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode()
             {
-                return Hash.Combine(this.container.GetHashCode(), this.ordinal);
+                return Hash.Combine(_container.GetHashCode(), _ordinal);
             }
 
             internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var other = t2 as ErrorTypeParameterSymbol;
                 return (object)other != null &&
-                    other.ordinal == this.ordinal &&
+                    other._ordinal == _ordinal &&
                     other.ContainingType.Equals(this.ContainingType, ignoreCustomModifiers, ignoreDynamic);
             }
         }

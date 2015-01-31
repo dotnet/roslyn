@@ -108,11 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
-            return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity, 
-                                                              true, 
-                                                              diagnosticInfo.MessageIdentifier, 
-                                                              diagnosticInfo.WarningLevel, 
-                                                              Location.None, 
+            return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
+                                                              true,
+                                                              diagnosticInfo.MessageIdentifier,
+                                                              diagnosticInfo.WarningLevel,
+                                                              Location.None,
                                                               diagnosticInfo.Category,
                                                               options.WarningLevel,
                                                               options.GeneralDiagnosticOption,

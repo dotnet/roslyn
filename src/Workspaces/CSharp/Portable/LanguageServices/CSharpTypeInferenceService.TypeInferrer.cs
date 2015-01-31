@@ -16,24 +16,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class TypeInferrer
         {
-            private readonly SemanticModel semanticModel;
-            private readonly CancellationToken cancellationToken;
-            private readonly HashSet<ExpressionSyntax> seenExpressionInferType = new HashSet<ExpressionSyntax>();
-            private readonly HashSet<ExpressionSyntax> seenExpressionGetType = new HashSet<ExpressionSyntax>();
+            private readonly SemanticModel _semanticModel;
+            private readonly CancellationToken _cancellationToken;
+            private readonly HashSet<ExpressionSyntax> _seenExpressionInferType = new HashSet<ExpressionSyntax>();
+            private readonly HashSet<ExpressionSyntax> _seenExpressionGetType = new HashSet<ExpressionSyntax>();
 
             internal TypeInferrer(
                 SemanticModel semanticModel,
                 CancellationToken cancellationToken)
             {
-                this.semanticModel = semanticModel;
-                this.cancellationToken = cancellationToken;
+                _semanticModel = semanticModel;
+                _cancellationToken = cancellationToken;
             }
 
             private Compilation Compilation
             {
                 get
                 {
-                    return this.semanticModel.Compilation;
+                    return _semanticModel.Compilation;
                 }
             }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expression != null)
                 {
-                    if (seenExpressionInferType.Add(expression))
+                    if (_seenExpressionInferType.Add(expression))
                     {
                         var types = InferTypesWorker(expression);
                         if (types.Any())
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: Add support for Expression<T>
             private IEnumerable<ITypeSymbol> GetTypes(ExpressionSyntax expression)
             {
-                if (seenExpressionGetType.Add(expression))
+                if (_seenExpressionGetType.Add(expression))
                 {
                     IEnumerable<ITypeSymbol> types;
 
@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expression != null)
                 {
-                    var typeInfo = this.semanticModel.GetTypeInfo(expression, cancellationToken);
-                    var symbolInfo = this.semanticModel.GetSymbolInfo(expression, cancellationToken);
+                    var typeInfo = _semanticModel.GetTypeInfo(expression, _cancellationToken);
+                    var symbolInfo = _semanticModel.GetSymbolInfo(expression, _cancellationToken);
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypesWorker(int position)
             {
-                var syntaxTree = (SyntaxTree)this.semanticModel.SyntaxTree;
-                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var syntaxTree = (SyntaxTree)_semanticModel.SyntaxTree;
+                var token = syntaxTree.FindTokenOnLeftOfPosition(position, _cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
 
                 var parent = token.Parent;
@@ -399,14 +399,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInConstructorInitializer(ConstructorInitializerSyntax initializer, int index, ArgumentSyntax argument = null)
             {
-                var info = this.semanticModel.GetSymbolInfo(initializer, cancellationToken);
+                var info = _semanticModel.GetSymbolInfo(initializer, _cancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
                 return InferTypeInArgument(index, methods, argument);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInObjectCreationExpression(ObjectCreationExpressionSyntax creation, int index, ArgumentSyntax argumentOpt = null)
             {
-                var info = this.semanticModel.GetSymbolInfo(creation.Type, cancellationToken);
+                var info = _semanticModel.GetSymbolInfo(creation.Type, _cancellationToken);
                 var type = info.Symbol as INamedTypeSymbol;
 
                 if (type == null)
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // being called with argument at this position.  Note: if they're calling an
                 // extension method then it will need one more argument in order for us to
                 // call it.
-                var info = this.semanticModel.GetSymbolInfo(invocation, cancellationToken);
+                var info = _semanticModel.GetSymbolInfo(invocation, _cancellationToken);
                 IEnumerable<IMethodSymbol> methods = null;
 
                 // Overload resolution (see DevDiv 611477) in certain extension method cases
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // method group info, which is what signature help already does.
                 if (info.CandidateReason == CandidateReason.None)
                 {
-                    methods = ((SemanticModel)semanticModel).GetMemberGroup(invocation.Expression, cancellationToken)
+                    methods = ((SemanticModel)_semanticModel).GetMemberGroup(invocation.Expression, _cancellationToken)
                                                             .OfType<IMethodSymbol>();
                 }
                 else
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInAttribute(AttributeSyntax attribute, int index, AttributeArgumentSyntax argumentOpt = null)
             {
-                var info = this.semanticModel.GetSymbolInfo(attribute, cancellationToken);
+                var info = _semanticModel.GetSymbolInfo(attribute, _cancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
                 return InferTypeInAttributeArgument(index, methods, argumentOpt);
             }
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<ITypeSymbol> InferTypeInElementAccessExpression(
                 ElementAccessExpressionSyntax elementAccess, int index, ArgumentSyntax argumentOpt = null)
             {
-                var info = this.semanticModel.GetTypeInfo(elementAccess.Expression, cancellationToken);
+                var info = _semanticModel.GetTypeInfo(elementAccess.Expression, _cancellationToken);
                 var type = info.Type as INamedTypeSymbol;
                 if (type != null)
                 {
@@ -746,18 +746,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var onRightOfToken = right == expressionOpt || previousToken.HasValue;
                 switch (operatorToken.Kind())
                 {
-                case SyntaxKind.LessThanLessThanToken:
-                case SyntaxKind.GreaterThanGreaterThanToken:
-                case SyntaxKind.LessThanLessThanEqualsToken:
-                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.LessThanLessThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.LessThanLessThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanEqualsToken:
 
-                    if (onRightOfToken)
-                    {
-                        // x << Foo(), x >> Foo(), x <<= Foo(), x >>= Foo()
-                        return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
-                    }
+                        if (onRightOfToken)
+                        {
+                            // x << Foo(), x >> Foo(), x <<= Foo(), x >>= Foo()
+                            return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+                        }
 
-                    break;
+                        break;
                 }
 
                 // Infer operands of && and || as bool regardless of the other operand.
@@ -812,36 +812,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Otherwise pick some sane defaults for certain common cases.
                 switch (operatorToken.Kind())
                 {
-                case SyntaxKind.BarToken:
-                case SyntaxKind.CaretToken:
-                case SyntaxKind.AmpersandToken:
-                case SyntaxKind.LessThanToken:
-                case SyntaxKind.LessThanEqualsToken:
-                case SyntaxKind.GreaterThanToken:
-                case SyntaxKind.GreaterThanEqualsToken:
-                case SyntaxKind.PlusToken:
-                case SyntaxKind.MinusToken:
-                case SyntaxKind.AsteriskToken:
-                case SyntaxKind.SlashToken:
-                case SyntaxKind.PercentToken:
-                case SyntaxKind.CaretEqualsToken:
-                case SyntaxKind.PlusEqualsToken:
-                case SyntaxKind.MinusEqualsToken:
-                case SyntaxKind.AsteriskEqualsToken:
-                case SyntaxKind.SlashEqualsToken:
-                case SyntaxKind.PercentEqualsToken:
-                case SyntaxKind.LessThanLessThanToken:
-                case SyntaxKind.GreaterThanGreaterThanToken:
-                case SyntaxKind.LessThanLessThanEqualsToken:
-                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                    return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+                    case SyntaxKind.BarToken:
+                    case SyntaxKind.CaretToken:
+                    case SyntaxKind.AmpersandToken:
+                    case SyntaxKind.LessThanToken:
+                    case SyntaxKind.LessThanEqualsToken:
+                    case SyntaxKind.GreaterThanToken:
+                    case SyntaxKind.GreaterThanEqualsToken:
+                    case SyntaxKind.PlusToken:
+                    case SyntaxKind.MinusToken:
+                    case SyntaxKind.AsteriskToken:
+                    case SyntaxKind.SlashToken:
+                    case SyntaxKind.PercentToken:
+                    case SyntaxKind.CaretEqualsToken:
+                    case SyntaxKind.PlusEqualsToken:
+                    case SyntaxKind.MinusEqualsToken:
+                    case SyntaxKind.AsteriskEqualsToken:
+                    case SyntaxKind.SlashEqualsToken:
+                    case SyntaxKind.PercentEqualsToken:
+                    case SyntaxKind.LessThanLessThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.LessThanLessThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                        return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
-                case SyntaxKind.BarEqualsToken:
-                case SyntaxKind.AmpersandEqualsToken:
-                    // NOTE(cyrusn): |= and &= can be used for both ints and bools  However, in the
-                    // case where there isn't enough information to determine which the user wanted,
-                    // i'm just defaulting to bool based on personal preference.
-                    return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                    case SyntaxKind.BarEqualsToken:
+                    case SyntaxKind.AmpersandEqualsToken:
+                        // NOTE(cyrusn): |= and &= can be used for both ints and bools  However, in the
+                        // case where there isn't enough information to determine which the user wanted,
+                        // i'm just defaulting to bool based on personal preference.
+                        return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (equalsValue.IsParentKind(SyntaxKind.Parameter))
                 {
-                    var parameter = this.semanticModel.GetDeclaredSymbol(equalsValue.Parent, cancellationToken) as IParameterSymbol;
+                    var parameter = _semanticModel.GetDeclaredSymbol(equalsValue.Parent, _cancellationToken) as IParameterSymbol;
                     if (parameter != null)
                     {
                         return SpecializedCollections.SingletonEnumerable(parameter.Type);
@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Contract.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
-                var typeInfo = this.semanticModel.GetTypeInfo(propertyDeclaration.Type);
+                var typeInfo = _semanticModel.GetTypeInfo(propertyDeclaration.Type);
                 return typeInfo.Type != null
                     ? SpecializedCollections.SingletonEnumerable(typeInfo.Type)
                     : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1001,8 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInBaseMethodDeclaration(BaseMethodDeclarationSyntax declaration)
             {
-
-                var methodSymbol = this.semanticModel.GetDeclaredSymbol(declaration);
+                var methodSymbol = _semanticModel.GetDeclaredSymbol(declaration);
                 return methodSymbol?.ReturnType != null
                     ? SpecializedCollections.SingletonEnumerable(methodSymbol.ReturnType)
                     : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1132,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
                     // new int[] { Foo() } 
-                    var symbols = this.semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+                    var symbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
 
                     if (symbols.Any(t => t is INamedTypeSymbol))
                     {
@@ -1168,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // new Dictionary<K,V> { { Foo(), ... } }
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent.Parent;
-                    var symbols = this.semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+                    var symbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
 
                     if (symbols.Any(t => t is INamedTypeSymbol))
                     {
@@ -1191,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     // new Foo { a = { Foo() } }
-                    var symbols = this.semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+                    var symbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
 
                     if (symbols.Any(t => t is INamedTypeSymbol))
                     {
@@ -1334,9 +1333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (postfixUnaryExpressionSyntax.Kind())
                 {
-                case SyntaxKind.PostDecrementExpression:
-                case SyntaxKind.PostIncrementExpression:
-                    return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+                    case SyntaxKind.PostDecrementExpression:
+                    case SyntaxKind.PostIncrementExpression:
+                        return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1349,17 +1348,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (prefixUnaryExpression.Kind())
                 {
-                case SyntaxKind.PreDecrementExpression:
-                case SyntaxKind.PreIncrementExpression:
-                case SyntaxKind.UnaryPlusExpression:
-                case SyntaxKind.UnaryMinusExpression:
-                case SyntaxKind.BitwiseNotExpression:
-                    // ++, --, +Foo(), -Foo(), ~Foo();
-                    return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+                    case SyntaxKind.PreDecrementExpression:
+                    case SyntaxKind.PreIncrementExpression:
+                    case SyntaxKind.UnaryPlusExpression:
+                    case SyntaxKind.UnaryMinusExpression:
+                    case SyntaxKind.BitwiseNotExpression:
+                        // ++, --, +Foo(), -Foo(), ~Foo();
+                        return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
-                case SyntaxKind.LogicalNotExpression:
-                    // !Foo()
-                    return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                    case SyntaxKind.LogicalNotExpression:
+                        // !Foo()
+                        return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
@@ -1397,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(this.semanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
                 var memberType = memberSymbol.TypeSwitch(
                         (IMethodSymbol method) => method.ReturnType,
@@ -1448,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(this.semanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
                 if (memberSymbol.IsKind(SymbolKind.Method))
                 {
@@ -1486,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (currentSemanticModel.IsSpeculativeSemanticModel)
                 {
-                    var tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation);
+                    var tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(_cancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation);
                     declaration = tokenInOriginalTree.GetAncestor<MemberDeclarationSyntax>();
                 }
                 else
@@ -1494,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaration = declarationInCurrentTree;
                 }
 
-                return originalSemanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+                return originalSemanticModel.GetDeclaredSymbol(declaration, _cancellationToken);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInSwitchLabel(

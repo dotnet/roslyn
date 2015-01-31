@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
     internal static class RudeEditDiagnosticDescriptors
     {
-        private static readonly ImmutableDictionary<RudeEditKind, DiagnosticDescriptor> descriptors = new List<KeyValuePair<RudeEditKind, DiagnosticDescriptor>>
+        private static readonly ImmutableDictionary<RudeEditKind, DiagnosticDescriptor> s_descriptors = new List<KeyValuePair<RudeEditKind, DiagnosticDescriptor>>
         {
             { GetDescriptorPair(RudeEditKind.STMT_MID_DELETE,                           FeaturesResources.EditingOrDeletingBeingExecuted) },
             { GetDescriptorPair(RudeEditKind.STMT_NON_LEAF_DELETE,                      FeaturesResources.EditingOrDeletingNotAtTheTop) },
@@ -130,15 +130,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return descriptors.Values.ToImmutableArray();
+                return s_descriptors.Values.ToImmutableArray();
             }
         }
 
         internal static DiagnosticDescriptor GetDescriptor(RudeEditKind kind)
         {
-            Contract.Assert(descriptors.ContainsKey(kind));
+            Contract.Assert(s_descriptors.ContainsKey(kind));
 
-            return descriptors[kind];
+            return s_descriptors[kind];
         }
     }
 }

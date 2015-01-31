@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool badRegion = false;
                 walker.Analyze(ref badRegion);
-                return badRegion ? SpecializedCollections.EmptyEnumerable<Symbol>() : walker.variablesDeclared;
+                return badRegion ? SpecializedCollections.EmptyEnumerable<Symbol>() : walker._variablesDeclared;
             }
             finally
             {
@@ -30,16 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private HashSet<Symbol> variablesDeclared = new HashSet<Symbol>();
+        private HashSet<Symbol> _variablesDeclared = new HashSet<Symbol>();
 
-        void Analyze()
+        private void Analyze()
         {
             // only one pass needed.
             regionPlace = RegionPlace.Before;
             bool badRegion = false;
             SetState(ReachableState());
             Scan(ref badRegion);
-            if (badRegion) variablesDeclared.Clear();
+            if (badRegion) _variablesDeclared.Clear();
         }
 
         internal VariablesDeclaredWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             base.Free();
-            this.variablesDeclared = null;
+            _variablesDeclared = null;
         }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             if (IsInside)
             {
-                variablesDeclared.Add(node.LocalSymbol);
+                _variablesDeclared.Add(node.LocalSymbol);
             }
 
             return base.VisitLocalDeclaration(node);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in node.Symbol.Parameters)
                 {
-                    variablesDeclared.Add(parameter);
+                    _variablesDeclared.Add(parameter);
                 }
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                variablesDeclared.Add(node.IterationVariable);
+                _variablesDeclared.Add(node.IterationVariable);
             }
 
             return base.VisitForEachStatement(node);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)local != null)
                 {
                     Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CatchVariable);
-                    variablesDeclared.Add(local);
+                    _variablesDeclared.Add(local);
                 }
             }
 
@@ -109,12 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)node.DefinedSymbol != null)
                 {
-                    variablesDeclared.Add(node.DefinedSymbol);
+                    _variablesDeclared.Add(node.DefinedSymbol);
                 }
             }
 
             return base.VisitQueryClause(node);
         }
-
     }
 }

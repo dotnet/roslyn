@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationAttributeData : AttributeData
     {
-        private readonly INamedTypeSymbol attributeClass;
-        private readonly ImmutableArray<TypedConstant> constructorArguments;
-        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments;
+        private readonly INamedTypeSymbol _attributeClass;
+        private readonly ImmutableArray<TypedConstant> _constructorArguments;
+        private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
 
-        protected override INamedTypeSymbol CommonAttributeClass { get { return attributeClass; } }
+        protected override INamedTypeSymbol CommonAttributeClass { get { return _attributeClass; } }
         protected override IMethodSymbol CommonAttributeConstructor { get { return null; } }
-        protected override ImmutableArray<TypedConstant> CommonConstructorArguments { get { return constructorArguments; } }
-        protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments { get { return namedArguments; } }
+        protected override ImmutableArray<TypedConstant> CommonConstructorArguments { get { return _constructorArguments; } }
+        protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments { get { return _namedArguments; } }
         protected override SyntaxReference CommonApplicationSyntaxReference { get { return null; } }
 
         public CodeGenerationAttributeData(
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<TypedConstant> constructorArguments,
             ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments)
         {
-            this.attributeClass = attributeClass;
-            this.constructorArguments = constructorArguments.NullToEmpty();
-            this.namedArguments = namedArguments.NullToEmpty();
+            _attributeClass = attributeClass;
+            _constructorArguments = constructorArguments.NullToEmpty();
+            _namedArguments = namedArguments.NullToEmpty();
         }
     }
 }

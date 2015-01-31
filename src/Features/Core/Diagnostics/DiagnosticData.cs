@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int OriginalEndColumn;
 
         // text can be either given or calculated from original line/column
-        private readonly TextSpan? textSpan;
+        private readonly TextSpan? _textSpan;
 
         public DiagnosticData(
             string id,
@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.OriginalEndColumn = originalEndColumn;
             this.OriginalFilePath = originalFilePath;
 
-            this.textSpan = span;
+            _textSpan = span;
 
             this.Title = title;
             this.Description = description;
             this.HelpLink = helpLink;
         }
 
-        public bool HasTextSpan { get { return this.textSpan.HasValue; } }
+        public bool HasTextSpan { get { return _textSpan.HasValue; } }
 
         /// <summary>
         /// return TextSpan if it exists, otherwise it will throw
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// some diagnostic data such as created from build will have original line/column but not text span
         /// in those cases, use GetTextSpan method instead to calculate one from original line/column
         /// </summary>
-        public TextSpan TextSpan { get { return this.textSpan.Value; } }
+        public TextSpan TextSpan { get { return _textSpan.Value; } }
 
         public override bool Equals(object obj)
         {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var location = Location.None;
             if (tree != null)
             {
-                var span = this.textSpan.HasValue ? this.textSpan.Value : GetTextSpan(tree.GetText());
+                var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
                 location = tree.GetLocation(span);
             }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
         {
-            return this.textSpan.HasValue ? this.textSpan.Value : GetTextSpan(text);
+            return _textSpan.HasValue ? _textSpan.Value : GetTextSpan(text);
         }
 
         public TextSpan GetTextSpan(SourceText text)

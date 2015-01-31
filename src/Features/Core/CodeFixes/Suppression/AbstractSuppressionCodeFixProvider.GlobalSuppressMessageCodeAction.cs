@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -13,21 +13,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal sealed class GlobalSuppressMessageCodeAction : CodeAction
         {
-            private readonly AbstractSuppressionCodeFixProvider fixer;
-            private readonly string title;
-            private readonly ISymbol targetSymbol;
-            private readonly Document document;
-            private readonly Diagnostic diagnostic;
-            
+            private readonly AbstractSuppressionCodeFixProvider _fixer;
+            private readonly string _title;
+            private readonly ISymbol _targetSymbol;
+            private readonly Document _document;
+            private readonly Diagnostic _diagnostic;
+
             public GlobalSuppressMessageCodeAction(AbstractSuppressionCodeFixProvider fixer, ISymbol targetSymbol, Document document, Diagnostic diagnostic)
             {
-                this.fixer = fixer;
+                _fixer = fixer;
 
-                this.targetSymbol = targetSymbol;
-                this.document = document;
-                this.diagnostic = diagnostic;
+                _targetSymbol = targetSymbol;
+                _document = document;
+                _diagnostic = diagnostic;
 
-                this.title = FeaturesResources.SuppressWithGlobalSuppressMessage;
+                _title = FeaturesResources.SuppressWithGlobalSuppressMessage;
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
@@ -45,26 +45,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 get
                 {
-                    return this.title;
+                    return _title;
                 }
             }
 
             private async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
-                var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newSuppressionsRoot = fixer.AddGlobalSuppressMessageAttribute(suppressionsRoot, targetSymbol, diagnostic);
+                var newSuppressionsRoot = _fixer.AddGlobalSuppressMessageAttribute(suppressionsRoot, _targetSymbol, _diagnostic);
                 return suppressionsDoc.WithSyntaxRoot(newSuppressionsRoot);
             }
 
             private async Task<Document> GetOrCreateSuppressionsDocumentAsync(Document document, CancellationToken c)
             {
                 int index = 1;
-                var suppressionsFileName = globalSuppressionsFileName + this.fixer.DefaultFileExtension;
+                var suppressionsFileName = s_globalSuppressionsFileName + _fixer.DefaultFileExtension;
                 if (document.Name == suppressionsFileName)
                 {
                     index++;
-                    suppressionsFileName = globalSuppressionsFileName + index.ToString() + this.fixer.DefaultFileExtension;
+                    suppressionsFileName = s_globalSuppressionsFileName + index.ToString() + _fixer.DefaultFileExtension;
                 }
 
                 Document suppressionsDoc = null;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                             var t = await d.GetSyntaxTreeAsync(c).ConfigureAwait(false);
                             var r = await t.GetRootAsync(c).ConfigureAwait(false);
-                            if (r.ChildNodes().All(n => this.fixer.IsAttributeListWithAssemblyAttributes(n)))
+                            if (r.ChildNodes().All(n => _fixer.IsAttributeListWithAssemblyAttributes(n)))
                             {
                                 suppressionsDoc = d;
                                 break;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         if (hasDocWithSuppressionsName)
                         {
                             index++;
-                            suppressionsFileName = globalSuppressionsFileName + index.ToString() + this.fixer.DefaultFileExtension;
+                            suppressionsFileName = s_globalSuppressionsFileName + index.ToString() + _fixer.DefaultFileExtension;
                         }
                         else
                         {

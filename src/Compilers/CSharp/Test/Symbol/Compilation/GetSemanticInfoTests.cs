@@ -645,174 +645,174 @@ class C {
         }
 
         #region "Convertion helper"
-        void ValidateConversion(Conversion conv, ConversionKind kind)
+        private void ValidateConversion(Conversion conv, ConversionKind kind)
         {
             Assert.Equal(conv.Kind, kind);
 
             switch (kind)
             {
                 case ConversionKind.NoConversion:
-                Assert.False(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                break;
+                    Assert.False(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    break;
                 case ConversionKind.Identity:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsIdentity);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsIdentity);
+                    break;
                 case ConversionKind.ImplicitNumeric:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsNumeric);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsNumeric);
+                    break;
                 case ConversionKind.ImplicitEnumeration:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsEnumeration);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsEnumeration);
+                    break;
                 case ConversionKind.ImplicitNullable:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsNullable);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsNullable);
+                    break;
                 case ConversionKind.NullLiteral:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsNullLiteral);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsNullLiteral);
+                    break;
                 case ConversionKind.ImplicitReference:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsReference);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsReference);
+                    break;
                 case ConversionKind.Boxing:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsBoxing);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsBoxing);
+                    break;
                 case ConversionKind.ImplicitDynamic:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsDynamic);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsDynamic);
+                    break;
                 case ConversionKind.ExplicitDynamic:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsExplicit);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsDynamic);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsExplicit);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsDynamic);
+                    break;
                 case ConversionKind.ImplicitConstant:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsConstantExpression);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsConstantExpression);
+                    break;
                 case ConversionKind.ImplicitUserDefined:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsUserDefined);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsUserDefined);
+                    break;
                 case ConversionKind.AnonymousFunction:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsAnonymousFunction);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsAnonymousFunction);
+                    break;
                 case ConversionKind.MethodGroup:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.True(conv.IsMethodGroup);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.True(conv.IsMethodGroup);
+                    break;
                 case ConversionKind.ExplicitNumeric:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.True(conv.IsNumeric);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.True(conv.IsNumeric);
+                    break;
                 case ConversionKind.ExplicitEnumeration:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.True(conv.IsEnumeration);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.True(conv.IsEnumeration);
+                    break;
                 case ConversionKind.ExplicitNullable:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.True(conv.IsNullable);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.True(conv.IsNullable);
+                    break;
                 case ConversionKind.ExplicitReference:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.True(conv.IsReference);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.True(conv.IsReference);
+                    break;
                 case ConversionKind.Unboxing:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.True(conv.IsUnboxing);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.True(conv.IsUnboxing);
+                    break;
                 case ConversionKind.ExplicitUserDefined:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.True(conv.IsUserDefined);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.True(conv.IsUserDefined);
+                    break;
                 case ConversionKind.NullToPointer:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.False(conv.IsUserDefined);
-                Assert.True(conv.IsPointer);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.False(conv.IsUserDefined);
+                    Assert.True(conv.IsPointer);
+                    break;
                 case ConversionKind.PointerToVoid:
-                Assert.True(conv.Exists);
-                Assert.True(conv.IsImplicit);
-                Assert.False(conv.IsExplicit);
-                Assert.False(conv.IsUserDefined);
-                Assert.True(conv.IsPointer);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.True(conv.IsImplicit);
+                    Assert.False(conv.IsExplicit);
+                    Assert.False(conv.IsUserDefined);
+                    Assert.True(conv.IsPointer);
+                    break;
                 case ConversionKind.PointerToPointer:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.False(conv.IsUserDefined);
-                Assert.True(conv.IsPointer);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.False(conv.IsUserDefined);
+                    Assert.True(conv.IsPointer);
+                    break;
                 case ConversionKind.IntegerToPointer:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.False(conv.IsUserDefined);
-                Assert.True(conv.IsPointer);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.False(conv.IsUserDefined);
+                    Assert.True(conv.IsPointer);
+                    break;
                 case ConversionKind.PointerToInteger:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.False(conv.IsUserDefined);
-                Assert.True(conv.IsPointer);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.False(conv.IsUserDefined);
+                    Assert.True(conv.IsPointer);
+                    break;
                 case ConversionKind.IntPtr:
-                Assert.True(conv.Exists);
-                Assert.False(conv.IsImplicit);
-                Assert.True(conv.IsExplicit);
-                Assert.False(conv.IsUserDefined);
-                Assert.False(conv.IsPointer);
-                Assert.True(conv.IsIntPtr);
-                break;
+                    Assert.True(conv.Exists);
+                    Assert.False(conv.IsImplicit);
+                    Assert.True(conv.IsExplicit);
+                    Assert.False(conv.IsUserDefined);
+                    Assert.False(conv.IsPointer);
+                    Assert.True(conv.IsIntPtr);
+                    break;
             }
         }
 
@@ -823,7 +823,7 @@ class C {
         /// <param name="expr"></param>
         /// <param name="ept1">expr -> TypeInParent</param>
         /// <param name="ept2">Type(expr) -> TypeInParent</param>
-        void ConversionTestHelper(SemanticModel semanticModel, ExpressionSyntax expr, ConversionKind ept1, ConversionKind ept2)
+        private void ConversionTestHelper(SemanticModel semanticModel, ExpressionSyntax expr, ConversionKind ept1, ConversionKind ept2)
         {
             var info = semanticModel.GetTypeInfo(expr);
             Assert.NotNull(info);
@@ -849,7 +849,7 @@ class C {
             }
         }
 
-        void ConversionTestHelper(SemanticModel semanticModel, ExpressionSyntax expr, ITypeSymbol expsym, ConversionKind expkind)
+        private void ConversionTestHelper(SemanticModel semanticModel, ExpressionSyntax expr, ITypeSymbol expsym, ConversionKind expkind)
         {
             var info = semanticModel.GetTypeInfo(expr);
             Assert.NotNull(info);
@@ -2383,34 +2383,34 @@ class C
                 switch (i)
                 {
                     case 0:
-                    Assert.Equal("A", symbolInfo.Symbol.Name);
-                    Assert.NotNull(typeInfo.Type);
-                    Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                    Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
-                    break;
+                        Assert.Equal("A", symbolInfo.Symbol.Name);
+                        Assert.NotNull(typeInfo.Type);
+                        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+                        break;
                     case 1:
                     case 5:
-                    Assert.Equal("B", symbolInfo.Symbol.Name);
-                    Assert.Null(typeInfo.Type);
-                    break;
+                        Assert.Equal("B", symbolInfo.Symbol.Name);
+                        Assert.Null(typeInfo.Type);
+                        break;
                     case 2:
-                    Assert.Equal("D", symbolInfo.Symbol.Name);
-                    Assert.NotNull(typeInfo.Type);
-                    Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-                    Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
-                    break;
+                        Assert.Equal("D", symbolInfo.Symbol.Name);
+                        Assert.NotNull(typeInfo.Type);
+                        Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+                        break;
                     case 3:
-                    Assert.Equal("B", symbolInfo.Symbol.Name);
-                    Assert.NotNull(typeInfo.Type);
-                    Assert.Equal("System.Byte", typeInfo.Type.ToTestDisplayString());
-                    Assert.Equal("System.Byte", typeInfo.ConvertedType.ToTestDisplayString());
-                    break;
+                        Assert.Equal("B", symbolInfo.Symbol.Name);
+                        Assert.NotNull(typeInfo.Type);
+                        Assert.Equal("System.Byte", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("System.Byte", typeInfo.ConvertedType.ToTestDisplayString());
+                        break;
                     case 4:
-                    Assert.Equal("B", symbolInfo.Symbol.Name);
-                    Assert.NotNull(typeInfo.Type);
-                    Assert.Equal("System.Byte", typeInfo.Type.ToTestDisplayString());
-                    Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
-                    break;
+                        Assert.Equal("B", symbolInfo.Symbol.Name);
+                        Assert.NotNull(typeInfo.Type);
+                        Assert.Equal("System.Byte", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+                        break;
                 } // switch
             }
         }
@@ -4162,7 +4162,7 @@ class C
     //         var x = 0;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13)
     );
-       }
+        }
 
         [WorkItem(546263, "DevDiv")]
         [Fact]
@@ -4667,7 +4667,6 @@ class C : A
 
             Assert.Contains("Foo", model.LookupNames(position, paramType0));
             Assert.Contains("Foo", model.LookupNames(position, paramType1));
-
         }
 
         [Fact]

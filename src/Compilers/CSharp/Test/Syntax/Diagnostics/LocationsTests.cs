@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LocationsTests : TestBase
     {
-        private static readonly TestSourceResolver resolver = new TestSourceResolver();
+        private static readonly TestSourceResolver s_resolver = new TestSourceResolver();
 
         private class TestSourceResolver : SourceFileResolver
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var span = GetSpanIn(syntaxTree, sourceText);
             var mappedSpan = syntaxTree.GetMappedLineSpan(span);
-            var actualDisplayPath = syntaxTree.GetDisplayPath(span, resolver);
+            var actualDisplayPath = syntaxTree.GetDisplayPath(span, s_resolver);
 
             Assert.Equal(hasMappedPath, mappedSpan.HasMappedPath);
             Assert.Equal(expectedPath, mappedSpan.Path);
@@ -411,7 +411,7 @@ class MainClass
 ";
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram);
-            
+
             TextSpan span1 = new TextSpan(sampleProgram.IndexOf("i;"), 2);
             TextSpan span2 = new TextSpan(sampleProgram.IndexOf("c;"), 2);
             SourceLocation loc1 = new SourceLocation(syntaxTree, span1);
@@ -426,7 +426,7 @@ class MainClass
         [Fact]
         public void TestExternalLocationFormatting()
         {
-            Location location = Location.Create("test.txt",new TextSpan(), new LinePositionSpan(new LinePosition(2,1), new LinePosition(3,1)));
+            Location location = Location.Create("test.txt", new TextSpan(), new LinePositionSpan(new LinePosition(2, 1), new LinePosition(3, 1)));
             var diagnostic = Diagnostic.Create("CS0000", "", "msg", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1, location: location);
 
             Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic, EnsureEnglishUICulture.PreferredOrNull));

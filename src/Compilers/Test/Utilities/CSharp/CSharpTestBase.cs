@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string text,
             CSharpCompilationOptions options = null)
         {
-            var refs = new List<MetadataReference>() {MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef};
+            var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
 
             return CreateCompilation(new[] { Parse(text) }, refs, options);
         }
@@ -948,22 +948,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private sealed class Visualizer : ILVisualizer
         {
-            private readonly MetadataDecoder decoder;
+            private readonly MetadataDecoder _decoder;
 
             public Visualizer(MetadataDecoder decoder)
             {
-                this.decoder = decoder;
+                _decoder = decoder;
             }
 
             public override string VisualizeUserString(uint token)
             {
-                var reader = decoder.Module.GetMetadataReader();
+                var reader = _decoder.Module.GetMetadataReader();
                 return "\"" + reader.GetUserString((UserStringHandle)MetadataTokens.Handle((int)token)) + "\"";
             }
 
             public override string VisualizeSymbol(uint token)
             {
-                Cci.IReference reference = decoder.GetSymbolForILToken(MetadataTokens.Handle((int)token));
+                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.Handle((int)token));
                 ISymbol symbol = reference as ISymbol;
                 return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
             }
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 if (type is int)
                 {
-                    type = decoder.GetSymbolForILToken(MetadataTokens.Handle((int)type));
+                    type = _decoder.GetSymbolForILToken(MetadataTokens.Handle((int)type));
                 }
 
                 ISymbol symbol = type as ISymbol;

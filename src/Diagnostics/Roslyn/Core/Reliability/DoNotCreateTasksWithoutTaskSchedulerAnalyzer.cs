@@ -11,18 +11,18 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class DoNotCreateTasksWithoutTaskSchedulerAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCreateTasksWithoutTaskSchedulerMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCreateTasksWithoutTaskSchedulerTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCreateTasksWithoutTaskSchedulerDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCreateTasksWithoutTaskSchedulerMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCreateTasksWithoutTaskSchedulerTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCreateTasksWithoutTaskSchedulerDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor DoNotCreateTasksWithoutTaskSchedulerAnalyzerDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotCreateTasksWithoutTaskSchedulerRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

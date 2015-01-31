@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public sealed class ApplyChangesOperation : CodeActionOperation
     {
-        private readonly Solution changedSolution;
+        private readonly Solution _changedSolution;
 
         public ApplyChangesOperation(Solution changedSolution)
         {
@@ -19,17 +20,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException("changedSolution");
             }
 
-            this.changedSolution = changedSolution;
+            _changedSolution = changedSolution;
         }
 
         public Solution ChangedSolution
         {
-            get { return this.changedSolution; }
+            get { return _changedSolution; }
         }
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(this.changedSolution);
+            workspace.TryApplyChanges(_changedSolution);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ComputeDeclarations(model, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
             return builder.ToImmutable();
         }
-        
+
         private static bool InvalidLevel(int? level)
         {
             return level.HasValue && level.Value <= 0;

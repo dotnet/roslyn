@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
     {
         private class GenerateTypeCodeAction : CodeAction
         {
-            private readonly bool intoNamespace;
-            private readonly bool inNewFile;
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
-            private readonly string equivalenceKey;
+            private readonly bool _intoNamespace;
+            private readonly bool _inNewFile;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
+            private readonly string _equivalenceKey;
 
             public GenerateTypeCodeAction(
                 TService service,
@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 bool intoNamespace,
                 bool inNewFile)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
-                this.intoNamespace = intoNamespace;
-                this.inNewFile = inNewFile;
-                this.equivalenceKey = Title;
+                _service = service;
+                _document = document;
+                _state = state;
+                _intoNamespace = intoNamespace;
+                _inNewFile = inNewFile;
+                _equivalenceKey = Title;
             }
 
             private static string FormatDisplayText(
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
-                var editor = new Editor(this.service, semanticDocument, state, intoNamespace, inNewFile, cancellationToken: cancellationToken);
+                var editor = new Editor(_service, semanticDocument, _state, _intoNamespace, _inNewFile, cancellationToken: cancellationToken);
 
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 get
                 {
-                    if (intoNamespace)
+                    if (_intoNamespace)
                     {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(state.NamespaceToGenerateInOpt) ? FeaturesResources.GlobalNamespace : state.NamespaceToGenerateInOpt;
-                        return FormatDisplayText(state, inNewFile, namespaceToGenerateIn);
+                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.GlobalNamespace : _state.NamespaceToGenerateInOpt;
+                        return FormatDisplayText(_state, _inNewFile, namespaceToGenerateIn);
                     }
                     else
                     {
-                        return FormatDisplayText(state, inNewFile: false, destination: state.TypeToGenerateInOpt.Name);
+                        return FormatDisplayText(_state, inNewFile: false, destination: _state.TypeToGenerateInOpt.Name);
                     }
                 }
             }
@@ -87,22 +87,22 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 get
                 {
-                    return equivalenceKey;
+                    return _equivalenceKey;
                 }
             }
         }
 
         private class GenerateTypeCodeActionWithOption : CodeActionWithOptions
         {
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
 
             internal GenerateTypeCodeActionWithOption(TService service, Document document, State state)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
+                _service = service;
+                _document = document;
+                _state = state;
             }
 
             public override string Title
@@ -117,22 +117,22 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 get
                 {
-                    return state.Name;
+                    return _state.Name;
                 }
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = document.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
-                var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                var projectManagementService = document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var typeKindValue = GetTypeKindOption(state);
-                var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(state, document.Project);
+                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
+                var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
+                var syntaxFactsService = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var typeKindValue = GetTypeKindOption(_state);
+                var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);
                 return generateTypeOptionsService.GetGenerateTypeOptions(
-                    state.Name,
-                    new GenerateTypeDialogOptions(isPublicOnlyAccessibility, typeKindValue, state.IsAttribute),
-                    document,
+                    _state.Name,
+                    new GenerateTypeDialogOptions(isPublicOnlyAccessibility, typeKindValue, _state.IsAttribute),
+                    _document,
                     notificationService,
                     projectManagementService,
                     syntaxFactsService);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private bool IsPublicOnlyAccessibility(State state, Project project)
             {
-                return service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || service.IsPublicOnlyAccessibility(state.SimpleName, project);
+                return _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
             }
 
             private TypeKindOptions GetTypeKindOption(State state)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 TypeKindOptions typeKindValue = TypeKindOptions.None;
-                if (service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || service.TryGetBaseList(state.SimpleName, out typeKindValue))
+                if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || _service.TryGetBaseList(state.SimpleName, out typeKindValue))
                 {
                     typeKindValueFinal = typeKindValue;
                     return true;
@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var generateTypeOptions = options as GenerateTypeOptionsResult;
                 if (generateTypeOptions != null && !generateTypeOptions.IsCancelled)
                 {
-                    var semanticDocument = SemanticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                    var editor = new Editor(this.service, semanticDocument, state, true, generateTypeOptions, cancellationToken);
+                    var semanticDocument = SemanticDocument.CreateAsync(_document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);
                     operations = await editor.GetOperationsAsync().ConfigureAwait(false);
                 }
 

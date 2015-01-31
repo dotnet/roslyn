@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
     {
-        private readonly NamedTypeSymbol containingType;
+        private readonly NamedTypeSymbol _containingType;
 
         internal SynthesizedInstanceConstructor(NamedTypeSymbol containingType)
         {
             Debug.Assert((object)containingType != null);
-            this.containingType = containingType;
+            _containingType = containingType;
         }
 
         //
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override Symbol ContainingSymbol
         {
-            get { return this.containingType; }
+            get { return _containingType; }
         }
 
         public sealed override NamedTypeSymbol ContainingType
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -73,13 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (containingType.IsComImport)
+                if (_containingType.IsComImport)
                 {
-                    Debug.Assert(containingType.TypeKind == TypeKind.Class);
+                    Debug.Assert(_containingType.TypeKind == TypeKind.Class);
                     return System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall;
                 }
 
-                if (containingType.TypeKind == TypeKind.Delegate)
+                if (_containingType.TypeKind == TypeKind.Delegate)
                 {
                     return System.Reflection.MethodImplAttributes.Runtime;
                 }

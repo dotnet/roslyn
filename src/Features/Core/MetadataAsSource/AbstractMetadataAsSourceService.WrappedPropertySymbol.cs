@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedPropertySymbol : AbstractWrappedSymbol, IPropertySymbol
         {
-            private IPropertySymbol symbol;
+            private IPropertySymbol _symbol;
 
             public WrappedPropertySymbol(IPropertySymbol propertySymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(propertySymbol, canImplementImplicitly, docCommentFormattingService)
             {
-                this.symbol = propertySymbol;
+                _symbol = propertySymbol;
             }
 
             public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     return this.CanImplementImplicitly
                         ? ImmutableArray.Create<IPropertySymbol>()
-                        : this.symbol.ExplicitInterfaceImplementations;
+                        : _symbol.ExplicitInterfaceImplementations;
                 }
             }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.GetMethod;
+                    return _symbol.GetMethod;
                 }
             }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsIndexer;
+                    return _symbol.IsIndexer;
                 }
             }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsReadOnly;
+                    return _symbol.IsReadOnly;
                 }
             }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsWithEvents;
+                    return _symbol.IsWithEvents;
                 }
             }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.IsWriteOnly;
+                    return _symbol.IsWriteOnly;
                 }
             }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.OverriddenProperty;
+                    return _symbol.OverriddenProperty;
                 }
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Parameters;
+                    return _symbol.Parameters;
                 }
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.SetMethod;
+                    return _symbol.SetMethod;
                 }
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.Type;
+                    return _symbol.Type;
                 }
             }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.TypeCustomModifiers;
+                    return _symbol.TypeCustomModifiers;
                 }
             }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.symbol.OriginalDefinition;
+                    return _symbol.OriginalDefinition;
                 }
             }
 

@@ -116,11 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     // This struct makes an IFormattable wrapper around a MessageID
     internal struct LocalizableErrorArgument : IFormattable, IMessageSerializable
     {
-        private readonly MessageID id;
+        private readonly MessageID _id;
 
         internal LocalizableErrorArgument(MessageID id)
         {
-            this.id = id;
+            _id = id;
         }
 
         public override string ToString()
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            return ErrorFacts.GetMessage(id, formatProvider as System.Globalization.CultureInfo);
+            return ErrorFacts.GetMessage(_id, formatProvider as System.Globalization.CultureInfo);
         }
     }
 

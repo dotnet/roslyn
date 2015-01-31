@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(highPriorityForActiveFile: true, workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> map;
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback createIncrementalAnalyzer;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
 
         private DiagnosticAnalyzerService()
         {
-            this.map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
-            this.createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
+            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
+            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzerCore(Workspace workspace)
         {
-            return this.map.GetValue(workspace, this.createIncrementalAnalyzer);
+            return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
 
         private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
         {
-            Contract.ThrowIfTrue(this.workspaceAnalyzers.IsDefault);
+            Contract.ThrowIfTrue(_workspaceAnalyzers.IsDefault);
 
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
             var correlationId = LogAggregator.GetNextId();
-            return new DiagnosticIncrementalAnalyzer(this, correlationId, workspace, this.workspaceAnalyzers);
+            return new DiagnosticIncrementalAnalyzer(this, correlationId, workspace, _workspaceAnalyzers);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)

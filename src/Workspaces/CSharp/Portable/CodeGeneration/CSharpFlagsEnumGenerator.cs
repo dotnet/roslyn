@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
     {
         internal static readonly CSharpFlagsEnumGenerator Instance = new CSharpFlagsEnumGenerator();
-        private static readonly SyntaxGenerator GeneratorInstance = new CSharpSyntaxGenerator();
+        private static readonly SyntaxGenerator s_generatorInstance = new CSharpSyntaxGenerator();
 
         private CSharpFlagsEnumGenerator()
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override SyntaxGenerator GetSyntaxGenerator()
         {
-            return GeneratorInstance;
+            return s_generatorInstance;
         }
 
         protected override bool IsValidName(INamedTypeSymbol enumType, string name)

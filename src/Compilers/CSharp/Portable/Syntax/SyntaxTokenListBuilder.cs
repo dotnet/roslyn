@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class SyntaxTokenListBuilder
     {
-        private Syntax.InternalSyntax.CSharpSyntaxNode[] nodes;
-        private int count;
+        private Syntax.InternalSyntax.CSharpSyntaxNode[] _nodes;
+        private int _count;
 
         public SyntaxTokenListBuilder(int size)
         {
-            this.nodes = new Syntax.InternalSyntax.CSharpSyntaxNode[size];
-            this.count = 0;
+            _nodes = new Syntax.InternalSyntax.CSharpSyntaxNode[size];
+            _count = 0;
         }
 
         public static SyntaxTokenListBuilder Create()
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                return this.count;
+                return _count;
             }
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal void Add(Syntax.InternalSyntax.SyntaxToken item)
         {
             CheckSpace(1);
-            nodes[count++] = item;
+            _nodes[_count++] = item;
         }
 
         public void Add(SyntaxTokenList list)
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public void Add(SyntaxTokenList list, int offset, int length)
         {
             CheckSpace(length);
-            list.CopyTo(offset, nodes, count, length);
-            count += length;
+            list.CopyTo(offset, _nodes, _count, length);
+            _count += length;
         }
 
         public void Add(SyntaxToken[] list)
@@ -64,15 +64,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             CheckSpace(length);
             for (int i = 0; i < length; i++)
             {
-                this.nodes[count + i] = (InternalSyntax.SyntaxToken)list[offset + i].Node;
+                _nodes[_count + i] = (InternalSyntax.SyntaxToken)list[offset + i].Node;
             }
-            count += length;
+            _count += length;
         }
 
         private void CheckSpace(int delta)
         {
-            var requiredSize = this.count + delta;
-            if (requiredSize > this.nodes.Length)
+            var requiredSize = _count + delta;
+            if (requiredSize > _nodes.Length)
             {
                 this.Grow(requiredSize);
             }
@@ -81,24 +81,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private void Grow(int newSize)
         {
             var tmp = new Syntax.InternalSyntax.CSharpSyntaxNode[newSize];
-            Array.Copy(nodes, tmp, nodes.Length);
-            this.nodes = tmp;
+            Array.Copy(_nodes, tmp, _nodes.Length);
+            _nodes = tmp;
         }
 
         public SyntaxTokenList ToList()
         {
-            if (this.count > 0)
+            if (_count > 0)
             {
-                switch (this.count)
+                switch (_count)
                 {
                     case 1:
-                        return new SyntaxTokenList(null, nodes[0], 0, 0);
+                        return new SyntaxTokenList(null, _nodes[0], 0, 0);
                     case 2:
-                        return new SyntaxTokenList(null, Syntax.InternalSyntax.SyntaxList.List(nodes[0], nodes[1]), 0, 0);
+                        return new SyntaxTokenList(null, Syntax.InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1]), 0, 0);
                     case 3:
-                        return new SyntaxTokenList(null, Syntax.InternalSyntax.SyntaxList.List(nodes[0], nodes[1], nodes[2]), 0, 0);
+                        return new SyntaxTokenList(null, Syntax.InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]), 0, 0);
                     default:
-                        return new SyntaxTokenList(null, Syntax.InternalSyntax.SyntaxList.List(nodes, this.count), 0, 0);
+                        return new SyntaxTokenList(null, Syntax.InternalSyntax.SyntaxList.List(_nodes, _count), 0, 0);
                 }
             }
             else

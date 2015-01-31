@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the list has at least one node of the specified kind.
         /// </summary>
-        public static bool Any<TNode>(this SyntaxList<TNode> list, SyntaxKind kind) 
+        public static bool Any<TNode>(this SyntaxList<TNode> list, SyntaxKind kind)
             where TNode : SyntaxNode
         {
             return list.IndexOf(kind) >= 0;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the list has at least one node of the specified kind.
         /// </summary>
-        public static bool Any<TNode>(this SeparatedSyntaxList<TNode> list, SyntaxKind kind) 
+        public static bool Any<TNode>(this SeparatedSyntaxList<TNode> list, SyntaxKind kind)
             where TNode : SyntaxNode
         {
             return list.IndexOf(kind) >= 0;

@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// </summary>
     public abstract class EnumWithFlagsCodeFixProviderBase : CodeFixProviderBase
     {
-        private readonly ImmutableArray<string> diagnosticIds = ImmutableArray.Create(EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags,
+        private readonly ImmutableArray<string> _diagnosticIds = ImmutableArray.Create(EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags,
                                                                                    EnumWithFlagsDiagnosticAnalyzer.RuleIdDoNotMarkEnumsWithFlags);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return diagnosticIds; }
+            get { return _diagnosticIds; }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

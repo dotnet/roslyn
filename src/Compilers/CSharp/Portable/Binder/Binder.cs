@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class Binder
     {
         internal CSharpCompilation Compilation { get; private set; }
-        private readonly Binder next;
+        private readonly Binder _next;
 
         internal readonly BinderFlags Flags;
 
         internal Binder(Binder next)
         {
             Debug.Assert(next != null);
-            this.next = next;
+            _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
         }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!flags.Includes(BinderFlags.UncheckedRegion | BinderFlags.CheckedRegion));
             // Implied.
             Debug.Assert(!flags.Includes(BinderFlags.InNestedFinallyBlock) || flags.Includes(BinderFlags.InFinallyBlock | BinderFlags.InCatchBlock));
-            this.next = next;
+            _next = next;
             this.Flags = flags;
             this.Compilation = next.Compilation;
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return next;
+                return _next;
             }
         }
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.next.ImplicitlyTypedLocalsBeingBound;
+                return _next.ImplicitlyTypedLocalsBeingBound;
             }
         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.next.ImportsList;
+                return _next.ImportsList;
             }
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)member == null
                     ? null
                     : member.Kind == SymbolKind.NamedType
-                        ? (NamedTypeSymbol)member 
+                        ? (NamedTypeSymbol)member
                         : member.ContainingType;
             }
         }
@@ -347,31 +347,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        Conversions lazyConversions;
+        private Conversions _lazyConversions;
         internal Conversions Conversions
         {
             get
             {
-                if (this.lazyConversions == null)
+                if (_lazyConversions == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyConversions, new Conversions(this), null);
+                    Interlocked.CompareExchange(ref _lazyConversions, new Conversions(this), null);
                 }
 
-                return lazyConversions;
+                return _lazyConversions;
             }
         }
 
-        OverloadResolution lazyOverloadResolution;
+        private OverloadResolution _lazyOverloadResolution;
         internal OverloadResolution OverloadResolution
         {
             get
             {
-                if (this.lazyOverloadResolution == null)
+                if (_lazyOverloadResolution == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyOverloadResolution, new OverloadResolution(this), null);
+                    Interlocked.CompareExchange(ref _lazyOverloadResolution, new OverloadResolution(this), null);
                 }
 
-                return this.lazyOverloadResolution;
+                return _lazyOverloadResolution;
             }
         }
 

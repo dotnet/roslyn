@@ -13,21 +13,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal partial class FixAllCodeAction : CodeAction
     {
-        private readonly FixAllContext fixAllContext;
-        private readonly FixAllProvider fixAllProvider;
-        private static readonly HashSet<string> predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
+        private readonly FixAllContext _fixAllContext;
+        private readonly FixAllProvider _fixAllProvider;
+        private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
         internal FixAllCodeAction(FixAllContext fixAllContext, FixAllProvider fixAllProvider)
         {
-            this.fixAllContext = fixAllContext;
-            this.fixAllProvider = fixAllProvider;
+            _fixAllContext = fixAllContext;
+            _fixAllProvider = fixAllProvider;
         }
 
         public override string Title
         {
             get
             {
-                switch (fixAllContext.Scope)
+                switch (_fixAllContext.Scope)
                 {
                     case FixAllScope.Document:
                         return FeaturesResources.FixAllTitle_Document;
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            FixAllLogger.LogContext(this.fixAllContext, IsInternalCodeFixProvider(this.fixAllContext.CodeFixProvider));
+            FixAllLogger.LogContext(_fixAllContext, IsInternalCodeFixProvider(_fixAllContext.CodeFixProvider));
 
-            var service = this.fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
-            return await service.GetFixAllOperationsAsync(this.fixAllProvider, this.fixAllContext).ConfigureAwait(false);
+            var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (exportAttributes != null && exportAttributes.Length > 0)
             {
                 var exportAttribute = (ExportCodeFixProviderAttribute)exportAttributes[0];
-                return predefinedCodeFixProviderNames.Contains(exportAttribute.Name);
+                return s_predefinedCodeFixProviderNames.Contains(exportAttribute.Name);
             }
 
             return false;

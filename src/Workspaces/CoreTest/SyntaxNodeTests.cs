@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var comp = doc.Project.GetCompilationAsync().Result;
 
             var gen = SyntaxGenerator.GetGenerator(doc);
-            var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private); 
+            var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private);
 
             var currentClassDecl = trackedRoot.GetCurrentNodes(classDecl).First();
             var classDeclWithField = gen.InsertMembers(currentClassDecl, 0, new[] { cgenField });

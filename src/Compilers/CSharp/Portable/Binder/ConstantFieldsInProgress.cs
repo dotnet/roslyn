@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class ConstantFieldsInProgress
     {
-        private readonly SourceFieldSymbol fieldOpt;
-        private readonly HashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
+        private readonly SourceFieldSymbol _fieldOpt;
+        private readonly HashSet<SourceFieldSymbolWithSyntaxReference> _dependencies;
 
         internal static readonly ConstantFieldsInProgress Empty = new ConstantFieldsInProgress(null, null);
 
@@ -22,18 +22,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceFieldSymbol fieldOpt,
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies)
         {
-            this.fieldOpt = fieldOpt;
-            this.dependencies = dependencies;
+            _fieldOpt = fieldOpt;
+            _dependencies = dependencies;
         }
 
         public bool IsEmpty
         {
-            get { return (object)this.fieldOpt == null; }
+            get { return (object)_fieldOpt == null; }
         }
 
         internal void AddDependency(SourceFieldSymbolWithSyntaxReference field)
         {
-            this.dependencies.Add(field);
+            _dependencies.Add(field);
         }
     }
 }

@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public abstract class CA1019DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1019";
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DefineAccessorsForAttributeArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DefineAccessorsForAttributeArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         localizableTitle,
+                                                                         s_localizableTitle,
                                                                          "{0}",
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,

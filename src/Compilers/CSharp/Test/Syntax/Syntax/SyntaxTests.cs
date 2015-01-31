@@ -57,7 +57,7 @@ void foo()
 #region R
 }
 ");
-          
+
             AssertCompleteSubmission("1", script: false, interactive: true);
             AssertCompleteSubmission("1;");
 

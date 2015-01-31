@@ -16,16 +16,16 @@ namespace Roslyn.Utilities
 
         internal struct SemaphoreDisposer : IDisposable
         {
-            private readonly SemaphoreSlim semaphore;
+            private readonly SemaphoreSlim _semaphore;
 
             public SemaphoreDisposer(SemaphoreSlim semaphore)
             {
-                this.semaphore = semaphore;
+                _semaphore = semaphore;
             }
 
             public void Dispose()
             {
-                semaphore.Release();
+                _semaphore.Release();
             }
         }
     }

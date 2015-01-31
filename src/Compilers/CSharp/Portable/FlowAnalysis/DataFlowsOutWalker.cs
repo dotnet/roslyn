@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// treats assignments in the region as unassigning the variable would
     /// cause "unassigned" errors outside the region.
     /// </summary>
-    class DataFlowsOutWalker : AbstractRegionDataFlowPass
+    internal class DataFlowsOutWalker : AbstractRegionDataFlowPass
     {
-        private readonly ImmutableArray<ISymbol> dataFlowsIn;
+        private readonly ImmutableArray<ISymbol> _dataFlowsIn;
 
-        DataFlowsOutWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, ImmutableArray<ISymbol> dataFlowsIn)
+        private DataFlowsOutWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, ImmutableArray<ISymbol> dataFlowsIn)
             : base(compilation, member, node, firstInRegion, lastInRegion, unassignedVariables, trackUnassignments: true)
         {
-            this.dataFlowsIn = dataFlowsIn;
+            _dataFlowsIn = dataFlowsIn;
         }
 
         internal static HashSet<Symbol> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, ImmutableArray<ISymbol> dataFlowsIn)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = walker.Analyze(ref badRegion);
 #if DEBUG
                 // Assert that DataFlowsOut only contains variables that were assigned to inside the region
-                Debug.Assert(badRegion || !result.Any((variable) => !walker.assignedInside.Contains(variable)));
+                Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
 #endif
                 return badRegion ? new HashSet<Symbol>() : result;
             }
@@ -45,17 +45,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly HashSet<Symbol> dataFlowsOut = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _dataFlowsOut = new HashSet<Symbol>();
 
 #if DEBUG
         // we'd like to ensure that only variables get returned in DataFlowsOut that were assigned to inside the region.
-        private readonly HashSet<Symbol> assignedInside = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _assignedInside = new HashSet<Symbol>();
 #endif
 
-        new HashSet<Symbol> Analyze(ref bool badRegion)
+        private new HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
-            return dataFlowsOut;
+            return _dataFlowsOut;
         }
 
         protected override void EnterRegion()
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to handle loops properly, we must assume that every variable that flows in is
             // assigned at the beginning of the loop.  If it isn't, then it must be in a loop
             // and flow out of the region in that loop (and into the region inside the loop).
-            foreach (Symbol variable in dataFlowsIn)
+            foreach (Symbol variable in _dataFlowsIn)
             {
                 int slot = this.GetOrCreateSlot(variable);
                 if (slot > 0 && !this.State.IsAssigned(slot))
                 {
-                    dataFlowsOut.Add(variable);
+                    _dataFlowsOut.Add(variable);
                 }
             }
 
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var param = variable as ParameterSymbol;
                 if (FlowsOut(param))
                 {
-                    dataFlowsOut.Add(param);
+                    _dataFlowsOut.Add(param);
                 }
 
 #if DEBUG
                 if ((object)param != null)
                 {
-                    assignedInside.Add(param);
+                    _assignedInside.Add(param);
                 }
 #endif
             }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Symbol variable = GetNodeSymbol(node);
                     if ((object)variable != null)
                     {
-                        assignedInside.Add(variable);
+                        _assignedInside.Add(variable);
                     }
                 }
 #endif
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParameterSymbol param = Param(node);
                     if (FlowsOut(param))
                     {
-                        this.dataFlowsOut.Add(param);
+                        _dataFlowsOut.Add(param);
                     }
                 }
             }
@@ -230,18 +230,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
         {
-            if (!dataFlowsOut.Contains(symbol) && !(symbol is FieldSymbol) && !IsInside)
+            if (!_dataFlowsOut.Contains(symbol) && !(symbol is FieldSymbol) && !IsInside)
             {
-                dataFlowsOut.Add(symbol);
+                _dataFlowsOut.Add(symbol);
             }
             base.ReportUnassigned(symbol, node);
         }
 
         protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
         {
-            if (!dataFlowsOut.Contains(parameter) && (node == null || node is ReturnStatementSyntax))
+            if (!_dataFlowsOut.Contains(parameter) && (node == null || node is ReturnStatementSyntax))
             {
-                dataFlowsOut.Add(parameter);
+                _dataFlowsOut.Add(parameter);
             }
             base.ReportUnassignedOutParameter(parameter, node, location);
         }
@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  if the field access is reported as unassigned it should mean the original local 
                 //  or parameter flows out, so we should get the symbol associated with the expression
                 var symbol = GetNonFieldSymbol(unassignedSlot);
-                if (!dataFlowsOut.Contains(symbol))
+                if (!_dataFlowsOut.Contains(symbol))
                 {
-                    dataFlowsOut.Add(symbol);
+                    _dataFlowsOut.Add(symbol);
                 }
             }
             base.ReportUnassigned(fieldSymbol, unassignedSlot, node);

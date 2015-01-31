@@ -112,7 +112,7 @@ End Class
                 GetBasicExpectedDiagnostic(31, 9, unsupportedDescriptorName: "descriptor2"),
                 GetBasicExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2")
             };
-            
+
             VerifyBasic(source, expected);
         }
 

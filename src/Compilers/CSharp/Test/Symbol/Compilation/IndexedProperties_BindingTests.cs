@@ -148,10 +148,10 @@ class B
             Assert.NotNull(indexerGroup);
 
             var position = GetPositionForBinding(tree);
-            
+
             // Get the list of LookupNames at the location at the end of the tag
             var actual_lookupNames = model.LookupNames(position);
-            
+
             Assert.NotEmpty(actual_lookupNames);
             Assert.True(actual_lookupNames.Contains("System"), "LookupNames does not contain System");
             Assert.True(actual_lookupNames.Contains("Main"), "LookupNames does not contain Main");

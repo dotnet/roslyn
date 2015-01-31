@@ -2622,13 +2622,13 @@ class Module1
 
         private sealed class Resolver : TestMetadataReferenceResolver
         {
-            private readonly string data, core, system;
+            private readonly string _data,_core,_system;
 
             public Resolver(string data, string core, string system)
             {
-                this.data = data;
-                this.core = core;
-                this.system = system;
+                _data = data;
+                _core = core;
+                _system = system;
             }
 
             public override string ResolveReference(string reference, string baseFileName)
@@ -2636,13 +2636,13 @@ class Module1
                 switch (reference)
                 {
                     case "System.Data":
-                        return data;
+                        return _data;
 
                     case "System.Core":
-                        return core;
+                        return _core;
 
                     case "System":
-                        return system;
+                        return _system;
 
                     default:
                         return base.ResolveReference(reference, baseFileName);
@@ -2726,20 +2726,20 @@ System.Diagnostics.Process.GetCurrentProcess();
                 Diagnostic(ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts, @"#r ""System.Core"""));
         }
 
-        private static readonly string ResolvedPath = Path.GetPathRoot(Environment.CurrentDirectory) + "RESOLVED";
+        private static readonly string s_resolvedPath = Path.GetPathRoot(Environment.CurrentDirectory) + "RESOLVED";
 
         private class DummyFileProvider : MetadataFileReferenceProvider
         {
-            readonly string targetDll;
+            private readonly string _targetDll;
 
             public DummyFileProvider(string targetDll)
             {
-                this.targetDll = targetDll;
+                _targetDll = targetDll;
             }
 
             public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
             {
-                var path = fullPath == ResolvedPath ? targetDll : fullPath;
+                var path = fullPath == s_resolvedPath ? _targetDll : fullPath;
                 return MetadataReference.CreateFromFile(path, properties);
             }
         }
@@ -2748,7 +2748,7 @@ System.Diagnostics.Process.GetCurrentProcess();
         {
             public override string ResolveReference(string reference, string baseFilePath)
             {
-                return reference.EndsWith("-resolve") ? ResolvedPath : reference;
+                return reference.EndsWith("-resolve") ? s_resolvedPath : reference;
             }
         }
 

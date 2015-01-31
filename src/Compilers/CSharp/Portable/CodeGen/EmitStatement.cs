@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
-    partial class CodeGenerator
+    internal partial class CodeGenerator
     {
         private void EmitStatement(BoundStatement statement)
         {
@@ -83,18 +83,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
 #if DEBUG
-            if (stackLocals == null || stackLocals.Count == 0)
+            if (_stackLocals == null || _stackLocals.Count == 0)
             {
-                builder.AssertStackEmpty();
+                _builder.AssertStackEmpty();
             }
 #endif
         }
 
         private int EmitStatementAndCountInstructions(BoundStatement statement)
         {
-            int n = this.builder.InstructionsEmitted;
+            int n = _builder.InstructionsEmitted;
             this.EmitStatement(statement);
-            return this.builder.InstructionsEmitted - n;
+            return _builder.InstructionsEmitted - n;
         }
 
         private void EmitStatementList(BoundStatementList list)
@@ -110,28 +110,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (statement.Flavor)
             {
                 case NoOpStatementFlavor.Default:
-                    if (this.optimizations == OptimizationLevel.Debug)
+                    if (_optimizations == OptimizationLevel.Debug)
                     {
-                        builder.EmitOpCode(ILOpCode.Nop);
+                        _builder.EmitOpCode(ILOpCode.Nop);
                     }
                     break;
 
                 case NoOpStatementFlavor.AwaitYieldPoint:
-                    Debug.Assert((this.asyncYieldPoints == null) == (this.asyncResumePoints == null));
-                    if (this.asyncYieldPoints == null)
+                    Debug.Assert((_asyncYieldPoints == null) == (_asyncResumePoints == null));
+                    if (_asyncYieldPoints == null)
                     {
-                        this.asyncYieldPoints = ArrayBuilder<int>.GetInstance();
-                        this.asyncResumePoints = ArrayBuilder<int>.GetInstance();
+                        _asyncYieldPoints = ArrayBuilder<int>.GetInstance();
+                        _asyncResumePoints = ArrayBuilder<int>.GetInstance();
                     }
-                    Debug.Assert(this.asyncYieldPoints.Count == this.asyncResumePoints.Count);
-                    this.asyncYieldPoints.Add(this.builder.AllocateILMarker());
+                    Debug.Assert(_asyncYieldPoints.Count == _asyncResumePoints.Count);
+                    _asyncYieldPoints.Add(_builder.AllocateILMarker());
                     break;
 
                 case NoOpStatementFlavor.AwaitResumePoint:
-                    Debug.Assert(this.asyncYieldPoints != null);
-                    Debug.Assert(this.asyncYieldPoints != null);
-                    this.asyncResumePoints.Add(this.builder.AllocateILMarker());
-                    Debug.Assert(this.asyncYieldPoints.Count == this.asyncResumePoints.Count);
+                    Debug.Assert(_asyncYieldPoints != null);
+                    Debug.Assert(_asyncYieldPoints != null);
+                    _asyncResumePoints.Add(_builder.AllocateILMarker());
+                    Debug.Assert(_asyncYieldPoints.Count == _asyncResumePoints.Count);
                     break;
 
                 default:
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            builder.EmitThrow(isRethrow: expr == null);
+            _builder.EmitThrow(isRethrow: expr == null);
         }
 
         private void EmitConditionalGoto(BoundConditionalGoto boundConditionalGoto)
@@ -250,9 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return nonConstOp;
         }
 
-        const int IL_OP_CODE_ROW_LENGTH = 4;
+        private const int IL_OP_CODE_ROW_LENGTH = 4;
 
-        private static readonly ILOpCode[] CondJumpOpCodes = new ILOpCode[]
+        private static readonly ILOpCode[] s_condJumpOpCodes = new ILOpCode[]
         {
             //  <            <=               >                >=
             ILOpCode.Blt,    ILOpCode.Ble,    ILOpCode.Bgt,    ILOpCode.Bge,     // Signed
@@ -321,15 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 revOpIdx += IL_OP_CODE_ROW_LENGTH; //invert rev
             }
 
-            revOpCode = CondJumpOpCodes[revOpIdx];
-            return CondJumpOpCodes[opIdx];
+            revOpCode = s_condJumpOpCodes[revOpIdx];
+            return s_condJumpOpCodes[opIdx];
         }
 
         // generate a jump to dest if (condition == sense) is true
         private void EmitCondBranch(BoundExpression condition, ref object dest, bool sense)
         {
-
-            oneMoreTime:
+        oneMoreTime:
 
             ILOpCode ilcode;
 
@@ -340,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (taken)
                 {
                     dest = dest ?? new object();
-                    builder.EmitBranch(ILOpCode.Br, dest);
+                    _builder.EmitBranch(ILOpCode.Br, dest);
                 }
                 else
                 {
@@ -358,7 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     switch (binOp.OperatorKind.OperatorWithLogical())
                     {
-
                         case BinaryOperatorKind.LogicalOr:
                             testBothArgs = !testBothArgs;
                             // Fall through
@@ -378,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                                 if (fallThrough != null)
                                 {
-                                    builder.MarkLabel(fallThrough);
+                                    _builder.MarkLabel(fallThrough);
                                 }
                             }
                             else
@@ -412,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             ILOpCode revOpCode;
                             ilcode = CodeForJump(binOp, sense, out revOpCode);
                             dest = dest ?? new object();
-                            builder.EmitBranch(ilcode, dest, revOpCode);
+                            _builder.EmitBranch(ilcode, dest, revOpCode);
                             return;
                     }
 
@@ -451,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                             if (fallThrough != null)
                             {
-                                builder.MarkLabel(fallThrough);
+                                _builder.MarkLabel(fallThrough);
                             }
                         }
                         else
@@ -463,7 +461,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             condition = ca.AccessExpression;
                             goto oneMoreTime;
                         }
-
                     }
                     return;
 
@@ -487,11 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // box the operand for isint if it is not a verifier reference
                         EmitBox(operand.Type, operand.Syntax);
                     }
-                    builder.EmitOpCode(ILOpCode.Isinst);
+                    _builder.EmitOpCode(ILOpCode.Isinst);
                     EmitSymbolToken(isOp.TargetType.Type, isOp.TargetType.Syntax);
                     ilcode = sense ? ILOpCode.Brtrue : ILOpCode.Brfalse;
                     dest = dest ?? new object();
-                    builder.EmitBranch(ilcode, dest);
+                    _builder.EmitBranch(ilcode, dest);
                     return;
 
                 case BoundKind.Sequence:
@@ -510,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     ilcode = sense ? ILOpCode.Brtrue : ILOpCode.Brfalse;
                     dest = dest ?? new object();
-                    builder.EmitBranch(ilcode, dest);
+                    _builder.EmitBranch(ilcode, dest);
                     return;
             }
         }
@@ -525,12 +522,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
         {
-            builder.MarkLabel(boundLabelStatement.Label);
+            _builder.MarkLabel(boundLabelStatement.Label);
         }
 
         private void EmitGotoStatement(BoundGotoStatement boundGotoStatement)
         {
-            builder.EmitBranch(ILOpCode.Br, boundGotoStatement.Label);
+            _builder.EmitBranch(ILOpCode.Br, boundGotoStatement.Label);
         }
 
         // used by HandleReturn method which tries to inject 
@@ -540,14 +537,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //       it is desirable, for debug purposes, that this ret is emitted inside top level { } 
         private bool IsLastBlockInMethod(BoundBlock block)
         {
-            if (this.boundBody == block)
+            if (_boundBody == block)
             {
                 return true;
             }
 
             //sometimes top level node is a statement list containing 
             //epilogue and then a block. If we are having that block, it will do.
-            var list = this.boundBody as BoundStatementList;
+            var list = _boundBody as BoundStatementList;
             if (list != null && list.Statements.LastOrDefault() == block)
             {
                 return true;
@@ -562,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (hasLocals)
             {
-                builder.OpenLocalScope();
+                _builder.OpenLocalScope();
 
                 foreach (var local in block.Locals)
                 {
@@ -576,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitStatement(statement);
             }
 
-            if (this.indirectReturnState == IndirectReturnState.Needed &&
+            if (_indirectReturnState == IndirectReturnState.Needed &&
                 IsLastBlockInMethod(block))
             {
                 HandleReturn();
@@ -589,20 +586,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     FreeLocal(local);
                 }
 
-                builder.CloseLocalScope();
+                _builder.CloseLocalScope();
             }
         }
 
         private void EmitStateMachineScope(BoundStateMachineScope scope)
         {
-            builder.OpenStateMachineScope();
+            _builder.OpenStateMachineScope();
             foreach (var field in scope.Fields)
             {
-                builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
             }
 
             EmitStatement(scope.Statement);
-            builder.CloseStateMachineScope();
+            _builder.CloseStateMachineScope();
         }
 
         // There are two ways a value can be returned from a function:
@@ -612,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // debuggable code. This function is a stub for the logic that decides that.
         private bool ShouldUseIndirectReturn()
         {
-            return optimizations == OptimizationLevel.Debug || builder.InExceptionHandler;
+            return _optimizations == OptimizationLevel.Debug || _builder.InExceptionHandler;
         }
 
         // Compiler generated return mapped to a block is very likely the synthetic return
@@ -622,8 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private bool CanHandleReturnLabel(BoundReturnStatement boundReturnStatement)
         {
             return boundReturnStatement.WasCompilerGenerated &&
-                    (boundReturnStatement.Syntax.Kind() == SyntaxKind.Block || (((object)this.method != null) && this.method.IsImplicitConstructor)) &&
-                    !builder.InExceptionHandler;
+                    (boundReturnStatement.Syntax.Kind() == SyntaxKind.Block || (((object)_method != null) && _method.IsImplicitConstructor)) &&
+                    !_builder.InExceptionHandler;
         }
 
         private void EmitReturnStatement(BoundReturnStatement boundReturnStatement)
@@ -634,37 +631,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (boundReturnStatement.ExpressionOpt != null)
                 {
-                    builder.EmitLocalStore(LazyReturnTemp);
+                    _builder.EmitLocalStore(LazyReturnTemp);
                 }
 
-                if (this.indirectReturnState != IndirectReturnState.Emitted && CanHandleReturnLabel(boundReturnStatement))
+                if (_indirectReturnState != IndirectReturnState.Emitted && CanHandleReturnLabel(boundReturnStatement))
                 {
                     HandleReturn();
                 }
                 else
                 {
-                    builder.EmitBranch(ILOpCode.Br, ReturnLabel);
+                    _builder.EmitBranch(ILOpCode.Br, s_returnLabel);
 
-                    if (this.indirectReturnState == IndirectReturnState.NotNeeded)
+                    if (_indirectReturnState == IndirectReturnState.NotNeeded)
                     {
-                        this.indirectReturnState = IndirectReturnState.Needed;
+                        _indirectReturnState = IndirectReturnState.Needed;
                     }
                 }
             }
             else
             {
-                if (this.indirectReturnState == IndirectReturnState.Needed && CanHandleReturnLabel(boundReturnStatement))
+                if (_indirectReturnState == IndirectReturnState.Needed && CanHandleReturnLabel(boundReturnStatement))
                 {
                     if (boundReturnStatement.ExpressionOpt != null)
                     {
-                        builder.EmitLocalStore(LazyReturnTemp);
+                        _builder.EmitLocalStore(LazyReturnTemp);
                     }
 
                     HandleReturn();
                 }
                 else
                 {
-                    builder.EmitRet(boundReturnStatement.ExpressionOpt == null);
+                    _builder.EmitRet(boundReturnStatement.ExpressionOpt == null);
                 }
             }
         }
@@ -674,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!statement.CatchBlocks.IsDefault);
 
             // Stack must be empty at beginning of try block.
-            builder.AssertStackEmpty();
+            _builder.AssertStackEmpty();
 
             // IL requires catches and finally block to be distinct try
             // blocks so if the source contained both a catch and
@@ -683,14 +680,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 (statement.CatchBlocks.Length > 0) &&
                 (statement.FinallyBlockOpt != null));
 
-            builder.OpenLocalScope(ScopeType.TryCatchFinally);
+            _builder.OpenLocalScope(ScopeType.TryCatchFinally);
 
-            builder.OpenLocalScope(ScopeType.Try);
+            _builder.OpenLocalScope(ScopeType.Try);
             // IL requires catches and finally block to be distinct try
             // blocks so if the source contained both a catch and
             // a finally, nested scopes are emitted.
 
-            tryNestingLevel++;
+            _tryNestingLevel++;
             if (emitNestedScopes)
             {
                 EmitTryStatement(statement, emitCatchesOnly: true);
@@ -700,9 +697,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitBlock(statement.TryBlock);
             }
 
-            tryNestingLevel--;
+            _tryNestingLevel--;
             // Close the Try scope
-            builder.CloseLocalScope();
+            _builder.CloseLocalScope();
 
             if (!emitNestedScopes)
             {
@@ -714,14 +711,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!emitCatchesOnly && (statement.FinallyBlockOpt != null))
             {
-                builder.OpenLocalScope(statement.PreferFaultHandler ? ScopeType.Fault : ScopeType.Finally);
+                _builder.OpenLocalScope(statement.PreferFaultHandler ? ScopeType.Fault : ScopeType.Finally);
                 EmitBlock(statement.FinallyBlockOpt);
 
                 // close Finally scope
-                builder.CloseLocalScope();
+                _builder.CloseLocalScope();
 
                 // close the whole try statement scope
-                builder.CloseLocalScope();
+                _builder.CloseLocalScope();
 
                 // in a case where we emit surrogate Finally using Fault, we emit code like this
                 //
@@ -742,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // close the whole try statement scope
-                builder.CloseLocalScope();
+                _builder.CloseLocalScope();
             }
         }
 
@@ -786,22 +783,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             object typeCheckFailedLabel = null;
 
             var exceptionType = ((object)catchBlock.ExceptionTypeOpt != null) ?
-                this.module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, diagnostics) :
-                this.module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, diagnostics);
+                _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics) :
+                _module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, _diagnostics);
 
-            builder.AdjustStack(1); // Account for exception on the stack.
+            _builder.AdjustStack(1); // Account for exception on the stack.
 
             // Open appropriate exception handler scope. (Catch or Filter)
             // if it is a Filter, emit prologue that checks if the type on the stack
             // converts to what we want.
             if (catchBlock.ExceptionFilterOpt == null)
             {
-                builder.OpenLocalScope(ScopeType.Catch, exceptionType);
+                _builder.OpenLocalScope(ScopeType.Catch, exceptionType);
 
                 if (catchBlock.IsSynthesizedAsyncCatchAll)
                 {
-                    Debug.Assert(this.asyncCatchHandlerOffset < 0); // only one expected
-                    this.asyncCatchHandlerOffset = this.builder.AllocateILMarker();
+                    Debug.Assert(_asyncCatchHandlerOffset < 0); // only one expected
+                    _asyncCatchHandlerOffset = _builder.AllocateILMarker();
                 }
 
                 // Dev12 inserts the sequence point on catch clause without a filter, just before 
@@ -810,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Also in Dev12 the exception variable scope span starts right after the stloc instruction and 
                 // ends right before leave instruction. So when stopped at the sequence point Dev12 inserts,
                 // the exception variable is not visible. 
-                if (this.emitPdbSequencePoints)
+                if (_emitPdbSequencePoints)
                 {
                     var syntax = catchBlock.Syntax as CatchClauseSyntax;
                     if (syntax != null)
@@ -833,22 +830,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                builder.OpenLocalScope(ScopeType.Filter);
+                _builder.OpenLocalScope(ScopeType.Filter);
 
                 // Filtering starts with simulating regular catch through a 
                 // type check. If this is not our type then we are done.
                 var typeCheckPassedLabel = new object();
                 typeCheckFailedLabel = new object();
 
-                builder.EmitOpCode(ILOpCode.Isinst);
-                builder.EmitToken(exceptionType, catchBlock.Syntax, diagnostics);
-                builder.EmitOpCode(ILOpCode.Dup);
-                builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
-                builder.EmitOpCode(ILOpCode.Pop);
-                builder.EmitIntConstant(0);
-                builder.EmitBranch(ILOpCode.Br, typeCheckFailedLabel);
+                _builder.EmitOpCode(ILOpCode.Isinst);
+                _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics);
+                _builder.EmitOpCode(ILOpCode.Dup);
+                _builder.EmitBranch(ILOpCode.Brtrue, typeCheckPassedLabel);
+                _builder.EmitOpCode(ILOpCode.Pop);
+                _builder.EmitIntConstant(0);
+                _builder.EmitBranch(ILOpCode.Br, typeCheckFailedLabel);
 
-                builder.MarkLabel(typeCheckPassedLabel);
+                _builder.MarkLabel(typeCheckPassedLabel);
             }
 
             if ((object)catchBlock.LocalOpt != null)
@@ -867,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (!exceptionSourceOpt.Type.IsVerifierReference())
                 {
                     Debug.Assert(exceptionSourceOpt.Type.IsTypeParameter()); // only expecting type parameters
-                    builder.EmitOpCode(ILOpCode.Unbox_any);
+                    _builder.EmitOpCode(ILOpCode.Unbox_any);
                     EmitSymbolToken(exceptionSourceOpt.Type, exceptionSourceOpt.Syntax);
                 }
 
@@ -886,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         Debug.Assert(exceptionSourceLocal.LocalSymbol.RefKind == RefKind.None);
                         if (!IsStackLocal(exceptionSourceLocal.LocalSymbol))
                         {
-                            builder.EmitLocalStore(GetLocal(exceptionSourceLocal));
+                            _builder.EmitLocalStore(GetLocal(exceptionSourceLocal));
                         }
 
                         break;
@@ -899,12 +896,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // When assigning to a field
                         // we need to push param address below the exception
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);
-                        builder.EmitLocalStore(temp);
+                        _builder.EmitLocalStore(temp);
 
                         var receiverTemp = EmitReceiverRef(left.ReceiverOpt);
                         Debug.Assert(receiverTemp == null);
 
-                        builder.EmitLocalLoad(temp);
+                        _builder.EmitLocalLoad(temp);
                         FreeTemp(temp);
 
                         EmitFieldStore(left);
@@ -916,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                builder.EmitOpCode(ILOpCode.Pop);
+                _builder.EmitOpCode(ILOpCode.Pop);
             }
 
             // Emit the actual filter expression, if we have one, and normalize
@@ -926,21 +923,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitCondExpr(catchBlock.ExceptionFilterOpt, true);
                 // Normalize the return value because values other than 0 or 1
                 // produce unspecified results.
-                builder.EmitIntConstant(0);
-                builder.EmitOpCode(ILOpCode.Cgt_un);
-                builder.MarkLabel(typeCheckFailedLabel);
+                _builder.EmitIntConstant(0);
+                _builder.EmitOpCode(ILOpCode.Cgt_un);
+                _builder.MarkLabel(typeCheckFailedLabel);
 
                 // Now we are starting the actual handler
-                builder.MarkFilterConditionEnd();
+                _builder.MarkFilterConditionEnd();
 
                 // Pop the exception; it should have already been stored to the
                 // variable by the filter.
-                builder.EmitOpCode(ILOpCode.Pop);
+                _builder.EmitOpCode(ILOpCode.Pop);
             }
 
             EmitBlock(catchBlock.Body);
 
-            builder.CloseLocalScope();
+            _builder.CloseLocalScope();
         }
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
@@ -978,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     // no case labels
                     EmitExpression(expression, used: false);
-                    builder.EmitBranch(ILOpCode.Br, fallThroughLabel);
+                    _builder.EmitBranch(ILOpCode.Br, fallThroughLabel);
                 }
                 else
                 {
@@ -1017,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitConstantSwitchHeader(BoundExpression expression, LabelSymbol target)
         {
             EmitExpression(expression, false);
-            builder.EmitBranch(ILOpCode.Br, target);
+            _builder.EmitBranch(ILOpCode.Br, target);
         }
 
         private void EmitSwitchHeader(
@@ -1075,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 default:
                     EmitExpression(expression, true);
                     temp = AllocateTemp(expression.Type, expression.Syntax);
-                    builder.EmitLocalStore(temp);
+                    _builder.EmitLocalStore(temp);
                     key = temp;
                     break;
             }
@@ -1083,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Emit switch jump table            
             if (expression.Type.SpecialType != SpecialType.System_String)
             {
-                builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
             }
             else
             {
@@ -1111,11 +1108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             LocalDefinition keyHash = null;
 
             // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
-            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(this.module, switchCaseLabels.Length))
+            if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, switchCaseLabels.Length))
             {
-                Debug.Assert(this.module.SupportsPrivateImplClass);
+                Debug.Assert(_module.SupportsPrivateImplClass);
 
-                var privateImplClass = this.module.GetPrivateImplClass(syntaxNode, diagnostics);
+                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics);
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName);
 
                 // Heuristics and well-known member availability determine the existence
@@ -1129,24 +1126,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // push 1 (uint return value)
                     // stackAdjustment = (pushCount - popCount) = 0
 
-                    builder.EmitLoad(key);
-                    builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    builder.EmitToken(stringHashMethodRef, syntaxNode, diagnostics);
+                    _builder.EmitLoad(key);
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics);
 
-                    var UInt32Type = module.Compilation.GetSpecialType(SpecialType.System_UInt32);
+                    var UInt32Type = _module.Compilation.GetSpecialType(SpecialType.System_UInt32);
                     keyHash = AllocateTemp(UInt32Type, syntaxNode);
 
-                    builder.EmitLocalStore(keyHash);
+                    _builder.EmitLocalStore(keyHash);
                 }
             }
 
-            Cci.IReference stringEqualityMethodRef = module.Translate(switchStatement.StringEquality, syntaxNode, diagnostics);
+            Cci.IReference stringEqualityMethodRef = _module.Translate(switchStatement.StringEquality, syntaxNode, _diagnostics);
 
             Cci.IMethodReference stringLengthRef = null;
-            var stringLengthMethod = module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
+            var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
             if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
             {
-                stringLengthRef = module.Translate(stringLengthMethod, syntaxNode, diagnostics);
+                stringLengthRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
             }
 
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate =
@@ -1156,8 +1153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // if (key == null)
                         //      goto targetLabel
-                        builder.EmitLoad(keyArg);
-                        builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
+                        _builder.EmitLoad(keyArg);
+                        _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
                     }
                     else if (stringConstant.StringValue.Length == 0 && stringLengthRef != null)
                     {
@@ -1165,19 +1162,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         //      goto targetLabel
 
                         object skipToNext = new object();
-                        builder.EmitLoad(keyArg);
-                        builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
+                        _builder.EmitLoad(keyArg);
+                        _builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
 
-                        builder.EmitLoad(keyArg);
+                        _builder.EmitLoad(keyArg);
                         // Stack: key --> length
-                        builder.EmitOpCode(ILOpCode.Call, 0);
+                        _builder.EmitOpCode(ILOpCode.Call, 0);
                         var diag = DiagnosticBag.GetInstance();
-                        builder.EmitToken(stringLengthRef, null, diag);
+                        _builder.EmitToken(stringLengthRef, null, diag);
                         Debug.Assert(diag.IsEmptyWithoutResolution);
                         diag.Free();
 
-                        builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
-                        builder.MarkLabel(skipToNext);
+                        _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
+                        _builder.MarkLabel(skipToNext);
                     }
                     else
                     {
@@ -1185,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 };
 
-            builder.EmitStringSwitchJumpTable(
+            _builder.EmitStringSwitchJumpTable(
                 caseLabels: switchCaseLabels,
                 fallThroughLabel: fallThroughLabel,
                 key: key,
@@ -1218,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
 #if DEBUG
             var assertDiagnostics = DiagnosticBag.GetInstance();
-            Debug.Assert(stringEqualityMethodRef == module.Translate((MethodSymbol)module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Equality), (CSharpSyntaxNode)syntaxNode, assertDiagnostics));
+            Debug.Assert(stringEqualityMethodRef == _module.Translate((MethodSymbol)_module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Equality), (CSharpSyntaxNode)syntaxNode, assertDiagnostics));
             assertDiagnostics.Free();
 #endif
 
@@ -1228,13 +1225,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // stackAdjustment = (pushCount - popCount) = -1
 
-            builder.EmitLoad(key);
-            builder.EmitConstantValue(stringConstant);
-            builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
-            builder.EmitToken(stringEqualityMethodRef, syntaxNode, diagnostics);
+            _builder.EmitLoad(key);
+            _builder.EmitConstantValue(stringConstant);
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
+            _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics);
 
             // Branch to targetLabel if String.Equals returned true.
-            builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
+            _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
         }
 
         private void EmitSwitchBody(
@@ -1247,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (hasLocals)
             {
-                builder.OpenLocalScope();
+                _builder.OpenLocalScope();
 
                 foreach (var local in locals)
                 {
@@ -1260,11 +1257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitSwitchSection(section);
             }
 
-            builder.MarkLabel(breakLabel);
+            _builder.MarkLabel(breakLabel);
 
             if (hasLocals)
             {
-                builder.CloseLocalScope();
+                _builder.CloseLocalScope();
             }
         }
 
@@ -1272,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             foreach (var boundSwitchLabel in switchSection.BoundSwitchLabels)
             {
-                builder.MarkLabel(boundSwitchLabel.Label);
+                _builder.MarkLabel(boundSwitchLabel.Label);
             }
 
             foreach (var statement in switchSection.Statements)
@@ -1292,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition GetLocal(LocalSymbol symbol)
         {
-            return builder.LocalSlotManager.GetLocal(symbol);
+            return _builder.LocalSlotManager.GetLocal(symbol);
         }
 
         private LocalDefinition DefineLocal(LocalSymbol local, CSharpSyntaxNode syntaxNode)
@@ -1302,16 +1299,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var isDynamicSourceLocal = hasDynamic && !local.IsCompilerGenerated;
             if (isDynamicSourceLocal)
             {
-                NamedTypeSymbol booleanType = this.module.Compilation.GetSpecialType(SpecialType.System_Boolean);
+                NamedTypeSymbol booleanType = _module.Compilation.GetSpecialType(SpecialType.System_Boolean);
                 transformFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, booleanType, 0, RefKind.None);
             }
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
-                MetadataConstant compileTimeValue = this.module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, diagnostics);
+                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(local.Name, local.Locations.FirstOrDefault() ?? Location.None, compileTimeValue, isDynamicSourceLocal, transformFlags);
-                builder.AddLocalConstantToScope(localConstantDef);
+                _builder.AddLocalConstantToScope(localConstantDef);
                 return null;
             }
 
@@ -1335,24 +1332,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
                 translatedType = pointedAtType.SpecialType == SpecialType.System_Void
-                    ? this.module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, diagnostics)
-                    : this.module.Translate(pointedAtType, syntaxNode, diagnostics);
+                    ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics)
+                    : _module.Translate(pointedAtType, syntaxNode, _diagnostics);
             }
             else
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = this.module.Translate(local.Type, syntaxNode, diagnostics);
+                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
             // Also, requesting the token has side-effect of registering types used, which is critical for embedded types (NoPia, VBCore, etc).
-            this.module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, diagnostics);
+            _module.GetFakeSymbolTokenForIL(translatedType, syntaxNode, _diagnostics);
 
             LocalDebugId localId;
             var name = GetLocalDebugName(local, out localId);
 
-            var localDef = builder.LocalSlotManager.DeclareLocal(
+            var localDef = _builder.LocalSlotManager.DeclareLocal(
                 type: translatedType,
                 symbol: local,
                 name: name,
@@ -1362,12 +1359,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 constraints: constraints,
                 isDynamic: isDynamicSourceLocal,
                 dynamicTransformFlags: transformFlags,
-                isSlotReusable: local.SynthesizedKind.IsSlotReusable(optimizations));
+                isSlotReusable: local.SynthesizedKind.IsSlotReusable(_optimizations));
 
             // If named, add it to the local debug scope.
             if (localDef.Name != null)
             {
-                builder.AddLocalToScope(localDef);
+                _builder.AddLocalToScope(localDef);
             }
 
             return localDef;
@@ -1395,12 +1392,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return null;
             }
 
-            if (optimizations == OptimizationLevel.Debug)
+            if (_optimizations == OptimizationLevel.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
-                int syntaxOffset = this.method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
+                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
 
-                int ordinal = synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
+                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
@@ -1408,12 +1405,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 localId = new LocalDebugId(syntaxOffset, ordinal);
             }
 
-            return local.Name ?? GeneratedNames.MakeSynthesizedLocalName(localKind, ref uniqueNameId);
+            return local.Name ?? GeneratedNames.MakeSynthesizedLocalName(localKind, ref _uniqueNameId);
         }
 
         private bool IsSlotReusable(LocalSymbol local)
         {
-            return local.SynthesizedKind.IsSlotReusable(this.optimizations);
+            return local.SynthesizedKind.IsSlotReusable(_optimizations);
         }
 
         /// <summary>
@@ -1424,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // TODO: releasing named locals is NYI.
             if (local.Name == null && IsSlotReusable(local) && !IsStackLocal(local))
             {
-                builder.LocalSlotManager.FreeLocal(local);
+                _builder.LocalSlotManager.FreeLocal(local);
             }
         }
 
@@ -1433,8 +1430,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition AllocateTemp(TypeSymbol type, CSharpSyntaxNode syntaxNode)
         {
-            return builder.LocalSlotManager.AllocateSlot(
-                this.module.Translate(type, syntaxNode, diagnostics),
+            return _builder.LocalSlotManager.AllocateSlot(
+                _module.Translate(type, syntaxNode, _diagnostics),
                 LocalSlotConstraints.None);
         }
 
@@ -1443,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private void FreeTemp(LocalDefinition temp)
         {
-            builder.LocalSlotManager.FreeSlot(temp);
+            _builder.LocalSlotManager.FreeSlot(temp);
         }
 
         /// <summary>
@@ -1464,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private class FinallyCloner : BoundTreeRewriter
         {
-            private Dictionary<LabelSymbol, GeneratedLabelSymbol> labelClones;
+            private Dictionary<LabelSymbol, GeneratedLabelSymbol> _labelClones;
 
             private FinallyCloner() { }
 
@@ -1532,10 +1529,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             private GeneratedLabelSymbol GetLabelClone(LabelSymbol label)
             {
-                var labelClones = this.labelClones;
+                var labelClones = _labelClones;
                 if (labelClones == null)
                 {
-                    this.labelClones = labelClones = new Dictionary<LabelSymbol, GeneratedLabelSymbol>();
+                    _labelClones = labelClones = new Dictionary<LabelSymbol, GeneratedLabelSymbol>();
                 }
 
                 GeneratedLabelSymbol clone;

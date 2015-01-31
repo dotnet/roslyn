@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class WhileBinder : LoopBinder
     {
-        private readonly StatementSyntax syntax;
+        private readonly StatementSyntax _syntax;
 
         public WhileBinder(Binder enclosing, StatementSyntax syntax)
             : base(enclosing)
         {
             Debug.Assert(syntax != null && (syntax.IsKind(SyntaxKind.WhileStatement) || syntax.IsKind(SyntaxKind.DoStatement)));
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            var node = (WhileStatementSyntax)syntax;
+            var node = (WhileStatementSyntax)_syntax;
 
             var condition = BindBooleanExpression(node.Condition, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            var node = (DoStatementSyntax)syntax;
+            var node = (DoStatementSyntax)_syntax;
 
             var condition = BindBooleanExpression(node.Condition, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);

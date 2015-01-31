@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     {
         private void ClassifyDocumentationComment(DocumentationCommentTriviaSyntax documentationComment)
         {
-            if (!textSpan.OverlapsWith(documentationComment.Span))
+            if (!_textSpan.OverlapsWith(documentationComment.Span))
             {
                 return;
             }
@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var xmlNode in documentationComment.Content)
             {
                 var childFullSpan = xmlNode.FullSpan;
-                if (childFullSpan.Start > textSpan.End)
+                if (childFullSpan.Start > _textSpan.End)
                 {
                     return;
                 }
-                else if (childFullSpan.End < textSpan.Start)
+                else if (childFullSpan.End < _textSpan.Start)
                 {
                     continue;
                 }

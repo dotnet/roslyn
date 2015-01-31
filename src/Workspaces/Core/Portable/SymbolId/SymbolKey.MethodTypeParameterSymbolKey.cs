@@ -12,38 +12,38 @@ namespace Microsoft.CodeAnalysis
     {
         private class MethodTypeParameterSymbol : AbstractSymbolKey<MethodTypeParameterSymbol>
         {
-            private readonly SymbolKey containerKey;
-            private readonly string metadataName;
+            private readonly SymbolKey _containerKey;
+            private readonly string _metadataName;
 
             public MethodTypeParameterSymbol(SymbolKey containerKey, ITypeParameterSymbol symbol)
             {
-                this.containerKey = containerKey;
-                this.metadataName = symbol.MetadataName;
+                _containerKey = containerKey;
+                _metadataName = symbol.MetadataName;
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                var container = containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
                 var typeParameters = GetAllSymbols<IMethodSymbol>(container).SelectMany(s => Resolve(compilation, s));
                 return CreateSymbolInfo(typeParameters);
             }
 
             private IEnumerable<ITypeParameterSymbol> Resolve(Compilation compilation, IMethodSymbol container)
             {
-                return container.TypeParameters.Where(t => Equals(compilation, t.MetadataName, this.metadataName));
+                return container.TypeParameters.Where(t => Equals(compilation, t.MetadataName, _metadataName));
             }
 
             internal override bool Equals(MethodTypeParameterSymbol other, ComparisonOptions options)
             {
-                return Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
-                    (options.CompareMethodTypeParametersByName || other.containerKey.Equals(this.containerKey, options));
+                return Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
+                    (options.CompareMethodTypeParametersByName || other._containerKey.Equals(_containerKey, options));
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 return Hash.Combine(
-                     GetHashCode(options.IgnoreCase, this.metadataName),
-                     this.containerKey.GetHashCode(options));
+                     GetHashCode(options.IgnoreCase, _metadataName),
+                     _containerKey.GetHashCode(options));
             }
         }
     }

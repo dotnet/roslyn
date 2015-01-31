@@ -221,7 +221,6 @@ class C
     // (4,25): error CS1002: ; expected
     //     int this[int i] => 2
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 25));
-
         }
 
         [Fact]
@@ -284,7 +283,6 @@ class C : B
 {
     public override int P => 1;
 }").VerifyDiagnostics();
-
         }
 
         [Fact]

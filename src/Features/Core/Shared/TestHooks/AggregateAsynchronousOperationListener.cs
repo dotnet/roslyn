@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal class AggregateAsynchronousOperationListener : IAsynchronousOperationListener
     {
-        private readonly IAsynchronousOperationListener listener;
+        private readonly IAsynchronousOperationListener _listener;
 
         public AggregateAsynchronousOperationListener(
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners,
             string featureName)
         {
-            listener = (from lazy in listeners
+            _listener = (from lazy in listeners
                         where lazy.Metadata.FeatureName == featureName
                         select lazy.Value).SingleOrDefault();
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public IAsyncToken BeginAsyncOperation(string name, object tag)
         {
-            return listener == null ? AsyncToken.Singleton : listener.BeginAsyncOperation(name, tag);
+            return _listener == null ? AsyncToken.Singleton : _listener.BeginAsyncOperation(name, tag);
         }
 
         private class AsyncToken : IAsyncToken

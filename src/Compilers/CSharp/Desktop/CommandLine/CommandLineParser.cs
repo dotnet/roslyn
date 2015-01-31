@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "default":
                     version = defaultVersion;
                     return true;
-                    
+
                 default:
                     int versionNumber;
                     if (int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber) && ((LanguageVersion)versionNumber).IsValid())

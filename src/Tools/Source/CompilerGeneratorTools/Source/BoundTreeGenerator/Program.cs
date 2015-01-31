@@ -8,9 +8,9 @@ using System.Xml.Serialization;
 
 namespace BoundTreeGenerator
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var nonSwitches = args.Where(a => !a.StartsWith("/")).ToArray();
             string language;
@@ -60,22 +60,22 @@ namespace BoundTreeGenerator
             }
         }
 
-        static void serializer_UnreferencedObject(object sender, UnreferencedObjectEventArgs e)
+        private static void serializer_UnreferencedObject(object sender, UnreferencedObjectEventArgs e)
         {
             Console.WriteLine("Unreferenced Object in XML deserialization");
         }
 
-        static void serializer_UnknownNode(object sender, XmlNodeEventArgs e)
+        private static void serializer_UnknownNode(object sender, XmlNodeEventArgs e)
         {
             Console.WriteLine("Unknown node {0} at line {1}, col {2}", e.Name, e.LineNumber, e.LinePosition);
         }
 
-        static void serializer_UnknownElement(object sender, XmlElementEventArgs e)
+        private static void serializer_UnknownElement(object sender, XmlElementEventArgs e)
         {
             Console.WriteLine("Unknown element {0} at line {1}, col {2}", e.Element.Name, e.LineNumber, e.LinePosition);
         }
 
-        static void serializer_UnknownAttribute(object sender, XmlAttributeEventArgs e)
+        private static void serializer_UnknownAttribute(object sender, XmlAttributeEventArgs e)
         {
             Console.WriteLine("Unknown attribute {0} at line {1}, col {2}", e.Attr.Name, e.LineNumber, e.LinePosition);
         }

@@ -77,7 +77,7 @@ class C4 : C1 {}
             var x_base_base = x.BaseType.BaseType as ErrorTypeSymbol;
             var er = x_base_base.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.", 
+            Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -198,11 +198,11 @@ class B<T> : A<B<T>> {
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.GetDeclarationDiagnostics().Verify(
-                // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
-                // class A<T> : B<A<T>> { }
+    // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
+    // class A<T> : B<A<T>> { }
     Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>"),
-                // (3,7): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
-                // class B<T> : A<B<T>> {
+    // (3,7): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
+    // class B<T> : A<B<T>> {
     Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>")
                 );
         }
@@ -955,11 +955,11 @@ public class ClassC : ClassB {}
             var ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
 
             var text = @"// hi";
-            var comp = CreateCompilationWithMscorlib(text, new[] 
-                { 
-                    ClassAv1, 
+            var comp = CreateCompilationWithMscorlib(text, new[]
+                {
+                    ClassAv1,
                     ClassBv1
-                }, 
+                },
                 assemblyName: "ClassB");
 
             var global1 = comp.GlobalNamespace;
@@ -978,7 +978,7 @@ public class ClassC : ClassB {}
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[] 
+            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[]
             {
                 ClassAv2,
                 new CSharpCompilationReference(comp)
@@ -1048,9 +1048,9 @@ public class ClassB : ClassA {}
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[] 
-            { 
-                ClassAv1, 
+            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[]
+            {
+                ClassAv1,
                 new CSharpCompilationReference(comp),
             });
 
@@ -1073,11 +1073,11 @@ public class ClassC : ClassB {}
             var ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
 
             var text = @"// hi";
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] 
+            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[]
                 {
                     ClassAv2,
                     ClassBv1,
-                }, 
+                },
                 assemblyName: "ClassB");
 
             var global1 = comp.GlobalNamespace;
@@ -1106,7 +1106,7 @@ public class ClassC : ClassB {}
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[] 
+            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[]
             {
                 ClassAv1,
                 new CSharpCompilationReference(comp)
@@ -1479,7 +1479,7 @@ class Z
         return a;
     }
 }";
- 
+
             CSharpCompilation c1 = CreateCompilationWithMscorlib(textA);
             CSharpCompilation c2 = CreateCompilationWithMscorlib(textB, new[] { new CSharpCompilationReference(c1) });
 
@@ -1818,7 +1818,7 @@ struct S : C.I
                 // class C : C.I
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "I").WithArguments("I", "C").WithLocation(1, 13));
         }
-        
+
         [Fact, WorkItem(1085632, "DevDiv")]
         public void BaseLookupRecursionWithStaticImport01()
         {

@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter : BoundTreeRewriter
     {
-        private readonly CSharpCompilation compilation;
-        private readonly SyntheticBoundNodeFactory factory;
-        private readonly SynthesizedSubmissionFields previousSubmissionFields;
-        private readonly bool allowOmissionOfConditionalCalls;
-        private readonly LoweredDynamicOperationFactory dynamicFactory;
-        private bool sawLambdas;
-        private bool inExpressionLambda;
+        private readonly CSharpCompilation _compilation;
+        private readonly SyntheticBoundNodeFactory _factory;
+        private readonly SynthesizedSubmissionFields _previousSubmissionFields;
+        private readonly bool _allowOmissionOfConditionalCalls;
+        private readonly LoweredDynamicOperationFactory _dynamicFactory;
+        private bool _sawLambdas;
+        private bool _inExpressionLambda;
 
-        private bool sawAwait;
-        private bool sawAwaitInExceptionHandler;
-        private readonly DiagnosticBag diagnostics;
+        private bool _sawAwait;
+        private bool _sawAwaitInExceptionHandler;
+        private readonly DiagnosticBag _diagnostics;
 
         private LocalRewriter(
             CSharpCompilation compilation,
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics)
         {
-            this.compilation = compilation;
-            this.factory = factory;
-            this.factory.CurrentMethod = containingMethod;
+            _compilation = compilation;
+            _factory = factory;
+            _factory.CurrentMethod = containingMethod;
             Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
-            this.dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
-            this.previousSubmissionFields = previousSubmissionFields;
-            this.allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
-            this.diagnostics = diagnostics;
+            _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
+            _previousSubmissionFields = previousSubmissionFields;
+            _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
+            _diagnostics = diagnostics;
         }
 
         /// <summary>
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
-                sawLambdas = localRewriter.sawLambdas;
-                sawAwaitInExceptionHandler = localRewriter.sawAwaitInExceptionHandler;
+                sawLambdas = localRewriter._sawLambdas;
+                sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
                 var block = loweredStatement as BoundBlock;
                 var result = (block == null) ? loweredStatement : InsertPrologueSequencePoint(block, method);
                 return result;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return !inExpressionLambda;
+                return !_inExpressionLambda;
             }
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private PEModuleBuilder EmitModule
         {
-            get { return this.factory.CompilationState.ModuleBuilderOpt; }
+            get { return _factory.CompilationState.ModuleBuilderOpt; }
         }
 
         private BoundStatement AddSequencePoint(BoundStatement node)
@@ -196,16 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            this.sawLambdas = true;
-            var oldContainingSymbol = this.factory.CurrentMethod;
+            _sawLambdas = true;
+            var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
-                this.factory.CurrentMethod = node.Symbol;
+                _factory.CurrentMethod = node.Symbol;
                 return base.VisitLambda(node);
             }
             finally
             {
-                this.factory.CurrentMethod = oldContainingSymbol;
+                _factory.CurrentMethod = oldContainingSymbol;
             }
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryGetWellKnownTypeMember<TSymbol>(CSharpSyntaxNode syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false) where TSymbol : Symbol
         {
-            symbol = (TSymbol)Binder.GetWellKnownTypeMember(this.compilation, member, diagnostics, syntax: syntax, isOptional: isOptional);
+            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional);
             return ((object)symbol != null);
         }
 
@@ -245,19 +245,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 SpecialType type = (SpecialType)descriptor.DeclaringTypeId;
-                TypeSymbol container = this.compilation.Assembly.GetSpecialType(type);
-                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: this.compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
+                TypeSymbol container = _compilation.Assembly.GetSpecialType(type);
+                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: _compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
             }
         }
 
         private bool TryGetSpecialTypeMember<TSymbol>(CSharpSyntaxNode syntax, SpecialMember specialMember, out TSymbol symbol) where TSymbol : Symbol
         {
-            symbol = (TSymbol)this.compilation.Assembly.GetSpecialTypeMember(specialMember);
+            symbol = (TSymbol)_compilation.Assembly.GetSpecialTypeMember(specialMember);
             if ((object)symbol == null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                _diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
                 return false;
             }
             else
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var useSiteDiagnostic = symbol.GetUseSiteDiagnosticForSymbolOrContainingType();
                 if (useSiteDiagnostic != null)
                 {
-                    Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, new SourceLocation(syntax));
+                    Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, _diagnostics, new SourceLocation(syntax));
                 }
             }
 
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundStatement> rewrittenStatements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
             ImmutableArray<BoundStatement> optimizedStatements = ImmutableArray<BoundStatement>.Empty;
 
-            if (compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            if (_compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
                 // TODO: this part may conflict with InitializerRewriter.Rewrite in how it handles 
                 //       the first field initializer (see 'if (i == 0)'...) which seems suspicious
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldOptimizeOutInitializer(initializer))
                     {
-                        if (this.factory.CurrentMethod.IsStatic)
+                        if (_factory.CurrentMethod.IsStatic)
                         {
                             // NOTE: Dev11 removes static initializers if ONLY all of them are optimized out
                             statements.Add(initializer);

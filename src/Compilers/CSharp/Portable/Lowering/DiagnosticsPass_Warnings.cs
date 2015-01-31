@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.WRN_VolatileByRef, fieldAccess, fieldSymbol);
             }
 
-            if (IsNonAgileFieldAccess(fieldAccess, this.compilation))
+            if (IsNonAgileFieldAccess(fieldAccess, _compilation))
             {
                 Error(ErrorCode.WRN_ByRefNonAgileField, fieldAccess, fieldSymbol);
             }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
 
-            if (IsNonAgileFieldAccess(fieldAccess, this.compilation) && !fieldSymbol.Type.IsReferenceType)
+            if (IsNonAgileFieldAccess(fieldAccess, _compilation) && !fieldSymbol.Type.IsReferenceType)
             {
                 Error(ErrorCode.WRN_CallOnNonAgileField, fieldAccess, fieldSymbol);
             }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsInterlockedAPI(Symbol method)
         {
-            var interlocked = this.compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
+            var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
             if ((object)interlocked != null && interlocked == method.ContainingType)
                 return true;
 
@@ -207,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 default:
                     return false;
-
             }
         }
 
@@ -266,12 +265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.Left.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Left) && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the left hand side to type '{0}'
-                    diagnostics.Add(ErrorCode.WRN_BadRefCompareLeft, node.Syntax.Location, t);
+                    _diagnostics.Add(ErrorCode.WRN_BadRefCompareLeft, node.Syntax.Location, t);
                 }
                 else if (node.Right.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Right) && !(node.Right.ConstantValue != null && node.Right.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Left, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the right hand side to type '{0}'
-                    diagnostics.Add(ErrorCode.WRN_BadRefCompareRight, node.Syntax.Location, t);
+                    _diagnostics.Add(ErrorCode.WRN_BadRefCompareRight, node.Syntax.Location, t);
                 }
             }
 

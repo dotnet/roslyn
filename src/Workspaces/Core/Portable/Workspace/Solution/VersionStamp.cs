@@ -18,22 +18,22 @@ namespace Microsoft.CodeAnalysis
         /// global counter to avoid collision within same session. 
         /// it starts with a big initial number just for a clarity in debugging
         /// </summary>
-        private static int globalVersion = InitialGlobalVersion;
+        private static int s_globalVersion = InitialGlobalVersion;
 
         /// <summary>
         /// time stamp
         /// </summary>
-        private readonly DateTime utcLastModified;
+        private readonly DateTime _utcLastModified;
 
         /// <summary>
         /// indicate whether there was a collision on same item
         /// </summary>
-        private readonly int localIncrement;
+        private readonly int _localIncrement;
 
         /// <summary>
         /// unique version in same session
         /// </summary>
-        private readonly int globalIncrement;
+        private readonly int _globalIncrement;
 
         private VersionStamp(DateTime utcLastModified)
             : this(utcLastModified, 0)
@@ -42,18 +42,18 @@ namespace Microsoft.CodeAnalysis
 
         private VersionStamp(DateTime utcLastModified, int localIncrement)
         {
-            this.utcLastModified = utcLastModified;
-            this.localIncrement = localIncrement;
-            this.globalIncrement = GetNextGlobalVersion();
+            _utcLastModified = utcLastModified;
+            _localIncrement = localIncrement;
+            _globalIncrement = GetNextGlobalVersion();
         }
 
         private VersionStamp(DateTime utcLastModified, int localIncrement, int globalIncrement)
         {
             Contract.ThrowIfFalse(utcLastModified == default(DateTime) || utcLastModified.Kind == DateTimeKind.Utc);
 
-            this.utcLastModified = utcLastModified;
-            this.localIncrement = localIncrement;
-            this.globalIncrement = globalIncrement;
+            _utcLastModified = utcLastModified;
+            _localIncrement = localIncrement;
+            _globalIncrement = globalIncrement;
         }
 
         /// <summary>
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis
             //
             // and this method is the one that is responsible for #4 case.
 
-            if (this.utcLastModified > version.utcLastModified)
+            if (_utcLastModified > version._utcLastModified)
             {
                 return this;
             }
 
-            if (this.utcLastModified == version.utcLastModified)
+            if (_utcLastModified == version._utcLastModified)
             {
                 var thisGlobalVersion = GetGlobalVersion(this);
                 var thatGlobalVersion = GetGlobalVersion(version);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
 
                 // mark it as global version
                 // global version can't be moved to newer version.
-                return new VersionStamp(this.utcLastModified, (thisGlobalVersion > thatGlobalVersion) ? thisGlobalVersion : thatGlobalVersion, GlobalVersionMarker);
+                return new VersionStamp(_utcLastModified, (thisGlobalVersion > thatGlobalVersion) ? thisGlobalVersion : thatGlobalVersion, GlobalVersionMarker);
             }
 
             return version;
@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis
         public VersionStamp GetNewerVersion()
         {
             // global version can't be moved to newer version
-            Contract.Requires(this.globalIncrement != GlobalVersionMarker);
+            Contract.Requires(_globalIncrement != GlobalVersionMarker);
 
             var now = DateTime.UtcNow;
-            var incr = (now == this.utcLastModified) ? this.localIncrement + 1 : 0;
+            var incr = (now == _utcLastModified) ? _localIncrement + 1 : 0;
 
             return new VersionStamp(now, incr);
         }
@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
         {
             // 'o' is the roundtrip format that captures the most detail.
-            return this.utcLastModified.ToString("o") + "-" + globalIncrement + "-" + localIncrement;
+            return _utcLastModified.ToString("o") + "-" + _globalIncrement + "-" + _localIncrement;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.utcLastModified.GetHashCode(), this.localIncrement);
+            return Hash.Combine(_utcLastModified.GetHashCode(), _localIncrement);
         }
 
         public override bool Equals(object obj)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(VersionStamp version)
         {
-            if (this.utcLastModified == version.utcLastModified)
+            if (_utcLastModified == version._utcLastModified)
             {
                 return GetGlobalVersion(this) == GetGlobalVersion(version);
             }
@@ -183,12 +183,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             // there was a collision, we can't use these
-            if (baseVersion.localIncrement != 0 || persistedVersion.localIncrement != 0)
+            if (baseVersion._localIncrement != 0 || persistedVersion._localIncrement != 0)
             {
                 return false;
             }
 
-            return baseVersion.utcLastModified == persistedVersion.utcLastModified;
+            return baseVersion._utcLastModified == persistedVersion._utcLastModified;
         }
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
@@ -198,9 +198,9 @@ namespace Microsoft.CodeAnalysis
 
         internal void WriteTo(ObjectWriter writer)
         {
-            writer.WriteInt64(this.utcLastModified.ToBinary());
-            writer.WriteInt32(this.localIncrement);
-            writer.WriteInt32(this.globalIncrement);
+            writer.WriteInt64(_utcLastModified.ToBinary());
+            writer.WriteInt32(_localIncrement);
+            writer.WriteInt32(_globalIncrement);
         }
 
         internal static VersionStamp ReadFrom(ObjectReader reader)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
         private static int GetGlobalVersion(VersionStamp version)
         {
             // global increment < 0 means it is a global version which has its global increment in local increment
-            return version.globalIncrement >= 0 ? version.globalIncrement : version.localIncrement;
+            return version._globalIncrement >= 0 ? version._globalIncrement : version._localIncrement;
         }
 
         private static int GetNextGlobalVersion()
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
 
             // this will let versions to be compared safely between multiple items
             // without worring about collision within same session
-            var globalVersion = Interlocked.Increment(ref VersionStamp.globalVersion);
+            var globalVersion = Interlocked.Increment(ref VersionStamp.s_globalVersion);
 
             return globalVersion;
         }
@@ -240,12 +240,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool TestOnly_IsNewerThan(VersionStamp version)
         {
-            if (this.utcLastModified > version.utcLastModified)
+            if (_utcLastModified > version._utcLastModified)
             {
                 return true;
             }
 
-            if (this.utcLastModified == version.utcLastModified)
+            if (_utcLastModified == version._utcLastModified)
             {
                 return GetGlobalVersion(this) > GetGlobalVersion(version);
             }

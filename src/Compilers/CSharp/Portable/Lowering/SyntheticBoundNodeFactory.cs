@@ -45,42 +45,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeCompilationState CompilationState { get; private set; }
 
         // Current enclosing type, or null if not available.
-        private NamedTypeSymbol currentType;
+        private NamedTypeSymbol _currentType;
         public NamedTypeSymbol CurrentType
         {
-            get { return currentType; }
+            get { return _currentType; }
             set
             {
-                currentType = value;
+                _currentType = value;
                 CheckCurrentType();
             }
         }
 
         // current method, possibly a lambda, or null if not available
-        private MethodSymbol currentMethod;
+        private MethodSymbol _currentMethod;
         public MethodSymbol CurrentMethod
         {
-            get { return currentMethod; }
+            get { return _currentMethod; }
             set
             {
-                currentMethod = value;
+                _currentMethod = value;
                 if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
                 {
-                    topLevelMethod = value;
-                    currentType = value.ContainingType;
+                    _topLevelMethod = value;
+                    _currentType = value.ContainingType;
                 }
                 CheckCurrentType();
             }
         }
 
         // The nearest enclosing non-lambda method, or null if not available
-        private MethodSymbol topLevelMethod;
+        private MethodSymbol _topLevelMethod;
         public MethodSymbol TopLevelMethod
         {
-            get { return topLevelMethod; }
+            get { return _topLevelMethod; }
             private set
             {
-                topLevelMethod = value;
+                _topLevelMethod = value;
                 CheckCurrentType();
             }
         }
@@ -92,27 +92,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (binder == null) binder = new SyntheticBinderImpl(this);
-                return binder;
+                if (_binder == null) _binder = new SyntheticBinderImpl(this);
+                return _binder;
             }
         }
-        private SyntheticBinderImpl binder;
+        private SyntheticBinderImpl _binder;
 
         /// <summary>
         /// A binder used only for performing overload resolution of runtime helper methods.
         /// </summary>
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
         {
-            private readonly SyntheticBoundNodeFactory factory;
+            private readonly SyntheticBoundNodeFactory _factory;
             internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation)
             {
-                this.factory = factory;
+                _factory = factory;
             }
 
-            internal override Symbol ContainingMemberOrLambda { get { return factory.CurrentMethod; } }
+            internal override Symbol ContainingMemberOrLambda { get { return _factory.CurrentMethod; } }
             internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
             {
-                return AccessCheck.IsSymbolAccessible(symbol, factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+                return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
             }
             internal BoundExpression MakeInvocationExpression(
                 CSharpSyntaxNode node,
@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // rather than the EE-defined methods for which we are generating bound nodes.  This is
                 // because the containing symbols are used to determine the type of the "this" parameter,
                 // which we need to the user-defined types.
-                Debug.Assert((object)CurrentMethod == null || 
-                    CurrentMethod.MethodKind == MethodKind.AnonymousFunction || 
+                Debug.Assert((object)CurrentMethod == null ||
+                    CurrentMethod.MethodKind == MethodKind.AnonymousFunction ||
                     CurrentMethod.ContainingType == CurrentType);
             }
         }
@@ -437,12 +437,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
         public LocalSymbol SynthesizedLocal(
-            TypeSymbol type, 
+            TypeSymbol type,
             SyntaxNode syntax = null,
             bool isPinned = false,
-            RefKind refKind = RefKind.None, 
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp, 
-            [CallerLineNumber]int createdAtLineNumber = 0, 
+            RefKind refKind = RefKind.None,
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            [CallerLineNumber]int createdAtLineNumber = 0,
             [CallerFilePath]string createdAtFilePath = null)
         {
             return new SynthesizedLocal(CurrentMethod, type, kind, syntax, isPinned, refKind, createdAtLineNumber, createdAtFilePath);
@@ -578,7 +578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType) { WasCompilerGenerated = true };
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+            { WasCompilerGenerated = true };
         }
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
@@ -713,7 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<LocalSymbol>.Empty,
                 s,
                 breakLabel,
-                null) { WasCompilerGenerated = true };
+                null)
+            { WasCompilerGenerated = true };
         }
 
         public BoundStatement Switch(BoundExpression ex, IEnumerable<BoundSwitchSection> sections)
@@ -871,7 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax,
                 Type(type),
                 WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
-                WellKnownType(CodeAnalysis.WellKnownType.System_Type)) { WasCompilerGenerated = true };
+                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
+            { WasCompilerGenerated = true };
         }
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
@@ -890,7 +893,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax,
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType),
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo)) { WasCompilerGenerated = true };
+                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
+            { WasCompilerGenerated = true };
         }
 
         public BoundExpression MethodInfo(MethodSymbol method)
@@ -908,7 +912,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax,
                 method,
                 GetMethodFromHandleMethod(method.ContainingType),
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_MethodInfo)) { WasCompilerGenerated = true };
+                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_MethodInfo))
+            { WasCompilerGenerated = true };
         }
 
         public BoundExpression FieldInfo(FieldSymbol field)
@@ -917,7 +922,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax,
                 field,
                 GetFieldFromHandleMethod(field.ContainingType),
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_FieldInfo)) { WasCompilerGenerated = true };
+                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_FieldInfo))
+            { WasCompilerGenerated = true };
         }
 
         private MethodSymbol GetMethodFromHandleMethod(NamedTypeSymbol methodContainer)
@@ -944,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If this happens, we should probably check if the method has ObsoleteAttribute.
             Debug.Assert((object)c.Method == null, "Why are we synthesizing a user-defined conversion after initial binding?");
-            
+
             return Convert(type, arg, c);
         }
 
@@ -975,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 constantValueOpt: null,
                 type: type)
-                { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
 
         public BoundExpression Array(TypeSymbol elementType, BoundExpression[] elements)
@@ -1049,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLocal StoreToTemp(
             BoundExpression argument,
             out BoundAssignmentOperator store,
-            RefKind refKind = RefKind.None, 
+            RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
             CSharpSyntaxNode syntaxOpt = null
 #if DEBUG
@@ -1066,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 new SynthesizedLocal(
                     containingMethod,
-                    type, 
+                    type,
                     kind,
 #if DEBUG
                     createdAtLineNumber: callerLineNumber,

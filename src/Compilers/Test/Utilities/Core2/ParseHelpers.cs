@@ -22,27 +22,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private Type m_CSParserType = null;
         private Type m_VBParserType = null;
 #endif
-        private Type m_CSSyntaxTreeType = null;
-        private Type m_VisualBasicSyntaxTreeType = null;
-        private object m_CSOptions = null;
-        private object m_VBOptions = null;
-        private readonly string m_CSFileName = "Default.cs";
-        private readonly string m_VBFileName = "Default.vb";
-        private object m_CodeKind = null;
+        private Type _CSSyntaxTreeType = null;
+        private Type _visualBasicSyntaxTreeType = null;
+        private object _CSOptions = null;
+        private object _VBOptions = null;
+        private readonly string _CSFileName = "Default.cs";
+        private readonly string _VBFileName = "Default.vb";
+        private object _codeKind = null;
         public SyntaxTree ParseCSTree(string code, string folder)
         {
-            if (m_CSSyntaxTreeType == null)
+            if (_CSSyntaxTreeType == null)
             {
                 var asm = Assembly.LoadFrom(Path.Combine(folder, CS_PARSER_DLL));
-                m_CSSyntaxTreeType = asm.GetType(CS_SYNTAX_TREE_TYPE);
+                _CSSyntaxTreeType = asm.GetType(CS_SYNTAX_TREE_TYPE);
                 var csLangVersionOption = Enum.Parse(asm.GetType(CS_LANG_VERSION_OPTION_TYPE), "CSharp4");
-                m_CodeKind = Enum.Parse(asm.GetType(CODE_KIND_OPTION), "Regular");
-                m_CSOptions = Activator.CreateInstance(asm.GetType(CS_OPTIONS_TYPE), csLangVersionOption, null, false, m_CodeKind);
+                _codeKind = Enum.Parse(asm.GetType(CODE_KIND_OPTION), "Regular");
+                _CSOptions = Activator.CreateInstance(asm.GetType(CS_OPTIONS_TYPE), csLangVersionOption, null, false, _codeKind);
             }
 
-            SyntaxTree syntaxTree = (SyntaxTree)m_CSSyntaxTreeType.InvokeMember(SYNTAX_TREE_PARSE_METHOD, BindingFlags.InvokeMethod, null, null, new[]
+            SyntaxTree syntaxTree = (SyntaxTree)_CSSyntaxTreeType.InvokeMember(SYNTAX_TREE_PARSE_METHOD, BindingFlags.InvokeMethod, null, null, new[]
         {
-        code, m_CSFileName, m_CSOptions
+        code, _CSFileName, _CSOptions
         }
 
             );
@@ -51,17 +51,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public SyntaxTree ParseVBTree(string code, string folder)
         {
-            if (m_VisualBasicSyntaxTreeType == null)
+            if (_visualBasicSyntaxTreeType == null)
             {
                 var asm = Assembly.LoadFrom(Path.Combine(folder, VB_PARSER_DLL));
-                m_VisualBasicSyntaxTreeType = asm.GetType(VB_SYNTAX_TREE_TYPE);
-                m_CodeKind = Enum.Parse(asm.GetType(CODE_KIND_OPTION), "Regular");
-                m_VBOptions = Activator.CreateInstance(asm.GetType(VB_OPTIONS_TYPE), null, false, m_CodeKind);
+                _visualBasicSyntaxTreeType = asm.GetType(VB_SYNTAX_TREE_TYPE);
+                _codeKind = Enum.Parse(asm.GetType(CODE_KIND_OPTION), "Regular");
+                _VBOptions = Activator.CreateInstance(asm.GetType(VB_OPTIONS_TYPE), null, false, _codeKind);
             }
 
-            SyntaxTree syntaxTree = (SyntaxTree)m_VisualBasicSyntaxTreeType.InvokeMember(SYNTAX_TREE_PARSE_METHOD, BindingFlags.InvokeMethod, null, null, new[]
+            SyntaxTree syntaxTree = (SyntaxTree)_visualBasicSyntaxTreeType.InvokeMember(SYNTAX_TREE_PARSE_METHOD, BindingFlags.InvokeMethod, null, null, new[]
         {
-        code, m_VBFileName, m_VBOptions
+        code, _VBFileName, _VBOptions
         }
 
             );

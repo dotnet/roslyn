@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 {
     internal sealed class ChangeSignatureFormattingRule : BaseFormattingRule
     {
-        private static readonly ImmutableArray<SyntaxKind> allowableKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> s_allowableKinds = ImmutableArray.Create(
             SyntaxKind.ParameterList,
             SyntaxKind.ArgumentList,
             SyntaxKind.BracketedParameterList,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             nextOperation.Invoke(list);
 
-            if (allowableKinds.Contains(node.Kind()))
+            if (s_allowableKinds.Contains(node.Kind()))
             {
                 AddChangeSignatureIndentOperation(list, node);
             }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
         {
-            if (previousToken.Kind() == SyntaxKind.CommaToken && allowableKinds.Contains(previousToken.Parent.Kind()))
+            if (previousToken.Kind() == SyntaxKind.CommaToken && s_allowableKinds.Contains(previousToken.Parent.Kind()))
             {
                 return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }

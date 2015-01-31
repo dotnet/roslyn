@@ -1616,7 +1616,7 @@ End Module
 ";
             Verify(code, expected);
         }
-        
+
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
@@ -1683,7 +1683,7 @@ End Module
 ";
             Verify(code, expected);
         }
-        
+
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]

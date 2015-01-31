@@ -159,7 +159,5 @@ class D : B
             var comp = CreateCompilationWithMscorlib(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
-
     }
-
 }

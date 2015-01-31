@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
 
         private sealed class SyntaxNodeAnalyzer
         {
-            private INamedTypeSymbol containingType;
+            private INamedTypeSymbol _containingType;
 
             public SyntaxNodeAnalyzer(IMethodSymbol constructorSymbol)
             {
-                this.containingType = constructorSymbol.ContainingType;
+                _containingType = constructorSymbol.ContainingType;
             }
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
-                {
+            {
                 // TODO: For this to be correct, we need flow analysis to determine if a given method
                 // is actually invoked inside the current constructor. A method may be assigned to a
                 // delegate which can be called inside or outside the constructor. A method may also
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 var method = context.SemanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol as IMethodSymbol;
                 if (method != null &&
                     (method.IsAbstract || method.IsVirtual) &&
-                    method.ContainingType == this.containingType)
+                    method.ContainingType == _containingType)
                 {
                     context.ReportDiagnostic(invocationExpression.Expression.CreateDiagnostic(Rule));
                 }

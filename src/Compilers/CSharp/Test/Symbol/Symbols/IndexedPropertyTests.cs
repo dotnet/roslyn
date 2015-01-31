@@ -2520,7 +2520,7 @@ class D : CodeModule
         }
 
         [WorkItem(530571, "DevDiv")]
-        [Fact(Skip="530571")]
+        [Fact(Skip = "530571")]
         public void GetAccessorMethodBug16439()
         {
             var il = @"

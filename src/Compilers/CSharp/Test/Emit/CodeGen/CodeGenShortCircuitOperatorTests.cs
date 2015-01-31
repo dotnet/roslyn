@@ -1797,7 +1797,6 @@ System.Exception");
   IL_002e:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -2162,7 +2161,6 @@ True");
   IL_0058:  callvirt   ""void System.IDisposable.Dispose()""
   IL_005d:  ret
 }");
-
         }
 
         [Fact]
@@ -2262,7 +2260,6 @@ True");
   IL_006d:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -2337,7 +2334,6 @@ True
   IL_002d:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -2410,7 +2406,6 @@ True");
   IL_002a:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -2512,7 +2507,6 @@ False");
   IL_006d:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -2584,7 +2578,6 @@ True");
   IL_002b:  ret
 }
 ");
-
         }
 
 
@@ -2645,7 +2638,6 @@ class Program
 True
 False
 False");
-
         }
 
         [Fact]
@@ -2771,7 +2763,6 @@ class Program
 True
 False
 True");
-
         }
 
         [Fact]
@@ -2841,7 +2832,6 @@ class Program
 True
 False
 False");
-
         }
 
         [Fact]
@@ -2925,7 +2915,6 @@ True
 False
 True
 False");
-
         }
 
         [Fact]
@@ -3009,7 +2998,6 @@ True
 False
 True
 False");
-
         }
 
         [Fact]
@@ -3093,7 +3081,6 @@ False
 True
 False
 True");
-
         }
 
 
@@ -3141,7 +3128,6 @@ static class Ext
   IL_0014:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -3269,7 +3255,6 @@ class Test
   IL_0033:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -5557,6 +5542,5 @@ M1(Action<C<T>> x)
 M
 ---");
         }
-
     }
 }

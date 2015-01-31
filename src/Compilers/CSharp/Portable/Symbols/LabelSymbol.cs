@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal LabelSymbol(string name)
         {
-            this.name = name;
+            _name = name;
         }
 
-        private readonly string name;
+        private readonly string _name;
 
         /// <summary>
         /// Gets the name of this label
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.name;
+                return _name;
             }
         }
 

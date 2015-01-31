@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PartialTypeDocumentationCommentTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamedTypeSymbol fooClass;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamedTypeSymbol _fooClass;
 
         public PartialTypeDocumentationCommentTests()
         {
@@ -42,9 +42,9 @@ partial class Foo
     partial void ImplementedMethod() { }
 }", options: TestOptions.RegularWithDocumentationComments);
 
-            compilation = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            _compilation = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
 
-            fooClass = compilation.GlobalNamespace.GetTypeMembers("Foo").Single();
+            _fooClass = _compilation.GlobalNamespace.GetTypeMembers("Foo").Single();
         }
 
         [Fact]
@@ -55,13 +55,13 @@ partial class Foo
     <summary>Summary on first file's Foo.</summary>
     <summary>Summary on second file's Foo.</summary>
 </member>
-", fooClass.GetDocumentationCommentXml());
+", _fooClass.GetDocumentationCommentXml());
         }
 
         [Fact]
         public void TestSummaryOfMethodWithNoImplementation()
         {
-            var method = fooClass.GetMembers("MethodWithNoImplementation").Single();
+            var method = _fooClass.GetMembers("MethodWithNoImplementation").Single();
             Assert.Equal(string.Empty, method.GetDocumentationCommentXml()); //Matches what would be written to an XML file.
         }
 
@@ -71,7 +71,7 @@ partial class Foo
             // This is an interesting behavior; as long as there is any XML at all on the implementation, it overrides
             // any XML on the latent declaration. Since we don't have a summary on this implementation, this should be
             // null!
-            var method = fooClass.GetMembers("ImplementedMethodWithNoSummaryOnImpl").Single();
+            var method = _fooClass.GetMembers("ImplementedMethodWithNoSummaryOnImpl").Single();
             Assert.Equal(
 @"<member name=""M:Foo.ImplementedMethodWithNoSummaryOnImpl"">
     <remarks>Foo.</remarks>
@@ -82,7 +82,7 @@ partial class Foo
         [Fact]
         public void TestImplementedMethod()
         {
-            var method = fooClass.GetMembers("ImplementedMethod").Single();
+            var method = _fooClass.GetMembers("ImplementedMethod").Single();
             Assert.Equal(
 @"<member name=""M:Foo.ImplementedMethod"">
     <summary>Implemented method.</summary>

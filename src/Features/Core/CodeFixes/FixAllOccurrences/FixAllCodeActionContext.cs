@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal class FixAllCodeActionContext : FixAllContext
     {
-        private readonly FixAllProviderInfo fixAllProviderInfo;
-        private readonly IEnumerable<Diagnostic> originalFixDiagnostics;
-        private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync;
-        private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync;
+        private readonly FixAllProviderInfo _fixAllProviderInfo;
+        private readonly IEnumerable<Diagnostic> _originalFixDiagnostics;
+        private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getDocumentDiagnosticsAsync;
+        private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getProjectDiagnosticsAsync;
 
         internal FixAllCodeActionContext(
             Document document,
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                   null, GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics),
                   getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, cancellationToken)
         {
-            this.fixAllProviderInfo = fixAllProviderInfo;
-            this.originalFixDiagnostics = originalFixDiagnostics;
-            this.getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
-            this.getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
+            _fixAllProviderInfo = fixAllProviderInfo;
+            _originalFixDiagnostics = originalFixDiagnostics;
+            _getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
+            _getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
         }
 
         internal FixAllCodeActionContext(
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                   null, GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics),
                   getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, cancellationToken)
         {
-            this.fixAllProviderInfo = fixAllProviderInfo;
-            this.originalFixDiagnostics = originalFixDiagnostics;
-            this.getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
-            this.getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
+            _fixAllProviderInfo = fixAllProviderInfo;
+            _originalFixDiagnostics = originalFixDiagnostics;
+            _getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
+            _getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
         }
 
         private static IEnumerable<string> GetFixAllDiagnosticIds(FixAllProviderInfo fixAllProviderInfo, IEnumerable<Diagnostic> originalFixDiagnostics)
@@ -65,17 +65,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public IEnumerable<Diagnostic> OriginalDiagnostics
         {
-            get { return this.originalFixDiagnostics; }
+            get { return _originalFixDiagnostics; }
         }
 
         public FixAllProvider FixAllProvider
         {
-            get { return this.fixAllProviderInfo.FixAllProvider; }
+            get { return _fixAllProviderInfo.FixAllProvider; }
         }
 
         public IEnumerable<FixAllScope> SupportedScopes
         {
-            get { return this.fixAllProviderInfo.SupportedScopes; }
+            get { return _fixAllProviderInfo.SupportedScopes; }
         }
 
         /// <summary>
@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (this.Document != null)
             {
                 return new FixAllContext(this.Document, this.CodeFixProvider, scope, codeActionEquivalenceKey,
-                    this.DiagnosticIds, this.getDocumentDiagnosticsAsync, this.getProjectDiagnosticsAsync, this.CancellationToken);
+                    this.DiagnosticIds, _getDocumentDiagnosticsAsync, _getProjectDiagnosticsAsync, this.CancellationToken);
             }
 
             return new FixAllContext(this.Project, this.CodeFixProvider, scope, codeActionEquivalenceKey,
-                    this.DiagnosticIds, this.getDocumentDiagnosticsAsync, this.getProjectDiagnosticsAsync, this.CancellationToken);
+                    this.DiagnosticIds, _getDocumentDiagnosticsAsync, _getProjectDiagnosticsAsync, this.CancellationToken);
         }
     }
 }

@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An analysis that computes the set of variables that may be used
     /// before being assigned anywhere within a method.
     /// </summary>
-    class UnassignedVariablesWalker : DataFlowPass
+    internal class UnassignedVariablesWalker : DataFlowPass
     {
-        UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
+        private UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
             : base(compilation, member, node, new NeverEmptyStructTypeCache())
         {
         }
@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly HashSet<Symbol> result = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _result = new HashSet<Symbol>();
 
-        new HashSet<Symbol> Analyze(ref bool badRegion)
+        private new HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
-            return result;
+            return _result;
         }
 
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
@@ -46,20 +46,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: how to handle fields of structs?
             if (symbol.Kind != SymbolKind.Field)
             {
-                result.Add(symbol);
+                _result.Add(symbol);
             }
         }
 
         protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
         {
-            result.Add(parameter);
+            _result.Add(parameter);
             base.ReportUnassignedOutParameter(parameter, node, location);
         }
 
         protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
         {
             Symbol variable = GetNonFieldSymbol(unassignedSlot);
-            if ((object)variable != null) result.Add(variable);
+            if ((object)variable != null) _result.Add(variable);
             base.ReportUnassigned(fieldSymbol, unassignedSlot, node);
         }
     }

@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         private class CommentBuilder
         {
-            private readonly DocumentationComment comment;
-            private ImmutableArray<string>.Builder parameterNamesBuilder = null;
-            private ImmutableArray<string>.Builder typeParameterNamesBuilder = null;
-            private ImmutableArray<string>.Builder exceptionTypesBuilder = null;
-            private Dictionary<string, ImmutableArray<string>.Builder> exceptionTextBuilders = null;
+            private readonly DocumentationComment _comment;
+            private ImmutableArray<string>.Builder _parameterNamesBuilder = null;
+            private ImmutableArray<string>.Builder _typeParameterNamesBuilder = null;
+            private ImmutableArray<string>.Builder _exceptionTypesBuilder = null;
+            private Dictionary<string, ImmutableArray<string>.Builder> _exceptionTextBuilders = null;
 
             /// <summary>
             /// Parse and construct a <see cref="DocumentationComment" /> from the given fragment of XML.
@@ -114,26 +114,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private CommentBuilder(string xml)
             {
-                comment = new DocumentationComment() { FullXmlFragment = xml };
+                _comment = new DocumentationComment() { FullXmlFragment = xml };
             }
 
             private DocumentationComment ParseInternal(string xml)
             {
                 XmlFragmentParser.ParseFragment(xml, ParseCallback, this);
 
-                if (exceptionTextBuilders != null)
+                if (_exceptionTextBuilders != null)
                 {
-                    foreach (var typeAndBuilderPair in exceptionTextBuilders)
+                    foreach (var typeAndBuilderPair in _exceptionTextBuilders)
                     {
-                        comment.exceptionTexts.Add(typeAndBuilderPair.Key, typeAndBuilderPair.Value.AsImmutable());
+                        _comment._exceptionTexts.Add(typeAndBuilderPair.Key, typeAndBuilderPair.Value.AsImmutable());
                     }
                 }
 
-                comment.ParameterNames = parameterNamesBuilder == null ? ImmutableArray<string>.Empty : parameterNamesBuilder.ToImmutable();
-                comment.TypeParameterNames = typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : typeParameterNamesBuilder.ToImmutable();
-                comment.ExceptionTypes = exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : exceptionTypesBuilder.ToImmutable();
+                _comment.ParameterNames = _parameterNamesBuilder == null ? ImmutableArray<string>.Empty : _parameterNamesBuilder.ToImmutable();
+                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : _typeParameterNamesBuilder.ToImmutable();
+                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : _exceptionTypesBuilder.ToImmutable();
 
-                return comment;
+                return _comment;
             }
 
             private static void ParseCallback(XmlReader reader, CommentBuilder builder)
@@ -146,31 +146,31 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (reader.NodeType == XmlNodeType.Element)
                 {
                     string localName = reader.LocalName;
-                    if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && comment.ExampleText == null)
+                    if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && _comment.ExampleText == null)
                     {
-                        comment.ExampleText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.ExampleText = reader.ReadInnerXml().Trim(); // TODO: trim each line
                     }
-                    else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName) && comment.SummaryText == null)
+                    else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName) && _comment.SummaryText == null)
                     {
-                        comment.SummaryText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.SummaryText = reader.ReadInnerXml().Trim(); // TODO: trim each line
                     }
-                    else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && comment.ReturnsText == null)
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && _comment.ReturnsText == null)
                     {
-                        comment.ReturnsText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.ReturnsText = reader.ReadInnerXml().Trim(); // TODO: trim each line
                     }
-                    else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && comment.RemarksText == null)
+                    else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && _comment.RemarksText == null)
                     {
-                        comment.RemarksText = reader.ReadInnerXml().Trim(); // TODO: trim each line
+                        _comment.RemarksText = reader.ReadInnerXml().Trim(); // TODO: trim each line
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
                     {
                         string name = reader.GetAttribute(XmlNames.NameAttributeName);
                         string paramText = reader.ReadInnerXml();
 
-                        if (!string.IsNullOrWhiteSpace(name) && !comment.parameterTexts.ContainsKey(name))
+                        if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                         {
-                            (parameterNamesBuilder ?? (parameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
-                            comment.parameterTexts.Add(name, paramText.Trim()); // TODO: trim each line
+                            (_parameterNamesBuilder ?? (_parameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            _comment._parameterTexts.Add(name, paramText.Trim()); // TODO: trim each line
                         }
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
@@ -178,10 +178,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         string name = reader.GetAttribute(XmlNames.NameAttributeName);
                         string typeParamText = reader.ReadInnerXml();
 
-                        if (!string.IsNullOrWhiteSpace(name) && !comment.typeParameterTexts.ContainsKey(name))
+                        if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                         {
-                            (typeParameterNamesBuilder ?? (typeParameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
-                            comment.typeParameterTexts.Add(name, typeParamText.Trim()); // TODO: trim each line
+                            (_typeParameterNamesBuilder ?? (_typeParameterNamesBuilder = ImmutableArray.CreateBuilder<string>())).Add(name);
+                            _comment._typeParameterTexts.Add(name, typeParamText.Trim()); // TODO: trim each line
                         }
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
@@ -191,13 +191,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                         if (!string.IsNullOrWhiteSpace(type))
                         {
-                            if (exceptionTextBuilders == null || !exceptionTextBuilders.ContainsKey(type))
+                            if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
                             {
-                                (exceptionTypesBuilder ?? (exceptionTypesBuilder = ImmutableArray.CreateBuilder<string>())).Add(type);
-                                (exceptionTextBuilders ?? (exceptionTextBuilders = new Dictionary<string, ImmutableArray<string>.Builder>())).Add(type, ImmutableArray.CreateBuilder<string>());
+                                (_exceptionTypesBuilder ?? (_exceptionTypesBuilder = ImmutableArray.CreateBuilder<string>())).Add(type);
+                                (_exceptionTextBuilders ?? (_exceptionTextBuilders = new Dictionary<string, ImmutableArray<string>.Builder>())).Add(type, ImmutableArray.CreateBuilder<string>());
                             }
 
-                            exceptionTextBuilders[type].Add(exceptionText);
+                            _exceptionTextBuilders[type].Add(exceptionText);
                         }
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         string cref = reader.GetAttribute(XmlNames.CrefAttributeName);
                         if (!string.IsNullOrWhiteSpace(cref))
                         {
-                            comment.CompletionListCref = cref;
+                            _comment.CompletionListCref = cref;
                         }
 
                         reader.ReadInnerXml();
@@ -225,9 +225,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private readonly Dictionary<string, string> parameterTexts = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> typeParameterTexts = new Dictionary<string, string>();
-        private readonly Dictionary<string, ImmutableArray<string>> exceptionTexts = new Dictionary<string, ImmutableArray<string>>();
+        private readonly Dictionary<string, string> _parameterTexts = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _typeParameterTexts = new Dictionary<string, string>();
+        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new Dictionary<string, ImmutableArray<string>>();
 
         /// <summary>
         /// Returns the text for a given parameter, or null if no documentation was given for the parameter.
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public string GetParameterText(string parameterName)
         {
             string text;
-            parameterTexts.TryGetValue(parameterName, out text);
+            _parameterTexts.TryGetValue(parameterName, out text);
             return text;
         }
 
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public string GetTypeParameterText(string typeParameterName)
         {
             string text;
-            typeParameterTexts.TryGetValue(typeParameterName, out text);
+            _typeParameterTexts.TryGetValue(typeParameterName, out text);
             return text;
         }
 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public ImmutableArray<string> GetExceptionTexts(string exceptionName)
         {
             ImmutableArray<string> texts;
-            exceptionTexts.TryGetValue(exceptionName, out texts);
+            _exceptionTexts.TryGetValue(exceptionName, out texts);
 
             if (texts.IsDefault)
             {

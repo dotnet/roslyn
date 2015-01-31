@@ -14,20 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// </summary>
     internal sealed class SpecializedFieldReference : TypeMemberReference, Cci.ISpecializedFieldReference
     {
-        private readonly FieldSymbol underlyingField;
+        private readonly FieldSymbol _underlyingField;
 
         public SpecializedFieldReference(FieldSymbol underlyingField)
         {
             Debug.Assert((object)underlyingField != null);
 
-            this.underlyingField = underlyingField;
+            _underlyingField = underlyingField;
         }
 
         protected override Symbol UnderlyingSymbol
         {
             get
             {
-                return underlyingField;
+                return _underlyingField;
             }
         }
 
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                Debug.Assert(underlyingField.OriginalDefinition.IsDefinition);
-                return underlyingField.OriginalDefinition;
+                Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
+                return _underlyingField.OriginalDefinition;
             }
         }
 
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
-            var customModifiers = underlyingField.CustomModifiers;
-            var type = ((PEModuleBuilder)context.Module).Translate(underlyingField.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var customModifiers = _underlyingField.CustomModifiers;
+            var type = ((PEModuleBuilder)context.Module).Translate(_underlyingField.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
             if (customModifiers.Length == 0)
             {
@@ -80,6 +80,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return false;
             }
         }
-
     }
 }

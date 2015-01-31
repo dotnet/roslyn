@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenExprLambdaTests : CSharpTestBase
     {
         #region A string containing expression-tree dumping utilities
-        const string ExpressionTestLibrary = @"
+        private const string ExpressionTestLibrary = @"
 using System;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -531,10 +531,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
         [WorkItem(544027, "DevDiv")]
         [Fact]
-        void AnonymousCreation()
+
+        private void AnonymousCreation()
         {
             var source =
 @"using System;
@@ -554,10 +554,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
         [WorkItem(544028, "DevDiv")]
         [Fact]
-        void ArrayIndex()
+
+        private void ArrayIndex()
         {
             var source =
 @"using System;
@@ -581,10 +581,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
         [WorkItem(544029, "DevDiv")]
         [Fact]
-        void ArrayCreation()
+
+        private void ArrayCreation()
         {
             var source =
 @"using System;
@@ -607,10 +607,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
         [WorkItem(544030, "DevDiv")]
         [Fact]
-        void ArrayInitialization()
+
+        private void ArrayInitialization()
         {
             var source =
 @"using System;
@@ -630,10 +630,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
         [WorkItem(544112, "DevDiv")]
         [Fact]
-        void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
+
+        private void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
             var source =
 @"using System;
@@ -651,10 +651,10 @@ class Program
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, "new[,] {{ i }}")
                 );
         }
-
         [WorkItem(544031, "DevDiv")]
         [Fact]
-        void ArrayLength()
+
+        private void ArrayLength()
         {
             var source =
 @"using System;
@@ -677,10 +677,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
         [WorkItem(544032, "DevDiv")]
         [Fact]
-        void AsOperator()
+
+        private void AsOperator()
         {
             var source =
 @"using System;
@@ -700,10 +700,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544034, "DevDiv")]
         [Fact]
-        void BaseReference()
+
+        private void BaseReference()
         {
             var source =
 @"using System;
@@ -732,9 +732,9 @@ class Program : Program0
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, "base")
                 );
         }
-
         [Fact(Skip = "BadTestCode")]
-        void AsyncLambda()
+
+        private void AsyncLambda()
         {
             var source =
 @"using System;
@@ -755,10 +755,10 @@ class Program : TestBase
                 Diagnostic((ErrorCode)1989)
                 );
         }
-
         [WorkItem(544035, "DevDiv")]
         [Fact]
-        void Multiply()
+
+        private void Multiply()
         {
             var source =
 @"using System;
@@ -808,10 +808,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544036, "DevDiv")]
         [Fact]
-        void Subtract()
+
+        private void Subtract()
         {
             var source =
 @"using System;
@@ -864,10 +864,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544037, "DevDiv")]
         [Fact]
-        void Divide()
+
+        private void Divide()
         {
             var source =
 @"using System;
@@ -917,10 +917,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544038, "DevDiv")]
         [Fact]
-        void Remainder()
+
+        private void Remainder()
         {
             var source =
 @"using System;
@@ -970,10 +970,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544041, "DevDiv")]
         [Fact]
-        void And()
+
+        private void And()
         {
             var source =
 @"using System;
@@ -1023,10 +1023,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544042, "DevDiv")]
         [Fact]
-        void ExclusiveOr()
+
+        private void ExclusiveOr()
         {
             var source =
 @"using System;
@@ -1076,10 +1076,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544043, "DevDiv")]
         [Fact]
-        void BitwiseOr()
+
+        private void BitwiseOr()
         {
             var source =
 @"using System;
@@ -1129,10 +1129,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544039, "DevDiv"), WorkItem(544040, "DevDiv")]
         [Fact]
-        void MoreBinaryOperators()
+
+        private void MoreBinaryOperators()
         {
             var source =
 @"using System;
@@ -1176,10 +1176,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544059, "DevDiv")]
         [Fact]
-        void UnaryOperators()
+
+        private void UnaryOperators()
         {
             var source =
 @"using System;
@@ -1226,9 +1226,9 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [Fact]
-        void GrabBag01()
+
+        private void GrabBag01()
         {
             var source =
 @"using System;
@@ -1289,10 +1289,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "123k");
         }
-
         [WorkItem(546147, "DevDiv")]
         [Fact]
-        void DelegateInvoke()
+
+        private void DelegateInvoke()
         {
             var source =
 @"using System;
@@ -1314,9 +1314,9 @@ class P
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
-
         [Fact]
-        void GrabBag02()
+
+        private void GrabBag02()
         {
             var source =
 @"using System;
@@ -1414,9 +1414,9 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [Fact]
-        void UnsafeExprTree()
+
+        private void UnsafeExprTree()
         {
             var source =
 @"using System;
@@ -1443,10 +1443,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "sizeof(S)")
             );
         }
-
         [WorkItem(544044, "DevDiv")]
         [Fact]
-        void CollectionInitialization()
+
+        private void CollectionInitialization()
         {
             var source =
 @"using System;
@@ -1466,10 +1466,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544390, "DevDiv")]
         [Fact]
-        void ObjectInitialization()
+
+        private void ObjectInitialization()
         {
             var source =
 @"using System;
@@ -1535,9 +1535,9 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssign
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }
-
         [Fact]
-        void Lambda()
+
+        private void Lambda()
         {
             var source =
 @"using System;
@@ -1565,10 +1565,10 @@ partial class Program
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [WorkItem(544218, "DevDiv")]
         [Fact]
-        void Linq()
+
+        private void Linq()
         {
             var source =
 @"using System;
@@ -1591,9 +1591,9 @@ class A
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
         }
-
         [Fact]
-        void Enum()
+
+        private void Enum()
         {
             var source =
 @"using System;
@@ -4572,7 +4572,7 @@ public class Foo
         [Fact]
         public void Bug1089777()
         {
-            const string source =@"
+            const string source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4866,7 +4866,7 @@ class C : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }
-           
+
         #endregion Regression Tests
 
         #region helpers
@@ -4885,7 +4885,7 @@ class C : TestBase
             return trimmedOutput;
         }
 
-        const string TreeWalkerLib = @"
+        private const string TreeWalkerLib = @"
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceConstructorSymbol : SourceMethodSymbol
     {
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private TypeSymbol lazyReturnType;
-        private bool lazyIsVararg;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private TypeSymbol _lazyReturnType;
+        private bool _lazyIsVararg;
 
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -72,19 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyBinder = binderFactory.GetBinder(parameterList).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
-            this.lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics);
-            this.lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            this.lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
+            _lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics);
+            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
             var location = this.Locations[0];
-            if (MethodKind == MethodKind.StaticConstructor && (lazyParameters.Length != 0))
+            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0))
             {
                 diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
             }
 
-            this.CheckEffectiveAccessibility(lazyReturnType, lazyParameters, diagnostics);
+            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
-            if (this.lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || this.lazyParameters.Length > 0 && this.lazyParameters[this.lazyParameters.Length - 1].IsParams))
+            if (_lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyIsVararg;
+                return _lazyIsVararg;
             }
         }
 
@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!this.lazyParameters.IsDefault)
+                if (!_lazyParameters.IsDefault)
                 {
-                    return this.lazyParameters.Length;
+                    return _lazyParameters.Length;
                 }
 
                 return GetSyntax().ParameterList.ParameterCount;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyParameters;
+                return _lazyParameters;
             }
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnType;
+                return _lazyReturnType;
             }
         }
 

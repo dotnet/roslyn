@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         #region IndexerNameAttribute
 
-        private string indexerName;
+        private string _indexerName;
         public string IndexerName
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.indexerName;
+                return _indexerName;
             }
             set
             {
@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This can be false if there are duplicate IndexerNameAttributes.
                 // Just ignore the second one and let a later pass report an
                 // appropriate diagnostic.
-                if (this.indexerName == null)
+                if (_indexerName == null)
                 {
-                    this.indexerName = value;
+                    _indexerName = value;
                     SetDataStored();
                 }
             }

@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     [ExcludeFromCodeCoverage]
     internal partial class FeatureAttribute : Attribute
     {
-        private readonly string featureName;
+        private readonly string _featureName;
 
         public FeatureAttribute(string featureName)
         {
-            this.featureName = featureName;
+            _featureName = featureName;
         }
 
         public string FeatureName
         {
-            get { return featureName; }
+            get { return _featureName; }
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     /// </summary>
     internal class MetadataAsSourceHelpers
     {
-        private static readonly HashSet<SymbolKind> ValidSymbolKinds = new HashSet<SymbolKind>(new[]
+        private static readonly HashSet<SymbolKind> s_validSymbolKinds = new HashSet<SymbolKind>(new[]
             {
                 SymbolKind.Event,
                 SymbolKind.Field,

@@ -2001,7 +2001,7 @@ BaseEnumeratorImpl::MoveNext()";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
             // With "CONDITIONAL" defined: Fail
-            
+
             // (a) Preprocessor symbol defined through command line parse options
             var options = new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create("CONDITIONAL"), documentationMode: DocumentationMode.None);
             CreateCompilationWithMscorlib(source, parseOptions: options).VerifyDiagnostics(
@@ -2870,7 +2870,7 @@ class Program
             var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
-            
+
             var syntaxNode = (ForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachStatement).AsNode();
             var treeModel = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree);
             var memberModel = treeModel.GetMemberModel(syntaxNode);

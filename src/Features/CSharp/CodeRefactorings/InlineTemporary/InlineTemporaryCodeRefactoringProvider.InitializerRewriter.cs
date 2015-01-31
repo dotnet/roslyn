@@ -18,27 +18,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         /// </summary>
         private class InitializerRewriter : CSharpSyntaxRewriter
         {
-            private readonly SemanticModel semanticModel;
-            private readonly ILocalSymbol localSymbol;
-            private readonly ExpressionSyntax initializer;
+            private readonly SemanticModel _semanticModel;
+            private readonly ILocalSymbol _localSymbol;
+            private readonly ExpressionSyntax _initializer;
 
             private InitializerRewriter(ExpressionSyntax initializer, ILocalSymbol localSymbol, SemanticModel semanticModel)
             {
-                this.semanticModel = semanticModel;
-                this.localSymbol = localSymbol;
-                this.initializer = initializer;
+                _semanticModel = semanticModel;
+                _localSymbol = localSymbol;
+                _initializer = initializer;
             }
 
             private bool IsReference(SimpleNameSyntax name)
             {
-                if (name.Identifier.ValueText != this.localSymbol.Name)
+                if (name.Identifier.ValueText != _localSymbol.Name)
                 {
                     return false;
                 }
 
-                var symbol = semanticModel.GetSymbolInfo(name).Symbol;
+                var symbol = _semanticModel.GetSymbolInfo(name).Symbol;
                 return symbol != null
-                    && symbol.Equals(this.localSymbol);
+                    && symbol.Equals(_localSymbol);
             }
 
             public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)

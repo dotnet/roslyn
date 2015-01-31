@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments,
                         receiver,
                         plainName,
-                        members.SelectAsArray(ToMethodSymbolFunc),
+                        members.SelectAsArray(s_toMethodSymbolFunc),
                         lookupResult,
                         methodGroupFlags,
                         hasErrors);
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     return new BoundPropertyGroup(
                         syntax,
-                        members.SelectAsArray(ToPropertySymbolFunc),
+                        members.SelectAsArray(s_toPropertySymbolFunc),
                         receiver,
                         lookupResult.Kind,
                         hasErrors);
@@ -925,8 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static Func<Symbol, MethodSymbol> ToMethodSymbolFunc = s => (MethodSymbol)s;
-        private static Func<Symbol, PropertySymbol> ToPropertySymbolFunc = s => (PropertySymbol)s;
+        private static Func<Symbol, MethodSymbol> s_toMethodSymbolFunc = s => (MethodSymbol)s;
+        private static Func<Symbol, PropertySymbol> s_toPropertySymbolFunc = s => (PropertySymbol)s;
 
         private NamedTypeSymbol ConstructNamedType(
             NamedTypeSymbol type,
@@ -1423,7 +1423,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         where,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
-
                             }
                         }
                         else
@@ -1577,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 FromReferencedAssembly = 0x40000000,
             }
 
-            private readonly BestSymbolFlags flags;
+            private readonly BestSymbolFlags _flags;
 
             /// <summary>
             /// Returns -1 if None.
@@ -1591,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return -1;
                     }
 
-                    return (int)(flags & BestSymbolFlags.IndexMask);
+                    return (int)(_flags & BestSymbolFlags.IndexMask);
                 }
             }
 
@@ -1599,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (flags & BestSymbolFlags.FromSourceModule) != 0;
+                    return (_flags & BestSymbolFlags.FromSourceModule) != 0;
                 }
             }
 
@@ -1607,7 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (flags & BestSymbolFlags.FromAddedModule) != 0;
+                    return (_flags & BestSymbolFlags.FromAddedModule) != 0;
                 }
             }
 
@@ -1615,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (flags & (BestSymbolFlags.FromSourceModule | BestSymbolFlags.FromAddedModule)) != 0;
+                    return (_flags & (BestSymbolFlags.FromSourceModule | BestSymbolFlags.FromAddedModule)) != 0;
                 }
             }
 
@@ -1623,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (flags & BestSymbolFlags.LocationMask) == 0;
+                    return (_flags & BestSymbolFlags.LocationMask) == 0;
                 }
             }
 
@@ -1631,13 +1630,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (flags & BestSymbolFlags.FromReferencedAssembly) != 0;
+                    return (_flags & BestSymbolFlags.FromReferencedAssembly) != 0;
                 }
             }
 
             private BestSymbolInfo(BestSymbolFlags flags)
             {
-                this.flags = flags;
+                _flags = flags;
             }
 
             public static BestSymbolInfo FromSourceModule(int index)
@@ -1665,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static bool Sort(ref BestSymbolInfo first, ref BestSymbolInfo second)
             {
                 if (!second.IsNone &&
-                    (first.IsNone || (first.flags & BestSymbolFlags.LocationMask) > (second.flags & BestSymbolFlags.LocationMask)))
+                    (first.IsNone || (first._flags & BestSymbolFlags.LocationMask) > (second._flags & BestSymbolFlags.LocationMask)))
                 {
                     BestSymbolInfo temp = first;
                     first = second;

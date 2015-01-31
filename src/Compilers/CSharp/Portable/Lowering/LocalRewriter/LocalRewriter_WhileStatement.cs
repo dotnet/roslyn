@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return RewriteWhileStatement(
-                node.Syntax, 
-                AddConditionSequencePoint(rewrittenCondition, node), 
-                conditionSequencePointSpan, 
-                rewrittenBody, 
+                node.Syntax,
+                AddConditionSequencePoint(rewrittenCondition, node),
+                conditionSequencePointSpan,
+                rewrittenBody,
                 node.BreakLabel,
                 node.ContinueLabel,
                 node.HasErrors);

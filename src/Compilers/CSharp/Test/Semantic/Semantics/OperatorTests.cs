@@ -532,7 +532,7 @@ class C
 }";
             string output = @"(((((a>>10)+(b<<20))-(((c*d)/e)%f))&g)|(h^((i==j)!=((((k<l)>m)<=o)>=p))))";
 
-            CompileAndVerify(source : source, expectedOutput : output);
+            CompileAndVerify(source: source, expectedOutput: output);
         }
 
         [Fact, WorkItem(657084, "DevDiv")]
@@ -1214,7 +1214,6 @@ class C
 "'c.WriteOnly' error CS0154: The property or indexer 'C.WriteOnly' cannot be used in this context because it lacks the get accessor",
 "'i32 += i64' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)",
 "'d += c' error CS0266: Cannot implicitly convert type 'C' to 'C.D'. An explicit conversion exists (are you missing a cast?)");
-
         }
 
         [Fact]
@@ -1322,7 +1321,6 @@ class C
                 .ToArray());
 
             Assert.Equal(expected, results);
-
         }
 
         private void TestOperatorKinds(string source)
@@ -1394,7 +1392,7 @@ class C
                 select name.Value.ToString() + FormatTypeArgumentList(typeArguments));
         }
 
-        static string GenerateTest(string template, string op, string opkind)
+        private static string GenerateTest(string template, string op, string opkind)
         {
             string result = template.Replace("OPERATOR", op);
             result = result.Replace("KIND", opkind);
@@ -1402,7 +1400,7 @@ class C
         }
 
         #region "Constant String"
-        const string Prefix = @"
+        private const string Prefix = @"
 class C 
 { 
     enum E { }
@@ -1455,13 +1453,13 @@ class C
         N(
 ";
 
-        const string Postfix = @"
+        private const string Postfix = @"
         );
     }
 }
 ";
 
-        const string EnumAddition = Prefix + @"
+        private const string EnumAddition = Prefix + @"
 i + e,          //-UnderlyingAndEnumAddition
 i + ne,         //-LiftedUnderlyingAndEnumAddition
 e + i,          //-EnumAndUnderlyingAddition
@@ -1471,15 +1469,15 @@ ni + ne,        //-LiftedUnderlyingAndEnumAddition
 ne + i,         //-LiftedEnumAndUnderlyingAddition
 ne + ni         //-LiftedEnumAndUnderlyingAddition" + Postfix;
 
-        const string DelegateAddition = Prefix + @"
+        private const string DelegateAddition = Prefix + @"
         d1 + d2 //-DelegateCombination" + Postfix;
 
-        const string StringAddition = Prefix + @"
+        private const string StringAddition = Prefix + @"
         s1 + s1, //-StringConcatenation
         s1 + o1, //-StringAndObjectConcatenation
         i1 + s1  //-ObjectAndStringConcatenation" + Postfix;
 
-        const string ArithmeticTemplate = Prefix + @"
+        private const string ArithmeticTemplate = Prefix + @"
 chr OPERATOR chr,                   //-IntKIND
 chr OPERATOR i16,                   //-IntKIND
 chr OPERATOR i32,                   //-IntKIND
@@ -1900,7 +1898,7 @@ ndec OPERATOR nu64,                  //-LiftedDecimalKIND
 // ndec OPERATOR nr64,  (none applicable)
 ndec OPERATOR ndec                    //-LiftedDecimalKIND" + Postfix;
 
-        const string EnumSubtraction = Prefix + @"
+        private const string EnumSubtraction = Prefix + @"
 e - e,      //-EnumSubtraction
 e - ne,     //-LiftedEnumSubtraction
 e - i,      //-EnumAndUnderlyingSubtraction
@@ -1910,9 +1908,9 @@ ne - ne,    //-LiftedEnumSubtraction
 ne - i,     //-LiftedEnumAndUnderlyingSubtraction
 ne - ni     //-LiftedEnumAndUnderlyingSubtraction" + Postfix;
 
-        const string DelegateSubtraction = Prefix + "d1 - d2 //-DelegateRemoval" + Postfix;
+        private const string DelegateSubtraction = Prefix + "d1 - d2 //-DelegateRemoval" + Postfix;
 
-        const string ShiftTemplate = Prefix + @"
+        private const string ShiftTemplate = Prefix + @"
 chr OPERATOR chr,                   //-IntKIND
 chr OPERATOR i16,                   //-IntKIND
 chr OPERATOR i32,                   //-IntKIND
@@ -2040,7 +2038,7 @@ nu64 OPERATOR ni32,                  //-LiftedULongKIND
 nu64 OPERATOR nu16                   //-LiftedULongKIND
 " + Postfix;
 
-        const string LogicTemplate = Prefix + @"
+        private const string LogicTemplate = Prefix + @"
 bln OPERATOR bln,                   //-BoolKIND
 bln OPERATOR nbln,                  //-LiftedBoolKIND
 
@@ -2259,17 +2257,17 @@ nu64 OPERATOR nu64                  //-LiftedULongKIND
 " + Postfix;
 
         //built-in operator only works for bools (not even lifted bools)
-        const string ShortCircuitTemplate = Prefix + @"
+        private const string ShortCircuitTemplate = Prefix + @"
 bln OPERATOR bln,                   //-LogicalBoolKIND
 " + Postfix;
 
-        const string EnumLogicTemplate = Prefix + @"
+        private const string EnumLogicTemplate = Prefix + @"
 e OPERATOR e,          //-EnumKIND
 e OPERATOR ne,         //-LiftedEnumKIND
 ne OPERATOR e,         //-LiftedEnumKIND
 ne OPERATOR ne         //-LiftedEnumKIND" + Postfix;
 
-        const string ComparisonTemplate = Prefix + @"
+        private const string ComparisonTemplate = Prefix + @"
 chr OPERATOR chr,                   //-IntKIND
 chr OPERATOR i16,                   //-IntKIND
 chr OPERATOR i32,                   //-IntKIND
@@ -2691,7 +2689,7 @@ ndec OPERATOR nu64,                  //-LiftedDecimalKIND
 ndec OPERATOR ndec                    //-LiftedDecimalKIND
 " + Postfix;
 
-        const string EqualityTemplate = Prefix + @"
+        private const string EqualityTemplate = Prefix + @"
 e1 OPERATOR e2, //-EnumKIND
 e1 OPERATOR o2, //-KIND
 d1 OPERATOR d2, //-DelegateKIND
@@ -2703,7 +2701,7 @@ o1 OPERATOR d2, //-ObjectKIND
 o1 OPERATOR s2, //-ObjectKIND
 o1 OPERATOR o2  //-ObjectKIND" + Postfix;
 
-        const string PostfixIncrementTemplate = Prefix + @"
+        private const string PostfixIncrementTemplate = Prefix + @"
 e   OPERATOR, //-EnumKIND
 chr OPERATOR, //-CharKIND
 i08 OPERATOR, //-SByteKIND
@@ -2732,7 +2730,7 @@ nr64 OPERATOR, //-LiftedDoubleKIND
 ndec OPERATOR  //-LiftedDecimalKIND
 " + Postfix;
 
-        const string PrefixIncrementTemplate = Prefix + @"
+        private const string PrefixIncrementTemplate = Prefix + @"
 OPERATOR e   , //-EnumKIND
 OPERATOR chr , //-CharKIND
 OPERATOR i08 , //-SByteKIND
@@ -2760,7 +2758,7 @@ OPERATOR nr32 , //-LiftedFloatKIND
 OPERATOR nr64 , //-LiftedDoubleKIND
 OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 
-        const string UnaryPlus = Prefix + @"
+        private const string UnaryPlus = Prefix + @"
 + chr, //-IntUnaryPlus
 + i08, //-IntUnaryPlus
 + i16, //-IntUnaryPlus
@@ -2787,7 +2785,7 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 + ndec  //-LiftedDecimalUnaryPlus" + Postfix;
 
 
-        const string UnaryMinus = Prefix + @"
+        private const string UnaryMinus = Prefix + @"
 - chr, //-IntUnaryMinus
 - i08, //-IntUnaryMinus
 - i16, //-IntUnaryMinus
@@ -2811,12 +2809,12 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
 - nr64, //-LiftedDoubleUnaryMinus
 - ndec  //-LiftedDecimalUnaryMinus" + Postfix;
 
-        const string LogicalNegation = Prefix + @"
+        private const string LogicalNegation = Prefix + @"
 ! bln, //-BoolLogicalNegation
 ! nbln //-LiftedBoolLogicalNegation" + Postfix;
 
 
-        const string BitwiseComplement = Prefix + @"
+        private const string BitwiseComplement = Prefix + @"
 ~ e,   //-EnumBitwiseComplement
 ~ chr, //-IntBitwiseComplement
 ~ i08, //-IntBitwiseComplement
@@ -3166,7 +3164,7 @@ public class X
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "True");;
+            CompileAndVerify(comp, expectedOutput: "True"); ;
 
             source = @"
 using System;
@@ -3204,7 +3202,7 @@ public class X
             comp.VerifyDiagnostics(
                 // (4,21): error CS1750: A value of type 'dynamic' cannot be used as a default parameter because there are no standard conversions to type 'object'
                 //     public X(object param = default(dynamic)) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "param").WithArguments("dynamic", "object")); 
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "param").WithArguments("dynamic", "object"));
         }
 
         [WorkItem(537876, "DevDiv")]
@@ -3343,7 +3341,6 @@ class Program
 }";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
-
         }
 
         [Fact]
@@ -3444,7 +3441,7 @@ class Program
             // NOTE:    is always false, but no compile time error occurs.
             // NOTE:    We follow the specification and generate WRN_IsAlwaysFalse
             // NOTE:    instead of an error.
-            
+
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
@@ -3680,7 +3677,7 @@ class Program
     }
 }
 ";
-            
+
             CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: "").VerifyDiagnostics();
         }
 
@@ -4027,7 +4024,7 @@ class D {}";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact(),WorkItem(543433, "DevDiv")]
+        [Fact(), WorkItem(543433, "DevDiv")]
         public void ERR_NoImplicitConvCast_UserDefinedConversions()
         {
             var text =
@@ -4170,7 +4167,7 @@ class D
                 //         Console.WriteLine((C)null != (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(C)null != (D)null").WithArguments("!=", "C", "D"));
         }
- 
+
         [WorkItem(543431, "DevDiv")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_04_BaseTypes()
@@ -4451,7 +4448,7 @@ class Derived4 : Base4
 
         [Fact]
         public void ClassesWithOperatorNames()
-        {  
+        {
             string source = @"
 class op_Increment
 {
@@ -4929,7 +4926,7 @@ class Program
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
-            CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp, 
+            CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp,
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
 
@@ -5032,7 +5029,7 @@ public class RubyTime
         [Fact()]
         public void UnaryIntrinsicSymbols1()
         {
-            UnaryOperatorKind[] operators = 
+            UnaryOperatorKind[] operators =
             {
             UnaryOperatorKind.PostfixIncrement,
             UnaryOperatorKind.PostfixDecrement,
@@ -5041,7 +5038,7 @@ public class RubyTime
             UnaryOperatorKind.UnaryPlus,
             UnaryOperatorKind.UnaryMinus,
             UnaryOperatorKind.LogicalNegation,
-            UnaryOperatorKind.BitwiseComplement 
+            UnaryOperatorKind.BitwiseComplement
             };
 
             string[] opTokens = {"++","--","++","--",
@@ -5075,8 +5072,8 @@ public class RubyTime
             var builder = new System.Text.StringBuilder();
             int n = 0;
 
-                builder.Append(
-"class Module1\n"+
+            builder.Append(
+"class Module1\n" +
 "{\n");
 
             foreach (var arg1 in typeNames)
@@ -5113,7 +5110,7 @@ public class RubyTime
 "}\n");
             }
 
-                builder.Append(
+            builder.Append(
 "}\n");
 
             var source = builder.ToString();
@@ -5270,12 +5267,12 @@ public class RubyTime
                     expectChecked = (type.IsDynamic() || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType());
                     break;
 
-                case UnaryOperatorKind.PrefixDecrement: 
+                case UnaryOperatorKind.PrefixDecrement:
                 case UnaryOperatorKind.PrefixIncrement:
                 case UnaryOperatorKind.PostfixDecrement:
                 case UnaryOperatorKind.PostfixIncrement:
                     expectChecked = (type.IsDynamic() || type.IsPointerType() ||
-                                     symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType() || 
+                                     symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType() ||
                                      symbol1.ContainingType.SpecialType == SpecialType.System_Char);
                     break;
 
@@ -5334,7 +5331,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5449,7 +5446,7 @@ class Module1
             builder.Append(
 "struct TestStructure\n" +
 "{}\n" +
-"class Module1\n"+
+"class Module1\n" +
 "{\n");
 
             foreach (var arg1 in typeNames)
@@ -5490,7 +5487,7 @@ class Module1
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            TypeSymbol [] types = new TypeSymbol[typeNames.Length];
+            TypeSymbol[] types = new TypeSymbol[typeNames.Length];
 
             for (int i = 0; i < typeNames.Length - 3; i++)
             {
@@ -5791,17 +5788,16 @@ class Module1
             {
                 if (leftType.IsDynamic() && !rightType.IsPointerType() && !rightType.IsRestrictedType())
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Dynamic,leftType,rightType,leftType);
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Dynamic, leftType, rightType, leftType);
                 }
                 else if (rightType.IsDynamic() && !leftType.IsPointerType() && !leftType.IsRestrictedType())
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Dynamic, leftType, rightType, rightType);
                 }
-                else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) && 
+                else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
                     leftType.IsReferenceType && rightType.IsReferenceType &&
                     (leftType == rightType || compilation.Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics).IsReference))
                 {
-
                     if (leftType.IsDelegateType() && rightType.IsDelegateType())
                     {
                         Assert.Equal(leftType, rightType);
@@ -5876,7 +5872,7 @@ class Module1
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);
                 }
-                else if (op == BinaryOperatorKind.Subtraction && 
+                else if (op == BinaryOperatorKind.Subtraction &&
                     leftType.IsEnumType() && leftType == rightType)
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType.EnumUnderlyingType());
@@ -5911,7 +5907,7 @@ class Module1
                           op == BinaryOperatorKind.GreaterThanOrEqual) &&
                     leftType.IsPointerType() && rightType.IsPointerType())
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, 
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer,
                         compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Void)),
                         compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Void)),
                         compilation.GetSpecialType(SpecialType.System_Boolean));
@@ -5995,7 +5991,7 @@ class Module1
 
             string containerName = signature.LeftType.ToTestDisplayString();
             string leftName = containerName;
-            string rightName  = signature.RightType.ToTestDisplayString();
+            string rightName = signature.RightType.ToTestDisplayString();
             string returnName = signature.ReturnType.ToTestDisplayString();
 
             if (isDynamic)
@@ -6045,7 +6041,7 @@ class Module1
                 case BinaryOperatorKind.Addition:
                 case BinaryOperatorKind.Subtraction:
                 case BinaryOperatorKind.Division:
-                    isChecked = isDynamic || symbol1.ContainingSymbol.Kind== SymbolKind.PointerType || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType();
+                    isChecked = isDynamic || symbol1.ContainingSymbol.Kind == SymbolKind.PointerType || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType();
                     break;
 
                 default:
@@ -6326,11 +6322,11 @@ struct TestStr
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
-                // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
-                //         var z11 = (x == x1);
+    // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
+    //         var z11 = (x == x1);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == x1").WithArguments("==", "TestStr?", "TestStr?"),
-                // (18,20): error CS0019: Operator '!=' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
-                //         var z12 = (x != x1);
+    // (18,20): error CS0019: Operator '!=' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
+    //         var z12 = (x != x1);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != x1").WithArguments("!=", "TestStr?", "TestStr?")
                 );
 
@@ -6848,7 +6844,7 @@ System.Int32
 System.Int32
 System.Int32");
         }
-        
+
         [Fact, WorkItem(1036392, "DevDiv")]
         public void Bug1036392_10()
         {

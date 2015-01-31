@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class CompilationErrorTests : CompilingTestBase
     {
-
         [Fact]
         public void UserDefinedOperatorCollisionErrors()
         {
@@ -286,7 +285,7 @@ Diagnostic(ErrorCode.ERR_BadVisOpParam, "-").WithArguments("C.operator -(C, C.D)
 // (8,37): error CS0057: Inconsistent accessibility: parameter type 'C.D' is less accessible than operator 'C.explicit operator C(C.D)'
 //     public static explicit operator C(D d) { return null; }
 Diagnostic(ErrorCode.ERR_BadVisOpParam, "C").WithArguments("C.explicit operator C(C.D)", "C.D")
-                
+
                 );
         }
 
@@ -320,11 +319,8 @@ Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d").WithArguments("C.D<T>",
 
 // (7,50): error CS0452: The type 'decimal' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.D<T>'
 //     public static explicit operator C(D<decimal> d) { return null; }
-Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d").WithArguments("C.D<T>", "T", "decimal")             
+Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d").WithArguments("C.D<T>", "T", "decimal")
                 );
-
         }
-
-
     }
 }

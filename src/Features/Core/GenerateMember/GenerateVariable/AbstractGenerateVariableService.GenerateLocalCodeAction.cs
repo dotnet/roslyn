@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
     {
         private class GenerateLocalCodeAction : CodeAction
         {
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
 
             public GenerateLocalCodeAction(TService service, Document document, State state)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
+                _service = service;
+                _document = document;
+                _state = state;
             }
 
             public override string Title
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                     return string.Format(
                         text,
-                        state.IdentifierToken.ValueText);
+                        _state.IdentifierToken.ValueText);
                 }
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var newRoot = GetNewRoot(cancellationToken);
-                var newDocument = document.WithSyntaxRoot(newRoot);
+                var newDocument = _document.WithSyntaxRoot(newRoot);
 
                 return Task.FromResult(newDocument);
             }
@@ -50,27 +50,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private SyntaxNode GetNewRoot(CancellationToken cancellationToken)
             {
                 SyntaxNode newRoot;
-                if (service.TryConvertToLocalDeclaration(state.LocalType, state.IdentifierToken, document.Project.Solution.Workspace.Options, out newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Project.Solution.Workspace.Options, out newRoot))
                 {
                     return newRoot;
                 }
 
-                var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
-                var initializer = state.IsOnlyWrittenTo
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
+                var initializer = _state.IsOnlyWrittenTo
                     ? null
-                    : syntaxFactory.DefaultExpression(state.LocalType);
+                    : syntaxFactory.DefaultExpression(_state.LocalType);
 
-                var type = state.LocalType;
-                var localStatement = syntaxFactory.LocalDeclarationStatement(type, state.IdentifierToken.ValueText, initializer);
+                var type = _state.LocalType;
+                var localStatement = syntaxFactory.LocalDeclarationStatement(type, _state.IdentifierToken.ValueText, initializer);
                 localStatement = localStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-                var codeGenService = document.GetLanguageService<ICodeGenerationService>();
-                var root = state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
+                var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
+                var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
 
                 return codeGenService.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
-                    options: new CodeGenerationOptions(beforeThisLocation: state.IdentifierToken.GetLocation()),
+                    options: new CodeGenerationOptions(beforeThisLocation: _state.IdentifierToken.GetLocation()),
                     cancellationToken: cancellationToken);
             }
         }

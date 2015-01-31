@@ -1072,7 +1072,6 @@ namespace System
 
             symbols = model.LookupSymbols(positionInC, name: "AliasZ", container: container);
             Assert.Equal(0, symbols.Length);
-
         }
 
         [Fact]
@@ -4734,7 +4733,7 @@ public class S
             Assert.Equal(1, counter);
         }
 
-        class IncompleteSyntaxWalker : CSharpSyntaxWalker
+        private class IncompleteSyntaxWalker : CSharpSyntaxWalker
         {
             public readonly List<IncompleteMemberSyntax> Incompletes = new List<IncompleteMemberSyntax>();
 

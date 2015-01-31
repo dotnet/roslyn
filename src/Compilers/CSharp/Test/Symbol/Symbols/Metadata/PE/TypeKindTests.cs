@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 //test
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
     public class TypeKindTests : CSharpTestBase

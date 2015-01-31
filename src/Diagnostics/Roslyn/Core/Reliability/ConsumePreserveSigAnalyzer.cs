@@ -9,21 +9,21 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class ConsumePreserveSigAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor ConsumePreserveSigAnalyzerDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.ConsumePreserveSigRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private INamedTypeSymbol lazyPreserveSigType;
+        private INamedTypeSymbol _lazyPreserveSigType;
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -37,8 +37,8 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                lazyPreserveSigType = compilationContext.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.PreserveSigAttribute");
-                if (lazyPreserveSigType != null)
+                _lazyPreserveSigType = compilationContext.Compilation.GetTypeByMetadataName("System.Runtime.InteropServices.PreserveSigAttribute");
+                if (_lazyPreserveSigType != null)
                 {
                     compilationContext.RegisterSyntaxNodeAction(AnalyzeNode, ImmutableArray.Create(InvocationExpressionSyntaxKind));
                 }
@@ -50,7 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (this.lazyPreserveSigType == null)
+            if (_lazyPreserveSigType == null)
             {
                 return;
             }
@@ -69,7 +69,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             foreach (var attributeData in symbol.GetAttributes())
             {
-                if (attributeData.AttributeClass.Equals(lazyPreserveSigType))
+                if (attributeData.AttributeClass.Equals(_lazyPreserveSigType))
                 {
                     var diagnostic = Diagnostic.Create(ConsumePreserveSigAnalyzerDescriptor, node.GetLocation(), symbol);
                     context.ReportDiagnostic(diagnostic);

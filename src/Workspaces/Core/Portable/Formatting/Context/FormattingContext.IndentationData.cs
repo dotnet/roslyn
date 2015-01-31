@@ -37,32 +37,32 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private class SimpleIndentationData : IndentationData
         {
-            private readonly int indentation;
+            private readonly int _indentation;
 
             public SimpleIndentationData(TextSpan textSpan, int indentation)
                 : base(textSpan)
             {
-                this.indentation = indentation;
+                _indentation = indentation;
             }
 
             public override int Indentation
             {
-                get { return this.indentation; }
+                get { return _indentation; }
             }
         }
 
         private class LazyIndentationData : IndentationData
         {
-            private readonly Lazy<int> indentationGetter;
+            private readonly Lazy<int> _indentationGetter;
             public LazyIndentationData(TextSpan textSpan, Lazy<int> indentationGetter)
                 : base(textSpan)
             {
-                this.indentationGetter = indentationGetter;
+                _indentationGetter = indentationGetter;
             }
 
             public override int Indentation
             {
-                get { return this.indentationGetter.Value; }
+                get { return _indentationGetter.Value; }
             }
         }
 

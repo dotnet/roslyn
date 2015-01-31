@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected class AnalyzerResult
         {
-            private readonly IList<ITypeParameterSymbol> typeParametersInDeclaration;
-            private readonly IList<ITypeParameterSymbol> typeParametersInConstraintList;
-            private readonly IList<VariableInfo> variables;
-            private readonly VariableInfo variableToUseAsReturnValue;
+            private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration;
+            private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList;
+            private readonly IList<VariableInfo> _variables;
+            private readonly VariableInfo _variableToUseAsReturnValue;
 
             public AnalyzerResult(
                 SemanticDocument document,
@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 this.EndOfSelectionReachable = endOfSelectionReachable;
                 this.AwaitTaskReturn = awaitTaskReturn;
                 this.SemanticDocument = document;
-                this.typeParametersInDeclaration = typeParametersInDeclaration.Select(s => semanticModel.ResolveType(s)).ToList();
-                this.typeParametersInConstraintList = typeParametersInConstraintList.Select(s => semanticModel.ResolveType(s)).ToList();
-                this.variables = variables;
+                _typeParametersInDeclaration = typeParametersInDeclaration.Select(s => semanticModel.ResolveType(s)).ToList();
+                _typeParametersInConstraintList = typeParametersInConstraintList.Select(s => semanticModel.ResolveType(s)).ToList();
+                _variables = variables;
                 this.ReturnType = semanticModel.ResolveType(returnType);
-                this.variableToUseAsReturnValue = variableToUseAsReturnValue;
+                _variableToUseAsReturnValue = variableToUseAsReturnValue;
                 this.Status = status;
             }
 
@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return new AnalyzerResult(
                     document,
-                    this.typeParametersInDeclaration,
-                    this.typeParametersInConstraintList,
-                    this.variables,
-                    this.variableToUseAsReturnValue,
+                    _typeParametersInDeclaration,
+                    _typeParametersInConstraintList,
+                    _variables,
+                    _variableToUseAsReturnValue,
                     this.ReturnType,
                     this.AwaitTaskReturn,
                     this.UseInstanceMember,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return new ReadOnlyCollection<ITypeParameterSymbol>(this.typeParametersInDeclaration);
+                    return new ReadOnlyCollection<ITypeParameterSymbol>(_typeParametersInDeclaration);
                 }
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return new ReadOnlyCollection<ITypeParameterSymbol>(this.typeParametersInConstraintList);
+                    return new ReadOnlyCollection<ITypeParameterSymbol>(_typeParametersInConstraintList);
                 }
             }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.variableToUseAsReturnValue != null;
+                    return _variableToUseAsReturnValue != null;
                 }
             }
 
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    Contract.ThrowIfNull(this.variableToUseAsReturnValue);
-                    return this.variableToUseAsReturnValue;
+                    Contract.ThrowIfNull(_variableToUseAsReturnValue);
+                    return _variableToUseAsReturnValue;
                 }
             }
 
@@ -138,36 +138,36 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 get
                 {
-                    return this.variables.Where(v => v.UseAsParameter);
+                    return _variables.Where(v => v.UseAsParameter);
                 }
             }
 
             public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
-                return this.variables
+                return _variables
                            .Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitIn ||
                                        v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
-                return this.variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
+                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSite(CancellationToken cancellationToken)
             {
-                return this.variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
+                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
             {
-                return this.variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut ||
+                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut ||
                                                  v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.Delete);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite(CancellationToken cancellationToken)
             {
-                return this.variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitOut ||
+                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitOut ||
                                                  v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
             }
         }

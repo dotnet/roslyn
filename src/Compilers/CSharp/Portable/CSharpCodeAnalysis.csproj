@@ -13,7 +13,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StyleCopEnabled>false</StyleCopEnabled>
     <CSharpSyntaxGeneratorToolPath>$(OutDir)CSharpSyntaxGenerator.exe</CSharpSyntaxGeneratorToolPath>
     <BoundTreeGeneratorToolPath>$(OutDir)BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
     <CSharpErrorFactsGeneratorToolPath>$(OutDir)CSharpErrorFactsGenerator.exe</CSharpErrorFactsGeneratorToolPath>
@@ -892,7 +891,6 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

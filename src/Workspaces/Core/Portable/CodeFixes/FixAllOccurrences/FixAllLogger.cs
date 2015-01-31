@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,25 +13,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal static class FixAllLogger
     {
         // Fix all context logging.
-        private static readonly string CodeFixProvider = "CodeFixProvider";
-        private static readonly string CodeActionEquivalenceKey = "CodeActionEquivalenceKey";
-        private static readonly string FixAllScope = "FixAllScope";
-        private static readonly string LanguageName = "LanguageName";
-        private static readonly string DocumentCount = "DocumentCount";
+        private static readonly string s_codeFixProvider = "CodeFixProvider";
+        private static readonly string s_codeActionEquivalenceKey = "CodeActionEquivalenceKey";
+        private static readonly string s_fixAllScope = "FixAllScope";
+        private static readonly string s_languageName = "LanguageName";
+        private static readonly string s_documentCount = "DocumentCount";
 
         // Fix all computation result logging.
-        private static readonly string Result = "Result";
-        private static readonly string Completed = "Completed";
-        private static readonly string TimedOut = "TimedOut";
-        private static readonly string Cancelled = "Cancelled";
-        private static readonly string AllChangesApplied = "AllChangesApplied";
-        private static readonly string SubsetOfChangesApplied = "SubsetOfChangesApplied";
+        private static readonly string s_result = "Result";
+        private static readonly string s_completed = "Completed";
+        private static readonly string s_timedOut = "TimedOut";
+        private static readonly string s_cancelled = "Cancelled";
+        private static readonly string s_allChangesApplied = "AllChangesApplied";
+        private static readonly string s_subsetOfChangesApplied = "SubsetOfChangesApplied";
 
         // Diagnostics and fixes logging.
-        private static readonly string DocumentsWithDiagnosticsToFix = "DocumentsWithDiagnosticsToFix";
-        private static readonly string ProjectsWithDiagnosticsToFix = "ProjectsWithDiagnosticsToFix";
-        private static readonly string TotalDiagnosticsToFix = "TotalDiagnosticsToFix";
-        private static readonly string TotalFixesToMerge = "TotalFixesToMerge";
+        private static readonly string s_documentsWithDiagnosticsToFix = "DocumentsWithDiagnosticsToFix";
+        private static readonly string s_projectsWithDiagnosticsToFix = "ProjectsWithDiagnosticsToFix";
+        private static readonly string s_totalDiagnosticsToFix = "TotalDiagnosticsToFix";
+        private static readonly string s_totalFixesToMerge = "TotalFixesToMerge";
 
         public static void LogContext(FixAllContext fixAllContext, bool isInternalCodeFixProvider)
         {
@@ -39,26 +39,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 if (isInternalCodeFixProvider)
                 {
-                    m[CodeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName;
-                    m[CodeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey;
-                    m[LanguageName] = fixAllContext.Project.Language;
+                    m[s_codeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName;
+                    m[s_codeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey;
+                    m[s_languageName] = fixAllContext.Project.Language;
                 }
                 else
                 {
-                    m[CodeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName.GetHashCode().ToString();
-                    m[CodeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey != null ? fixAllContext.CodeActionEquivalenceKey.GetHashCode().ToString() : null;
-                    m[LanguageName] = fixAllContext.Project.Language.GetHashCode().ToString();
+                    m[s_codeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName.GetHashCode().ToString();
+                    m[s_codeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey != null ? fixAllContext.CodeActionEquivalenceKey.GetHashCode().ToString() : null;
+                    m[s_languageName] = fixAllContext.Project.Language.GetHashCode().ToString();
                 }
-                
-                m[FixAllScope] = fixAllContext.Scope.ToString();
+
+                m[s_fixAllScope] = fixAllContext.Scope.ToString();
                 switch (fixAllContext.Scope)
                 {
                     case CodeFixes.FixAllScope.Project:
-                        m[DocumentCount] = fixAllContext.Project.DocumentIds.Count.ToString();
+                        m[s_documentCount] = fixAllContext.Project.DocumentIds.Count.ToString();
                         break;
 
                     case CodeFixes.FixAllScope.Solution:
-                        m[DocumentCount] = fixAllContext.Solution.Projects.Sum(p => p.DocumentIds.Count).ToString();
+                        m[s_documentCount] = fixAllContext.Solution.Projects.Sum(p => p.DocumentIds.Count).ToString();
                         break;
                 }
             }));
@@ -71,20 +71,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string value;
             if (completed)
             {
-                value = Completed;
+                value = s_completed;
             }
             else if (timedOut)
             {
-                value = TimedOut;
+                value = s_timedOut;
             }
             else
             {
-                value = Cancelled;
+                value = s_cancelled;
             }
 
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation, KeyValueLogMessage.Create(m =>
             {
-                m[Result] = value;
+                m[s_result] = value;
             }));
         }
 
@@ -94,17 +94,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (applied)
             {
                 value = allChangesApplied ?
-                    AllChangesApplied :
-                    SubsetOfChangesApplied;
+                    s_allChangesApplied :
+                    s_subsetOfChangesApplied;
             }
             else
             {
-                value = Cancelled;
+                value = s_cancelled;
             }
 
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, KeyValueLogMessage.Create(m =>
             {
-                m[Result] = value;
+                m[s_result] = value;
             }));
         }
 
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, KeyValueLogMessage.Create(m =>
             {
-                m[DocumentsWithDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Keys.Count().ToString();
-                m[TotalDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
+                m[s_documentsWithDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Keys.Count().ToString();
+                m[s_totalDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
             }));
         }
 
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, KeyValueLogMessage.Create(m =>
             {
-                m[ProjectsWithDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Keys.Count().ToString();
-                m[TotalDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
+                m[s_projectsWithDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Keys.Count().ToString();
+                m[s_totalDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
             }));
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, KeyValueLogMessage.Create(m =>
             {
-                m[TotalFixesToMerge] = fixesToMerge.Count.ToString();
+                m[s_totalFixesToMerge] = fixesToMerge.Count.ToString();
             }));
         }
     }

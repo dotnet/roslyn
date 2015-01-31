@@ -550,7 +550,7 @@ class B
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(    // (11,13): error CS0103: The name 'x' does not exist in the current context
-                //         A.F(x);
+                                                                        //         A.F(x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"),
                 // (11,11): error CS0122: 'A.F' is inaccessible due to its protection level
                 //         A.F(x);
@@ -854,7 +854,6 @@ public interface IInterfaceBase
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_FullyQualified()
         {
-
             // Using fully Qualified names
             string scenarioCode = @"
 public class ITT
@@ -940,7 +939,6 @@ namespace test
         [Fact]
         public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario02()
         {
-
             // Two interfaces, only the  second is implemented 
             string scenarioCode = @"
 public class ITT
@@ -1419,8 +1417,8 @@ public class Test
     }
 }", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 })
 .VerifyDiagnostics(
-                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
-                // using ClassAlias = Class1;
+    // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // using ClassAlias = Class1;
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
     // (7,28): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
     //         int a = ClassAlias.Class1Foo();
@@ -1451,15 +1449,14 @@ public class Test
     }
 }", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 })
 .VerifyDiagnostics(
-                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
-                // using ClassAlias = Class1;
+    // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // using ClassAlias = Class1;
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
             );
 
             // NOTE: Dev10 errors:
             // <fine-name>(8,17): error CS0143: The type 'Class1' has no constructors defined
             // <fine-name>(9,17): error CS0143: The type 'Class1' has no constructors defined
-
         }
 
         [WorkItem(541466, "DevDiv")]
@@ -1475,16 +1472,16 @@ public class Test
     ClassAlias b = null;
     ClassAlias m() { return null; }
     void m2(ClassAlias p) { }
-}", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
+}", references: new List<MetadataReference>() { TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1 })
 .VerifyDiagnostics(
-                // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
-                // using ClassAlias = Class1;
+    // (2,20): error CS1769: Type 'System.Collections.Generic.List<FooStruct>' from assembly 'NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+    // using ClassAlias = Class1;
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "Class1").WithArguments("System.Collections.Generic.List<FooStruct>", "NoPIAGenerics1-Asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (6,16): warning CS0414: The field 'Test.b' is assigned but its value is never used
-                //     ClassAlias b = null;
+    // (6,16): warning CS0414: The field 'Test.b' is assigned but its value is never used
+    //     ClassAlias b = null;
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "b").WithArguments("Test.b"),
-                // (5,16): warning CS0414: The field 'Test.a' is assigned but its value is never used
-                //     ClassAlias a = null;
+    // (5,16): warning CS0414: The field 'Test.a' is assigned but its value is never used
+    //     ClassAlias a = null;
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("Test.a")
             );
 
@@ -1530,7 +1527,6 @@ public class Test
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_1()
         {
-
             var source1 = @"
 using System;
 using System.Runtime.InteropServices;
@@ -1584,7 +1580,6 @@ public class BarImpl : IBar
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_2()
         {
-
             var source1 = @"
 using System;
 using System.Runtime.InteropServices;
@@ -1641,7 +1636,6 @@ public class BarImpl : IBar
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_3()
         {
-
             var source1 = @"
 using System;
 using System.Runtime.InteropServices;
@@ -1690,7 +1684,6 @@ public class BarImpl : IBar
         [Fact]
         public void UseSiteErrorViaImplementedInterfaceMember_4()
         {
-
             var source1 = @"
 using System;
 using System.Runtime.InteropServices;
@@ -1921,7 +1914,7 @@ partial class C
     partial void F(int j) { }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module => 
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
@@ -2037,9 +2030,9 @@ class Program
                 //         bool c = true;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(6, 14));
         }
-
         [Fact, WorkItem(543426, "DevDiv")]
-        void NestedInterfaceImplementationWithOuterGenericType()
+
+        private void NestedInterfaceImplementationWithOuterGenericType()
         {
             CompileAndVerify(@"
 namespace System.ServiceModel
@@ -2374,10 +2367,10 @@ class C
     static void T() { }
 }";
 
-                CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                    // (6,9): error CS0119: 'T' is a type, which is not valid in the given context
-                    //         T();
-                    Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 9));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,9): error CS0119: 'T' is a type, which is not valid in the given context
+                //         T();
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 9));
         }
 
         [Fact, WorkItem(1078958, "DevDiv")]
@@ -2396,7 +2389,7 @@ class C
     static void T<U>() { }
 }";
 
-                CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(1078961, "DevDiv")]
@@ -2513,7 +2506,7 @@ class C
         [Fact, WorkItem(1078961, "DevDiv")]
         public void Bug1078961_5()
         {
-             const string source = @"
+            const string source = @"
 class C
 {
     class T { }

@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
     {
-        private readonly TypeSymbol pointedAtType;
-        private readonly ImmutableArray<CustomModifier> customModifiers;
+        private readonly TypeSymbol _pointedAtType;
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
 
         /// <summary>
         /// Create a new PointerTypeSymbol.
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)pointedAtType != null);
 
-            this.pointedAtType = pointedAtType;
-            this.customModifiers = customModifiers.NullToEmpty();
+            _pointedAtType = pointedAtType;
+            _customModifiers = customModifiers.NullToEmpty();
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return customModifiers;
+                return _customModifiers;
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return pointedAtType;
+                return _pointedAtType;
             }
         }
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if ((object)other == null || !other.pointedAtType.Equals(pointedAtType, ignoreCustomModifiers, ignoreDynamic))
+            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, ignoreCustomModifiers, ignoreDynamic))
             {
                 return false;
             }

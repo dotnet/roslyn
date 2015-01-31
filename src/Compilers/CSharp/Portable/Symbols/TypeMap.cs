@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
         }
 
-        static SmallDictionary<TypeParameterSymbol, TypeSymbol> ForType(NamedTypeSymbol containingType)
+        private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ForType(NamedTypeSymbol containingType)
         {
             var substituted = containingType as SubstitutedNamedTypeSymbol;
             return (object)substituted != null ?
@@ -60,22 +60,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly SmallDictionary<TypeParameterSymbol, TypeSymbol> emptyDictionary =
+        private static readonly SmallDictionary<TypeParameterSymbol, TypeSymbol> s_emptyDictionary =
             new SmallDictionary<TypeParameterSymbol, TypeSymbol>(ReferenceEqualityComparer.Instance);
 
         private TypeMap()
-            : base(emptyDictionary)
+            : base(s_emptyDictionary)
         {
-            Debug.Assert(emptyDictionary.IsEmpty());
+            Debug.Assert(s_emptyDictionary.IsEmpty());
         }
 
-        private static readonly TypeMap emptyTypeMap = new TypeMap();
+        private static readonly TypeMap s_emptyTypeMap = new TypeMap();
         public static TypeMap Empty
         {
             get
             {
-                Debug.Assert(emptyTypeMap.Mapping.IsEmpty());
-                return emptyTypeMap;
+                Debug.Assert(s_emptyTypeMap.Mapping.IsEmpty());
+                return s_emptyTypeMap;
             }
         }
 

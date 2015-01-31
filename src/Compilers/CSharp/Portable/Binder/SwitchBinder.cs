@@ -13,34 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SwitchBinder : LocalScopeBinder
     {
-        private readonly SwitchStatementSyntax switchSyntax;
-        private TypeSymbol switchGoverningType;
-        private readonly GeneratedLabelSymbol breakLabel;
+        private readonly SwitchStatementSyntax _switchSyntax;
+        private TypeSymbol _switchGoverningType;
+        private readonly GeneratedLabelSymbol _breakLabel;
 
         internal SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
         {
-            this.switchSyntax = switchSyntax;
-            this.breakLabel = new GeneratedLabelSymbol("break");
+            _switchSyntax = switchSyntax;
+            _breakLabel = new GeneratedLabelSymbol("break");
         }
 
         // Dictionary for the switch case/default labels.
         // Case labels with a non-null constant value are indexed on their ConstantValue.
         // Default label(s) are indexed on a special DefaultKey object.
         // Invalid case labels with null constant value are indexed on the labelName.
-        private Dictionary<object, List<SourceLabelSymbol>> lazySwitchLabelsMap;
-        private static readonly object DefaultKey = new object();
+        private Dictionary<object, List<SourceLabelSymbol>> _lazySwitchLabelsMap;
+        private static readonly object s_defaultKey = new object();
 
         private Dictionary<object, List<SourceLabelSymbol>> SwitchLabelsMap
         {
             get
             {
-                if (this.lazySwitchLabelsMap == null && this.Labels.Length > 0)
+                if (_lazySwitchLabelsMap == null && this.Labels.Length > 0)
                 {
-                    this.lazySwitchLabelsMap = BuildMap(this.Labels);
+                    _lazySwitchLabelsMap = BuildMap(this.Labels);
                 }
 
-                return this.lazySwitchLabelsMap;
+                return _lazySwitchLabelsMap;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (labelKind == SyntaxKind.DefaultSwitchLabel)
                     {
                         // Default label(s) are indexed on a special DefaultKey object.
-                        key = DefaultKey;
+                        key = s_defaultKey;
                     }
                     else
                     {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            foreach (var section in switchSyntax.Sections)
+            foreach (var section in _switchSyntax.Sections)
             {
                 builder.AddRange(BuildLocals(section.Statements));
             }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.breakLabel;
+                return _breakLabel;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<LabelSymbol> labels = null;
 
-            foreach (var section in switchSyntax.Sections)
+            foreach (var section in _switchSyntax.Sections)
             {
                 // add switch case/default labels
                 BuildSwitchLabels(section.Labels, ref labels);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)switchGoverningType == null)
                     {
-                        switchGoverningType = this.BindSwitchExpression(switchSyntax.Expression, tempDiagnosticBag).Type;
+                        switchGoverningType = this.BindSwitchExpression(_switchSyntax.Expression, tempDiagnosticBag).Type;
                     }
 
                     boundLabelExpression = ConvertCaseExpression(switchGoverningType, labelSyntax, boundLabelExpression, ref boundLabelConstantOpt, tempDiagnosticBag);
@@ -239,10 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SwitchLabelsMap: Dictionary for the switch case/default labels.
             // Default label(s) are indexed on a special DefaultKey object.
 
-            return FindMatchingSwitchLabels(DefaultKey);
+            return FindMatchingSwitchLabels(s_defaultKey);
         }
 
-        private static readonly List<SourceLabelSymbol> EmptyLabelsList = new List<SourceLabelSymbol>();
+        private static readonly List<SourceLabelSymbol> s_emptyLabelsList = new List<SourceLabelSymbol>();
         private List<SourceLabelSymbol> FindMatchingSwitchLabels(object key)
         {
             Debug.Assert(key != null);
@@ -258,14 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return EmptyLabelsList;
+            return s_emptyLabelsList;
         }
 
         # region "Switch statement binding methods"
 
         internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.switchSyntax.Equals(node));
+            Debug.Assert(_switchSyntax.Equals(node));
 
             // Bind switch expression and set the switch governing type
             var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, diagnostics);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSwitchExpressionAndGoverningType(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var boundSwitchExpression = BindSwitchExpression(node, diagnostics);
-            Interlocked.CompareExchange(ref this.switchGoverningType, boundSwitchExpression.Type, null);
+            Interlocked.CompareExchange(ref _switchGoverningType, boundSwitchExpression.Type, null);
             return boundSwitchExpression;
         }
 
@@ -611,14 +611,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetSwitchGoverningType(DiagnosticBag diagnostics)
         {
-            if ((object)this.switchGoverningType == null)
+            if ((object)_switchGoverningType == null)
             {
                 // Can reach here only when we are called from the Binding API
                 // Let us bind the switch expression and switch governing type
-                BindSwitchExpressionAndGoverningType(this.switchSyntax.Expression, diagnostics);
-                Debug.Assert((object)this.switchGoverningType != null);
+                BindSwitchExpressionAndGoverningType(_switchSyntax.Expression, diagnostics);
+                Debug.Assert((object)_switchGoverningType != null);
             }
-            return this.switchGoverningType;
+            return _switchGoverningType;
         }
 
         #endregion

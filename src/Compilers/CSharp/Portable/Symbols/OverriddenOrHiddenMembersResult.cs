@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -17,23 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<Symbol>.Empty,
                 ImmutableArray<Symbol>.Empty);
 
-        private readonly ImmutableArray<Symbol> overriddenMembers;
-        public ImmutableArray<Symbol> OverriddenMembers { get { return overriddenMembers; } }
+        private readonly ImmutableArray<Symbol> _overriddenMembers;
+        public ImmutableArray<Symbol> OverriddenMembers { get { return _overriddenMembers; } }
 
-        private readonly ImmutableArray<Symbol> hiddenMembers;
-        public ImmutableArray<Symbol> HiddenMembers { get { return hiddenMembers; } }
+        private readonly ImmutableArray<Symbol> _hiddenMembers;
+        public ImmutableArray<Symbol> HiddenMembers { get { return _hiddenMembers; } }
 
-        private readonly ImmutableArray<Symbol> runtimeOverriddenMembers;
-        public ImmutableArray<Symbol> RuntimeOverriddenMembers { get { return this.runtimeOverriddenMembers; } }
+        private readonly ImmutableArray<Symbol> _runtimeOverriddenMembers;
+        public ImmutableArray<Symbol> RuntimeOverriddenMembers { get { return _runtimeOverriddenMembers; } }
 
         private OverriddenOrHiddenMembersResult(
             ImmutableArray<Symbol> overriddenMembers,
             ImmutableArray<Symbol> hiddenMembers,
             ImmutableArray<Symbol> runtimeOverriddenMembers)
         {
-            this.overriddenMembers = overriddenMembers;
-            this.hiddenMembers = hiddenMembers;
-            this.runtimeOverriddenMembers = runtimeOverriddenMembers;
+            _overriddenMembers = overriddenMembers;
+            _hiddenMembers = hiddenMembers;
+            _runtimeOverriddenMembers = runtimeOverriddenMembers;
         }
 
         public static OverriddenOrHiddenMembersResult Create(
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Symbol GetOverriddenMember()
         {
-            foreach (var overriddenMember in overriddenMembers)
+            foreach (var overriddenMember in _overriddenMembers)
             {
                 if (overriddenMember.IsAbstract || overriddenMember.IsVirtual || overriddenMember.IsOverride)
                 {

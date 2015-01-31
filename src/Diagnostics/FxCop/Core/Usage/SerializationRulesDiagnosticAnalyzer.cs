@@ -12,58 +12,58 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     {
         // Implement serialization constructors
         internal const string RuleCA2229Id = "CA2229";
-        private static LocalizableString localizableTitleCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructor), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableDescriptionCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructorDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructor), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableDescriptionCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructorDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor RuleCA2229 = new DiagnosticDescriptor(RuleCA2229Id,
-                                                                         localizableTitleCA2229,
+                                                                         s_localizableTitleCA2229,
                                                                          "{0}",
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: localizableDescriptionCA2229,
+                                                                         description: s_localizableDescriptionCA2229,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182343.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark ISerializable types with SerializableAttribute
         internal const string RuleCA2237Id = "CA2237";
-        private static LocalizableString localizableTitleCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableMessageCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.AddSerializableAttributeToType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableDescriptionCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttributeDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.AddSerializableAttributeToType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableDescriptionCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttributeDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor RuleCA2237 = new DiagnosticDescriptor(RuleCA2237Id,
-                                                                         localizableTitleCA2237,
-                                                                         localizableMessageCA2237,
+                                                                         s_localizableTitleCA2237,
+                                                                         s_localizableMessageCA2237,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: localizableDescriptionCA2237,
+                                                                         description: s_localizableDescriptionCA2237,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182350.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark all non-serializable fields
         internal const string RuleCA2235Id = "CA2235";
-        private static LocalizableString localizableTitleCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFields), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableMessageCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.FieldIsOfNonSerializableType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString localizableDescriptionCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFieldsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFields), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.FieldIsOfNonSerializableType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableDescriptionCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFieldsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor RuleCA2235 = new DiagnosticDescriptor(RuleCA2235Id,
-                                                                         localizableTitleCA2235,
-                                                                         localizableMessageCA2235,
+                                                                         s_localizableTitleCA2235,
+                                                                         s_localizableMessageCA2235,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: localizableDescriptionCA2235,
+                                                                         description: s_localizableDescriptionCA2235,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182349.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
-        private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA2229, RuleCA2235, RuleCA2237);
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = ImmutableArray.Create(RuleCA2229, RuleCA2235, RuleCA2237);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return supportedDiagnostics;
+                return s_supportedDiagnostics;
             }
         }
 
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         private sealed class Analyzer
         {
-            private INamedTypeSymbol iserializableTypeSymbol;
-            private INamedTypeSymbol serializationInfoTypeSymbol;
-            private INamedTypeSymbol streamingContextTypeSymbol;
-            private INamedTypeSymbol serializableAttributeTypeSymbol;
+            private INamedTypeSymbol _iserializableTypeSymbol;
+            private INamedTypeSymbol _serializationInfoTypeSymbol;
+            private INamedTypeSymbol _streamingContextTypeSymbol;
+            private INamedTypeSymbol _serializableAttributeTypeSymbol;
 
             public Analyzer(
                 INamedTypeSymbol iserializableTypeSymbol,
@@ -113,10 +113,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 INamedTypeSymbol streamingContextTypeSymbol,
                 INamedTypeSymbol serializableAttributeTypeSymbol)
             {
-                this.iserializableTypeSymbol = iserializableTypeSymbol;
-                this.serializationInfoTypeSymbol = serializationInfoTypeSymbol;
-                this.streamingContextTypeSymbol = streamingContextTypeSymbol;
-                this.serializableAttributeTypeSymbol = serializableAttributeTypeSymbol;
+                _iserializableTypeSymbol = iserializableTypeSymbol;
+                _serializationInfoTypeSymbol = serializationInfoTypeSymbol;
+                _streamingContextTypeSymbol = streamingContextTypeSymbol;
+                _serializableAttributeTypeSymbol = serializableAttributeTypeSymbol;
             }
 
             public void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
                 // If the type is public and implements ISerializable
-                if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Public && namedTypeSymbol.AllInterfaces.Contains(this.iserializableTypeSymbol))
+                if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Public && namedTypeSymbol.AllInterfaces.Contains(_iserializableTypeSymbol))
                 {
                     if (!IsSerializable(namedTypeSymbol))
                     {
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                         // Look for a serialization constructor.
                         // A serialization constructor takes two params of type SerializationInfo and StreamingContext.
                         var serializationCtor = namedTypeSymbol.Constructors.Where(c => c.Parameters.Count() == 2 &&
-                                                                                  c.Parameters[0].Type == this.serializationInfoTypeSymbol &&
-                                                                                  c.Parameters[1].Type == this.streamingContextTypeSymbol).SingleOrDefault();
+                                                                                  c.Parameters[0].Type == _serializationInfoTypeSymbol &&
+                                                                                  c.Parameters[1].Type == _streamingContextTypeSymbol).SingleOrDefault();
 
                         // There is no serialization ctor - issue a diagnostic.
                         if (serializationCtor == null)
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
             private bool IsSerializable(ITypeSymbol namedTypeSymbol)
             {
-                return namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == this.serializableAttributeTypeSymbol);
+                return namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass == _serializableAttributeTypeSymbol);
             }
         }
     }

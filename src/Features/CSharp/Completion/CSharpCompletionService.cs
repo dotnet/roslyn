@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     [ExportLanguageService(typeof(ICompletionService), LanguageNames.CSharp), Shared]
     internal class CSharpCompletionService : AbstractCompletionService
     {
-        private readonly IEnumerable<ICompletionProvider> defaultCompletionProviders =
+        private readonly IEnumerable<ICompletionProvider> _defaultCompletionProviders =
             new ICompletionProvider[]
             {
                 new AttributeNamedParameterCompletionProvider(),
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         public override IEnumerable<ICompletionProvider> GetDefaultCompletionProviders()
         {
-            return defaultCompletionProviders;
+            return _defaultCompletionProviders;
         }
 
         public override async Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken)

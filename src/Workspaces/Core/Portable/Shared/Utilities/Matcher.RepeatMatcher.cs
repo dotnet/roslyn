@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class RepeatMatcher : Matcher<T>
         {
-            private readonly Matcher<T> matcher;
+            private readonly Matcher<T> _matcher;
 
             public RepeatMatcher(Matcher<T> matcher)
             {
-                this.matcher = matcher;
+                _matcher = matcher;
             }
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
-                while (matcher.TryMatch(sequence, ref index))
+                while (_matcher.TryMatch(sequence, ref index))
                 {
                 }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             public override string ToString()
             {
-                return string.Format("({0}*)", matcher);
+                return string.Format("({0}*)", _matcher);
             }
         }
     }

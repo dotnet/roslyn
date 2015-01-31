@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private abstract class AbstractWrappedNamespaceOrTypeSymbol : AbstractWrappedSymbol, INamespaceOrTypeSymbol
         {
-            private readonly INamespaceOrTypeSymbol symbol;
+            private readonly INamespaceOrTypeSymbol _symbol;
 
             protected AbstractWrappedNamespaceOrTypeSymbol(INamespaceOrTypeSymbol symbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(symbol, canImplementImplicitly, docCommentFormattingService)
             {
-                this.symbol = symbol;
+                _symbol = symbol;
             }
 
             public abstract ImmutableArray<ISymbol> GetMembers();
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return symbol.IsNamespace;
+                    return _symbol.IsNamespace;
                 }
             }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return symbol.IsType;
+                    return _symbol.IsType;
                 }
             }
         }

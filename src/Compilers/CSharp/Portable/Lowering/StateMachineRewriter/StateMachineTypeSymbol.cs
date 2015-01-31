@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
         {
-            return slotAllocatorOpt?.PreviousStateMachineTypeName ?? 
+            return slotAllocatorOpt?.PreviousStateMachineTypeName ??
                    GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
         }
 

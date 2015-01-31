@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 //test
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
     public class MissingTypeReferences : CSharpTestBase
@@ -313,8 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(asm1.GetSpecialType(SpecialType.System_Boolean), asm1.GetSpecialType(SpecialType.System_Boolean));
             Assert.Equal(asm1.GetSpecialType(SpecialType.System_Boolean), asm2.GetSpecialType(SpecialType.System_Boolean));
 
-            MissingMetadataTypeSymbol [] missingTypes1 = new MissingMetadataTypeSymbol[15];
-            MissingMetadataTypeSymbol [] missingTypes2 = new MissingMetadataTypeSymbol[15];
+            MissingMetadataTypeSymbol[] missingTypes1 = new MissingMetadataTypeSymbol[15];
+            MissingMetadataTypeSymbol[] missingTypes2 = new MissingMetadataTypeSymbol[15];
 
             var defaultName = new AssemblyIdentity("missing");
 
@@ -369,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var missingAssembly = new MissingAssemblySymbol(new AssemblyIdentity("asm1"));
             Assert.True(missingAssembly.Equals(missingAssembly));
-            Assert.NotEqual(new object (), missingAssembly);
+            Assert.NotEqual(new object(), missingAssembly);
             Assert.False(missingAssembly.Equals(null));
         }
     }

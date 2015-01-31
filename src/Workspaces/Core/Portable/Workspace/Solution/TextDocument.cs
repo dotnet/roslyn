@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis
 {
     public class TextDocument
     {
-        private readonly TextDocumentState state;
+        private readonly TextDocumentState _state;
 
         internal virtual TextDocumentState GetDocumentState()
         {
-            return state;
+            return _state;
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfNull(state);
 
             this.Project = project;
-            this.state = state;
+            _state = state;
         }
 
         /// <summary>

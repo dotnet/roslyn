@@ -44,44 +44,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class AliasSymbol : Symbol, IAliasSymbol
     {
-        private readonly SyntaxToken aliasName;
-        private readonly InContainerBinder binder;
+        private readonly SyntaxToken _aliasName;
+        private readonly InContainerBinder _binder;
 
-        private SymbolCompletionState state;
-        private NamespaceOrTypeSymbol aliasTarget;
-        private readonly ImmutableArray<Location> locations;  // NOTE: can be empty for the "global" alias.
+        private SymbolCompletionState _state;
+        private NamespaceOrTypeSymbol _aliasTarget;
+        private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
 
         // lazy binding
-        private NameSyntax aliasTargetName;
-        private readonly bool isExtern;
-        private ImmutableArray<Diagnostic> aliasTargetDiagnostics;
+        private NameSyntax _aliasTargetName;
+        private readonly bool _isExtern;
+        private ImmutableArray<Diagnostic> _aliasTargetDiagnostics;
 
         private AliasSymbol(InContainerBinder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
         {
-            this.aliasName = aliasName;
-            this.locations = locations;
-            this.aliasTarget = target;
-            this.binder = binder;
-            this.state.NotePartComplete(CompletionPart.AliasTarget);
+            _aliasName = aliasName;
+            _locations = locations;
+            _aliasTarget = target;
+            _binder = binder;
+            _state.NotePartComplete(CompletionPart.AliasTarget);
         }
 
         private AliasSymbol(InContainerBinder binder, SyntaxToken aliasName)
         {
-            this.aliasName = aliasName;
-            this.locations = ImmutableArray.Create(aliasName.GetLocation());
-            this.binder = binder;
+            _aliasName = aliasName;
+            _locations = ImmutableArray.Create(aliasName.GetLocation());
+            _binder = binder;
         }
 
         internal AliasSymbol(InContainerBinder binder, UsingDirectiveSyntax syntax)
             : this(binder, syntax.Alias.Name.Identifier)
         {
-            this.aliasTargetName = syntax.Name;
+            _aliasTargetName = syntax.Name;
         }
 
         internal AliasSymbol(InContainerBinder binder, ExternAliasDirectiveSyntax syntax)
             : this(binder, syntax.Identifier)
         {
-            this.isExtern = true;
+            _isExtern = true;
         }
 
         // For the purposes of SemanticModel, it is convenient to have an AliasSymbol for the "global" namespace that "global::" binds
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return aliasName.ValueText;
+                return _aliasName.ValueText;
             }
         }
 
@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
-            return (locations.Length > 0) ? new LexicalSortKey(locations[0], binder.Compilation) : LexicalSortKey.NotInSource;
+            return (_locations.Length > 0) ? new LexicalSortKey(_locations[0], _binder.Compilation) : LexicalSortKey.NotInSource;
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return locations;
+                return _locations;
             }
         }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetDeclaringSyntaxReferenceHelper<UsingDirectiveSyntax>(locations);
+                return GetDeclaringSyntaxReferenceHelper<UsingDirectiveSyntax>(_locations);
             }
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.isExtern;
+                return _isExtern;
             }
         }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return binder.ContainingMemberOrLambda;
+                return _binder.ContainingMemberOrLambda;
             }
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // basesBeingResolved is only used to break circular references.
         internal NamespaceOrTypeSymbol GetAliasTarget(ConsList<Symbol> basesBeingResolved)
         {
-            if (!state.HasComplete(CompletionPart.AliasTarget))
+            if (!_state.HasComplete(CompletionPart.AliasTarget))
             {
                 // the target is not yet bound. If it is an ordinary alias, bind the target
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
@@ -250,26 +250,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 NamespaceOrTypeSymbol symbol = this.IsExtern ?
                     ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(this.binder, this.aliasTargetName, newDiagnostics, basesBeingResolved);
+                    ResolveAliasTarget(_binder, _aliasTargetName, newDiagnostics, basesBeingResolved);
 
-                if ((object)Interlocked.CompareExchange(ref this.aliasTarget, symbol, null) == null)
+                if ((object)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
-                    bool won = ImmutableInterlocked.InterlockedInitialize(ref this.aliasTargetDiagnostics, newDiagnostics.ToReadOnlyAndFree());
+                    bool won = ImmutableInterlocked.InterlockedInitialize(ref _aliasTargetDiagnostics, newDiagnostics.ToReadOnlyAndFree());
                     Debug.Assert(won, "Only one thread can win the alias target CompareExchange");
 
-                    state.NotePartComplete(CompletionPart.AliasTarget);
+                    _state.NotePartComplete(CompletionPart.AliasTarget);
                     // we do not clear this.aliasTargetName, as another thread might be about to use it for ResolveAliasTarget(...)
                 }
                 else
                 {
                     newDiagnostics.Free();
                     // Wait for diagnostics to have been reported if another thread resolves the alias
-                    state.SpinWaitComplete(CompletionPart.AliasTarget, default(CancellationToken));
+                    _state.SpinWaitComplete(CompletionPart.AliasTarget, default(CancellationToken));
                 }
-
             }
 
-            return aliasTarget;
+            return _aliasTarget;
         }
 
         internal ImmutableArray<Diagnostic> AliasTargetDiagnostics
@@ -277,28 +276,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 GetAliasTarget(null);
-                Debug.Assert(!this.aliasTargetDiagnostics.IsDefault);
-                return this.aliasTargetDiagnostics;
+                Debug.Assert(!_aliasTargetDiagnostics.IsDefault);
+                return _aliasTargetDiagnostics;
             }
         }
 
         internal void CheckConstraints(DiagnosticBag diagnostics)
         {
             var target = this.Target as TypeSymbol;
-            if ((object)target != null && this.locations.Length > 0)
+            if ((object)target != null && _locations.Length > 0)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
-                target.CheckAllConstraints(conversions, this.locations[0], diagnostics);
+                target.CheckAllConstraints(conversions, _locations[0], diagnostics);
             }
         }
 
         private NamespaceSymbol ResolveExternAliasTarget(DiagnosticBag diagnostics)
         {
             NamespaceSymbol target;
-            if (!this.binder.Compilation.GetExternAliasTarget(aliasName.ValueText, out target))
+            if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, aliasName.GetLocation(), aliasName.ValueText);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
             }
 
             Debug.Assert((object)target != null);

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SignatureOnlyParameterSymbol : ParameterSymbol
     {
-        private readonly TypeSymbol type;
-        private readonly ImmutableArray<CustomModifier> customModifiers;
-        private readonly bool isParams;
-        private readonly RefKind refKind;
+        private readonly TypeSymbol _type;
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly bool _isParams;
+        private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
             TypeSymbol type,
@@ -25,19 +25,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             RefKind refKind)
         {
-            this.type = type;
-            this.customModifiers = customModifiers;
-            this.isParams = isParams;
-            this.refKind = refKind;
+            _type = type;
+            _customModifiers = customModifiers;
+            _isParams = isParams;
+            _refKind = refKind;
         }
 
-        public override TypeSymbol Type { get { return type; } }
+        public override TypeSymbol Type { get { return _type; } }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers { get { return customModifiers; } }
+        public override ImmutableArray<CustomModifier> CustomModifiers { get { return _customModifiers; } }
 
-        public override bool IsParams { get { return isParams; } }
+        public override bool IsParams { get { return _isParams; } }
 
-        public override RefKind RefKind { get { return refKind; } }
+        public override RefKind RefKind { get { return _refKind; } }
 
         public override string Name { get { return ""; } }
 
@@ -83,6 +83,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
         #endregion Not used by MethodSignatureComparer
-
     }
 }

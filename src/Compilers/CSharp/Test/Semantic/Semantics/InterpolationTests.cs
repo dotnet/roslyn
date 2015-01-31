@@ -158,7 +158,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
                 );
         }
-        
+
         [Fact]
         public void TestHalfOpenInterp03()
         {
@@ -186,7 +186,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
                 );
         }
-        
+
         [Fact]
         public void LambdaInInterp()
         {
@@ -551,7 +551,7 @@ class Program
 
         // Since the platform type System.FormattableString is not yet in our platforms (at the
         // time of writing), we explicitly include the required platform types into the sources under test.
-        const string formattableString = @"
+        private const string formattableString = @"
 // ==++==
 // 
 //   Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -1063,7 +1063,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)
                 );
         }
-        
+
         [WorkItem(1099105, "DevDiv")]
         [Fact]
         public void NoUnexpandedForm()
@@ -1134,6 +1134,5 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u2").WithLocation(8, 52)
                 );
         }
-
     }
 }

@@ -14,20 +14,20 @@ namespace Microsoft.CodeAnalysis
     internal class MetadataOnlyImage
     {
         public static readonly MetadataOnlyImage Empty = new MetadataOnlyImage(storage: null, assemblyName: string.Empty);
-        private static readonly EmitOptions EmitOptions = new EmitOptions(metadataOnly: true);
+        private static readonly EmitOptions s_emitOptions = new EmitOptions(metadataOnly: true);
 
-        private readonly ITemporaryStreamStorage storage;
-        private readonly string assemblyName;
+        private readonly ITemporaryStreamStorage _storage;
+        private readonly string _assemblyName;
 
         private MetadataOnlyImage(ITemporaryStreamStorage storage, string assemblyName)
         {
-            this.storage = storage;
-            this.assemblyName = assemblyName;
+            _storage = storage;
+            _assemblyName = assemblyName;
         }
 
         public bool IsEmpty
         {
-            get { return this.storage == null; }
+            get { return _storage == null; }
         }
 
         public static MetadataOnlyImage Create(ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // note: cloning compilation so we don't retain all the generated symbols after its emitted.
                     // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: EmitOptions, cancellationToken: cancellationToken);
+                    var emitResult = compilation.Clone().Emit(stream, options: s_emitOptions, cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             return Empty;
         }
 
-        private static readonly ConditionalWeakTable<MetadataReference, Stream> lifetime = new ConditionalWeakTable<MetadataReference, Stream>();
+        private static readonly ConditionalWeakTable<MetadataReference, Stream> s_lifetime = new ConditionalWeakTable<MetadataReference, Stream>();
 
         public MetadataReference CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
         {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // first see whether we can use native memory directly.
-            var stream = this.storage.ReadStream();
+            var stream = _storage.ReadStream();
             var supportNativeMemory = stream as ISupportDirectMemoryAccess;
             if (supportNativeMemory != null)
             {
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis
                     documentation: documentationProvider,
                     aliases: aliases,
                     embedInteropTypes: embedInteropTypes,
-                    display: this.assemblyName);
+                    display: _assemblyName);
 
                 // tie lifetime of stream to metadata reference we created. native memory's lifetime is tied to
                 // stream internally and stream is shared between same temporary storage. so here, we should be 
                 // sharing same native memory for all skeleton assemblies from same project snapshot.
-                lifetime.GetValue(referenceWithNativeMemory, _ => stream);
+                s_lifetime.GetValue(referenceWithNativeMemory, _ => stream);
 
                 return referenceWithNativeMemory;
             }
@@ -104,14 +104,14 @@ namespace Microsoft.CodeAnalysis
                 documentation: documentationProvider,
                 aliases: aliases,
                 embedInteropTypes: embedInteropTypes,
-                display: this.assemblyName);
+                display: _assemblyName);
         }
 
         public void Cleanup()
         {
-            if (this.storage != null)
+            if (_storage != null)
             {
-                this.storage.Dispose();
+                _storage.Dispose();
             }
         }
     }

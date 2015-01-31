@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var newTree = oldTree.WithReplaceFirst("foo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
-            
+
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
-                            SyntaxKind.CompilationUnit, 
-                            SyntaxKind.ClassDeclaration, 
-                            SyntaxKind.IdentifierToken, 
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.IdentifierToken,
                             SyntaxKind.ConstructorDeclaration);
         }
 
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
-                            SyntaxKind.CompilationUnit, 
-                            SyntaxKind.ClassDeclaration, 
-                            SyntaxKind.IdentifierToken, 
-                            SyntaxKind.DestructorDeclaration, 
-                            SyntaxKind.IdentifierToken, 
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.IdentifierToken,
+                            SyntaxKind.DestructorDeclaration,
+                            SyntaxKind.IdentifierToken,
                             SyntaxKind.ParameterList);
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             SyntaxKind.IdentifierToken,
                             SyntaxKind.DestructorDeclaration,
                             SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList); 
+                            SyntaxKind.ParameterList);
         }
 
         [Fact]
@@ -302,7 +302,7 @@ class C { void M() { } }
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ClassKeyword); 
+                            SyntaxKind.ClassKeyword);
         }
 
         [Fact]
@@ -2579,7 +2579,7 @@ class D { }
         [WorkItem(658496, "DevDiv")]
         public void DontReuseLambdaParameterAsMethodParameter()
         {
-            var items = new string[] 
+            var items = new string[]
             {
                 "a b.c*/ d => {e(f =>",
                 "/*",
@@ -2595,7 +2595,7 @@ class D { }
             var fullTree = SyntaxFactory.ParseSyntaxTree(newText);
 
             Assert.Equal(
-                fullTree.GetDiagnostics().Select(d => d.ToString()), 
+                fullTree.GetDiagnostics().Select(d => d.ToString()),
                 incrTree.GetDiagnostics().Select(d => d.ToString()));
 
             WalkTreeAndVerify(incrTree.GetRoot(), fullTree.GetRoot());
@@ -2620,7 +2620,7 @@ class D { }
             var fullChildren = fullNode.ChildNodesAndTokens();
             Assert.Equal(incChildren.Count, fullChildren.Count);
 
-            for (int i =0; i< incChildren.Count; i++ )
+            for (int i = 0; i < incChildren.Count; i++)
             {
                 var incChild = incChildren[i];
                 var fullChild = fullChildren[i];

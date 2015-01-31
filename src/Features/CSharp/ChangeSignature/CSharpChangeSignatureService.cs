@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
-            var ancestorDeclarationKinds = restrictToDeclarations ? invokableAncestorKinds.Add(SyntaxKind.Block) : invokableAncestorKinds;
+            var ancestorDeclarationKinds = restrictToDeclarations ? _invokableAncestorKinds.Add(SyntaxKind.Block) : _invokableAncestorKinds;
             SyntaxNode matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
             if (matchingNode == null || matchingNode.IsKind(SyntaxKind.Block))
             {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
         }
 
-        private ImmutableArray<SyntaxKind> invokableAncestorKinds = new[]
+        private ImmutableArray<SyntaxKind> _invokableAncestorKinds = new[]
             {
                 SyntaxKind.MethodDeclaration,
                 SyntaxKind.ConstructorDeclaration,
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SyntaxKind.DelegateDeclaration
             }.ToImmutableArray();
 
-        private ImmutableArray<SyntaxKind> updatableAncestorKinds = new[]
+        private ImmutableArray<SyntaxKind> _updatableAncestorKinds = new[]
             {
                 SyntaxKind.ConstructorDeclaration,
                 SyntaxKind.IndexerDeclaration,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SyntaxKind.NameMemberCref
             }.ToImmutableArray();
 
-        private ImmutableArray<SyntaxKind> updatableNodeKinds = new[]
+        private ImmutableArray<SyntaxKind> _updatableNodeKinds = new[]
             {
                 SyntaxKind.MethodDeclaration,
                 SyntaxKind.ConstructorDeclaration,
@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         public override SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node)
         {
-            if (updatableNodeKinds.Contains(node.Kind()))
+            if (_updatableNodeKinds.Contains(node.Kind()))
             {
                 return node;
             }
 
             // TODO: file bug about this: var invocation = csnode.Ancestors().FirstOrDefault(a => a.Kind == SyntaxKind.InvocationExpression);
-            var matchingNode = node.AncestorsAndSelf().FirstOrDefault(n => updatableAncestorKinds.Contains(n.Kind()));
+            var matchingNode = node.AncestorsAndSelf().FirstOrDefault(n => _updatableAncestorKinds.Contains(n.Kind()));
             if (matchingNode == null)
             {
                 return null;

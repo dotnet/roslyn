@@ -7,16 +7,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class LocalRewriter
+    internal partial class LocalRewriter
     {
         public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node)
         {
-            Debug.Assert(previousSubmissionFields != null);
-            Debug.Assert(!factory.CurrentMethod.IsStatic);
+            Debug.Assert(_previousSubmissionFields != null);
+            Debug.Assert(!_factory.CurrentMethod.IsStatic);
 
             var syntax = node.Syntax;
-            var hostObjectReference = previousSubmissionFields.GetHostObjectField();
-            var thisReference = new BoundThisReference(syntax, factory.CurrentType);
+            var hostObjectReference = _previousSubmissionFields.GetHostObjectField();
+            var thisReference = new BoundThisReference(syntax, _factory.CurrentType);
             return new BoundFieldAccess(syntax, thisReference, hostObjectReference, constantValueOpt: null);
         }
     }

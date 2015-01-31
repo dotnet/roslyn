@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class MissingNamespaceSymbol : NamespaceSymbol
     {
-        private readonly string name;
-        private readonly Symbol containingSymbol;
+        private readonly string _name;
+        private readonly Symbol _containingSymbol;
 
         public MissingNamespaceSymbol(MissingModuleSymbol containingModule)
         {
             Debug.Assert((object)containingModule != null);
 
-            this.containingSymbol = containingModule;
-            this.name = string.Empty;
+            _containingSymbol = containingModule;
+            _name = string.Empty;
         }
 
         public MissingNamespaceSymbol(NamespaceSymbol containingNamespace, string name)
@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)containingNamespace != null);
             Debug.Assert(name != null);
 
-            this.containingSymbol = containingNamespace;
-            this.name = name;
+            _containingSymbol = containingNamespace;
+            _name = name;
         }
 
         public override string Name
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingSymbol;
+                return _containingSymbol;
             }
         }
 
@@ -72,18 +72,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (containingSymbol.Kind == SymbolKind.NetModule)
+                if (_containingSymbol.Kind == SymbolKind.NetModule)
                 {
-                    return (ModuleSymbol)containingSymbol;
+                    return (ModuleSymbol)_containingSymbol;
                 }
 
-                return containingSymbol.ContainingModule;
+                return _containingSymbol.ContainingModule;
             }
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(containingSymbol.GetHashCode(), name.GetHashCode());
+            return Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode());
         }
 
         public override bool Equals(object obj)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MissingNamespaceSymbol other = obj as MissingNamespaceSymbol;
 
-            return (object)other != null && name.Equals(other.name) && containingSymbol.Equals(other.containingSymbol);
+            return (object)other != null && _name.Equals(other._name) && _containingSymbol.Equals(other._containingSymbol);
         }
 
         public override ImmutableArray<Location> Locations

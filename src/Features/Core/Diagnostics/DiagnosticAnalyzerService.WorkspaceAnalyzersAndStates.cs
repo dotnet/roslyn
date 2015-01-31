@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,23 +21,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 /// </summary>
                 private partial class WorkspaceAnalyzersAndStates
                 {
-                    private readonly ImmutableArray<AnalyzerReference> workspaceAnalyzers;
-                    private ImmutableDictionary<string, PerLanguageAnalyzersAndStates> perLanguageAnalyzersAndStatesMap;
+                    private readonly ImmutableArray<AnalyzerReference> _workspaceAnalyzers;
+                    private ImmutableDictionary<string, PerLanguageAnalyzersAndStates> _perLanguageAnalyzersAndStatesMap;
 
                     public WorkspaceAnalyzersAndStates(ImmutableArray<AnalyzerReference> workspaceAnalyzers)
                     {
-                        this.workspaceAnalyzers = workspaceAnalyzers;
-                        this.perLanguageAnalyzersAndStatesMap = ImmutableDictionary<string, PerLanguageAnalyzersAndStates>.Empty;
+                        _workspaceAnalyzers = workspaceAnalyzers;
+                        _perLanguageAnalyzersAndStatesMap = ImmutableDictionary<string, PerLanguageAnalyzersAndStates>.Empty;
                     }
 
                     private static PerLanguageAnalyzersAndStates CreatePerLanguageAnalyzersAndStates(string language, WorkspaceAnalyzersAndStates @this)
                     {
-                        return new PerLanguageAnalyzersAndStates(@this.workspaceAnalyzers, language);
+                        return new PerLanguageAnalyzersAndStates(@this._workspaceAnalyzers, language);
                     }
 
                     private PerLanguageAnalyzersAndStates GetOrCreatePerLanguageAnalyzersAndStates(string language)
                     {
-                        return ImmutableInterlocked.GetOrAdd(ref this.perLanguageAnalyzersAndStatesMap, language, CreatePerLanguageAnalyzersAndStates, this);
+                        return ImmutableInterlocked.GetOrAdd(ref _perLanguageAnalyzersAndStatesMap, language, CreatePerLanguageAnalyzersAndStates, this);
                     }
 
                     public int GetAnalyzerCount(string language)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     public IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> GetAllExistingDiagnosticStates(string languageOpt)
                     {
                         var current = SpecializedCollections.EmptyEnumerable<Tuple<DiagnosticState, ProviderId, StateType>>();
-                        foreach (var type in DocumentScopeStateTypes)
+                        foreach (var type in s_documentScopeStateTypes)
                         {
                             current = current.Concat(GetAllExistingDiagnosticStates(type, languageOpt));
                         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (languageOpt != null)
                         {
                             PerLanguageAnalyzersAndStates analyzersStates;
-                            if (this.perLanguageAnalyzersAndStatesMap.TryGetValue(languageOpt, out analyzersStates))
+                            if (_perLanguageAnalyzersAndStatesMap.TryGetValue(languageOpt, out analyzersStates))
                             {
                                 return analyzersStates.GetAllExistingDiagnosticStates(type);
                             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // This might be a removed or closed document/project/solution.
                         // Return all existing states.
                         var current = SpecializedCollections.EmptyEnumerable<Tuple<DiagnosticState, ProviderId, StateType>>();
-                        foreach (var analyzersAndStates in perLanguageAnalyzersAndStatesMap.Values)
+                        foreach (var analyzersAndStates in _perLanguageAnalyzersAndStatesMap.Values)
                         {
                             current = current.Concat(analyzersAndStates.GetAllExistingDiagnosticStates(type));
                         }

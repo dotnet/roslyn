@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class StaticKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InternalKeyword,
             SyntaxKind.NewKeyword,
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.UnsafeKeyword,
         };
 
-        private static readonly ISet<SyntaxKind> ValidMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.AsyncKeyword,
             SyntaxKind.ExternKeyword,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.VolatileKeyword,
         };
 
-        private static readonly ISet<SyntaxKind> ValidGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ExternKeyword,
             SyntaxKind.InternalKeyword,
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsValidContextForMember(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, ValidGlobalMemberModifiers, cancellationToken) ||
+                context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, s_validGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
-                    validModifiers: ValidMemberModifiers,
+                    validModifiers: s_validMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.IsTypeDeclarationContext(
-                validModifiers: ValidTypeModifiers,
+                validModifiers: s_validTypeModifiers,
                 validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);

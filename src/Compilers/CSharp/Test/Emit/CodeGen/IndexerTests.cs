@@ -24,7 +24,7 @@ class C
     public int this[int x] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -43,7 +43,7 @@ class C
     public int this[int x, int y] { get { return x; } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x, System.Int32 y].get", null),
                 expectedSignatures: new[]
                 {
@@ -61,9 +61,9 @@ class C
     public int this[int x, int y, int z] { set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,  
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, null, "void C.this[System.Int32 x, System.Int32 y, System.Int32 z].set"),
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("C", "Item", ".property writeonly instance System.Int32 Item(System.Int32 x, System.Int32 y, System.Int32 z)"),
                     Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 y, System.Int32 z, System.Int32 value) cil managed")
@@ -79,7 +79,7 @@ class C<T>
     public T this[T x] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "T C<T>.this[T x].get", "void C<T>.this[T x].set"),
                 expectedSignatures: new[]
                 {
@@ -98,7 +98,7 @@ class C
     public int this[int x = 1, int y = 2] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[[System.Int32 x = 1], [System.Int32 y = 2]].get", "void C.this[[System.Int32 x = 1], [System.Int32 y = 2]].set"),
                 expectedSignatures: new[]
                 {
@@ -117,7 +117,7 @@ class C
     public int this[params int[] x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[params System.Int32[] x].get", "void C.this[params System.Int32[] x].set"),
                 expectedSignatures: new[]
                 {
@@ -185,7 +185,7 @@ class C : I
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -209,7 +209,7 @@ class C : B
     public override sealed int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,  
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -233,7 +233,7 @@ class C : B
     public new virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text, 
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {

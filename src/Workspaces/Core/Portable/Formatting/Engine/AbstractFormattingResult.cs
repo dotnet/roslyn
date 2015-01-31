@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly TokenStream TokenStream;
         protected readonly TaskExecutor TaskExecutor;
 
-        private readonly CancellableLazy<IList<TextChange>> lazyChanges;
-        private readonly CancellableLazy<SyntaxNode> lazyNode;
+        private readonly CancellableLazy<IList<TextChange>> _lazyChanges;
+        private readonly CancellableLazy<SyntaxNode> _lazyNode;
 
         /// <summary>
         /// span in the tree to format
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.FormattedSpan = formattedSpan;
             this.TaskExecutor = taskExecutor;
 
-            this.lazyChanges = new CancellableLazy<IList<TextChange>>(CreateTextChanges);
-            this.lazyNode = new CancellableLazy<SyntaxNode>(CreateFormattedRoot);
+            _lazyChanges = new CancellableLazy<IList<TextChange>>(CreateTextChanges);
+            _lazyNode = new CancellableLazy<SyntaxNode>(CreateFormattedRoot);
         }
 
         /// <summary>
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public IList<TextChange> GetTextChanges(CancellationToken cancellationToken)
         {
-            return this.lazyChanges.GetValue(cancellationToken);
+            return _lazyChanges.GetValue(cancellationToken);
         }
 
         public SyntaxNode GetFormattedRoot(CancellationToken cancellationToken)
         {
-            return this.lazyNode.GetValue(cancellationToken);
+            return _lazyNode.GetValue(cancellationToken);
         }
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)

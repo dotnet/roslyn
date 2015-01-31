@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void TestFileNames(bool assertGenerated, params string[] fileNames)
         {
             var project = CreateProject();
-            
+
             foreach (var fileName in fileNames)
             {
                 var document = project.AddDocument(fileName, "");

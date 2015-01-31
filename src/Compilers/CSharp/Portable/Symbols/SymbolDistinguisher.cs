@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class SymbolDistinguisher
     {
-        private readonly Compilation compilation;
-        private readonly Symbol symbol0;
-        private readonly Symbol symbol1;
+        private readonly Compilation _compilation;
+        private readonly Symbol _symbol0;
+        private readonly Symbol _symbol1;
 
-        private ImmutableArray<string> lazyDescriptions;
+        private ImmutableArray<string> _lazyDescriptions;
 
         public SymbolDistinguisher(Compilation compilation, Symbol symbol0, Symbol symbol1)
         {
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSymbolKind(symbol0);
             CheckSymbolKind(symbol1);
 
-            this.compilation = compilation;
-            this.symbol0 = symbol0;
-            this.symbol1 = symbol1;
+            _compilation = compilation;
+            _symbol0 = symbol0;
+            _symbol1 = symbol1;
         }
 
         public IMessageSerializable First
@@ -83,18 +83,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeDescriptions()
         {
-            if (!this.lazyDescriptions.IsDefault) return;
+            if (!_lazyDescriptions.IsDefault) return;
 
-            string description0 = symbol0.ToDisplayString();
-            string description1 = symbol1.ToDisplayString();
+            string description0 = _symbol0.ToDisplayString();
+            string description1 = _symbol1.ToDisplayString();
 
             if (description0 == description1)
             {
-                Symbol unwrappedSymbol0 = UnwrapSymbol(symbol0);
-                Symbol unwrappedSymbol1 = UnwrapSymbol(symbol1);
+                Symbol unwrappedSymbol0 = UnwrapSymbol(_symbol0);
+                Symbol unwrappedSymbol1 = UnwrapSymbol(_symbol1);
 
-                string location0 = GetLocationString(compilation, unwrappedSymbol0);
-                string location1 = GetLocationString(compilation, unwrappedSymbol1);
+                string location0 = GetLocationString(_compilation, unwrappedSymbol0);
+                string location1 = GetLocationString(_compilation, unwrappedSymbol1);
 
                 // The locations should not be equal, but they might be if the same
                 // SyntaxTree is referenced by two different compilations.
@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(description0 != description1);
 
-            if (!this.lazyDescriptions.IsDefault) return;
+            if (!_lazyDescriptions.IsDefault) return;
 
-            ImmutableInterlocked.InterlockedInitialize(ref this.lazyDescriptions, ImmutableArray.Create(description0, description1));
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyDescriptions, ImmutableArray.Create(description0, description1));
         }
 
         private static Symbol UnwrapSymbol(Symbol symbol)
@@ -197,23 +197,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetDescription(int index)
         {
             MakeDescriptions();
-            return lazyDescriptions[index];
+            return _lazyDescriptions[index];
         }
 
         private class Description : IMessageSerializable
         {
-            private readonly SymbolDistinguisher distinguisher;
-            private readonly int index;
+            private readonly SymbolDistinguisher _distinguisher;
+            private readonly int _index;
 
             public Description(SymbolDistinguisher distinguisher, int index)
             {
-                this.distinguisher = distinguisher;
-                this.index = index;
+                _distinguisher = distinguisher;
+                _index = index;
             }
 
             public override string ToString()
             {
-                return distinguisher.GetDescription(index);
+                return _distinguisher.GetDescription(_index);
             }
         }
     }

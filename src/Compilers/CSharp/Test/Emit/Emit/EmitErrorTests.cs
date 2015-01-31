@@ -176,7 +176,7 @@ public class B
                 var result = compilation2.Emit(executableStream);
                 Assert.False(result.Success);
 
-                result.Diagnostics.Verify(expectedDiagnostics.Concat(new[] 
+                result.Diagnostics.Verify(expectedDiagnostics.Concat(new[]
                 {
                     // error CS7038: Failed to emit module 'Test'.
                     Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName)

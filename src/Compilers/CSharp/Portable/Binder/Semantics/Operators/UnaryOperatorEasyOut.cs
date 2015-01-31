@@ -11,76 +11,76 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static class UnopEasyOut
         {
-            const UnaryOperatorKind ERR = UnaryOperatorKind.Error;
+            private const UnaryOperatorKind ERR = UnaryOperatorKind.Error;
 
-            const UnaryOperatorKind BOL = UnaryOperatorKind.Bool;
-            const UnaryOperatorKind CHR = UnaryOperatorKind.Char;
-            const UnaryOperatorKind I08 = UnaryOperatorKind.SByte;
-            const UnaryOperatorKind U08 = UnaryOperatorKind.Byte;
-            const UnaryOperatorKind I16 = UnaryOperatorKind.Short;
-            const UnaryOperatorKind U16 = UnaryOperatorKind.UShort;
-            const UnaryOperatorKind I32 = UnaryOperatorKind.Int;
-            const UnaryOperatorKind U32 = UnaryOperatorKind.UInt;
-            const UnaryOperatorKind I64 = UnaryOperatorKind.Long;
-            const UnaryOperatorKind U64 = UnaryOperatorKind.ULong;
-            const UnaryOperatorKind R32 = UnaryOperatorKind.Float;
-            const UnaryOperatorKind R64 = UnaryOperatorKind.Double;
-            const UnaryOperatorKind DEC = UnaryOperatorKind.Decimal;
-            const UnaryOperatorKind LBOL = UnaryOperatorKind.Lifted | UnaryOperatorKind.Bool;
-            const UnaryOperatorKind LCHR = UnaryOperatorKind.Lifted | UnaryOperatorKind.Char;
-            const UnaryOperatorKind LI08 = UnaryOperatorKind.Lifted | UnaryOperatorKind.SByte;
-            const UnaryOperatorKind LU08 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Byte;
-            const UnaryOperatorKind LI16 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Short;
-            const UnaryOperatorKind LU16 = UnaryOperatorKind.Lifted | UnaryOperatorKind.UShort;
-            const UnaryOperatorKind LI32 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Int;
-            const UnaryOperatorKind LU32 = UnaryOperatorKind.Lifted | UnaryOperatorKind.UInt;
-            const UnaryOperatorKind LI64 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Long;
-            const UnaryOperatorKind LU64 = UnaryOperatorKind.Lifted | UnaryOperatorKind.ULong;
-            const UnaryOperatorKind LR32 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Float;
-            const UnaryOperatorKind LR64 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Double;
-            const UnaryOperatorKind LDEC = UnaryOperatorKind.Lifted | UnaryOperatorKind.Decimal;
+            private const UnaryOperatorKind BOL = UnaryOperatorKind.Bool;
+            private const UnaryOperatorKind CHR = UnaryOperatorKind.Char;
+            private const UnaryOperatorKind I08 = UnaryOperatorKind.SByte;
+            private const UnaryOperatorKind U08 = UnaryOperatorKind.Byte;
+            private const UnaryOperatorKind I16 = UnaryOperatorKind.Short;
+            private const UnaryOperatorKind U16 = UnaryOperatorKind.UShort;
+            private const UnaryOperatorKind I32 = UnaryOperatorKind.Int;
+            private const UnaryOperatorKind U32 = UnaryOperatorKind.UInt;
+            private const UnaryOperatorKind I64 = UnaryOperatorKind.Long;
+            private const UnaryOperatorKind U64 = UnaryOperatorKind.ULong;
+            private const UnaryOperatorKind R32 = UnaryOperatorKind.Float;
+            private const UnaryOperatorKind R64 = UnaryOperatorKind.Double;
+            private const UnaryOperatorKind DEC = UnaryOperatorKind.Decimal;
+            private const UnaryOperatorKind LBOL = UnaryOperatorKind.Lifted | UnaryOperatorKind.Bool;
+            private const UnaryOperatorKind LCHR = UnaryOperatorKind.Lifted | UnaryOperatorKind.Char;
+            private const UnaryOperatorKind LI08 = UnaryOperatorKind.Lifted | UnaryOperatorKind.SByte;
+            private const UnaryOperatorKind LU08 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Byte;
+            private const UnaryOperatorKind LI16 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Short;
+            private const UnaryOperatorKind LU16 = UnaryOperatorKind.Lifted | UnaryOperatorKind.UShort;
+            private const UnaryOperatorKind LI32 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Int;
+            private const UnaryOperatorKind LU32 = UnaryOperatorKind.Lifted | UnaryOperatorKind.UInt;
+            private const UnaryOperatorKind LI64 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Long;
+            private const UnaryOperatorKind LU64 = UnaryOperatorKind.Lifted | UnaryOperatorKind.ULong;
+            private const UnaryOperatorKind LR32 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Float;
+            private const UnaryOperatorKind LR64 = UnaryOperatorKind.Lifted | UnaryOperatorKind.Double;
+            private const UnaryOperatorKind LDEC = UnaryOperatorKind.Lifted | UnaryOperatorKind.Decimal;
 
 
-            private static readonly UnaryOperatorKind[] increment =
+            private static readonly UnaryOperatorKind[] s_increment =
             //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
                 { ERR, ERR, ERR, CHR,  I08,  I16,  I32,  I64,  U08,  U16,  U32,  U64,  R32,  R64,  DEC,
-                            /* lifted */
+                /* lifted */
                             ERR, LCHR, LI08, LI16, LI32, LI64, LU08, LU16, LU32, LU64, LR32, LR64, LDEC };
 
-            private static readonly UnaryOperatorKind[] plus =
+            private static readonly UnaryOperatorKind[] s_plus =
             //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
                 { ERR, ERR, ERR, I32,  I32,  I32,  I32,  I64,  I32,  I32,  U32,  U64,  R32,  R64,  DEC,
-                            /* lifted */
+                /* lifted */
                             ERR, LI32, LI32, LI32, LI32, LI64, LI32, LI32, LU32, LU64, LR32, LR64, LDEC };
 
-            private static readonly UnaryOperatorKind[] minus =
+            private static readonly UnaryOperatorKind[] s_minus =
             //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
                 { ERR, ERR, ERR, I32,  I32,  I32,  I32,  I64,  I32,  I32,  I64,  ERR,  R32,  R64,  DEC,
-                            /* lifted */
+                /* lifted */
                             ERR, LI32, LI32, LI32, LI32, LI64, LI32, LI32, LI64, ERR,  LR32, LR64, LDEC };
 
-            private static readonly UnaryOperatorKind[] logicalNegation =
+            private static readonly UnaryOperatorKind[] s_logicalNegation =
             //obj  str  bool  chr  i08  i16  i32  i64  u08  u16  u32  u64  r32  r64  dec  
                 { ERR, ERR, BOL,  ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,
-                            /* lifted */
+                /* lifted */
                             LBOL, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR };
 
-            private static readonly UnaryOperatorKind[] bitwiseComplement =
+            private static readonly UnaryOperatorKind[] s_bitwiseComplement =
             //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32  r64  dec  
                 { ERR, ERR, ERR, I32,  I32,  I32,  I32,  I64,  I32,  I32,  U32,  U64,  ERR, ERR, ERR,
-                            /* lifted */
+                /* lifted */
                             ERR, LI32, LI32, LI32, LI32, LI64, LI32, LI32, LU32, LU64, ERR, ERR, ERR  };
 
-            private static readonly UnaryOperatorKind[][] opkind =
+            private static readonly UnaryOperatorKind[][] s_opkind =
             {
-                /* ++ */  increment,
-                /* -- */  increment,
-                /* ++ */  increment,
-                /* -- */  increment,
-                /* +  */  plus,
-                /* -  */  minus,
-                /* !  */  logicalNegation,
-                /* ~  */  bitwiseComplement
+                /* ++ */  s_increment,
+                /* -- */  s_increment,
+                /* ++ */  s_increment,
+                /* -- */  s_increment,
+                /* +  */  s_plus,
+                /* -  */  s_minus,
+                /* !  */  s_logicalNegation,
+                /* ~  */  s_bitwiseComplement
             };
 
             // UNDONE: This code is repeated in a bunch of places.
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return UnaryOperatorKind.Error;
                 }
                 int kindIndex = kind.OperatorIndex();
-                var result = (kindIndex >= opkind.Length) ? UnaryOperatorKind.Error : opkind[kindIndex][index.Value];
+                var result = (kindIndex >= s_opkind.Length) ? UnaryOperatorKind.Error : s_opkind[kindIndex][index.Value];
                 return result == UnaryOperatorKind.Error ? result : result | kind;
             }
         }

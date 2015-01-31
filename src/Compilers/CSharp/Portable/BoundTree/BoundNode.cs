@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class BoundNode
     {
-        private readonly BoundKind kind;
-        private BoundNodeAttributes attributes;
+        private readonly BoundKind _kind;
+        private BoundNodeAttributes _attributes;
 
         public readonly CSharpSyntaxNode Syntax;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind == BoundKind.SequencePoint || kind == BoundKind.SequencePointExpression || syntax != null);
 
-            this.kind = kind;
+            _kind = kind;
             this.Syntax = syntax;
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (hasErrors)
             {
-                this.attributes = BoundNodeAttributes.HasErrors;
+                _attributes = BoundNodeAttributes.HasErrors;
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (attributes & BoundNodeAttributes.HasErrors) != 0;
+                return (_attributes & BoundNodeAttributes.HasErrors) != 0;
             }
         }
 
@@ -103,24 +103,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
 #if DEBUG
-                attributes |= BoundNodeAttributes.WasCompilerGeneratedIsChecked;
+                _attributes |= BoundNodeAttributes.WasCompilerGeneratedIsChecked;
 #endif
-                return (attributes & BoundNodeAttributes.CompilerGenerated) != 0;
+                return (_attributes & BoundNodeAttributes.CompilerGenerated) != 0;
             }
             internal set
             {
 #if DEBUG
-                Debug.Assert((attributes & BoundNodeAttributes.WasCompilerGeneratedIsChecked) == 0,
+                Debug.Assert((_attributes & BoundNodeAttributes.WasCompilerGeneratedIsChecked) == 0,
                     "compiler generated flag should not be set after reading it");
 #endif
 
                 if (value)
                 {
-                    attributes |= BoundNodeAttributes.CompilerGenerated;
+                    _attributes |= BoundNodeAttributes.CompilerGenerated;
                 }
                 else
                 {
-                    Debug.Assert((attributes & BoundNodeAttributes.CompilerGenerated) == 0,
+                    Debug.Assert((_attributes & BoundNodeAttributes.CompilerGenerated) == 0,
                         "compiler generated flag should not be reset here");
                 }
             }
@@ -132,16 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void ResetCompilerGenerated(bool newCompilerGenerated)
         {
 #if DEBUG
-            Debug.Assert((attributes & BoundNodeAttributes.WasCompilerGeneratedIsChecked) == 0,
+            Debug.Assert((_attributes & BoundNodeAttributes.WasCompilerGeneratedIsChecked) == 0,
                 "compiler generated flag should not be set after reading it");
 #endif
             if (newCompilerGenerated)
             {
-                attributes |= BoundNodeAttributes.CompilerGenerated;
+                _attributes |= BoundNodeAttributes.CompilerGenerated;
             }
             else
             {
-                attributes &= ~BoundNodeAttributes.CompilerGenerated;
+                _attributes &= ~BoundNodeAttributes.CompilerGenerated;
             }
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.kind;
+                return _kind;
             }
         }
 

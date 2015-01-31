@@ -174,7 +174,6 @@ instanceVar
 D
 C
 S");
-
         }
 
         [Fact]
@@ -528,7 +527,6 @@ class Program
 EntryMethodName
 Correct
 Correct");
-
         }
 
         [Fact]
@@ -1140,6 +1138,5 @@ public class Program
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
         }
-
     }
 }

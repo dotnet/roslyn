@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected class TypeParameterCollector : SymbolVisitor
         {
-            private readonly List<ITypeParameterSymbol> typeParameters = new List<ITypeParameterSymbol>();
+            private readonly List<ITypeParameterSymbol> _typeParameters = new List<ITypeParameterSymbol>();
 
             public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
             {
                 var collector = new TypeParameterCollector();
                 typeSymbol.Accept(collector);
 
-                return collector.typeParameters;
+                return collector._typeParameters;
             }
 
             public override void DefaultVisit(ISymbol node)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterTypeSymbol)
             {
-                typeParameters.Add(typeParameterTypeSymbol);
+                _typeParameters.Add(typeParameterTypeSymbol);
             }
         }
     }

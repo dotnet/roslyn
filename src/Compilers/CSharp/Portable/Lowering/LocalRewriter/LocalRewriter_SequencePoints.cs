@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class LocalRewriter
+    internal partial class LocalRewriter
     {
         internal static BoundStatement AddSequencePoint(VariableDeclaratorSyntax declaratorSyntax, BoundStatement rewrittenStatement)
         {
@@ -195,14 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement)
         {
-            if (condition == null || !this.compilation.Options.EnableEditAndContinue || containingStatement.WasCompilerGenerated)
+            if (condition == null || !_compilation.Options.EnableEditAndContinue || containingStatement.WasCompilerGenerated)
             {
                 return condition;
             }
 
             // The local has to be associated with the syntax of the statement containing the condition since 
             // EnC source mapping only operates on statements.
-            var local = factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+            var local = _factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
 
             var condConst = condition.ConstantValue;
             if (condConst == null)
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundSequence(
                     condition.Syntax,
                     ImmutableArray.Create(local),
-                    ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
-                    new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type),
+                    ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
+                    new BoundSequencePointExpression(syntax: null, expression: _factory.Local(local), type: condition.Type),
                     condition.Type);
             }
             else
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundSequence(
                     condition.Syntax,
                     ImmutableArray.Create(local),
-                    ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
+                    ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
                     condition,
                     condition.Type);
             }

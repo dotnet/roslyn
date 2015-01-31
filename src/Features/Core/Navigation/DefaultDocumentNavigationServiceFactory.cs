@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis.Navigation
     [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), ServiceLayer.Default), Shared]
     internal sealed class DefaultDocumentNavigationServiceFactory : IWorkspaceServiceFactory
     {
-        private IDocumentNavigationService singleton;
+        private IDocumentNavigationService _singleton;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (this.singleton == null)
+            if (_singleton == null)
             {
-                this.singleton = new DefaultDocumentNavigationService();
+                _singleton = new DefaultDocumentNavigationService();
             }
 
-            return singleton;
+            return _singleton;
         }
     }
 }

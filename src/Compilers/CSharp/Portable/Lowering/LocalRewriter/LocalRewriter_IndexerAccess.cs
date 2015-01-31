@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, with the cast the scenarios don't work either, so we don't mimic Dev12.
                 // loweredReceiver = BoundConversion.Synthesized(loweredReceiver.Syntax, loweredReceiver, Conversion.Identity, false, false, null, DynamicTypeSymbol.Instance);
 
-                result = dynamicFactory.MakeDynamicGetMember(loweredReceiver, indexedPropertyName, resultIndexed: true).ToExpression();
+                result = _dynamicFactory.MakeDynamicGetMember(loweredReceiver, indexedPropertyName, resultIndexed: true).ToExpression();
             }
             else
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with the matching name of this dynamic invocation.
             EmbedIfNeedTo(loweredReceiver, node.ApplicableIndexers, node.Syntax);
 
-            return dynamicFactory.MakeDynamicGetIndex(
+            return _dynamicFactory.MakeDynamicGetIndex(
                 MakeDynamicIndexerAccessReceiver(node, loweredReceiver),
                 loweredArguments,
                 argumentNames,

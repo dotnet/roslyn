@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class ConversionsBase
+    internal partial class ConversionsBase
     {
         private static TypeSymbol GetUnderlyingEffectiveType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

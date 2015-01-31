@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
-                private readonly AsyncSemaphore semaphore = new AsyncSemaphore(initialCount: 0);
+                private readonly AsyncSemaphore _semaphore = new AsyncSemaphore(initialCount: 0);
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> cancellationMap = new Dictionary<object, CancellationTokenSource>();
-                
-                private readonly object gate = new object();
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new Dictionary<object, CancellationTokenSource>();
+
+                private readonly object _gate = new object();
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     get
                     {
-                        lock (this.gate)
+                        lock (_gate)
                         {
                             return WorkItemCount_NoLock > 0;
                         }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     get
                     {
-                        lock (this.gate)
+                        lock (_gate)
                         {
                             return WorkItemCount_NoLock;
                         }
@@ -56,28 +56,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void RemoveCancellationSource(object key)
                 {
-                    lock (this.gate)
+                    lock (_gate)
                     {
                         // just remove cancellation token from the map.
                         // the cancellation token might be passed out to other service
                         // so don't call cancel on the source only because we are done using it.
-                        this.cancellationMap.Remove(key);
+                        _cancellationMap.Remove(key);
                     }
                 }
 
                 public virtual Task WaitAsync(CancellationToken cancellationToken)
                 {
-                    return semaphore.WaitAsync(cancellationToken);
+                    return _semaphore.WaitAsync(cancellationToken);
                 }
 
                 public bool AddOrReplace(WorkItem item)
                 {
-                    lock (gate)
+                    lock (_gate)
                     {
                         if (AddOrReplace_NoLock(item))
                         {
                             // increase count 
-                            semaphore.Release();
+                            _semaphore.Release();
                             return true;
                         }
 
@@ -87,28 +87,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void Dispose()
                 {
-                    lock (this.gate)
+                    lock (_gate)
                     {
                         Dispose_NoLock();
 
-                        this.cancellationMap.Do(p => p.Value.Cancel());
-                        this.cancellationMap.Clear();
+                        _cancellationMap.Do(p => p.Value.Cancel());
+                        _cancellationMap.Clear();
                     }
                 }
 
                 protected void Cancel_NoLock(object key)
                 {
                     CancellationTokenSource source;
-                    if (this.cancellationMap.TryGetValue(key, out source))
+                    if (_cancellationMap.TryGetValue(key, out source))
                     {
                         source.Cancel();
-                        this.cancellationMap.Remove(key);
+                        _cancellationMap.Remove(key);
                     }
                 }
 
                 public bool TryTake(TKey key, out WorkItem workInfo, out CancellationTokenSource source)
                 {
-                    lock (gate)
+                    lock (_gate)
                     {
                         if (TryTake_NoLock(key, out workInfo))
                         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public bool TryTakeAnyWork(ProjectId preferableProjectId, out WorkItem workItem, out CancellationTokenSource source)
                 {
-                    lock (gate)
+                    lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
                         if (TryTakeAnyWork_NoLock(preferableProjectId, out workItem))
@@ -145,10 +145,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected CancellationTokenSource GetNewCancellationSource_NoLock(object key)
                 {
-                    Contract.Requires(!this.cancellationMap.ContainsKey(key));
+                    Contract.Requires(!_cancellationMap.ContainsKey(key));
 
                     var source = new CancellationTokenSource();
-                    this.cancellationMap.Add(key, source);
+                    _cancellationMap.Add(key, source);
 
                     return source;
                 }

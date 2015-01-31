@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         protected SymbolCompletionState state;
         protected readonly TypeSymbol parameterType;
-        private readonly string name;
-        private readonly ImmutableArray<Location> locations;
-        private readonly RefKind refKind;
+        private readonly string _name;
+        private readonly ImmutableArray<Location> _locations;
+        private readonly RefKind _refKind;
 
         public static SourceParameterSymbol Create(
             Binder context,
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
             this.parameterType = parameterType;
-            this.refKind = refKind;
-            this.name = name;
-            this.locations = locations;
+            _refKind = refKind;
+            _name = name;
+            _locations = locations;
         }
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
@@ -97,17 +97,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
         {
-            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, this.refKind, this.ContainingAssembly);
+            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, _refKind, this.ContainingAssembly);
 
             return new SourceComplexParameterSymbol(
                 this.ContainingSymbol,
                 this.Ordinal,
                 newType,
-                this.refKind,
+                _refKind,
                 newCustomModifiers,
                 hasByRefBeforeCustomModifiers,
-                this.name,
-                this.locations,
+                _name,
+                _locations,
                 this.SyntaxReference,
                 this.ExplicitDefaultConstantValue,
                 newIsParams,
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.refKind;
+                return _refKind;
             }
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return locations;
+                return _locations;
             }
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return IsImplicitlyDeclared ?
                     ImmutableArray<SyntaxReference>.Empty :
-                    GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(locations);
+                    GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(_locations);
             }
         }
 

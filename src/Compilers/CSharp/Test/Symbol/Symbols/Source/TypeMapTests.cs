@@ -185,6 +185,5 @@ class C1<C1T1, C1T2>
                 var c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_byte, _char, _int, _int);
             });
         }
-
     }
 }

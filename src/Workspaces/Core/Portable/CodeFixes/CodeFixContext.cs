@@ -16,32 +16,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public struct CodeFixContext
     {
-        private readonly Document document;
-        private readonly TextSpan span;
-        private readonly ImmutableArray<Diagnostic> diagnostics;
-        private readonly CancellationToken cancellationToken;
-        private readonly Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix;
+        private readonly Document _document;
+        private readonly TextSpan _span;
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
+        private readonly CancellationToken _cancellationToken;
+        private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
         /// <summary>
         /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
         /// </summary>
-        public Document Document { get { return this.document; } }
+        public Document Document { get { return _document; } }
 
         /// <summary>
         /// Text span within the <see cref="CodeFixContext.Document"/> to fix.
         /// </summary>
-        public TextSpan Span { get { return this.span; } }
+        public TextSpan Span { get { return _span; } }
 
         /// <summary>
         /// Diagnostics to fix.
         /// NOTE: All the diagnostics in this collection have the same span <see ref="CodeFixContext.Span"/>.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics { get { return this.diagnostics; } }
+        public ImmutableArray<Diagnostic> Diagnostics { get { return _diagnostics; } }
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return this.cancellationToken; } }
+        public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
             : this(document, span, diagnostics, registerCodeFix, verifyArguments: true, cancellationToken: cancellationToken)
-        {            
+        {
         }
 
         /// <summary>
@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 VerifyDiagnosticsArgument(diagnostics, span);
             }
 
-            this.document = document;
-            this.span = span;
-            this.diagnostics = diagnostics;
-            this.registerCodeFix = registerCodeFix;
-            this.cancellationToken = cancellationToken;
+            _document = document;
+            _span = span;
+            _diagnostics = diagnostics;
+            _registerCodeFix = registerCodeFix;
+            _cancellationToken = cancellationToken;
         }
 
         internal CodeFixContext(
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(diagnostic));
             }
 
-            this.registerCodeFix(action, ImmutableArray.Create(diagnostic));
+            _registerCodeFix(action, ImmutableArray.Create(diagnostic));
         }
 
         /// <summary>
@@ -170,14 +170,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(action));
             }
 
-            VerifyDiagnosticsArgument(diagnostics, this.span);
+            VerifyDiagnosticsArgument(diagnostics, _span);
 
             // TODO: 
             // - Check that all diagnostics are unique (no duplicates).
             // - Check that supplied diagnostics form subset of diagnostics originally
             //   passed to the provider via CodeFixContext.Diagnostics.
 
-            this.registerCodeFix(action, diagnostics);
+            _registerCodeFix(action, diagnostics);
         }
 
         private static void VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)

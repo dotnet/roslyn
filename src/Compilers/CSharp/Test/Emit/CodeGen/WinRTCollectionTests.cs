@@ -367,7 +367,6 @@ public class Class1
                 .WithArguments("Windows.Data.Json.JsonArray", "GetEnumerator"),
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetEnumerator")
                 .WithArguments("Windows.Foundation.WwwFormUrlDecoder", "GetEnumerator"));
-
         }
 
         [Fact]
@@ -7462,6 +7461,5 @@ public class Class1
             Assert.True(model.LookupSymbols(add.SpanStart, jsonObjType, "Add").Contains(addMethod));
             Assert.True(model.LookupSymbols(add.SpanStart, jsonObjType).Contains(addMethod));
         }
-
     }
 }

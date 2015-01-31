@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private struct DefinitionProject
         {
-            private readonly bool isSourceProject;
-            private readonly string assemblyName;
+            private readonly bool _isSourceProject;
+            private readonly string _assemblyName;
 
             public DefinitionProject(bool isSourceProject, string assemblyName)
             {
-                this.isSourceProject = isSourceProject;
-                this.assemblyName = assemblyName;
+                _isSourceProject = isSourceProject;
+                _assemblyName = assemblyName;
             }
         }
 
@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         ///     Key: DefinitionProject, which contains the assembly name and a flag indicating whether assembly is source or metadata assembly.
         ///     Value: List of DependentProjects, where each DependentProject contains a dependent project ID and a flag indicating whether the dependent project has internals access to definition project.
         /// </summary>
-        private static readonly ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>>> dependentProjectsCache =
+        private static readonly ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>>> s_dependentProjectsCache =
             new ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>>>();
 
         /// <summary>
         /// Used to create a new concurrent dependent projects map for a given assembly when needed.
         /// </summary>
-        private static readonly ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>>>.CreateValueCallback createDependentProjectsMapCallback =
+        private static readonly ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>>>.CreateValueCallback s_createDependentProjectsMapCallback =
             _ => new ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>>(concurrencyLevel: 2, capacity: 20);
 
         public static async Task<IEnumerable<Project>> GetDependentProjectsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else
             {
                 // We cache the dependent projects for non-private symbols, check in the cache first.
-                ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>> dependentProjectsMap = dependentProjectsCache.GetValue(solution, createDependentProjectsMapCallback);
+                ConcurrentDictionary<DefinitionProject, IEnumerable<DependentProject>> dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, s_createDependentProjectsMapCallback);
                 var key = new DefinitionProject(isSourceProject: sourceProject != null, assemblyName: containingAssembly.Name.ToLower());
 
                 if (!dependentProjectsMap.TryGetValue(key, out dependentProjects))

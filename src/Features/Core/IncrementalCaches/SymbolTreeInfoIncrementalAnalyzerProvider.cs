@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            private SolutionId solutionId;
-            private Dictionary<ProjectId, int> symbolCountByProjectMap = new Dictionary<ProjectId, int>();
+            private SolutionId _solutionId;
+            private Dictionary<ProjectId, int> _symbolCountByProjectMap = new Dictionary<ProjectId, int>();
 
             public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
-                if (symbolCountByProjectMap == null || !project.SupportsCompilation || !semanticsChanged)
+                if (_symbolCountByProjectMap == null || !project.SupportsCompilation || !semanticsChanged)
                 {
                     return;
                 }
@@ -45,21 +45,21 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
                 // check whether we are good to report total symbol numbers
-                if (symbolCountByProjectMap == null || symbolCountByProjectMap.Count < solution.ProjectIds.Count || string.IsNullOrEmpty(solution.FilePath))
+                if (_symbolCountByProjectMap == null || _symbolCountByProjectMap.Count < solution.ProjectIds.Count || string.IsNullOrEmpty(solution.FilePath))
                 {
                     return SpecializedTasks.EmptyTask;
                 }
 
-                if (solutionId != null && solutionId != solution.Id)
+                if (_solutionId != null && _solutionId != solution.Id)
                 {
                     ReportCount();
                     return SpecializedTasks.EmptyTask;
                 }
 
-                solutionId = solution.Id;
+                _solutionId = solution.Id;
                 foreach (var projectId in solution.ProjectIds)
                 {
-                    if (!symbolCountByProjectMap.ContainsKey(projectId))
+                    if (!_symbolCountByProjectMap.ContainsKey(projectId))
                     {
                         return SpecializedTasks.EmptyTask;
                     }
@@ -71,30 +71,30 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override void RemoveProject(ProjectId projectId)
             {
-                if (symbolCountByProjectMap != null)
+                if (_symbolCountByProjectMap != null)
                 {
-                    symbolCountByProjectMap.Remove(projectId);
+                    _symbolCountByProjectMap.Remove(projectId);
                 }
             }
 
             private void ReportCount()
             {
-                var sourceSymbolCount = symbolCountByProjectMap.Sum(kv => kv.Value).ToString();
+                var sourceSymbolCount = _symbolCountByProjectMap.Sum(kv => kv.Value).ToString();
                 Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(m => m["SourceSymbolCount"] = sourceSymbolCount));
 
                 // we only report it once
-                symbolCountByProjectMap = null;
-                solutionId = null;
+                _symbolCountByProjectMap = null;
+                _solutionId = null;
             }
 
             private void RecordCount(ProjectId id, int count)
             {
-                if (symbolCountByProjectMap == null)
+                if (_symbolCountByProjectMap == null)
                 {
                     return;
                 }
 
-                symbolCountByProjectMap[id] = count;
+                _symbolCountByProjectMap[id] = count;
             }
         }
     }

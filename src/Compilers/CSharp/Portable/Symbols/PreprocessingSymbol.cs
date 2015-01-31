@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class PreprocessingSymbol : Symbol, IPreprocessingSymbol
     {
-        private readonly string name;
+        private readonly string _name;
 
         internal PreprocessingSymbol(string name)
         {
-            this.name = name;
+            _name = name;
         }
 
         public override string Name
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, empty2.SeparatorCount);
             Assert.Equal("", empty2.ToString());
 
-            var singleton1 = SyntaxFactory.SeparatedList(new[] {SyntaxFactory.IdentifierName("a")});
+            var singleton1 = SyntaxFactory.SeparatedList(new[] { SyntaxFactory.IdentifierName("a") });
 
             Assert.Equal(1, singleton1.Count);
             Assert.Equal(0, singleton1.SeparatorCount);

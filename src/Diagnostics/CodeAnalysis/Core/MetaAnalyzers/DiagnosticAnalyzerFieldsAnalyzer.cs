@@ -14,20 +14,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TTypeSyntax : SyntaxNode
         where TVariableTypeDeclarationSyntax : SyntaxNode
     {
-        private static readonly LocalizableString localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(AnalysisContext), DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCompilationStartActionName);
-        private static readonly string compilationTypeFullName = typeof(Compilation).FullName;
-        private static readonly string symbolTypeFullName = typeof(ISymbol).FullName;
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(AnalysisContext), DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCompilationStartActionName);
+        private static readonly string s_compilationTypeFullName = typeof(Compilation).FullName;
+        private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
 
         public static DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
-            localizableTitle,
-            localizableMessage,
+            s_localizableTitle,
+            s_localizableMessage,
             DiagnosticCategory.AnalyzerPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: localizableDescription,
+            description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            var compilationType = compilation.GetTypeByMetadataName(compilationTypeFullName);
+            var compilationType = compilation.GetTypeByMetadataName(s_compilationTypeFullName);
             if (compilationType == null)
             {
                 return null;
             }
 
-            var symbolType = compilation.GetTypeByMetadataName(symbolTypeFullName);
+            var symbolType = compilation.GetTypeByMetadataName(s_symbolTypeFullName);
             if (symbolType == null)
             {
                 return null;
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax>
         {
-            private readonly INamedTypeSymbol compilationType;
-            private readonly INamedTypeSymbol symbolType;
+            private readonly INamedTypeSymbol _compilationType;
+            private readonly INamedTypeSymbol _symbolType;
 
             public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
-                this.compilationType = compilationType;
-                this.symbolType = symbolType;
+                _compilationType = compilationType;
+                _symbolType = symbolType;
             }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         foreach (var innerType in type.GetBaseTypesAndThis())
                         {
-                            if (innerType.Equals(compilationType))
+                            if (innerType.Equals(_compilationType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         foreach (var iface in type.AllInterfaces)
                         {
-                            if (iface.Equals(symbolType))
+                            if (iface.Equals(_symbolType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;

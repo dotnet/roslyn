@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenExpression.Kind != BoundKind.Local)
             {
                 BoundAssignmentOperator assignmentToTemp;
-                BoundLocal boundTemp = this.factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
+                BoundLocal boundTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
                 var tempAssignment = new BoundExpressionStatement(exprSyntax, assignmentToTemp);
                 statementBuilder.Add(tempAssignment);
                 tempLocal = boundTemp.LocalSymbol;
@@ -263,21 +263,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we have already generated the helper, possibly for another switch
             // or on another thread, we don't need to regenerate it.
-            var privateImplClass = module.GetPrivateImplClass(syntaxNode, diagnostics);
+            var privateImplClass = module.GetPrivateImplClass(syntaxNode, _diagnostics);
             if (privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
             {
                 return;
             }
 
             // cannot emit hash method if have no access to Chars.
-            var charsMember = this.compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
+            var charsMember = _compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
             if ((object)charsMember == null || charsMember.GetUseSiteDiagnostic() != null)
             {
                 return;
             }
 
-            TypeSymbol returnType = factory.SpecialType(SpecialType.System_UInt32);
-            TypeSymbol paramType = factory.SpecialType(SpecialType.System_String);
+            TypeSymbol returnType = _factory.SpecialType(SpecialType.System_UInt32);
+            TypeSymbol paramType = _factory.SpecialType(SpecialType.System_String);
 
             var method = new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType);
             privateImplClass.TryAddSynthesizedMethod(method);

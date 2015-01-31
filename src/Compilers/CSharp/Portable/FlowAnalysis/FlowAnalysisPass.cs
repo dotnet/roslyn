@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var compilation = method.DeclaringCompilation;
 
-            if (method.ReturnsVoid || method.IsIterator || 
+            if (method.ReturnsVoid || method.IsIterator ||
                 (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
                 var sourceMethod = method as SourceMethodSymbol;

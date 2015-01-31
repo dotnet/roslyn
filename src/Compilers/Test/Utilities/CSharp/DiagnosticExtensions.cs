@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-	internal static class DiagnosticExtensions
-	{
+    internal static class DiagnosticExtensions
+    {
         public static void Verify(this IEnumerable<DiagnosticInfo> actual, params DiagnosticDescription[] expected)
         {
             actual.Select(info => new CSDiagnostic(info, NoLocation.Singleton)).Verify(expected);
@@ -23,5 +23,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new LocalizableErrorArgument(id).ToString(null, null);
         }
-	}
+    }
 }

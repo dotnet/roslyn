@@ -41,7 +41,7 @@ class main1
         [WorkItem(537401, "DevDiv")]
         [Fact]
         public void EventEscapedIdentifier()
-        { 
+        {
             var text = @"
 delegate void @out();
 class C1
@@ -345,9 +345,9 @@ class C
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (7,11): error CS1547: Keyword 'void' cannot be used in this context
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
-                
+
                 //CONSIDER: it would be nice to suppress these
-                
+
                 // (7,11): error CS0670: Field cannot have void type
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
                 // (7,16): warning CS0067: The event 'C.E' is never used
@@ -936,7 +936,7 @@ interface i1
     event myDelegate myevent { }
 }
 ";
-            
+
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent"));
         }
@@ -1312,7 +1312,7 @@ class C
 ";
 
             var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
-                
+
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
                 //         b.Event1 += null;
@@ -1882,7 +1882,6 @@ public abstract class A
             Assert.Null(eventE.AssociatedField);
             Assert.NotNull(eventF.AssociatedField); // Since it has an initializer.
         }
-
 
         #endregion
     }

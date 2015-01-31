@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal abstract partial class AbstractSyntacticSingleKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        private readonly bool isValidInPreprocessorContext;
+        private readonly bool _isValidInPreprocessorContext;
 
         protected internal SyntaxKind KeywordKind { get; private set; }
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             bool shouldFormatOnCommit = false)
         {
             this.KeywordKind = keywordKind;
-            this.isValidInPreprocessorContext = isValidInPreprocessorContext;
+            _isValidInPreprocessorContext = isValidInPreprocessorContext;
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
             var syntaxTree = context.SemanticModel.SyntaxTree;
-            if (!isValidInPreprocessorContext &&
+            if (!_isValidInPreprocessorContext &&
                 context.IsPreProcessorDirectiveContext)
             {
                 return null;

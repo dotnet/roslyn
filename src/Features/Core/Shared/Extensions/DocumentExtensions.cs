@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<IEnumerable<T>> GetUnionResultsFromDocumentAndLinks<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker, 
+            Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
             CancellationToken cancellationToken)
         {
             var linkedDocumentIds = document.GetLinkedDocumentIds();

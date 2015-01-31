@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// 
         /// this is not snapshot based so multiple versions of snapshots can re-use same data as long as it is relevant.
         /// </summary>
-        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> cache =
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>>();
 
-        private readonly VersionStamp version;
-        private readonly BloomFilter identifierFilter;
-        private readonly BloomFilter escapedIdentifierFilter;
+        private readonly VersionStamp _version;
+        private readonly BloomFilter _identifierFilter;
+        private readonly BloomFilter _escapedIdentifierFilter;
 
         public SyntaxTreeIdentifierInfo(
             VersionStamp version,
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(escapedIdentifierFilter));
             }
 
-            this.version = version;
-            this.identifierFilter = identifierFilter;
-            this.escapedIdentifierFilter = escapedIdentifierFilter;
+            _version = version;
+            _identifierFilter = identifierFilter;
+            _escapedIdentifierFilter = escapedIdentifierFilter;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool ProbablyContainsIdentifier(string identifier)
         {
-            return identifierFilter.ProbablyContains(identifier);
+            return _identifierFilter.ProbablyContains(identifier);
         }
 
         /// <summary>
@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool ProbablyContainsEscapedIdentifier(string identifier)
         {
-            return escapedIdentifierFilter.ProbablyContains(identifier);
+            return _escapedIdentifierFilter.ProbablyContains(identifier);
         }
 
         public override void WriteTo(ObjectWriter writer)
         {
-            this.identifierFilter.WriteTo(writer);
-            this.escapedIdentifierFilter.WriteTo(writer);
+            _identifierFilter.WriteTo(writer);
+            _escapedIdentifierFilter.WriteTo(writer);
         }
 
         public static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
@@ -84,13 +84,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task<SyntaxTreeIdentifierInfo> LoadAsync(Document document, CancellationToken cancellationToken)
         {
-            var info = await LoadAsync(document, ReadFrom, cache, PersistenceName, SerializationFormat, cancellationToken).ConfigureAwait(false);
+            var info = await LoadAsync(document, ReadFrom, s_cache, PersistenceName, SerializationFormat, cancellationToken).ConfigureAwait(false);
             return (SyntaxTreeIdentifierInfo)info;
         }
 
         public override Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
         {
-            return SaveAsync(document, cache, PersistenceName, SerializationFormat, cancellationToken);
+            return SaveAsync(document, s_cache, PersistenceName, SerializationFormat, cancellationToken);
         }
 
         private static SyntaxTreeIdentifierInfo ReadFrom(ObjectReader reader, VersionStamp version)

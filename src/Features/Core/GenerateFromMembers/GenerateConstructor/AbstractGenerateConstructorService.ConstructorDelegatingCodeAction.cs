@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
     {
         private class ConstructorDelegatingCodeAction : CodeAction
         {
-            private readonly TService service;
-            private readonly Document document;
-            private readonly State state;
+            private readonly TService _service;
+            private readonly Document _document;
+            private readonly State _state;
 
             public ConstructorDelegatingCodeAction(
                 TService service,
                 Document document,
                 State state)
             {
-                this.service = service;
-                this.document = document;
-                this.state = state;
+                _service = service;
+                _document = document;
+                _state = state;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
                 //
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(state.ContainingType.Language);
+                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
                 var factory = provider.GetService<SyntaxGenerator>();
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
 
-                var thisConstructorArguments = factory.CreateArguments(state.DelegatedConstructor.Parameters);
+                var thisConstructorArguments = factory.CreateArguments(_state.DelegatedConstructor.Parameters);
                 var statements = new List<SyntaxNode>();
 
-                for (var i = state.DelegatedConstructor.Parameters.Length; i < state.Parameters.Count; i++)
+                for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Count; i++)
                 {
-                    var symbolName = state.SelectedMembers[i].Name;
-                    var parameterName = state.Parameters[i].Name;
+                    var symbolName = _state.SelectedMembers[i].Name;
+                    var parameterName = _state.Parameters[i].Name;
                     var assignExpression = factory.AssignmentStatement(
                         factory.MemberAccessExpression(
                             factory.ThisExpression(),
@@ -60,19 +60,19 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
                     statements.Add(expressionStatement);
                 }
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var result = await codeGenerationService.AddMethodAsync(
-                    document.Project.Solution,
-                    state.ContainingType,
+                    _document.Project.Solution,
+                    _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
                         attributes: null,
                         accessibility: Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
-                        typeName: state.ContainingType.Name,
-                        parameters: state.Parameters,
+                        typeName: _state.ContainingType.Name,
+                        parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
-                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(state.TextSpan)),
+                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(_state.TextSpan)),
                     cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
             {
                 get
                 {
-                    var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-                    var parameters = state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
+                    var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
+                    var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
                     return string.Format(FeaturesResources.GenerateDelegatingConstructor,
-                        state.ContainingType.Name, parameterString);
+                        _state.ContainingType.Name, parameterString);
                 }
             }
         }

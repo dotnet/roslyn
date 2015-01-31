@@ -14,19 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         #region CoClassAttribute
 
-        private NamedTypeSymbol comImportCoClass;
+        private NamedTypeSymbol _comImportCoClass;
         public NamedTypeSymbol ComImportCoClass
         {
             get
             {
-                return this.comImportCoClass;
+                return _comImportCoClass;
             }
             set
             {
                 VerifySealed(expected: false);
-                Debug.Assert((object)this.comImportCoClass == null);
+                Debug.Assert((object)_comImportCoClass == null);
                 Debug.Assert((object)value != null);
-                this.comImportCoClass = value;
+                _comImportCoClass = value;
                 SetDataStored();
             }
         }

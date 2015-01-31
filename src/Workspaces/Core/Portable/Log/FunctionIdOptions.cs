@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private const string FeatureName = "Performance/FunctionId";
 
-        private static readonly ConcurrentDictionary<FunctionId, Option<bool>> options =
+        private static readonly ConcurrentDictionary<FunctionId, Option<bool>> s_options =
             new ConcurrentDictionary<FunctionId, Option<bool>>();
 
-        private static readonly Func<FunctionId, Option<bool>> optionGetter =
+        private static readonly Func<FunctionId, Option<bool>> s_optionGetter =
             id => new Option<bool>(FeatureName, Enum.GetName(typeof(FunctionId), id), defaultValue: GetDefaultValue(id));
 
         public static Option<bool> GetOption(FunctionId id)
         {
-            return options.GetOrAdd(id, optionGetter);
+            return s_options.GetOrAdd(id, s_optionGetter);
         }
 
         private static bool GetDefaultValue(FunctionId id)

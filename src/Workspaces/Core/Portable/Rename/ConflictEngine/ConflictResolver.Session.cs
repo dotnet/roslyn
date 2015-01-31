@@ -27,48 +27,48 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private class Session
         {
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
-            private readonly RenameLocationSet renameLocationSet;
+            private readonly RenameLocationSet _renameLocationSet;
 
             // Rename Symbol's Source Location
-            private readonly Location renameSymbolDeclarationLocation;
-            private readonly DocumentId documentIdOfRenameSymbolDeclaration;
-            private readonly string originalText;
-            private readonly string replacementText;
-            private readonly OptionSet optionSet;
-            private readonly CancellationToken cancellationToken;
+            private readonly Location _renameSymbolDeclarationLocation;
+            private readonly DocumentId _documentIdOfRenameSymbolDeclaration;
+            private readonly string _originalText;
+            private readonly string _replacementText;
+            private readonly OptionSet _optionSet;
+            private readonly CancellationToken _cancellationToken;
 
-            private readonly RenameAnnotation renamedSymbolDeclarationAnnotation;
+            private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation;
 
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
-            private readonly List<string> possibleNameConflicts;
-            private readonly HashSet<DocumentId> documentsIdsToBeCheckedForConflict;
-            private readonly AnnotationTable<RenameAnnotation> renameAnnotations;
+            private readonly List<string> _possibleNameConflicts;
+            private readonly HashSet<DocumentId> _documentsIdsToBeCheckedForConflict;
+            private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
-            private ISet<ConflictLocationInfo> conflictLocations;
-            private bool replacementTextValid;
-            private List<ProjectId> topologicallySortedProjects;
-            private bool documentOfRenameSymbolHasBeenRenamed;
+            private ISet<ConflictLocationInfo> _conflictLocations;
+            private bool _replacementTextValid;
+            private List<ProjectId> _topologicallySortedProjects;
+            private bool _documentOfRenameSymbolHasBeenRenamed;
 
             public Session(RenameLocationSet renameLocationSet, Location renameSymbolDeclarationLocation, string originalText, string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                this.renameLocationSet = renameLocationSet;
-                this.renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
-                this.originalText = originalText;
-                this.replacementText = replacementText;
-                this.optionSet = optionSet;
-                this.cancellationToken = cancellationToken;
+                _renameLocationSet = renameLocationSet;
+                _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
+                _originalText = originalText;
+                _replacementText = replacementText;
+                _optionSet = optionSet;
+                _cancellationToken = cancellationToken;
 
-                this.renamedSymbolDeclarationAnnotation = new RenameAnnotation();
+                _renamedSymbolDeclarationAnnotation = new RenameAnnotation();
 
-                this.conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
-                this.replacementTextValid = true;
-                this.possibleNameConflicts = new List<string>();
+                _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
+                _replacementTextValid = true;
+                _possibleNameConflicts = new List<string>();
 
                 // only process documents which possibly contain the identifiers.
-                this.documentsIdsToBeCheckedForConflict = new HashSet<DocumentId>();
-                this.documentIdOfRenameSymbolDeclaration = renameLocationSet.Solution.GetDocument(renameSymbolDeclarationLocation.SourceTree).Id;
+                _documentsIdsToBeCheckedForConflict = new HashSet<DocumentId>();
+                _documentIdOfRenameSymbolDeclaration = renameLocationSet.Solution.GetDocument(renameSymbolDeclarationLocation.SourceTree).Id;
 
-                this.renameAnnotations = new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind);
+                _renameAnnotations = new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind);
             }
 
             private struct ConflictLocationInfo
@@ -93,16 +93,16 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             public async Task<ConflictResolution> ResolveConflictsAsync()
             {
                 await FindDocumentsAndPossibleNameConflicts().ConfigureAwait(false);
-                var baseSolution = renameLocationSet.Solution;
+                var baseSolution = _renameLocationSet.Solution;
 
                 // Process rename one project at a time to improve caching and reduce syntax tree serialization.
-                var documentsGroupedByTopologicallySortedProjectId = this.documentsIdsToBeCheckedForConflict
+                var documentsGroupedByTopologicallySortedProjectId = _documentsIdsToBeCheckedForConflict
                     .GroupBy(d => d.ProjectId)
-                    .OrderBy(g => this.topologicallySortedProjects.IndexOf(g.Key));
+                    .OrderBy(g => _topologicallySortedProjects.IndexOf(g.Key));
 
-                this.replacementTextValid = IsIdentifierValid_Worker(baseSolution, replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key), cancellationToken);
+                _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key), _cancellationToken);
                 var renamedSpansTracker = new RenamedSpansTracker();
-                var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, this.replacementText, this.replacementTextValid);
+                var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
 
                 foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
                 {
@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 baseSolution,
                                 conflictResolution.NewSolution,
                                 documentIdsThatGetsAnnotatedAndRenamed,
-                                renameLocationSet.Locations,
+                                _renameLocationSet.Locations,
                                 renamedSpansTracker,
-                                replacementTextValid).ConfigureAwait(false));
+                                _replacementTextValid).ConfigureAwait(false));
 
                             // Step 2: Check for conflicts in the renamed solution
                             bool foundResolvableConflicts = await IdentifyConflictsAsync(
@@ -146,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                             if (phase == 0)
                             {
-                                this.conflictLocations = conflictResolution.RelatedLocations
+                                _conflictLocations = conflictResolution.RelatedLocations
                                     .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossibilyResolvableConflict && loc.IsReference))
                                     .Select(loc => new ConflictLocationInfo(loc))
                                     .ToSet();
 
                                 // If there were no conflicting locations in references, then the first conflict phase has to be skipped.
-                                if (this.conflictLocations.Count == 0)
+                                if (_conflictLocations.Count == 0)
                                 {
                                     phase++;
                                 }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                             if (phase == 1)
                             {
-                                this.conflictLocations = this.conflictLocations.Concat(conflictResolution.RelatedLocations
+                                _conflictLocations = _conflictLocations.Concat(conflictResolution.RelatedLocations
                                     .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossibilyResolvableConflict)
                                     .Select(loc => new ConflictLocationInfo(loc)))
                                     .ToSet();
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                             // Set the documents with conflicts that need to be processed in the next phase.
                             // Note that we need to get the conflictLocations here since we're going to remove some locations below if phase == 2
-                            documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(this.conflictLocations.Select(l => l.DocumentId));
+                            documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(_conflictLocations.Select(l => l.DocumentId));
 
                             if (phase == 2)
                             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
                                     .Select(l => Tuple.Create(l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                                this.conflictLocations = this.conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan))).ToSet();
+                                _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan))).ToSet();
                             }
 
                             // Clean up side effects from rename before entering the next phase
@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
 
                         // Step 3: Simplify the project
-                        conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.NewSolution, documentsByProject, replacementTextValid, this.renameAnnotations, cancellationToken).ConfigureAwait(false));
-                        conflictResolution.RemoveAllRenameAnnotations(documentsByProject, this.renameAnnotations, cancellationToken);
+                        conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.NewSolution, documentsByProject, _replacementTextValid, _renameAnnotations, _cancellationToken).ConfigureAwait(false));
+                        conflictResolution.RemoveAllRenameAnnotations(documentsByProject, _renameAnnotations, _cancellationToken);
                     }
                 }
 
@@ -198,13 +198,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     AddImplicitConflicts(
                         renamedSymbolInNewSolution,
-                        renameLocationSet.Symbol,
-                        renameLocationSet.ImplicitLocations,
-                        await conflictResolution.NewSolution.GetDocument(this.documentIdOfRenameSymbolDeclaration).GetSemanticModelAsync(cancellationToken).ConfigureAwait(false),
-                        this.renameSymbolDeclarationLocation,
-                        renamedSpansTracker.GetAdjustedPosition(this.renameSymbolDeclarationLocation.SourceSpan.Start, this.documentIdOfRenameSymbolDeclaration),
+                        _renameLocationSet.Symbol,
+                        _renameLocationSet.ImplicitLocations,
+                        await conflictResolution.NewSolution.GetDocument(_documentIdOfRenameSymbolDeclaration).GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false),
+                        _renameSymbolDeclarationLocation,
+                        renamedSpansTracker.GetAdjustedPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration),
                         conflictResolution,
-                        cancellationToken);
+                        _cancellationToken);
                 }
 
                 foreach (var relatedLocation in conflictResolution.RelatedLocations)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
                 }
 #if DEBUG
-                DebugVerifyNoErrors(conflictResolution, this.documentsIdsToBeCheckedForConflict);
+                DebugVerifyNoErrors(conflictResolution, _documentsIdsToBeCheckedForConflict);
 #endif
                 return conflictResolution;
             }
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     // remember if there were issues in the document prior to renaming it.
                     var originalDoc = conflictResolution.OldSolution.GetDocument(documentId);
-                    documentIdErrorStateLookup.Add(documentId, originalDoc.HasAnyErrors(cancellationToken).WaitAndGetResult(cancellationToken));
+                    documentIdErrorStateLookup.Add(documentId, originalDoc.HasAnyErrors(_cancellationToken).WaitAndGetResult(_cancellationToken));
                 }
 
                 // We want to ignore few error message introduced by rename because the user is wantedly doing it.
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // (we might have fixed them because of rename)
                         if (!documentIdErrorStateLookup[documentId])
                         {
-                            conflictResolution.NewSolution.GetDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", cancellationToken, ignoreErrorCodes).Wait(cancellationToken);
+                            conflictResolution.NewSolution.GetDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).Wait(_cancellationToken);
                         }
                     }
                 }
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ProjectId projectId,
                 ConflictResolution conflictResolution)
             {
-                this.documentOfRenameSymbolHasBeenRenamed |= documentIds.Contains(documentIdOfRenameSymbolDeclaration);
+                _documentOfRenameSymbolHasBeenRenamed |= documentIds.Contains(_documentIdOfRenameSymbolDeclaration);
 
                 // Get the renamed symbol in complexified new solution
                 ISymbol renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var documentId in documentIds)
                     {
                         var newDocument = conflictResolution.NewSolution.GetDocument(documentId);
-                        var syntaxRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
 
                         var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
                         foreach (var nodeOrToken in nodesOrTokensWithConflictCheckAnnotations)
@@ -296,10 +296,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 foreach (var documentId in documentIds)
                 {
                     var newDocument = conflictResolution.NewSolution.GetDocument(documentId);
-                    var syntaxRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                     var baseDocument = conflictResolution.OldSolution.GetDocument(documentId);
-                    var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    var baseRoot = await baseDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
+                    var baseRoot = await baseDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                     SemanticModel newDocumentSemanticModel = null;
                     var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
 
                     var complexifiedLocationSpanForThisDocument =
-                        this.conflictLocations
+                        _conflictLocations
                         .Where(t => t.DocumentId == documentId)
                         .Select(t => t.OriginalIdentifierSpan).ToSet();
 
@@ -318,10 +318,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                         var originalLocation = conflictAnnotation.OriginalSpan;
 
-                        var hasConflict = this.renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
+                        var hasConflict = _renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
                         if (!hasConflict)
                         {
-                            newDocumentSemanticModel = newDocumentSemanticModel ?? await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            newDocumentSemanticModel = newDocumentSemanticModel ?? await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                             var newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
 
                             // The semantic correctness, after rename, for each token of interest in the rename context is performed by getting the symbol pointed by
@@ -376,11 +376,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // there are more conflicts that cannot be identified by checking if the tokens still reference the same
                 // symbol. These conflicts are mostly language specific. A good example is a member with the same name
                 // as the parent (yes I know, this is a simplification).
-                if (this.documentIdOfRenameSymbolDeclaration.ProjectId == projectId)
+                if (_documentIdOfRenameSymbolDeclaration.ProjectId == projectId)
                 {
-                    IEnumerable<ISymbol> referencedSymbols = renameLocationSet.ReferencedSymbols;
-                    ISymbol renameSymbol = renameLocationSet.Symbol;
-                    await AddDeclarationConflictsAsync(renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, cancellationToken).ConfigureAwait(false);
+                    IEnumerable<ISymbol> referencedSymbols = _renameLocationSet.ReferencedSymbols;
+                    ISymbol renameSymbol = _renameLocationSet.Symbol;
+                    await AddDeclarationConflictsAsync(renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, _cancellationToken).ConfigureAwait(false);
                 }
 
                 return conflictResolution.RelatedLocations.Any(r => r.Type == RelatedLocationType.PossibilyResolvableConflict);
@@ -394,8 +394,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 SyntaxNode syntaxRoot)
             {
                 return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                    .Where(s => this.renameAnnotations.HasAnnotations<RenameActionAnnotation>(s))
-                    .Select(s => ValueTuple.Create(s, this.renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
+                    .Where(s => _renameAnnotations.HasAnnotations<RenameActionAnnotation>(s))
+                    .Select(s => ValueTuple.Create(s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
             }
 
             private async Task<bool> CheckForConflictAsync(
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             break;
                         }
 
-                        var newLocation = await GetSymbolLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                        var newLocation = await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false);
 
                         if (newLocation != null && conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].IsSourceLocation)
                         {
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                             if (conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].IsOverriddenFromMetadata)
                             {
-                                var overridingSymbol = await SymbolFinder.FindSymbolAtPositionAsync(solution.GetDocument(newLocation.SourceTree), newLocation.SourceSpan.Start, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                var overridingSymbol = await SymbolFinder.FindSymbolAtPositionAsync(solution.GetDocument(newLocation.SourceTree), newLocation.SourceSpan.Start, cancellationToken: _cancellationToken).ConfigureAwait(false);
                                 if (overridingSymbol != null && renamedSymbolInNewSolution != overridingSymbol)
                                 {
                                     if (!overridingSymbol.IsOverride)
@@ -484,15 +484,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                         else
                         {
-                            var newMetadataName = symbol.ToDisplayString(metadataSymbolDisplayFormat);
+                            var newMetadataName = symbol.ToDisplayString(s_metadataSymbolDisplayFormat);
                             var oldMetadataName = conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].Name;
                             if (newLocation == null ||
                                 newLocation.IsInSource ||
                                 !HeuristicMetadataNameEquivalenceCheck(
                                     oldMetadataName,
                                     newMetadataName,
-                                    originalText,
-                                    replacementText))
+                                    _originalText,
+                                    _replacementText))
                             {
                                 hasConflict = true;
                                 break;
@@ -508,14 +508,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private IEnumerable<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
             {
-                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace, cancellationToken);
+                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace, _cancellationToken);
 
                 if (conflictAnnotation.IsInvocationExpression)
                 {
                     IEnumerable<ISymbol> invocationReferencedSymbols = null;
                     if (tokenOrNode.IsNode)
                     {
-                        invocationReferencedSymbols = SymbolsForEnclosingInvocationExpressionWorker((SyntaxNode)tokenOrNode, newDocumentSemanticModel, cancellationToken);
+                        invocationReferencedSymbols = SymbolsForEnclosingInvocationExpressionWorker((SyntaxNode)tokenOrNode, newDocumentSemanticModel, _cancellationToken);
                     }
 
                     if (invocationReferencedSymbols != null)
@@ -538,12 +538,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(ConflictResolution conflictResolution)
             {
                 // get the renamed symbol in complexified new solution
-                int start = this.documentOfRenameSymbolHasBeenRenamed
-                    ? conflictResolution.RenamedSpansTracker.GetAdjustedPosition(this.renameSymbolDeclarationLocation.SourceSpan.Start, this.documentIdOfRenameSymbolDeclaration)
-                    : this.renameSymbolDeclarationLocation.SourceSpan.Start;
+                int start = _documentOfRenameSymbolHasBeenRenamed
+                    ? conflictResolution.RenamedSpansTracker.GetAdjustedPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration)
+                    : _renameSymbolDeclarationLocation.SourceSpan.Start;
 
-                var document = conflictResolution.NewSolution.GetDocument(documentIdOfRenameSymbolDeclaration);
-                var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var document = conflictResolution.NewSolution.GetDocument(_documentIdOfRenameSymbolDeclaration);
+                var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: _cancellationToken).ConfigureAwait(false);
                 return newSymbol;
             }
 
@@ -553,19 +553,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// </summary>
             private async Task FindDocumentsAndPossibleNameConflicts()
             {
-                var symbol = renameLocationSet.Symbol;
-                var solution = renameLocationSet.Solution;
+                var symbol = _renameLocationSet.Symbol;
+                var solution = _renameLocationSet.Solution;
                 var dependencyGraph = solution.GetProjectDependencyGraph();
-                this.topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToList();
+                _topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(_cancellationToken).ToList();
 
-                var allRenamedDocuments = renameLocationSet.Locations.Select(loc => loc.Location.SourceTree).Distinct().Select(solution.GetDocument);
-                this.documentsIdsToBeCheckedForConflict.AddRange(allRenamedDocuments.Select(d => d.Id));
+                var allRenamedDocuments = _renameLocationSet.Locations.Select(loc => loc.Location.SourceTree).Distinct().Select(solution.GetDocument);
+                _documentsIdsToBeCheckedForConflict.AddRange(allRenamedDocuments.Select(d => d.Id));
 
-                var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, renameLocationSet.Locations);
+                var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, _renameLocationSet.Locations);
                 foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                 {
                     solution.Workspace.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
-                        .TryAddPossibleNameConflicts(symbol, replacementText, possibleNameConflicts);
+                        .TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                 }
 
                 await AddDocumentsWithPotentialConflicts(documentsFromAffectedProjects).ConfigureAwait(false);
@@ -575,29 +575,29 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 foreach (var document in documents)
                 {
-                    if (this.documentsIdsToBeCheckedForConflict.Contains(document.Id))
+                    if (_documentsIdsToBeCheckedForConflict.Contains(document.Id))
                     {
                         continue;
                     }
 
                     var info = await SyntaxTreeInfo.GetIdentifierInfoAsync(document, CancellationToken.None).ConfigureAwait(false);
-                    if (info.ProbablyContainsEscapedIdentifier(originalText))
+                    if (info.ProbablyContainsEscapedIdentifier(_originalText))
                     {
-                        this.documentsIdsToBeCheckedForConflict.Add(document.Id);
+                        _documentsIdsToBeCheckedForConflict.Add(document.Id);
                         continue;
                     }
 
-                    if (info.ProbablyContainsIdentifier(replacementText))
+                    if (info.ProbablyContainsIdentifier(_replacementText))
                     {
-                        this.documentsIdsToBeCheckedForConflict.Add(document.Id);
+                        _documentsIdsToBeCheckedForConflict.Add(document.Id);
                         continue;
                     }
 
-                    foreach (var replacementName in possibleNameConflicts)
+                    foreach (var replacementName in _possibleNameConflicts)
                     {
                         if (info.ProbablyContainsIdentifier(replacementName))
                         {
-                            this.documentsIdsToBeCheckedForConflict.Add(document.Id);
+                            _documentsIdsToBeCheckedForConflict.Add(document.Id);
                             break;
                         }
                     }
@@ -615,13 +615,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 foreach (var documentId in documentIdsToRename.ToList())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    _cancellationToken.ThrowIfCancellationRequested();
 
                     // We try to rewrite all locations that are not candidate locations. If there is only one location 
                     // it must be the correct one (the symbol is ambiguous to something else) and we always try to rewrite it.
                     var document = originalSolution.GetDocument(documentId);
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var semanticModel = await document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                    var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
                     // Get all rename locations for the current document.
                     var allTextSpansInSingleSourceTree = renameLocations
@@ -635,30 +635,30 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         .Select(g => g.Key)
                         .ToSet();
 
-                    var conflictLocationSpans = this.conflictLocations
+                    var conflictLocationSpans = _conflictLocations
                                                 .Where(t => t.DocumentId == documentId)
                                                 .Select(t => t.ComplexifiedSpan).ToSet();
 
                     // Annotate all nodes with a RenameLocation annotations to record old locations & old referenced symbols.
                     // Also annotate nodes that should get complexified (nodes for rename locations + conflict locations)
                     var parameters = new RenameRewriterParameters(
-                        this.renamedSymbolDeclarationAnnotation,
+                        _renamedSymbolDeclarationAnnotation,
                         document,
                         semanticModel,
                         originalSyntaxRoot,
-                        replacementText,
-                        originalText,
-                        possibleNameConflicts,
+                        _replacementText,
+                        _originalText,
+                        _possibleNameConflicts,
                         allTextSpansInSingleSourceTree,
                         stringAndCommentTextSpansInSingleSourceTree,
                         conflictLocationSpans,
                         originalSolution,
-                        renameLocationSet.Symbol,
+                        _renameLocationSet.Symbol,
                         replacementTextValid,
                         renameSpansTracker,
-                        optionSet,
-                        this.renameAnnotations,
-                        cancellationToken);
+                        _optionSet,
+                        _renameAnnotations,
+                        _cancellationToken);
 
                     var renameRewriterLanguageService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
                     var newRoot = renameRewriterLanguageService.AnnotateAndRename(parameters);

@@ -44,7 +44,6 @@ namespace Foo.Bar
         [Fact]
         public void CompilationChain_OverloadsWithParams()
         {
-
             CompileAndVerifyBindInfo(@"
 public static string[] str = null;
 public static void Foo(string[] r, string i) { str = r;}

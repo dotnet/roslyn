@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class ExternKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> ValidModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.InternalKeyword,
                 SyntaxKind.NewKeyword,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.VirtualKeyword,
             };
 
-        private static readonly ISet<SyntaxKind> ValidGlobalModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validGlobalModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.InternalKeyword,
                 SyntaxKind.NewKeyword,
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 IsExternAliasContext(context) ||
                 context.IsGlobalStatementContext ||
-                syntaxTree.IsGlobalMemberDeclarationContext(position, ValidGlobalModifiers, cancellationToken) ||
+                syntaxTree.IsGlobalMemberDeclarationContext(position, s_validGlobalModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
-                    validModifiers: ValidModifiers,
+                    validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);

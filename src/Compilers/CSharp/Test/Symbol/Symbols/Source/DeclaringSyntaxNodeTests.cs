@@ -277,7 +277,6 @@ class C1 {
 
                 CheckDeclaringSyntaxNodes(comp, memb, expectedDeclaringNodes);
             }
-
         }
 
         [WorkItem(543829, "DevDiv")]
@@ -320,7 +319,6 @@ class C1 {
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorZ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
-
         }
 
         private void CheckAnonymousType(SemanticModel model, LocalSymbol local, AnonymousObjectCreationExpressionSyntax anonObjectCreation)
@@ -478,7 +476,6 @@ namespace N1 {
                     CheckDeclaringSyntaxNodes(comp, tp, 0);
                 }
             }
-
         }
 
         [Fact]
@@ -721,6 +718,5 @@ class C
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
         }
-
     }
 }

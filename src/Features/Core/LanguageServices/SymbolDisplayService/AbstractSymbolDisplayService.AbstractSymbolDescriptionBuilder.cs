@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         protected abstract partial class AbstractSymbolDescriptionBuilder
         {
-            private static readonly SymbolDisplayFormat TypeParameterOwnerFormat =
+            private static readonly SymbolDisplayFormat s_typeParameterOwnerFormat =
                 new SymbolDisplayFormat(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
 
-            private static readonly SymbolDisplayFormat MemberSignatureDisplayFormat =
+            private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
                 new SymbolDisplayFormat(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
 
-            private static readonly SymbolDisplayFormat DescriptionStyle =
+            private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new SymbolDisplayFormat(
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                     delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
@@ -65,15 +65,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
                     kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
 
-            private static readonly SymbolDisplayFormat GlobalNamespaceStyle =
+            private static readonly SymbolDisplayFormat s_globalNamespaceStyle =
                 new SymbolDisplayFormat(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
 
-            private readonly ISymbolDisplayService displayService;
-            private readonly SemanticModel semanticModel;
-            private readonly int position;
-            private readonly IAnonymousTypeDisplayService anonymousTypeDisplayService;
-            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap =
+            private readonly ISymbolDisplayService _displayService;
+            private readonly SemanticModel _semanticModel;
+            private readonly int _position;
+            private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
+            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap =
                 new Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>>();
             protected readonly Workspace Workspace;
             protected readonly CancellationToken CancellationToken;
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 IAnonymousTypeDisplayService anonymousTypeDisplayService,
                 CancellationToken cancellationToken)
             {
-                this.displayService = displayService;
-                this.anonymousTypeDisplayService = anonymousTypeDisplayService;
+                _displayService = displayService;
+                _anonymousTypeDisplayService = anonymousTypeDisplayService;
                 this.Workspace = workspace;
                 this.CancellationToken = cancellationToken;
-                this.semanticModel = semanticModel;
-                this.position = position;
+                _semanticModel = semanticModel;
+                _position = position;
             }
 
             protected abstract void AddExtensionPrefix();
@@ -118,12 +118,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected SemanticModel GetSemanticModel(SyntaxTree tree)
             {
-                if (this.semanticModel.SyntaxTree == tree)
+                if (_semanticModel.SyntaxTree == tree)
                 {
-                    return this.semanticModel;
+                    return _semanticModel;
                 }
 
-                var model = this.semanticModel.GetOriginalSemanticModel();
+                var model = _semanticModel.GetOriginalSemanticModel();
                 if (model.Compilation.ContainsSyntaxTree(tree))
                 {
                     return model.Compilation.GetSemanticModel(tree);
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private ImmutableArray<SymbolDisplayPart> BuildDescription(SymbolDescriptionGroups groups)
             {
                 var finalParts = new List<SymbolDisplayPart>();
-                var orderedGroups = groupMap.Keys.OrderBy((g1, g2) => g1 - g2);
+                var orderedGroups = _groupMap.Keys.OrderBy((g1, g2) => g1 - g2);
 
                 foreach (var group in orderedGroups)
                 {
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         finalParts.AddRange(LineBreak(newLines));
                     }
 
-                    var parts = groupMap[group];
+                    var parts = _groupMap[group];
                     finalParts.AddRange(parts);
                 }
 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>> BuildDescriptionSections()
             {
-                return groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutableOrEmpty());
+                return _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutableOrEmpty());
             }
 
             private void AddDescriptionForDynamicType()
@@ -297,12 +297,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddDescriptionForNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.IsAwaitable(this.semanticModel, this.position))
+                if (symbol.IsAwaitable(_semanticModel, _position))
                 {
                     AddAwaitablePrefix();
                 }
 
-                var token = this.semanticModel.SyntaxTree.GetTouchingToken(this.position, this.CancellationToken);
+                var token = _semanticModel.SyntaxTree.GetTouchingToken(_position, this.CancellationToken);
                 if (token != default(SyntaxToken))
                 {
                     var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
@@ -319,14 +319,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 if (symbol.TypeKind == TypeKind.Delegate)
                 {
-                    var style = DescriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                    var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
                         ToDisplayParts(symbol.OriginalDefinition, style));
                 }
                 else
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, DescriptionStyle));
+                        ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
                 }
 
                 if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
@@ -363,12 +363,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (symbol.IsGlobalNamespace)
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol, GlobalNamespaceStyle));
+                        ToDisplayParts(symbol, s_globalNamespaceStyle));
                 }
                 else
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol, DescriptionStyle));
+                        ToDisplayParts(symbol, s_descriptionStyle));
                 }
             }
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 // TODO : show duplicated member case
                 // TODO : a way to check whether it is a member call off dynamic type?
-                var awaitable = method.IsAwaitable(this.semanticModel, this.position);
+                var awaitable = method.IsAwaitable(_semanticModel, _position);
                 var extension = method.IsExtensionMethod || method.MethodKind == MethodKind.ReducedExtension;
                 if (awaitable && extension)
                 {
@@ -477,11 +477,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    ToMinimalDisplayParts(method, MemberSignatureDisplayFormat));
+                    ToMinimalDisplayParts(method, s_memberSignatureDisplayFormat));
 
                 if (awaitable)
                 {
-                    AddAwaitableUsageText(method, this.semanticModel, this.position);
+                    AddAwaitableUsageText(method, _semanticModel, _position);
                 }
             }
 
@@ -520,12 +520,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     // TODO : show duplicated member case
                     // TODO : a way to check whether it is a member call off dynamic type?
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToMinimalDisplayParts(symbol, MemberSignatureDisplayFormat));
+                        ToMinimalDisplayParts(symbol, s_memberSignatureDisplayFormat));
                     return;
                 }
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    ToMinimalDisplayParts(symbol, MemberSignatureDisplayFormat));
+                    ToMinimalDisplayParts(symbol, s_memberSignatureDisplayFormat));
             }
 
             private void AddDescriptionForArbitrarySymbol(ISymbol symbol)
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     Space(),
                     PlainText(FeaturesResources.In),
                     Space(),
-                    ToMinimalDisplayParts(symbol.ContainingSymbol, TypeParameterOwnerFormat));
+                    ToMinimalDisplayParts(symbol.ContainingSymbol, s_typeParameterOwnerFormat));
             }
 
             private void AddOverloadCountPart(
@@ -608,10 +608,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (partsList.Count > 0)
                 {
                     IList<SymbolDisplayPart> existingParts;
-                    if (!groupMap.TryGetValue(group, out existingParts))
+                    if (!_groupMap.TryGetValue(group, out existingParts))
                     {
                         existingParts = new List<SymbolDisplayPart>();
-                        groupMap.Add(group, existingParts);
+                        _groupMap.Add(group, existingParts);
                     }
 
                     existingParts.AddRange(partsList);
@@ -657,12 +657,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected IEnumerable<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
                 format = format ?? MinimallyQualifiedFormat;
-                return displayService.ToMinimalDisplayParts(semanticModel, position, symbol, format);
+                return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);
             }
 
             protected IEnumerable<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
-                return displayService.ToDisplayParts(symbol, format);
+                return _displayService.ToDisplayParts(symbol, format);
             }
 
             private IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [Export(typeof(ICodeRefactoringService)), Shared]
     internal class CodeRefactoringService : ICodeRefactoringService
     {
-        private readonly Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>> lazyLanguageToProvidersMap;
+        private readonly Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
 
         [ImportingConstructor]
         public CodeRefactoringService(
             [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
         {
             // convert set of all code refactoring providers into a map from language to a lazy initialized list of ordered providers.
-            this.lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>>(
+            _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>>(
                 () =>
                     ImmutableDictionary.CreateRange(
                         DistributeLanguages(providers)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             get
             {
-                return this.lazyLanguageToProvidersMap.Value;
+                return _lazyLanguageToProvidersMap.Value;
             }
         }
 

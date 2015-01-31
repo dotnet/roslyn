@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
     {
         protected class MethodSignatureInfo : SignatureInfo
         {
-            private readonly IMethodSymbol methodSymbol;
+            private readonly IMethodSymbol _methodSymbol;
 
             public MethodSignatureInfo(
                 SemanticDocument document,
@@ -19,42 +19,42 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 IMethodSymbol methodSymbol)
                 : base(document, state)
             {
-                this.methodSymbol = methodSymbol;
+                _methodSymbol = methodSymbol;
             }
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
             {
                 if (State.IsInConditionalAccessExpression)
                 {
-                    return methodSymbol.ReturnType.RemoveNullableIfPresent();
+                    return _methodSymbol.ReturnType.RemoveNullableIfPresent();
                 }
 
-                return methodSymbol.ReturnType;
+                return _methodSymbol.ReturnType;
             }
 
             public override IList<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken)
             {
-                return methodSymbol.TypeParameters;
+                return _methodSymbol.TypeParameters;
             }
 
             protected override IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
             {
-                return methodSymbol.Parameters.Select(p => p.RefKind).ToList();
+                return _methodSymbol.Parameters.Select(p => p.RefKind).ToList();
             }
 
             protected override IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
             {
-                return methodSymbol.Parameters.Select(p => p.IsOptional).ToList();
+                return _methodSymbol.Parameters.Select(p => p.IsOptional).ToList();
             }
 
             protected override IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
             {
-                return methodSymbol.Parameters.Select(p => p.Type).ToList();
+                return _methodSymbol.Parameters.Select(p => p.Type).ToList();
             }
 
             protected override IList<string> DetermineParameterNames(CancellationToken cancellationToken)
             {
-                return methodSymbol.Parameters.Select(p => p.Name).ToList();
+                return _methodSymbol.Parameters.Select(p => p.Name).ToList();
             }
         }
     }

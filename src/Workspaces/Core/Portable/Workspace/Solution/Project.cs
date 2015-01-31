@@ -21,23 +21,23 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Project
     {
-        private readonly Solution solution;
-        private readonly ProjectState projectState;
-        private ImmutableHashMap<DocumentId, Document> idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
-        private ImmutableHashMap<DocumentId, TextDocument> idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, TextDocument>.Empty;
+        private readonly Solution _solution;
+        private readonly ProjectState _projectState;
+        private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
+        private ImmutableHashMap<DocumentId, TextDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, TextDocument>.Empty;
 
         internal Project(Solution solution, ProjectState projectState)
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(projectState);
 
-            this.solution = solution;
-            this.projectState = projectState;
+            _solution = solution;
+            _projectState = projectState;
         }
 
         internal ProjectState State
         {
-            get { return this.projectState; }
+            get { return _projectState; }
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.solution;
+                return _solution;
             }
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.Id;
+                return _projectState.Id;
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.FilePath;
+                return _projectState.FilePath;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.OutputFilePath;
+                return _projectState.OutputFilePath;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public HostLanguageServices LanguageServices
         {
-            get { return this.projectState.LanguageServices; }
+            get { return _projectState.LanguageServices; }
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.LanguageServices.Language;
+                return _projectState.LanguageServices.Language;
             }
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.AssemblyName;
+                return _projectState.AssemblyName;
             }
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.Name;
+                return _projectState.Name;
             }
         }
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.MetadataReferences;
+                return _projectState.MetadataReferences;
             }
         }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.ProjectReferences.Where(pr => this.Solution.ContainsProject(pr.ProjectId));
+                return _projectState.ProjectReferences.Where(pr => this.Solution.ContainsProject(pr.ProjectId));
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.ProjectReferences;
+                return _projectState.ProjectReferences;
             }
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.AnalyzerReferences;
+                return _projectState.AnalyzerReferences;
             }
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.AnalyzerOptions;
+                return _projectState.AnalyzerOptions;
             }
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.CompilationOptions;
+                return _projectState.CompilationOptions;
             }
         }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.ParseOptions;
+                return _projectState.ParseOptions;
             }
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.IsSubmission;
+                return _projectState.IsSubmission;
             }
         }
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.HasDocuments;
+                return _projectState.HasDocuments;
             }
         }
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.DocumentIds;
+                return _projectState.DocumentIds;
             }
         }
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.AdditionalDocumentIds;
+                return _projectState.AdditionalDocumentIds;
             }
         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.DocumentIds.Select(GetDocument);
+                return _projectState.DocumentIds.Select(GetDocument);
             }
         }
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return projectState.AdditionalDocumentIds.Select(GetAdditionalDocument);
+                return _projectState.AdditionalDocumentIds.Select(GetAdditionalDocument);
             }
         }
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool ContainsDocument(DocumentId documentId)
         {
-            return this.projectState.ContainsDocument(documentId);
+            return _projectState.ContainsDocument(documentId);
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool ContainsAdditionalDocument(DocumentId documentId)
         {
-            return this.projectState.ContainsAdditionalDocument(documentId);
+            return _projectState.ContainsAdditionalDocument(documentId);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public DocumentId GetDocumentId(SyntaxTree syntaxTree)
         {
-            return this.solution.GetDocumentId(syntaxTree, this.Id);
+            return _solution.GetDocumentId(syntaxTree, this.Id);
         }
 
         /// <summary>
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Document GetDocument(SyntaxTree syntaxTree)
         {
-            return this.solution.GetDocument(syntaxTree, this.Id);
+            return _solution.GetDocument(syntaxTree, this.Id);
         }
 
         /// <summary>
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return ImmutableHashMapExtensions.GetOrAdd(ref this.idToDocumentMap, documentId, createDocumentFunction, this);
+            return ImmutableHashMapExtensions.GetOrAdd(ref _idToDocumentMap, documentId, s_createDocumentFunction, this);
         }
 
         /// <summary>
@@ -336,39 +336,39 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return ImmutableHashMapExtensions.GetOrAdd(ref this.idToAdditionalDocumentMap, documentId, createAdditionalDocumentFunction, this);
+            return ImmutableHashMapExtensions.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_createAdditionalDocumentFunction, this);
         }
 
         internal DocumentState GetDocumentState(DocumentId documentId)
         {
-            return this.projectState.GetDocumentState(documentId);
+            return _projectState.GetDocumentState(documentId);
         }
 
         internal TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
         {
-            return this.projectState.GetAdditionalDocumentState(documentId);
+            return _projectState.GetAdditionalDocumentState(documentId);
         }
 
         internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return this.solution.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
+            return _solution.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
         }
 
         internal Task<IEnumerable<Document>> GetDocumentsWithName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return this.solution.GetDocumentsWithName(Id, predicate, filter, cancellationToken);
+            return _solution.GetDocumentsWithName(Id, predicate, filter, cancellationToken);
         }
 
-        private static readonly Func<DocumentId, Project, Document> createDocumentFunction = CreateDocument;
+        private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction = CreateDocument;
         private static Document CreateDocument(DocumentId documentId, Project project)
         {
-            return new Document(project, project.projectState.GetDocumentState(documentId));
+            return new Document(project, project._projectState.GetDocumentState(documentId));
         }
 
-        private static readonly Func<DocumentId, Project, TextDocument> createAdditionalDocumentFunction = CreateAdditionalDocument;
+        private static readonly Func<DocumentId, Project, TextDocument> s_createAdditionalDocumentFunction = CreateAdditionalDocument;
         private static TextDocument CreateAdditionalDocument(DocumentId documentId, Project project)
         {
-            return new TextDocument(project, project.projectState.GetAdditionalDocumentState(documentId));
+            return new TextDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
         }
 
         /// <summary>
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool TryGetCompilation(out Compilation compilation)
         {
-            return this.solution.TryGetCompilation(this.Id, out compilation);
+            return _solution.TryGetCompilation(this.Id, out compilation);
         }
 
         /// <summary>
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.solution.GetCompilationAsync(this.Id, cancellationToken);
+            return _solution.GetCompilationAsync(this.Id, cancellationToken);
         }
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.projectState.Version;
+                return _projectState.Version;
             }
         }
 
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.projectState.GetLatestDocumentVersionAsync(cancellationToken);
+            return _projectState.GetLatestDocumentVersionAsync(cancellationToken);
         }
 
         /// <summary>
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.solution.GetDependentVersionAsync(this.Id, cancellationToken);
+            return _solution.GetDependentVersionAsync(this.Id, cancellationToken);
         }
 
         /// <summary>
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.solution.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
+            return _solution.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
         }
 
         /// <summary>
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var projVersion = this.Version;
-            var docVersion = await this.projectState.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
+            var docVersion = await _projectState.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
             return docVersion.GetNewerVersion(projVersion);
         }
 

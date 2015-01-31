@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For all symbols
         None = 0,
         Attributes = 1 << 0,
-        
+
         // For method symbols
         ReturnTypeAttributes = 1 << 1,
 

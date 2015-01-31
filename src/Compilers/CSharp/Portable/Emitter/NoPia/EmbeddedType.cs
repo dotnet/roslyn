@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedType : EmbeddedTypesManager.CommonEmbeddedType
     {
-        private bool embeddedAllMembersOfImplementedInterface;
+        private bool _embeddedAllMembersOfImplementedInterface;
 
         public EmbeddedType(EmbeddedTypesManager typeManager, NamedTypeSymbol underlyingNamedType) :
             base(typeManager, underlyingNamedType)
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(UnderlyingNamedType.IsInterfaceType());
 
-            if (embeddedAllMembersOfImplementedInterface)
+            if (_embeddedAllMembersOfImplementedInterface)
             {
                 return;
             }
 
-            embeddedAllMembersOfImplementedInterface = true;
+            _embeddedAllMembersOfImplementedInterface = true;
 
             // Embed all members
             foreach (MethodSymbol m in UnderlyingNamedType.GetMethodsToEmit())

@@ -1436,7 +1436,6 @@ class Test
     </method>
   </methods>
 </symbols>");
-
         }
 
         [WorkItem(17390, "DevDiv_Projects/Roslyn")]
@@ -2133,5 +2132,4 @@ class C
 ");
         }
     }
-
 }

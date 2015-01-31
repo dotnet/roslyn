@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
     [ExportLanguageService(typeof(IGenerateConstructorService), LanguageNames.CSharp), Shared]
     internal class CSharpGenerateConstructorService : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ArgumentSyntax, AttributeArgumentSyntax>
     {
-        private static readonly SyntaxAnnotation annotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                     var symbolInfo = document.SemanticModel.GetSymbolInfo(attribute, cancellationToken);
                     if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !symbolInfo.CandidateSymbols.IsEmpty)
                     {
-                        token = simpleName.Identifier;                        
+                        token = simpleName.Identifier;
                         attributeArguments = attribute.ArgumentList.Arguments.ToList();
                         arguments = attributeArguments.Select(x => SyntaxFactory.Argument(x.NameColon ?? ((x.NameEquals != null) ? SyntaxFactory.NameColon(x.NameEquals.Name) : null), default(SyntaxToken), x.Expression)).ToList();
 
@@ -232,15 +232,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                         typeNameToReplace = parentType;
                     }
 
-                    newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(annotation);
+                    newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation);
                 }
                 else
                 {
-                    newTypeName = typeNameToReplace.WithAdditionalAnnotations(annotation);
+                    newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation);
                 }
 
                 var newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName);
-                newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(annotation).Single();
+                newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
 
                 var oldArgumentList = (ArgumentListSyntax)newTypeName.Parent.ChildNodes().FirstOrDefault(n => n is ArgumentListSyntax);
                 if (oldArgumentList != null)
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                     if (newArgumentList != oldArgumentList)
                     {
                         newNode = newNode.ReplaceNode(oldArgumentList, newArgumentList);
-                        newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(annotation).Single();
+                        newTypeName = (TypeSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                     }
                 }
 

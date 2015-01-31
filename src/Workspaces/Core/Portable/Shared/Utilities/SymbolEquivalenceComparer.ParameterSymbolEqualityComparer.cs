@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         internal class ParameterSymbolEqualityComparer : IEqualityComparer<IParameterSymbol>
         {
-            private readonly SymbolEquivalenceComparer symbolEqualityComparer;
+            private readonly SymbolEquivalenceComparer _symbolEqualityComparer;
 
             public ParameterSymbolEqualityComparer(
                 SymbolEquivalenceComparer symbolEqualityComparer)
             {
-                this.symbolEqualityComparer = symbolEqualityComparer;
+                _symbolEqualityComparer = symbolEqualityComparer;
             }
 
             public bool Equals(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return
                     x.RefKind == y.RefKind &&
                     nameComparisonCheck &&
-                    symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
+                    _symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
             }
 
             public bool Equals(IParameterSymbol x, IParameterSymbol y)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return
                     Hash.Combine(x.IsRefOrOut(),
-                    symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
+                    _symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
             }
         }
     }

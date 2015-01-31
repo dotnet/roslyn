@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
         private class CodeBlockEndedAnalyzer : CA1024CodeBlockEndedAnalyzer
         {
             public override SyntaxKind SyntaxKindOfInterest
-                {
+            {
                 get { return SyntaxKind.InvocationExpression; }
             }
 

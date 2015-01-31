@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private const int MinimumItemsPerPartition = 30000;
 
-            private readonly FormattingContext context;
-            private readonly TokenStream tokenStream;
-            private readonly TokenPairWithOperations[] operationPairs;
+            private readonly FormattingContext _context;
+            private readonly TokenStream _tokenStream;
+            private readonly TokenPairWithOperations[] _operationPairs;
 
             public Partitioner(FormattingContext context, TokenStream tokenStream, TokenPairWithOperations[] operationPairs)
             {
@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 Contract.ThrowIfNull(tokenStream);
                 Contract.ThrowIfNull(operationPairs);
 
-                this.context = context;
-                this.tokenStream = tokenStream;
-                this.operationPairs = operationPairs;
+                _context = context;
+                _tokenStream = tokenStream;
+                _operationPairs = operationPairs;
             }
 
             public List<IEnumerable<TokenPairWithOperations>> GetPartitions(int partitionCount)
@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var list = new List<IEnumerable<TokenPairWithOperations>>();
 
                 // too small items in the list. give out one list
-                int perPartition = this.operationPairs.Length / partitionCount;
-                if (perPartition < 10 || partitionCount <= 1 || this.operationPairs.Length < MinimumItemsPerPartition)
+                int perPartition = _operationPairs.Length / partitionCount;
+                if (perPartition < 10 || partitionCount <= 1 || _operationPairs.Length < MinimumItemsPerPartition)
                 {
-                    list.Add(GetOperationPairsFromTo(0, operationPairs.Length));
+                    list.Add(GetOperationPairsFromTo(0, _operationPairs.Length));
                     return list;
                 }
 
@@ -48,34 +48,34 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // local parts that could run concurrently; which means everything will run
                 // synchronously.
                 var currentOperationIndex = 0;
-                while (currentOperationIndex < this.operationPairs.Length)
+                while (currentOperationIndex < _operationPairs.Length)
                 {
-                    var nextPartitionStartOperationIndex = Math.Min(currentOperationIndex + perPartition, this.operationPairs.Length);
-                    if (nextPartitionStartOperationIndex >= this.operationPairs.Length)
+                    var nextPartitionStartOperationIndex = Math.Min(currentOperationIndex + perPartition, _operationPairs.Length);
+                    if (nextPartitionStartOperationIndex >= _operationPairs.Length)
                     {
                         // reached end of operation pairs
-                        list.Add(GetOperationPairsFromTo(currentOperationIndex, this.operationPairs.Length));
+                        list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
                         break;
                     }
 
-                    var nextToken = this.context.GetEndTokenForRelativeIndentationSpan(this.operationPairs[nextPartitionStartOperationIndex].Token1);
+                    var nextToken = _context.GetEndTokenForRelativeIndentationSpan(_operationPairs[nextPartitionStartOperationIndex].Token1);
                     if (nextToken.RawKind == 0)
                     {
                         // reached the last token in the tree
-                        list.Add(GetOperationPairsFromTo(currentOperationIndex, this.operationPairs.Length));
+                        list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
                         break;
                     }
 
-                    var nextTokenWithIndex = this.tokenStream.GetTokenData(nextToken);
+                    var nextTokenWithIndex = _tokenStream.GetTokenData(nextToken);
                     if (nextTokenWithIndex.IndexInStream < 0)
                     {
                         // first token for next partition is out side of valid token stream
-                        list.Add(GetOperationPairsFromTo(currentOperationIndex, this.operationPairs.Length));
+                        list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
                         break;
                     }
 
                     Contract.ThrowIfFalse(currentOperationIndex < nextTokenWithIndex.IndexInStream);
-                    Contract.ThrowIfFalse(nextTokenWithIndex.IndexInStream <= this.operationPairs.Length);
+                    Contract.ThrowIfFalse(nextTokenWithIndex.IndexInStream <= _operationPairs.Length);
 
                     list.Add(GetOperationPairsFromTo(currentOperationIndex, nextTokenWithIndex.IndexInStream));
                     currentOperationIndex = nextTokenWithIndex.IndexInStream;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 for (int i = from; i < to; i++)
                 {
-                    yield return operationPairs[i];
+                    yield return _operationPairs[i];
                 }
             }
         }

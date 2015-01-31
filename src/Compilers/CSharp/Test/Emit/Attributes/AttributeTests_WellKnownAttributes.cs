@@ -249,7 +249,6 @@ class C
                     attrSym.VerifyValue(0, TypedConstantKind.Primitive, "message");
                     attrSym.VerifyValue(1, TypedConstantKind.Primitive, false);
                 }
-
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
@@ -2387,8 +2386,7 @@ public class C
                 // invalid enum values (ignored)
                 new { attr = "[DllImport(\"bar\", CallingConvention = (CallingConvention)15, SetLastError = true)]",
                       expected = MethodImportAttributes.CallingConventionWinApi | MethodImportAttributes.SetLastError }, // M26
-
-            };
+};
 
             StringBuilder sb = new StringBuilder(@"
 using System.Runtime.CompilerServices;
@@ -3277,7 +3275,6 @@ public class MainClass
 
                 attrs = worksheetInterface.GetAttributes(coClassType);
                 Assert.Equal(1, attrs.Count());
-
             };
 
             string expectedOutput = @"0
@@ -5887,7 +5884,6 @@ public class A
                 // (5,9): warning CS0612: 'C.Foo()' is obsolete
                 //         o.Foo();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "o.Foo()").WithArguments("C.Foo()"));
-
         }
 
         [Fact]
@@ -7511,7 +7507,7 @@ namespace ConsoleApplication74
 
 
 ";
-            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference()});
+            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
 
 
             compilation2.VerifyDiagnostics(
@@ -7523,7 +7519,7 @@ namespace ConsoleApplication74
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
 
-            var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1)});
+            var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
 
             compilation3.VerifyDiagnostics(
@@ -7534,7 +7530,6 @@ namespace ConsoleApplication74
     //             Test.Bar();
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
-
         }
 
 

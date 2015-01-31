@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,31 +14,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         private class ProjectCodeFixProvider
         {
-            private readonly AnalyzerReference reference;
-            private ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> fixersPerLanguage;
+            private readonly AnalyzerReference _reference;
+            private ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> _fixersPerLanguage;
 
             public ProjectCodeFixProvider(AnalyzerReference reference)
             {
-                this.reference = reference;
-                this.fixersPerLanguage = ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>.Empty;
+                _reference = reference;
+                _fixersPerLanguage = ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>.Empty;
             }
 
             public ImmutableArray<CodeFixProvider> GetFixers(string language)
             {
-                return ImmutableInterlocked.GetOrAdd(ref this.fixersPerLanguage, language, CreateFixers);
+                return ImmutableInterlocked.GetOrAdd(ref _fixersPerLanguage, language, CreateFixers);
             }
 
             private ImmutableArray<CodeFixProvider> CreateFixers(string language)
             {
                 // check whether the analyzer reference knows how to return fixers directly.
-                var codeFixProviderFactory = this.reference as ICodeFixProviderFactory;
+                var codeFixProviderFactory = _reference as ICodeFixProviderFactory;
                 if (codeFixProviderFactory != null)
                 {
                     return codeFixProviderFactory.GetFixers();
                 }
 
                 // otherwise, see whether we can pick it up from reference itself
-                var analyzerFileReference = this.reference as AnalyzerFileReference;
+                var analyzerFileReference = _reference as AnalyzerFileReference;
                 if (analyzerFileReference == null)
                 {
                     return ImmutableArray<CodeFixProvider>.Empty;

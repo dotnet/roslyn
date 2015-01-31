@@ -16,26 +16,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class FindReferencesSearchEngine
     {
-        private readonly Solution solution;
-        private readonly IImmutableSet<Document> documents;
-        private readonly ImmutableArray<IReferenceFinder> finders;
-        private readonly IFindReferencesProgress progress;
-        private readonly CancellationToken cancellationToken;
-        private readonly ProjectDependencyGraph dependencyGraph;
+        private readonly Solution _solution;
+        private readonly IImmutableSet<Document> _documents;
+        private readonly ImmutableArray<IReferenceFinder> _finders;
+        private readonly IFindReferencesProgress _progress;
+        private readonly CancellationToken _cancellationToken;
+        private readonly ProjectDependencyGraph _dependencyGraph;
 
         /// <summary>
         /// Mapping from a document to the list of reference locations found in it.  Kept around so
         /// we only notify the callback once when a location is found for a reference (in case
         /// multiple finders find the same reference location for a symbol).
         /// </summary>
-        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
+        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
+        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
 
         /// <summary>
         /// The resultant collection of all references found per symbol.
         /// </summary>
-        private readonly ConcurrentDictionary<ISymbol, ConcurrentSet<ReferenceLocation>> foundReferences = new ConcurrentDictionary<ISymbol, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<ISymbol, ConcurrentSet<ReferenceLocation>> createSymbolLocations = _ => new ConcurrentSet<ReferenceLocation>();
+        private readonly ConcurrentDictionary<ISymbol, ConcurrentSet<ReferenceLocation>> _foundReferences = new ConcurrentDictionary<ISymbol, ConcurrentSet<ReferenceLocation>>();
+        private static readonly Func<ISymbol, ConcurrentSet<ReferenceLocation>> s_createSymbolLocations = _ => new ConcurrentSet<ReferenceLocation>();
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -44,18 +44,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IFindReferencesProgress progress,
             CancellationToken cancellationToken)
         {
-            this.documents = documents;
-            this.solution = solution;
-            this.finders = finders;
-            this.progress = progress;
-            this.cancellationToken = cancellationToken;
-            this.dependencyGraph = solution.GetProjectDependencyGraph();
+            _documents = documents;
+            _solution = solution;
+            _finders = finders;
+            _progress = progress;
+            _cancellationToken = cancellationToken;
+            _dependencyGraph = solution.GetProjectDependencyGraph();
         }
 
         public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol)
         {
-            progress.OnStarted();
-            progress.ReportProgress(0, 1);
+            _progress.OnStarted();
+            _progress.ReportProgress(0, 1);
             try
             {
                 var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
@@ -66,17 +66,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                progress.ReportProgress(1, 1);
-                progress.OnCompleted();
+                _progress.ReportProgress(1, 1);
+                _progress.OnCompleted();
             }
 
-            return this.foundReferences.Select(kvp => new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray())).ToImmutableArray();
+            return _foundReferences.Select(kvp => new ReferencedSymbol(kvp.Key, kvp.Value.ToImmutableArray())).ToImmutableArray();
         }
 
         private async Task ProcessAsync(
             ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> documentMap)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, _cancellationToken))
             {
                 // quick exit
                 if (documentMap.Count == 0)
@@ -84,27 +84,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return;
                 }
 
-                var wrapper = new ProgressWrapper(this.progress, documentMap.Count);
+                var wrapper = new ProgressWrapper(_progress, documentMap.Count);
 
                 // Get the connected components of the dependency graph and process each individually.
                 // That way once a component is done we can throw away all the memory associated with
                 // it.
-                var connectedProjects = this.dependencyGraph.GetDependencySets(cancellationToken);
+                var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
                 var projectMap = CreateProjectMap(documentMap);
 
                 foreach (var projectSet in connectedProjects)
                 {
-                    this.cancellationToken.ThrowIfCancellationRequested();
+                    _cancellationToken.ThrowIfCancellationRequested();
 
                     await ProcessProjectsAsync(projectSet, projectMap, wrapper).ConfigureAwait(false);
                 }
             }
         }
 
-        private static readonly Func<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> documentMapGetter =
+        private static readonly Func<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> s_documentMapGetter =
             _ => new Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>();
 
-        private static readonly Func<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> queueGetter =
+        private static readonly Func<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> s_queueGetter =
             _ => new List<ValueTuple<ISymbol, IReferenceFinder>>();
 
         private static Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> CreateProjectMap(
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var projectMap = new Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>>();
             foreach (var kv in map)
             {
-                var documentMap = projectMap.GetOrAdd(kv.Key.Project, documentMapGetter);
-                var queue = documentMap.GetOrAdd(kv.Key, queueGetter);
+                var documentMap = projectMap.GetOrAdd(kv.Key.Project, s_documentMapGetter);
+                var queue = documentMap.GetOrAdd(kv.Key, s_queueGetter);
 
                 queue.AddRange(kv.Value);
             }
@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private void HandleLocation(ISymbol symbol, ReferenceLocation location)
         {
-            this.foundReferences.GetOrAdd(symbol, createSymbolLocations).Add(location);
-            this.progress.OnReferenceFound(symbol, location);
+            _foundReferences.GetOrAdd(symbol, s_createSymbolLocations).Add(location);
+            _progress.OnReferenceFound(symbol, location);
         }
     }
 }

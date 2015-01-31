@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-
         protected BoundExpression CreateConversion(
             BoundExpression source,
             TypeSymbol destination,

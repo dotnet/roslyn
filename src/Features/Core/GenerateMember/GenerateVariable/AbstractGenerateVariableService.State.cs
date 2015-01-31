@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsOnlyWrittenTo = semanticFacts.IsOnlyWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInConstructor = DetermineIsInConstructor(document);
-                this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt || 
+                this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
                 return true;
             }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     inferredType = inferredType.RemoveNullableIfPresent();
                 }
-                
+
                 // Substitute 'object' for all captured method type parameters.  Note: we may need to
                 // do this for things like anonymous types, as well as captured type parameters that
                 // aren't in scope in the destination type.

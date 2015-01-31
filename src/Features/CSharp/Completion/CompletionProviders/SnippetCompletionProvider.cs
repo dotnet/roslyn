@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class SnippetCompletionProvider : AbstractCompletionProvider
     {
         // If null, the document's language service will be used.
-        private ISnippetInfoService snippetInfoService;
+        private ISnippetInfoService _snippetInfoService;
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {
-            this.snippetInfoService = snippetInfoService;
+            _snippetInfoService = snippetInfoService;
         }
 
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(Workspace workspace, SemanticModel semanticModel, int position, bool isPreProcessorContext, CancellationToken cancellationToken)
         {
-            var service = snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
+            var service = _snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();

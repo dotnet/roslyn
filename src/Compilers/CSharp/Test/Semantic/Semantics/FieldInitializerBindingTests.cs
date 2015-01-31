@@ -312,7 +312,7 @@ class C
             }
         }
 
-        class ExpectedInitializer
+        private class ExpectedInitializer
         {
             public string FieldName { get; set; }
             public string InitialValue { get; set; }

@@ -13,30 +13,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct Node
         {
-            private readonly string name;
-            private readonly int parentIndex;
+            private readonly string _name;
+            private readonly int _parentIndex;
 
             public const int RootNodeParentIndex = -1;
 
             public Node(string name, int parentIndex)
             {
-                this.name = name;
-                this.parentIndex = parentIndex;
+                _name = name;
+                _parentIndex = parentIndex;
             }
 
             public string Name
             {
-                get { return this.name; }
+                get { return _name; }
             }
 
             public int ParentIndex
             {
-                get { return this.parentIndex; }
+                get { return _parentIndex; }
             }
 
             public bool IsRoot
             {
-                get { return this.parentIndex == RootNodeParentIndex; }
+                get { return _parentIndex == RootNodeParentIndex; }
             }
 
             public bool IsEquivalent(Node node)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private string GetDebuggerDisplay()
             {
-                return name + ", " + parentIndex;
+                return _name + ", " + _parentIndex;
             }
         }
     }

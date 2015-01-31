@@ -164,7 +164,7 @@ End Module
       End Sub
 
    End Class
-", 
+",
             GetCA1001BasicResultAt(6, 17, "NoDisposeMethod"));
         }
 

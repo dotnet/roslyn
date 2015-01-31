@@ -26,10 +26,10 @@ public class InternalsVisibleToAndStrongNameTests : CSharpTestBase
         SigningTestHelpers.InstallKey();
     }
 
-    private static readonly string KeyPairFile = SigningTestHelpers.KeyPairFile;
-    private static readonly string PublicKeyFile = SigningTestHelpers.PublicKeyFile;
-    private static readonly ImmutableArray<byte> PublicKey = SigningTestHelpers.PublicKey;
-    private static readonly DesktopStrongNameProvider DefaultProvider = new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>());
+    private static readonly string s_keyPairFile = SigningTestHelpers.KeyPairFile;
+    private static readonly string s_publicKeyFile = SigningTestHelpers.PublicKeyFile;
+    private static readonly ImmutableArray<byte> s_publicKey = SigningTestHelpers.PublicKey;
+    private static readonly DesktopStrongNameProvider s_defaultProvider = new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>());
 
     private static DesktopStrongNameProvider GetProviderWithPath(string keyFilePath)
     {
@@ -61,7 +61,7 @@ public class Test
         // Dev11 RC gives error now (CS1548) + two warnings
         // Diagnostic(ErrorCode.WRN_UseSwitchInsteadOfAttribute).WithArguments(@"/keyfile", "AssemblyKeyFile"),
         // Diagnostic(ErrorCode.WRN_UseSwitchInsteadOfAttribute).WithArguments(@"/keycontainer", "AssemblyKeyName")
-        var c = CreateCompilationWithMscorlib(source, 
+        var c = CreateCompilationWithMscorlib(source,
             references: new[] { SystemRef },
             options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()));
 
@@ -72,12 +72,12 @@ public class Test
     [Fact]
     public void PubKeyFromKeyFileAttribute()
     {
-        var x = KeyPairFile;
+        var x = s_keyPairFile;
         string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
         CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
             {
@@ -93,18 +93,18 @@ public class Test
                 }
 
                 Assert.True(haveAttribute);
-            }, emitOptions: TestEmitters.CCI); 
+            }, emitOptions: TestEmitters.CCI);
     }
 
     [Fact]
     public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver()
     {
-        string keyFileDir = Path.GetDirectoryName(KeyPairFile);
-        string keyFileName = Path.GetFileName(KeyPairFile);
+        string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
+        string keyFileName = Path.GetFileName(s_keyPairFile);
 
         string s = string.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", keyFileName, @""")] public class C {}");
         var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
-        
+
         // verify failure with default assembly key file resolver
         var comp = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseDll);
         comp.VerifyDiagnostics(
@@ -121,14 +121,14 @@ public class Test
 
         comp.VerifyDiagnostics();
 
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
     }
 
     [Fact]
     public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent()
     {
-        string keyFileDir = Path.GetDirectoryName(KeyPairFile);
-        string keyFileName = Path.GetFileName(KeyPairFile);
+        string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
+        string keyFileName = Path.GetFileName(s_keyPairFile);
 
         string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""..\", keyFileName, @""")] public class C {}");
         var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
@@ -149,18 +149,18 @@ public class Test
             TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\"))));
 
         Assert.Empty(comp.GetDiagnostics());
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
     }
-    
+
     [Fact]
     public void PubKeyFromKeyContainerAttribute()
     {
-        var x = KeyPairFile;
+        var x = s_keyPairFile;
         string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
         CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
         {
@@ -183,28 +183,28 @@ public class Test
     public void PubKeyFromKeyFileOptions()
     {
         string s = "public class C {}";
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
     public void PubKeyFromKeyFileOptions_ReferenceResolver()
     {
-        string keyFileDir = Path.GetDirectoryName(KeyPairFile);
-        string keyFileName = Path.GetFileName(KeyPairFile);
+        string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
+        string keyFileName = Path.GetFileName(s_keyPairFile);
 
         string s = "public class C {}";
         var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
 
         // verify failure with default resolver
-        var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(DefaultProvider));
+        var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(s_defaultProvider));
 
         comp.VerifyDiagnostics(
             // error CS7027: Error extracting public key from file 'KeyPairFile.snk' -- File not found.
             Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFileName, CodeAnalysisResources.FileNotFound));
-        
+
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty);
 
         // verify success with custom assembly key file resolver with keyFileDir added to search paths
@@ -215,15 +215,15 @@ public class Test
             TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(GetProviderWithPath(keyFileDir)));
 
         Assert.Empty(comp.GetDiagnostics());
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
     }
 
     [Fact]
     public void PubKeyFromKeyFileOptionsJustPublicKey()
     {
         string s = "public class C {}";
-        var other = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(true).WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider));
         other.VerifyDiagnostics();
         Assert.True(ByteSequenceComparer.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
     }
@@ -231,15 +231,15 @@ public class Test
     [Fact]
     public void PubKeyFromKeyFileOptionsJustPublicKey_ReferenceResolver()
     {
-        string publicKeyFileDir = Path.GetDirectoryName(PublicKeyFile);
-        string publicKeyFileName = Path.GetFileName(PublicKeyFile);
+        string publicKeyFileDir = Path.GetDirectoryName(s_publicKeyFile);
+        string publicKeyFileName = Path.GetFileName(s_publicKeyFile);
 
         string s = "public class C {}";
         var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
 
         // verify failure with default resolver
-        var comp = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true).WithStrongNameProvider(DefaultProvider));
+        var comp = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider));
 
         comp.VerifyDiagnostics(
             // error CS7027: Error extracting public key from file 'PublicKeyFile.snk' -- File not found.
@@ -257,15 +257,15 @@ public class Test
             new[] { MscorlibRef },
             TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true).WithStrongNameProvider(GetProviderWithPath(publicKeyFileDir)));
         Assert.Empty(comp.GetDiagnostics());
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
     }
 
     [Fact]
     public void PubKeyFileNotFoundOptions()
     {
         string s = "public class C {}";
-        var other = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo").WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo").WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("foo", CodeAnalysisResources.FileNotFound));
@@ -290,8 +290,8 @@ public class Test
     public void PubKeyContainerBogusOptions()
     {
         string s = "public class C {}";
-        var other = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo").WithStrongNameProvider(s_defaultProvider));
 
         // error CS7028: Error signing output with public key from container 'foo' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
         var err = other.GetDiagnostics().Single();
@@ -309,11 +309,11 @@ public class Test
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyFile", "System.Reflection.AssemblyKeyFileAttribute"));
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -321,11 +321,11 @@ public class Test
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseDll.WithCryptoKeyContainer("RoslynTestContainer").WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseDll.WithCryptoKeyContainer("RoslynTestContainer").WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyContainer", "System.Reflection.AssemblyKeyNameAttribute"));
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -333,7 +333,7 @@ public class Test
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyFile("""")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         other.VerifyDiagnostics();
     }
@@ -343,7 +343,7 @@ public class Test
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyName("""")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         other.VerifyDiagnostics();
     }
@@ -358,7 +358,7 @@ public class Test
         string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Foo() {} }";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         var c = CreateCompilationWithMscorlib(
 @"public class A
@@ -373,7 +373,7 @@ public class Test
 }",
             new[] { new CSharpCompilationReference(other) },
             assemblyName: "WantsIVTAccessButCantHave",
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         //compilation should not succeed, and internals should not be imported.
         c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadAccess, "Foo").WithArguments("C.Foo()"));
@@ -389,9 +389,9 @@ public class Test
         }
     }
 }",
-            new[] { new CSharpCompilationReference(other) }, 
+            new[] { new CSharpCompilationReference(other) },
             assemblyName: "WantsIVTAccess",
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         Assert.Empty(c2.GetDiagnostics());
     }
@@ -402,7 +402,7 @@ public class Test
         string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Foo() {} }";
 
-        var otherStream = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider)).EmitToStream();
+        var otherStream = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider)).EmitToStream();
 
         var c = CreateCompilationWithMscorlib(
 @"public class A
@@ -415,9 +415,9 @@ public class Test
         }
     }
 }",
-        references: new[] { AssemblyMetadata.CreateFromStream(otherStream, leaveOpen: true).GetReference() }, 
+        references: new[] { AssemblyMetadata.CreateFromStream(otherStream, leaveOpen: true).GetReference() },
         assemblyName: "WantsIVTAccessButCantHave",
-        options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         //compilation should not succeed, and internals should not be imported.
         c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("C", "Foo"));
@@ -435,9 +435,9 @@ public class Test
         }
     }
 }",
-            new[] { MetadataReference.CreateFromStream(otherStream) }, 
+            new[] { MetadataReference.CreateFromStream(otherStream) },
             assemblyName: "WantsIVTAccess",
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         Assert.Empty(c2.GetDiagnostics());
     }
@@ -449,7 +449,7 @@ public class Test
             public class C { internal void Foo() {} }";
 
         var other = CreateCompilationWithMscorlib(s,
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider),
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider),
             assemblyName: "Paul");
 
         other.VerifyDiagnostics();
@@ -466,7 +466,7 @@ public class Test
     }
 }",
             new MetadataReference[] { new CSharpCompilationReference(other) },
-            TestOptions.ReleaseDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider),
+            TestOptions.ReleaseDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultProvider),
             assemblyName: "John");
 
         Assert.Empty(requestor.GetDiagnostics());
@@ -478,7 +478,7 @@ public class Test
         string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             public class C { internal void Foo() {} }";
 
-        var other = CreateCompilationWithMscorlib(s, assemblyName: "Paul", options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, assemblyName: "Paul", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         other.VerifyDiagnostics();
 
         var requestor = CreateCompilationWithMscorlib(
@@ -494,7 +494,7 @@ public class Test
 }",
             references: new[] { new CSharpCompilationReference(other) },
             assemblyName: "John",
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         // We allow John to access Paul's internal Foo even though strong-named John should not be referencing weak-named Paul.
         // Paul has, after all, specifically granted access to John.
@@ -512,7 +512,7 @@ public class Test
 
         var other = CreateCompilationWithMscorlib(s,
             assemblyName: "Paul",
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics();
 
@@ -525,9 +525,9 @@ public class A
 }",
             new[] { new CSharpCompilationReference(other) },
             assemblyName: "John",
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
         Assert.Empty(requestor.GetDiagnostics());
     }
 
@@ -539,7 +539,7 @@ public class A
 
         var other = CreateCompilationWithMscorlib(s,
             assemblyName: "Paul",
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider)); //not signed. cryptoKeyFile: KeyPairFile,
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider)); //not signed. cryptoKeyFile: KeyPairFile,
 
         other.VerifyDiagnostics();
 
@@ -552,9 +552,9 @@ public class A
 }",
             new[] { new CSharpCompilationReference(other) },
             assemblyName: "John",
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
         requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
     }
 
@@ -566,7 +566,7 @@ public class A
             internal class CAttribute : System.Attribute { public CAttribute() {} }";
 
         var other = CreateCompilationWithMscorlib(s,
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider),
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider),
             assemblyName: "Paul");
 
         other.VerifyDiagnostics();
@@ -580,9 +580,9 @@ public class A
 }",
           new MetadataReference[] { new CSharpCompilationReference(other) },
           assemblyName: "John",
-          options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+          options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
-        Assert.True(ByteSequenceComparer.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
         requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
     }
 
@@ -594,8 +594,8 @@ public class A
 
         var other = CreateCompilationWithMscorlib(s,
             assemblyName: "Paul",
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
- 
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
+
         other.VerifyDiagnostics();
 
         var requestor = CreateCompilationWithMscorlib(
@@ -606,7 +606,7 @@ public class A
 {
 }",
             new MetadataReference[] { new CSharpCompilationReference(other) },
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider),
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider),
             assemblyName: "John");
 
         Assert.True(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
@@ -621,7 +621,7 @@ public class A
             internal class CAttribute : System.Attribute { public CAttribute() {} }";
 
         var other = CreateCompilationWithMscorlib(s,
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider),
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider),
             assemblyName: "Paul");
 
         other.VerifyDiagnostics();
@@ -635,7 +635,7 @@ public class A
 {
 }",
             new MetadataReference[] { new CSharpCompilationReference(other) },
-            TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider),
+            TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider),
             assemblyName: "John");
 
         Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
@@ -651,7 +651,7 @@ public class A
 
         var giver = CreateCompilationWithMscorlib(s,
             assemblyName: "Paul",
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile2).WithStrongNameProvider(DefaultProvider));
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile2).WithStrongNameProvider(s_defaultProvider));
 
         giver.VerifyDiagnostics();
 
@@ -667,7 +667,7 @@ namespace ClassLibrary2
     }
 }",
             new MetadataReference[] { new CSharpCompilationReference(giver) },
-            options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider),
+            options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider),
             assemblyName: "John");
 
         Assert.True(((IAssemblySymbol)giver.Assembly).GivesAccessTo(requestor.Assembly));
@@ -688,7 +688,7 @@ public class C
 {
   static void Foo() {}
 }
-", options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendAssemblyBadArgs, @"InternalsVisibleTo(""WantsIVTAccess, Culture=neutral"")").WithArguments("WantsIVTAccess, Culture=neutral"));
     }
@@ -704,7 +704,7 @@ public class C
 {
   static void Main() {}
 }
-", options: TestOptions.ReleaseExe.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+", options: TestOptions.ReleaseExe.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendAssemblySNReq, @"InternalsVisibleTo(""WantsIVTAccess"")").WithArguments("WantsIVTAccess"));
     }
@@ -722,7 +722,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         var tempFile = Temp.CreateFile();
 
@@ -745,7 +745,7 @@ public class C
         }
     }
 
-    void ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(MemoryStream moduleContents, AttributeDescription expectedModuleAttr)
+    private void ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(MemoryStream moduleContents, AttributeDescription expectedModuleAttr)
     {
         //a module doesn't get signed for real. It should have either a keyfile or keycontainer attribute
         //parked on a typeRef named 'AssemblyAttributesGoHere.' When the module is added to an assembly, the
@@ -772,9 +772,9 @@ public class Z
 
             //now that the module checks out, ensure that adding it to a compilation outputing a dll
             //results in a signed assembly.
-            var assemblyComp = CreateCompilationWithMscorlib(source, 
+            var assemblyComp = CreateCompilationWithMscorlib(source,
                 new[] { metadata.GetReference() },
-                TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+                TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             using (var finalStrm = tempFile.Open())
             {
@@ -791,10 +791,10 @@ public class Z
     [Fact]
     public void SignModuleKeyFileAttr()
     {
-        var x = KeyPairFile;
+        var x = s_keyPairFile;
         string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -808,7 +808,7 @@ public class Z
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -822,13 +822,13 @@ public class Z
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultProvider));
         //shouldn't have an error. The attribute's contents are checked when the module is added.
         var reference = other.EmitToImageReference();
 
         s = @"class D {}";
 
-        other = CreateCompilationWithMscorlib(s, new[] { reference }, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        other = CreateCompilationWithMscorlib(s, new[] { reference }, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         // error CS7028: Error signing output with public key from container 'bogus' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
         var err = other.GetDiagnostics().Single();
@@ -844,14 +844,14 @@ public class Z
     {
         string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultProvider));
 
         //shouldn't have an error. The attribute's contents are checked when the module is added.
         var reference = other.EmitToImageReference();
 
         s = @"class D {}";
 
-        other = CreateCompilationWithMscorlib(s, new[] { reference }, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        other = CreateCompilationWithMscorlib(s, new[] { reference }, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound));
     }
 
@@ -861,7 +861,7 @@ public class Z
     {
         string s = "public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -878,8 +878,8 @@ public class Z
 [assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
 public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, 
-            options: TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s,
+            options: TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -896,13 +896,13 @@ public class C {}";
 [assembly: System.Reflection.AssemblyKeyName(""bogus"")]
 public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
         Assert.False(success.Success);
         success.Diagnostics.Verify(
-            // error CS7091: Attribute 'System.Reflection.AssemblyKeyNameAttribute' given in a source file conflicts with option 'CryptoKeyContainer'.
+    // error CS7091: Attribute 'System.Reflection.AssemblyKeyNameAttribute' given in a source file conflicts with option 'CryptoKeyContainer'.
     Diagnostic(ErrorCode.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyKeyNameAttribute", "CryptoKeyContainer")
             );
     }
@@ -913,7 +913,7 @@ public class C {}";
     {
         string s = "public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -926,10 +926,10 @@ public class C {}";
     [Fact()]
     public void SignModuleKeyFileCmdLine_1()
     {
-        var x = KeyPairFile;
+        var x = s_keyPairFile;
         string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -942,10 +942,10 @@ public class C {}";
     [Fact()]
     public void SignModuleKeyFileCmdLine_2()
     {
-        var x = KeyPairFile;
+        var x = s_keyPairFile;
         string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
 
-        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+        var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var success = other.Emit(outStrm);
@@ -964,19 +964,19 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(DefaultProvider));
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var emitResult = other.Emit(outStrm);
-        other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SignButNoPrivateKey).WithArguments(PublicKeyFile));
+        other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SignButNoPrivateKey).WithArguments(s_publicKeyFile));
 
-        other = other.WithOptions(TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile));
+        other = other.WithOptions(TestOptions.ReleaseModule.WithCryptoKeyFile(s_publicKeyFile));
 
-        var assembly = CreateCompilationWithMscorlib("", 
-            references: new[] { other.EmitToImageReference() }, 
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var assembly = CreateCompilationWithMscorlib("",
+            references: new[] { other.EmitToImageReference() },
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
-        assembly.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SignButNoPrivateKey).WithArguments(PublicKeyFile));
+        assembly.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SignButNoPrivateKey).WithArguments(s_publicKeyFile));
     }
 
     [Fact]
@@ -988,7 +988,7 @@ public class C
 public class C
 {
   static void Foo() {}
-}", options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(DefaultProvider));
+}", options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithStrongNameProvider(s_defaultProvider));
 
         using (var outStrm = new MemoryStream())
         {
@@ -1007,7 +1007,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+  options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         var emitResult = other.Emit(outStrm);
@@ -1027,7 +1027,7 @@ public class C
 {
   static void Foo() {}
 }",
-options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
         var outStrm = new MemoryStream();
         var emitResult = other.Emit(outStrm);
         Assert.True(emitResult.Success);
@@ -1042,7 +1042,7 @@ options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNamePro
 public class C
 {
   static void Foo() {}
-}", options: TestOptions.ReleaseDll.WithDelaySign(false).WithStrongNameProvider(DefaultProvider));
+}", options: TestOptions.ReleaseDll.WithDelaySign(false).WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         //shouldn't get any key warning.
@@ -1060,7 +1060,7 @@ public class C
 public class C
 {
   static void Foo() {}
-}", options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+}", options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         var outStrm = new MemoryStream();
         //shouldn't get any key warning.
@@ -1087,9 +1087,9 @@ public class C
 public class C
 {
   static void Foo() {}
-}", 
-            new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, 
-            options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+}",
+            new MetadataReference[] { MscorlibRef_v4_0_30316_17626 },
+            options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
         using (var metadata = ModuleMetadata.CreateFromImage(other.EmitToArray()))
         {
@@ -1132,7 +1132,7 @@ class Derived : Base
 
         var ilRef = CompileIL(il, appendDefaultHeader: false);
 
-        var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
+        var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
         comp.VerifyDiagnostics(
             // NOTE: dev10 reports WRN_InvalidAssemblyName, but Roslyn won't (DevDiv #15099).
 
@@ -1189,20 +1189,20 @@ public class C : B
 }
 ";
 
-        var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm1");
+        var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm1");
         comp1.VerifyDiagnostics();
         var ref1 = new CSharpCompilationReference(comp1);
 
-        var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm2");
+        var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm2");
         comp2.VerifyDiagnostics();
         var ref2 = new CSharpCompilationReference(comp2);
 
-        var comp3 = CreateCompilationWithMscorlib(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm3");
+        var comp3 = CreateCompilationWithMscorlib(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm3");
         comp3.VerifyDiagnostics();
 
         // Note: calls B.M, not A.M, since asm1 is not accessible.
         var verifier = CompileAndVerify(comp3, emitOptions: TestEmitters.CCI);
-            
+
         verifier.VerifyIL("C.Test", @"
 {
   // Code size       25 (0x19)
@@ -1306,25 +1306,25 @@ public class D : C
 }
 ";
 
-        var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm1");
+        var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm1");
         comp1.VerifyDiagnostics();
         var ref1 = new CSharpCompilationReference(comp1);
 
-        var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm2");
+        var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm2");
         comp2.VerifyDiagnostics();
         var ref2 = new CSharpCompilationReference(comp2);
 
-        var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm3");
+        var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm3");
         comp3.VerifyDiagnostics();
         var ref3 = new CSharpCompilationReference(comp3);
 
-        var comp4 = CreateCompilationWithMscorlib(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "asm4");
+        var comp4 = CreateCompilationWithMscorlib(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "asm4");
         comp4.VerifyDiagnostics();
 
         // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
         // Confirmed in Dev11.
         var verifier = CompileAndVerify(comp4, emitOptions: TestEmitters.CCI);
-        
+
         verifier.VerifyIL("D.Test", @"
 {
   // Code size       25 (0x19)
@@ -1467,9 +1467,9 @@ public class C : B
 }
 ";
 
-        var comp1 = CreateCompilationWithMscorlib(source1, 
-            new[] { SystemCoreRef }, 
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider),
+        var comp1 = CreateCompilationWithMscorlib(source1,
+            new[] { SystemCoreRef },
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider),
             assemblyName: "asm1");
 
         comp1.VerifyDiagnostics();
@@ -1477,9 +1477,9 @@ public class C : B
 
         var ref2 = CompileIL(source2, appendDefaultHeader: false);
 
-        var comp3 = CreateCompilationWithMscorlib(source3, 
-            new[] { SystemCoreRef, ref1, ref2 }, 
-            options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), 
+        var comp3 = CreateCompilationWithMscorlib(source3,
+            new[] { SystemCoreRef, ref1, ref2 },
+            options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider),
             assemblyName: "asm3");
 
         comp3.VerifyDiagnostics(
@@ -1491,14 +1491,15 @@ public class C : B
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
     }
 
-    [Fact] [WorkItem(529779, "DevDiv")]
+    [Fact]
+    [WorkItem(529779, "DevDiv")]
     public void Bug529779_1()
     {
         CSharpCompilation unsigned = CreateCompilationWithMscorlib(
 @"
 public class C1
 {}
-", options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "Unsigned");
+", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "Unsigned");
 
         CSharpCompilation other = CreateCompilationWithMscorlib(
 @"
@@ -1510,23 +1511,24 @@ public class C
         System.Console.WriteLine(x);
     }
 }
-", options:TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
+", options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
-        CompileAndVerify(other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
+        CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new CSharpCompilationReference(unsigned) }),
                          emitOptions: TestEmitters.CCI).VerifyDiagnostics();
 
-        CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) }), 
+        CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) }),
                          emitOptions: TestEmitters.CCI).VerifyDiagnostics();
     }
 
-    [Fact] [WorkItem(529779, "DevDiv")]
+    [Fact]
+    [WorkItem(529779, "DevDiv")]
     public void Bug529779_2()
     {
         CSharpCompilation unsigned = CreateCompilationWithMscorlib(
 @"
 public class C1
 {}
-",        options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "Unsigned");
+", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "Unsigned");
 
         CSharpCompilation other = CreateCompilationWithMscorlib(
 @"
@@ -1538,9 +1540,9 @@ public class C
         System.Console.WriteLine(x);
     }
 }
-", options:TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider).WithCryptoKeyFile(KeyPairFile));
+", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider).WithCryptoKeyFile(s_keyPairFile));
 
-        var comps = new [] {other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
+        var comps = new[] {other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
                             other.WithReferences(new []{other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })};
 
         foreach (var comp in comps)
@@ -1570,7 +1572,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider), references: new [] {MscorlibRef_v4_0_30316_17626});
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1596,7 +1598,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1624,7 +1626,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1651,7 +1653,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(true).WithStrongNameProvider(DefaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1660,8 +1662,8 @@ public class C
             var success = other.Emit(outStrm);
             Assert.False(success.Success);
             success.Diagnostics.Verify(
-                // (3,1): error CS8003: Invalid signature public key specified in AssemblySignatureKeyAttribute.
-                // "xxx 00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb",
+    // (3,1): error CS8003: Invalid signature public key specified in AssemblySignatureKeyAttribute.
+    // "xxx 00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb",
     Diagnostic(ErrorCode.ERR_InvalidSignaturePublicKey, @"""xxx 00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb""")
                 );
         }
@@ -1680,7 +1682,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(true).WithStrongNameProvider(DefaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1704,7 +1706,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(true).WithStrongNameProvider(DefaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1713,8 +1715,8 @@ public class C
             var success = other.Emit(outStrm);
             Assert.False(success.Success);
             success.Diagnostics.Verify(
-                // (3,1): error CS8003: Invalid signature public key specified in AssemblySignatureKeyAttribute.
-                // null,
+    // (3,1): error CS8003: Invalid signature public key specified in AssemblySignatureKeyAttribute.
+    // null,
     Diagnostic(ErrorCode.ERR_InvalidSignaturePublicKey, "null")
                 );
         }
@@ -1733,7 +1735,7 @@ public class C
 {
   static void Foo() {}
 }",
-  options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(true).WithStrongNameProvider(DefaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
+  options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
         var tempFile = Temp.CreateFile();
 
@@ -1755,7 +1757,7 @@ internal class A
 {
     public int Value = 3;
 }
-", options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider), assemblyName: "Bug769840_A");
+", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider), assemblyName: "Bug769840_A");
 
         CompileAndVerify(ca);
 
@@ -1767,12 +1769,12 @@ internal class B
     {
         return new A();
     }
-}", 
-            options: TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider),
-            assemblyName: "Bug769840_B", 
-            references: new[] { new CSharpCompilationReference(ca)});
+}",
+            options: TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultProvider),
+            assemblyName: "Bug769840_B",
+            references: new[] { new CSharpCompilationReference(ca) });
 
-        CompileAndVerify(cb, verify:false).Diagnostics.Verify(); 
+        CompileAndVerify(cb, verify: false).Diagnostics.Verify();
     }
 
     [Fact, WorkItem(1072350, "DevDiv")]
@@ -1797,8 +1799,8 @@ class B
         var ca = CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2");
         CompileAndVerify(ca);
 
-        var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca)});
-        CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify(); 
+        var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
+        CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify();
     }
 
     [Fact, WorkItem(1072339, "DevDiv")]
@@ -1823,8 +1825,8 @@ class B
         var ca = CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2");
         CompileAndVerify(ca);
 
-        var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca)});
-        CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify(); 
+        var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
+        CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify();
     }
 
     [Fact, WorkItem(1095618, "DevDiv")]

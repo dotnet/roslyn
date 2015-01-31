@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             for (var i = 0; i < expectedNode.ChildNodesAndTokens().Count; i++)
             {
-                AssertNodesAreEquivalent(expectedNode.ChildNodesAndTokens()[i], 
+                AssertNodesAreEquivalent(expectedNode.ChildNodesAndTokens()[i],
                     actualNode.ChildNodesAndTokens()[i]);
             }
         }

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Extensions
 {
     internal abstract class AbstractExtensionManager : IExtensionManager
     {
-        private readonly ConcurrentSet<object> disabledProviders = new ConcurrentSet<object>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentSet<object> _disabledProviders = new ConcurrentSet<object>(ReferenceEqualityComparer.Instance);
 
         protected AbstractExtensionManager()
         {
@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Extensions
 
         private void DisableProvider(object provider)
         {
-            disabledProviders.Add(provider);
+            _disabledProviders.Add(provider);
         }
 
         public bool IsDisabled(object provider)
         {
-            return disabledProviders.Contains(provider);
+            return _disabledProviders.Contains(provider);
         }
 
         public virtual bool CanHandleException(object provider, Exception exception)

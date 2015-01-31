@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncEHTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] AsyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
 
         public CodeGenAsyncEHTests()
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions options = null)
         {
-            references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
+            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);
         }
 
@@ -511,7 +511,7 @@ class Test
             var expected = @"
 2
 ";
-            var v = CompileAndVerify(source, AsyncRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
+            var v = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1539,6 +1539,5 @@ class Driver
 ";
             CompileAndVerify(source, expected);
         }
-
     }
 }

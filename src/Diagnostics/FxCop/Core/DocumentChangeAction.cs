@@ -9,23 +9,23 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DocumentChangeAction : CodeAction
     {
-        private readonly string title;
-        private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
+        private readonly string _title;
+        private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
         public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
         {
-            this.title = title;
-            this.createChangedDocument = createChangedDocument;
+            _title = title;
+            _createChangedDocument = createChangedDocument;
         }
 
         public override string Title
         {
-            get { return this.title; }
+            get { return _title; }
         }
-        
+
         protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-            return this.createChangedDocument(cancellationToken);
+            return _createChangedDocument(cancellationToken);
         }
     }
 }

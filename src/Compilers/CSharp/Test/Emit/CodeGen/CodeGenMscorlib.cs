@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion), 
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
                 );
         }
@@ -420,15 +420,15 @@ namespace System.Collections
         }
     }
 }";
-        var comp = CreateCompilation(
-                text,
-                options: TestOptions.ReleaseDll)
-            .VerifyDiagnostics();
+            var comp = CreateCompilation(
+                    text,
+                    options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics();
 
 
-        //IMPORTANT: we shoud NOT load fields of self-containing structs like - "ldfld int int.m_value"
-        CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitUnsupported, verify: false).
-            VerifyIL("int.CompareTo(int)", @"
+            //IMPORTANT: we shoud NOT load fields of self-containing structs like - "ldfld int int.m_value"
+            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitUnsupported, verify: false).
+                VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -448,8 +448,8 @@ namespace System.Collections
   IL_000f:  ret
 }
 "
-            ).
-            VerifyIL("int.Equals(object)", @"
+                ).
+                VerifyIL("int.Equals(object)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -466,8 +466,8 @@ namespace System.Collections
   IL_0014:  ret
 }
 "
-            ).
-            VerifyIL("int.GetHashCode()", @"
+                ).
+                VerifyIL("int.GetHashCode()", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -476,7 +476,7 @@ namespace System.Collections
   IL_0002:  ret
 }
 "
-            );      
+                );
         }
 
         [Fact]
@@ -779,7 +779,6 @@ namespace System
   IL_0016:  ret
 }
 ");
-        }       
-
+        }
     }
 }

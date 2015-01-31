@@ -67,8 +67,9 @@ class Test
             // Table comes from manual Dev10 testing
             int[][] validAssignments = new int[][]
             {
-                /*filler for 1-indexing*/ new int[0], 
-                /*01*/ new [] { 1, 4, 7 },
+                /*filler for 1-indexing*/ new int[0],
+                /*01*/
+                       new [] { 1, 4, 7 },
                 /*02*/ new [] { 2, 5, 8 },
                 /*03*/ new [] { 3, 6, 9 },
                 /*04*/ new [] { 4, 7  },
@@ -179,8 +180,9 @@ class Test
             // Table comes from manual Dev10 testing
             int[][] validAssignments = new int[][]
             {
-                /*filler for 1-indexing*/ new int[0], 
-                /*01*/ new [] { 1, 4, 7 },
+                /*filler for 1-indexing*/ new int[0],
+                /*01*/
+                       new [] { 1, 4, 7 },
                 /*02*/ new [] { 2, 5, 8 },
                 /*03*/ new [] { 3, 6, 9 },
                 /*04*/ new [] { 4, 7  },

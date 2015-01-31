@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// </summary>
     internal sealed partial class CSharpDefinitionMap : DefinitionMap<CSharpSymbolMatcher>
     {
-        private readonly MetadataDecoder metadataDecoder;
+        private readonly MetadataDecoder _metadataDecoder;
 
         public CSharpDefinitionMap(
             PEModule module,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(module, edits, mapToMetadata, mapToPrevious)
         {
             Debug.Assert(metadataDecoder != null);
-            this.metadataDecoder = metadataDecoder;
+            _metadataDecoder = metadataDecoder;
         }
 
         internal bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo)
         {
             ImmutableArray<LocalInfo<TypeSymbol>> slotMetadata;
-            if (!metadataDecoder.TryGetLocals(handle, out slotMetadata))
+            if (!_metadataDecoder.TryGetLocals(handle, out slotMetadata))
             {
                 return default(ImmutableArray<EncLocalInfo>);
             }
@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override ITypeSymbol TryGetStateMachineType(Handle methodHandle)
         {
             string typeName;
-            if (metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out typeName) ||
-                metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out typeName))
+            if (_metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out typeName) ||
+                _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out typeName))
             {
-                return metadataDecoder.GetTypeSymbolForSerializedType(typeName);
+                return _metadataDecoder.GetTypeSymbolForSerializedType(typeName);
             }
 
             return null;

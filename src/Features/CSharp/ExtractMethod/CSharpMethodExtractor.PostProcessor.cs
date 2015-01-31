@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private class PostProcessor
         {
-            private readonly SemanticModel semanticModel;
-            private readonly int contextPosition;
+            private readonly SemanticModel _semanticModel;
+            private readonly int _contextPosition;
 
             public PostProcessor(SemanticModel semanticModel, int contextPosition)
             {
                 Contract.ThrowIfNull(semanticModel);
 
-                this.semanticModel = semanticModel;
-                this.contextPosition = contextPosition;
+                _semanticModel = semanticModel;
+                _contextPosition = contextPosition;
             }
 
             public IEnumerable<StatementSyntax> RemoveRedundantBlock(IEnumerable<StatementSyntax> statements)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 Contract.ThrowIfNull(statement);
 
-                var type = this.semanticModel.GetSpeculativeTypeInfo(contextPosition, statement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                var type = _semanticModel.GetSpeculativeTypeInfo(_contextPosition, statement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 Contract.ThrowIfNull(type);
 
                 map.GetOrAdd(type, _ => new List<LocalDeclarationStatementSyntax>()).Add(statement);
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return false;
                 }
 
-                var semanticInfo = this.semanticModel.GetSpeculativeTypeInfo(contextPosition, declarationStatement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                var semanticInfo = _semanticModel.GetSpeculativeTypeInfo(_contextPosition, declarationStatement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 if (semanticInfo == null ||
                     semanticInfo.TypeKind == TypeKind.Error ||
                     semanticInfo.TypeKind == TypeKind.Unknown)

@@ -15,50 +15,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             internal struct Enumerator
             {
-                private readonly GreenNode node;
-                private int childIndex;
-                private GreenNode list;
-                private int listIndex;
-                private GreenNode currentChild;
+                private readonly GreenNode _node;
+                private int _childIndex;
+                private GreenNode _list;
+                private int _listIndex;
+                private GreenNode _currentChild;
 
                 internal Enumerator(GreenNode node)
                 {
                     if (node != null)
                     {
-                        this.node = node;
-                        this.childIndex = node.SlotCount;
-                        this.listIndex = -1;
+                        _node = node;
+                        _childIndex = node.SlotCount;
+                        _listIndex = -1;
                     }
                     else
                     {
-                        this.node = null;
-                        this.childIndex = 0;
-                        this.listIndex = -1;
+                        _node = null;
+                        _childIndex = 0;
+                        _listIndex = -1;
                     }
 
-                    this.list = null;
-                    this.currentChild = null;
+                    _list = null;
+                    _currentChild = null;
                 }
 
                 public bool MoveNext()
                 {
-                    if (node != null)
+                    if (_node != null)
                     {
-                        if (this.list != null)
+                        if (_list != null)
                         {
-                            if (--this.listIndex >= 0)
+                            if (--_listIndex >= 0)
                             {
-                                this.currentChild = this.list.GetSlot(this.listIndex);
+                                _currentChild = _list.GetSlot(_listIndex);
                                 return true;
                             }
 
-                            this.list = null;
-                            this.listIndex = -1;
+                            _list = null;
+                            _listIndex = -1;
                         }
 
-                        while (--this.childIndex >= 0)
+                        while (--_childIndex >= 0)
                         {
-                            var child = this.node.GetSlot(this.childIndex);
+                            var child = _node.GetSlot(_childIndex);
                             if (child == null)
                             {
                                 continue;
@@ -66,36 +66,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             if (child.IsList)
                             {
-                                this.list = child;
-                                this.listIndex = this.list.SlotCount;
-                                if (--this.listIndex >= 0)
+                                _list = child;
+                                _listIndex = _list.SlotCount;
+                                if (--_listIndex >= 0)
                                 {
-                                    this.currentChild = this.list.GetSlot(this.listIndex);
+                                    _currentChild = _list.GetSlot(_listIndex);
                                     return true;
                                 }
                                 else
                                 {
-                                    this.list = null;
-                                    this.listIndex = -1;
+                                    _list = null;
+                                    _listIndex = -1;
                                     continue;
                                 }
                             }
                             else
                             {
-                                this.currentChild = child;
+                                _currentChild = child;
                             }
 
                             return true;
                         }
                     }
 
-                    this.currentChild = null;
+                    _currentChild = null;
                     return false;
                 }
 
                 public GreenNode Current
                 {
-                    get { return this.currentChild; }
+                    get { return _currentChild; }
                 }
             }
         }

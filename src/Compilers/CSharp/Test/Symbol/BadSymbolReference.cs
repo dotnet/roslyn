@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class BadSymbolReference : CSharpTestBase
     {
-
         //CreateCompilationWithMscorlib(text).VerifyDiagnostics(
         //    // (6,17): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
         //    Diagnostic(ErrorCode.ERR_BadUnaryOp, @"null.Length").WithArguments(".", "<null>"));
@@ -1408,6 +1407,5 @@ namespace ErrorTest
 
             lib4.VerifyDiagnostics(expectedErrors);
         }
-
     }
 }

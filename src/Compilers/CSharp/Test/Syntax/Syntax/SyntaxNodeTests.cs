@@ -1778,7 +1778,7 @@ class Test
             Assert.Equal("m(a, c,d)", newNode.ToFullString());
 
             // replace first with empty list
-            newNode = invocation.ReplaceNode(invocation.ArgumentList.Arguments[0], new SyntaxNode[] {});
+            newNode = invocation.ReplaceNode(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { });
             Assert.Equal("m(b)", newNode.ToFullString());
 
             // replace last with empty list
@@ -2584,7 +2584,7 @@ class Program
             Assert.Equal("class A { }", nodeOrToken.ToString());
             Assert.Equal(text, nodeOrToken.ToString());
 
-            var node = (SyntaxNode) children.First(n => n.IsNode);
+            var node = (SyntaxNode)children.First(n => n.IsNode);
             Assert.Equal("class A { }", node.ToString());
             Assert.Equal(text, node.ToFullString());
 
@@ -2649,15 +2649,15 @@ class C
         {
             // Invalid arguments - Validate Exceptions     
             Assert.Throws<System.ArgumentNullException>(delegate
-            {                
-                var treeFromSource_invalid2 = SyntaxFactory.ParseSyntaxTree("", path:null);
+            {
+                var treeFromSource_invalid2 = SyntaxFactory.ParseSyntaxTree("", path: null);
             });
-            
+
             Assert.Throws<System.ArgumentNullException>(delegate
             {
                 SourceText st = null;
                 var treeFromSource_invalid2 = SyntaxFactory.ParseSyntaxTree(st);
-            });                       
+            });
         }
 
         [Fact]
@@ -2770,7 +2770,7 @@ namespace HelloWorld
 
             var ChangesForDifferentTrees = FirstUsingClause.SyntaxTree.GetChangedSpans(SecondUsingClause.SyntaxTree);
             Assert.Equal(0, ChangesForDifferentTrees.Count);
-            
+
             // With null tree
             SyntaxTree BlankTree = null;
             Assert.Throws<ArgumentNullException>(() => FirstUsingClause.SyntaxTree.GetChangedSpans(BlankTree));

@@ -833,7 +833,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     Debug.Assert(false, "Unexpected member kind " + member.Kind);
                     return false;
-
             }
         }
 
@@ -853,7 +852,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     Debug.Assert(false, "Unexpected member kind " + member.Kind);
                     return 0;
-
             }
         }
 

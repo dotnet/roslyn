@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class CSharpAttributeData : AttributeData
     {
-        private ThreeState lazyIsSecurityAttribute = ThreeState.Unknown;
+        private ThreeState _lazyIsSecurityAttribute = ThreeState.Unknown;
 
         /// <summary>
         /// Gets the attribute class being applied.
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Security attributes, i.e. attributes derived from well-known SecurityAttribute, are matched by type, not constructor signature.
         internal bool IsSecurityAttribute(CSharpCompilation compilation)
         {
-            if (lazyIsSecurityAttribute == ThreeState.Unknown)
+            if (_lazyIsSecurityAttribute == ThreeState.Unknown)
             {
                 Debug.Assert(!this.HasErrors);
 
@@ -115,10 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Native compiler doesn't generate a use-site error if it is not found, we do the same.
                 var wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute);
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics).ToThreeState();
+                _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics).ToThreeState();
             }
 
-            return lazyIsSecurityAttribute.Value();
+            return _lazyIsSecurityAttribute.Value();
         }
 
         // for testing and debugging only

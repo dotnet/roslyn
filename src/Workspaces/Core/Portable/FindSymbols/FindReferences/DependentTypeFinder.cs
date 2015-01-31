@@ -29,19 +29,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// For a given <see cref="Compilation"/>, stores a flat list of all the source types and all the accessible metadata types
         /// within the compilation.
         /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> compilationAllSourceAndAccessibleTypesTable =
+        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllSourceAndAccessibleTypesTable =
             new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
 
         /// <summary>
         /// For a given <see cref="Compilation"/>, stores a flat list of all the source types.
         /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> compilationSourceTypesTable =
+        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationSourceTypesTable =
             new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
 
         /// <summary>
         /// A predicate for determining if one class derives from another. Static to avoid unnecessary allocations.
         /// </summary>
-        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> findDerivedClassesPredicate =
+        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findDerivedClassesPredicate =
             (t1, t2) => t1.InheritsFromIgnoringConstruction(t2);
 
         /// <summary>
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <see cref="SymbolKey"/>s are used instead of <see cref="ISymbol"/>s to avoid keeping other compilations alive
         /// unnecessarily.
         /// </remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> derivedClassesCache =
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> s_derivedClassesCache =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>();
 
         /// <summary>
         /// A predicate for determining if one interface derives from another. Static to avoid unnecessary allocations.
         /// </summary>
-        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> findDerivedInterfacesPredicate =
+        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findDerivedInterfacesPredicate =
             (t1, t2) => t1.TypeKind == TypeKind.Interface && t1.OriginalDefinition.AllInterfaces.Distinct(SymbolEquivalenceComparer.Instance).Contains(t2);
 
         /// <summary>
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <see cref="SymbolKey"/>s are used instead of <see cref="ISymbol"/>s to avoid keeping other compilations alive
         /// unnecessarily.
         /// </remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> derivedInterfacesCache =
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> s_derivedInterfacesCache =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>();
 
         /// <summary>
         /// A predicate for determining if a class implements an interface. Static to avoid unnecessary allocations.
         /// </summary>
-        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> findImplementingInterfacesPredicate =
+        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findImplementingInterfacesPredicate =
             (t1, t2) => t1.OriginalDefinition.ImplementsIgnoringConstruction(t2);
 
         /// <summary>
@@ -86,20 +86,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <see cref="SymbolKey"/>s are used instead of <see cref="ISymbol"/>s to avoid keeping other compilations alive
         /// unnecessarily.
         /// </remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> implementingInterfacesCache =
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> s_implementingInterfacesCache =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>();
 
         /// <summary>
         /// Used by the cache to compare <see cref="SymbolKey"/>s used as keys in the cache. We make sure to check the casing of names and assembly IDs during the comparison,
         /// in order to be as discriminating as possible.
         /// </summary>
-        private static readonly IEqualityComparer<SymbolKey> symbolIdComparer = SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false);
+        private static readonly IEqualityComparer<SymbolKey> s_symbolIdComparer = SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false);
 
         /// <summary>
         /// Used to create a new concurrent <see cref="SymbolKey"/> map for a given compilation when needed.
         /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>.CreateValueCallback createSymbolDictionary =
-            _ => new ConcurrentDictionary<SymbolKey, List<SymbolKey>>(symbolIdComparer);
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>.CreateValueCallback s_createSymbolDictionary =
+            _ => new ConcurrentDictionary<SymbolKey, List<SymbolKey>>(s_symbolIdComparer);
 
         public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     type,
                     solution,
                     projects,
-                    findDerivedClassesPredicate,
-                    derivedClassesCache,
+                    s_findDerivedClassesPredicate,
+                    s_derivedClassesCache,
                     cancellationToken);
             }
 
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     type,
                     solution,
                     projects,
-                    findDerivedInterfacesPredicate,
-                    derivedInterfacesCache,
+                    s_findDerivedInterfacesPredicate,
+                    s_derivedInterfacesCache,
                     cancellationToken);
             }
 
@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     type,
                     solution,
                     projects,
-                    findImplementingInterfacesPredicate,
-                    implementingInterfacesCache,
+                    s_findImplementingInterfacesPredicate,
+                    s_implementingInterfacesCache,
                     cancellationToken);
             }
 
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             cancellationToken.ThrowIfCancellationRequested();
 
             List<INamedTypeSymbol> types;
-            if (compilationAllSourceAndAccessibleTypesTable.TryGetValue(compilation, out types))
+            if (s_compilationAllSourceAndAccessibleTypesTable.TryGetValue(compilation, out types))
             {
                 return types;
             }
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                       .Where(t => t.Locations.Any(loc => loc.IsInSource) ||
                                                              (t.DeclaredAccessibility != Accessibility.Private && t.IsAccessibleWithin(compilation.Assembly))));
 
-            return compilationAllSourceAndAccessibleTypesTable.GetValue(compilation, _ => types);
+            return s_compilationAllSourceAndAccessibleTypesTable.GetValue(compilation, _ => types);
         }
 
         private static List<INamedTypeSymbol> GetAllSourceTypesInCompilation(Compilation compilation, CancellationToken cancellationToken)
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             cancellationToken.ThrowIfCancellationRequested();
 
             List<INamedTypeSymbol> types;
-            if (compilationSourceTypesTable.TryGetValue(compilation, out types))
+            if (s_compilationSourceTypesTable.TryGetValue(compilation, out types))
             {
                 return types;
             }
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // only includes source types).
             types.AddRange(compilation.Assembly.GlobalNamespace.GetAllTypes(cancellationToken));
 
-            return compilationSourceTypesTable.GetValue(compilation, _ => types);
+            return s_compilationSourceTypesTable.GetValue(compilation, _ => types);
         }
 
         private static bool TryGetDependentTypes(ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> cache, Compilation compilation, SymbolKey typeId, out List<SymbolKey> dependentTypeIds)
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                return cache.GetValue(compilation, createSymbolDictionary)
+                return cache.GetValue(compilation, s_createSymbolDictionary)
                             .GetOrAdd(typeId, dependentTypeIds);
             }
         }

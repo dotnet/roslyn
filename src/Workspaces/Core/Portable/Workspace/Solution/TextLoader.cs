@@ -48,35 +48,35 @@ namespace Microsoft.CodeAnalysis
 
         private class TextDocumentLoader : TextLoader
         {
-            private readonly TextAndVersion textAndVersion;
+            private readonly TextAndVersion _textAndVersion;
 
             internal TextDocumentLoader(TextAndVersion textAndVersion)
             {
-                this.textAndVersion = textAndVersion;
+                _textAndVersion = textAndVersion;
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return Task.FromResult(this.textAndVersion);
+                return Task.FromResult(_textAndVersion);
             }
         }
 
         private class TextContainerLoader : TextLoader
         {
-            private readonly SourceTextContainer container;
-            private readonly VersionStamp version;
-            private readonly string filePath;
+            private readonly SourceTextContainer _container;
+            private readonly VersionStamp _version;
+            private readonly string _filePath;
 
             internal TextContainerLoader(SourceTextContainer container, VersionStamp version, string filePath)
             {
-                this.container = container;
-                this.version = version;
-                this.filePath = filePath;
+                _container = container;
+                _version = version;
+                _filePath = filePath;
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return Task.FromResult(TextAndVersion.Create(this.container.CurrentText, this.version, this.filePath));
+                return Task.FromResult(TextAndVersion.Create(_container.CurrentText, _version, _filePath));
             }
         }
     }

@@ -384,7 +384,7 @@ class C
     [DecimalConstantAttribute(0, 128, 0, 0, 7)] public const decimal F15 = -7;
 }";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
-                
+
             comp.VerifyDiagnostics(
 // (11,38): error CS0579: Duplicate 'DecimalConstant' attribute
 //     [DecimalConstant(0, 0, 0, 0, 0), DecimalConstant(0, 0, 0, 0, 0)] public DateTime F2 = default(DateTime);
@@ -424,6 +424,5 @@ Diagnostic(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, "DecimalConstan
             var c = comp.GetTypeByMetadataName("C");
             Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
         }
-
     }
 }
