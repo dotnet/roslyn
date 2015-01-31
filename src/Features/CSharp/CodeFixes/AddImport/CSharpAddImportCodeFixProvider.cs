@@ -583,5 +583,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 }
             }
         }
+
+        internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        {
+            return IsViablePropertyOrField(field, expression, semanticModel, syntaxFacts, cancellationToken);
+
+        }
+
+        internal override bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        {
+            return IsViablePropertyOrField(property, expression, semanticModel, syntaxFacts, cancellationToken);
+        }
+
+        private bool IsViablePropertyOrField(ISymbol propertyOrField, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        {
+            if (!propertyOrField.IsStatic)
+            {
+                return false;
+            }
+
+            var leftName = (expression as MemberAccessExpressionSyntax)?.Expression as SimpleNameSyntax;
+            if (leftName == null)
+            {
+                return false;
+            }
+
+            return string.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text, this.IgnoreCase) == 0;
+        }
     }
 }

@@ -1909,6 +1909,24 @@ namespace ConsoleApplication1
             TestMissing(InitialWorkspace);
         }
 
+        [WorkItem(1116011)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingForProperty()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public BindingFlags BindingFlags { get { return BindingFlags . [|Instance|] ; } } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Reflection ; using System . Threading . Tasks ; class Program { public BindingFlags BindingFlags { get { return BindingFlags . Instance ; } } } ");
+        }
+
+        [WorkItem(1116011)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingForField()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public B B { get { return B . [|Instance|] ; } } } namespace A { public class B { public static readonly B Instance ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; using A ; class Program { public B B { get { return B . Instance ; } } } namespace A { public class B { public static readonly B Instance ; } } ");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

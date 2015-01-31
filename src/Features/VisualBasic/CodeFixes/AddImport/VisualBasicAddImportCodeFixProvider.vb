@@ -308,5 +308,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return From typeSymbol In accessibleTypeSymbols
                    Select typeSymbol.ContainingType
         End Function
+
+        Friend Overrides Function IsViableField(field As IFieldSymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsViableProperty([property] As IPropertySymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace
