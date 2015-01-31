@@ -15,33 +15,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // it may be better if local does not have a name as will restrict reuse of locals when we do it.
 
         //Local symbol, currently used by edit and continue and for the location.
-        private readonly ILocalSymbol symbolOpt;
+        private readonly ILocalSymbol _symbolOpt;
 
-        private readonly string nameOpt;
+        private readonly string _nameOpt;
 
         //data type associated with the local signature slot.
-        private readonly Cci.ITypeReference type;
+        private readonly Cci.ITypeReference _type;
 
         // specifies whether local slot has a byref constraint and whether
         // the type of the local has the "pinned modifier" (7.1.2).
         // CLI spec Part I, paragraph 8.6.1.3:
         //   The byref constraint states that the content of the corresponding location is a managed pointer. A managed
         //   pointer can point to a local variable, parameter, field of a compound type, or element of an array.
-        private readonly LocalSlotConstraints constraints;
+        private readonly LocalSlotConstraints _constraints;
 
         //ordinal position of the slot in the local signature.
-        private readonly int slot;
+        private readonly int _slot;
 
         //Says if the local variable is Dynamic
-        private readonly bool isDynamic;
+        private readonly bool _isDynamic;
 
-        private readonly LocalSlotDebugInfo slotInfo;
+        private readonly LocalSlotDebugInfo _slotInfo;
 
         /// <see cref="Cci.ILocalDefinition.PdbAttributes"/>.
-        private readonly uint pdbAttributes;
+        private readonly uint _pdbAttributes;
 
         //Gives the synthesized dynamic attributes of the local definition
-        private readonly ImmutableArray<TypedConstant> dynamicTransformFlags;
+        private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
 
         /// <summary>
         /// Creates a new LocalDefinition.
@@ -68,32 +68,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
         {
-            this.symbolOpt = symbolOpt;
-            this.nameOpt = nameOpt;
-            this.type = type;
-            this.slot = slot;
-            this.slotInfo = new LocalSlotDebugInfo(synthesizedKind, id);
-            this.pdbAttributes = pdbAttributes;
-            this.dynamicTransformFlags = dynamicTransformFlags;
-            this.constraints = constraints;
-            this.isDynamic = isDynamic;
+            _symbolOpt = symbolOpt;
+            _nameOpt = nameOpt;
+            _type = type;
+            _slot = slot;
+            _slotInfo = new LocalSlotDebugInfo(synthesizedKind, id);
+            _pdbAttributes = pdbAttributes;
+            _dynamicTransformFlags = dynamicTransformFlags;
+            _constraints = constraints;
+            _isDynamic = isDynamic;
         }
 
         internal string GetDebuggerDisplay()
         {
-            return string.Format("{0}: {1} ({2})", slot, nameOpt ?? "<unnamed>", type);
+            return string.Format("{0}: {1} ({2})", _slot, _nameOpt ?? "<unnamed>", _type);
         }
 
         public ILocalSymbol SymbolOpt
         {
-            get { return this.symbolOpt; }
+            get { return _symbolOpt; }
         }
 
         public Location Location
         {
             get
             {
-                ISymbol symbol = this.symbolOpt as ISymbol;
+                ISymbol symbol = _symbolOpt as ISymbol;
                 if (symbol != null)
                 {
                     ImmutableArray<Location> locations = symbol.Locations;
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int SlotIndex
         {
-            get { return slot; }
+            get { return _slot; }
         }
 
         public Cci.IMetadataConstant CompileTimeValue
@@ -133,42 +133,42 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public LocalSlotConstraints Constraints
         {
-            get { return this.constraints; }
+            get { return _constraints; }
         }
 
         public bool IsPinned
         {
-            get { return (this.constraints & LocalSlotConstraints.Pinned) != 0; }
+            get { return (_constraints & LocalSlotConstraints.Pinned) != 0; }
         }
 
         public bool IsReference
         {
-            get { return (this.constraints & LocalSlotConstraints.ByRef) != 0; }
+            get { return (_constraints & LocalSlotConstraints.ByRef) != 0; }
         }
 
         public bool IsDynamic
         {
-            get { return this.isDynamic; }
+            get { return _isDynamic; }
         }
 
         public uint PdbAttributes
         {
-            get { return this.pdbAttributes; }
+            get { return _pdbAttributes; }
         }
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags
         {
-            get { return this.dynamicTransformFlags; }
+            get { return _dynamicTransformFlags; }
         }
 
         public Cci.ITypeReference Type
         {
-            get { return this.type; }
+            get { return _type; }
         }
 
         public string Name
         {
-            get { return nameOpt; }
+            get { return _nameOpt; }
         }
 
         public byte[] Signature
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public LocalSlotDebugInfo SlotInfo
         {
-            get { return slotInfo; }
+            get { return _slotInfo; }
         }
     }
 }

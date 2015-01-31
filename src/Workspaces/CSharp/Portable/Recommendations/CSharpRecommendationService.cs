@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (node.Kind() == SyntaxKind.MemberBindingExpression)
             {
-                var parentConditionalAccess = node.GetAncestor<ConditionalAccessExpressionSyntax>();
+                var parentConditionalAccess = node.GetParentConditionalAccessExpression();
                 return GetSymbolsOffOfConditionalReceiver(context, parentConditionalAccess.Expression, cancellationToken);
             }
             else

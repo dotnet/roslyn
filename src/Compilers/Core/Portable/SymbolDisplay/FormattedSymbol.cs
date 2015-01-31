@@ -12,20 +12,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class FormattedSymbol : IMessageSerializable
     {
-        private readonly ISymbol symbol;
-        private readonly SymbolDisplayFormat symbolDisplayFormat;
+        private readonly ISymbol _symbol;
+        private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
         internal FormattedSymbol(ISymbol symbol, SymbolDisplayFormat symbolDisplayFormat)
         {
             Debug.Assert(symbol != null && symbolDisplayFormat != null);
 
-            this.symbol = symbol;
-            this.symbolDisplayFormat = symbolDisplayFormat;
+            _symbol = symbol;
+            _symbolDisplayFormat = symbolDisplayFormat;
         }
 
         public override string ToString()
         {
-            return symbol.ToDisplayString(symbolDisplayFormat);
+            return _symbol.ToDisplayString(_symbolDisplayFormat);
         }
     }
 }

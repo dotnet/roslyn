@@ -19,29 +19,29 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         #region Pooling
 
-        private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>> pool;
+        private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>> _pool;
 
         private OrderPreservingMultiDictionary(ObjectPool<OrderPreservingMultiDictionary<K, V>> pool)
         {
-            this.pool = pool;
+            _pool = pool;
         }
 
         public void Free()
         {
-            if (this.dictionary != null)
+            if (_dictionary != null)
             {
-                this.dictionary.Free();
-                this.dictionary = null;
+                _dictionary.Free();
+                _dictionary = null;
             }
 
-            if (this.pool != null)
+            if (_pool != null)
             {
-                this.pool.Free(this);
+                _pool.Free(this);
             }
         }
 
         // global pool
-        private static readonly ObjectPool<OrderPreservingMultiDictionary<K, V>> PoolInstance = CreatePool();
+        private static readonly ObjectPool<OrderPreservingMultiDictionary<K, V>> s_poolInstance = CreatePool();
 
         // if someone needs to create a pool;
         public static ObjectPool<OrderPreservingMultiDictionary<K, V>> CreatePool()
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static OrderPreservingMultiDictionary<K, V> GetInstance()
         {
-            var instance = PoolInstance.Allocate();
+            var instance = s_poolInstance.Allocate();
             Debug.Assert(instance.IsEmpty);
             return instance;
         }
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.Collections
         /// Null when the dictionary is empty.
         /// Don't access the field directly.
         /// </summary>
-        private PooledDictionary<K, object> dictionary;
+        private PooledDictionary<K, object> _dictionary;
 
         private void EnsureDictionary()
         {
-            this.dictionary = this.dictionary ?? PooledDictionary<K, object>.GetInstance();
+            _dictionary = _dictionary ?? PooledDictionary<K, object>.GetInstance();
         }
 
         public bool IsEmpty
         {
-            get { return this.dictionary == null; }
+            get { return _dictionary == null; }
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public void Add(K k, V v)
         {
             object item;
-            if (!this.IsEmpty && this.dictionary.TryGetValue(k, out item))
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
             {
                 var arrayBuilder = item as ArrayBuilder<V>;
                 if (arrayBuilder == null)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     arrayBuilder = new ArrayBuilder<V>(2);
                     arrayBuilder.Add((V)item);
                     arrayBuilder.Add(v);
-                    this.dictionary[k] = arrayBuilder;
+                    _dictionary[k] = arrayBuilder;
                 }
                 else
                 {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Collections
             else
             {
                 this.EnsureDictionary();
-                this.dictionary[k] = v;
+                _dictionary[k] = v;
             }
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Collections
             object item;
             ArrayBuilder<V> arrayBuilder;
 
-            if (!this.IsEmpty && this.dictionary.TryGetValue(k, out item))
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
             {
                 arrayBuilder = item as ArrayBuilder<V>;
                 if (arrayBuilder == null)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     arrayBuilder = new ArrayBuilder<V>(1 + values.Length);
                     arrayBuilder.Add((V)item);
                     arrayBuilder.AddRange(values);
-                    this.dictionary[k] = arrayBuilder;
+                    _dictionary[k] = arrayBuilder;
                 }
                 else
                 {
@@ -146,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 if (values.Length == 1)
                 {
-                    this.dictionary[k] = values[0];
+                    _dictionary[k] = values[0];
                 }
                 else
                 {
                     arrayBuilder = new ArrayBuilder<V>(values.Length);
                     arrayBuilder.AddRange(values);
-                    this.dictionary[k] = arrayBuilder;
+                    _dictionary[k] = arrayBuilder;
                 }
             }
         }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public int GetCountForKey(K k)
         {
             object item;
-            if (!this.IsEmpty && this.dictionary.TryGetValue(k, out item))
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
             {
                 var arrayBuilder = item as ArrayBuilder<V>;
                 return arrayBuilder != null ? arrayBuilder.Count : 1;
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public bool ContainsKey(K k)
         {
-            return !this.IsEmpty && this.dictionary.ContainsKey(k);
+            return !this.IsEmpty && _dictionary.ContainsKey(k);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Collections
             get
             {
                 object item;
-                if (!this.IsEmpty && this.dictionary.TryGetValue(k, out item))
+                if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
                 {
                     var arrayBuilder = item as ArrayBuilder<V>;
                     if (arrayBuilder == null)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public ICollection<K> Keys
         {
-            get { return this.IsEmpty ? SpecializedCollections.EmptyCollection<K>() : this.dictionary.Keys; }
+            get { return this.IsEmpty ? SpecializedCollections.EmptyCollection<K>() : _dictionary.Keys; }
         }
     }
 }

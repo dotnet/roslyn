@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 kind:=If(invokeMethod.ReturnsVoid, SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement),
                 attributeLists:=GenerateAttributes(namedType, options),
                 modifiers:=GenerateModifiers(namedType),
-                keyword:=If(invokeMethod.ReturnsVoid, SyntaxFactory.Token(SyntaxKind.SubKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword)),
+                subOrFunctionKeyword:=If(invokeMethod.ReturnsVoid, SyntaxFactory.Token(SyntaxKind.SubKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword)),
                 identifier:=namedType.Name.ToIdentifierToken(),
                 typeParameterList:=GenerateTypeParameterList(namedType),
                 parameterList:=ParameterGenerator.GenerateParameterList(invokeMethod.Parameters, options),

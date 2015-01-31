@@ -184,7 +184,6 @@ namespace Microsoft.Cci
         ulong BaseAddress
         {
             get;
-
             // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
         }
 
@@ -204,7 +203,6 @@ namespace Microsoft.Cci
         IMethodReference EntryPoint
         {
             get;
-
             // ^ requires this.Kind == ModuleKind.ConsoleApplication || this.Kind == ModuleKind.WindowsApplication;
         }
 
@@ -319,7 +317,6 @@ namespace Microsoft.Cci
         ulong SizeOfHeapCommit
         {
             get;
-
             // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
         }
 
@@ -329,7 +326,6 @@ namespace Microsoft.Cci
         ulong SizeOfHeapReserve
         {
             get;
-
             // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
         }
 
@@ -339,7 +335,6 @@ namespace Microsoft.Cci
         ulong SizeOfStackCommit
         {
             get;
-
             // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
         }
 
@@ -349,7 +344,6 @@ namespace Microsoft.Cci
         ulong SizeOfStackReserve
         {
             get;
-
             // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
         }
 

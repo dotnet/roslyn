@@ -10,18 +10,18 @@ namespace Microsoft.Cci
     internal struct BinaryWriter
     {
         internal readonly MemoryStream BaseStream;
-        private readonly bool utf8;
+        private readonly bool _utf8;
 
         internal BinaryWriter(MemoryStream output)
         {
             this.BaseStream = output;
-            this.utf8 = true;
+            _utf8 = true;
         }
 
         internal BinaryWriter(MemoryStream output, bool unicode)
         {
             this.BaseStream = output;
-            this.utf8 = !unicode;
+            _utf8 = !unicode;
         }
 
         public bool IsDefault => BaseStream == null;
@@ -119,7 +119,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            Debug.Assert(!this.utf8, "WriteChars has a problem with unmatches surrogate pairs and does not support writing utf8");
+            Debug.Assert(!_utf8, "WriteChars has a problem with unmatches surrogate pairs and does not support writing utf8");
 
             MemoryStream m = this.BaseStream;
             uint i = m.Position;
@@ -298,7 +298,7 @@ namespace Microsoft.Cci
             }
 
             int n = str.Length;
-            uint size = this.utf8 ? GetUTF8ByteCount(str) : (uint)n * 2;
+            uint size = _utf8 ? GetUTF8ByteCount(str) : (uint)n * 2;
             if (emitNullTerminator)
             {
                 // No size recorded for null-terminated strings.
@@ -311,7 +311,7 @@ namespace Microsoft.Cci
 
             MemoryStream m = this.BaseStream;
             uint i = m.Position;
-            if (this.utf8)
+            if (_utf8)
             {
                 m.Position = i + (uint)n;
                 byte[] buffer = m.Buffer;
@@ -441,7 +441,7 @@ namespace Microsoft.Cci
                     this.WriteByte((byte)(0x80 | (n >> 8)));
                     this.WriteByte((byte)n);
                 }
-                else 
+                else
                 {
                     Debug.Assert((value & ~b28) == (signMask & ~b28));
 

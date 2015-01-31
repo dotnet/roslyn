@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MetadataCreateArray : Cci.IMetadataCreateArray
     {
-        private readonly Cci.IArrayTypeReference arrayType;
-        private readonly Cci.ITypeReference elementType;
-        private ImmutableArray<Cci.IMetadataExpression> initializers;
+        private readonly Cci.IArrayTypeReference _arrayType;
+        private readonly Cci.ITypeReference _elementType;
+        private ImmutableArray<Cci.IMetadataExpression> _initializers;
 
         public MetadataCreateArray(Cci.IArrayTypeReference arrayType, Cci.ITypeReference elementType, ImmutableArray<Cci.IMetadataExpression> initializers)
         {
-            this.arrayType = arrayType;
-            this.elementType = elementType;
-            this.initializers = initializers;
+            _arrayType = arrayType;
+            _elementType = elementType;
+            _initializers = initializers;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.elementType;
+                return _elementType;
             }
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return (uint)this.initializers.Length;
+                return (uint)_initializers.Length;
             }
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.initializers;
+                return _initializers;
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         Cci.ITypeReference Cci.IMetadataExpression.Type
         {
-            get { return this.arrayType; }
+            get { return _arrayType; }
         }
     }
 }

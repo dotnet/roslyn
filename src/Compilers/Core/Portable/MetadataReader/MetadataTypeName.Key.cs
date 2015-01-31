@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial struct MetadataTypeName
+    internal partial struct MetadataTypeName
     {
         /// <summary>
         /// A digest of MetadataTypeName's fully qualified name which can be used as the key in a dictionary
@@ -16,37 +16,37 @@ namespace Microsoft.CodeAnalysis
             // PERF: We can work with either a fully qualified name (a single string) or
             // a 'split' name (namespace and type). If typeName is null, then a FQN is
             // stored in namespaceOrFullyQualifiedName
-            private readonly string namespaceOrFullyQualifiedName;
-            private readonly string typeName;
-            private readonly byte useCLSCompliantNameArityEncoding; // Using byte instead of bool for denser packing and smaller structure size
-            private readonly short forcedArity;
+            private readonly string _namespaceOrFullyQualifiedName;
+            private readonly string _typeName;
+            private readonly byte _useCLSCompliantNameArityEncoding; // Using byte instead of bool for denser packing and smaller structure size
+            private readonly short _forcedArity;
 
             internal Key(MetadataTypeName mdTypeName)
             {
                 if (mdTypeName.IsNull)
                 {
-                    this.namespaceOrFullyQualifiedName = null;
-                    this.typeName = null;
-                    this.useCLSCompliantNameArityEncoding = 0;
-                    this.forcedArity = 0;
+                    _namespaceOrFullyQualifiedName = null;
+                    _typeName = null;
+                    _useCLSCompliantNameArityEncoding = 0;
+                    _forcedArity = 0;
                 }
                 else
                 {
-                    if (mdTypeName.fullName != null)
+                    if (mdTypeName._fullName != null)
                     {
-                        this.namespaceOrFullyQualifiedName = mdTypeName.fullName;
-                        this.typeName = null;
+                        _namespaceOrFullyQualifiedName = mdTypeName._fullName;
+                        _typeName = null;
                     }
                     else
                     {
-                        Debug.Assert(mdTypeName.namespaceName != null);
-                        Debug.Assert(mdTypeName.typeName != null);
-                        this.namespaceOrFullyQualifiedName = mdTypeName.namespaceName;
-                        this.typeName = mdTypeName.typeName;
+                        Debug.Assert(mdTypeName._namespaceName != null);
+                        Debug.Assert(mdTypeName._typeName != null);
+                        _namespaceOrFullyQualifiedName = mdTypeName._namespaceName;
+                        _typeName = mdTypeName._typeName;
                     }
 
-                    this.useCLSCompliantNameArityEncoding = mdTypeName.UseCLSCompliantNameArityEncoding ? (byte)1 : (byte)0;
-                    this.forcedArity = mdTypeName.forcedArity;
+                    _useCLSCompliantNameArityEncoding = mdTypeName.UseCLSCompliantNameArityEncoding ? (byte)1 : (byte)0;
+                    _forcedArity = mdTypeName._forcedArity;
                 }
             }
 
@@ -54,32 +54,32 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return this.typeName == null;
+                    return _typeName == null;
                 }
             }
 
             public bool Equals(Key other)
             {
-                return useCLSCompliantNameArityEncoding == other.useCLSCompliantNameArityEncoding &&
-                    forcedArity == other.forcedArity &&
+                return _useCLSCompliantNameArityEncoding == other._useCLSCompliantNameArityEncoding &&
+                    _forcedArity == other._forcedArity &&
                     EqualNames(ref other);
             }
 
             private bool EqualNames(ref Key other)
             {
-                if (this.typeName == other.typeName)
+                if (_typeName == other._typeName)
                 {
-                    return this.namespaceOrFullyQualifiedName == other.namespaceOrFullyQualifiedName;
+                    return _namespaceOrFullyQualifiedName == other._namespaceOrFullyQualifiedName;
                 }
 
                 if (this.HasFullyQualifiedName)
                 {
-                    return MetadataHelpers.SplitNameEqualsFullyQualifiedName(other.namespaceOrFullyQualifiedName, other.typeName, this.namespaceOrFullyQualifiedName);
+                    return MetadataHelpers.SplitNameEqualsFullyQualifiedName(other._namespaceOrFullyQualifiedName, other._typeName, _namespaceOrFullyQualifiedName);
                 }
 
                 if (other.HasFullyQualifiedName)
                 {
-                    return MetadataHelpers.SplitNameEqualsFullyQualifiedName(this.namespaceOrFullyQualifiedName, this.typeName, other.namespaceOrFullyQualifiedName);
+                    return MetadataHelpers.SplitNameEqualsFullyQualifiedName(_namespaceOrFullyQualifiedName, _typeName, other._namespaceOrFullyQualifiedName);
                 }
 
                 return false;
@@ -93,18 +93,18 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode()
             {
                 return Hash.Combine(GetHashCodeName(),
-                       Hash.Combine(useCLSCompliantNameArityEncoding != 0,
-                       forcedArity));
+                       Hash.Combine(_useCLSCompliantNameArityEncoding != 0,
+                       _forcedArity));
             }
 
             private int GetHashCodeName()
             {
-                int hashCode = Hash.GetFNVHashCode(this.namespaceOrFullyQualifiedName);
+                int hashCode = Hash.GetFNVHashCode(_namespaceOrFullyQualifiedName);
 
                 if (!this.HasFullyQualifiedName)
                 {
                     hashCode = Hash.CombineFNVHash(hashCode, MetadataHelpers.DotDelimiter);
-                    hashCode = Hash.CombineFNVHash(hashCode, this.typeName);
+                    hashCode = Hash.CombineFNVHash(hashCode, _typeName);
                 }
 
                 return hashCode;

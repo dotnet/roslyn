@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal class DiagnosticWithInfo : Diagnostic
     {
-        private readonly DiagnosticInfo info;
-        private readonly Location location;
+        private readonly DiagnosticInfo _info;
+        private readonly Location _location;
 
         internal DiagnosticWithInfo(DiagnosticInfo info, Location location)
         {
             Debug.Assert(info != null);
             Debug.Assert(location != null);
-            this.info = info;
-            this.location = location;
+            _info = info;
+            _location = location;
         }
 
         public override Location Location
         {
-            get { return this.location; }
+            get { return _location; }
         }
 
         public override IReadOnlyList<Location> AdditionalLocations
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.info.Severity == InternalDiagnosticSeverity.Unknown)
+                if (_info.Severity == InternalDiagnosticSeverity.Unknown)
                 {
-                    return this.info.GetResolvedInfo();
+                    return _info.GetResolvedInfo();
                 }
 
-                return this.info;
+                return _info;
             }
         }
 
@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.info.Severity == InternalDiagnosticSeverity.Unknown ||
-                    this.info.Severity == InternalDiagnosticSeverity.Void;
+                return _info.Severity == InternalDiagnosticSeverity.Unknown ||
+                    _info.Severity == InternalDiagnosticSeverity.Void;
             }
         }
 
@@ -154,14 +154,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             return
-                this.Location.Equals(other.location) &&
+                this.Location.Equals(other._location) &&
                 this.Info.Equals(other.Info) &&
                 this.AdditionalLocations.SequenceEqual(other.AdditionalLocations);
         }
 
         private string GetDebuggerDisplay()
         {
-            switch (info.Severity)
+            switch (_info.Severity)
             {
                 case InternalDiagnosticSeverity.Unknown:
                     // If we called ToString before the diagnostic was resolved,
@@ -186,9 +186,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("location");
             }
 
-            if (location != this.location)
+            if (location != _location)
             {
-                return new DiagnosticWithInfo(this.info, location);
+                return new DiagnosticWithInfo(_info, location);
             }
 
             return this;
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Severity != severity)
             {
-                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), this.location);
+                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location);
             }
 
             return this;

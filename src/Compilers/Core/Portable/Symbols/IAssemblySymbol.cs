@@ -67,6 +67,5 @@ namespace Microsoft.CodeAnalysis
         /// null is returned.
         /// </summary>
         INamedTypeSymbol ResolveForwardedType(string fullyQualifiedMetadataName);
-
     }
 }

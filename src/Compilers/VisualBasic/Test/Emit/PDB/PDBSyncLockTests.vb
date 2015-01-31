@@ -34,13 +34,69 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim v = CompileAndVerify(compilation)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
+            v.VerifyIL("C1.Main", "
+{
+  // Code size       76 (0x4c)
+  .maxstack  2
+  .locals init (Object V_0, //lock
+                Object V_1,
+                Boolean V_2,
+                Integer V_3, //x
+                Boolean V_4)
+ -IL_0000:  nop
+  .try
+  {
+   -IL_0001:  nop
+   -IL_0002:  newobj     ""Sub Object..ctor()""
+    IL_0007:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+    IL_000c:  stloc.0
+   -IL_000d:  nop
+   -IL_000e:  ldc.i4.s   12
+    IL_0010:  call       ""Function C1.Something(Integer) As C1""
+    IL_0015:  stloc.1
+    IL_0016:  ldc.i4.0
+    IL_0017:  stloc.2
+    .try
+    {
+      IL_0018:  ldloc.1
+      IL_0019:  ldloca.s   V_2
+      IL_001b:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+      IL_0020:  nop
+     -IL_0021:  ldc.i4.s   23
+      IL_0023:  stloc.3
+     -IL_0024:  newobj     ""Sub System.Exception..ctor()""
+      IL_0029:  throw
+    }
+    finally
+    {
+     ~IL_002a:  ldloc.2
+      IL_002b:  ldc.i4.0
+      IL_002c:  ceq
+      IL_002e:  stloc.s    V_4
+      IL_0030:  ldloc.s    V_4
+      IL_0032:  brtrue.s   IL_003b
+      IL_0034:  ldloc.1
+      IL_0035:  call       ""Sub System.Threading.Monitor.Exit(Object)""
+      IL_003a:  nop
+     -IL_003b:  nop
+      IL_003c:  endfinally
+    }
+  }
+  catch System.Exception
+  {
+   ~IL_003d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+   -IL_0042:  nop
+    IL_0043:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0048:  leave.s    IL_004a
+  }
+ -IL_004a:  nop
+ -IL_004b:  ret
+}", sequencePoints:="C1.Main")
 
-            Dim expected =
+            v.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -84,9 +140,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
     End Class
 

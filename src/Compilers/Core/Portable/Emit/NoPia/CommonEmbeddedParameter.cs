@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         {
             public readonly CommonEmbeddedMember ContainingPropertyOrMethod;
             public readonly TParameterSymbol UnderlyingParameter;
-            private ImmutableArray<TAttributeData> lazyAttributes;
+            private ImmutableArray<TAttributeData> _lazyAttributes;
 
             protected CommonEmbeddedParameter(CommonEmbeddedMember containingPropertyOrMethod, TParameterSymbol underlyingParameter)
             {
@@ -184,12 +184,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
-                if (this.lazyAttributes.IsDefault)
+                if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
-                    if (ImmutableInterlocked.InterlockedInitialize(ref this.lazyAttributes, attributes))
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
                         // Save any diagnostics that we encountered.
                         context.Diagnostics.AddRange(diagnostics);
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     diagnostics.Free();
                 }
 
-                return this.lazyAttributes;
+                return _lazyAttributes;
             }
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

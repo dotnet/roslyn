@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class PortableExecutableReference : MetadataReference
     {
-        private readonly string filePath;
+        private readonly string _filePath;
 
-        private DocumentationProvider lazyDocumentation;
+        private DocumentationProvider _lazyDocumentation;
 
         protected PortableExecutableReference(
             MetadataReferenceProperties properties,
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider initialDocumentation = null)
             : base(properties)
         {
-            this.filePath = fullPath;
-            this.lazyDocumentation = initialDocumentation;
+            _filePath = fullPath;
+            _lazyDocumentation = initialDocumentation;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string FilePath
         {
-            get { return filePath; }
+            get { return _filePath; }
         }
 
         /// <summary>
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (lazyDocumentation == null)
+                if (_lazyDocumentation == null)
                 {
-                    Interlocked.CompareExchange(ref lazyDocumentation, CreateDocumentationProvider(), null);
+                    Interlocked.CompareExchange(ref _lazyDocumentation, CreateDocumentationProvider(), null);
                 }
 
-                return lazyDocumentation;
+                return _lazyDocumentation;
             }
         }
 

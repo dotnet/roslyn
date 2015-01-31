@@ -110,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                        ' add mapping for result variable (it's declarator is the Function Statement)
                        If s.IsKind(SyntaxKind.FunctionStatement) Then
-                           Assert.True(sourceMethod0.BlockSyntax.Begin.IsKind(SyntaxKind.FunctionStatement))
-                           Return sourceMethod0.BlockSyntax.Begin
+                           Assert.True(sourceMethod0.BlockSyntax.BlockStatement.IsKind(SyntaxKind.FunctionStatement))
+                           Return sourceMethod0.BlockSyntax.BlockStatement
                        ElseIf s.IsKind(SyntaxKind.PropertyStatement) Then
                            Assert.True(sourceMethod0.BlockSyntax.IsKind(SyntaxKind.GetAccessorBlock))
                            Return DirectCast(sourceMethod0.BlockSyntax.Parent, PropertyBlockSyntax).PropertyStatement

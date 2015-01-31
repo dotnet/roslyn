@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// May represent assembly definition or assembly reference identity.
     /// </remarks>
-    partial class AssemblyIdentity
+    public partial class AssemblyIdentity
     {
         /// <summary>
         /// Returns the display name of the assembly identity.
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis
                 return BuildDisplayName(fullKey: true);
             }
 
-            if (lazyDisplayName == null)
+            if (_lazyDisplayName == null)
             {
-                lazyDisplayName = BuildDisplayName(fullKey: false);
+                _lazyDisplayName = BuildDisplayName(fullKey: false);
             }
 
-            return lazyDisplayName;
+            return _lazyDisplayName;
         }
 
         /// <summary>
@@ -62,21 +62,21 @@ namespace Microsoft.CodeAnalysis
             EscapeName(sb, Name);
 
             sb.Append(", Version=");
-            sb.Append(version.Major);
+            sb.Append(_version.Major);
             sb.Append(".");
-            sb.Append(version.Minor);
+            sb.Append(_version.Minor);
             sb.Append(".");
-            sb.Append(version.Build);
+            sb.Append(_version.Build);
             sb.Append(".");
-            sb.Append(version.Revision);
+            sb.Append(_version.Revision);
 
             sb.Append(", Culture=");
-            sb.Append(cultureName.Length != 0 ? cultureName : "neutral");
+            sb.Append(_cultureName.Length != 0 ? _cultureName : "neutral");
 
             if (fullKey && HasPublicKey)
             {
                 sb.Append(", PublicKey=");
-                AppendKey(sb, publicKey);
+                AppendKey(sb, _publicKey);
             }
             else
             {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
                 sb.Append(", Retargetable=Yes");
             }
 
-            switch (contentType)
+            switch (_contentType)
             {
                 case AssemblyContentType.Default:
                     break;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(contentType);
+                    throw ExceptionUtilities.UnexpectedValue(_contentType);
             }
 
             string result = sb.ToString();
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        const int MaxPublicKeyBytes = 2048;
+        private const int MaxPublicKeyBytes = 2048;
 
         private static bool TryParsePublicKey(string value, out ImmutableArray<byte> key)
         {
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        const int PublicKeyTokenBytes = 8;
+        private const int PublicKeyTokenBytes = 8;
 
         private static bool TryParsePublicKeyToken(string value, out ImmutableArray<byte> token)
         {

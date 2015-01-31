@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     public class CompilationWithAnalyzers
     {
-        private readonly AnalyzerDriver driver;
-        private readonly Compilation compilation;
-        private readonly CancellationToken cancellationToken;
+        private readonly AnalyzerDriver _driver;
+        private readonly Compilation _compilation;
+        private readonly CancellationToken _cancellationToken;
 
         public Compilation Compilation
         {
-            get { return this.compilation; }
+            get { return _compilation; }
         }
 
         /// <summary>
@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            this.cancellationToken = cancellationToken;
-            this.driver = AnalyzerDriver.Create(compilation, analyzers, options, out this.compilation, this.cancellationToken);
+            _cancellationToken = cancellationToken;
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, out _compilation, _cancellationToken);
         }
 
         /// <summary>
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
             // Discard the returned diagnostics.
-            this.compilation.GetDiagnostics(this.cancellationToken);
+            _compilation.GetDiagnostics(_cancellationToken);
 
-            return await this.driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            return await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            ImmutableArray<Diagnostic> compilerDiagnostics = this.compilation.GetDiagnostics(this.cancellationToken);
+            ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
 
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await this.driver.GetDiagnosticsAsync().ConfigureAwait(false);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
             return compilerDiagnostics.AddRange(analyzerDiagnostics);
         }
 

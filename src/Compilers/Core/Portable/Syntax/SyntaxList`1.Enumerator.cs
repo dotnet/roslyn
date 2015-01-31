@@ -12,21 +12,21 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator
         {
-            private SyntaxList<TNode> list;
-            private int index;
+            private SyntaxList<TNode> _list;
+            private int _index;
 
             internal Enumerator(SyntaxList<TNode> list)
             {
-                this.list = list;
-                this.index = -1;
+                _list = list;
+                _index = -1;
             }
 
             public bool MoveNext()
             {
-                int newIndex = this.index + 1;
-                if (newIndex < this.list.Count)
+                int newIndex = _index + 1;
+                if (newIndex < _list.Count)
                 {
-                    this.index = newIndex;
+                    _index = newIndex;
                     return true;
                 }
 
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return (TNode)this.list.ItemInternal(this.index);
+                    return (TNode)_list.ItemInternal(_index);
                 }
             }
 
             public void Reset()
             {
-                this.index = -1;
+                _index = -1;
             }
 
             public override bool Equals(object obj)
@@ -59,23 +59,23 @@ namespace Microsoft.CodeAnalysis
 
         private class EnumeratorImpl : IEnumerator<TNode>
         {
-            Enumerator e;
+            private Enumerator _e;
 
             internal EnumeratorImpl(SyntaxList<TNode> list)
             {
-                this.e = new Enumerator(list);
+                _e = new Enumerator(list);
             }
 
             public bool MoveNext()
             {
-                return e.MoveNext();
+                return _e.MoveNext();
             }
 
             public TNode Current
             {
                 get
                 {
-                    return e.Current;
+                    return _e.Current;
                 }
             }
 
@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return e.Current;
+                    return _e.Current;
                 }
             }
 
             void IEnumerator.Reset()
             {
-                e.Reset();
+                _e.Reset();
             }
         }
     }

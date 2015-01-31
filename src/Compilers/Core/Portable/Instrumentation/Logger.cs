@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Instrumentation
         /// </summary>
         internal struct Block : IDisposable
         {
-            private readonly FunctionId functionId;
-            private readonly int number;
-            private readonly int blockId;
-            private readonly CancellationToken cancellationToken;
+            private readonly FunctionId _functionId;
+            private readonly int _number;
+            private readonly int _blockId;
+            private readonly CancellationToken _cancellationToken;
 
             /// <summary>
             /// Returns a logger that logs 'start' and 'end' messages for a supplied event along with a number and a string.
@@ -36,36 +36,36 @@ namespace Microsoft.CodeAnalysis.Instrumentation
             internal Block(FunctionId functionId, int number, string message, int blockId, CancellationToken cancellationToken)
             {
                 Debug.Assert(functionId > 0);
-                this.functionId = functionId;
-                this.number = number;
-                this.blockId = blockId;
-                this.cancellationToken = cancellationToken;
+                _functionId = functionId;
+                _number = number;
+                _blockId = blockId;
+                _cancellationToken = cancellationToken;
                 RoslynCompilerEventSource.Instance.BlockStart(message, functionId, blockId);
             }
 
             public void Dispose()
             {
                 // default logger
-                if (functionId == 0)
+                if (_functionId == 0)
                 {
                     return;
                 }
 
-                if (cancellationToken.IsCancellationRequested)
+                if (_cancellationToken.IsCancellationRequested)
                 {
-                    RoslynCompilerEventSource.Instance.BlockCanceled(this.functionId, this.number, this.blockId);
+                    RoslynCompilerEventSource.Instance.BlockCanceled(_functionId, _number, _blockId);
                 }
                 else
                 {
-                    RoslynCompilerEventSource.Instance.BlockStop(this.functionId, this.number, this.blockId);
+                    RoslynCompilerEventSource.Instance.BlockStop(_functionId, _number, _blockId);
                 }
             }
         }
 
-        private static int lastUniqueBlockId = 0;
+        private static int s_lastUniqueBlockId = 0;
         private static int GetNextUniqueBlockId()
         {
-            return Interlocked.Increment(ref lastUniqueBlockId);
+            return Interlocked.Increment(ref s_lastUniqueBlockId);
         }
 
         private static bool IsEnabled(FunctionId functionId)

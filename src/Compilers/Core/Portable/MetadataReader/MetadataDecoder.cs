@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis
         public readonly PEModule Module;
 
         // Identity of an assembly containing the module, or null if the module is a standalone module
-        private readonly AssemblyIdentity containingAssemblyIdentity;
+        private readonly AssemblyIdentity _containingAssemblyIdentity;
 
         internal MetadataDecoder(PEModule module, AssemblyIdentity containingAssemblyIdentity, SymbolFactory<ModuleSymbol, TypeSymbol> factory, ModuleSymbol moduleSymbol) :
             base(factory, moduleSymbol)
         {
             Debug.Assert(module != null);
             this.Module = module;
-            this.containingAssemblyIdentity = containingAssemblyIdentity;
+            _containingAssemblyIdentity = containingAssemblyIdentity;
         }
 
         internal TypeSymbol GetTypeOfToken(Handle token)
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis
                 TypeSymbol result1 = cache.GetOrAdd(typeRef, result);
                 Debug.Assert(result1.Equals(result));
             }
-                
+
             return result;
         }
 
@@ -1400,14 +1400,14 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when(e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
                 namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
             }
 
             return false;
-        }
+            }
 
         internal bool GetCustomAttribute(CustomAttributeHandle handle, out TypeSymbol attributeClass, out MethodSymbol attributeCtor)
         {
@@ -1535,7 +1535,7 @@ namespace Microsoft.CodeAnalysis
                     throw new UnsupportedSignatureContent();
                 }
             }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when(e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 for (; paramIndex <= paramCount; paramIndex++)
                 {
@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return paramInfo;
-        }
+            }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private static void GetSignatureCountsOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int parameterCount, out int typeParameterCount)
@@ -1645,7 +1645,6 @@ namespace Microsoft.CodeAnalysis
                 // get the type
                 bool refersToNoPiaLocalType;
                 return DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
-
             }
             catch (UnsupportedSignatureContent)
             {
@@ -1895,7 +1894,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override bool IsContainingAssembly(AssemblyIdentity identity)
         {
-            return this.containingAssemblyIdentity != null && this.containingAssemblyIdentity.Equals(identity);
+            return _containingAssemblyIdentity != null && _containingAssemblyIdentity.Equals(identity);
         }
 
         /// <summary>
@@ -1937,12 +1936,12 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, kind, value);
         }
 
-        private readonly static object BoxedTrue = true;
-        private readonly static object BoxedFalse = false;
+        private readonly static object s_boxedTrue = true;
+        private readonly static object s_boxedFalse = false;
 
         private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
         {
-            return CreateTypedConstant(type, kind, value ? BoxedTrue : BoxedFalse);
+            return CreateTypedConstant(type, kind, value ? s_boxedTrue : s_boxedFalse);
         }
 
         /// <summary>

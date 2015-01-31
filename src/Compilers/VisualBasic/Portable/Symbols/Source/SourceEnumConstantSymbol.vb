@@ -69,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 Dim constantTuple = MakeConstantTuple(inProgress, diagnostics)
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-
                 sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
                 diagnostics.Free()
             End If
@@ -100,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
                 Dim underlyingType = ContainingType.EnumUnderlyingType
-                Return New EvaluatedConstant(Microsoft.CodeAnalysis.ConstantValue.Default(underlyingType.SpecialType), underlyingType, Nothing)
+                Return New EvaluatedConstant(Microsoft.CodeAnalysis.ConstantValue.Default(underlyingType.SpecialType), underlyingType)
             End Function
         End Class
 
@@ -154,8 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                ' Note: EvaluatedConstant.Diagnostics is not used.
-                Return New EvaluatedConstant(value, symbol.Type, Nothing)
+                Return New EvaluatedConstant(value, symbol.Type)
             End Function
         End Class
 

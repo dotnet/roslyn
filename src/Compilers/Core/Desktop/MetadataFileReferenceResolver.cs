@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly MetadataFileReferenceResolver Default = new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
-        private readonly ImmutableArray<string> searchPaths;
-        private readonly string baseDirectory;
+        private readonly ImmutableArray<string> _searchPaths;
+        private readonly string _baseDirectory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetadataFileReferenceResolver"/> class.
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis
                 ////throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory");
             }
 
-            this.searchPaths = searchPaths;
-            this.baseDirectory = baseDirectory;
+            _searchPaths = searchPaths;
+            _baseDirectory = baseDirectory;
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<string> SearchPaths
         {
-            get { return this.searchPaths; }
+            get { return _searchPaths; }
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public string BaseDirectory
         {
-            get { return baseDirectory; }
+            get { return _baseDirectory; }
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public virtual string ResolveReference(string reference, string baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, baseDirectory, searchPaths, FileExists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, _baseDirectory, _searchPaths, FileExists);
             if (!FileExists(resolvedPath))
             {
                 return null;
@@ -143,14 +143,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (MetadataFileReferenceResolver)obj;
-            return string.Equals(this.baseDirectory, other.baseDirectory, StringComparison.Ordinal) &&
-                this.searchPaths.SequenceEqual(other.searchPaths, StringComparer.Ordinal);
+            return string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
+                _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.baseDirectory != null ? StringComparer.Ordinal.GetHashCode(this.baseDirectory) : 0,
-                   Hash.CombineValues(this.searchPaths, StringComparer.Ordinal));
+            return Hash.Combine(_baseDirectory != null ? StringComparer.Ordinal.GetHashCode(_baseDirectory) : 0,
+                   Hash.CombineValues(_searchPaths, StringComparer.Ordinal));
         }
     }
 }

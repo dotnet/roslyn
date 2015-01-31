@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asMethod = TryCast(node.Syntax, MethodBlockBaseSyntax)
                 If asMethod IsNot Nothing Then
                     builder = ArrayBuilder(Of BoundStatement).GetInstance
-                    Dim methodStatement As MethodBaseSyntax = asMethod.Begin
+                    Dim methodStatement As MethodBaseSyntax = asMethod.BlockStatement
 
                     ' For methods we want the span of the statement without any leading attributes.
                     ' The span begins at the first modifier or the 'Sub'/'Function' keyword.
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If methodStatement.Modifiers.Count > 0 Then
                         firstModifierOrKeyword = methodStatement.Modifiers(0)
                     Else
-                        firstModifierOrKeyword = methodStatement.Keyword
+                        firstModifierOrKeyword = methodStatement.DeclarationKeyword
                     End If
 
                     Dim statementSpanWithoutAttributes = TextSpan.FromBounds(firstModifierOrKeyword.SpanStart, methodStatement.Span.End)
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim asLambda = TryCast(node.Syntax, LambdaExpressionSyntax)
                     If asLambda IsNot Nothing Then
                         builder = ArrayBuilder(Of BoundStatement).GetInstance
-                        builder.Add(New BoundSequencePoint(asLambda.Begin, Nothing))
+                        builder.Add(New BoundSequencePoint(asLambda.SubOrFunctionHeader, Nothing))
                     End If
                 End If
 

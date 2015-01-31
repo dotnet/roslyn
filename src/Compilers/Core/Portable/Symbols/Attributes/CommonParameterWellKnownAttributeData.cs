@@ -11,54 +11,54 @@ namespace Microsoft.CodeAnalysis
     internal class CommonParameterWellKnownAttributeData : WellKnownAttributeData, IMarshalAsAttributeTarget
     {
         #region OutAttribute
-        private bool hasOutAttribute;
+        private bool _hasOutAttribute;
         public bool HasOutAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasOutAttribute;
+                return _hasOutAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasOutAttribute = value;
+                _hasOutAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region InAttribute
-        private bool hasInAttribute;
+        private bool _hasInAttribute;
         public bool HasInAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasInAttribute;
+                return _hasInAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasInAttribute = value;
+                _hasInAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region MarshalAsAttribute
-        private MarshalPseudoCustomAttributeData lazyMarshalAsData;
+        private MarshalPseudoCustomAttributeData _lazyMarshalAsData;
 
         MarshalPseudoCustomAttributeData IMarshalAsAttributeTarget.GetOrCreateData()
         {
             VerifySealed(expected: false);
-            if (this.lazyMarshalAsData == null)
+            if (_lazyMarshalAsData == null)
             {
-                lazyMarshalAsData = new MarshalPseudoCustomAttributeData();
+                _lazyMarshalAsData = new MarshalPseudoCustomAttributeData();
                 SetDataStored();
             }
 
-            return lazyMarshalAsData;
+            return _lazyMarshalAsData;
         }
 
         /// <summary>
@@ -69,42 +69,42 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return lazyMarshalAsData;
+                return _lazyMarshalAsData;
             }
         }
         #endregion
 
         #region IDispatchConstantAttribute
-        private bool hasIDispatchConstantAttribute;
+        private bool _hasIDispatchConstantAttribute;
         public bool HasIDispatchConstantAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasIDispatchConstantAttribute;
+                return _hasIDispatchConstantAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasIDispatchConstantAttribute = value;
+                _hasIDispatchConstantAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region IUnknownConstantAttribute
-        private bool hasIUnknownConstantAttribute;
+        private bool _hasIUnknownConstantAttribute;
         public bool HasIUnknownConstantAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasIUnknownConstantAttribute;
+                return _hasIUnknownConstantAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasIUnknownConstantAttribute = value;
+                _hasIUnknownConstantAttribute = value;
                 SetDataStored();
             }
         }

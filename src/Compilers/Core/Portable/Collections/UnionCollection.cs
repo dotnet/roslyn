@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class UnionCollection<T> : ICollection<T>
     {
-        private readonly ImmutableArray<ICollection<T>> collections;
-        private int count = -1;
+        private readonly ImmutableArray<ICollection<T>> _collections;
+        private int _count = -1;
 
         public static ICollection<T> Create(ICollection<T> coll1, ICollection<T> coll2)
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         private UnionCollection(ImmutableArray<ICollection<T>> collections)
         {
             Debug.Assert(!collections.IsDefault);
-            this.collections = collections;
+            _collections = collections;
         }
 
         public void Add(T item)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         {
             // PERF: Expansion of "return collections.Any(c => c.Contains(item));"
             // to avoid allocating a lambda.
-            foreach (var c in this.collections)
+            foreach (var c in _collections)
             {
                 if (c.Contains(item))
                 {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
         public void CopyTo(T[] array, int arrayIndex)
         {
             var index = arrayIndex;
-            foreach (var collection in collections)
+            foreach (var collection in _collections)
             {
                 collection.CopyTo(array, index);
                 index += collection.Count;
@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.count == -1)
+                if (_count == -1)
                 {
-                    this.count = collections.Sum(c => c.Count);
+                    _count = _collections.Sum(c => c.Count);
                 }
 
-                return this.count;
+                return _count;
             }
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerator<T> GetEnumerator()
         {
-            return collections.SelectMany(c => c).GetEnumerator();
+            return _collections.SelectMany(c => c).GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

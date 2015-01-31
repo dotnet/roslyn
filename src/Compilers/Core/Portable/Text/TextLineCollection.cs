@@ -89,23 +89,23 @@ namespace Microsoft.CodeAnalysis.Text
         [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<TextLine>, IEnumerator
         {
-            private readonly TextLineCollection lines;
-            private int index;
+            private readonly TextLineCollection _lines;
+            private int _index;
 
             internal Enumerator(TextLineCollection lines, int index = -1)
             {
-                this.lines = lines;
-                this.index = index;
+                _lines = lines;
+                _index = index;
             }
 
             public TextLine Current
             {
                 get
                 {
-                    var ndx = this.index;
-                    if (ndx >= 0 && ndx < this.lines.Count)
+                    var ndx = _index;
+                    if (ndx >= 0 && ndx < _lines.Count)
                     {
-                        return this.lines[ndx];
+                        return _lines[ndx];
                     }
                     else
                     {
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Text
 
             public bool MoveNext()
             {
-                if (index < lines.Count - 1)
+                if (_index < _lines.Count - 1)
                 {
-                    index = index + 1;
+                    _index = _index + 1;
                     return true;
                 }
 

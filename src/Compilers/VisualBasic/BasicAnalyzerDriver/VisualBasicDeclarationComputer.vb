@@ -55,16 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End While
 
                     Return
-                Case SyntaxKind.ClassBlock,
-                     SyntaxKind.StructureBlock,
-                     SyntaxKind.InterfaceBlock,
-                     SyntaxKind.ModuleBlock
-                    Dim t = CType(node, TypeBlockSyntax)
-                    For Each decl In t.Members
-                        ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
-                    Next
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken))
-                    Return
                 Case SyntaxKind.EnumBlock
                     Dim t = CType(node, EnumBlockSyntax)
                     For Each decl In t.Members
@@ -117,25 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim codeBlocks = propertyInitializers.Concat(t.Initializer)
                     builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
                     Return
-                Case SyntaxKind.GetAccessorBlock,
-                     SyntaxKind.SetAccessorBlock,
-                     SyntaxKind.AddHandlerAccessorBlock,
-                     SyntaxKind.RemoveHandlerAccessorBlock,
-                     SyntaxKind.RaiseEventAccessorBlock,
-                     SyntaxKind.SubBlock,
-                     SyntaxKind.FunctionBlock,
-                     SyntaxKind.OperatorBlock,
-                     SyntaxKind.ConstructorBlock
-                    Dim t = CType(node, MethodBlockBaseSyntax)
-                    Dim paramInitializers = GetParameterInitializers(t.Begin.ParameterList)
-                    Dim codeBlocks = paramInitializers.Concat(t.Statements).Concat(t.End)
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
-                    Return
-                Case SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement
-                    Dim t = CType(node, MethodBaseSyntax)
-                    Dim paramInitializers = GetParameterInitializers(t.ParameterList)
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, paramInitializers, cancellationToken))
-                    Return
                 Case SyntaxKind.CompilationUnit
                     Dim t = CType(node, CompilationUnitSyntax)
                     For Each decl In t.Members
@@ -143,6 +114,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                     Return
                 Case Else
+                    Dim typeBlock = TryCast(node, TypeBlockSyntax)
+                    If typeBlock IsNot Nothing Then
+                        For Each decl In typeBlock.Members
+                            ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
+                        Next
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken))
+                        Return
+                    End If
+
+                    Dim typeStatement = TryCast(node, TypeStatementSyntax)
+                    If typeStatement IsNot Nothing Then
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken))
+                        Return
+                    End If
+
+                    Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
+                    If methodBlock IsNot Nothing Then
+                        Dim paramInitializers = GetParameterInitializers(methodBlock.BlockStatement.ParameterList)
+                        Dim codeBlocks = paramInitializers.Concat(methodBlock.Statements).Concat(methodBlock.EndBlockStatement)
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
+                        Return
+                    End If
+
+                    Dim methodStatement = TryCast(node, MethodBaseSyntax)
+                    If methodStatement IsNot Nothing Then
+                        Dim paramInitializers = GetParameterInitializers(methodStatement.ParameterList)
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, paramInitializers, cancellationToken))
+                        Return
+                    End If
+
                     Return
             End Select
         End Sub

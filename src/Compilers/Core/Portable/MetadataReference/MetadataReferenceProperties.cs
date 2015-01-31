@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct MetadataReferenceProperties : IEquatable<MetadataReferenceProperties>
     {
-        private readonly MetadataImageKind kind;
-        private readonly ImmutableArray<string> aliases;
-        private readonly bool embedInteropTypes;
+        private readonly MetadataImageKind _kind;
+        private readonly ImmutableArray<string> _aliases;
+        private readonly bool _embedInteropTypes;
 
         /// <summary>
         /// Default properties for a module reference.
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            this.kind = kind;
-            this.aliases = aliases;
-            this.embedInteropTypes = embedInteropTypes;
+            _kind = kind;
+            _aliases = aliases;
+            _embedInteropTypes = embedInteropTypes;
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// </exception>
         public MetadataReferenceProperties WithAliases(ImmutableArray<string> aliases)
         {
-            return new MetadataReferenceProperties(this.kind, aliases, this.EmbedInteropTypes);
+            return new MetadataReferenceProperties(_kind, aliases, this.EmbedInteropTypes);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><see cref="Kind"/> is <see cref="MetadataImageKind.Module"/>, as interop types can't be embedded from modules.</exception>
         public MetadataReferenceProperties WithEmbedInteropTypes(bool embedInteropTypes)
         {
-            return new MetadataReferenceProperties(this.kind, this.aliases, embedInteropTypes);
+            return new MetadataReferenceProperties(_kind, _aliases, embedInteropTypes);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public MetadataImageKind Kind
         {
-            get { return kind; }
+            get { return _kind; }
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<string> Aliases
         {
-            get { return aliases; }
+            get { return _aliases; }
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool EmbedInteropTypes
         {
-            get { return embedInteropTypes; }
+            get { return _embedInteropTypes; }
         }
 
         public override bool Equals(object obj)
@@ -143,14 +143,14 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(MetadataReferenceProperties other)
         {
-            return this.aliases.NullToEmpty().SequenceEqual(other.aliases.NullToEmpty())
-                && this.embedInteropTypes == other.embedInteropTypes
-                && this.kind == other.kind;
+            return _aliases.NullToEmpty().SequenceEqual(other._aliases.NullToEmpty())
+                && _embedInteropTypes == other._embedInteropTypes
+                && _kind == other._kind;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.CombineValues(this.aliases), Hash.Combine(this.embedInteropTypes, this.kind.GetHashCode()));
+            return Hash.Combine(Hash.CombineValues(_aliases), Hash.Combine(_embedInteropTypes, _kind.GetHashCode()));
         }
 
         public static bool operator ==(MetadataReferenceProperties left, MetadataReferenceProperties right)

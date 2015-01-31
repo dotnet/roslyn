@@ -15,7 +15,6 @@
     <RootNamespace>Roslyn.Diagnostics.Analyzers.CSharp</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.CSharp</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

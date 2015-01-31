@@ -1,22 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal static class FilePathUtilities
     {
-        public static bool IsRelativePath(string basePath, string path)
+        public static bool IsNestedPath(string basePath, string fullPath)
         {
-            return path.StartsWith(basePath, StringComparison.OrdinalIgnoreCase);
+            return fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static string GetRelativePath(string basePath, string path)
+        public static string GetNestedPath(string baseDirectory, string fullPath)
         {
-            if (IsRelativePath(basePath, path))
+            if (IsNestedPath(baseDirectory, fullPath))
             {
-                var relativePath = path.Substring(basePath.Length);
+                var relativePath = fullPath.Substring(baseDirectory.Length);
                 while (relativePath.Length > 0 && PathUtilities.IsDirectorySeparator(relativePath[0]))
                 {
                     relativePath = relativePath.Substring(1);
@@ -25,7 +26,60 @@ namespace Roslyn.Utilities
                 return relativePath;
             }
 
-            return path;
+            return fullPath;
+        }
+
+        private static char[] pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+        public static string GetRelativePath(string baseDirectory, string fullPath)
+        {
+            string relativePath = string.Empty;
+
+            if (IsNestedPath(baseDirectory, fullPath))
+            {
+                return GetNestedPath(baseDirectory, fullPath);
+            }
+
+            var basePathParts = baseDirectory.Split(pathChars);
+            var fullPathParts = fullPath.Split(pathChars);
+
+            if (basePathParts.Length == 0 || fullPathParts.Length == 0)
+            {
+                return fullPath;
+            }
+
+            int index = 0;
+
+            // find index where full path diverges from base path
+            for (; index < basePathParts.Length; index++)
+            {
+                if (!PathsEqual(basePathParts[index], fullPathParts[index]))
+                {
+                    break;
+                }
+            }
+
+            // if the first part doesn't match, they don't even have the same volume
+            // so there can be no relative path.
+            if (index == 0)
+            {
+                return fullPath;
+            }
+
+            // add backup notation for remaining base path levels beyond the index
+            var remainingParts = basePathParts.Length - index;
+            for (int i = 0; i < remainingParts; i++)
+            {
+                relativePath += relativePath + ".." + Path.DirectorySeparatorChar;
+            }
+
+            // add the rest of the full path parts
+            for (int i = index; i < fullPathParts.Length; i++)
+            {
+                relativePath = Path.Combine(relativePath, fullPathParts[i]);
+            }
+
+            return relativePath;
         }
 
         internal static void RequireAbsolutePath(string path, string argumentName)
@@ -39,6 +93,11 @@ namespace Roslyn.Utilities
             {
                 throw new ArgumentException(WorkspacesResources.AbsolutePathExpected, argumentName);
             }
+        }
+
+        public static bool PathsEqual(string path1, string path2)
+        {
+            return string.Compare(path1, path2, StringComparison.OrdinalIgnoreCase) == 0;
         }
     }
 }

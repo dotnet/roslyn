@@ -31,10 +31,11 @@
     <ValueType Name="OnErrorStatementKind"/>
     <ValueType Name="SourceMemberFlags"/>
     <ValueType Name="NoOpStatementFlavor"/>
+    <ValueType Name="BoundTypeOrValueData"/>
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
-        <Field Name="Type" Type="TypeSymbol" Null="allow"/>
-    </AbstractNode>
+    <Field Name="Type" Type="TypeSymbol" Null="allow"/>
+  </AbstractNode>
 
     <!-- 
   An expression is classified as one of the following:
@@ -219,7 +220,7 @@
     name2 and see if it requires a receiver (then name1 is a value) 
     or if it does not (then name1 is a type).
     
-    The problem only arises when name2 is an overloaded method or property.
+    The problem only arises when name2 is an overloaded property.
     In such case we must defer type/value decision until overload resolution 
     selects one of the candidates.
     
@@ -235,6 +236,7 @@
     <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
       <!-- Type is required for this node type; may not be null -->
       <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="Data" Type="BoundTypeOrValueData"/>
     </Node>
   
     <Node Name="BoundNamespaceExpression" Base="BoundExpression" HasValidate="true">
@@ -1155,6 +1157,7 @@
 
       <Field Name="ExceptionFilterOpt" Type="BoundExpression" Null="allow"/>
       <Field Name="Body" Type="BoundBlock"/>
+      <Field Name="IsSynthesizedAsyncCatchAll" Type="Boolean" />
     </Node>
   
     <Node Name="BoundLiteral" Base="BoundExpression" HasValidate="true">
@@ -1765,6 +1768,7 @@
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Contents" Type="ImmutableArray(Of BoundNode)"/>
+    <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
   
   <!-- There is no BoundInterpolatedStringText because we use BoundLiteral of type string for this purpose. -->

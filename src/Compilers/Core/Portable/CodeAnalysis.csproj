@@ -18,7 +18,6 @@
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -305,6 +304,7 @@
     <Compile Include="MetadataReader\MetadataDecoder.cs" />
     <Compile Include="MetadataReader\MetadataHelpers.cs" />
     <Compile Include="MetadataReader\MetadataImportOptions.cs" />
+    <Compile Include="MetadataReader\MetadataReaderExtensions.cs" />
     <Compile Include="MetadataReader\MetadataTypeCodeExtensions.cs" />
     <Compile Include="MetadataReader\MetadataTypeName.cs" />
     <Compile Include="MetadataReader\MetadataTypeName.Key.cs" />
@@ -333,6 +333,8 @@
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
+    <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
+    <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
@@ -645,6 +647,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

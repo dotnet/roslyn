@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     /// </summary>
     public class CachingLookupTests
     {
-        private readonly Random randomCaseGenerator = new Random(17);
+        private readonly Random _randomCaseGenerator = new Random(17);
 
         private int[] RandomNumbers(int length, int seed)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private HashSet<string> Keys(int[] numbers, bool randomCase, IEqualityComparer<string> comparer)
         {
             var keys = new HashSet<string>(comparer);
-            foreach(var n in numbers)
+            foreach (var n in numbers)
             {
                 keys.Add(GetKey(n, randomCase));
             }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             if (randomCase)
             {
-                bool upper = randomCaseGenerator.Next(2) == 0;
+                bool upper = _randomCaseGenerator.Next(2) == 0;
                 return (upper ? "AA" : "aa") + Right2Chars(number.ToString());
             }
             else

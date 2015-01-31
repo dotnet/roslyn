@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -188,7 +187,6 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -259,7 +257,6 @@ namespace Microsoft.CodeAnalysis
                         messageProvider.ReportParameterNotValidForType(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position);
                         hasErrors = true;
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -315,7 +312,6 @@ namespace Microsoft.CodeAnalysis
                         messageProvider.ReportParameterNotValidForType(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position);
                         hasErrors = true;
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -378,7 +374,6 @@ namespace Microsoft.CodeAnalysis
                         messageProvider.ReportParameterNotValidForType(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position);
                         hasErrors = true;
                         break;
-
                         // other parameters ignored with no error
                 }
 

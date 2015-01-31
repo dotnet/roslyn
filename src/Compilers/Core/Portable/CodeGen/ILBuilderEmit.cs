@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         internal void AdjustStack(int stackAdjustment)
         {
-            this.emitState.AdjustStack(stackAdjustment);
+            _emitState.AdjustStack(stackAdjustment);
         }
 
         internal bool IsStackEmpty
         {
-            get { return this.emitState.CurStack == 0; }
+            get { return _emitState.CurStack == 0; }
         }
 
         internal void EmitOpCode(ILOpCode code)
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             WriteOpCode(this.GetCurrentStream(), code);
 
-            this.emitState.AdjustStack(stackAdjustment);
-            this.emitState.InstructionAdded();
+            _emitState.AdjustStack(stackAdjustment);
+            _emitState.InstructionAdded();
         }
 
         internal void EmitToken(string value)
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //the evaluation stack at X be empty.          
 
             LabelInfo labelInfo;
-            if (labelInfos.TryGetValue(label, out labelInfo))
+            if (_labelInfos.TryGetValue(label, out labelInfo))
             {
                 Debug.Assert(labelInfo.bb == null, "duplicate use of a label");
                 int labelStack = labelInfo.stack;
 
-                var curStack = this.emitState.CurStack;
+                var curStack = _emitState.CurStack;
 
                 // we have already seen a branch to this label so we know its stack.
                 // Now we will require that fallthrough must agree with that stack value.
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // even though we do not know yet what is reachable.
                 Debug.Assert(curStack == labelStack, "forward branches and fallthrough must agree on stack depth");
 
-                labelInfos[label] = labelInfo.WithNewTarget(block);
+                _labelInfos[label] = labelInfo.WithNewTarget(block);
             }
             else
             {
@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // so label will assume current value and all other branches to this label 
                 // will have to agree on that for consistency.
 
-                var curStack = this.emitState.CurStack;
-                labelInfos[label] = new LabelInfo(block, curStack, false);
+                var curStack = _emitState.CurStack;
+                _labelInfos[label] = new LabelInfo(block, curStack, false);
             }
 
-            this.instructionCountAtLastLabel = this.emitState.InstructionsEmitted;
+            _instructionCountAtLastLabel = _emitState.InstructionsEmitted;
         }
 
         internal void EmitBranch(ILOpCode code, object label, ILOpCode revOpCode = ILOpCode.Nop)
@@ -132,31 +132,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranchToLabel());
             Debug.Assert(!code.HasVariableStackBehavior());
 
-            this.emitState.AdjustStack(code.NetStackBehavior());
+            _emitState.AdjustStack(code.NetStackBehavior());
 
             bool isConditional = code.IsConditionalBranch();
 
             LabelInfo labelInfo;
-            if (!labelInfos.TryGetValue(label, out labelInfo))
+            if (!_labelInfos.TryGetValue(label, out labelInfo))
             {
-                labelInfos.Add(label, new LabelInfo(this.emitState.CurStack, isConditional));
+                _labelInfos.Add(label, new LabelInfo(_emitState.CurStack, isConditional));
             }
             else
             {
-                Debug.Assert(labelInfo.stack == this.emitState.CurStack, "branches to same label with different stacks");
+                Debug.Assert(labelInfo.stack == _emitState.CurStack, "branches to same label with different stacks");
             }
 
             var block = this.GetCurrentBlock();
 
             // If this is a special block at the end of an exception handler,
             // the branch should be to the block itself.
-            Debug.Assert((code != ILOpCode.Nop) || (block == labelInfos[label].bb));
+            Debug.Assert((code != ILOpCode.Nop) || (block == _labelInfos[label].bb));
 
             block.SetBranch(label, code, revOpCode);
 
             if (code != ILOpCode.Nop)
             {
-                this.emitState.InstructionAdded();
+                _emitState.InstructionAdded();
             }
 
             this.EndBlock();
@@ -231,15 +231,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Method to emit the virtual switch instruction
         internal void EmitSwitch(object[] labels)
         {
-            this.emitState.AdjustStack(-1);
-            int curStack = this.emitState.CurStack;
+            _emitState.AdjustStack(-1);
+            int curStack = _emitState.CurStack;
 
             foreach (object label in labels)
             {
                 LabelInfo ld;
-                if (!labelInfos.TryGetValue(label, out ld))
+                if (!_labelInfos.TryGetValue(label, out ld))
                 {
-                    labelInfos.Add(label, new LabelInfo(curStack, true));
+                    _labelInfos.Add(label, new LabelInfo(curStack, true));
                 }
                 else
                 {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     if (!ld.targetOfConditionalBranches)
                     {
-                        labelInfos[label] = ld.SetTargetOfConditionalBranches();
+                        _labelInfos[label] = ld.SetTargetOfConditionalBranches();
                     }
                 }
             }
@@ -264,13 +264,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if (!isVoid)
             {
-                this.emitState.AdjustStack(-1);
+                _emitState.AdjustStack(-1);
             }
 
             var block = this.GetCurrentBlock();
             block.SetBranchCode(ILOpCode.Ret);
 
-            this.emitState.InstructionAdded();
+            _emitState.InstructionAdded();
             this.EndBlock();
         }
 
@@ -284,10 +284,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             else
             {
                 block.SetBranchCode(ILOpCode.Throw);
-                this.emitState.AdjustStack(-1);
+                _emitState.AdjustStack(-1);
             }
 
-            this.emitState.InstructionAdded();
+            _emitState.InstructionAdded();
             this.EndBlock();
         }
 

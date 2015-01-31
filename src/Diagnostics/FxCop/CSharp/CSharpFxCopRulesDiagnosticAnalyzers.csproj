@@ -15,7 +15,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">

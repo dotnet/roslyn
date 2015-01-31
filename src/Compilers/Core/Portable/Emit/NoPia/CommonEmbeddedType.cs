@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             public readonly TEmbeddedTypesManager TypeManager;
             public readonly TNamedTypeSymbol UnderlyingNamedType;
 
-            private ImmutableArray<Cci.IFieldDefinition> lazyFields;
-            private ImmutableArray<Cci.IMethodDefinition> lazyMethods;
-            private ImmutableArray<Cci.IPropertyDefinition> lazyProperties;
-            private ImmutableArray<Cci.IEventDefinition> lazyEvents;
-            private ImmutableArray<TAttributeData> lazyAttributes;
-            private int lazyAssemblyRefIndex = -1;
+            private ImmutableArray<Cci.IFieldDefinition> _lazyFields;
+            private ImmutableArray<Cci.IMethodDefinition> _lazyMethods;
+            private ImmutableArray<Cci.IPropertyDefinition> _lazyProperties;
+            private ImmutableArray<Cci.IEventDefinition> _lazyEvents;
+            private ImmutableArray<TAttributeData> _lazyAttributes;
+            private int _lazyAssemblyRefIndex = -1;
 
             protected CommonEmbeddedType(TEmbeddedTypesManager typeManager, TNamedTypeSymbol underlyingNamedType)
             {
@@ -210,12 +210,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    if (this.lazyAssemblyRefIndex == -1)
+                    if (_lazyAssemblyRefIndex == -1)
                     {
-                        this.lazyAssemblyRefIndex = GetAssemblyRefIndex();
-                        Debug.Assert(this.lazyAssemblyRefIndex >= 0);
+                        _lazyAssemblyRefIndex = GetAssemblyRefIndex();
+                        Debug.Assert(_lazyAssemblyRefIndex >= 0);
                     }
-                    return this.lazyAssemblyRefIndex;
+                    return _lazyAssemblyRefIndex;
                 }
             }
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    if (lazyEvents.IsDefault)
+                    if (_lazyEvents.IsDefault)
                     {
                         Debug.Assert(TypeManager.IsFrozen);
 
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             }
                         }
 
-                        ImmutableInterlocked.InterlockedInitialize(ref lazyEvents, builder.ToImmutableAndFree());
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyEvents, builder.ToImmutableAndFree());
                     }
 
-                    return lazyEvents;
+                    return _lazyEvents;
                 }
             }
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(EmitContext context)
             {
-                if (lazyFields.IsDefault)
+                if (_lazyFields.IsDefault)
                 {
                     Debug.Assert(TypeManager.IsFrozen);
 
@@ -282,10 +282,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         }
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyFields, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, builder.ToImmutableAndFree());
                 }
 
-                return lazyFields;
+                return _lazyFields;
             }
 
             IEnumerable<Cci.IGenericTypeParameter> Cci.ITypeDefinition.GenericParameters
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
             {
-                if (lazyMethods.IsDefault)
+                if (_lazyMethods.IsDefault)
                 {
                     Debug.Assert(TypeManager.IsFrozen);
 
@@ -464,10 +464,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         }
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyMethods, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyMethods, builder.ToImmutableAndFree());
                 }
 
-                return lazyMethods;
+                return _lazyMethods;
             }
 
             IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(EmitContext context)
             {
-                if (lazyProperties.IsDefault)
+                if (_lazyProperties.IsDefault)
                 {
                     Debug.Assert(TypeManager.IsFrozen);
 
@@ -493,10 +493,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         }
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyProperties, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyProperties, builder.ToImmutableAndFree());
                 }
 
-                return lazyProperties;
+                return _lazyProperties;
             }
 
             IEnumerable<Cci.SecurityAttribute> Cci.ITypeDefinition.SecurityAttributes
@@ -518,12 +518,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
-                if (this.lazyAttributes.IsDefault)
+                if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
-                    if (ImmutableInterlocked.InterlockedInitialize(ref this.lazyAttributes, attributes))
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
                         // Save any diagnostics that we encountered.
                         context.Diagnostics.AddRange(diagnostics);
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     diagnostics.Free();
                 }
 
-                return this.lazyAttributes;
+                return _lazyAttributes;
             }
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

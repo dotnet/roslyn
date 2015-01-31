@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         //
         // Note: we use a case insensitive comparer so that we can quickly lookup if we know a name
         // regardless of its case.
-        private readonly Dictionary<string, object> map = new Dictionary<string, object>(
+        private readonly Dictionary<string, object> _map = new Dictionary<string, object>(
             StringComparer.OrdinalIgnoreCase);
 
         public IdentifierCollection()
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(identifier != null);
 
             object value;
-            if (!map.TryGetValue(identifier, out value))
+            if (!_map.TryGetValue(identifier, out value))
             {
                 AddInitialSpelling(identifier);
             }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                     var set = new HashSet<string>();
                     set.Add(identifier);
                     set.Add((string)value);
-                    map[identifier] = set;
+                    _map[identifier] = set;
                 }
             }
             else
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         {
             // We didn't have any spellings for this word already.  Just
             // add the word as the single known spelling.
-            map.Add(identifier, identifier);
+            _map.Add(identifier, identifier);
         }
 
         public bool ContainsIdentifier(string identifier, bool caseSensitive)
@@ -109,13 +109,13 @@ namespace Microsoft.CodeAnalysis
             // Simple case.  Just check if we've mapped this word to 
             // anything.  The map will take care of the case insensitive
             // lookup for us.
-            return map.ContainsKey(identifier);
+            return _map.ContainsKey(identifier);
         }
 
         private bool CaseSensitiveContains(string identifier)
         {
             object spellings;
-            if (map.TryGetValue(identifier, out spellings))
+            if (_map.TryGetValue(identifier, out spellings))
             {
                 if (spellings is string)
                 {

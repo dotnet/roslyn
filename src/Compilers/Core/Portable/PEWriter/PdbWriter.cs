@@ -32,28 +32,28 @@ namespace Microsoft.Cci
         internal const uint HiddenLocalAttributesValue = 1u;
         internal const uint DefaultLocalAttributesValue = 0u;
 
-        private static Type lazyCorSymWriterSxSType;
+        private static Type s_lazyCorSymWriterSxSType;
 
-        private readonly ComStreamWrapper stream;
-        private readonly string fileName;
-        private readonly Func<object> symWriterFactory;
-        private MetadataWriter metadataWriter;
-        private ISymUnmanagedWriter2 symWriter;
+        private readonly ComStreamWrapper _stream;
+        private readonly string _fileName;
+        private readonly Func<object> _symWriterFactory;
+        private MetadataWriter _metadataWriter;
+        private ISymUnmanagedWriter2 _symWriter;
 
-        private readonly Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter> documentMap = new Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter>();
+        private readonly Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter> _documentMap = new Dictionary<DebugSourceDocument, ISymUnmanagedDocumentWriter>();
 
         // sequence point buffers:
-        private uint[] sequencePointOffsets;
-        private uint[] sequencePointStartLines;
-        private uint[] sequencePointStartColumns;
-        private uint[] sequencePointEndLines;
-        private uint[] sequencePointEndColumns;
+        private uint[] _sequencePointOffsets;
+        private uint[] _sequencePointStartLines;
+        private uint[] _sequencePointStartColumns;
+        private uint[] _sequencePointEndLines;
+        private uint[] _sequencePointEndColumns;
 
         public PdbWriter(string fileName, Stream stream, Func<object> symWriterFactory = null)
         {
-            this.stream = new ComStreamWrapper(stream);
-            this.fileName = fileName;
-            this.symWriterFactory = symWriterFactory;
+            _stream = new ComStreamWrapper(stream);
+            _fileName = fileName;
+            _symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
         }
 
@@ -72,8 +72,8 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter?.Close();
-                this.symWriter = null;
+                _symWriter?.Close();
+                _symWriter = null;
             }
             catch (Exception ex)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.Cci
 
         public void SerializeDebugInfo(IMethodBody methodBody, uint localSignatureToken, CustomDebugInfoWriter customDebugInfoWriter)
         {
-            Debug.Assert(metadataWriter != null);
+            Debug.Assert(_metadataWriter != null);
 
             bool isIterator = methodBody.StateMachineTypeName != null;
             bool emitDebugInfo = isIterator || methodBody.HasAnySequencePoints;
@@ -93,7 +93,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            uint methodToken = metadataWriter.GetMethodToken(methodBody.MethodDefinition);
+            uint methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
 
             OpenMethod(methodToken);
 
@@ -117,11 +117,10 @@ namespace Microsoft.Cci
                 {
                     if (forwardToMethod != null)
                     {
-                        string usingString = "@" + metadataWriter.GetMethodToken(forwardToMethod);
-                        Debug.Assert(!metadataWriter.IsUsingStringTooLong(usingString));
+                        string usingString = "@" + _metadataWriter.GetMethodToken(forwardToMethod);
+                        Debug.Assert(!_metadataWriter.IsUsingStringTooLong(usingString));
                         UsingNamespace(usingString, methodBody.MethodDefinition.Name);
                     }
-
                     // otherwise, the forwarding is done via custom debug info
                 }
                 else
@@ -139,13 +138,13 @@ namespace Microsoft.Cci
             {
                 SetAsyncInfo(
                     methodToken,
-                    metadataWriter.GetMethodToken(asyncDebugInfo.KickoffMethod),
+                    _metadataWriter.GetMethodToken(asyncDebugInfo.KickoffMethod),
                     asyncDebugInfo.CatchHandlerOffset,
                     asyncDebugInfo.YieldOffsets,
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var context = metadataWriter.Context;
+            var context = _metadataWriter.Context;
             var module = context.Module;
             var compilationOptions = context.ModuleBuilder.CommonCompilation.Options;
 
@@ -155,7 +154,7 @@ namespace Microsoft.Cci
                 (compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata);
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.metadataWriter.IsFullMetadata, suppressNewCustomDebugInfo, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !_metadataWriter.IsFullMetadata, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);
@@ -200,7 +199,7 @@ namespace Microsoft.Cci
                 foreach (UsedNamespaceOrType used in namespaceScope.UsedNamespaces)
                 {
                     string usingString = used.Encode();
-                    if (!metadataWriter.IsUsingStringTooLong(usingString, methodDefinition))
+                    if (!_metadataWriter.IsUsingStringTooLong(usingString, methodDefinition))
                     {
                         UsingNamespace(usingString, used.Alias);
                     }
@@ -213,7 +212,7 @@ namespace Microsoft.Cci
             foreach (ExternNamespace @extern in module.ExternNamespaces)
             {
                 string usingString = "Z" + @extern.NamespaceAlias + " " + @extern.AssemblyName;
-                if (!metadataWriter.IsUsingStringTooLong(usingString))
+                if (!_metadataWriter.IsUsingStringTooLong(usingString))
                 {
                     UsingNamespace(usingString, @extern.NamespaceAlias);
                 }
@@ -262,16 +261,16 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                uint token = metadataWriter.SerializeLocalConstantSignature(scopeConstant);
-                if (!metadataWriter.IsLocalNameTooLong(scopeConstant))
+                uint token = _metadataWriter.SerializeLocalConstantSignature(scopeConstant);
+                if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, metadataWriter.GetConstantTypeCode(scopeConstant), token);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), token);
                 }
             }
 
             foreach (ILocalDefinition scopeLocal in currentScope.Variables)
             {
-                if (!metadataWriter.IsLocalNameTooLong(scopeLocal))
+                if (!_metadataWriter.IsLocalNameTooLong(scopeLocal))
                 {
                     Debug.Assert(scopeLocal.SlotIndex >= 0);
                     DefineLocalVariable((uint)scopeLocal.SlotIndex, scopeLocal.Name, scopeLocal.PdbAttributes, localSignatureToken);
@@ -283,24 +282,24 @@ namespace Microsoft.Cci
 
         private static Type GetCorSymWriterSxSType()
         {
-            if (lazyCorSymWriterSxSType == null)
+            if (s_lazyCorSymWriterSxSType == null)
             {
                 // If an exception is thrown we propagate it - we want to report it every time. 
-                lazyCorSymWriterSxSType = Marshal.GetTypeFromCLSID(new Guid("0AE2DEB0-F901-478b-BB9F-881EE8066788"));
+                s_lazyCorSymWriterSxSType = Marshal.GetTypeFromCLSID(new Guid("0AE2DEB0-F901-478b-BB9F-881EE8066788"));
             }
 
-            return lazyCorSymWriterSxSType;
+            return s_lazyCorSymWriterSxSType;
         }
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
             try
             {
-                var instance = (ISymUnmanagedWriter2)(symWriterFactory != null ? symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), this.fileName, this.stream, true);
+                var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _stream, true);
 
-                this.metadataWriter = metadataWriter;
-                this.symWriter = instance;
+                _metadataWriter = metadataWriter;
+                _symWriter = instance;
             }
             catch (Exception ex)
             {
@@ -315,7 +314,7 @@ namespace Microsoft.Cci
 
             try
             {
-                this.symWriter.GetDebugInfo(ref debugDir, 0, out dataCount, IntPtr.Zero);
+                _symWriter.GetDebugInfo(ref debugDir, 0, out dataCount, IntPtr.Zero);
             }
             catch (Exception ex)
             {
@@ -338,7 +337,7 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    this.symWriter.GetDebugInfo(ref debugDir, dataCount, out dataCount, (IntPtr)pb);
+                    _symWriter.GetDebugInfo(ref debugDir, dataCount, out dataCount, (IntPtr)pb);
                 }
                 catch (Exception ex)
                 {
@@ -364,7 +363,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter.SetUserEntryPoint(entryMethodToken);
+                _symWriter.SetUserEntryPoint(entryMethodToken);
             }
             catch (Exception ex)
             {
@@ -375,7 +374,7 @@ namespace Microsoft.Cci
         private ISymUnmanagedDocumentWriter GetDocumentWriter(DebugSourceDocument document)
         {
             ISymUnmanagedDocumentWriter writer;
-            if (!this.documentMap.TryGetValue(document, out writer))
+            if (!_documentMap.TryGetValue(document, out writer))
             {
                 Guid language = document.Language;
                 Guid vendor = document.LanguageVendor;
@@ -383,14 +382,14 @@ namespace Microsoft.Cci
 
                 try
                 {
-                    writer = this.symWriter.DefineDocument(document.Location, ref language, ref vendor, ref type);
+                    writer = _symWriter.DefineDocument(document.Location, ref language, ref vendor, ref type);
                 }
                 catch (Exception ex)
                 {
                     throw new PdbWritingException(ex);
                 }
 
-                this.documentMap.Add(document, writer);
+                _documentMap.Add(document, writer);
 
                 var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
                 if (!checksumAndAlgorithm.Item1.IsDefault)
@@ -413,8 +412,8 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter.OpenMethod(methodToken);
-                this.symWriter.OpenScope(0);
+                _symWriter.OpenMethod(methodToken);
+                _symWriter.OpenScope(0);
             }
             catch (Exception ex)
             {
@@ -426,7 +425,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter.CloseMethod();
+                _symWriter.CloseMethod();
             }
             catch (Exception ex)
             {
@@ -438,7 +437,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter.OpenScope(offset);
+                _symWriter.OpenScope(offset);
             }
             catch (Exception ex)
             {
@@ -450,7 +449,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter.CloseScope(offset);
+                _symWriter.CloseScope(offset);
             }
             catch (Exception ex)
             {
@@ -462,7 +461,7 @@ namespace Microsoft.Cci
         {
             try
             {
-                this.symWriter.UsingNamespace(fullName);
+                _symWriter.UsingNamespace(fullName);
             }
             catch (Exception ex)
             {
@@ -472,21 +471,21 @@ namespace Microsoft.Cci
 
         private void CreateSequencePointBuffers(int capacity)
         {
-            this.sequencePointOffsets = new uint[capacity];
-            this.sequencePointStartLines = new uint[capacity];
-            this.sequencePointStartColumns = new uint[capacity];
-            this.sequencePointEndLines = new uint[capacity];
-            this.sequencePointEndColumns = new uint[capacity];
+            _sequencePointOffsets = new uint[capacity];
+            _sequencePointStartLines = new uint[capacity];
+            _sequencePointStartColumns = new uint[capacity];
+            _sequencePointEndLines = new uint[capacity];
+            _sequencePointEndColumns = new uint[capacity];
         }
 
         private void ResizeSequencePointBuffers()
         {
-            int newCapacity = (sequencePointOffsets.Length + 1) * 2;
-            Array.Resize(ref sequencePointOffsets, newCapacity);
-            Array.Resize(ref sequencePointStartLines, newCapacity);
-            Array.Resize(ref sequencePointStartColumns, newCapacity);
-            Array.Resize(ref sequencePointEndLines, newCapacity);
-            Array.Resize(ref sequencePointEndColumns, newCapacity);
+            int newCapacity = (_sequencePointOffsets.Length + 1) * 2;
+            Array.Resize(ref _sequencePointOffsets, newCapacity);
+            Array.Resize(ref _sequencePointStartLines, newCapacity);
+            Array.Resize(ref _sequencePointStartColumns, newCapacity);
+            Array.Resize(ref _sequencePointEndLines, newCapacity);
+            Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
         private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
@@ -511,16 +510,16 @@ namespace Microsoft.Cci
                     i = 0;
                 }
 
-                if (i == sequencePointOffsets.Length)
+                if (i == _sequencePointOffsets.Length)
                 {
                     ResizeSequencePointBuffers();
                 }
 
-                this.sequencePointOffsets[i] = (uint)sequencePoint.Offset;
-                this.sequencePointStartLines[i] = (uint)sequencePoint.StartLine;
-                this.sequencePointStartColumns[i] = (uint)sequencePoint.StartColumn;
-                this.sequencePointEndLines[i] = (uint)sequencePoint.EndLine;
-                this.sequencePointEndColumns[i] = (uint)sequencePoint.EndColumn;
+                _sequencePointOffsets[i] = (uint)sequencePoint.Offset;
+                _sequencePointStartLines[i] = (uint)sequencePoint.StartLine;
+                _sequencePointStartColumns[i] = (uint)sequencePoint.StartColumn;
+                _sequencePointEndLines[i] = (uint)sequencePoint.EndLine;
+                _sequencePointEndColumns[i] = (uint)sequencePoint.EndColumn;
                 i++;
             }
 
@@ -534,14 +533,14 @@ namespace Microsoft.Cci
         {
             try
             {
-                symWriter.DefineSequencePoints(
+                _symWriter.DefineSequencePoints(
                     symDocument,
                     (uint)count,
-                    sequencePointOffsets,
-                    sequencePointStartLines,
-                    sequencePointStartColumns,
-                    sequencePointEndLines,
-                    sequencePointEndColumns);
+                    _sequencePointOffsets,
+                    _sequencePointStartLines,
+                    _sequencePointStartColumns,
+                    _sequencePointEndLines,
+                    _sequencePointEndColumns);
             }
             catch (Exception ex)
             {
@@ -556,7 +555,7 @@ namespace Microsoft.Cci
                 try
                 {
                     // parent parameter is not used, it must be zero or the current method token passed to OpenMetod.
-                    this.symWriter.SetSymAttribute(0, name, (uint)metadata.Length, (IntPtr)pb);
+                    _symWriter.SetSymAttribute(0, name, (uint)metadata.Length, (IntPtr)pb);
                 }
                 catch (Exception ex)
                 {
@@ -586,13 +585,13 @@ namespace Microsoft.Cci
                 // number of days since 1899/12/30.  However, ConstantValue::VariantFromConstant in the native VB
                 // compiler actually created a variant with type VT_DATE and value equal to the tick count.
                 // http://blogs.msdn.com/b/ericlippert/archive/2003/09/16/eric-s-complete-guide-to-vt-date.aspx
-                this.symWriter.DefineConstant2(name, new VariantStructure((DateTime)value), constantSignatureToken);
+                _symWriter.DefineConstant2(name, new VariantStructure((DateTime)value), constantSignatureToken);
             }
             else
             {
                 try
                 {
-                    this.symWriter.DefineConstant2(name, value, constantSignatureToken);
+                    _symWriter.DefineConstant2(name, value, constantSignatureToken);
                 }
                 catch (Exception ex)
                 {
@@ -619,7 +618,7 @@ namespace Microsoft.Cci
 
             try
             {
-                this.symWriter.DefineConstant2(name, value, constantSignatureToken);
+                _symWriter.DefineConstant2(name, value, constantSignatureToken);
             }
             catch (ArgumentException)
             {
@@ -643,7 +642,7 @@ namespace Microsoft.Cci
             const uint ADDR_IL_OFFSET = 1;
             try
             {
-                this.symWriter.DefineLocalVariable2(name, attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
+                _symWriter.DefineLocalVariable2(name, attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
             }
             catch (Exception ex)
             {
@@ -658,7 +657,7 @@ namespace Microsoft.Cci
             ImmutableArray<int> yieldOffsets,
             ImmutableArray<int> resumeOffsets)
         {
-            var asyncMethodPropertyWriter = symWriter as ISymUnmanagedAsyncMethodPropertiesWriter;
+            var asyncMethodPropertyWriter = _symWriter as ISymUnmanagedAsyncMethodPropertiesWriter;
             if (asyncMethodPropertyWriter != null)
             {
                 Debug.Assert(yieldOffsets.IsEmpty == resumeOffsets.IsEmpty);
@@ -704,7 +703,7 @@ namespace Microsoft.Cci
 
         public void WriteDefinitionLocations(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {
-            var writer5 = this.symWriter as ISymUnmanagedWriter5;
+            var writer5 = _symWriter as ISymUnmanagedWriter5;
 
             if ((object)writer5 != null)
             {
@@ -731,7 +730,7 @@ namespace Microsoft.Cci
                             open = true;
                         }
 
-                        uint token = metadataWriter.GetTokenForDefinition(definition.Definition);
+                        uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
                         Debug.Assert(token != 0);
 
                         try
@@ -759,7 +758,6 @@ namespace Microsoft.Cci
                 }
             }
         }
-
         #endregion
     }
 }

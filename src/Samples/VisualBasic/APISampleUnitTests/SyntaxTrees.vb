@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
@@ -23,7 +23,7 @@ End Class
         Dim compilationUnit = CType(tree.GetRoot(), CompilationUnitSyntax)
         Dim typeBlock = CType(compilationUnit.Members(0), TypeBlockSyntax)
         Dim methodBlock = CType(typeBlock.Members(0), MethodBlockSyntax)
-        Dim parameter = methodBlock.Begin.ParameterList.Parameters(0)
+        Dim parameter = methodBlock.SubOrFunctionStatement.ParameterList.Parameters(0)
         Dim parameterName = parameter.Identifier.Identifier
         Assert.AreEqual("i", parameterName.ValueText)
     End Sub
@@ -55,13 +55,13 @@ End Class
 
         Dim tree = SyntaxFactory.ParseSyntaxTree(code)
         Dim root = CType(tree.GetRoot(), CompilationUnitSyntax)
-        Dim method = CType(root.DescendantNodes().OfType(Of MethodBlockSyntax)().First().Begin, MethodStatementSyntax)
+        Dim method = CType(root.DescendantNodes().OfType(Of MethodBlockSyntax)().First().SubOrFunctionStatement, MethodStatementSyntax)
 
         Dim newMethod = method.Update(
             method.Kind,
             method.AttributeLists,
             method.Modifiers,
-            method.Keyword,
+            method.SubOrFunctionKeyword,
             SyntaxFactory.Identifier("NewMethodName"),
             method.TypeParameterList,
             method.ParameterList,
@@ -89,17 +89,17 @@ End Class
         Private ReadOnly sb As New StringBuilder()
 
         Public Overrides Sub VisitClassStatement(node As ClassStatementSyntax)
-            sb.AppendLine(node.Keyword.ValueText & " " & node.Identifier.ValueText)
+            sb.AppendLine(node.ClassKeyword.ValueText & " " & node.Identifier.ValueText)
             MyBase.VisitClassStatement(node)
         End Sub
 
         Public Overrides Sub VisitStructureStatement(node As StructureStatementSyntax)
-            sb.AppendLine(node.Keyword.ValueText & " " & node.Identifier.ValueText)
+            sb.AppendLine(node.StructureKeyword.ValueText & " " & node.Identifier.ValueText)
             MyBase.VisitStructureStatement(node)
         End Sub
 
         Public Overrides Sub VisitInterfaceStatement(node As InterfaceStatementSyntax)
-            sb.AppendLine(node.Keyword.ValueText & " " & node.Identifier.ValueText)
+            sb.AppendLine(node.InterfaceKeyword.ValueText & " " & node.Identifier.ValueText)
             MyBase.VisitInterfaceStatement(node)
         End Sub
 

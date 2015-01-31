@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 {
     internal static class FileStreamLightUp
     {
-        private static Lazy<Func<string, Stream>> lazyFileOpenStreamMethod = new Lazy<Func<string, Stream>>(() =>
+        private static Lazy<Func<string, Stream>> s_lazyFileOpenStreamMethod = new Lazy<Func<string, Stream>>(() =>
         {
             Type file;
             try
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 
         internal static Stream OpenFileStream(string path)
         {
-            var factory = lazyFileOpenStreamMethod.Value;
+            var factory = s_lazyFileOpenStreamMethod.Value;
             if (factory == null)
             {
                 throw new PlatformNotSupportedException();

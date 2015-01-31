@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetTypeIdentifierToken(node As VisualBasicSyntaxNode) As SyntaxToken
             Select Case node.Kind
                 Case SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, TypeBlockSyntax).Begin.Identifier
+                    Return DirectCast(node, TypeBlockSyntax).BlockStatement.Identifier
 
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(node, EnumBlockSyntax).EnumStatement.Identifier
@@ -401,29 +401,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     err = ERRID.ERR_BadModuleFlags1
                     allowableModifiers = SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Partial
                     typeBlock = DirectCast(node, TypeBlockSyntax)
-                    modifiers = typeBlock.Begin.Modifiers
-                    id = typeBlock.Begin.Identifier
+                    modifiers = typeBlock.BlockStatement.Modifiers
+                    id = typeBlock.BlockStatement.Identifier
 
                 Case SyntaxKind.ClassBlock
                     err = ERRID.ERR_BadClassFlags1
                     allowableModifiers = SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Shadows Or SourceMemberFlags.MustInherit Or SourceMemberFlags.NotInheritable Or SourceMemberFlags.Partial
                     typeBlock = DirectCast(node, TypeBlockSyntax)
-                    modifiers = typeBlock.Begin.Modifiers
-                    id = typeBlock.Begin.Identifier
+                    modifiers = typeBlock.BlockStatement.Modifiers
+                    id = typeBlock.BlockStatement.Identifier
 
                 Case SyntaxKind.StructureBlock
                     err = ERRID.ERR_BadRecordFlags1
                     allowableModifiers = SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Shadows Or SourceMemberFlags.Partial
                     typeBlock = DirectCast(node, TypeBlockSyntax)
-                    modifiers = typeBlock.Begin.Modifiers
-                    id = typeBlock.Begin.Identifier
+                    modifiers = typeBlock.BlockStatement.Modifiers
+                    id = typeBlock.BlockStatement.Identifier
 
                 Case SyntaxKind.InterfaceBlock
                     err = ERRID.ERR_BadInterfaceFlags1
                     allowableModifiers = SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Shadows Or SourceMemberFlags.Partial
                     typeBlock = DirectCast(node, TypeBlockSyntax)
-                    modifiers = typeBlock.Begin.Modifiers
-                    id = typeBlock.Begin.Identifier
+                    modifiers = typeBlock.BlockStatement.Modifiers
+                    id = typeBlock.BlockStatement.Identifier
 
                 Case SyntaxKind.EnumBlock
                     err = ERRID.ERR_BadEnumFlags1
@@ -647,7 +647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     modifiers = DirectCast(node, EnumBlockSyntax).EnumStatement.Modifiers
                 Case SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock,
                     SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
-                    modifiers = DirectCast(node, TypeBlockSyntax).Begin.Modifiers
+                    modifiers = DirectCast(node, TypeBlockSyntax).BlockStatement.Modifiers
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
@@ -931,7 +931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function GetTypeParameterListSyntax(syntax As VisualBasicSyntaxNode) As TypeParameterListSyntax
             Select Case syntax.Kind
                 Case SyntaxKind.StructureBlock, SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock
-                    Return DirectCast(syntax, TypeBlockSyntax).Begin.TypeParameterList
+                    Return DirectCast(syntax, TypeBlockSyntax).BlockStatement.TypeParameterList
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Return DirectCast(syntax, DelegateStatementSyntax).TypeParameterList
                 Case Else

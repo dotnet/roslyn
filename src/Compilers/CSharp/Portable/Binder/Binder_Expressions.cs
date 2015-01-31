@@ -4336,7 +4336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)leftSymbol != null)
                 {
-                    TypeSymbol leftType;
                     switch (leftSymbol.Kind)
                     {
                         case SymbolKind.Field:
@@ -4344,32 +4343,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SymbolKind.Parameter:
                         case SymbolKind.Property:
                         case SymbolKind.RangeVariable:
-                            leftType = boundValue.Type;
+                            var leftType = boundValue.Type;
+                            Debug.Assert((object)leftType != null);
+                            
+                            var leftName = node.Identifier.ValueText;
+                            if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
+                            {
+                                var typeDiagnostics = new DiagnosticBag();
+                                var boundType = BindNamespaceOrType(node, typeDiagnostics);
+                                if (boundType.Type == leftType)
+                                {
+                                    // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
+                                    var newValueDiagnostics = new DiagnosticBag();
+                                    newValueDiagnostics.AddRangeAndFree(valueDiagnostics);
+
+                                    return new BoundTypeOrValueExpression(left, new BoundTypeOrValueData(leftSymbol, boundValue, newValueDiagnostics, boundType, typeDiagnostics), leftType);
+                                }
+                            }
                             break;
 
                         // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
-
-                        default:
-                            // Not a Color Color case. Return the bound member.
-                            goto notColorColor;
-                    }
-
-                    Debug.Assert((object)leftType != null);
-
-                    var leftName = node.Identifier.ValueText;
-                    if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
-                    {
-                        var typeDiagnostics = DiagnosticBag.GetInstance();
-                        var boundType = BindNamespaceOrType(node, typeDiagnostics);
-                        if (boundType.Type == leftType)
-                        {
-                            // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
-                            return new BoundTypeOrValueExpression(left, leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree(), leftType);
-                        }
                     }
                 }
 
-                notColorColor:
+                // Not a Color Color case; return the bound member.
                 // NOTE: it is up to the caller to call CheckValue on the result.
                 diagnostics.AddRangeAndFree(valueDiagnostics);
                 return boundValue;
@@ -5933,7 +5930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                     // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                     bool inStaticContext;
-                    bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                    bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                     receiverOpt = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
                 }
@@ -6313,7 +6310,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Assume result type of the access is void when result value isn't used and cannot be made nullable.
                 // We are not doing this for types that can be made nullable to still allow expression evaluator to 
                 // to get the value.
-                if (node.Parent?.Kind() == SyntaxKind.ExpressionStatement)
+                bool resultIsNotUsed = false;
+                CSharpSyntaxNode child = node;
+                CSharpSyntaxNode parent = child.Parent;
+
+                // Skip through parenthesis
+                while (parent != null && parent.Kind() == SyntaxKind.ParenthesizedExpression)
+                {
+                    child = parent;
+                    parent = child.Parent;
+                }
+
+                if (parent != null)
+                {
+                    switch (parent.Kind())
+                    {
+                        case SyntaxKind.ExpressionStatement:
+                            resultIsNotUsed = ((ExpressionStatementSyntax)parent).Expression == child;
+                            break;
+
+                        case SyntaxKind.SimpleLambdaExpression:
+                            resultIsNotUsed = (((SimpleLambdaExpressionSyntax)parent).Body == child) && ContainingMethodOrLambdaReturnsVoid();
+                            break;
+
+                        case SyntaxKind.ParenthesizedLambdaExpression:
+                            resultIsNotUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body == child) && ContainingMethodOrLambdaReturnsVoid();
+                            break;
+
+                        case SyntaxKind.ArrowExpressionClause:
+                            resultIsNotUsed = (((ArrowExpressionClauseSyntax)parent).Expression == child) && ContainingMethodOrLambdaReturnsVoid();
+                            break;
+
+                        case SyntaxKind.ForStatement:
+                            // Incrementors and Initializers doesn't have to produce a value
+                            var loop = (ForStatementSyntax)parent;
+                            resultIsNotUsed = loop.Incrementors.Contains(child) || loop.Initializers.Contains(child);
+                            break;
+                    }
+                }
+
+                if (resultIsNotUsed)
                 {
                     accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
                 }
@@ -6330,6 +6366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConditionalAccess(node, receiver, access, accessType);
+        }
+
+        private bool ContainingMethodOrLambdaReturnsVoid()
+        {
+            Symbol containingMember = ContainingMemberOrLambda;
+            return (object)containingMember != null && containingMember.Kind == SymbolKind.Method && ((MethodSymbol)containingMember).ReturnsVoid;
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, DiagnosticBag diagnostics)

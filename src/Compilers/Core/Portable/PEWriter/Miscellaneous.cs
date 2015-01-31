@@ -89,23 +89,23 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct SecurityAttribute
     {
-        private readonly SecurityAction action;
-        private readonly ICustomAttribute attribute;
+        private readonly SecurityAction _action;
+        private readonly ICustomAttribute _attribute;
 
         public SecurityAttribute(SecurityAction action, ICustomAttribute attribute)
         {
-            this.attribute = attribute;
-            this.action = action;
+            _attribute = attribute;
+            _action = action;
         }
 
         public SecurityAction Action
         {
-            get { return action; }
+            get { return _action; }
         }
 
         public ICustomAttribute Attribute
         {
-            get { return attribute; }
+            get { return _attribute; }
         }
     }
 
@@ -306,7 +306,6 @@ namespace Microsoft.Cci
         string TypeName
         {
             get;
-
             // ^ requires this.TypeId < 0;
         }
 
@@ -324,7 +323,6 @@ namespace Microsoft.Cci
         string Name
         {
             get;
-
             // ^ requires this.Id < 0; 
         }
 

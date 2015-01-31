@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis
         {
             throw new NotImplementedException();
         }
-
-        #endregion  
+        #endregion
     }
 }

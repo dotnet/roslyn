@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class DllImportData : Cci.IPlatformInvokeInformation
     {
-        private readonly string moduleName;
-        private readonly string entryPointName;            // null if unspecified, the name of the target method should be used
-        private readonly Cci.PInvokeAttributes flags;
+        private readonly string _moduleName;
+        private readonly string _entryPointName;            // null if unspecified, the name of the target method should be used
+        private readonly Cci.PInvokeAttributes _flags;
 
         internal DllImportData(string moduleName, string entryPointName, Cci.PInvokeAttributes flags)
         {
-            this.moduleName = moduleName;
-            this.entryPointName = entryPointName;
-            this.flags = flags;
+            _moduleName = moduleName;
+            _entryPointName = entryPointName;
+            _flags = flags;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string ModuleName
         {
-            get { return moduleName; }
+            get { return _moduleName; }
         }
 
         /// <summary>
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string EntryPointName
         {
-            get { return entryPointName; }
+            get { return _entryPointName; }
         }
 
         Cci.PInvokeAttributes Cci.IPlatformInvokeInformation.Flags
         {
-            get { return flags; }
+            get { return _flags; }
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (flags & Cci.PInvokeAttributes.NoMangle) != 0;
+                return (_flags & Cci.PInvokeAttributes.NoMangle) != 0;
             }
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                switch (flags & Cci.PInvokeAttributes.CharSetMask)
+                switch (_flags & Cci.PInvokeAttributes.CharSetMask)
                 {
                     case Cci.PInvokeAttributes.CharSetAnsi:
                         return CharSet.Ansi;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                         return Cci.Constants.CharSet_None;
                 }
 
-                throw ExceptionUtilities.UnexpectedValue(flags);
+                throw ExceptionUtilities.UnexpectedValue(_flags);
             }
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (flags & Cci.PInvokeAttributes.SupportsLastError) != 0;
+                return (_flags & Cci.PInvokeAttributes.SupportsLastError) != 0;
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                switch (flags & Cci.PInvokeAttributes.CallConvMask)
+                switch (_flags & Cci.PInvokeAttributes.CallConvMask)
                 {
                     default:
                     case Cci.PInvokeAttributes.CallConvWinapi:
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                switch (flags & Cci.PInvokeAttributes.BestFitMask)
+                switch (_flags & Cci.PInvokeAttributes.BestFitMask)
                 {
                     case Cci.PInvokeAttributes.BestFitEnabled:
                         return true;
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                switch (flags & Cci.PInvokeAttributes.ThrowOnUnmappableCharMask)
+                switch (_flags & Cci.PInvokeAttributes.ThrowOnUnmappableCharMask)
                 {
                     case Cci.PInvokeAttributes.ThrowOnUnmappableCharEnabled:
                         return true;

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string ToString(IFormatProvider formatProvider);
 
-        public static explicit operator string(LocalizableString localizableResource)
+        public static explicit operator string (LocalizableString localizableResource)
         {
             return localizableResource.ToString(null);
         }
@@ -38,16 +38,16 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class FixedLocalizableString : LocalizableString
         {
-            private readonly string fixedString;
+            private readonly string _fixedString;
 
             public FixedLocalizableString(string fixedResource)
             {
-                this.fixedString = fixedResource;
+                _fixedString = fixedResource;
             }
 
             public override string ToString(IFormatProvider formatProvider)
             {
-                return this.fixedString;
+                return _fixedString;
             }
         }
     }

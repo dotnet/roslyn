@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             FxCopDiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            helpLink: "http://msdn.microsoft.com/library/ms182178.aspx",
+            helpLinkUri: "http://msdn.microsoft.com/library/ms182178.aspx",
             customTags: DiagnosticCustomTags.Microsoft);
 
         protected abstract AnalyzerBase GetAnalyzer(

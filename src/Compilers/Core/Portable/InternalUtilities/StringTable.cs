@@ -50,21 +50,21 @@ namespace Roslyn.Utilities
         // single threaded operations with lots of locality (like parsing).
         // Local cache is smaller (and thus faster) and is not affected
         // by cache misses on other threads.
-        private readonly Entry[] localTable = new Entry[LocalSize];
+        private readonly Entry[] _localTable = new Entry[LocalSize];
 
         // shared (L2) threadsafe cache
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static Entry[] sharedTable = new Entry[SharedSize];
+        private static Entry[] s_sharedTable = new Entry[SharedSize];
 
         // essentially a random number 
         // the usage pattern will randomly use and increment this
         // the counter is not static to avoid interlocked operations and cross-thread traffic
-        private int localRandom = Environment.TickCount;
+        private int _localRandom = Environment.TickCount;
 
         // same asabove but for users that go directly with unbuffered shared cache.
-        private static int sharedRandom = Environment.TickCount;
+        private static int s_sharedRandom = Environment.TickCount;
 
         internal StringTable() :
             this(null)
@@ -76,11 +76,11 @@ namespace Roslyn.Utilities
 
         private StringTable(ObjectPool<StringTable> pool)
         {
-            this.pool = pool;
+            _pool = pool;
         }
 
-        private readonly ObjectPool<StringTable> pool;
-        private static readonly ObjectPool<StringTable> StaticPool = CreatePool();
+        private readonly ObjectPool<StringTable> _pool;
+        private static readonly ObjectPool<StringTable> s_staticPool = CreatePool();
 
         private static ObjectPool<StringTable> CreatePool()
         {
@@ -91,7 +91,7 @@ namespace Roslyn.Utilities
 
         public static StringTable GetInstance()
         {
-            return StaticPool.Allocate();
+            return s_staticPool.Allocate();
         }
 
         public void Free()
@@ -100,7 +100,7 @@ namespace Roslyn.Utilities
             // Array.Clear(this.localTable, 0, this.localTable.Length);
             // Array.Clear(sharedTable, 0, sharedTable.Length);
 
-            pool.Free(this);
+            _pool.Free(this);
         }
 
         #endregion // Poolable
@@ -110,7 +110,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars, start, len);
 
             // capture array to avoid extra range checks
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -144,7 +144,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars, start, len);
 
             // capture array to avoid extra range checks
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -178,7 +178,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -212,7 +212,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -246,7 +246,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -279,7 +279,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -314,7 +314,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(string chars, int start, int len, int hashCode)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -349,7 +349,7 @@ namespace Roslyn.Utilities
 
         private static unsafe string FindSharedEntryASCII(int hashCode, byte* asciiChars, int length)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -384,7 +384,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(char chars, int hashCode)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -418,7 +418,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(StringBuilder chars, int hashCode)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -453,7 +453,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(string chars, int hashCode)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -499,7 +499,6 @@ namespace Roslyn.Utilities
             var text = chars.Substring(start, len);
             AddCore(chars, hashCode);
             return text;
-
         }
 
         private string AddItem(char chars, int hashCode)
@@ -523,7 +522,7 @@ namespace Roslyn.Utilities
             AddSharedEntry(hashCode, chars);
 
             // add to the local table too
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
             arr[idx].HashCode = hashCode;
             arr[idx].Text = chars;
@@ -531,7 +530,7 @@ namespace Roslyn.Utilities
 
         private void AddSharedEntry(int hashCode, string text)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             // try finding an empty spot in the bucket
@@ -616,7 +615,7 @@ namespace Roslyn.Utilities
 
         private static void AddSharedSlow(int hashCode, string text)
         {
-            var arr = sharedTable;
+            var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             // try finding an empty spot in the bucket
@@ -657,12 +656,12 @@ namespace Roslyn.Utilities
 
         private int LocalNextRandom()
         {
-            return this.localRandom++;
+            return _localRandom++;
         }
 
         private static int SharedNextRandom()
         {
-            return Interlocked.Increment(ref StringTable.sharedRandom);
+            return Interlocked.Increment(ref StringTable.s_sharedRandom);
         }
 
         internal static bool TextEquals(string array, string text, int start, int length)

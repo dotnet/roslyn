@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        DiagnosticSeverity.Warning,
                                                                        isEnabledByDefault: false,
                                                                        description: localizableDescription,
-                                                                       helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
+                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                        customTags: DiagnosticCustomTags.Microsoft.Concat(RuleRenameCustomTag).ToArray());
 
         private static LocalizableString localizableMessageRuleMultipleZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: false,
                                                                description: localizableDescription,
-                                                               helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
+                                                               helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleMultipleZeroCustomTag).ToArray());
 
         private static LocalizableString localizableMessageRuleNoZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: false,
                                                                description: localizableDescription,
-                                                               helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
+                                                               helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleNoZeroCustomTag).ToArray());
 
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(RuleRename, RuleMultipleZero, RuleNoZero);

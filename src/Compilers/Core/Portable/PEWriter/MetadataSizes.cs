@@ -11,7 +11,7 @@ namespace Microsoft.Cci
     {
         private const int StreamAlignment = 4;
 
-        private readonly bool isMinimalDelta;
+        private readonly bool _isMinimalDelta;
 
         public readonly byte BlobIndexSize;
         public readonly byte StringIndexSize;
@@ -75,10 +75,10 @@ namespace Microsoft.Cci
 
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
-            ImmutableArray<int> heapSizes, 
+            ImmutableArray<int> heapSizes,
             int ilStreamSize,
             int mappedFieldDataSize,
-            int resourceDataSize, 
+            int resourceDataSize,
             bool isMinimalDelta)
         {
             Debug.Assert(rowCounts.Length == MetadataTokens.TableCount);
@@ -92,7 +92,7 @@ namespace Microsoft.Cci
             this.ResourceDataSize = resourceDataSize;
             this.ILStreamSize = ilStreamSize;
             this.MappedFieldDataSize = mappedFieldDataSize;
-            this.isMinimalDelta = isMinimalDelta;
+            _isMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;
             this.StringIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.String] > ushort.MaxValue) ? large : small;
@@ -218,7 +218,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return this.isMinimalDelta ? 124 : 108;
+                return _isMinimalDelta ? 124 : 108;
             }
         }
 
@@ -267,7 +267,7 @@ namespace Microsoft.Cci
         private byte GetIndexByteSize(int discriminatingBits, params TableIndex[] tables)
         {
             const int BitsPerShort = 16;
-            return (byte)(isMinimalDelta || IndexDoesNotFit(BitsPerShort - discriminatingBits, tables) ? 4 : 2);
+            return (byte)(_isMinimalDelta || IndexDoesNotFit(BitsPerShort - discriminatingBits, tables) ? 4 : 2);
         }
 
         private bool IndexDoesNotFit(int numberOfBits, params TableIndex[] tables)

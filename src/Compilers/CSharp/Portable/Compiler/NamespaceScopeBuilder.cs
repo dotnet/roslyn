@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -195,12 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bool isAssemblyQualified = true;
                 var context = this.context;
-                return Microsoft.Cci.MetadataWriter.GetSerializedTypeName(
-                    context.ModuleBuilder.Translate((ITypeSymbol)symbol, context.SyntaxNodeOpt, context.Diagnostics),
-                    ref isAssemblyQualified,
-                    context);
+                return context.ModuleBuilder.Translate((ITypeSymbol)symbol, context.SyntaxNodeOpt, context.Diagnostics).GetSerializedTypeName(context);
             }
         }
 

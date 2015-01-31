@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.Instrumentation
 {
     /// <summary>

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If localForFunctionValue IsNot Nothing Then
                 ' Declare local variable for function return 
-                statements.Add(New BoundLocalDeclaration(methodBlock.Begin,
+                statements.Add(New BoundLocalDeclaration(methodBlock.BlockStatement,
                                                          localForFunctionValue,
                                                          Nothing))
             End If
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim body = blockBinder.BindBlock(methodBlock, methodBlock.Statements, diagnostics)
 
             ' Implicit label to branch to for Exit Sub/Exit Function statements.
-            Dim exitLabelStatement = New BoundLabelStatement(methodBlock.End, blockBinder.GetReturnLabel())
+            Dim exitLabelStatement = New BoundLabelStatement(methodBlock.EndBlockStatement, blockBinder.GetReturnLabel())
 
             If body IsNot Nothing Then
                 ' See if we have to generate OnError handler
@@ -296,8 +296,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If blockBinder.IsInAsyncContext() AndAlso Not blockBinder.IsInIteratorContext() AndAlso
                    Not containsAwait AndAlso Not body.HasErrors AndAlso
-                   TypeOf methodBlock.Begin Is MethodStatementSyntax Then
-                    ReportDiagnostic(diagnostics, DirectCast(methodBlock.Begin, MethodStatementSyntax).Identifier, ERRID.WRN_AsyncLacksAwaits)
+                   TypeOf methodBlock.BlockStatement Is MethodStatementSyntax Then
+                    ReportDiagnostic(diagnostics, DirectCast(methodBlock.BlockStatement, MethodStatementSyntax).Identifier, ERRID.WRN_AsyncLacksAwaits)
                 End If
 
                 If Not reportedAnError AndAlso
@@ -367,9 +367,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     locals = localBuilder.ToImmutableAndFree()
                 End If
 
-                statements.Add(New BoundReturnStatement(methodBlock.End, New BoundLocal(methodBlock.End, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type), Nothing, Nothing))
+                statements.Add(New BoundReturnStatement(methodBlock.EndBlockStatement, New BoundLocal(methodBlock.EndBlockStatement, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type), Nothing, Nothing))
             Else
-                statements.Add(New BoundReturnStatement(methodBlock.End, Nothing, Nothing, Nothing))
+                statements.Add(New BoundReturnStatement(methodBlock.EndBlockStatement, Nothing, Nothing, Nothing))
             End If
 
             Return New BoundBlock(methodBlock, If(methodBlock IsNot Nothing, methodBlock.Statements, Nothing), locals, statements.ToImmutableAndFree())
@@ -1185,7 +1185,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         errSyntax = If(asClauseOpt IsNot Nothing AndAlso Not type.IsArrayType, DirectCast(asClauseOpt.Type, VisualBasicSyntaxNode), name)
                         ReportDiagnostic(diagnostics, errSyntax, ERRID.ERR_ConstAsNonConstant)
                     Else
-                        diagnostics.AddRange(symbol.GetConstantValueDiagnostics(Me))
+                        Dim bag = symbol.GetConstantValueDiagnostics(Me)
+                        If bag IsNot Nothing Then
+                            diagnostics.AddRange(bag)
+                        End If
                     End If
                 End If
             End If
@@ -4767,7 +4770,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        errorLineNumberOpt:=Nothing,
                                        exceptionFilterOpt:=exceptionFilter,
                                        body:=block,
-                                       hasErrors:=hasError)
+                                       hasErrors:=hasError,
+                                       isSynthesizedAsyncCatchAll:=False)
         End Function
 
 

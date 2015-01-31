@@ -9,13 +9,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal sealed class ManagedResource 
+    internal sealed class ManagedResource
     {
-        private readonly Func<Stream> streamProvider;
-        private readonly IFileReference fileReference;
-        private readonly uint offset;
-        private readonly string name;
-        private readonly bool isPublic;
+        private readonly Func<Stream> _streamProvider;
+        private readonly IFileReference _fileReference;
+        private readonly uint _offset;
+        private readonly string _name;
+        private readonly bool _isPublic;
 
         /// <summary>
         /// <paramref name="streamProvider"/> streamProvider callers will dispose result after use.
@@ -25,20 +25,20 @@ namespace Microsoft.Cci
         {
             Debug.Assert(streamProvider == null ^ fileReference == null);
 
-            this.streamProvider = streamProvider;
-            this.name = name;
-            this.fileReference = fileReference;
-            this.offset = offset;
-            this.isPublic = isPublic;
+            _streamProvider = streamProvider;
+            _name = name;
+            _fileReference = fileReference;
+            _offset = offset;
+            _isPublic = isPublic;
         }
 
         public void WriteData(BinaryWriter resourceWriter)
         {
-            if (fileReference == null)
+            if (_fileReference == null)
             {
                 try
                 {
-                    using (Stream stream = streamProvider())
+                    using (Stream stream = _streamProvider())
                     {
                         if (stream == null)
                         {
@@ -59,7 +59,7 @@ namespace Microsoft.Cci
                 }
                 catch (Exception e)
                 {
-                    throw new ResourceException(this.name, e);
+                    throw new ResourceException(_name, e);
                 }
             }
         }
@@ -68,7 +68,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return fileReference;
+                return _fileReference;
             }
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return offset;
+                return _offset;
             }
         }
 
@@ -87,12 +87,12 @@ namespace Microsoft.Cci
 
         public bool IsPublic
         {
-            get { return isPublic; }
+            get { return _isPublic; }
         }
 
         public string Name
         {
-            get { return name; }
+            get { return _name; }
         }
     }
 }

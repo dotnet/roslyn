@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         // Store 100 entries -- arbitrary number
         private const int CacheSize = 100;
-        private readonly ConcurrentLruCache<FileKey, Metadata> metadataCache =
+        private readonly ConcurrentLruCache<FileKey, Metadata> _metadataCache =
             new ConcurrentLruCache<FileKey, Metadata>(CacheSize);
 
         private ModuleMetadata CreateModuleMetadata(string path, bool prefetchEntireImage)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             FileKey? fileKey = GetUniqueFileKey(fullPath);
 
             Metadata metadata;
-            if (fileKey.HasValue && metadataCache.TryGetValue(fileKey.Value, out metadata) && metadata != null)
+            if (fileKey.HasValue && _metadataCache.TryGetValue(fileKey.Value, out metadata) && metadata != null)
             {
                 CompilerServerLogger.Log("Using already loaded metadata for assembly reference '{0}'", fileKey);
                 return metadata;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var allModules = GetAllModules(primaryModule, Path.GetDirectoryName(fullPath));
                 Metadata result = AssemblyMetadata.Create(allModules);
 
-                result = metadataCache.GetOrAdd(fileKey.Value, result);
+                result = _metadataCache.GetOrAdd(fileKey.Value, result);
 
                 return result;
             }
@@ -115,12 +115,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return null;
             }
         }
-
     }
 
     internal class CachingMetadataReference : PortableExecutableReference
     {
-        static MetadataAndSymbolCache mdCache = new MetadataAndSymbolCache();
+        private static MetadataAndSymbolCache s_mdCache = new MetadataAndSymbolCache();
 
         internal CachingMetadataReference(string fullPath, MetadataReferenceProperties properties)
             : base(properties, fullPath)
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected override Metadata GetMetadataImpl()
         {
-            return mdCache.GetMetadata(FilePath, Properties);
+            return s_mdCache.GetMetadata(FilePath, Properties);
         }
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)

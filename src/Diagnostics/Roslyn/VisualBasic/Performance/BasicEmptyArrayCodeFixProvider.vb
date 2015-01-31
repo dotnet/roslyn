@@ -17,9 +17,11 @@ Namespace Microsoft.CodeAnalysis.Performance
     Public NotInheritable Class BasicEmptyArrayCodeFixProvider
         Inherits CodeFixProviderBase
 
-        Public Overrides Function GetFixableDiagnosticIds() As ImmutableArray(Of String)
-            Return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId)
-        End Function
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
+            Get
+                Return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId)
+            End Get
+        End Property
 
         Protected Overrides Function GetCodeFixDescription(ruleId As String) As String
             Debug.Assert(ruleId = EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Id)

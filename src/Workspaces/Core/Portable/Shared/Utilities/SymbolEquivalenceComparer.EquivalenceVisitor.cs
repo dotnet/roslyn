@@ -442,6 +442,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
+                if (x.IsGlobalNamespace && symbolEquivalenceComparer.assembliesCanDiffer)
+                {
+                    // No need to compare the containers of global namespace when assemblies can differ.
+                    return true;
+                }
+
                 return AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 

@@ -139,7 +139,7 @@
     <Compile Include="CodeGen\ForLoopsTests.cs" />
     <Compile Include="CodeGen\GotoTest.cs" />
     <Compile Include="CodeGen\IndexerTests.cs" />
-    <Compile Include="CodeGen\LockTests.cs" />
+    <Compile Include="CodeGen\CodeGenLockTests.cs" />
     <Compile Include="CodeGen\ObjectAndCollectionInitializerTests.cs" />
     <Compile Include="CodeGen\SwitchTests.cs" />
     <Compile Include="CodeGen\UnsafeTests.cs" />

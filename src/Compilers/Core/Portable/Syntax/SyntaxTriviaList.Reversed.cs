@@ -16,41 +16,41 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public struct Reversed : IEnumerable<SyntaxTrivia>, IEquatable<Reversed>
         {
-            private SyntaxTriviaList list;
+            private SyntaxTriviaList _list;
 
             public Reversed(SyntaxTriviaList list)
             {
-                this.list = list;
+                _list = list;
             }
 
             public Enumerator GetEnumerator()
             {
-                return new Enumerator(ref list);
+                return new Enumerator(ref _list);
             }
 
             IEnumerator<SyntaxTrivia> IEnumerable<SyntaxTrivia>.GetEnumerator()
             {
-                if (list.Count == 0)
+                if (_list.Count == 0)
                 {
                     return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
                 }
 
-                return new ReversedEnumeratorImpl(ref list);
+                return new ReversedEnumeratorImpl(ref _list);
             }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
-                if (list.Count == 0)
+                if (_list.Count == 0)
                 {
                     return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
                 }
 
-                return new ReversedEnumeratorImpl(ref list);
+                return new ReversedEnumeratorImpl(ref _list);
             }
 
             public override int GetHashCode()
             {
-                return list.GetHashCode();
+                return _list.GetHashCode();
             }
 
             public override bool Equals(object obj)
@@ -60,50 +60,50 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(Reversed other)
             {
-                return this.list.Equals(other.list);
+                return _list.Equals(other._list);
             }
 
             public struct Enumerator
             {
-                private readonly SyntaxToken token;
-                private readonly GreenNode singleNodeOrList;
-                private readonly int baseIndex;
-                private readonly int count;
+                private readonly SyntaxToken _token;
+                private readonly GreenNode _singleNodeOrList;
+                private readonly int _baseIndex;
+                private readonly int _count;
 
-                private int index;
-                private GreenNode current;
-                private int position;
+                private int _index;
+                private GreenNode _current;
+                private int _position;
 
                 public Enumerator(ref SyntaxTriviaList list)
                     : this()
                 {
                     if (list.Any())
                     {
-                        this.token = list.token;
-                        this.singleNodeOrList = list.node;
-                        this.baseIndex = list.index;
-                        this.count = list.Count;
+                        _token = list._token;
+                        _singleNodeOrList = list._node;
+                        _baseIndex = list._index;
+                        _count = list.Count;
 
-                        this.index = this.count;
-                        this.current = null;
+                        _index = _count;
+                        _current = null;
 
                         var last = list.Last();
-                        this.position = last.Position + last.FullWidth;
+                        _position = last.Position + last.FullWidth;
                     }
                 }
 
                 public bool MoveNext()
                 {
-                    if (this.count == 0 || index <= 0)
+                    if (_count == 0 || _index <= 0)
                     {
-                        this.current = null;
+                        _current = null;
                         return false;
                     }
 
-                    index--;
+                    _index--;
 
-                    this.current = GetGreenNodeAt(this.singleNodeOrList, this.index);
-                    this.position -= this.current.FullWidth;
+                    _current = GetGreenNodeAt(_singleNodeOrList, _index);
+                    _position -= _current.FullWidth;
 
                     return true;
                 }
@@ -112,39 +112,39 @@ namespace Microsoft.CodeAnalysis
                 {
                     get
                     {
-                        if (this.current == null)
+                        if (_current == null)
                         {
                             throw new InvalidOperationException();
                         }
 
-                        return new SyntaxTrivia(this.token, this.current, this.position, this.baseIndex + this.index);
+                        return new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
                     }
                 }
             }
 
             private class ReversedEnumeratorImpl : IEnumerator<SyntaxTrivia>
             {
-                private Enumerator enumerator;
+                private Enumerator _enumerator;
 
                 // SyntaxTriviaList is a relatively big struct so is passed as ref
                 internal ReversedEnumeratorImpl(ref SyntaxTriviaList list)
                 {
-                    this.enumerator = new Enumerator(ref list);
+                    _enumerator = new Enumerator(ref list);
                 }
 
                 public SyntaxTrivia Current
                 {
-                    get { return enumerator.Current; }
+                    get { return _enumerator.Current; }
                 }
 
                 object IEnumerator.Current
                 {
-                    get { return enumerator.Current; }
+                    get { return _enumerator.Current; }
                 }
 
                 public bool MoveNext()
                 {
-                    return enumerator.MoveNext();
+                    return _enumerator.MoveNext();
                 }
 
                 public void Reset()

@@ -13,34 +13,34 @@ namespace Microsoft.CodeAnalysis
     {
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
-        private static Word[] emptyArray = SpecializedCollections.EmptyArray<Word>();
-        private static readonly BitArray nullValue = new BitArray(0, null, 0);
-        private static readonly BitArray emptyValue = new BitArray(0, emptyArray, 0);
+        private static Word[] s_emptyArray = SpecializedCollections.EmptyArray<Word>();
+        private static readonly BitArray s_nullValue = new BitArray(0, null, 0);
+        private static readonly BitArray s_emptyValue = new BitArray(0, s_emptyArray, 0);
 
         private const int Log2BitsPerWord = 5;
         internal const int BitsPerWord = 1 << Log2BitsPerWord;
         private const Word ZeroWord = 0;
 
-        private Word bits0;
-        private Word[] bits;
-        private int capacity;
+        private Word _bits0;
+        private Word[] _bits;
+        private int _capacity;
 
         private BitArray(Word bits0, Word[] bits, int capacity)
         {
             int requiredWords = WordsForCapacity(capacity);
             Debug.Assert(requiredWords == 0 || requiredWords <= bits.Length);
-            this.bits0 = bits0;
-            this.bits = bits;
-            this.capacity = capacity;
+            _bits0 = bits0;
+            _bits = bits;
+            _capacity = capacity;
             Check();
         }
 
         public bool Equals(BitArray other)
         {
             // Bit arrays only equal if their underlying sets are of the same size.
-            return this.capacity == other.capacity
-                && this.bits0 == other.bits0
-                && this.bits.ValueEquals(other.bits);
+            return _capacity == other._capacity
+                && _bits0 == other._bits0
+                && _bits.ValueEquals(other._bits);
         }
 
         public override bool Equals(object obj)
@@ -50,17 +50,17 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            int bitsHash = bits0.GetHashCode();
+            int bitsHash = _bits0.GetHashCode();
 
-            if (bits != null)
+            if (_bits != null)
             {
-                for (int i = 0; i < bits.Length; i++)
+                for (int i = 0; i < _bits.Length; i++)
                 {
-                    bitsHash = Hash.Combine(bits[i].GetHashCode(), bitsHash);
+                    bitsHash = Hash.Combine(_bits[i].GetHashCode(), bitsHash);
                 }
             }
 
-            return Hash.Combine(this.capacity, bitsHash);
+            return Hash.Combine(_capacity, bitsHash);
         }
 
         private static int WordsForCapacity(int capacity)
@@ -74,23 +74,23 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return capacity;
+                return _capacity;
             }
         }
 
         [Conditional("DEBUG_BITARRAY")]
         private void Check()
         {
-            Debug.Assert(this.capacity == 0 || WordsForCapacity(this.capacity) <= this.bits.Length);
+            Debug.Assert(_capacity == 0 || WordsForCapacity(_capacity) <= _bits.Length);
         }
 
         public void EnsureCapacity(int newCapacity)
         {
-            if (newCapacity > capacity)
+            if (newCapacity > _capacity)
             {
                 int requiredWords = WordsForCapacity(newCapacity);
-                if (requiredWords > bits.Length) Array.Resize(ref this.bits, requiredWords);
-                this.capacity = newCapacity;
+                if (requiredWords > _bits.Length) Array.Resize(ref _bits, requiredWords);
+                _capacity = newCapacity;
                 Check();
             }
             Check();
@@ -98,35 +98,35 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<Word> Words()
         {
-            if (bits0 != 0)
+            if (_bits0 != 0)
             {
-                yield return bits0;
+                yield return _bits0;
             }
 
-            for (int i = 0; i < bits.Length; i++)
+            for (int i = 0; i < _bits.Length; i++)
             {
-                yield return bits[i];
+                yield return _bits[i];
             }
         }
 
         public IEnumerable<int> TrueBits()
         {
             Check();
-            if (bits0 != 0)
+            if (_bits0 != 0)
             {
                 for (int bit = 0; bit < BitsPerWord; bit++)
                 {
                     Word mask = ((Word)1) << bit;
-                    if ((bits0 & mask) != 0)
+                    if ((_bits0 & mask) != 0)
                     {
-                        if (bit >= capacity) yield break;
+                        if (bit >= _capacity) yield break;
                         yield return bit;
                     }
                 }
             }
-            for (int i = 0; i < bits.Length; i++)
+            for (int i = 0; i < _bits.Length; i++)
             {
-                Word w = bits[i];
+                Word w = _bits[i];
                 if (w != 0)
                 {
                     for (int b = 0; b < BitsPerWord; b++)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                         if ((w & mask) != 0)
                         {
                             int bit = ((i + 1) << Log2BitsPerWord) | b;
-                            if (bit >= capacity) yield break;
+                            if (bit >= _capacity) yield break;
                             yield return bit;
                         }
                     }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
         public static BitArray Create(int capacity)
         {
             int requiredWords = WordsForCapacity(capacity);
-            Word[] bits = (requiredWords == 0) ? emptyArray : new Word[requiredWords];
+            Word[] bits = (requiredWords == 0) ? s_emptyArray : new Word[requiredWords];
             return new BitArray(0, bits, capacity);
         }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
         public static BitArray AllSet(int capacity)
         {
             int requiredWords = WordsForCapacity(capacity);
-            Word[] bits = (requiredWords == 0) ? emptyArray : new Word[requiredWords];
+            Word[] bits = (requiredWords == 0) ? s_emptyArray : new Word[requiredWords];
             int lastWord = requiredWords - 1;
             Word bits0 = ~ZeroWord;
             for (int j = 0; j < lastWord; j++)
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public BitArray Clone()
         {
-            return new BitArray(this.bits0, (this.bits == null) ? null : (this.bits.Length == 0) ? emptyArray : (Word[])this.bits.Clone(), capacity);
+            return new BitArray(_bits0, (_bits == null) ? null : (_bits.Length == 0) ? s_emptyArray : (Word[])_bits.Clone(), _capacity);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return bits == null;
+                return _bits == null;
             }
         }
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return nullValue;
+                return s_nullValue;
             }
         }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return emptyValue;
+                return s_emptyValue;
             }
         }
 
@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis
         public bool IntersectWith(BitArray other)
         {
             bool anyChanged = false;
-            int otherLength = other.bits.Length;
-            var thisBits = this.bits;
+            int otherLength = other._bits.Length;
+            var thisBits = _bits;
             int thisLength = thisBits.Length;
 
             if (otherLength > thisLength)
@@ -241,11 +241,11 @@ namespace Microsoft.CodeAnalysis
 
             // intersect the inline portion
             {
-                var oldV = this.bits0;
-                var newV = oldV & other.bits0;
+                var oldV = _bits0;
+                var newV = oldV & other._bits0;
                 if (newV != oldV)
                 {
-                    this.bits0 = newV;
+                    _bits0 = newV;
                     anyChanged = true;
                 }
             }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < otherLength; i++)
             {
                 var oldV = thisBits[i];
-                var newV = oldV & other.bits[i];
+                var newV = oldV & other._bits[i];
                 if (newV != oldV)
                 {
                     thisBits[i] = newV;
@@ -281,14 +281,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="other"></param>
         public void UnionWith(BitArray other)
         {
-            int l = other.bits.Length;
-            if (l > this.bits.Length)
-                Array.Resize(ref bits, l + 1);
-            this.bits0 |= other.bits0;
+            int l = other._bits.Length;
+            if (l > _bits.Length)
+                Array.Resize(ref _bits, l + 1);
+            _bits0 |= other._bits0;
             for (int i = 0; i < l; i++)
-                this.bits[i] |= other.bits[i];
-            if (other.capacity > this.capacity)
-                EnsureCapacity(other.capacity);
+                _bits[i] |= other._bits[i];
+            if (other._capacity > _capacity)
+                EnsureCapacity(other._capacity);
             Check();
         }
 
@@ -296,18 +296,18 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (index >= capacity)
+                if (index >= _capacity)
                     return false;
                 int i = (index >> Log2BitsPerWord) - 1;
                 int b = index & (BitsPerWord - 1);
                 Word mask = ((Word)1) << b;
-                var word = (i < 0) ? bits0 : bits[i];
+                var word = (i < 0) ? _bits0 : _bits[i];
                 return (word & mask) != 0;
             }
 
             set
             {
-                if (index >= capacity)
+                if (index >= _capacity)
                     EnsureCapacity(index + 1);
                 int i = (index >> Log2BitsPerWord) - 1;
                 int b = index & (BitsPerWord - 1);
@@ -315,24 +315,24 @@ namespace Microsoft.CodeAnalysis
                 if (i < 0)
                 {
                     if (value)
-                        bits0 |= mask;
+                        _bits0 |= mask;
                     else
-                        bits0 &= ~mask;
+                        _bits0 &= ~mask;
                 }
                 else
                 {
                     if (value)
-                        bits[i] |= mask;
+                        _bits[i] |= mask;
                     else
-                        bits[i] &= ~mask;
+                        _bits[i] &= ~mask;
                 }
             }
         }
 
         public void Clear()
         {
-            bits0 = 0;
-            if (bits != null) Array.Clear(bits, 0, bits.Length);
+            _bits0 = 0;
+            if (_bits != null) Array.Clear(_bits, 0, _bits.Length);
         }
     }
 }

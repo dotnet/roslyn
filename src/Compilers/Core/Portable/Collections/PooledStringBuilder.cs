@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Collections
     internal class PooledStringBuilder
     {
         public readonly StringBuilder Builder = new StringBuilder();
-        private readonly ObjectPool<PooledStringBuilder> pool;
+        private readonly ObjectPool<PooledStringBuilder> _pool;
 
         private PooledStringBuilder(ObjectPool<PooledStringBuilder> pool)
         {
             Debug.Assert(pool != null);
-            this.pool = pool;
+            _pool = pool;
         }
 
         public int Length
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Collections
             if (builder.Capacity <= 1024)
             {
                 builder.Clear();
-                pool.Free(this);
+                _pool.Free(this);
             }
             else
             {
-                pool.ForgetTrackedObject(this);
+                _pool.ForgetTrackedObject(this);
             }
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         // global pool
-        private static readonly ObjectPool<PooledStringBuilder> PoolInstance = CreatePool();
+        private static readonly ObjectPool<PooledStringBuilder> s_poolInstance = CreatePool();
 
         // if someone needs to create a private pool;
         public static ObjectPool<PooledStringBuilder> CreatePool()
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static PooledStringBuilder GetInstance()
         {
-            var builder = PoolInstance.Allocate();
+            var builder = s_poolInstance.Allocate();
             Debug.Assert(builder.Builder.Length == 0);
             return builder;
         }

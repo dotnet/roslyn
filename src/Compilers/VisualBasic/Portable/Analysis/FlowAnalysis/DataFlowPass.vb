@@ -1244,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' VB's operator name, so we need to take the identifier token
                     ' directly
                     Dim operatorBlock = DirectCast(DirectCast(local.ContainingSymbol, SourceMemberMethodSymbol).BlockSyntax, OperatorBlockSyntax)
-                    Return operatorBlock.Begin.OperatorToken.Text
+                    Return operatorBlock.OperatorStatement.OperatorToken.Text
 
                 Case Else
                     Return If(local.Name, method.Name)

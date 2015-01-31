@@ -93,8 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             <Out> ByRef asyncResumePoints As ImmutableArray(Of Integer))
             GenerateImpl()
 
-            asyncCatchHandlerOffset = If(_asyncCatchHandlerOffset < 0, -1,
-                                         _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset))
+            Debug.Assert(_asyncCatchHandlerOffset >= 0)
+            asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset)
 
             Dim yieldPoints As ArrayBuilder(Of Integer) = _asyncYieldPoints
             Dim resumePoints As ArrayBuilder(Of Integer) = _asyncResumePoints

@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // Environment variable, if set, to enable logging and set the file to log to.
         private const string environmentVariable = "RoslynCommandLineLogFile";
 
-        private static Stream loggingStream;
-        private static string prefix = "---";
+        private static Stream s_loggingStream;
+        private static string s_prefix = "---";
 
         /// <summary>
         /// Static class initializer that initializes logging.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
-                    loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+                    s_loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
                 }
             }
             catch (Exception e)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public static void Initialize(string outputPrefix)
         {
-            prefix = outputPrefix;
+            s_prefix = outputPrefix;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public static void LogException(Exception e, string reason)
         {
-            if (loggingStream != null)
+            if (s_loggingStream != null)
             {
                 Log("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", e.Message, reason, e.StackTrace);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public static void Log(string format, params object[] arguments)
         {
-            if (loggingStream != null)
+            if (s_loggingStream != null)
             {
                 Log(string.Format(format, arguments));
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <param name="message"></param>
         public static void Log(string message)
         {
-            if (loggingStream != null)
+            if (s_loggingStream != null)
             {
                 string prefix = GetLoggingPrefix();
 
@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Because multiple processes might be logging to the same file, we always seek to the end,
                 // write, and flush.
-                loggingStream.Seek(0, SeekOrigin.End);
-                loggingStream.Write(bytes, 0, bytes.Length);
-                loggingStream.Flush();
+                s_loggingStream.Seek(0, SeekOrigin.End);
+                s_loggingStream.Write(bytes, 0, bytes.Length);
+                s_loggingStream.Flush();
             }
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static string GetLoggingPrefix()
         {
-            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", prefix, Process.GetCurrentProcess().Id, Thread.CurrentThread.ManagedThreadId, Environment.TickCount);
+            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, Process.GetCurrentProcess().Id, Thread.CurrentThread.ManagedThreadId, Environment.TickCount);
         }
     }
 }

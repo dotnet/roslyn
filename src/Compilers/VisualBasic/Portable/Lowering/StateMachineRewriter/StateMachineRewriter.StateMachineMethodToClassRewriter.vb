@@ -364,7 +364,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    rewrittenExceptionVariable,
                                    rewrittenErrorLineNumber,
                                    rewrittenFilter,
-                                   rewrittenBody)
+                                   rewrittenBody,
+                                   isSynthesizedAsyncCatchAll:=node.IsSynthesizedAsyncCatchAll)
             End Function
 
 #End Region

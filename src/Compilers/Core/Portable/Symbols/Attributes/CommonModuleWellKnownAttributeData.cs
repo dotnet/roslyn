@@ -12,18 +12,18 @@ namespace Microsoft.CodeAnalysis
     internal class CommonModuleWellKnownAttributeData : WellKnownAttributeData
     {
         #region DebuggableAttribute
-        private bool hasDebuggableAttribute;
+        private bool _hasDebuggableAttribute;
         public bool HasDebuggableAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasDebuggableAttribute;
+                return _hasDebuggableAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasDebuggableAttribute = value;
+                _hasDebuggableAttribute = value;
                 SetDataStored();
             }
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
 
         #region DefaultCharSetAttribute
 
-        private byte defaultCharacterSet;
+        private byte _defaultCharacterSet;
 
         internal CharSet DefaultCharacterSet
         {
@@ -39,27 +39,26 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: true);
                 Debug.Assert(HasDefaultCharSetAttribute);
-                return (CharSet)this.defaultCharacterSet;
+                return (CharSet)_defaultCharacterSet;
             }
             set
             {
                 VerifySealed(expected: false);
                 Debug.Assert(IsValidCharSet(value));
-                this.defaultCharacterSet = (byte)value;
+                _defaultCharacterSet = (byte)value;
                 SetDataStored();
             }
         }
 
         internal bool HasDefaultCharSetAttribute
         {
-            get { return defaultCharacterSet != 0; }
+            get { return _defaultCharacterSet != 0; }
         }
 
         internal static bool IsValidCharSet(CharSet value)
         {
             return value >= Cci.Constants.CharSet_None && value <= Cci.Constants.CharSet_Auto;
         }
-
         #endregion
     }
 }

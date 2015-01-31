@@ -8621,7 +8621,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unused extern alias..
+        ///   Looks up a localized string similar to Unused extern alias.
         /// </summary>
         internal static string HDN_UnusedExternAlias_Title {
             get {
@@ -8639,7 +8639,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unnecessary using directive..
+        ///   Looks up a localized string similar to Unnecessary using directive.
         /// </summary>
         internal static string HDN_UnusedUsingDirective_Title {
             get {
@@ -9468,7 +9468,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException..
+        ///   Looks up a localized string similar to Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException.
         /// </summary>
         internal static string INF_UnableToLoadSomeTypesInAnalyzer_Title {
             get {
@@ -9756,7 +9756,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Alignment value has a magnitude that may result in a large formatted string..
+        ///   Looks up a localized string similar to Alignment value has a magnitude that may result in a large formatted string.
         /// </summary>
         internal static string WRN_AlignmentMagnitude_Title {
             get {
@@ -10458,7 +10458,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;Base type is not CLS-compliant.
+        ///   Looks up a localized string similar to Base type is not CLS-compliant.
         /// </summary>
         internal static string WRN_CLS_BadBase_Title {
             get {
@@ -11810,7 +11810,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The entry point of the program is global script code; ignoring entry point..
+        ///   Looks up a localized string similar to The entry point of the program is global script code; ignoring entry point.
         /// </summary>
         internal static string WRN_MainIgnored_Title {
             get {
@@ -12138,7 +12138,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No source files specified..
+        ///   Looks up a localized string similar to No source files specified.
         /// </summary>
         internal static string WRN_NoSources_Title {
             get {

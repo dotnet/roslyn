@@ -205,12 +205,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
+        private static readonly char[] s_invalidPathChars = Path.GetInvalidPathChars();
 
         internal static string NormalizeRelativePath(string path, string basePath, string baseDirectory)
         {
             // Does this look like a URI at all or does it have any invalid path characters? If so, just use it as is.
-            if (path.IndexOf("://") >= 0 || path.IndexOfAny(InvalidPathChars) >= 0)
+            if (path.IndexOf("://") >= 0 || path.IndexOfAny(s_invalidPathChars) >= 0)
             {
                 return null;
             }
@@ -383,12 +383,32 @@ namespace Roslyn.Utilities
         }
 
         /// <exception cref="IOException"/>
-        internal static DateTime GetFileTimeStamp(string fullPath)
+        internal static DateTime GetLastWriteTimeStamp(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             try
             {
                 return File.GetLastWriteTimeUtc(fullPath);
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message);
+            }
+        }
+
+        /// <exception cref="IOException"/>
+        internal static DateTime GetFileTimeStamp(string fullPath)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+            try
+            {
+                // In the case where a file is copied from one directory to the other, the last write time will stay
+                // the same but the creation time will get updated.  Return the most recent of the two times so that
+                // our caches don't run into a scenario where and older file was copied over an existing one and the
+                // cache thinks everything is up-to-date, when in fact we need to reparse the file.
+                var lastWriteTime = File.GetLastWriteTimeUtc(fullPath);
+                var creationTime = File.GetCreationTimeUtc(fullPath);
+                return creationTime > lastWriteTime ? creationTime : lastWriteTime;
             }
             catch (Exception e)
             {

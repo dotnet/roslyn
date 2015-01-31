@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </remarks>
     internal sealed class SignatureOnlyLocalDefinition : Cci.ILocalDefinition
     {
-        private readonly byte[] signature;
-        private readonly int slot;
+        private readonly byte[] _signature;
+        private readonly int _slot;
 
         internal SignatureOnlyLocalDefinition(byte[] signature, int slot)
         {
-            this.signature = signature;
-            this.slot = slot;
+            _signature = signature;
+            _slot = slot;
         }
 
         public Cci.IMetadataConstant CompileTimeValue
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int SlotIndex
         {
-            get { return this.slot; }
+            get { return _slot; }
         }
 
         public Cci.ITypeReference Type
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public byte[] Signature
         {
-            get { return this.signature; }
+            get { return _signature; }
         }
 
         public LocalSlotDebugInfo SlotInfo

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-    using Xunit;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(109, charsRead);
             Assert.Equal(
                 XmlDocumentationCommentTextReader.Reader.RootStart +
-                XmlDocumentationCommentTextReader.Reader.CurrentStart + 
-                "abc" + 
+                XmlDocumentationCommentTextReader.Reader.CurrentStart +
+                "abc" +
                 XmlDocumentationCommentTextReader.Reader.CurrentEnd, new string(buffer, 0, charsRead));
 
             charsRead = s.Read(buffer, 0, 10);

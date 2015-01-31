@@ -344,9 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Not m_EvaluatingConditionCompilationExpression Then
 
                 If Not NextLineStartsWithStatementTerminator() Then
-                    If Not AssertLanguageFeature(ERRID.FEATUREID_LineContinuation) Then
-                        Return False
-                    End If
+                    _hadImplicitLineContinuation = True
 
                     GetNextToken(state)
                     Return True

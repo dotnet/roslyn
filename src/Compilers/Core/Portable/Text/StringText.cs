@@ -16,21 +16,21 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     internal sealed partial class StringText : SourceText
     {
-        private readonly string source;
-        private readonly Encoding encodingOpt;
+        private readonly string _source;
+        private readonly Encoding _encodingOpt;
 
         internal StringText(string source, Encoding encodingOpt, ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
             : base(checksum, checksumAlgorithm)
         {
             Debug.Assert(source != null);
 
-            this.source = source;
-            this.encodingOpt = encodingOpt;
+            _source = source;
+            _encodingOpt = encodingOpt;
         }
 
         public override Encoding Encoding
         {
-            get { return encodingOpt; }
+            get { return _encodingOpt; }
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public string Source
         {
-            get { return source; }
+            get { return _source; }
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // NOTE: we are not validating position here as that would not 
                 //       add any value to the range check that string accessor performs anyways.
 
-                return this.source[position];
+                return _source[position];
             }
         }
 

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Roslyn.Utilities;
 
@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
     public abstract class CA2235CodeFixProviderBase : MultipleCodeFixProviderBase
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2235Id);
+            get { return ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2235Id); }
         }
 
         protected abstract SyntaxNode GetFieldDeclarationNode(SyntaxNode node);

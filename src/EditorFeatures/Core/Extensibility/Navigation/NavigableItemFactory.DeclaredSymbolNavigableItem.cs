@@ -1,0 +1,57 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.Editor.Navigation
+{
+    internal partial class NavigableItemFactory
+    {
+        internal class DeclaredSymbolNavigableItem : INavigableItem
+        {
+            public string DisplayName => _lazyDisplayName.Value;
+            public Document Document { get; }
+            public Glyph Glyph => _lazySymbol.Value?.GetGlyph() ?? Glyph.Error;
+            public TextSpan SourceSpan => _declaredSymbolInfo.Span;
+            public ISymbol Symbol => _lazySymbol.Value;
+
+            private readonly DeclaredSymbolInfo _declaredSymbolInfo;
+            private readonly Lazy<string> _lazyDisplayName;
+            private readonly Lazy<ISymbol> _lazySymbol;
+
+            public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
+            {
+                Document = document;
+                _declaredSymbolInfo = declaredSymbolInfo;
+
+                _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult());
+                _lazyDisplayName = new Lazy<string>(() =>
+                {
+                    if (Symbol == null)
+                    {
+                        return null;
+                    }
+
+                    var symbolDisplayService = Document.GetLanguageService<ISymbolDisplayService>();
+                    switch (Symbol.Kind)
+                    {
+                        case SymbolKind.NamedType:
+                            return symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers);
+
+                        case SymbolKind.Method:
+                            return Symbol.IsStaticConstructor()
+                                ? symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers)
+                                : symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+
+                        default:
+                            return symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+                    }
+                });
+            }
+        }
+    }
+}

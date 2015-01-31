@@ -15,12 +15,12 @@ namespace Microsoft.Cci
     {
         public static readonly NamespaceScope Empty = new NamespaceScope(ImmutableArray<UsedNamespaceOrType>.Empty);
 
-        private readonly ImmutableArray<UsedNamespaceOrType> usedNamespaces;
+        private readonly ImmutableArray<UsedNamespaceOrType> _usedNamespaces;
 
         internal NamespaceScope(ImmutableArray<UsedNamespaceOrType> usedNamespaces)
         {
             Debug.Assert(!usedNamespaces.IsDefault);
-            this.usedNamespaces = usedNamespaces;
+            _usedNamespaces = usedNamespaces;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return this.usedNamespaces;
+                return _usedNamespaces;
             }
         }
     }

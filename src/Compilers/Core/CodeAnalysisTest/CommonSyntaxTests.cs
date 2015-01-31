@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(correctSpan, csharpTrivia2.Span);
 
             var csharpTriviaList2 = (SyntaxTriviaList)commonTriviaList;
-            
+
             var csharpTrivia3 = csharpTriviaList2.ElementAt(1); //from converted list
             Assert.Equal(correctSpan, csharpTrivia3.Span);
         }

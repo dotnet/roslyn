@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             return GetOrMakeValue(resolvedPath).Value;
         }
 
-        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
         {
             // Dev12 prohibits DTD
             DtdProcessing = DtdProcessing.Prohibit
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
             using (Stream stream = resolver.OpenReadChecked(resolvedPath))
             {
-                using (XmlReader reader = XmlReader.Create(stream, XmlSettings))
+                using (XmlReader reader = XmlReader.Create(stream, s_xmlSettings))
                 {
                     var document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
                     return KeyValuePair.Create(resolvedPath, document);

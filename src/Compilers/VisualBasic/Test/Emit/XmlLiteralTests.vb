@@ -3518,25 +3518,25 @@ End Module
             Dim strs = {space, vbCr, vbLf, vbCrLf, vbTab, "&#x20;", "&#xD;", "&#xA;", "&#x9;"}
 
             ' Empty string.
-            NormalizeAttributeValue("")
+            NormalizeAttributeValueCore("")
 
             ' Single characters.
             For Each str0 In strs
-                NormalizeAttributeValue(str0)
-                NormalizeAttributeValue("[" & str0 & "]")
+                NormalizeAttributeValueCore(str0)
+                NormalizeAttributeValueCore("[" & str0 & "]")
             Next
 
             ' Pairs of characters.
             For Each str1 In strs
                 For Each str2 In strs
                     Dim str = str1 & str2
-                    NormalizeAttributeValue(str)
-                    NormalizeAttributeValue("[" & str & "]")
+                    NormalizeAttributeValueCore(str)
+                    NormalizeAttributeValueCore("[" & str & "]")
                 Next
             Next
         End Sub
 
-        Private Sub NormalizeAttributeValue(str As String)
+        Private Sub NormalizeAttributeValueCore(str As String)
             Dim sourceBuilder = New StringBuilder()
             sourceBuilder.AppendLine("Module M")
             sourceBuilder.AppendLine("    Sub Main()")
@@ -4501,11 +4501,11 @@ content
         <Fact()>
         Public Sub XmlnsNamespaceTooLong()
             Dim identifier = New String("a"c, MetadataWriter.PdbLengthLimit)
-            XmlnsNamespaceTooLong(identifier.Substring(6), tooLong:=False)
-            XmlnsNamespaceTooLong(identifier, tooLong:=True)
+            XmlnsNamespaceTooLongCore(identifier.Substring(6), tooLong:=False)
+            XmlnsNamespaceTooLongCore(identifier, tooLong:=True)
         End Sub
 
-        Private Sub XmlnsNamespaceTooLong(identifier As String, tooLong As Boolean)
+        Private Sub XmlnsNamespaceTooLongCore(identifier As String, tooLong As Boolean)
             Dim [imports] = GlobalImport.Parse({String.Format("<xmlns:p=""{0}"">", identifier)})
             Dim options = TestOptions.DebugDll.WithGlobalImports([imports])
             Dim source = String.Format(<![CDATA[

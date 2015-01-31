@@ -10,8 +10,8 @@ namespace Roslyn.Utilities
     // struct with two values
     internal struct ValueTuple<T1, T2> : IEquatable<ValueTuple<T1, T2>>
     {
-        private static readonly EqualityComparer<T1> comparer1 = EqualityComparer<T1>.Default;
-        private static readonly EqualityComparer<T2> comparer2 = EqualityComparer<T2>.Default;
+        private static readonly EqualityComparer<T1> s_comparer1 = EqualityComparer<T1>.Default;
+        private static readonly EqualityComparer<T2> s_comparer2 = EqualityComparer<T2>.Default;
 
         public readonly T1 Item1;
         public readonly T2 Item2;
@@ -24,8 +24,8 @@ namespace Roslyn.Utilities
 
         public bool Equals(ValueTuple<T1, T2> other)
         {
-            return comparer1.Equals(this.Item1, other.Item1) 
-                && comparer2.Equals(this.Item2, other.Item2);
+            return s_comparer1.Equals(this.Item1, other.Item1)
+                && s_comparer2.Equals(this.Item2, other.Item2);
         }
 
         public override bool Equals(object obj)
@@ -41,7 +41,7 @@ namespace Roslyn.Utilities
 
         public override int GetHashCode()
         {
-            return Hash.Combine(comparer1.GetHashCode(Item1), comparer2.GetHashCode(Item2));
+            return Hash.Combine(s_comparer1.GetHashCode(Item1), s_comparer2.GetHashCode(Item2));
         }
 
         public static bool operator ==(ValueTuple<T1, T2> left, ValueTuple<T1, T2> right)

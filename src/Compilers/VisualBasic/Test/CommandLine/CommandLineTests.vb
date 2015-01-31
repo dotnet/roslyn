@@ -5507,10 +5507,11 @@ Imports System
         <Fact()>
         Public Sub TestTempFileCreationFail()
             Dim comp = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/out:foo", "/t:library", "/res:foo"})
-            comp.PathGetTempFileName = Function()
-                                           Throw New IOException("Ronnie James Dio")
-                                           Return Nothing
-                                       End Function
+            AddHandler comp.OnCreateTempFile, Sub(fileName, stream)
+                                                  stream.Dispose()
+                                                  File.Delete(fileName)
+                                                  Throw New IOException("Ronnie James Dio")
+                                              End Sub
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim result = comp.Run(outWriter, Nothing)
             Assert.Contains("BC30138", outWriter.ToString())

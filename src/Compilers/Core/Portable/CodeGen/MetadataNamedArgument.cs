@@ -10,16 +10,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MetadataNamedArgument : Cci.IMetadataNamedArgument
     {
-        private readonly ISymbol entity;
-        private readonly Cci.ITypeReference type;
-        private readonly Cci.IMetadataExpression value;
+        private readonly ISymbol _entity;
+        private readonly Cci.ITypeReference _type;
+        private readonly Cci.IMetadataExpression _value;
 
         public MetadataNamedArgument(ISymbol entity, Cci.ITypeReference type, Cci.IMetadataExpression value)
         {
             // entity must be one of INamedEntity or IFieldDefinition or IPropertyDefinition
-            this.entity = entity;
-            this.type = type;
-            this.value = value;
+            _entity = entity;
+            _type = type;
+            _value = value;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.entity.Name;
+                return _entity.Name;
             }
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.value;
+                return _value;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.entity is Cci.IFieldDefinition;
+                return _entity is Cci.IFieldDefinition;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         Cci.ITypeReference Cci.IMetadataExpression.Type
         {
-            get { return this.type; }
+            get { return _type; }
         }
     }
 }

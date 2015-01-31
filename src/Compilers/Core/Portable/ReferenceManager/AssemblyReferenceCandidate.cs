@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
         /// <summary>
         /// Private helper class to capture information about AssemblySymbol instance we 

@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis
 {
     public partial struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnlyList<SyntaxNodeOrToken>
     {
-        private readonly SyntaxNode node;
-        private readonly int count;
+        private readonly SyntaxNode _node;
+        private readonly int _count;
 
         internal ChildSyntaxList(SyntaxNode node)
         {
-            this.node = node;
-            this.count = CountNodes(node.Green);
+            _node = node;
+            _count = CountNodes(node.Green);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.count;
+                return _count;
             }
         }
 
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (unchecked((uint)index < (uint)this.count))
+                if (unchecked((uint)index < (uint)_count))
                 {
-                    return ItemInternal(node, index);
+                    return ItemInternal(_node, index);
                 }
 
                 throw new ArgumentOutOfRangeException("index");
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxNode Node
         {
-            get { return this.node; }
+            get { return _node; }
         }
 
         private static int Occupancy(GreenNode green)
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Any()
         {
-            return this.count != 0;
+            return _count != 0;
         }
 
         /// <summary>
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Any())
             {
-                return this[this.count - 1];
+                return this[_count - 1];
             }
 
             throw new InvalidOperationException();
@@ -320,39 +320,39 @@ namespace Microsoft.CodeAnalysis
         /// <returns><see cref="Reversed"/> which contains all children of <see cref="ChildSyntaxList"/> in reversed order</returns>
         public Reversed Reverse()
         {
-            return new Reversed(this.node, this.count);
+            return new Reversed(_node, _count);
         }
 
         /// <summary>Returns an enumerator that iterates through the <see cref="ChildSyntaxList"/>.</summary>
         /// <returns>A <see cref="Enumerator"/> for the <see cref="ChildSyntaxList"/>.</returns>
         public Enumerator GetEnumerator()
         {
-            if (this.node == null)
+            if (_node == null)
             {
                 return default(Enumerator);
             }
 
-            return new Enumerator(this.node, this.count);
+            return new Enumerator(_node, _count);
         }
 
         IEnumerator<SyntaxNodeOrToken> IEnumerable<SyntaxNodeOrToken>.GetEnumerator()
         {
-            if (this.node == null)
+            if (_node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>();
             }
 
-            return new EnumeratorImpl(this.node, this.count);
+            return new EnumeratorImpl(_node, _count);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (this.node == null)
+            if (_node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>();
             }
 
-            return new EnumeratorImpl(this.node, this.count);
+            return new EnumeratorImpl(_node, _count);
         }
 
         /// <summary>Determines whether the specified object is equal to the current instance.</summary>
@@ -368,14 +368,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="other">The <see cref="ChildSyntaxList" /> structure to be compared with the current instance.</param>
         public bool Equals(ChildSyntaxList other)
         {
-            return this.node == other.node;
+            return _node == other._node;
         }
 
         /// <summary>Returns the hash code for the current instance.</summary>
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return node == null ? 0 : node.GetHashCode();
+            return _node == null ? 0 : _node.GetHashCode();
         }
 
         /// <summary>Indicates whether two <see cref="ChildSyntaxList" /> structures are equal.</summary>

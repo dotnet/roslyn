@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal ImmutableArray<string> Features { get; protected set; }
 
-        private Lazy<ImmutableArray<Diagnostic>> lazyErrors = null;
+        private Lazy<ImmutableArray<Diagnostic>> _lazyErrors = null;
 
         // Expects correct arguments.
         internal CompilationOptions(
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
             this.MetadataImportOptions = metadataImportOptions;
             this.Features = features;
 
-            this.lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
+            _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
                 var builder = ArrayBuilder<Diagnostic>.GetInstance();
                 ValidateOptions(builder);
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<Diagnostic> Errors
         {
-            get { return this.lazyErrors.Value; }
+            get { return _lazyErrors.Value; }
         }
 
         public abstract override bool Equals(object obj);

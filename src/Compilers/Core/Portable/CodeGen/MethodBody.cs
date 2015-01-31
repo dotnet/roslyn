@@ -13,22 +13,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MethodBody : Cci.IMethodBody
     {
-        private readonly byte[] ilBits;
-        private readonly Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo;
-        private readonly ushort maxStack;
-        private readonly Cci.IMethodDefinition parent;
-        private readonly ImmutableArray<Cci.ILocalDefinition> locals;    // built by someone else
-        private readonly SequencePointList sequencePoints;
-        private readonly DebugDocumentProvider debugDocumentProvider;
-        private readonly ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers;
-        private readonly ImmutableArray<Cci.LocalScope> localScopes;
-        private readonly ImmutableArray<Cci.NamespaceScope> namespaceScopes;
-        private readonly string stateMachineTypeNameOpt;
-        private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes;
-        private readonly ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots;
-        private readonly ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots;
-        private readonly Cci.NamespaceScopeEncoding namespaceScopeEncoding;
-        private readonly bool hasDynamicLocalVariables;
+        private readonly byte[] _ilBits;
+        private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
+        private readonly ushort _maxStack;
+        private readonly Cci.IMethodDefinition _parent;
+        private readonly ImmutableArray<Cci.ILocalDefinition> _locals;    // built by someone else
+        private readonly SequencePointList _sequencePoints;
+        private readonly DebugDocumentProvider _debugDocumentProvider;
+        private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
+        private readonly ImmutableArray<Cci.LocalScope> _localScopes;
+        private readonly ImmutableArray<Cci.NamespaceScope> _namespaceScopes;
+        private readonly string _stateMachineTypeNameOpt;
+        private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
+        private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
+        private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
+        private readonly Cci.NamespaceScopeEncoding _namespaceScopeEncoding;
+        private readonly bool _hasDynamicLocalVariables;
 
         public MethodBody(
             byte[] ilBits,
@@ -52,22 +52,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!exceptionHandlers.IsDefault);
             Debug.Assert(!localScopes.IsDefault);
 
-            this.ilBits = ilBits;
-            this.asyncMethodDebugInfo = asyncMethodDebugInfo;
-            this.maxStack = maxStack;
-            this.parent = parent;
-            this.locals = locals;
-            this.sequencePoints = sequencePoints;
-            this.debugDocumentProvider = debugDocumentProvider;
-            this.exceptionHandlers = exceptionHandlers;
-            this.localScopes = localScopes;
-            this.namespaceScopeEncoding = namespaceScopeEncoding;
-            this.hasDynamicLocalVariables = hasDynamicLocalVariables;
-            this.namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<Cci.NamespaceScope>.Empty : namespaceScopes;
-            this.stateMachineTypeNameOpt = stateMachineTypeNameOpt;
-            this.stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
-            this.stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
-            this.stateMachineAwaiterSlots = stateMachineAwaiterSlots;
+            _ilBits = ilBits;
+            _asyncMethodDebugInfo = asyncMethodDebugInfo;
+            _maxStack = maxStack;
+            _parent = parent;
+            _locals = locals;
+            _sequencePoints = sequencePoints;
+            _debugDocumentProvider = debugDocumentProvider;
+            _exceptionHandlers = exceptionHandlers;
+            _localScopes = localScopes;
+            _namespaceScopeEncoding = namespaceScopeEncoding;
+            _hasDynamicLocalVariables = hasDynamicLocalVariables;
+            _namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<Cci.NamespaceScope>.Empty : namespaceScopes;
+            _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
+            _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
+            _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
+            _stateMachineAwaiterSlots = stateMachineAwaiterSlots;
         }
 
         void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
         {
-            get { return this.exceptionHandlers; }
+            get { return _exceptionHandlers; }
         }
 
         bool Cci.IMethodBody.LocalsAreZeroed
@@ -87,33 +87,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
         {
-            get { return this.locals; }
+            get { return _locals; }
         }
 
         Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition
         {
-            get { return parent; }
+            get { return _parent; }
         }
 
         Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo
         {
-            get { return this.asyncMethodDebugInfo; }
+            get { return _asyncMethodDebugInfo; }
         }
 
         ushort Cci.IMethodBody.MaxStack
         {
-            get { return maxStack; }
+            get { return _maxStack; }
         }
 
         public byte[] IL
         {
-            get { return ilBits; }
+            get { return _ilBits; }
         }
 
         public ImmutableArray<Cci.SequencePoint> GetSequencePoints()
         {
             return HasAnySequencePoints ?
-                this.sequencePoints.GetSequencePoints(debugDocumentProvider) :
+                _sequencePoints.GetSequencePoints(_debugDocumentProvider) :
                 ImmutableArray<Cci.SequencePoint>.Empty;
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.sequencePoints != null && !this.sequencePoints.IsEmpty;
+                return _sequencePoints != null && !_sequencePoints.IsEmpty;
             }
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.localScopes;
+                return _localScopes;
             }
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.namespaceScopes;
+                return _namespaceScopes;
             }
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return stateMachineTypeNameOpt;
+                return _stateMachineTypeNameOpt;
             }
         }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.stateMachineHoistedLocalScopes;
+                return _stateMachineHoistedLocalScopes;
             }
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.stateMachineHoistedLocalSlots;
+                return _stateMachineHoistedLocalSlots;
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return stateMachineAwaiterSlots;
+                return _stateMachineAwaiterSlots;
             }
         }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.namespaceScopeEncoding;
+                return _namespaceScopeEncoding;
             }
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.hasDynamicLocalVariables;
+                return _hasDynamicLocalVariables;
             }
         }
     }

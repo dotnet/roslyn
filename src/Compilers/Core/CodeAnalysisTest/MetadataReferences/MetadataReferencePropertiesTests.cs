@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         public void Constructor_Errors()
-        { 
+        {
             Assert.Throws<ArgumentOutOfRangeException>(() => new MetadataReferenceProperties((MetadataImageKind)byte.MaxValue));
             Assert.Throws<ArgumentException>(() => new MetadataReferenceProperties(MetadataImageKind.Module, ImmutableArray.Create("blah")));
             Assert.Throws<ArgumentException>(() => new MetadataReferenceProperties(MetadataImageKind.Module, embedInteropTypes: true));
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => MetadataReferenceProperties.Module.WithAliases(new[] { "blah" }));
             Assert.Throws<ArgumentException>(() => MetadataReferenceProperties.Module.WithEmbedInteropTypes(true));
         }
-        
+
         [Fact]
         public void WithXxx()
         {

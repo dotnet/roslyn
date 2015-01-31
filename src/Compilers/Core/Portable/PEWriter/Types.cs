@@ -46,7 +46,6 @@ namespace Microsoft.Cci
         bool IsVector
         {
             get;
-
             // ^ ensures result ==> Rank == 1;
         }
 
@@ -57,7 +56,6 @@ namespace Microsoft.Cci
         IEnumerable<int> LowerBounds
         {
             get;
-
             // ^ ensures count(result) <= Rank;
         }
 
@@ -67,7 +65,6 @@ namespace Microsoft.Cci
         uint Rank
         {
             get;
-
             // ^ ensures result > 0;
         }
 
@@ -79,7 +76,6 @@ namespace Microsoft.Cci
         IEnumerable<ulong> Sizes
         {
             get;
-
             // ^ ensures count(result) <= Rank;
         }
     }
@@ -152,7 +148,6 @@ namespace Microsoft.Cci
         bool MustBeReferenceType
         {
             get;
-
             // ^ ensures result ==> !this.MustBeValueType;
         }
 
@@ -162,7 +157,6 @@ namespace Microsoft.Cci
         bool MustBeValueType
         {
             get;
-
             // ^ ensures result ==> !this.MustBeReferenceType;
         }
 
@@ -198,7 +192,6 @@ namespace Microsoft.Cci
         new IMethodDefinition DefiningMethod
         {
             get;
-
             // ^ ensures result.IsGeneric;
         }
     }
@@ -232,7 +225,6 @@ namespace Microsoft.Cci
         INamedTypeReference GenericType
         {
             get;
-
             // ^ ensures result.ResolvedType.IsGeneric;
         }
     }
@@ -359,7 +351,7 @@ namespace Microsoft.Cci
             this.ImplementingMethod = ImplementingMethod;
             this.ImplementedMethod = ImplementedMethod;
         }
-        
+
         /// <summary>
         /// The type that is explicitly implementing or overriding the base class virtual method or explicitly implementing an interface method.
         /// </summary>
@@ -455,7 +447,6 @@ namespace Microsoft.Cci
         ushort GenericParameterCount
         { // TODO: remove this
             get;
-
             // ^ ensures !this.IsGeneric ==> result == 0;
             // ^ ensures this.IsGeneric ==> result > 0;
         }
@@ -583,7 +574,7 @@ namespace Microsoft.Cci
         /// The type definition being referred to.
         /// </summary>
         ITypeDefinition GetResolvedType(EmitContext context);
-        
+
         /// <summary>
         /// Unless the value of TypeCode is PrimitiveTypeCode.NotPrimitive, the type corresponds to a "primitive" CLR type (such as System.Int32) and
         /// the type code identifies which of the primitive types it corresponds to.

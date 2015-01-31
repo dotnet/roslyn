@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class LocalConstantDefinition : Cci.ILocalDefinition
     {
-        private readonly string name;
-        private readonly Location location;
-        private readonly Cci.IMetadataConstant compileTimeValue;
-        private readonly bool isDynamic;
+        private readonly string _name;
+        private readonly Location _location;
+        private readonly Cci.IMetadataConstant _compileTimeValue;
+        private readonly bool _isDynamic;
 
         //Gives the synthesized dynamic attributes of the local definition
-        private readonly ImmutableArray<TypedConstant> dynamicTransformFlags;
+        private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
 
         public LocalConstantDefinition(string name, Location location, Cci.IMetadataConstant compileTimeValue, bool isDynamic = false,
             ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>))
@@ -27,31 +27,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(compileTimeValue != null);
 
-            this.name = name;
-            this.location = location;
-            this.compileTimeValue = compileTimeValue;
-            this.isDynamic = isDynamic;
-            this.dynamicTransformFlags = dynamicTransformFlags;
+            _name = name;
+            _location = location;
+            _compileTimeValue = compileTimeValue;
+            _isDynamic = isDynamic;
+            _dynamicTransformFlags = dynamicTransformFlags;
         }
 
         public string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         public Location Location
         {
-            get { return location; }
+            get { return _location; }
         }
 
         public Cci.IMetadataConstant CompileTimeValue
         {
-            get { return compileTimeValue; }
+            get { return _compileTimeValue; }
         }
 
         public Cci.ITypeReference Type
         {
-            get { return this.compileTimeValue.Type; }
+            get { return _compileTimeValue.Type; }
         }
 
         public bool IsConstant
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsDynamic
         {
-            get { return this.isDynamic; }
+            get { return _isDynamic; }
         }
 
         public uint PdbAttributes
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags
         {
-            get { return this.dynamicTransformFlags; }
+            get { return _dynamicTransformFlags; }
         }
 
         public int SlotIndex

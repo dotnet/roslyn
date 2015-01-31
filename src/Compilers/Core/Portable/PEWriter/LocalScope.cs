@@ -11,10 +11,10 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct LocalScope
     {
-        private readonly uint offset;
-        private readonly uint length;
-        private readonly ImmutableArray<ILocalDefinition> constants;
-        private readonly ImmutableArray<ILocalDefinition> locals;
+        private readonly uint _offset;
+        private readonly uint _length;
+        private readonly ImmutableArray<ILocalDefinition> _constants;
+        private readonly ImmutableArray<ILocalDefinition> _locals;
 
         internal LocalScope(uint offset, uint length, ImmutableArray<ILocalDefinition> constants, ImmutableArray<ILocalDefinition> locals)
         {
@@ -24,10 +24,10 @@ namespace Microsoft.Cci
             Debug.Assert(!locals.Any(l => l.Name == null));
             Debug.Assert(!constants.Any(c => c.Name == null));
 
-            this.offset = offset;
-            this.length = length;
-            this.constants = constants;
-            this.locals = locals;
+            _offset = offset;
+            _length = length;
+            _constants = constants;
+            _locals = locals;
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.Cci
         /// </summary>
         public uint Offset
         {
-            get { return offset; }
+            get { return _offset; }
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.Cci
         /// </summary>
         public uint Length
         {
-            get { return length; }
+            get { return _length; }
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.Cci
         /// </summary>
         public ImmutableArray<ILocalDefinition> Constants
         {
-            get { return constants.IsDefault ? ImmutableArray<ILocalDefinition>.Empty : constants; }
+            get { return _constants.IsDefault ? ImmutableArray<ILocalDefinition>.Empty : _constants; }
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Microsoft.Cci
         /// </summary>
         public ImmutableArray<ILocalDefinition> Variables
         {
-            get { return locals.IsDefault ? ImmutableArray<ILocalDefinition>.Empty : locals; }
+            get { return _locals.IsDefault ? ImmutableArray<ILocalDefinition>.Empty : _locals; }
         }
     }
 }

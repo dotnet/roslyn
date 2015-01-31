@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
+        internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory, string tempPath)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory, tempPath)
         {
         }
 
@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string[] args,
             string baseDirectory,
             string libDirectory,
+            string tempPath,
             TextWriter output,
             CancellationToken cancellationToken,
             out bool utf8output)
         {
             var responseFile = Path.Combine(responseFileDirectory, VisualBasicCompiler.ResponseFileName);
-            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, libDirectory);
+            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, libDirectory, tempPath);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }

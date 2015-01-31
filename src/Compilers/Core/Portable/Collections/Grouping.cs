@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis
     internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
         public TKey Key { get; private set; }
-        private readonly IEnumerable<TElement> elements;
+        private readonly IEnumerable<TElement> _elements;
 
         public Grouping(TKey key, IEnumerable<TElement> elements)
         {
             this.Key = key;
-            this.elements = elements;
+            _elements = elements;
         }
 
         public Grouping(KeyValuePair<TKey, IEnumerable<TElement>> pair)
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerator<TElement> GetEnumerator()
         {
-            return elements.GetEnumerator();
+            return _elements.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

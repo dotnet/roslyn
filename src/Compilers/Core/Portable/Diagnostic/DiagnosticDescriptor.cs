@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provides a description about a <see cref="Diagnostic"/>
     /// </summary>
-    public class DiagnosticDescriptor
+    public class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor>
     {
         /// <summary>
         /// An unique identifier for the diagnostic.
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An optional hyperlink that provides more detailed information regarding the diagnostic.
         /// </summary>
-        public string HelpLink { get; private set; }
+        public string HelpLinkUri { get; private set; }
 
         /// <summary>
         /// A localizable format message string, which can be passed as the first argument to <see cref="String.Format(string, object[])"/> when creating the diagnostic message with this descriptor.
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default.</param>
         /// <param name="description">An optional longer description of the diagnostic.</param>
-        /// <param name="helpLink">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
+        /// <param name="helpLinkUri">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
         public DiagnosticDescriptor(
             string id,
@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             string description = null,
-            string helpLink = null,
+            string helpLinkUri = null,
             params string[] customTags)
-            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.AsImmutableOrEmpty())
+            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
         {
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="defaultSeverity">Default severity of the diagnostic.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default.</param>
         /// <param name="description">An optional longer localizable description of the diagnostic.</param>
-        /// <param name="helpLink">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
+        /// <param name="helpLinkUri">An optional hyperlink that provides a more detailed description regarding the diagnostic.</param>
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
         /// <remarks>Example descriptor for rule CA1001:
         ///     internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -108,20 +108,20 @@ namespace Microsoft.CodeAnalysis
         ///         FxCopDiagnosticCategory.Design,
         ///         DiagnosticSeverity.Warning,
         ///         isEnabledByDefault: true,
-        ///         helpLink: "http://msdn.microsoft.com/library/ms182172.aspx",
+        ///         helpLinkUri: "http://msdn.microsoft.com/library/ms182172.aspx",
         ///         customTags: DiagnosticCustomTags.Microsoft);
         /// </remarks>
         public DiagnosticDescriptor(
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
-            string category, 
-            DiagnosticSeverity defaultSeverity, 
+            string category,
+            DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            LocalizableString description = null, 
-            string helpLink = null,
+            LocalizableString description = null,
+            string helpLinkUri = null,
             params string[] customTags)
-            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.AsImmutableOrEmpty())
+            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
         {
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             LocalizableString description,
-            string helpLink,
+            string helpLinkUri,
             ImmutableArray<string> customTags)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -163,22 +163,27 @@ namespace Microsoft.CodeAnalysis
             this.DefaultSeverity = defaultSeverity;
             this.IsEnabledByDefault = isEnabledByDefault;
             this.Description = description ?? string.Empty;
-            this.HelpLink = helpLink ?? string.Empty;
+            this.HelpLinkUri = helpLinkUri ?? string.Empty;
             this.CustomTags = customTags.AsImmutableOrEmpty();
         }
 
-        public override bool Equals(object obj)
+        public bool Equals(DiagnosticDescriptor other)
         {
-            var other = obj as DiagnosticDescriptor;
-            return other != null &&
+            return
+                other != null &&
                 this.Category == other.Category &&
                 this.DefaultSeverity == other.DefaultSeverity &&
                 this.Description == other.Description &&
-                this.HelpLink == other.HelpLink &&
+                this.HelpLinkUri == other.HelpLinkUri &&
                 this.Id == other.Id &&
                 this.IsEnabledByDefault == other.IsEnabledByDefault &&
                 this.MessageFormat == other.MessageFormat &&
                 this.Title == other.Title;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as DiagnosticDescriptor);
         }
 
         public override int GetHashCode()
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.Category.GetHashCode(),
                 Hash.Combine(this.DefaultSeverity.GetHashCode(),
                 Hash.Combine(this.Description.GetHashCode(),
-                Hash.Combine(this.HelpLink.GetHashCode(),
+                Hash.Combine(this.HelpLinkUri.GetHashCode(),
                 Hash.Combine(this.Id.GetHashCode(),
                 Hash.Combine(this.IsEnabledByDefault.GetHashCode(),
                 Hash.Combine(this.MessageFormat.GetHashCode(),

@@ -8,54 +8,54 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    partial class ServerDispatcher
+    internal partial class ServerDispatcher
     {
         private sealed class AnalyzerWatcher
         {
             // This value should be resolved whenever the watcher detects that an analyzer file has changed on
             // disk.  The server is listening for this event and will initiate a shutdown when it occurs.
-            private readonly TaskCompletionSource<bool> fileChangedCompletionSource;
+            private readonly TaskCompletionSource<bool> _fileChangedCompletionSource;
 
             // Maps from a directory path to the associated FileSystemWatcher.
-            private readonly Dictionary<string, FileSystemWatcher> fileSystemWatchers = new Dictionary<string, FileSystemWatcher>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, FileSystemWatcher> _fileSystemWatchers = new Dictionary<string, FileSystemWatcher>(StringComparer.OrdinalIgnoreCase);
 
             // Maps from a directory to a set of files within that directory
             // that are being watched.
-            private readonly Dictionary<string, HashSet<string>> watchedFiles = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, HashSet<string>> _watchedFiles = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
             // Controls access to the file system watcher data structures.
-            private readonly object fileSystemWatcherLock = new object();
+            private readonly object _fileSystemWatcherLock = new object();
 
             public AnalyzerWatcher(TaskCompletionSource<bool> fileChangedCompletionSource)
             {
-                this.fileChangedCompletionSource = fileChangedCompletionSource;
+                _fileChangedCompletionSource = fileChangedCompletionSource;
 
                 AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
             }
 
             private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)
             {
-                lock (this.fileSystemWatcherLock)
+                lock (_fileSystemWatcherLock)
                 {
                     var directoryPath = Path.GetDirectoryName(e.Path);
                     var fileName = Path.GetFileName(e.Path);
 
                     FileSystemWatcher watcher;
-                    if (!this.fileSystemWatchers.TryGetValue(directoryPath, out watcher))
+                    if (!_fileSystemWatchers.TryGetValue(directoryPath, out watcher))
                     {
                         watcher = new FileSystemWatcher(directoryPath);
                         watcher.Changed += Watcher_Changed;
                         watcher.EnableRaisingEvents = true;
 
-                        this.fileSystemWatchers.Add(directoryPath, watcher);
+                        _fileSystemWatchers.Add(directoryPath, watcher);
                     }
 
                     HashSet<string> watchedFilesInDirectory;
-                    if (!this.watchedFiles.TryGetValue(directoryPath, out watchedFilesInDirectory))
+                    if (!_watchedFiles.TryGetValue(directoryPath, out watchedFilesInDirectory))
                     {
                         watchedFilesInDirectory = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                        this.watchedFiles.Add(directoryPath, watchedFilesInDirectory);
+                        _watchedFiles.Add(directoryPath, watchedFilesInDirectory);
                     }
 
                     watchedFilesInDirectory.Add(fileName);
@@ -64,16 +64,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             private void Watcher_Changed(object sender, FileSystemEventArgs e)
             {
-                lock (this.fileSystemWatcherLock)
+                lock (_fileSystemWatcherLock)
                 {
                     var directoryPath = Path.GetDirectoryName(e.FullPath);
                     var fileName = Path.GetFileName(e.FullPath);
 
                     HashSet<string> watchedFilesInDirectory;
-                    if (this.watchedFiles.TryGetValue(directoryPath, out watchedFilesInDirectory) &&
+                    if (_watchedFiles.TryGetValue(directoryPath, out watchedFilesInDirectory) &&
                         watchedFilesInDirectory.Contains(fileName))
                     {
-                        this.fileChangedCompletionSource.TrySetResult(true);
+                        _fileChangedCompletionSource.TrySetResult(true);
                     }
                 }
             }

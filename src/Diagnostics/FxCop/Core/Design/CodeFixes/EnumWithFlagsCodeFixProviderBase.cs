@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         private readonly ImmutableArray<string> diagnosticIds = ImmutableArray.Create(EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags,
                                                                                    EnumWithFlagsDiagnosticAnalyzer.RuleIdDoNotMarkEnumsWithFlags);
 
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return diagnosticIds;
+            get { return diagnosticIds; }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

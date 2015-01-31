@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private readonly string responseFileDirectory;
+        private readonly string _responseFileDirectory;
 
         internal CompilerRequestHandler(string responseFileDirectory)
         {
-            this.responseFileDirectory = responseFileDirectory;
+            _responseFileDirectory = responseFileDirectory;
         }
 
         /// <summary>
@@ -67,14 +67,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return new CompletedBuildResponse(-1,
                         utf8output: false,
                         output: "",
-                        errorOutput:  "");
+                        errorOutput: "");
             }
         }
 
-        private static string[] GetCommandLineArguments(BuildRequest req, out string currentDirectory, out string libDirectory)
+        private static string[] GetCommandLineArguments(BuildRequest req, out string currentDirectory, out string libDirectory, out string tempPath)
         {
             currentDirectory = null;
             libDirectory = null;
+            tempPath = null;
             List<string> commandLineArguments = new List<string>();
 
             foreach (BuildRequest.Argument arg in req.Arguments)
@@ -86,6 +87,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.LibEnvVariable)
                 {
                     libDirectory = arg.Value;
+                }
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.TempPath)
+                {
+                    tempPath = arg.Value;
                 }
                 else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
                 {
@@ -107,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             string currentDirectory;
             string libDirectory;
-            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory);
+            string tempPath;
+            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory, out tempPath);
 
             if (currentDirectory == null)
             {
@@ -120,12 +126,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     errorOutput: "");
             }
 
+            if (tempPath == null)
+            {
+                // If we don't have a temp directory, compilation can't proceed. This shouldn't ever happen,
+                // because our clients always send the temp directory.
+                Debug.Assert(false, "Client did not send temp directory; this is required.");
+                return new CompletedBuildResponse(-1,
+                    utf8output: false,
+                    output: "",
+                    errorOutput: "");
+            }
+
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             bool utf8output;
             int returnCode = CSharpCompile(
                 currentDirectory,
                 libDirectory,
-                this.responseFileDirectory,
+                _responseFileDirectory,
+                tempPath,
                 commandLineArguments,
                 output,
                 cancellationToken,
@@ -142,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string currentDirectory,
             string libDirectory,
             string responseFileDirectory,
+            string tempPath,
             string[] commandLineArguments,
             TextWriter output,
             CancellationToken cancellationToken,
@@ -159,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 commandLineArguments,
                 currentDirectory,
                 libDirectory,
+                tempPath,
                 output,
                 cancellationToken,
                 out utf8output);
@@ -172,22 +192,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             string currentDirectory;
             string libDirectory;
-            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory);
+            string tempPath;
+            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory, out tempPath);
 
             if (currentDirectory == null)
             {
                 // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
                 // because our clients always send the current directory.
                 Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, utf8output: false, output:  "", errorOutput: "");
+                return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
+            }
+
+            if (tempPath == null)
+            {
+                // If we don't have a temp directory, compilation can't proceed. This shouldn't ever happen,
+                // because our clients always send the temp directory.
+                Debug.Assert(false, "Client did not send temp directory; this is required.");
+                return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
             }
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             bool utf8output;
             int returnCode = BasicCompile(
-                this.responseFileDirectory,
+                _responseFileDirectory,
                 currentDirectory,
                 libDirectory,
+                tempPath,
                 commandLineArguments,
                 output,
                 cancellationToken,
@@ -204,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string responseFileDirectory,
             string currentDirectory,
             string libDirectory,
+            string tempPath,
             string[] commandLineArguments,
             TextWriter output,
             CancellationToken cancellationToken,
@@ -218,10 +249,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return VisualBasicCompilerServer.RunCompiler(
                 responseFileDirectory,
-                commandLineArguments, 
-                currentDirectory, 
-                libDirectory, 
-                output, 
+                commandLineArguments,
+                currentDirectory,
+                libDirectory,
+                tempPath,
+                output,
                 cancellationToken,
                 out utf8output);
         }

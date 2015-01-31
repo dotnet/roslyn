@@ -1660,31 +1660,6 @@ class C1
             {
             });
 #endif
-            // adding analyzer references is not supported.
-            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.AddAnalyzerReference));
-            Assert.Throws<NotSupportedException>(delegate
-            {
-                var p = ws.CurrentSolution.GetProject(cspid);
-                var a = new AnalyzerFileReference(GetSolutionFileName("myAnalyzer.dll"));
-                ws.TryApplyChanges(p.AddAnalyzerReference(a).Solution);
-            });
-
-            // removing analyzer references is not supported.
-            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference));
-            Assert.Throws<NotSupportedException>(delegate
-            {
-                var p = ws.CurrentSolution.GetProject(cspid);
-                var a = p.AnalyzerReferences.First();
-                ws.TryApplyChanges(p.RemoveAnalyzerReference(a).Solution);
-            });
-
-            // adding project references is not supported
-            Assert.Equal(false, ws.CanApplyChange(ApplyChangesKind.AddProjectReference));
-            Assert.Throws<NotSupportedException>(delegate
-            {
-                var p = ws.CurrentSolution.GetProject(cspid);
-                ws.TryApplyChanges(p.AddProjectReference(new ProjectReference(vbpid)).Solution);
-            });
 #endif
         }
 
@@ -1809,7 +1784,7 @@ class C1
             var vbdoc2 = AssertSemanticVersionChanged(vbdoc1, vbdoc1.GetTextAsync().Result.Replace(new TextSpan(startOfClassInterior, 0), "\r\nPublic Sub M()\r\n\r\nEnd Sub\r\n"));
 
             // change interior of method
-            var startOfMethodInterior = vbdoc2.GetSyntaxRootAsync().Result.DescendantNodes().OfType<VB.Syntax.MethodBlockBaseSyntax>().First().Begin.FullSpan.End;
+            var startOfMethodInterior = vbdoc2.GetSyntaxRootAsync().Result.DescendantNodes().OfType<VB.Syntax.MethodBlockBaseSyntax>().First().BlockStatement.FullSpan.End;
             var vbdoc3 = AssertSemanticVersionUnchanged(vbdoc2, vbdoc2.GetTextAsync().Result.Replace(new TextSpan(startOfMethodInterior, 0), "\r\nDim x As Integer = 10\r\n"));
 
             // add whitespace outside of method
@@ -2374,7 +2349,7 @@ class C { }";
 
             var document = project.Documents.First(d => d.Name == "class1.cs");
             var text = document.GetTextAsync().Result;
-            Assert.Equal(encoding, text.Encoding);
+            Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
             var root = document.GetSyntaxRootAsync().Result;
@@ -2390,7 +2365,126 @@ class C { }";
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 var reloadedText = EncodedStringText.Create(stream);
-                Assert.Equal(encoding, reloadedText.Encoding);
+                Assert.Equal(encoding.EncodingName, reloadedText.Encoding.EncodingName);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddRemoveMetadataReference_GAC()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var projFileText = File.ReadAllText(projFile);
+            Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+                var project = solution.Projects.First();
+
+                var mref = MetadataReference.CreateFromAssembly(typeof(System.Xaml.XamlObjectReader).Assembly);
+
+                // add reference to System.Xaml
+                ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+
+                // remove reference to System.Xaml
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveMetadataReference(mref).Solution);
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddRemoveMetadataReference_NonGAC()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"References\MyAssembly.dll", GetResourceBytes("EmptyLibrary.dll")));
+
+            var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var projFileText = File.ReadAllText(projFile);
+            Assert.Equal(false, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+                var project = solution.Projects.First();
+
+                var myAssemblyPath = GetSolutionFileName(@"References\MyAssembly.dll");
+                var mref = MetadataReference.CreateFromFile(myAssemblyPath);
+
+                // add reference to MyAssembly.dll
+                ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+
+                // remove reference MyAssembly.dll
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveMetadataReference(mref).Solution);
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddRemoveAnalyzerReference()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"Analyzers\MyAnalyzer.dll", GetResourceBytes("EmptyLibrary.dll")));
+
+            var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var projFileText = File.ReadAllText(projFile);
+            Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+                var project = solution.Projects.First();
+
+                var myAnalyzerPath = GetSolutionFileName(@"Analyzers\MyAnalyzer.dll");
+                var aref = new AnalyzerFileReference(myAnalyzerPath);
+
+                // add reference to MyAnalyzer.dll
+                ws.TryApplyChanges(project.AddAnalyzerReference(aref).Solution);
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(true, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
+
+                // remove reference MyAnalzyer.dll
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveAnalyzerReference(aref).Solution);
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddRemoveProjectReference()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+
+            var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
+            var projFileText = File.ReadAllText(projFile);
+            Assert.Equal(true, projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+                var project = solution.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+                var pref = project.ProjectReferences.First();
+
+                // remove project reference
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveProjectReference(pref).Solution);
+                Assert.Equal(0, ws.CurrentSolution.GetProject(project.Id).ProjectReferences.Count());
+
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(false, projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
+
+                // add it back
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).AddProjectReference(pref).Solution);
+                Assert.Equal(1, ws.CurrentSolution.GetProject(project.Id).ProjectReferences.Count());
+
+                projFileText = File.ReadAllText(projFile);
+                Assert.Equal(true, projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
             }
         }
     }

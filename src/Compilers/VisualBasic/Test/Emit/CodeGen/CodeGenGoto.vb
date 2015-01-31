@@ -709,49 +709,51 @@ End Class
             CompileAndVerify(source, expectedOutput:=<![CDATA[inner Try
 outer Try]]>).VerifyIL("c1.Main", <![CDATA[
 {
- // Code size       51 (0x33)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (System.Exception V_0) //e
   .try
-{
-  .try
-{
-  .try
-{
-  .try
-{
-  IL_0000:  leave.s    IL_0032
-}
-  catch System.Exception
-{
-  IL_0002:  dup
-  IL_0003:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0008:  stloc.0
-  IL_0009:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_000e:  leave.s    IL_0032
-}
-}
+  {
+    .try
+    {
+      .try
+      {
+        .try
+        {
+          IL_0000:  leave.s    IL_0036
+        }
+        catch System.Exception
+        {
+          IL_0002:  dup
+          IL_0003:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+          IL_0008:  stloc.0
+          IL_0009:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+          IL_000e:  leave.s    IL_0010
+        }
+        IL_0010:  leave.s    IL_001d
+      }
+      finally
+      {
+        IL_0012:  ldstr      "inner Try"
+        IL_0017:  call       "Sub System.Console.WriteLine(String)"
+        IL_001c:  endfinally
+      }
+      IL_001d:  leave.s    IL_0036
+    }
+    catch System.Exception
+    {
+      IL_001f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0024:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0029:  leave.s    IL_0036
+    }
+  }
   finally
-{
-  IL_0010:  ldstr      "inner Try"
-  IL_0015:  call       "Sub System.Console.WriteLine(String)"
-  IL_001a:  endfinally
-}
-}
-  catch System.Exception
-{
-  IL_001b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0020:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0025:  leave.s    IL_0032
-}
-}
-  finally
-{
-  IL_0027:  ldstr      "outer Try"
-  IL_002c:  call       "Sub System.Console.WriteLine(String)"
-  IL_0031:  endfinally
-}
-  IL_0032:  ret
+  {
+    IL_002b:  ldstr      "outer Try"
+    IL_0030:  call       "Sub System.Console.WriteLine(String)"
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
 }
 ]]>)
         End Sub

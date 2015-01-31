@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' This looks like ?. or ?! 
 
                         Dim qToken = DirectCast(start, PunctuationSyntax)
-                        qToken = AssertLanguageFeature(ERRID.FEATUREID_NullPropagatingOperator, qToken)
+                        qToken = CheckFeatureAvailability(Feature.NullPropagatingOperator, qToken)
 
                         GetNextToken()
                         term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(RedimOrNewParent, term:=Nothing))
@@ -472,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' This looks like ?. ?! or ?(
 
                     Dim qToken = DirectCast([Next], PunctuationSyntax)
-                    qToken = AssertLanguageFeature(ERRID.FEATUREID_NullPropagatingOperator, qToken)
+                    qToken = CheckFeatureAvailability(Feature.NullPropagatingOperator, qToken)
 
                     GetNextToken()
 
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.NameOfKeyword, "should be at NameOf.")
 
             Dim [nameOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-            [nameOf] = AssertLanguageFeature(ERRID.FEATUREID_NameOfOperator, [nameOf])
+            [nameOf] = CheckFeatureAvailability(Feature.NameOfExpressions, [nameOf])
 
             GetNextToken()
 
@@ -1718,6 +1718,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Debug.Assert(_context Is statementContext, "Lambda terminated with the wrong context.")
                 value = DirectCast(lambdaContext.CreateBlockSyntax(statement), ExpressionSyntax)
 
+            End If
+
+            If isMultiLine Then
+                value = CheckFeatureAvailability(Feature.StatementLambdas, value)
             End If
 
             Return value

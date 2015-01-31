@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class SynthesizedLocalOrdinalsDispenser
     {
         // The key is (local.SyntaxOffset << 8) | local.SynthesizedKind.
-        private PooledDictionary<long, int> lazyMap;
+        private PooledDictionary<long, int> _lazyMap;
 
         private static long MakeKey(SynthesizedLocalKind localKind, int syntaxOffset)
         {
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public void Free()
         {
-            if (lazyMap != null)
+            if (_lazyMap != null)
             {
-                lazyMap.Free();
-                lazyMap = null;
+                _lazyMap.Free();
+                _lazyMap = null;
             }
         }
 
@@ -42,17 +42,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Group by syntax offset and kind.
             // Variables associated with the same syntax and kind will be assigned different ordinals.
-            if (lazyMap == null)
+            if (_lazyMap == null)
             {
-                lazyMap = PooledDictionary<long, int>.GetInstance();
+                _lazyMap = PooledDictionary<long, int>.GetInstance();
                 ordinal = 0;
             }
-            else if (!lazyMap.TryGetValue(key, out ordinal))
+            else if (!_lazyMap.TryGetValue(key, out ordinal))
             {
                 ordinal = 0;
             }
 
-            lazyMap[key] = ordinal + 1;
+            _lazyMap[key] = ordinal + 1;
             Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
             return ordinal;
         }

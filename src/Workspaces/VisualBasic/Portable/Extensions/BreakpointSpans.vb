@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function CreateSpanForMethodBase(methodBase As MethodBaseSyntax) As TextSpan
             If methodBase.Modifiers.Count = 0 Then
-                Return TextSpan.FromBounds(methodBase.Keyword.SpanStart, methodBase.Span.End)
+                Return TextSpan.FromBounds(methodBase.DeclarationKeyword.SpanStart, methodBase.Span.End)
             End If
 
             Return TextSpan.FromBounds(methodBase.Modifiers.First().SpanStart, methodBase.Span.End)

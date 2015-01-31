@@ -1,5 +1,7 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
+[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/)
+
 The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
 with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
 that are used by Visual Studio.
@@ -23,6 +25,8 @@ which installs on top of Visual Studio 2013. *(Note: The VS 2013 preview is quit
 
 Get started building diagnostics, code fixes, refactorings, and other code-aware tools!
 
+To get started on **Visual Studio 2015 Preview**:
+
 1. Set up a box with Visual Studio 2015 Preview. Either 
 [install  Visual Studio 2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs), 
 or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
@@ -34,6 +38,19 @@ to get the Visual Studio project templates.
 to get a [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) 
 to help explore the syntax trees you'll be analyzing.
 
+To get started on **Visual Studio 2015 CTP 5**:
+
+1. Set up a box with Visual Studio 2015 CTP 5. Either 
+[install  Visual Studio 2015 CTP 5](http://go.microsoft.com/fwlink/?LinkId=400496), 
+or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
+2. Install the [Visual Studio 2015 CTP 5 SDK](http://go.microsoft.com/fwlink/?LinkId=400496). 
+You'll need to do this even if you're using the Azure VM image. 
+3. Install the [SDK Templates VSIX package](https://visualstudiogallery.msdn.microsoft.com/ae1cf421-54bf-4406-b48c-76a182819fb7) 
+to get the Visual Studio project templates. 
+4. Install the [Syntax Visualizer VSIX package](https://visualstudiogallery.msdn.microsoft.com/b5104545-29ed-46b2-beb0-351af9ca2d21) 
+to get a [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) 
+to help explore the syntax trees you'll be analyzing.
+
 Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
 From the NuGet package manager console:
 
@@ -42,7 +59,7 @@ From the NuGet package manager console:
 ### Source code
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
-* [Enhanced source view](http://source.roslyn.codeplex.com/), powered by Roslyn 
+* [Enhanced source view](http://source.roslyn.io/), powered by Roslyn 
 * [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
 
 ### Get started

@@ -37,35 +37,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// Maps from a full path to a file to a corresponding <see cref="Assembly"/>
             /// that we've already loaded.
             /// </summary>
-            private static readonly Dictionary<string, Assembly> assembliesFromFiles =
+            private static readonly Dictionary<string, Assembly> s_assembliesFromFiles =
                 new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// Maps from an assembly full name to the directory where we found the
             /// corresponding file.
             /// </summary>
-            private static readonly Dictionary<string, string> filesFromAssemblyNames =
+            private static readonly Dictionary<string, string> s_filesFromAssemblyNames =
                 new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// Maps from an assembly full name to the corresponding <see cref="Assembly"/>.
             /// </summary>
-            private static readonly Dictionary<string, Assembly> assembliesFromNames =
+            private static readonly Dictionary<string, Assembly> s_assembliesFromNames =
                 new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// Maps from the full path to an assembly to the full path of the assembly
             /// that requested it.
             /// </summary>
-            private static readonly Dictionary<string, string> requestingFilesFromFiles =
+            private static readonly Dictionary<string, string> s_requestingFilesFromFiles =
                 new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// Controls access to the loader's data structures.
             /// </summary>
-            private static readonly object guard = new object();
+            private static readonly object s_guard = new object();
 
-            private static bool hookedAssemblyResolve = false;
+            private static bool s_hookedAssemblyResolve = false;
 
             /// <summary>
             /// Loads the <see cref="Assembly"/> at the given path without locking the file.
@@ -83,19 +83,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     throw new ArgumentException(e.Message, "fullPath");
                 }
 
-                lock (guard)
+                lock (s_guard)
                 {
                     Assembly assembly;
-                    if (assembliesFromFiles.TryGetValue(fullPath, out assembly))
+                    if (s_assembliesFromFiles.TryGetValue(fullPath, out assembly))
                     {
                         return assembly;
                     }
 
                     assembly = LoadCore(fullPath);
 
-                    if (!hookedAssemblyResolve)
+                    if (!s_hookedAssemblyResolve)
                     {
-                        hookedAssemblyResolve = true;
+                        s_hookedAssemblyResolve = true;
 
                         AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
                     }
@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public static string TryGetRequestingAssembly(string fullPath)
             {
-                lock (guard)
+                lock (s_guard)
                 {
                     string requestingAssemblyFullPath;
-                    if (requestingFilesFromFiles.TryGetValue(fullPath, out requestingAssemblyFullPath))
+                    if (s_requestingFilesFromFiles.TryGetValue(fullPath, out requestingAssemblyFullPath))
                     {
                         return requestingAssemblyFullPath;
                     }
@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 string assemblyName = assembly.FullName;
 
-                assembliesFromFiles[fullPath] = assembly;
-                filesFromAssemblyNames[assemblyName] = fullPath;
-                assembliesFromNames[assemblyName] = assembly;
+                s_assembliesFromFiles[fullPath] = assembly;
+                s_filesFromAssemblyNames[assemblyName] = fullPath;
+                s_assembliesFromNames[assemblyName] = assembly;
 
                 EventHandler<AnalyzerAssemblyLoadEventArgs> handler = AnalyzerFileReference.AssemblyLoad;
                 if (handler != null)
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return null;
                 }
 
-                lock (guard)
+                lock (s_guard)
                 {
                     string requestingAssemblyName = args.RequestingAssembly.FullName;
 
                     string requestingAssemblyFullPath;
-                    if (!filesFromAssemblyNames.TryGetValue(requestingAssemblyName, out requestingAssemblyFullPath))
+                    if (!s_filesFromAssemblyNames.TryGetValue(requestingAssemblyName, out requestingAssemblyFullPath))
                     {
                         // The requesting assembly is not one of ours; don't try to satisfy the request.
                         return null;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     string nameWithPolicyApplied = AppDomain.CurrentDomain.ApplyPolicy(args.Name);
 
                     Assembly assembly;
-                    if (assembliesFromNames.TryGetValue(nameWithPolicyApplied, out assembly))
+                    if (s_assembliesFromNames.TryGetValue(nameWithPolicyApplied, out assembly))
                     {
                         // We've already loaded an assembly by this name; use that.
                         return assembly;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     assembly = LoadCore(assemblyFullPath);
 
-                    requestingFilesFromFiles[assemblyFullPath] = requestingAssemblyFullPath;
+                    s_requestingFilesFromFiles[assemblyFullPath] = requestingAssemblyFullPath;
 
                     return assembly;
                 }

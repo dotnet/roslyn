@@ -11,26 +11,26 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class FixedObjectBinder : ObjectBinder
     {
-        private readonly ImmutableDictionary<TypeKey, Type> typeMap;
-        private readonly ImmutableDictionary<Type, Func<ObjectReader, object>> readerMap;
+        private readonly ImmutableDictionary<TypeKey, Type> _typeMap;
+        private readonly ImmutableDictionary<Type, Func<ObjectReader, object>> _readerMap;
 
         public FixedObjectBinder(ImmutableDictionary<Type, Func<ObjectReader, object>> readerMap)
         {
-            this.readerMap = readerMap;
-            this.typeMap = readerMap.Keys.ToImmutableDictionary(t => new TypeKey(t.GetTypeInfo().Assembly.FullName, t.FullName));
+            _readerMap = readerMap;
+            _typeMap = readerMap.Keys.ToImmutableDictionary(t => new TypeKey(t.GetTypeInfo().Assembly.FullName, t.FullName));
         }
 
         public override Type GetType(string assemblyName, string typeName)
         {
             Type type;
-            this.typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type);
+            _typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type);
             return type;
         }
 
         public override Func<ObjectReader, object> GetReader(Type type)
         {
             Func<ObjectReader, object> reader;
-            this.readerMap.TryGetValue(type, out reader);
+            _readerMap.TryGetValue(type, out reader);
             return reader;
         }
     }

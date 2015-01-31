@@ -1,0 +1,1867 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
+using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
+{
+    public class InvocationExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+    {
+        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
+        {
+            return new InvocationExpressionSignatureHelpProvider();
+        }
+
+        #region "Regular tests"
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationAfterCloseParen()
+        {
+            var markup = @"
+class C
+{
+    int Foo(int x)
+    {
+        [|Foo(Foo(x)$$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Foo(int x)", currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationInsideLambda()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Foo(Action<int> f)
+    {
+        [|Foo(i => Console.WriteLine(i)$$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(Action<int> f)", currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationInsideLambda2()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Foo(Action<int> f)
+    {
+        [|Foo(i => Con$$sole.WriteLine(i)|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(Action<int> f)", currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithoutParameters()
+        {
+            var markup = @"
+class C
+{
+    void Foo()
+    {
+        [|Foo($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo()", string.Empty, null, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithoutParametersMethodXmlComments()
+        {
+            var markup = @"
+class C
+{
+    /// <summary>
+    /// Summary for foo
+    /// </summary>
+    void Foo()
+    {
+        [|Foo($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo()", "Summary for foo", null, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithParametersOn1()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a, int b)
+    {
+        [|Foo($$a, b|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithParametersXmlCommentsOn1()
+        {
+            var markup = @"
+class C
+{
+    /// <summary>
+    /// Summary for Foo
+    /// </summary>
+    /// <param name=" + "\"a\">Param a</param>" + @"
+    /// <param name=" + "\"b\">Param b</param>" + @"
+    void Foo(int a, int b)
+    {
+        [|Foo($$a, b|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", "Summary for Foo", "Param a", currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithParametersOn2()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a, int b)
+    {
+        [|Foo(a, $$b|]);
+    }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithParametersXmlComentsOn2()
+        {
+            var markup = @"
+class C
+{
+    /// <summary>
+    /// Summary for Foo
+    /// </summary>
+    /// <param name=" + "\"a\">Param a</param>" + @"
+    /// <param name=" + "\"b\">Param b</param>" + @"
+    void Foo(int a, int b)
+    {
+        [|Foo(a, $$b|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", "Summary for Foo", "Param b", currentParameterIndex: 1));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithoutClosingParen()
+        {
+            var markup = @"
+class C
+{
+    void Foo()
+    {
+        [|Foo($$
+    |]}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo()", string.Empty, null, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithoutClosingParenWithParameters()
+        {
+            var markup =
+@"class C
+{
+    void Foo(int a, int b)
+    {
+        [|Foo($$a, b
+    |]}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithoutClosingParenWithParametersOn2()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a, int b)
+    {
+        [|Foo(a, $$b
+    |]}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnLambda()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Foo()
+    {
+        Action<int> f = (i) => Console.WriteLine(i);
+        [|f($$
+    |]}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Action<int>(int obj)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnMemberAccessExpression()
+        {
+            var markup = @"
+class C
+{
+    static void Bar(int a)
+    {
+    }
+
+    void Foo()
+    {
+        [|C.Bar($$
+    |]}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Bar(int a)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestExtensionMethod1()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Method()
+    {
+        string s = ""Text"";
+        [|s.ExtensionMethod($$
+    |]}
+}
+
+public static class MyExtension
+{
+    public static int ExtensionMethod(this string s, int x)
+    {
+        return s.Length;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(extension) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            // TODO: Once we do the work to allow extension methods in nested types, we should change this.
+            Test(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestOptionalParameters()
+        {
+            var markup = @"
+class Class1
+{
+    void Test()
+    {
+        Foo($$
+    }
+ 
+    void Foo(int a = 42)
+    { }
+ 
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Class1.Foo([int a = 42])", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestNoInvocationOnEventNotInCurrentClass()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Foo()
+    {
+        D d;
+        [|d.evt($$
+    |]}
+}
+
+public class D
+{
+    public event Action evt;
+}";
+
+            Test(markup);
+        }
+
+        [WorkItem(539712)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnNamedType()
+        {
+            var markup = @"
+class Program
+{
+    void Main()
+    {
+        C.Foo($$
+    }
+}
+class C
+{
+    public static double Foo(double x)
+    {
+        return x;
+    }
+    public double Foo(double x, double y)
+    {
+        return x + y;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("double C.Foo(double x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(539712)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnInstance()
+        {
+            var markup = @"
+class Program
+{
+    void Main()
+    {
+        new C().Foo($$
+    }
+}
+class C
+{
+    public static double Foo(double x)
+    {
+        return x;
+    }
+    public double Foo(double x, double y)
+    {
+        return x + y;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("double C.Foo(double x, double y)", string.Empty, string.Empty, currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(545118)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestStatic1()
+        {
+            var markup = @"
+class C
+{
+    static void Foo()
+    {
+        Bar($$
+    }
+
+    static void Bar()
+    {
+    }
+
+    void Bar(int i)
+    {
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void C.Bar()", currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(545118)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestStatic2()
+        {
+            var markup = @"
+class C
+{
+    void Foo()
+    {
+        Bar($$
+    }
+
+    static void Bar()
+    {
+    }
+
+    void Bar(int i)
+    {
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void C.Bar()", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C.Bar(int i)", currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(543117)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnAnonymousType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var foo = new { Name = string.Empty, Age = 30 };
+        Foo(foo).Add($$);
+    }
+
+    static List<T> Foo<T>(T t)
+    {
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void List<'a>.Add('a item)
+
+Anonymous Types:
+    'a is new { string Name, int Age }",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: @"
+
+Anonymous Types:
+    'a is new { string Name, int Age }")
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnBaseExpression_ProtectedAccessibility()
+        {
+            var markup = @"
+using System;
+public class Base
+{
+    protected virtual void Foo(int x) { }
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        base.Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Base.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnBaseExpression_AbstractBase()
+        {
+            var markup = @"
+using System;
+public abstract class Base
+{
+    protected abstract void Foo(int x);
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        base.Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Base.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnThisExpression_ProtectedAccessibility()
+        {
+            var markup = @"
+using System;
+public class Base
+{
+    protected virtual void Foo(int x) { }
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        this.Foo($$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Base.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
+        {
+            var markup = @"
+using System;
+public class Base
+{
+    protected virtual void Foo(int x) { }
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        this.Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Derived.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
+        {
+            var markup = @"
+using System;
+public abstract class Base
+{
+    protected abstract void Foo(int x);
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        this.Foo($$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Base.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
+        {
+            var markup = @"
+using System;
+public abstract class Base
+{
+    protected abstract void Foo(int x);
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        this.Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Derived.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
+        {
+            var markup = @"
+using System;
+public class Base
+{
+    protected internal void Foo(int x) { }
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        base.Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+@"void Base.Foo(int x)",
+                    methodDocumentation: string.Empty,
+                    parameterDocumentation: string.Empty,
+                    currentParameterIndex: 0,
+                    description: string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
+        {
+            var markup = @"
+using System;
+public class Base
+{
+    protected virtual void Foo(int x) { }
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        new Base().Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            Test(markup, null);
+        }
+
+        [WorkItem(968188)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnBaseExpression_PrivateAccessibility()
+        {
+            var markup = @"
+using System;
+public class Base
+{
+    private void Foo(int x) { }
+}
+
+public class Derived : Base
+{
+    void Test()
+    {
+        base.Foo($$);
+    }
+
+    protected override void Foo(int x)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            Test(markup, null);
+        }
+
+        #endregion
+
+        #region "Current Parameter Name"
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestCurrentParameterName()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int someParameter, bool something)
+    {
+        Foo(something: false, someParameter: $$)
+    }
+}";
+
+            VerifyCurrentParameterName(markup, "someParameter");
+        }
+
+        #endregion
+
+        #region "Trigger tests"
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnTriggerParens()
+        {
+            var markup = @"
+class C
+{
+    void Foo()
+    {
+        [|Foo($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo()", string.Empty, null, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationOnTriggerComma()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a, int b)
+    {
+        [|Foo(23,$$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1));
+
+            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestNoInvocationOnSpace()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a, int b)
+    {
+        [|Foo(23, $$|]);
+    }
+}";
+
+            Test(markup, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacters()
+        {
+            char[] expectedCharacters = { ',', '(' };
+            char[] unexpectedCharacters = { ' ', '[', '<' };
+
+            VerifyTriggerCharacters(expectedCharacters, unexpectedCharacters);
+        }
+
+        #endregion
+
+        #region "EditorBrowsable tests"
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_Method_BrowsableStateAlways()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        Foo.Bar($$
+    }
+}";
+
+            var referencedCode = @"
+public class Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+    public static void Bar() 
+    {
+    }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Foo.Bar()", string.Empty, null, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_Method_BrowsableStateNever()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        Foo.Bar($$
+    }
+}";
+
+            var referencedCode = @"
+public class Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public static void Bar() 
+    {
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Foo.Bar()", string.Empty, null, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_Method_BrowsableStateAdvanced()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new Foo().Bar($$
+    }
+}";
+
+            var referencedCode = @"
+public class Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    public void Bar() 
+    {
+    }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Foo.Bar()", string.Empty, null, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp,
+                                                hideAdvancedMembers: true);
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp,
+                                                hideAdvancedMembers: false);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new Foo().Bar($$
+    }
+}";
+
+            var referencedCode = @"
+public class Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+    public void Bar() 
+    {
+    }
+
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Bar(int x) 
+    {
+    }
+}";
+
+            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("void Foo.Bar()", string.Empty, null, currentParameterIndex: 0));
+
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void Foo.Bar()", string.Empty, null, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void Foo.Bar(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_Method_Overloads_BothBrowsableNever()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new Foo().Bar($$
+    }
+}";
+
+            var referencedCode = @"
+public class Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Bar() 
+    {
+    }
+
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Bar(int x) 
+    {
+    }
+}";
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void Foo.Bar()", string.Empty, null, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void Foo.Bar(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void OverriddenSymbolsFilteredFromSigHelp()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new D().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class B
+{
+    public virtual void Foo(int original) 
+    {
+    }
+}
+
+public class D : B
+{
+    public override void Foo(int derived) 
+    {
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void D.Foo(int derived)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+[System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+public class C
+{
+    public void Foo() 
+    {
+    }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo()", string.Empty, null, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new D().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+[System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+public class B
+{
+    public void Foo() 
+    {
+    }
+}
+
+public class D : B
+{
+    public void Foo(int x)
+    {
+    }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void B.Foo()", string.Empty, null, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void D.Foo(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+            };
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
+        {
+            var markup = @"
+class Program : B
+{
+    void M()
+    {
+        Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class B
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo() 
+    {
+    }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void B.Foo()", string.Empty, null, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int>().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class C<T>
+{
+    public void Foo(T t) { }
+    public void Foo(int i) { }
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int>.Foo(int i)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int>().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class C<T>
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(T t) { }
+    public void Foo(int i) { }
+}";
+
+            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("void C<int>.Foo(int i)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C<int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C<int>.Foo(int i)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int>().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class C<T>
+{
+    public void Foo(T t) { }
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(int i) { }
+}";
+            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("void C<int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C<int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C<int>.Foo(int i)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int>().Foo($$
+        
+    }
+}";
+
+            var referencedCode = @"
+public class C<T>
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(T t) { }
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(int i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int>.Foo(int i)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int, int>().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class C<T, U>
+{
+    public void Foo(T t) { }
+    public void Foo(U u) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int u)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItems,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int, int>().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class C<T, U>
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(T t) { }
+    public void Foo(U u) { }
+}";
+            var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int u)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int u)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
+                                                expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        new C<int, int>().Foo($$
+    }
+}";
+
+            var referencedCode = @"
+public class C<T, U>
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(T t) { }
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public void Foo(U u) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int t)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C<int, int>.Foo(int u)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+                                                referencedCode: referencedCode,
+                                                expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                                expectedOrderedItemsSameSolution: expectedOrderedItems,
+                                                sourceLanguage: LanguageNames.CSharp,
+                                                referencedLanguage: LanguageNames.CSharp);
+        }
+        #endregion
+
+        #region "Awaitable tests"
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void AwaitableMethod()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+class C
+{
+    async Task Foo()
+    {
+        [|Foo($$|]);
+    }
+}";
+
+            var description = @"
+Usage:
+  await Foo();";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(awaitable) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+
+            TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, "C#");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void AwaitableMethod2()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+class C
+{
+    async Task<Task<int>> Foo()
+    {
+        [|Foo($$|]);
+    }
+}";
+
+            var description = @"
+Usage:
+  Task<int> x = await Foo();";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(awaitable) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+
+            TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, "C#");
+        }
+
+        #endregion 
+
+        [WorkItem(13849, "DevDiv_Projects/Roslyn")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestSpecificity1()
+        {
+            var markup = @"
+class Class1
+{
+    static void Main()
+    {
+        var obj = new C<int>();
+        [|obj.M($$|])
+    }
+}
+class C<T>
+{
+    /// <param name=""t"">Generic t</param>
+    public void M(T t) { }
+
+    /// <param name=""t"">Real t</param>
+    public void M(int t) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void C<int>.M(int t)", string.Empty, "Real t", currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(530017)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void LongSignature()
+        {
+            var markup = @"
+class C
+{
+    void Foo(string a, string b, string c, string d, string e, string f, string g, string h, string i, string j, string k, string l, string m, string n, string o, string p, string q, string r, string s, string t, string u, string v, string w, string x, string y, string z)
+    {
+        [|Foo($$|])
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem(
+                    signature: "void C.Foo(string a, string b, string c, string d, string e, string f, string g, string h, string i, string j, string k, string l, string m, string n, string o, string p, string q, string r, string s, string t, string u, string v, string w, string x, string y, string z)",
+                    prettyPrintedSignature: @"void C.Foo(string a, string b, string c, string d, string e, string f, string g, string h, string i, string j, 
+           string k, string l, string m, string n, string o, string p, string q, string r, string s, string t, string u, 
+           string v, string w, string x, string y, string z)",
+                    currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void GenericExtensionMethod()
+        {
+            var markup = @"
+interface IFoo
+{
+    void Bar<T>();
+}
+
+static class FooExtensions
+{
+    public static void Bar<T1, T2>(this IFoo foo) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        IFoo f = null;
+        [|f.Bar($$
+    |]}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void IFoo.Bar<T>()", currentParameterIndex: 0),
+                new SignatureHelpTestItem("(extension) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
+            };
+
+            // Extension methods are supported in Interactive/Script (yet).
+            Test(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestInvocationWithCrefXmlComments()
+        {
+            var markup = @"
+class C
+{
+    /// <summary>
+    /// Summary for foo. See method <see cref=""Bar"" />
+    /// </summary>
+    void Foo()
+    {
+        [|Foo($$|]);
+    }
+
+    void Bar() { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo()", "Summary for foo. See method C.Bar()", null, currentParameterIndex: 0));
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void FieldUnavailableInOneLinkedFile()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if FOO
+    void bar()
+    {
+    }
+#endif
+    void foo()
+    {
+        bar($$
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+            var expectedDescription = new SignatureHelpTestItem("void C.bar()\r\n\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", currentParameterIndex: 0);
+            VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void ExcludeFilesWithInactiveRegions()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO,BAR"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if FOO
+    void bar()
+    {
+    }
+#endif
+
+#if BAR
+    void foo()
+    {
+        bar($$
+    }
+#endif
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument"" />
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj3"" PreprocessorSymbols=""BAR"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = new SignatureHelpTestItem("void C.bar()\r\n\r\n    Proj1 - Available\r\n    Proj3 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", currentParameterIndex: 0);
+            VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
+        }
+
+        [WorkItem(768697)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void InstanceAndStaticMethodsShown1()
+        {
+            var markup = @"
+class C
+{
+    Foo Foo;
+ 
+    void M()
+    {
+        Foo.Bar($$
+    }
+}
+
+class Foo
+{
+    public void Bar(int x) { }
+    public static void Bar(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Foo.Bar(int x)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void Foo.Bar(string s)", currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(768697)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void InstanceAndStaticMethodsShown2()
+        {
+            var markup = @"
+class C
+{
+    Foo Foo;
+ 
+    void M()
+    {
+        Foo.Bar($$"");
+    }
+}
+
+class Foo
+{
+    public void Bar(int x) { }
+    public static void Bar(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Foo.Bar(int x)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void Foo.Bar(string s)", currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(768697)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void InstanceAndStaticMethodsShown3()
+        {
+            var markup = @"
+class C
+{
+    Foo Foo;
+ 
+    void M()
+    {
+        Foo.Bar($$
+    }
+}
+
+class Foo
+{
+    public static void Bar(int x) { }
+    public static void Bar(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Foo.Bar(int x)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void Foo.Bar(string s)", currentParameterIndex: 0)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(768697)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void InstanceAndStaticMethodsShown4()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Foo x;
+        x.Bar($$
+    }
+}
+
+class Foo
+{
+    public static void Bar(int x) { }
+    public static void Bar(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(768697)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void InstanceAndStaticMethodsShown5()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Foo x;
+        x.Bar($$
+    }
+}
+class x { }
+class Foo
+{
+    public static void Bar(int x) { }
+    public static void Bar(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(1067933)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void InvokedWithNoToken()
+        {
+            var markup = @"
+// foo($$";
+
+            Test(markup);
+        }
+    }
+}

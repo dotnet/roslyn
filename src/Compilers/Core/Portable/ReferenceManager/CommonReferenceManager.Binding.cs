@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
         /// <summary>
         /// For the given set of AssemblyData objects, do the following:
@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis
                             {
                                 candidateInputAssemblySymbols[j] = assembly;
                                 match = true;
-
                                 // We could break out of the loop unless assemblies array
                                 // can contain duplicate values. Let's play safe and loop
                                 // through all items.

@@ -462,7 +462,6 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IPlatformInvokeInformation platformInvokeInformation)
         {
-
         }
 
         public virtual void Visit(IPointerTypeReference pointerTypeReference)

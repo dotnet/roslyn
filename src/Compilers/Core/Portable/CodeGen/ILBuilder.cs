@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed partial class ILBuilder
     {
-        private readonly OptimizationLevel optimizations;
+        private readonly OptimizationLevel _optimizations;
         internal readonly LocalSlotManager LocalSlotManager;
-        private readonly LocalScopeManager scopeManager;
+        private readonly LocalScopeManager _scopeManager;
 
         // internal for testing
         internal readonly ITokenDeferral module;
@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //leader block is the entry point of the method body
         internal readonly BasicBlock leaderBlock;
 
-        private EmitState emitState;
-        private BasicBlock lastCompleteBlock;
-        private BasicBlock currentBlock;
+        private EmitState _emitState;
+        private BasicBlock _lastCompleteBlock;
+        private BasicBlock _currentBlock;
 
-        private SyntaxTree lastSeqPointTree;
+        private SyntaxTree _lastSeqPointTree;
 
-        private readonly SmallDictionary<object, LabelInfo> labelInfos;
-        private int instructionCountAtLastLabel = -1;
+        private readonly SmallDictionary<object, LabelInfo> _labelInfos;
+        private int _instructionCountAtLastLabel = -1;
 
         // This data is only relevant when builder has been realized.
         internal byte[] RealizedIL;
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// will be put into allocatedILMarkers array. Note that only markers from reachable blocks 
         /// are materialized, the rest will have offset -1.
         /// </summary>
-        private ArrayBuilder<ILMarker> allocatedILMarkers = null;
+        private ArrayBuilder<ILMarker> _allocatedILMarkers = null;
 
         // Since blocks are created lazily in GetCurrentBlock,
         // pendingBlockCreate is set to true when a block must be
         // created, in particular for leader blocks in exception handlers.
-        private bool pendingBlockCreate = false;
+        private bool _pendingBlockCreate = false;
 
         internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations)
         {
@@ -66,32 +66,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             this.module = module;
             this.LocalSlotManager = localSlotManager;
-            this.emitState = default(EmitState);
-            this.scopeManager = new LocalScopeManager();
+            _emitState = default(EmitState);
+            _scopeManager = new LocalScopeManager();
 
-            leaderBlock = currentBlock = this.scopeManager.CreateBlock(this);
+            leaderBlock = _currentBlock = _scopeManager.CreateBlock(this);
 
-            labelInfos = new SmallDictionary<object, LabelInfo>(ReferenceEqualityComparer.Instance);
-            this.optimizations = optimizations;
+            _labelInfos = new SmallDictionary<object, LabelInfo>(ReferenceEqualityComparer.Instance);
+            _optimizations = optimizations;
         }
 
         private BasicBlock GetCurrentBlock()
         {
-            Debug.Assert(!this.pendingBlockCreate || (this.currentBlock == null));
+            Debug.Assert(!_pendingBlockCreate || (_currentBlock == null));
 
-            if (this.currentBlock == null)
+            if (_currentBlock == null)
             {
                 this.CreateBlock();
             }
 
-            return this.currentBlock;
+            return _currentBlock;
         }
 
         private void CreateBlock()
         {
-            Debug.Assert(this.currentBlock == null);
+            Debug.Assert(_currentBlock == null);
 
-            var block = this.scopeManager.CreateBlock(this);
+            var block = _scopeManager.CreateBlock(this);
             UpdatesForCreatedBlock(block);
         }
 
@@ -100,29 +100,29 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // end the current block
             EndBlock();
 
-            SwitchBlock switchBlock = this.scopeManager.CreateSwitchBlock(this);
+            SwitchBlock switchBlock = _scopeManager.CreateSwitchBlock(this);
             UpdatesForCreatedBlock(switchBlock);
             return switchBlock;
         }
 
         private void UpdatesForCreatedBlock(BasicBlock block)
         {
-            this.currentBlock = block;
-            Debug.Assert(lastCompleteBlock.NextBlock == null);
-            lastCompleteBlock.NextBlock = block;
-            this.pendingBlockCreate = false;
+            _currentBlock = block;
+            Debug.Assert(_lastCompleteBlock.NextBlock == null);
+            _lastCompleteBlock.NextBlock = block;
+            _pendingBlockCreate = false;
             ReconcileTrailingMarkers();
         }
 
         private void CreateBlockIfPending()
         {
-            if (this.pendingBlockCreate)
+            if (_pendingBlockCreate)
             {
-                Debug.Assert(this.currentBlock == null);
+                Debug.Assert(_currentBlock == null);
                 this.CreateBlock();
 
-                Debug.Assert(this.currentBlock != null);
-                Debug.Assert(!this.pendingBlockCreate);
+                Debug.Assert(_currentBlock != null);
+                Debug.Assert(!_pendingBlockCreate);
             }
         }
 
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             this.CreateBlockIfPending();
 
-            if (this.currentBlock != null)
+            if (_currentBlock != null)
             {
-                lastCompleteBlock = this.currentBlock;
-                this.currentBlock = null;
+                _lastCompleteBlock = _currentBlock;
+                _currentBlock = null;
             }
         }
 
@@ -143,38 +143,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //  placed at the end of it such that block offset of the marker points
             //  to the next byte *after* the block is closed. In this case the marker 
             //  should be moved to the next block
-            if (lastCompleteBlock != null &&
-                lastCompleteBlock.BranchCode == ILOpCode.Nop &&
-                lastCompleteBlock.LastILMarker >= 0 &&
-                this.allocatedILMarkers[lastCompleteBlock.LastILMarker].BlockOffset == lastCompleteBlock.RegularInstructionsLength)
+            if (_lastCompleteBlock != null &&
+                _lastCompleteBlock.BranchCode == ILOpCode.Nop &&
+                _lastCompleteBlock.LastILMarker >= 0 &&
+                _allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
             {
                 int startMarker = -1;
                 int endMarker = -1;
 
-                while (lastCompleteBlock.LastILMarker >= 0 &&
-                      this.allocatedILMarkers[lastCompleteBlock.LastILMarker].BlockOffset == lastCompleteBlock.RegularInstructionsLength)
+                while (_lastCompleteBlock.LastILMarker >= 0 &&
+                      _allocatedILMarkers[_lastCompleteBlock.LastILMarker].BlockOffset == _lastCompleteBlock.RegularInstructionsLength)
                 {
-                    Debug.Assert((startMarker < 0) || (startMarker == (lastCompleteBlock.LastILMarker + 1)));
-                    startMarker = lastCompleteBlock.LastILMarker;
+                    Debug.Assert((startMarker < 0) || (startMarker == (_lastCompleteBlock.LastILMarker + 1)));
+                    startMarker = _lastCompleteBlock.LastILMarker;
                     if (endMarker < 0)
                     {
-                        endMarker = lastCompleteBlock.LastILMarker;
+                        endMarker = _lastCompleteBlock.LastILMarker;
                     }
-                    lastCompleteBlock.RemoveTailILMarker(lastCompleteBlock.LastILMarker);
+                    _lastCompleteBlock.RemoveTailILMarker(_lastCompleteBlock.LastILMarker);
                 }
 
                 BasicBlock current = this.GetCurrentBlock();
                 for (int marker = startMarker; marker <= endMarker; marker++)
                 {
                     current.AddILMarker(marker);
-                    this.allocatedILMarkers[marker] = new ILMarker() { BlockOffset = (int)current.RegularInstructionsLength, AbsoluteOffset = -1 };
+                    _allocatedILMarkers[marker] = new ILMarker() { BlockOffset = (int)current.RegularInstructionsLength, AbsoluteOffset = -1 };
                 }
             }
         }
 
         private ExceptionHandlerScope EnclosingExceptionHandler
         {
-            get { return this.scopeManager.EnclosingExceptionHandler; }
+            get { return _scopeManager.EnclosingExceptionHandler; }
         }
 
         internal bool InExceptionHandler
@@ -193,8 +193,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 this.RealizeBlocks();
 
                 // no more new data.
-                currentBlock = null;
-                lastCompleteBlock = null;
+                _currentBlock = null;
+                _lastCompleteBlock = null;
             }
         }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <returns></returns>
         internal ImmutableArray<Cci.LocalScope> GetAllScopes(bool edgeInclusive = false)
         {
-            return scopeManager.GetAllScopesWithLocals(edgeInclusive);
+            return _scopeManager.GetAllScopesWithLocals(edgeInclusive);
         }
 
         /// <summary>
@@ -222,23 +222,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // correspond to the location in the returned sequence.  Indices are 1-based, which means that the
             // "first" element at the resulting list (i.e. index 0) corresponds to the variable whose name ends
             // with "__1".
-            return scopeManager.GetHoistedLocalScopes(edgeInclusive);
+            return _scopeManager.GetHoistedLocalScopes(edgeInclusive);
         }
 
         internal void FreeBasicBlocks()
         {
-            scopeManager.FreeBasicBlocks();
-            
+            _scopeManager.FreeBasicBlocks();
+
             if (this.SeqPointsOpt != null)
             {
                 this.SeqPointsOpt.Free();
                 this.SeqPointsOpt = null;
             }
 
-            if (this.allocatedILMarkers != null)
+            if (_allocatedILMarkers != null)
             {
-                this.allocatedILMarkers.Free();
-                this.allocatedILMarkers = null;
+                _allocatedILMarkers.Free();
+                _allocatedILMarkers = null;
             }
         }
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return (ushort)this.emitState.MaxStack;
+                return (ushort)_emitState.MaxStack;
             }
         }
 
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.emitState.InstructionsEmitted;
+                return _emitState.InstructionsEmitted;
             }
         }
 
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private static void MarkReachableFrom(ArrayBuilder<BasicBlock> reachableBlocks, BasicBlock block)
         {
-          tryAgain:
+        tryAgain:
 
             if (block != null && block.Reachability == Reachability.NotReachable)
             {
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             blockBuilder.Free();
         }
-        
+
         /// <summary>
         /// If a label points to a block that does nothing other than passing to block X,
         /// replaces target label's block with block X.
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             bool madeChanges = false;
 
-            var labels = this.labelInfos.Keys;
+            var labels = _labelInfos.Keys;
 
             bool done;
             do
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 foreach (object label in labels)
                 {
-                    var labelInfo = labelInfos[label];
+                    var labelInfo = _labelInfos[label];
                     var targetBlock = labelInfo.bb;
 
                     Debug.Assert(!IsSpecialEndHandlerBlock(targetBlock));
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                                 targetsTarget = targetBlock.NextBlock;
                                 break;
                         }
-                        
+
                         if ((targetsTarget != null) && (targetsTarget != targetBlock))
                         {
                             var currentHandler = targetBlock.EnclosingHandler;
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             // forward the label if can be done without leaving current handler
                             if (currentHandler == newHandler)
                             {
-                                labelInfos[label] = labelInfo.WithNewTarget(targetsTarget);
+                                _labelInfos[label] = labelInfo.WithNewTarget(targetsTarget);
                                 madeChanges = true;
 
                                 // since we modified at least one label we want to try again.
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             bool madeChanges = false;
 
-            var labels = this.labelInfos.Keys;
+            var labels = _labelInfos.Keys;
 
             bool done;
             do
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 foreach (object label in labels)
                 {
-                    var labelInfo = labelInfos[label];
+                    var labelInfo = _labelInfos[label];
                     if (labelInfo.targetOfConditionalBranches)
                     {
                         // only unconditional labels can be forwarded as a leave
@@ -607,9 +607,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             var newHandler = targetsTarget.EnclosingHandler;
 
                             // can skip the jump if it is in the same try scope
-                            if (InSameOrOuterHandler(currentHandler, newHandler))
+                            if (CanMoveLabelToAnotherHandler(currentHandler, newHandler))
                             {
-                                labelInfos[label] = labelInfo.WithNewTarget(targetsTarget);
+                                _labelInfos[label] = labelInfo.WithNewTarget(targetsTarget);
                                 madeChanges = true;
 
                                 // since we modified at least one label we want to try again.
@@ -623,11 +623,30 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return madeChanges;
         }
 
-        private static bool InSameOrOuterHandler(ExceptionHandlerScope currentHandler, 
+        private static bool CanMoveLabelToAnotherHandler(ExceptionHandlerScope currentHandler,
                                                  ExceptionHandlerScope newHandler)
         {
+            // Generally, asuming already valid code that contains "LABEL1: goto LABEL2" 
+            // we can substitute LABEL1 for LABEL2 so that the branches go directly to 
+            // the final destination.
+            // Technically we can allow "moving" a label to any scope that contains the current one
+            // However we should be careful with the cases when current label is protected by a 
+            // catch clause.
+            // 
+            // [COMPAT]
+            // If we move a label out of catch-protected try clause, we could be forcing JIT to inject 
+            // it back since, in the case of Thread.Abort, the re-throwing of the exception needs 
+            // to happen around this leave instruction which we would be removing.
+            // In addition to just extra work on the JIT side, handling of this case appears to be
+            // very delicate and there are known cases where JITs did not handle this particular 
+            // scenario correctly resulting in various violations of Thread.Abort behavior.
+            // We cannot rely on these JIT issues being fixed in the end user environment.
+            //
+            // Considering that we are only winning a single LEAVE here, it seems reasonable to 
+            // just disallow labels to move outside of a catch-protected regions.
+
             // no handler means outermost scope (method level)
-            if (newHandler == null)
+            if (newHandler == null && currentHandler.ContainingExceptionScope.FinallyOnly())
             {
                 return true;
             }
@@ -640,10 +659,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return true;
                 }
 
-                currentHandler = currentHandler.ContainingExceptionScope.ContainingHandler;
+                var contanerScope = currentHandler.ContainingExceptionScope;
+                if (!contanerScope.FinallyOnly())
+                {
+                    // this may move the label outside of catch-protected region
+                    // we will disallow that.
+                    return false;
+                }
 
+                currentHandler = contanerScope.ContainingHandler;
             } while (currentHandler != null);
-            
+
             return false;
         }
 
@@ -817,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     current.AdjustForDelta(delta);
 
-                    if (this.optimizations == OptimizationLevel.Release)
+                    if (_optimizations == OptimizationLevel.Release)
                     {
                         branchesOptimized |= current.OptimizeBranches(ref delta);
                     }
@@ -842,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             RewriteSpecialBlocks();
             DropUnreachableBlocks();
 
-            if (this.optimizations == OptimizationLevel.Release && OptimizeLabels())
+            if (_optimizations == OptimizationLevel.Release && OptimizeLabels())
             {
                 // redo unreachable code elimination if some labels were optimized
                 // as that could result in more more dead code. 
@@ -882,9 +908,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     Debug.Assert(blockLastMarker >= blockFirstMarker);
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
-                        int blockOffset = this.allocatedILMarkers[i].BlockOffset;
+                        int blockOffset = _allocatedILMarkers[i].BlockOffset;
                         int absoluteOffset = (int)realizedIlBitStream.Position + blockOffset;
-                        this.allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
+                        _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
                     }
                 }
 
@@ -904,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >
 
                         WriteOpCode(writer, ILOpCode.Switch);
-                        
+
                         var switchBlock = (SwitchBlock)block;
                         writer.WriteUint(switchBlock.BranchesCount);
 
@@ -944,15 +970,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         }
 
                         break;
-                }                
+                }
             }
 
             this.RealizedIL = realizedIlBitStream.ToArray();
             realizedIlBitStream.Free();
 
             RealizeSequencePoints();
-        
-            this.RealizedExceptionHandlers = scopeManager.GetExceptionHandlerRegions();
+
+            this.RealizedExceptionHandlers = _scopeManager.GetExceptionHandlerRegions();
         }
 
         private void RealizeSequencePoints()
@@ -1003,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void DefineSequencePoint(SyntaxTree syntaxTree, TextSpan span)
         {
             var curBlock = GetCurrentBlock();
-            this.lastSeqPointTree = syntaxTree;
+            _lastSeqPointTree = syntaxTree;
 
             if (this.SeqPointsOpt == null)
             {
@@ -1011,17 +1037,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Add an initial hidden sequence point if needed.
-            if (this.initialHiddenSequencePointMarker >= 0)
+            if (_initialHiddenSequencePointMarker >= 0)
             {
                 Debug.Assert(this.SeqPointsOpt.Count == 0);
-                this.SeqPointsOpt.Add(new RawSequencePoint(syntaxTree, this.initialHiddenSequencePointMarker, RawSequencePoint.HiddenSequencePointSpan));
-                this.initialHiddenSequencePointMarker = -1;
+                this.SeqPointsOpt.Add(new RawSequencePoint(syntaxTree, _initialHiddenSequencePointMarker, RawSequencePoint.HiddenSequencePointSpan));
+                _initialHiddenSequencePointMarker = -1;
             }
 
             this.SeqPointsOpt.Add(new RawSequencePoint(syntaxTree, this.AllocateILMarker(), span));
         }
 
-        private int initialHiddenSequencePointMarker = -1;
+        private int _initialHiddenSequencePointMarker = -1;
 
         /// <summary>
         /// Defines a hidden sequence point.
@@ -1040,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void DefineHiddenSequencePoint()
         {
-            var lastDebugDocument = this.lastSeqPointTree;
+            var lastDebugDocument = _lastSeqPointTree;
 
             // if no document is known for this code, do not bother emitting a sequence point
             // CCI will not emit it anyways.
@@ -1056,12 +1082,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void DefineInitialHiddenSequencePoint()
         {
-            Debug.Assert(this.initialHiddenSequencePointMarker < 0);
+            Debug.Assert(_initialHiddenSequencePointMarker < 0);
             // Create a marker for the sequence point. The actual sequence point
             // is created when the first non-hidden sequence is created since we
             // won't know the syntax tree before then.
-            this.initialHiddenSequencePointMarker = this.AllocateILMarker();
-            Debug.Assert(this.initialHiddenSequencePointMarker == 0);
+            _initialHiddenSequencePointMarker = this.AllocateILMarker();
+            Debug.Assert(_initialHiddenSequencePointMarker == 0);
         }
 
         /// <summary>
@@ -1071,23 +1097,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void SetInitialDebugDocument(SyntaxTree initialSequencePointTree)
         {
-            this.lastSeqPointTree = initialSequencePointTree;
+            _lastSeqPointTree = initialSequencePointTree;
         }
 
         [Conditional("DEBUG")]
         internal void AssertStackEmpty()
         {
-            Debug.Assert(this.emitState.CurStack == 0);
+            Debug.Assert(_emitState.CurStack == 0);
         }
 
         // true if there may have been a label generated with no subsequent code
         internal bool IsJustPastLabel()
         {
-            Debug.Assert(emitState.InstructionsEmitted >= this.instructionCountAtLastLabel);
-            return emitState.InstructionsEmitted == this.instructionCountAtLastLabel;
+            Debug.Assert(_emitState.InstructionsEmitted >= _instructionCountAtLastLabel);
+            return _emitState.InstructionsEmitted == _instructionCountAtLastLabel;
         }
 
-        internal void OpenLocalScope(ScopeType scopeType = ScopeType.Variable, Microsoft.Cci.ITypeReference exceptionType = null)
+        internal void OpenLocalScope(ScopeType scopeType = ScopeType.Variable, Cci.ITypeReference exceptionType = null)
         {
             if (scopeType == ScopeType.TryCatchFinally && IsJustPastLabel())
             {
@@ -1101,11 +1127,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // This is a workaround to an unexpected consequence of a CLR update that causes try nested in finally not verify
                 // if there is no code before try. ( DevDiv: 563799 )
                 // If we will treat finally as a label, the code above will force a nop before try starts.
-                this.instructionCountAtLastLabel = this.emitState.InstructionsEmitted;
+                _instructionCountAtLastLabel = _emitState.InstructionsEmitted;
             }
 
             EndBlock();  //blocks should not cross scope boundaries.
-            var scope = scopeManager.OpenScope(scopeType, exceptionType);
+            var scope = _scopeManager.OpenScope(scopeType, exceptionType);
 
             // Exception handler scopes must have a leader block, even
             // if the exception handler is empty, and created before any
@@ -1113,16 +1139,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
             switch (scopeType)
             {
                 case ScopeType.Try:
-                    Debug.Assert(!this.pendingBlockCreate);
-                    this.pendingBlockCreate = true;
+                    Debug.Assert(!_pendingBlockCreate);
+                    _pendingBlockCreate = true;
                     break;
 
                 case ScopeType.Catch:
                 case ScopeType.Filter:
                 case ScopeType.Finally:
                 case ScopeType.Fault:
-                    Debug.Assert(!this.pendingBlockCreate);
-                    this.pendingBlockCreate = true;
+                    Debug.Assert(!_pendingBlockCreate);
+                    _pendingBlockCreate = true;
 
                     // this is the actual start of the handler.
                     // since it is reachable by an implicit jump (via exception handling) 
@@ -1142,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal bool PossiblyDefinedOutsideOfTry(LocalDefinition local)
         {
-            return scopeManager.PossiblyDefinedOutsideOfTry(local);
+            return _scopeManager.PossiblyDefinedOutsideOfTry(local);
         }
 
         /// <summary>
@@ -1150,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void MarkFilterConditionEnd()
         {
-            scopeManager.FinishFilterCondition(this);
+            _scopeManager.FinishFilterCondition(this);
 
             // this is the actual start of the handler.
             // since it is reachable by an implicit jump (via exception handling) 
@@ -1161,9 +1187,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void CloseLocalScope()
         {
-            scopeManager.ClosingScope(this);
+            _scopeManager.ClosingScope(this);
             EndBlock();  //blocks should not cross scope boundaries.
-            scopeManager.CloseScope(this);
+            _scopeManager.CloseScope(this);
         }
 
         internal void OpenStateMachineScope()
@@ -1175,14 +1201,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             // Add user-defined local into the current scope.
             // We emit custom debug information for these locals that is used by the EE to reconstruct their scopes.
-            scopeManager.AddUserHoistedLocal(slotIndex);
+            _scopeManager.AddUserHoistedLocal(slotIndex);
         }
 
         internal void CloseStateMachineScope()
         {
-            scopeManager.ClosingScope(this);
+            _scopeManager.ClosingScope(this);
             EndBlock(); // blocks should not cross scope boundaries.
-            scopeManager.CloseScope(this);
+            _scopeManager.CloseScope(this);
         }
 
         /// <summary>
@@ -1191,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void AddLocalToScope(LocalDefinition local)
         {
             HasDynamicLocal |= local.IsDynamic;
-            scopeManager.AddLocal(local);
+            _scopeManager.AddLocal(local);
         }
 
         /// <summary>
@@ -1200,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void AddLocalConstantToScope(LocalConstantDefinition localConstant)
         {
             HasDynamicLocal |= localConstant.IsDynamic;
-            scopeManager.AddLocalConstant(localConstant);
+            _scopeManager.AddLocalConstant(localConstant);
         }
 
         internal bool HasDynamicLocal { get; private set; }
@@ -1233,18 +1259,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal int AllocateILMarker()
         {
             Debug.Assert(this.RealizedIL == null, "Too late to allocate a new IL marker");
-            if (this.allocatedILMarkers == null)
+            if (_allocatedILMarkers == null)
             {
-                this.allocatedILMarkers = ArrayBuilder<ILMarker>.GetInstance();
+                _allocatedILMarkers = ArrayBuilder<ILMarker>.GetInstance();
             }
 
             BasicBlock curBlock = GetCurrentBlock();
             Debug.Assert(curBlock != null);
 
-            int marker = this.allocatedILMarkers.Count;
+            int marker = _allocatedILMarkers.Count;
             curBlock.AddILMarker(marker);
 
-            this.allocatedILMarkers.Add(
+            _allocatedILMarkers.Add(
                 new ILMarker()
                 {
                     BlockOffset = (int)curBlock.RegularInstructionsLength,
@@ -1258,9 +1284,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public int GetILOffsetFromMarker(int ilMarker)
         {
             Debug.Assert(this.RealizedIL != null, "Builder must be realized to perform this operation");
-            Debug.Assert(this.allocatedILMarkers != null, "There are not markers in this builder");
-            Debug.Assert(ilMarker >= 0 && ilMarker < this.allocatedILMarkers.Count, "Wrong builder?");
-            return this.allocatedILMarkers[ilMarker].AbsoluteOffset;
+            Debug.Assert(_allocatedILMarkers != null, "There are not markers in this builder");
+            Debug.Assert(ilMarker >= 0 && ilMarker < _allocatedILMarkers.Count, "Wrong builder?");
+            return _allocatedILMarkers[ilMarker].AbsoluteOffset;
         }
 
         private string GetDebuggerDisplay()

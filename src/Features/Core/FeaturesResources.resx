@@ -1,0 +1,833 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddProjectReferenceTo" xml:space="preserve">
+    <value>Add project reference to '{0}'.</value>
+  </data>
+  <data name="AddReferenceTo" xml:space="preserve">
+    <value>Add reference to '{0}'.</value>
+  </data>
+  <data name="ActionsCanNotBeEmpty" xml:space="preserve">
+    <value>Actions can not be empty.</value>
+  </data>
+  <data name="GenericOverload" xml:space="preserve">
+    <value>generic overload</value>
+  </data>
+  <data name="GenericOverloads" xml:space="preserve">
+    <value>generic overloads</value>
+  </data>
+  <data name="Overload" xml:space="preserve">
+    <value>overload</value>
+  </data>
+  <data name="Overloads" xml:space="preserve">
+    <value>overloads</value>
+  </data>
+  <data name="Keyword" xml:space="preserve">
+    <value>{0} Keyword</value>
+  </data>
+  <data name="EncapsulateFieldUsages" xml:space="preserve">
+    <value>Encapsulate field: '{0}' (usages reference field)</value>
+  </data>
+  <data name="EncapsulateField" xml:space="preserve">
+    <value>Encapsulate field: '{0}'</value>
+  </data>
+  <data name="EncapsulateFieldsUsages" xml:space="preserve">
+    <value>Encapsulate fields (usages reference field)</value>
+  </data>
+  <data name="EncapsulateFields" xml:space="preserve">
+    <value>Encapsulate fields</value>
+  </data>
+  <data name="CouldNotExtractInterfaceSelection" xml:space="preserve">
+    <value>Could not extract interface: The selection is not inside a class/interface/struct.</value>
+  </data>
+  <data name="CouldNotExtractInterfaceTypeMember" xml:space="preserve">
+    <value>Could not extract interface: The type does not contain any member that can be extracted to an interface.</value>
+  </data>
+  <data name="CantNotConstructFinalTree" xml:space="preserve">
+    <value>can't not construct final tree</value>
+  </data>
+  <data name="ContainsAnonymousType" xml:space="preserve">
+    <value>Parameters' type or return type cannot be an anonymous type : [{0}]</value>
+  </data>
+  <data name="NoActiveStatement" xml:space="preserve">
+    <value>The selection contains no active statement.</value>
+  </data>
+  <data name="ErrorOrUnknownType" xml:space="preserve">
+    <value>The selection contains an error or unknown type.</value>
+  </data>
+  <data name="TypeParameterIsHiddenByAnother" xml:space="preserve">
+    <value>Type parameter '{0}' is hidden by another type parameter '{1}'.</value>
+  </data>
+  <data name="TheAddressOfAVariableIsUsed" xml:space="preserve">
+    <value>The address of a variable is used inside the selected code.</value>
+  </data>
+  <data name="AssingingToReadonlyFields" xml:space="preserve">
+    <value>Assigning to readonly fields must be done in a constructor : [{0}].</value>
+  </data>
+  <data name="GeneratedCodeIsOverlapping" xml:space="preserve">
+    <value>generated code is overlapping with hidden portion of the code</value>
+  </data>
+  <data name="AddOptionalParametersTo" xml:space="preserve">
+    <value>Add optional parameters to '{0}({1})'</value>
+  </data>
+  <data name="AddParametersTo" xml:space="preserve">
+    <value>Add parameters to '{0}({1})'</value>
+  </data>
+  <data name="GenerateDelegatingConstructor" xml:space="preserve">
+    <value>Generate delegating constructor '{0}({1})'</value>
+  </data>
+  <data name="GenerateConstructor" xml:space="preserve">
+    <value>Generate constructor '{0}({1})'</value>
+  </data>
+  <data name="GenerateFieldAssigningConstructor" xml:space="preserve">
+    <value>Generate field assigning constructor '{0}({1})'</value>
+  </data>
+  <data name="GenerateBoth" xml:space="preserve">
+    <value>Generate Both</value>
+  </data>
+  <data name="GenerateEqualsObject" xml:space="preserve">
+    <value>Generate 'Equals(object)'</value>
+  </data>
+  <data name="GenerateGetHashCode" xml:space="preserve">
+    <value>Generate 'GetHashCode()'</value>
+  </data>
+  <data name="GenerateNewConstructorIn" xml:space="preserve">
+    <value>Generate constructor in '{0}'</value>
+  </data>
+  <data name="GenerateAll" xml:space="preserve">
+    <value>Generate all</value>
+  </data>
+  <data name="GenerateEnumMemberIn" xml:space="preserve">
+    <value>Generate enum member '{0}' in '{1}'</value>
+  </data>
+  <data name="GenerateConstantIn" xml:space="preserve">
+    <value>Generate constant '{0}' in '{1}'</value>
+  </data>
+  <data name="GenerateReadonlyProperty" xml:space="preserve">
+    <value>Generate read-only property '{1}.{0}'</value>
+  </data>
+  <data name="GeneratePropertyIn" xml:space="preserve">
+    <value>Generate property '{1}.{0}'</value>
+  </data>
+  <data name="GenerateReadonlyField" xml:space="preserve">
+    <value>Generate read-only field '{1}.{0}'</value>
+  </data>
+  <data name="GenerateFieldIn" xml:space="preserve">
+    <value>Generate field '{0}' in '{1}'</value>
+  </data>
+  <data name="GenerateLocal" xml:space="preserve">
+    <value>Generate local '{0}'</value>
+  </data>
+  <data name="GenerateForInNewFile" xml:space="preserve">
+    <value>Generate {0} for '{1}' in '{2}' (in new file)</value>
+  </data>
+  <data name="GenerateForIn" xml:space="preserve">
+    <value>Generate {0} for '{1}' in '{2}'</value>
+  </data>
+  <data name="GlobalNamespace" xml:space="preserve">
+    <value>Global Namespace</value>
+  </data>
+  <data name="ImplementInterfaceExplicitly" xml:space="preserve">
+    <value>Implement interface explicitly</value>
+  </data>
+  <data name="ImplementInterfaceAbstractly" xml:space="preserve">
+    <value>Implement interface abstractly</value>
+  </data>
+  <data name="ImplementInterfaceThrough" xml:space="preserve">
+    <value>Implement interface through '{0}'</value>
+  </data>
+  <data name="ImplementInterface" xml:space="preserve">
+    <value>Implement interface</value>
+  </data>
+  <data name="LoadingContextFrom" xml:space="preserve">
+    <value>Loading context from '{0}'.</value>
+  </data>
+  <data name="TypeHelpForMoreInformation" xml:space="preserve">
+    <value>Type "#help" for more information.</value>
+  </data>
+  <data name="SpecifiedFileNotFoundFormat" xml:space="preserve">
+    <value>Specified file not found: {0}</value>
+  </data>
+  <data name="SpecifiedFileNotFound" xml:space="preserve">
+    <value>Specified file not found.</value>
+  </data>
+  <data name="SearchedInDirectory" xml:space="preserve">
+    <value>Searched in directory:</value>
+  </data>
+  <data name="SearchedInDirectories" xml:space="preserve">
+    <value>Searched in directories:</value>
+  </data>
+  <data name="IntroduceFieldFor" xml:space="preserve">
+    <value>Introduce field for '{0}'</value>
+  </data>
+  <data name="IntroduceLocalFor" xml:space="preserve">
+    <value>Introduce local for '{0}'</value>
+  </data>
+  <data name="IntroduceConstantFor" xml:space="preserve">
+    <value>Introduce constant for '{0}'</value>
+  </data>
+  <data name="IntroduceLocalConstantFor" xml:space="preserve">
+    <value>Introduce local constant for '{0}'</value>
+  </data>
+  <data name="IntroduceFieldForAllOccurrences" xml:space="preserve">
+    <value>Introduce field for all occurrences of '{0}'</value>
+  </data>
+  <data name="IntroduceLocalForAllOccurrences" xml:space="preserve">
+    <value>Introduce local for all occurrences of '{0}'</value>
+  </data>
+  <data name="IntroduceConstantForAllOccurrences" xml:space="preserve">
+    <value>Introduce constant for all occurrences of '{0}'</value>
+  </data>
+  <data name="IntroduceLocalConstantForAll" xml:space="preserve">
+    <value>Introduce local constant for all occurrences of '{0}'</value>
+  </data>
+  <data name="IntroduceQueryVariableForAll" xml:space="preserve">
+    <value>Introduce query variable for all occurrences of '{0}'</value>
+  </data>
+  <data name="IntroduceQueryVariableFor" xml:space="preserve">
+    <value>Introduce query variable for '{0}'</value>
+  </data>
+  <data name="AnonymousTypes" xml:space="preserve">
+    <value>Anonymous Types:</value>
+  </data>
+  <data name="Is" xml:space="preserve">
+    <value>is</value>
+  </data>
+  <data name="RepresentsAnObjectWhoseOperations" xml:space="preserve">
+    <value>Represents an object whose operations will be resolved at runtime.</value>
+  </data>
+  <data name="Constant" xml:space="preserve">
+    <value>constant</value>
+  </data>
+  <data name="Field" xml:space="preserve">
+    <value>field</value>
+  </data>
+  <data name="LocalConstant" xml:space="preserve">
+    <value>local constant</value>
+  </data>
+  <data name="LocalVariable" xml:space="preserve">
+    <value>local variable</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>label</value>
+  </data>
+  <data name="RangeVariable" xml:space="preserve">
+    <value>range variable</value>
+  </data>
+  <data name="Parameter" xml:space="preserve">
+    <value>parameter</value>
+  </data>
+  <data name="In" xml:space="preserve">
+    <value>in</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Summary:</value>
+  </data>
+  <data name="Parameters" xml:space="preserve">
+    <value>Parameters:</value>
+  </data>
+  <data name="TypeParameters" xml:space="preserve">
+    <value>Type parameters:</value>
+  </data>
+  <data name="Returns" xml:space="preserve">
+    <value>Returns:</value>
+  </data>
+  <data name="Exceptions" xml:space="preserve">
+    <value>Exceptions:</value>
+  </data>
+  <data name="Remarks" xml:space="preserve">
+    <value>Remarks:</value>
+  </data>
+  <data name="GeneratingSourceForSymbols" xml:space="preserve">
+    <value>generating source for symbols of this type is not supported</value>
+  </data>
+  <data name="Assembly" xml:space="preserve">
+    <value>Assembly</value>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>location unknown</value>
+  </data>
+  <data name="ExtractInterface" xml:space="preserve">
+    <value>Extract Interface...</value>
+  </data>
+  <data name="ChangeTo" xml:space="preserve">
+    <value>Change '{0}' to '{1}.{2}'.</value>
+  </data>
+  <data name="EditingOrDeletingBeingExecuted" xml:space="preserve">
+    <value>Editing or deleting an active statement which is being executed will prevent the debug session from continuing.</value>
+  </data>
+  <data name="EditingOrDeletingNotAtTheTop" xml:space="preserve">
+    <value>Editing or deleting an active statement which is not at the top of the callstack will prevent the debug session from continuing.</value>
+  </data>
+  <data name="EditingOrDeletingConstructorDeclaration" xml:space="preserve">
+    <value>Editing or deleting an active statement on a constructor declaration will prevent the debug session from continuing.</value>
+  </data>
+  <data name="EditingOrDeletingFieldInitializer" xml:space="preserve">
+    <value>Editing or deleting an active statement in a field initializer will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AnActiveStatementMarkerHasBeenDeleted" xml:space="preserve">
+    <value>An active statement marker has been deleted. You must revert your changes to continue or restart the debugging session.</value>
+  </data>
+  <data name="AnActiveStatementMarkerHasBeenDeletedAnd" xml:space="preserve">
+    <value>An active statement marker has been deleted and cannot be remapped in the current source file. You must revert your changes to continue or restart the debugging session.</value>
+  </data>
+  <data name="EditingOrCommentingOut" xml:space="preserve">
+    <value>Editing or commenting out an active statement inside a readonly section will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingAWillPrevent" xml:space="preserve">
+    <value>Updating '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingAStatementContainingAwaitExpression" xml:space="preserve">
+    <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingVisibilityOfConstructor" xml:space="preserve">
+    <value>Changing visibility of a constructor will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingInto" xml:space="preserve">
+    <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingIntoClassWithExplicitOrSequential" xml:space="preserve">
+    <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheModifiersOf" xml:space="preserve">
+    <value>Updating the modifiers of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheHandlesClause" xml:space="preserve">
+    <value>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAWithTheHandlesClause" xml:space="preserve">
+    <value>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheImplementsClause" xml:space="preserve">
+    <value>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingTheConstraintFromTo" xml:space="preserve">
+    <value>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheVarianceOf" xml:space="preserve">
+    <value>Updating the variance of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheTypeOf" xml:space="preserve">
+    <value>Updating the type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheInitializerOf" xml:space="preserve">
+    <value>Updating the initializer of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheSizeOf" xml:space="preserve">
+    <value>Updating the size of a '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheUnderlyingTypeOf" xml:space="preserve">
+    <value>Updating the underlying type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheBaseClassAndOrInterfaceOf" xml:space="preserve">
+    <value>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheKindOfField" xml:space="preserve">
+    <value>Updating a field to an event or vice versa will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheKindOfType" xml:space="preserve">
+    <value>Updating the kind of a type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheKindOfAccessor" xml:space="preserve">
+    <value>Updating the kind of an property/event accessor will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheKindOfMethod" xml:space="preserve">
+    <value>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheLibraryNameOfDeclareStatement" xml:space="preserve">
+    <value>Updating the library name of Declare Statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingTheAliasOfDeclareStatement" xml:space="preserve">
+    <value>Updating the alias of Declare Statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="RenamingAWillPrevent" xml:space="preserve">
+    <value>Renaming '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAWillPreventTheDebugSession" xml:space="preserve">
+    <value>Adding '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAbstractOrOverride" xml:space="preserve">
+    <value>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingMustOverrideOrOverrides" xml:space="preserve">
+    <value>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingExternMember" xml:space="preserve">
+    <value>Adding an extern '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAnImportedMethod" xml:space="preserve">
+    <value>Adding an imported method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingUserDefinedOperator" xml:space="preserve">
+    <value>Adding a user defined '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAGeneric" xml:space="preserve">
+    <value>Adding a generic '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAAroundAnActiveStatement" xml:space="preserve">
+    <value>Adding '{0}' around an active statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="MovingAWillPreventTheDebug" xml:space="preserve">
+    <value>Moving '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAWillPrevent" xml:space="preserve">
+    <value>Deleting '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAAroundAnActiveStatement" xml:space="preserve">
+    <value>Deleting '{0}' around an active statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAMethodBodyWillPrevent" xml:space="preserve">
+    <value>Adding a method body will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAMethodBodyWillPrevent" xml:space="preserve">
+    <value>Deleting a method body will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ErrorLocatingAnActiveStatement" xml:space="preserve">
+    <value>Error locating an active statement in source file. You must restart the debugging session.</value>
+  </data>
+  <data name="AnActiveStatementHasBeenRemoved" xml:space="preserve">
+    <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
+  </data>
+  <data name="UpdatingAStatementAroundActive" xml:space="preserve">
+    <value>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAGenericMethodWillPrevent" xml:space="preserve">
+    <value>Modifying a generic method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingTriviaInGenericMethodWillPrevent" xml:space="preserve">
+    <value>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAMethodInsideTheContext" xml:space="preserve">
+    <value>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingTriviaInMethodInsideTheContext" xml:space="preserve">
+    <value>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingTheInitializerInGenericType" xml:space="preserve">
+    <value>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingTheInitializerInPartialType" xml:space="preserve">
+    <value>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingACatchFinallyHandler" xml:space="preserve">
+    <value>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingATryCatchFinally" xml:space="preserve">
+    <value>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingACatchHandlerAround" xml:space="preserve">
+    <value>Modifying a catch handler around an active statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsStackalloc" xml:space="preserve">
+    <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsOnErrorResume" xml:space="preserve">
+    <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsAnonymousMethod" xml:space="preserve">
+    <value>Modifying '{0}' which contains an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsYield" xml:space="preserve">
+    <value>Modifying '{0}' which contains 'yield return' or 'yield break' statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAInitializerWithAnonymousMethod" xml:space="preserve">
+    <value>Modifying '{0}' initializer with an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAContainingAnActiveStatement" xml:space="preserve">
+    <value>Modifying '{0}' containing an active statement in compiler generated code will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ConstructorCannotBeModifiedAnonymousMethod" xml:space="preserve">
+    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer using an anonymous method.</value>
+  </data>
+  <data name="ModifyingAWhichContainsLambda" xml:space="preserve">
+    <value>Modifying '{0}' which contains a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsQuery" xml:space="preserve">
+    <value>Modifying '{0}' which contains a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsAnonymousType" xml:space="preserve">
+    <value>Modifying '{0}' which contains an anonymous type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAFileWithExperimentalFeaturesEnabled" xml:space="preserve">
+    <value>Modifying source with experimental language features enabled will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ConstructorCannotBeModifiedLambda" xml:space="preserve">
+    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer using a lambda expression.</value>
+  </data>
+  <data name="ConstructorCannotBeModifiedQuery" xml:space="preserve">
+    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer using a query expression.</value>
+  </data>
+  <data name="ModifyingAInitializerWithLambda" xml:space="preserve">
+    <value>Modifying '{0}' initializer with a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAInitializerWithQuery" xml:space="preserve">
+    <value>Modifying '{0}' initializer with a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ConstructorCannotBeModifiedAnonymousType" xml:space="preserve">
+    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer with an anonymous type.</value>
+  </data>
+  <data name="ModifyingAInitializerWithAnonymousType" xml:space="preserve">
+    <value>Modifying '{0}' initializer with an anonymous type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsDynamic" xml:space="preserve">
+    <value>Modifying '{0}' which contains a dynamic invocation will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAWhichContainsEmbeddedInterop" xml:space="preserve">
+    <value>Modifying '{0}' which contains a usage of an embedded interop type/member will prevent the debug session from continuing.\r\nTo enable Edit and Continue, try setting \"Embed Interop Types\" property to \"False\" for COM references when debugging.</value>
+  </data>
+  <data name="ModifyingAStatementWhichContainsAnonymousMethod" xml:space="preserve">
+    <value>Modifying a statement which contains an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAStatementWhichContainsAnAnonymousMethod" xml:space="preserve">
+    <value>Adding a statement which contains an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAStatementWhichContainsAnonymousMethod" xml:space="preserve">
+    <value>Deleting a statement which contains an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="MovingAStatementWhichContainsAnonymousMethod" xml:space="preserve">
+    <value>Moving a statement which contains an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingLocalReferencedInAnonymousMethod" xml:space="preserve">
+    <value>Modifying local '{0}' which is referenced in an anonymous method will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAStatementWhichContainsLambda" xml:space="preserve">
+    <value>Modifying a statement which contains a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAStatementWhichContainsALambda" xml:space="preserve">
+    <value>Adding a statement which contains a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAStatementWhichContainsLambda" xml:space="preserve">
+    <value>Deleting a statement which contains a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="MovingAStatementWhichContainsLambda" xml:space="preserve">
+    <value>Moving a statement which contains a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingLocalReferencedInLambda" xml:space="preserve">
+    <value>Modifying local '{0}' which is referenced in a lambda expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAStatementWhichContainsQuery" xml:space="preserve">
+    <value>Modifying a statement which contains a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAStatementWhichContainsAQuery" xml:space="preserve">
+    <value>Adding a statement which contains a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAStatementWhichContainsQuery" xml:space="preserve">
+    <value>Deleting a statement which contains a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="MovingAStatementWhichContainsQuery" xml:space="preserve">
+    <value>Moving a statement which contains a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingLocalReferencedInQuery" xml:space="preserve">
+    <value>Modifying local '{0}' which is referenced in a query expression will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAStatementWhichContainsAnonymousType" xml:space="preserve">
+    <value>Modifying a statement which contains an anonymous type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingAStatementWhichContainsAnAnonymousType" xml:space="preserve">
+    <value>Adding a statement which contains an anonymous type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingAStatementWhichContainsAnonymousType" xml:space="preserve">
+    <value>Deleting a statement which contains an anonymous type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="MovingAStatementWhichContainsAnonymousType" xml:space="preserve">
+    <value>Moving a statement which contains an anonymous type will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingAnAsynchronous" xml:space="preserve">
+    <value>Modifying an asynchronous '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ModifyingTriviaOfAnAsynchronous" xml:space="preserve">
+    <value>Modifying whitespace or comments in an asynchronous '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UpdatingAnActiveStatement" xml:space="preserve">
+    <value>Updating an active statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="RemovingThatContainsActiveStatement" xml:space="preserve">
+    <value>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AddingANewFile" xml:space="preserve">
+    <value>Adding a new file will prevent the debug session from continuing.</value>
+  </data>
+  <data name="UnexpectedInterfaceMemberKind" xml:space="preserve">
+    <value>Unexpected interface member kind: {0}</value>
+  </data>
+  <data name="UnknownSymbolKind" xml:space="preserve">
+    <value>Unknown symbol kind</value>
+  </data>
+  <data name="GenerateAbstractProperty" xml:space="preserve">
+    <value>Generate abstract property '{0}' in '{1}'</value>
+  </data>
+  <data name="GenerateAbstractMethod" xml:space="preserve">
+    <value>Generate abstract method '{0}' in '{1}'</value>
+  </data>
+  <data name="GenerateMethodIn" xml:space="preserve">
+    <value>Generate method '{1}.{0}'</value>
+  </data>
+  <data name="FailedToCreateARemoteProcess" xml:space="preserve">
+    <value>Failed to create a remote process for interactive code execution.</value>
+  </data>
+  <data name="FailedToInitializeRemoteInteractiveProcess" xml:space="preserve">
+    <value>Failed to initialize remote interactive process.</value>
+  </data>
+  <data name="AttemptToConnectToProcess" xml:space="preserve">
+    <value>Attempt to connect to process #{0} failed, retrying ...</value>
+  </data>
+  <data name="FailedToLaunchProcess" xml:space="preserve">
+    <value>Failed to launch '{0}' process (exit code: {1}) with output: </value>
+  </data>
+  <data name="HostingProcessExitedWithExitCode" xml:space="preserve">
+    <value>Hosting process exited with exit code {0}.</value>
+  </data>
+  <data name="InteractiveHostNotInitialized" xml:space="preserve">
+    <value>Interactive Host not initialized.</value>
+  </data>
+  <data name="CannotResolveReference" xml:space="preserve">
+    <value>Cannot resolve reference '{0}'.</value>
+  </data>
+  <data name="RequestedAssemblyAlreadyLoaded" xml:space="preserve">
+    <value>Requested assembly already loaded from '{0}'.</value>
+  </data>
+  <data name="PlusAdditional" xml:space="preserve">
+    <value> + additional {0} {1}</value>
+  </data>
+  <data name="UnableToCreateHostingProcess" xml:space="preserve">
+    <value>Unable to create hosting process.</value>
+  </data>
+  <data name="TheSymbolDoesNotHaveAnIcon" xml:space="preserve">
+    <value>The symbol does not have an icon.</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="ExtractMethod" xml:space="preserve">
+    <value>Extract Method</value>
+  </data>
+  <data name="ExtractMethodLocal" xml:space="preserve">
+    <value>Extract Method + Local</value>
+  </data>
+  <data name="AsyncMethodWithRefOutParameters" xml:space="preserve">
+    <value>Asynchronous method cannot have ref/out parameters : [{0}]</value>
+  </data>
+  <data name="TheMemberIsDefinedInMetadata" xml:space="preserve">
+    <value>The member is defined in metadata.</value>
+  </data>
+  <data name="YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate" xml:space="preserve">
+    <value>You can only change the signature of a constructor, indexer, method or delegate.</value>
+  </data>
+  <data name="ThisSymbolHasRelatedDefinitionsOrReferencesInMetadata" xml:space="preserve">
+    <value>This symbol has related definitions or references in metadata. Changing its signature may result in build errors.
+
+Do you want to continue?</value>
+  </data>
+  <data name="ChangeSignature" xml:space="preserve">
+    <value>Change signature...</value>
+  </data>
+  <data name="GenerateNewType" xml:space="preserve">
+    <value>Generate new type...</value>
+  </data>
+  <data name="UserDiagnosticAnalyzerFailure" xml:space="preserve">
+    <value>User Diagnostic Analyzer Failure.</value>
+  </data>
+  <data name="UserDiagnosticAnalyzerThrows" xml:space="preserve">
+    <value>The User Diagnostic Analyzer '{0}' threw an exception with message '{1}'.</value>
+  </data>
+  <data name="RemoveUnnecessaryCast" xml:space="preserve">
+    <value>Remove Unnecessary Cast</value>
+  </data>
+  <data name="SimplifyNames" xml:space="preserve">
+    <value>Simplify Names</value>
+  </data>
+  <data name="SimplifyMemberAccess" xml:space="preserve">
+    <value>Simplify Member Access</value>
+  </data>
+  <data name="SimplifyThisOrMe" xml:space="preserve">
+    <value>Remove 'this' or 'Me' Qualification</value>
+  </data>
+  <data name="EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
+  </data>
+  <data name="ThisSignatureDoesNotContainParametersThatCanBeChanged" xml:space="preserve">
+    <value>This signature does not contain parameters that can be changed.</value>
+  </data>
+  <data name="ExtractMethodFailedWithUnknownReasons" xml:space="preserve">
+    <value>Unknown error occurred</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>Not Available</value>
+  </data>
+  <data name="ProjectAvailability" xml:space="preserve">
+    <value>    {0} - {1}</value>
+  </data>
+  <data name="UseTheNavigationBarToSwitchContext" xml:space="preserve">
+    <value>You can use the navigation bar to switch context.</value>
+  </data>
+  <data name="SuppressWithGlobalSuppressMessage" xml:space="preserve">
+    <value>with SuppressMessageAttribute (separate file)</value>
+  </data>
+  <data name="SuppressWithLocalSuppressMessage" xml:space="preserve">
+    <value>with SuppressMessageAttribute</value>
+  </data>
+  <data name="SuppressionPendingJustification" xml:space="preserve">
+    <value>&lt;Pending&gt;</value>
+  </data>
+  <data name="PrefixTextForAwaitKeyword" xml:space="preserve">
+    <value>Awaited task returns</value>
+  </data>
+  <data name="TextForSystemVoid" xml:space="preserve">
+    <value>no value.</value>
+  </data>
+  <data name="NoteTabTwiceToInsertTheSnippet" xml:space="preserve">
+    <value>Note: Tab twice to insert the '{0}' snippet.</value>
+  </data>
+  <data name="ImplementInterfaceExplicitlyWithDisposePattern" xml:space="preserve">
+    <value>Implement interface explicitly with Dispose pattern</value>
+  </data>
+  <data name="ImplementInterfaceWithDisposePattern" xml:space="preserve">
+    <value>Implement interface with Dispose pattern</value>
+  </data>
+  <data name="CategoryCompiler" xml:space="preserve">
+    <value>Compiler</value>
+  </data>
+  <data name="CategoryEditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
+  </data>
+  <data name="CategoryStyle" xml:space="preserve">
+    <value>Style</value>
+  </data>
+  <data name="SuppressionCodeActionTitle" xml:space="preserve">
+    <value>Suppress {0}</value>
+  </data>
+  <data name="ArgumentElementCannotBeNull" xml:space="preserve">
+    <value>Argument cannot have a null element.</value>
+  </data>
+  <data name="ArgumentCannotBeEmpty" xml:space="preserve">
+    <value>Argument cannot be empty.</value>
+  </data>
+  <data name="FixAllTitle_Document" xml:space="preserve">
+    <value>Document</value>
+  </data>
+  <data name="FixAllTitle_Project" xml:space="preserve">
+    <value>Project</value>
+  </data>
+  <data name="FixAllTitle_Solution" xml:space="preserve">
+    <value>Solution</value>
+  </data>
+</root>

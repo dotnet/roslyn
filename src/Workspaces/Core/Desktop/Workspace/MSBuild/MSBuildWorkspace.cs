@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using Microsoft.Build.Construction;
 #endif
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -868,13 +869,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             switch (feature)
             {
-            case ApplyChangesKind.ChangeDocument:
-            case ApplyChangesKind.AddDocument:
-            case ApplyChangesKind.RemoveDocument:
-                return true;
-            default:
-                return false;
+                case ApplyChangesKind.ChangeDocument:
+                case ApplyChangesKind.AddDocument:
+                case ApplyChangesKind.RemoveDocument:
+                case ApplyChangesKind.AddMetadataReference:
+                case ApplyChangesKind.RemoveMetadataReference:
+                case ApplyChangesKind.AddProjectReference:
+                case ApplyChangesKind.RemoveProjectReference:
+                case ApplyChangesKind.AddAnalyzerReference:
+                case ApplyChangesKind.RemoveAnalyzerReference:
+                    return true;
+                default:
+                    return false;
             }
+        }
+
+        private bool HasProjectFileChanges(ProjectChanges changes)
+        {
+            return changes.GetAddedDocuments().Any() ||
+                   changes.GetRemovedDocuments().Any() ||
+                   changes.GetAddedMetadataReferences().Any() ||
+                   changes.GetRemovedMetadataReferences().Any() ||
+                   changes.GetAddedProjectReferences().Any() ||
+                   changes.GetRemovedProjectReferences().Any() ||
+                   changes.GetAddedAnalyzerReferences().Any() ||
+                   changes.GetRemovedAnalyzerReferences().Any();
         }
 
         private IProjectFile applyChangesProjectFile;
@@ -896,8 +915,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             try
             {
                 // if we need to modify the project file, load it first.
-                if (projectChanges.GetAddedDocuments().Any() ||
-                    projectChanges.GetRemovedDocuments().Any())
+                if (this.HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
                     IProjectFileLoader loader;
@@ -1039,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
+            Debug.Assert(this.applyChangesProjectFile != null);
 
             var document = this.CurrentSolution.GetDocument(documentId);
             if (document != null)
@@ -1047,19 +1065,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 this.applyChangesProjectFile.RemoveDocument(document.FilePath);
                 this.DeleteDocumentFile(document.Id, document.FilePath);
                 this.OnDocumentRemoved(documentId);
-            }
-        }
-
-        protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
-        {
-            System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
-
-            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
-            if (document != null)
-            {
-                this.applyChangesProjectFile.RemoveDocument(document.FilePath);
-                this.DeleteDocumentFile(document.Id, document.FilePath);
-                this.OnAdditionalDocumentRemoved(documentId);
             }
         }
 
@@ -1084,6 +1089,75 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
+        }
+
+        protected override void ApplyMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
+        {
+            Debug.Assert(this.applyChangesProjectFile != null);
+            var identity = GetAssemblyIdentity(projectId, metadataReference);
+            this.applyChangesProjectFile.AddMetadataReference(metadataReference, identity);
+            this.OnMetadataReferenceAdded(projectId, metadataReference);
+        }
+
+        protected override void ApplyMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
+        {
+            Debug.Assert(this.applyChangesProjectFile != null);
+            var identity = GetAssemblyIdentity(projectId, metadataReference);
+            this.applyChangesProjectFile.RemoveMetadataReference(metadataReference, identity);
+            this.OnMetadataReferenceRemoved(projectId, metadataReference);
+        }
+
+        private AssemblyIdentity GetAssemblyIdentity(ProjectId projectId, MetadataReference metadataReference)
+        {
+            var project = this.CurrentSolution.GetProject(projectId);
+            if (!project.MetadataReferences.Contains(metadataReference))
+            {
+                project = project.AddMetadataReference(metadataReference);
+            }
+
+            var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
+            return symbol != null ? symbol.Identity : null;
+        }
+
+        protected override void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
+        {
+            Debug.Assert(this.applyChangesProjectFile != null);
+
+            var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
+            if (project != null)
+            {
+                this.applyChangesProjectFile.AddProjectReference(project.Name, new ProjectFileReference(project.FilePath, projectReference.Aliases));
+            }
+
+            this.OnProjectReferenceAdded(projectId, projectReference);
+        }
+
+        protected override void ApplyProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
+        {
+            Debug.Assert(this.applyChangesProjectFile != null);
+
+            var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
+            if (project != null)
+            {
+                this.applyChangesProjectFile.RemoveProjectReference(project.Name, project.FilePath);
+            }
+
+            this.OnProjectReferenceRemoved(projectId, projectReference);
+        }
+
+        protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
+        {
+            Debug.Assert(this.applyChangesProjectFile != null);
+            this.applyChangesProjectFile.AddAnalyzerReference(analyzerReference);
+            this.OnAnalyzerReferenceAdded(projectId, analyzerReference);
+        }
+
+        protected override void ApplyAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
+        {
+            Debug.Assert(this.applyChangesProjectFile != null);
+            this.applyChangesProjectFile.RemoveAnalyzerReference(analyzerReference);
+            this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
         }
     }
     #endregion

@@ -70,17 +70,17 @@ namespace NB
                 "NA.NA.NB",
                 "NA.NB.NB",
             };
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("C"), "");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.C"), "N");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.C"), "N.NA");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.NB.C"), "N.NA.NB");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.C"), "NA");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NA.C"), "NA.NA");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NB.C"), "NA.NB");
-            HasNameQualifier(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NB.C"), "NB");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("C"), "");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.C"), "N");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.C"), "N.NA");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.NB.C"), "N.NA.NB");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.C"), "NA");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NA.C"), "NA.NA");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NB.C"), "NA.NB");
+            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NB.C"), "NB");
         }
 
-        private void HasNameQualifier(string[] namespaceNames, NamedTypeSymbol type, string expectedName)
+        private void HasNameQualifierCore(string[] namespaceNames, NamedTypeSymbol type, string expectedName)
         {
             Assert.True(Array.IndexOf(namespaceNames, expectedName) >= 0);
             foreach (var namespaceName in namespaceNames)

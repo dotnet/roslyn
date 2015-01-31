@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class SyntaxTree
     {
-        private ImmutableArray<byte> lazyChecksum;
-        private SourceHashAlgorithm lazyHashAlgorithm;
+        private ImmutableArray<byte> _lazyChecksum;
+        private SourceHashAlgorithm _lazyHashAlgorithm;
 
         /// <summary>
         /// The path of the source document file.
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the text of the source document.
         /// </summary>
         public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
-        
+
         /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                 return Task.Factory.StartNew(() => this.GetText(cancellationToken), cancellationToken);
             }
         }
-       
+
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
@@ -313,21 +313,21 @@ namespace Microsoft.CodeAnalysis
 
         internal ValueTuple<ImmutableArray<byte>, Guid> GetChecksumAndAlgorithm()
         {
-            if (lazyChecksum.IsDefault)
+            if (_lazyChecksum.IsDefault)
             {
                 var text = this.GetText();
-                this.lazyChecksum = text.GetChecksum();
-                this.lazyHashAlgorithm = text.ChecksumAlgorithm;
+                _lazyChecksum = text.GetChecksum();
+                _lazyHashAlgorithm = text.ChecksumAlgorithm;
             }
 
-            Debug.Assert(!lazyChecksum.IsDefault);
+            Debug.Assert(!_lazyChecksum.IsDefault);
             Guid guid;
-            if (!Cci.DebugSourceDocument.TryGetAlgorithmGuid(lazyHashAlgorithm, out guid))
+            if (!Cci.DebugSourceDocument.TryGetAlgorithmGuid(_lazyHashAlgorithm, out guid))
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            return ValueTuple.Create(lazyChecksum, guid);
+            return ValueTuple.Create(_lazyChecksum, guid);
         }
 
         /// <summary>

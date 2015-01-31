@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Assign -1 offset to all variables that are associated with the header.
             ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
             ' and user-defined variables need to have a unique syntax offset.
-            If syntax Is Nothing OrElse localPosition = syntax.Begin.SpanStart Then
+            If syntax Is Nothing OrElse localPosition = syntax.SubOrFunctionHeader.SpanStart Then
                 Return -1
             End If
 

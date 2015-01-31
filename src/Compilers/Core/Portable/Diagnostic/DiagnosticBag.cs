@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
     internal class DiagnosticBag
     {
         // The lazyBag field is populated lazily -- the first time an error is added.
-        private ConcurrentQueue<Diagnostic> lazyBag = null;
+        private ConcurrentQueue<Diagnostic> _lazyBag = null;
 
         /// <summary>
         /// Return true if the bag is completely empty - not even containing void diagnostics.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
                 // then a report phase, and we shouldn't be called during the "report" phase. We
                 // also never remove diagnostics, so the worst that happens is that we don't return
                 // an element that is added a split second after this is called.
-                ConcurrentQueue<Diagnostic> bag = this.lazyBag;
+                ConcurrentQueue<Diagnostic> bag = _lazyBag;
                 return bag == null || bag.IsEmpty;
             }
         }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<TDiagnostic> ToReadOnlyAndFree<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = this.lazyBag;
+            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
             Free();
 
             return ToReadOnlyCore<TDiagnostic>(oldBag);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = this.lazyBag;
+            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
             return ToReadOnlyCore<TDiagnostic>(oldBag);
         }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
         internal IEnumerable<Diagnostic> AsEnumerableWithoutResolution()
         {
             // PERF: don't make a defensive copy - callers are internal and won't modify the bag.
-            return this.lazyBag ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            return _lazyBag ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
         public override string ToString()
@@ -255,14 +255,14 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                ConcurrentQueue<Diagnostic> bag = this.lazyBag;
+                ConcurrentQueue<Diagnostic> bag = _lazyBag;
                 if (bag != null)
                 {
                     return bag;
                 }
 
                 ConcurrentQueue<Diagnostic> newBag = new ConcurrentQueue<Diagnostic>();
-                return Interlocked.CompareExchange(ref this.lazyBag, newBag, null) ?? newBag;
+                return Interlocked.CompareExchange(ref _lazyBag, newBag, null) ?? newBag;
             }
         }
 
@@ -272,10 +272,10 @@ namespace Microsoft.CodeAnalysis
         ///       broken and we cannot do anything about it here.
         internal void Clear()
         {
-            ConcurrentQueue<Diagnostic> bag = this.lazyBag;
+            ConcurrentQueue<Diagnostic> bag = _lazyBag;
             if (bag != null)
             {
-                this.lazyBag = null;
+                _lazyBag = null;
             }
         }
 
@@ -283,17 +283,17 @@ namespace Microsoft.CodeAnalysis
 
         internal static DiagnosticBag GetInstance()
         {
-            DiagnosticBag bag = poolInstance.Allocate();
+            DiagnosticBag bag = s_poolInstance.Allocate();
             return bag;
         }
 
         internal void Free()
         {
             Clear();
-            poolInstance.Free(this);
+            s_poolInstance.Free(this);
         }
 
-        private static readonly ObjectPool<DiagnosticBag> poolInstance = CreatePool(128);
+        private static readonly ObjectPool<DiagnosticBag> s_poolInstance = CreatePool(128);
         private static ObjectPool<DiagnosticBag> CreatePool(int size)
         {
             return new ObjectPool<DiagnosticBag>(() => new DiagnosticBag(), size);
@@ -305,11 +305,11 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed class DebuggerProxy
         {
-            private readonly DiagnosticBag bag;
+            private readonly DiagnosticBag _bag;
 
             public DebuggerProxy(DiagnosticBag bag)
             {
-                this.bag = bag;
+                _bag = bag;
             }
 
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    ConcurrentQueue<Diagnostic> lazyBag = bag.lazyBag;
+                    ConcurrentQueue<Diagnostic> lazyBag = _bag._lazyBag;
                     if (lazyBag != null)
                     {
                         return lazyBag.ToArray();
@@ -332,10 +332,9 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
         {
-            ConcurrentQueue<Diagnostic> lazyBag = this.lazyBag;
+            ConcurrentQueue<Diagnostic> lazyBag = _lazyBag;
             return "Count = " + (lazyBag != null ? lazyBag.Count : 0);
         }
-
         #endregion
     }
 }

@@ -169,7 +169,6 @@ namespace Microsoft.Cci
         IMarshallingInformation MarshallingInformation
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
 
@@ -179,7 +178,6 @@ namespace Microsoft.Cci
         ImmutableArray<byte> MarshallingDescriptor
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
 
@@ -189,7 +187,6 @@ namespace Microsoft.Cci
         uint Offset
         {
             get;
-
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
         }
     }
@@ -199,7 +196,6 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IFieldReference : ITypeMemberReference
     { // TODO: add custom modifiers
-
         /// <summary>
         /// The type of value that is stored in this field.
         /// </summary>
@@ -319,8 +315,8 @@ namespace Microsoft.Cci
     internal class AsyncMethodBodyDebugInfo
     {
         /// <summary>
-       ///  Original async method transformed into MoveNext() 
-       /// </summary>
+        ///  Original async method transformed into MoveNext() 
+        /// </summary>
         public readonly IMethodDefinition KickoffMethod;
 
         /// <summary> 
@@ -382,7 +378,6 @@ namespace Microsoft.Cci
         ImmutableArray<ExceptionHandlerRegion> ExceptionRegions
         {
             get;
-
             // ^ requires !this.MethodDefinition.IsAbstract && !this.MethodDefinition.IsExternal && this.MethodDefinition.IsCil;
         }
 
@@ -468,7 +463,7 @@ namespace Microsoft.Cci
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
         string StateMachineTypeName { get; }
-      
+
         /// <summary>
         /// Returns information relevant to EnC on slots of local variables hoisted to state machine fields, 
         /// or null if the method isn't the kickoff method of a state machine.
@@ -510,7 +505,6 @@ namespace Microsoft.Cci
         IEnumerable<IGenericMethodParameter> GenericParameters
         {
             get;
-
             // ^ requires this.IsGeneric;
         }
 
@@ -610,7 +604,6 @@ namespace Microsoft.Cci
         IPlatformInvokeInformation PlatformInvokeData
         {
             get;
-
             // ^ requires this.IsPlatformInvoke;
         }
 
@@ -636,7 +629,6 @@ namespace Microsoft.Cci
         IMarshallingInformation ReturnValueMarshallingInformation
         {
             get;
-
             // ^ requires this.ReturnValueIsMarshalledExplicitly;
         }
 
@@ -646,7 +638,6 @@ namespace Microsoft.Cci
         ImmutableArray<byte> ReturnValueMarshallingDescriptor
         {
             get;
-
             // ^ requires this.ReturnValueIsMarshalledExplicitly;
         }
 
@@ -688,7 +679,6 @@ namespace Microsoft.Cci
         bool IsOptional
         {
             get;
-
             // ^ result ==> this.HasDefaultValue;
         }
 
@@ -703,7 +693,6 @@ namespace Microsoft.Cci
         IMarshallingInformation MarshallingInformation
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
 
@@ -713,7 +702,6 @@ namespace Microsoft.Cci
         ImmutableArray<byte> MarshallingDescriptor
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
     }
@@ -735,7 +723,6 @@ namespace Microsoft.Cci
         IMetadataConstant DefaultValue
         {
             get;
-
             // ^ requires this.HasDefaultValue;
         }
 
@@ -915,7 +902,6 @@ namespace Microsoft.Cci
         ushort GenericParameterCount
         {
             get;
-
             // ^ ensures !this.IsGeneric ==> result == 0;
             // ^ ensures this.IsGeneric ==> result > 0;
         }

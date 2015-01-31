@@ -19,23 +19,23 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         // The set is a singly-linked list of nodes each containing up to 4 values.
         // Empty slots contain the "unoccupied" sentinel value.
-        private int v1;
-        private int v2;
-        private int v3;
-        private int v4;
-        private SmallConcurrentSetOfInts next;
+        private int _v1;
+        private int _v2;
+        private int _v3;
+        private int _v4;
+        private SmallConcurrentSetOfInts _next;
 
         private const int unoccupied = int.MinValue;
 
         public SmallConcurrentSetOfInts()
         {
-            v1 = v2 = v3 = v4 = unoccupied;
+            _v1 = _v2 = _v3 = _v4 = unoccupied;
         }
 
         private SmallConcurrentSetOfInts(int initialValue)
         {
-            v1 = initialValue;
-            v2 = v3 = v4 = unoccupied;
+            _v1 = initialValue;
+            _v2 = _v3 = _v4 = unoccupied;
         }
 
         /// <summary>
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 // PERF: Not testing for unoccupied slots since it adds complexity. The extra comparisons
                 // would slow down this inner loop such that any benefit of an 'early out' would be lost.
-                if (set.v1 == i || set.v2 == i || set.v3 == i || set.v4 == i)
+                if (set._v1 == i || set._v2 == i || set._v3 == i || set._v4 == i)
                 {
                     return true;
                 }
 
-                set = set.next;
+                set = set._next;
             }
             while (set != null);
 
@@ -84,27 +84,26 @@ namespace Microsoft.CodeAnalysis.Collections
 
             while (true)
             {
-                if (AddHelper(ref set.v1, i, ref added) ||
-                    AddHelper(ref set.v2, i, ref added) ||
-                    AddHelper(ref set.v3, i, ref added) ||
-                    AddHelper(ref set.v4, i, ref added))
+                if (AddHelper(ref set._v1, i, ref added) ||
+                    AddHelper(ref set._v2, i, ref added) ||
+                    AddHelper(ref set._v3, i, ref added) ||
+                    AddHelper(ref set._v4, i, ref added))
                 {
                     return added;
                 }
 
-                var nextSet = set.next;
+                var nextSet = set._next;
                 if (nextSet == null)
                 {
                     // Need to add a new 'block'.
                     SmallConcurrentSetOfInts tail = new SmallConcurrentSetOfInts(initialValue: i);
 
-                    nextSet = Interlocked.CompareExchange(ref set.next, tail, null);
+                    nextSet = Interlocked.CompareExchange(ref set._next, tail, null);
                     if (nextSet == null)
                     {
                         // Successfully added a new tail
                         return true;
                     }
-
                     // Lost the race. Another thread added a new tail so resume searching from there.
                 }
 
@@ -135,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Collections
                     added = true;
                     return true;
                 }
-
                 // Lost the race with another thread
             }
 

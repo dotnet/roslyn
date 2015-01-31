@@ -31,6 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            diagnostics As DiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
+            receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
+
             If OptionStrict = VisualBasic.OptionStrict.On Then
                 ' "Option Strict On disallows late binding."
                 If Not suppressLateBindingResolutionDiagnostics Then
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeArguments As BoundTypeArguments = group.TypeArguments
             Dim containingType As TypeSymbol = group.ContainerOfFirstInGroup
 
-            Dim receiver As BoundExpression = group.ReceiverOpt
+            Dim receiver As BoundExpression = AdjustReceiverAmbiguousTypeOrValue(group, diagnostics)
 
             If receiver IsNot Nothing AndAlso
                 (receiver.Kind = BoundKind.TypeExpression OrElse receiver.Kind = BoundKind.NamespaceExpression) Then
@@ -116,7 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            diagnostics As DiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
-            'TODO: may need to distinguish indexig/calling/dictionary
+            Debug.Assert(receiver IsNot Nothing AndAlso receiver.Kind <> BoundKind.TypeOrValueExpression)
+            Debug.Assert(groupOpt Is Nothing OrElse groupOpt.ReceiverOpt Is Nothing OrElse groupOpt.ReceiverOpt.Kind <> BoundKind.TypeOrValueExpression)
+            ' The given receiver should also have been derived from groupOpt.ReceiverOpt (if it exists).
+
+            'TODO: may need to distinguish indexing/calling/dictionary
             'TODO: for example "Dim a = ("a".Clone)()" is an IndexGet
 
             If receiver.IsNothingLiteral Then

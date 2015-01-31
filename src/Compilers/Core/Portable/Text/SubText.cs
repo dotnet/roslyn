@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     internal sealed class SubText : SourceText
     {
-        private readonly SourceText text;
-        private readonly TextSpan span;
+        private readonly SourceText _text;
+        private readonly TextSpan _span;
 
         public SubText(SourceText text, TextSpan span)
             : base(checksumAlgorithm: text.ChecksumAlgorithm)
@@ -29,28 +29,28 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentException(nameof(span));
             }
 
-            this.text = text;
-            this.span = span;
+            _text = text;
+            _span = span;
         }
 
         public override Encoding Encoding
         {
-            get { return text.Encoding; }
+            get { return _text.Encoding; }
         }
 
         public SourceText UnderlyingText
         {
-            get { return this.text; }
+            get { return _text; }
         }
 
         public TextSpan UnderlyingSpan
         {
-            get { return this.span; }
+            get { return _span; }
         }
 
         public override int Length
         {
-            get { return this.span.Length; }
+            get { return _span.Length; }
         }
 
         public override char this[int position]
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentOutOfRangeException("position");
                 }
 
-                return this.text[this.span.Start + position];
+                return _text[_span.Start + position];
             }
         }
 
@@ -70,26 +70,26 @@ namespace Microsoft.CodeAnalysis.Text
         {
             CheckSubSpan(span);
 
-            return this.text.ToString(GetCompositeSpan(span.Start, span.Length));
+            return _text.ToString(GetCompositeSpan(span.Start, span.Length));
         }
 
         public override SourceText GetSubText(TextSpan span)
         {
             CheckSubSpan(span);
 
-            return new SubText(this.text, GetCompositeSpan(span.Start, span.Length));
+            return new SubText(_text, GetCompositeSpan(span.Start, span.Length));
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             var span = GetCompositeSpan(sourceIndex, count);
-            this.text.CopyTo(span.Start, destination, destinationIndex, span.Length);
+            _text.CopyTo(span.Start, destination, destinationIndex, span.Length);
         }
 
         private TextSpan GetCompositeSpan(int start, int length)
         {
-            int compositeStart = Math.Min(this.text.Length, this.span.Start + start);
-            int compositeEnd = Math.Min(this.text.Length, compositeStart + length);
+            int compositeStart = Math.Min(_text.Length, _span.Start + start);
+            int compositeEnd = Math.Min(_text.Length, compositeStart + length);
             return new TextSpan(compositeStart, compositeEnd - compositeStart);
         }
     }

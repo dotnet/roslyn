@@ -13,11 +13,11 @@ namespace Microsoft.Cci
 {
     internal sealed class CustomDebugInfoWriter
     {
-        private uint methodTokenWithModuleInfo;
-        private IMethodBody methodBodyWithModuleInfo;
+        private uint _methodTokenWithModuleInfo;
+        private IMethodBody _methodBodyWithModuleInfo;
 
-        private uint previousMethodTokenWithUsingInfo;
-        private IMethodBody previousMethodBodyWithUsingInfo;
+        private uint _previousMethodTokenWithUsingInfo;
+        private IMethodBody _previousMethodBodyWithUsingInfo;
 
         public CustomDebugInfoWriter()
         {
@@ -36,7 +36,7 @@ namespace Microsoft.Cci
                 // VB on the other hand adds a "@methodtoken" to the scopes instead.
                 if (methodBody.NamespaceScopeEncoding == NamespaceScopeEncoding.Forwarding)
                 {
-                    forwardToMethod = this.previousMethodBodyWithUsingInfo.MethodDefinition;
+                    forwardToMethod = _previousMethodBodyWithUsingInfo.MethodDefinition;
                 }
                 else
                 {
@@ -46,8 +46,8 @@ namespace Microsoft.Cci
                 return true;
             }
 
-            this.previousMethodBodyWithUsingInfo = methodBody;
-            this.previousMethodTokenWithUsingInfo = methodToken;
+            _previousMethodBodyWithUsingInfo = methodBody;
+            _previousMethodTokenWithUsingInfo = methodToken;
             forwardToMethod = null;
             return false;
         }
@@ -59,7 +59,7 @@ namespace Microsoft.Cci
             // CONSIDER: this may not be the same "first" method as in Dev10, but
             // it shouldn't matter since all methods will still forward to a method
             // containing the appropriate information.
-            if (this.methodBodyWithModuleInfo == null) //UNDONE: || edit-and-continue
+            if (_methodBodyWithModuleInfo == null) //UNDONE: || edit-and-continue
             {
                 // This module level information could go on every method (and does in
                 // the edit-and-continue case), but - as an optimization - we'll just
@@ -68,8 +68,8 @@ namespace Microsoft.Cci
                 // can find the information).
                 if (module.ExternNamespaces.Any())
                 {
-                    this.methodTokenWithModuleInfo = methodToken;
-                    this.methodBodyWithModuleInfo = methodBody;
+                    _methodTokenWithModuleInfo = methodToken;
+                    _methodBodyWithModuleInfo = methodBody;
                     emitExternNamespaces = true;
                 }
             }
@@ -306,7 +306,7 @@ namespace Microsoft.Cci
 
             if (ShouldForwardToPreviousMethodWithUsingInfo(methodBody))
             {
-                Debug.Assert(!ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody));
+                Debug.Assert(!ReferenceEquals(_previousMethodBodyWithUsingInfo, methodBody));
                 SerializeReferenceToPreviousMethodWithUsingInfo(customDebugInfo);
                 return;
             }
@@ -340,7 +340,7 @@ namespace Microsoft.Cci
                 customDebugInfo.Add(customMetadata);
             }
 
-            if (this.methodBodyWithModuleInfo != null && !ReferenceEquals(this.methodBodyWithModuleInfo, methodBody))
+            if (_methodBodyWithModuleInfo != null && !ReferenceEquals(_methodBodyWithModuleInfo, methodBody))
             {
                 SerializeReferenceToMethodWithModuleInfo(customDebugInfo);
             }
@@ -348,14 +348,14 @@ namespace Microsoft.Cci
 
         private bool ShouldForwardToPreviousMethodWithUsingInfo(IMethodBody methodBody)
         {
-            if (this.previousMethodBodyWithUsingInfo == null || ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody))
+            if (_previousMethodBodyWithUsingInfo == null || ReferenceEquals(_previousMethodBodyWithUsingInfo, methodBody))
             {
                 return false;
             }
 
             // CONSIDER: is there a more efficient way to check if the scopes are the same?
             // CONSIDER: might want to cache the list of scopes.
-            var previousScopes = this.previousMethodBodyWithUsingInfo.NamespaceScopes;
+            var previousScopes = _previousMethodBodyWithUsingInfo.NamespaceScopes;
             return methodBody.NamespaceScopes.SequenceEqual(previousScopes, NamespaceScopeComparer.Instance);
         }
 
@@ -367,7 +367,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiKindForwardToModuleInfo);
             cmw.Align(4);
             cmw.WriteUint(12);
-            cmw.WriteUint(this.methodTokenWithModuleInfo);
+            cmw.WriteUint(_methodTokenWithModuleInfo);
             customDebugInfo.Add(customMetadata);
         }
 
@@ -379,7 +379,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiKindForwardInfo);
             cmw.Align(4);
             cmw.WriteUint(12);
-            cmw.WriteUint(this.previousMethodTokenWithUsingInfo);
+            cmw.WriteUint(_previousMethodTokenWithUsingInfo);
             customDebugInfo.Add(customMetadata);
         }
 

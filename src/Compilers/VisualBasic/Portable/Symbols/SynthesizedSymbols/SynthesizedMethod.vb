@@ -178,11 +178,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node As VisualBasicSyntaxNode = Me.Syntax
                 Dim asLambda = TryCast(node, LambdaExpressionSyntax)
                 If asLambda IsNot Nothing Then
-                    node = asLambda.Begin
+                    node = asLambda.SubOrFunctionHeader
                 Else
                     Dim asMethod = TryCast(node, MethodBlockBaseSyntax)
                     If asMethod IsNot Nothing Then
-                        node = asMethod.Begin
+                        node = asMethod.BlockStatement
                     End If
                 End If
 

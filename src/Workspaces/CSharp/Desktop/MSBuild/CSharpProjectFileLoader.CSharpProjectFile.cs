@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assemblyName = this.GetAssemblyName();
 
                 return new ProjectFileInfo(
-                    this.Guid,
                     outputPath,
                     assemblyName,
                     compilerInputs.CompilationOptions,

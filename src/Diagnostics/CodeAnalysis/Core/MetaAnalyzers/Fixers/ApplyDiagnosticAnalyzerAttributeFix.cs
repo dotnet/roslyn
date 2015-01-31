@@ -5,18 +5,18 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
+            get { return ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId); }
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var token = root.FindToken(context.Span.Start);
@@ -54,34 +54,23 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
             var fix = new MyCodeAction(
                 codeFixTitle,
                 c => GetFix(context.Document, root, classDecl, generator, languages));
-            context.RegisterFix(fix, context.Diagnostics);
+            context.RegisterCodeFix(fix, context.Diagnostics);
         }
 
         private Task<Document> GetFix(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
         {
-            SyntaxNode attribute;
-            switch (languages.Length)
+            var languageNamesFullName = typeof(LanguageNames).FullName;
+            var arguments = new SyntaxNode[languages.Length];
+
+            for (int i = 0; i < languages.Length; i++)
             {
-                case 0:
-                    attribute = generator.Attribute(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
-                    break;
-
-                default:
-                    var languageNamesFullName = typeof(LanguageNames).FullName;
-                    var arguments = new SyntaxNode[languages.Length];
-
-                    for (int i = 0; i < languages.Length; i++)
-                    {
-                        var language = languages[i] == LanguageNames.CSharp ? nameof(LanguageNames.CSharp) : nameof(LanguageNames.VisualBasic);
-                        var expressionToParse = languageNamesFullName + "." + language;
-                        var parsedExpression = ParseExpression(expressionToParse);
-                        arguments[i] = generator.AttributeArgument(parsedExpression);
-                    }
-
-                    attribute = generator.Attribute(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName, arguments);
-                    break;
+                var language = languages[i] == LanguageNames.CSharp ? nameof(LanguageNames.CSharp) : nameof(LanguageNames.VisualBasic);
+                var expressionToParse = languageNamesFullName + "." + language;
+                var parsedExpression = ParseExpression(expressionToParse);
+                arguments[i] = generator.AttributeArgument(parsedExpression);
             }
 
+            SyntaxNode attribute = generator.Attribute(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName, arguments);
             var newClassDecl = generator.AddAttributes(classDecl, attribute);
             var newRoot = root.ReplaceNode(classDecl, newClassDecl);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));

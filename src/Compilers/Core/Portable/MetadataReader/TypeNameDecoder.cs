@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis
         where ModuleSymbol : class
         where TypeSymbol : class
     {
-        private readonly SymbolFactory<ModuleSymbol, TypeSymbol> factory;
+        private readonly SymbolFactory<ModuleSymbol, TypeSymbol> _factory;
         protected readonly ModuleSymbol moduleSymbol;
 
         internal TypeNameDecoder(SymbolFactory<ModuleSymbol, TypeSymbol> factory, ModuleSymbol moduleSymbol)
         {
-            this.factory = factory;
+            _factory = factory;
             this.moduleSymbol = moduleSymbol;
         }
 
@@ -47,62 +47,62 @@ namespace Microsoft.CodeAnalysis
 
         protected TypeSymbol GetUnsupportedMetadataTypeSymbol(BadImageFormatException exception = null)
         {
-            return this.factory.GetUnsupportedMetadataTypeSymbol(this.moduleSymbol, exception);
+            return _factory.GetUnsupportedMetadataTypeSymbol(this.moduleSymbol, exception);
         }
 
         protected TypeSymbol GetSZArrayTypeSymbol(TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return this.factory.GetSZArrayTypeSymbol(this.moduleSymbol, elementType, customModifiers);
+            return _factory.GetSZArrayTypeSymbol(this.moduleSymbol, elementType, customModifiers);
         }
 
         protected TypeSymbol GetArrayTypeSymbol(int rank, TypeSymbol elementType)
         {
-            return this.factory.GetArrayTypeSymbol(this.moduleSymbol, rank, elementType);
+            return _factory.GetArrayTypeSymbol(this.moduleSymbol, rank, elementType);
         }
 
         protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType)
         {
-            return this.factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType);
+            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType);
         }
 
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return this.factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
+            return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
         protected TypeSymbol GetSpecialType(SpecialType specialType)
         {
-            return this.factory.GetSpecialType(this.moduleSymbol, specialType);
+            return _factory.GetSpecialType(this.moduleSymbol, specialType);
         }
 
         protected TypeSymbol SystemTypeSymbol
         {
-            get { return this.factory.GetSystemTypeSymbol(this.moduleSymbol); }
+            get { return _factory.GetSystemTypeSymbol(this.moduleSymbol); }
         }
 
         protected TypeSymbol GetEnumUnderlyingType(TypeSymbol type)
         {
-            return this.factory.GetEnumUnderlyingType(this.moduleSymbol, type);
+            return _factory.GetEnumUnderlyingType(this.moduleSymbol, type);
         }
 
         protected bool IsVolatileModifierType(TypeSymbol type)
         {
-            return this.factory.IsVolatileModifierType(this.moduleSymbol, type);
+            return _factory.IsVolatileModifierType(this.moduleSymbol, type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)
         {
-            return this.factory.GetPrimitiveTypeCode(this.moduleSymbol, type);
+            return _factory.GetPrimitiveTypeCode(this.moduleSymbol, type);
         }
 
         protected TypeSymbol SubstituteWithUnboundIfGeneric(TypeSymbol type)
         {
-            return this.factory.MakeUnboundIfGeneric(this.moduleSymbol, type);
+            return _factory.MakeUnboundIfGeneric(this.moduleSymbol, type);
         }
 
         protected TypeSymbol SubstituteTypeParameters(TypeSymbol genericType, ImmutableArray<TypeSymbol> arguments, ImmutableArray<bool> refersToNoPiaLocalType)
         {
-            return this.factory.SubstituteTypeParameters(this.moduleSymbol, genericType, arguments, refersToNoPiaLocalType);
+            return _factory.SubstituteTypeParameters(this.moduleSymbol, genericType, arguments, refersToNoPiaLocalType);
         }
 
         internal TypeSymbol GetTypeSymbol(MetadataHelpers.AssemblyQualifiedTypeName fullName, out bool refersToNoPiaLocalType)

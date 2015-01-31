@@ -12818,10 +12818,10 @@ BC31189: Element names cannot use the 'xmlns' prefix.
 ]]></file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
                 Dim x = Function() <aoeu>
                                    ~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
                 Dim y = Function() <aoeu val=<%= (Function() <htns></htns>)().ToString() %>/>
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -12848,13 +12848,13 @@ End Module
 ]]></file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private A = <a><b><%= <c/> %></b></a>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private B = <a b=<%= <c/> %>/>
                 ~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private C = <a/>.<b>.<c>
                 ~~~~~~~~~~~~
 BC31172: An embedded expression cannot be used here.
@@ -12863,22 +12863,22 @@ BC31172: An embedded expression cannot be used here.
 BC31172: An embedded expression cannot be used here.
     Private E = <%= <x><%= A %></x> %>
                 ~~~~~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private E = <%= <x><%= A %></x> %>
                     ~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F = <a/>.<a>.<b>
                 ~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private G = <a b="c"/>.<a>.@b
                 ~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private H = <a/>...<b>
                 ~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private J = <!-- comment -->
                 ~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private K = <?xml version="1.0"?><x/>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -12896,10 +12896,10 @@ End Module
 </file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors>
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F1 = &lt;x&gt;&lt;![CDATA[str]]&gt;&lt;/&gt;
                  ~~~~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F2 = &lt;![CDATA[str]]&gt;
                  ~~~~~~~~~~~~~~~
 </errors>)
@@ -12916,7 +12916,7 @@ End Module
 ]]></file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F = GetXmlNamespace()
                 ~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -21919,9 +21919,6 @@ BC30002: Type 'System.Object' is not defined.
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Object'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~
-BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Object'. Add one to your project.
-        Dim a = DnT.DateString
-                ~~~~~~~~~~~~~~
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'String'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~~~~~~~~~~~~

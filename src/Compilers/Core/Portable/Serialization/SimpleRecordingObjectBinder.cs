@@ -12,16 +12,16 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class SimpleRecordingObjectBinder : RecordingObjectBinder
     {
-        private readonly Dictionary<TypeKey, Type> typeMap =
+        private readonly Dictionary<TypeKey, Type> _typeMap =
             new Dictionary<TypeKey, Type>();
 
-        private readonly Dictionary<Type, Func<ObjectReader, object>> readerMap =
+        private readonly Dictionary<Type, Func<ObjectReader, object>> _readerMap =
             new Dictionary<Type, Func<ObjectReader, object>>();
 
         public override Type GetType(string assemblyName, string typeName)
         {
             Type type;
-            if (!this.typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
+            if (!_typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
             {
                 Debug.Assert(false, assemblyName + "/" + typeName + " don't exist");
             }
@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
         public override Func<ObjectReader, object> GetReader(Type type)
         {
             Func<ObjectReader, object> reader;
-            if (!this.readerMap.TryGetValue(type, out reader))
+            if (!_readerMap.TryGetValue(type, out reader))
             {
                 Debug.Assert(false, type.ToString() + " reader doesn't exist");
             }
@@ -42,7 +42,7 @@ namespace Roslyn.Utilities
 
         private bool HasConstructor(Type type)
         {
-            return this.readerMap.ContainsKey(type);
+            return _readerMap.ContainsKey(type);
         }
 
         public override void Record(Type type)
@@ -50,9 +50,9 @@ namespace Roslyn.Utilities
             if (type != null)
             {
                 var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
-                if (!this.typeMap.ContainsKey(key))
+                if (!_typeMap.ContainsKey(key))
                 {
-                    this.typeMap.Add(key, type);
+                    _typeMap.Add(key, type);
                 }
             }
         }
@@ -68,13 +68,13 @@ namespace Roslyn.Utilities
                 {
                     if (HasConstructor(type))
                     {
-                        Debug.Assert(this.typeMap.ContainsKey(new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName)));
+                        Debug.Assert(_typeMap.ContainsKey(new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName)));
                         return;
                     }
 
-                    if (!this.readerMap.ContainsKey(type))
+                    if (!_readerMap.ContainsKey(type))
                     {
-                        this.readerMap.Add(type, readable.GetReader());
+                        _readerMap.Add(type, readable.GetReader());
                     }
                 }
 

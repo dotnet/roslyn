@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.Emit
     internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
     {
         // symbols:
-        private readonly SymbolMatcher symbolMap;
+        private readonly SymbolMatcher _symbolMap;
 
         // syntax:
-        private readonly Func<SyntaxNode, SyntaxNode> syntaxMapOpt;
-        private readonly IMethodSymbolInternal previousMethod;
+        private readonly Func<SyntaxNode, SyntaxNode> _syntaxMapOpt;
+        private readonly IMethodSymbolInternal _previousMethod;
 
         // locals:
-        private readonly IReadOnlyDictionary<EncLocalInfo, int> previousLocalSlots;
-        private readonly ImmutableArray<EncLocalInfo> previousLocals;
+        private readonly IReadOnlyDictionary<EncLocalInfo, int> _previousLocalSlots;
+        private readonly ImmutableArray<EncLocalInfo> _previousLocals;
 
         // previous state machine:
-        private readonly string stateMachineTypeNameOpt;
-        private readonly int hoistedLocalSlotCount;
-        private readonly IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt;
-        private readonly int awaiterCount;
-        private readonly IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt;
+        private readonly string _stateMachineTypeNameOpt;
+        private readonly int _hoistedLocalSlotCount;
+        private readonly IReadOnlyDictionary<EncHoistedLocalInfo, int> _hoistedLocalSlotsOpt;
+        private readonly int _awaiterCount;
+        private readonly IReadOnlyDictionary<Cci.ITypeReference, int> _awaiterMapOpt;
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(previousMethod != null);
             Debug.Assert(!previousLocals.IsDefault);
 
-            this.symbolMap = symbolMap;
-            this.syntaxMapOpt = syntaxMapOpt;
-            this.previousLocals = previousLocals;
-            this.previousMethod = previousMethod;
-            this.hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
-            this.hoistedLocalSlotCount = hoistedLocalSlotCount;
-            this.stateMachineTypeNameOpt = stateMachineTypeNameOpt;
-            this.awaiterCount = awaiterCount;
-            this.awaiterMapOpt = awaiterMapOpt;
+            _symbolMap = symbolMap;
+            _syntaxMapOpt = syntaxMapOpt;
+            _previousLocals = previousLocals;
+            _previousMethod = previousMethod;
+            _hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
+            _hoistedLocalSlotCount = hoistedLocalSlotCount;
+            _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
+            _awaiterCount = awaiterCount;
+            _awaiterMapOpt = awaiterMapOpt;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -71,17 +71,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 previousLocalInfoToSlot.Add(localInfo, slot);
             }
 
-            this.previousLocalSlots = previousLocalInfoToSlot;
+            _previousLocalSlots = previousLocalInfoToSlot;
         }
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
-            builder.AddRange(this.previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
+            builder.AddRange(_previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
         }
 
         private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
         {
-            if (syntaxMapOpt == null)
+            if (_syntaxMapOpt == null)
             {
                 // no syntax map 
                 // => the source of the current method is the same as the source of the previous method 
@@ -91,14 +91,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            SyntaxNode previousDeclarator = syntaxMapOpt(currentDeclarator);
+            SyntaxNode previousDeclarator = _syntaxMapOpt(currentDeclarator);
             if (previousDeclarator == null)
             {
                 previousId = default(LocalDebugId);
                 return false;
             }
 
-            int syntaxOffset = previousMethod.CalculateLocalSyntaxOffset(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
+            int syntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
             previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal);
             return true;
         }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return null;
             }
 
-            var previousType = symbolMap.MapReference(currentType);
+            var previousType = _symbolMap.MapReference(currentType);
             if (previousType == null)
             {
                 return null;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var localKey = new EncLocalInfo(new LocalSlotDebugInfo(kind, previousId), previousType, constraints, signature: null);
 
             int slot;
-            if (!previousLocalSlots.TryGetValue(localKey, out slot))
+            if (!_previousLocalSlots.TryGetValue(localKey, out slot))
             {
                 return null;
             }
@@ -156,12 +156,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override string PreviousStateMachineTypeName
         {
-            get { return stateMachineTypeNameOpt; }
+            get { return _stateMachineTypeNameOpt; }
         }
 
         public override int GetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId)
         {
-            Debug.Assert(hoistedLocalSlotsOpt != null);
+            Debug.Assert(_hoistedLocalSlotsOpt != null);
 
             LocalDebugId previousId;
             if (!TryGetPreviousLocalId(currentDeclarator, currentId, out previousId))
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return -1;
             }
 
-            var previousType = symbolMap.MapReference(currentType);
+            var previousType = _symbolMap.MapReference(currentType);
             if (previousType == null)
             {
                 return -1;
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var localKey = new EncHoistedLocalInfo(new LocalSlotDebugInfo(synthesizedKind, previousId), previousType);
 
             int slotIndex;
-            if (!hoistedLocalSlotsOpt.TryGetValue(localKey, out slotIndex))
+            if (!_hoistedLocalSlotsOpt.TryGetValue(localKey, out slotIndex))
             {
                 return -1;
             }
@@ -190,20 +190,20 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override int PreviousHoistedLocalSlotCount
         {
-            get { return hoistedLocalSlotCount; }
+            get { return _hoistedLocalSlotCount; }
         }
 
         public override int GetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType)
         {
-            Debug.Assert(awaiterMapOpt != null);
+            Debug.Assert(_awaiterMapOpt != null);
 
             int slotIndex;
-            return awaiterMapOpt.TryGetValue(symbolMap.MapReference(currentType), out slotIndex) ? slotIndex : -1;
+            return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex) ? slotIndex : -1;
         }
 
         public override int PreviousAwaiterSlotCount
         {
-            get { return awaiterCount; }
+            get { return _awaiterCount; }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -710,7 +710,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional allowConstructorCall As Boolean = False,
             Optional suppressAbstractCallDiagnostics As Boolean = False,
             Optional isDefaultMemberAccess As Boolean = False,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing
+            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+            Optional forceExpandedForm As Boolean = False
         ) As BoundExpression
 
             Debug.Assert(group IsNot Nothing)
@@ -721,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' When this happens, it is worth trying to do overload resolution on the "bad" set
             ' to report better errors.
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics)
+            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics, forceExpandedForm:=forceExpandedForm)
 
             If diagnostics.Add(node, useSiteDiagnostics) Then
                 If group.ResultKind <> LookupResultKind.Inaccessible Then
@@ -776,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create and report the diagnostic.
                 If results.Candidates.Length = 0 Then
                     results = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, includeEliminatedCandidates:=True, callerInfoOpt:=callerInfoOpt,
-                                                                                              useSiteDiagnostics:=Nothing)
+                                                                                              useSiteDiagnostics:=Nothing, forceExpandedForm:=forceExpandedForm)
                 End If
 
                 Return ReportOverloadResolutionFailureAndProduceBoundNode(node, group, boundArguments, argumentNames, results, diagnostics,
@@ -842,8 +843,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 VerifyTypeCharacterConsistency(node, returnType, typeChar, diagnostics)
             End If
 
+            Dim resolvedTypeOrValueReceiver As BoundExpression = Nothing
             If receiver IsNot Nothing AndAlso Not hasErrors Then
-                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, methodOrProperty.IsShared, clearIfShared:=True, diagnostics:=diagnostics)
+                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, methodOrProperty.IsShared, diagnostics, resolvedTypeOrValueReceiver)
             End If
 
             If Not suppressAbstractCallDiagnostics AndAlso receiver IsNot Nothing AndAlso (receiver.IsMyBaseReference OrElse receiver.IsMyClassReference) Then
@@ -864,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim lambdaNode = TryCast(errorLocation, LambdaExpressionSyntax)
 
                     If lambdaNode IsNot Nothing Then
-                        errorLocation = lambdaNode.Begin
+                        errorLocation = lambdaNode.SubOrFunctionHeader
                     End If
 
                     ReportDiagnostic(diagnostics, errorLocation, ERRID.WRN_AsyncSubCouldBeFunction)
@@ -904,14 +906,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: we only remove it if we pass it to a new BoundCall node, 
                 '       otherwise we keep it in the group to support semantic queries
                 Dim methodGroup = DirectCast(group, BoundMethodGroup)
-                If receiver IsNot Nothing Then
-                    methodGroup = methodGroup.Update(methodGroup.TypeArgumentsOpt,
-                                                     methodGroup.Methods,
-                                                     methodGroup.PendingExtensionMethodsOpt,
-                                                     methodGroup.ResultKind,
-                                                     Nothing,
-                                                     methodGroup.QualificationKind)
-                End If
+                Dim newReceiver As BoundExpression = If(receiver IsNot Nothing, Nothing, If(resolvedTypeOrValueReceiver, methodGroup.ReceiverOpt))
+                methodGroup = methodGroup.Update(methodGroup.TypeArgumentsOpt,
+                                                 methodGroup.Methods,
+                                                 methodGroup.PendingExtensionMethodsOpt,
+                                                 methodGroup.ResultKind,
+                                                 newReceiver,
+                                                 methodGroup.QualificationKind)
 
                 Return New BoundCall(
                     node,
@@ -942,12 +943,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: we only remove it if we pass it to a new BoundPropertyAccess node, 
                 '       otherwise we keep it in the group to support semantic queries
                 Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
-                If receiver IsNot Nothing Then
-                    propertyGroup = propertyGroup.Update(propertyGroup.Properties,
-                                                         propertyGroup.ResultKind,
-                                                         Nothing,
-                                                         propertyGroup.QualificationKind)
-                End If
+                Dim newReceiver As BoundExpression = If(receiver IsNot Nothing, Nothing, If(resolvedTypeOrValueReceiver, propertyGroup.ReceiverOpt))
+                propertyGroup = propertyGroup.Update(propertyGroup.Properties,
+                                                     propertyGroup.ResultKind,
+                                                     newReceiver,
+                                                     propertyGroup.QualificationKind)
 
                 Return New BoundPropertyAccess(
                     node,

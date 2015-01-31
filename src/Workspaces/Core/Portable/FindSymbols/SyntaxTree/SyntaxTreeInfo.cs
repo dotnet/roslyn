@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo> identifierSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo>();
         private static readonly ConditionalWeakTable<Document, SyntaxTreeContextInfo> contextSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeContextInfo>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo> declaredSymbolsSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo>();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // we already have information. move on
             if (await SyntaxTreeIdentifierInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false) &&
-                await SyntaxTreeContextInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false))
+                await SyntaxTreeContextInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false) &&
+                await SyntaxTreeDeclarationInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
@@ -61,62 +63,60 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             await data.Item1.SaveAsync(document, cancellationToken).ConfigureAwait(false);
             await data.Item2.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await data.Item3.SaveAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<SyntaxTreeContextInfo> GetContextInfoAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<T> GetInfoAsync<T>(
+            Document document,
+            ConditionalWeakTable<Document, T> cache,
+            Func<Document, CancellationToken, Task<T>> generator,
+            Func<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>, T> selector,
+            CancellationToken cancellationToken)
+            where T : class
         {
-            SyntaxTreeContextInfo info;
-            if (contextSnapshotCache.TryGetValue(document, out info))
+            T info;
+            if (cache.TryGetValue(document, out info))
             {
                 return info;
             }
 
-            info = await SyntaxTreeContextInfo.LoadAsync(document, cancellationToken).ConfigureAwait(false);
+            info = await generator(document, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
-                return contextSnapshotCache.GetValue(document, _ => info);
+                return cache.GetValue(document, _ => info);
             }
 
-            // alright, we don't have cached information, re-calcuate them here.
+            // alright, we don't have cached information, re-calculate them here.
             var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // okay, persist this info.
+            // okay, persist this info
             await data.Item1.SaveAsync(document, cancellationToken).ConfigureAwait(false);
             await data.Item2.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await data.Item3.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
-            info = data.Item2;
-            return contextSnapshotCache.GetValue(document, _ => info);
+            info = selector(data);
+            return cache.GetValue(document, _ => info);
         }
 
-        public static async Task<SyntaxTreeIdentifierInfo> GetIdentifierInfoAsync(Document document, CancellationToken cancellationToken)
+        public static Task<SyntaxTreeContextInfo> GetContextInfoAsync(Document document, CancellationToken cancellationToken)
         {
-            SyntaxTreeIdentifierInfo info;
-            if (identifierSnapshotCache.TryGetValue(document, out info))
-            {
-                return info;
-            }
+            return GetInfoAsync(document, contextSnapshotCache, SyntaxTreeContextInfo.LoadAsync, tuple => tuple.Item2, cancellationToken);
+        }
 
-            info = await SyntaxTreeIdentifierInfo.LoadAsync(document, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-            {
-                return identifierSnapshotCache.GetValue(document, _ => info);
-            }
+        public static Task<SyntaxTreeIdentifierInfo> GetIdentifierInfoAsync(Document document, CancellationToken cancellationToken)
+        {
+            return GetInfoAsync(document, identifierSnapshotCache, SyntaxTreeIdentifierInfo.LoadAsync, tuple => tuple.Item1, cancellationToken);
+        }
 
-            // alright, we don't have cached information, re-calcuate them here.
-            var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
-
-            // okay, persist this info.
-            await data.Item1.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.Item2.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-
-            info = data.Item1;
-            return identifierSnapshotCache.GetValue(document, _ => info);
+        public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(Document document, CancellationToken cancellationToken)
+        {
+            return GetInfoAsync(document, declaredSymbolsSnapshotCache, SyntaxTreeDeclarationInfo.LoadAsync, tuple => tuple.Item3, cancellationToken);
         }
 
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        private static async Task<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo>> CreateInfoAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>> CreateInfoAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
@@ -140,6 +140,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
 
+                var declaredSymbolInfos = new List<DeclaredSymbolInfo>();
+
                 if (syntaxFacts != null)
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -156,6 +158,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                             containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
+
+                            DeclaredSymbolInfo declaredSymbolInfo;
+                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo))
+                            {
+                                declaredSymbolInfos.Add(declaredSymbolInfo);
+                            }
                         }
                         else
                         {
@@ -208,7 +216,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         containsThisConstructorInitializer,
                         containsBaseConstructorInitializer,
                         containsElementAccess,
-                        containsIndexerMemberCref));
+                        containsIndexerMemberCref),
+                    new SyntaxTreeDeclarationInfo(
+                        version,
+                        declaredSymbolInfos));
             }
             finally
             {

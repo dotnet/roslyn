@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public struct TextLine : IEquatable<TextLine>
     {
-        private readonly SourceText text;
-        private readonly int start;
-        private readonly int endIncludingBreaks;
+        private readonly SourceText _text;
+        private readonly int _start;
+        private readonly int _endIncludingBreaks;
 
         private TextLine(SourceText text, int start, int endIncludingBreaks)
         {
-            this.text = text;
-            this.start = start;
-            this.endIncludingBreaks = endIncludingBreaks;
+            _text = text;
+            _start = start;
+            _endIncludingBreaks = endIncludingBreaks;
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public SourceText Text
         {
-            get { return this.text; }
+            get { return _text; }
         }
 
         /// <summary>
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (this.text != null)
+                if (_text != null)
                 {
-                    return this.text.Lines.IndexOf(this.start);
+                    return _text.Lines.IndexOf(_start);
                 }
                 else
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Start
         {
-            get { return this.start; }
+            get { return _start; }
         }
 
         /// <summary>
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int End
         {
-            get { return this.endIncludingBreaks - this.LineBreakLength; }
+            get { return _endIncludingBreaks - this.LineBreakLength; }
         }
 
         private int LineBreakLength
         {
             get
             {
-                if (this.text == null || this.text.Length == 0 || this.endIncludingBreaks == this.start)
+                if (_text == null || _text.Length == 0 || _endIncludingBreaks == _start)
                 {
                     return 0;
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     int startLineBreak;
                     int lineBreakLength;
-                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(this.text, this.endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
+                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
                     return lineBreakLength;
                 }
             }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int EndIncludingLineBreak
         {
-            get { return this.endIncludingBreaks; }
+            get { return _endIncludingBreaks; }
         }
 
         /// <summary>
@@ -166,13 +166,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override string ToString()
         {
-            if (this.text == null || this.text.Length == 0)
+            if (_text == null || _text.Length == 0)
             {
                 return string.Empty;
             }
             else
             {
-                return this.text.ToString(this.Span);
+                return _text.ToString(this.Span);
             }
         }
 
@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         public bool Equals(TextLine other)
         {
-            return other.text == this.text
-                && other.start == this.start
-                && other.endIncludingBreaks == this.endIncludingBreaks;
+            return other._text == _text
+                && other._start == _start
+                && other._endIncludingBreaks == _endIncludingBreaks;
         }
 
         public override bool Equals(object obj)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.text, Hash.Combine(this.start, this.endIncludingBreaks));
+            return Hash.Combine(_text, Hash.Combine(_start, _endIncludingBreaks));
         }
     }
 }

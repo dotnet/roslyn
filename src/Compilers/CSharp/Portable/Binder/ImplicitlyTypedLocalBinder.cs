@@ -52,7 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.symbols;
             }
         }
+
+        internal override LocalSymbol LocalInProgress
+        {
+            get
+            {
+                return symbols.Head;
+            }
+        }
     }
-
-
 }

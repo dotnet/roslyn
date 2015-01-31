@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class SuppressMessageAttributeState
     {
-        private static readonly SmallDictionary<string, TargetScope> SuppressMessageScopeTypes = new SmallDictionary<string, TargetScope>()
+        private static readonly SmallDictionary<string, TargetScope> s_suppressMessageScopeTypes = new SmallDictionary<string, TargetScope>()
             {
                 { null, TargetScope.None },
                 { "module", TargetScope.Module },
@@ -23,54 +23,54 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 { "member", TargetScope.Member }
             };
 
-        private readonly Compilation compilation;
-        private GlobalSuppressions lazyGlobalSuppressions;
-        private ConcurrentDictionary<ISymbol, ImmutableArray<string>> localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
-        private ISymbol lazySuppressMessageAttribute;
-        private ConcurrentSet<string> faultedAnalyzerMessages;
+        private readonly Compilation _compilation;
+        private GlobalSuppressions _lazyGlobalSuppressions;
+        private ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
+        private ISymbol _lazySuppressMessageAttribute;
+        private ConcurrentSet<string> _faultedAnalyzerMessages;
 
         private class GlobalSuppressions
         {
-            private readonly HashSet<string> compilationWideSuppressions = new HashSet<string>();
-            private readonly Dictionary<ISymbol, ImmutableArray<string>> globalSymbolSuppressions = new Dictionary<ISymbol, ImmutableArray<string>>();
+            private readonly HashSet<string> _compilationWideSuppressions = new HashSet<string>();
+            private readonly Dictionary<ISymbol, ImmutableArray<string>> _globalSymbolSuppressions = new Dictionary<ISymbol, ImmutableArray<string>>();
 
             public void AddCompilationWideSuppression(string id)
             {
-                this.compilationWideSuppressions.Add(id);
+                _compilationWideSuppressions.Add(id);
             }
 
             public void AddGlobalSymbolSuppression(ISymbol symbol, string id)
             {
                 ImmutableArray<string> suppressions;
-                if (this.globalSymbolSuppressions.TryGetValue(symbol, out suppressions))
+                if (_globalSymbolSuppressions.TryGetValue(symbol, out suppressions))
                 {
                     if (!suppressions.Contains(id))
                     {
-                        this.globalSymbolSuppressions[symbol] = suppressions.Add(id);
+                        _globalSymbolSuppressions[symbol] = suppressions.Add(id);
                     }
                 }
                 else
                 {
-                    this.globalSymbolSuppressions.Add(symbol, ImmutableArray.Create(id));
+                    _globalSymbolSuppressions.Add(symbol, ImmutableArray.Create(id));
                 }
             }
 
             public bool HasCompilationWideSuppression(string id)
             {
-                return this.compilationWideSuppressions.Contains(id);
+                return _compilationWideSuppressions.Contains(id);
             }
 
             public bool HasGlobalSymbolSuppression(ISymbol symbol, string id)
             {
                 Debug.Assert(symbol != null);
                 ImmutableArray<string> suppressions;
-                return this.globalSymbolSuppressions.TryGetValue(symbol, out suppressions) && suppressions.Contains(id);
+                return _globalSymbolSuppressions.TryGetValue(symbol, out suppressions) && suppressions.Contains(id);
             }
         }
 
         public SuppressMessageAttributeState(Compilation compilation)
         {
-            this.compilation = compilation;
+            _compilation = compilation;
         }
 
         public bool IsDiagnosticSuppressed(Diagnostic diagnostic, ISymbol symbolOpt = null)
@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Suppress duplicate analyzer exception diagnostics from the analyzer driver.
             if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException))
             {
-                if (faultedAnalyzerMessages == null)
+                if (_faultedAnalyzerMessages == null)
                 {
-                    Interlocked.CompareExchange(ref this.faultedAnalyzerMessages, new ConcurrentSet<string>(), null);
+                    Interlocked.CompareExchange(ref _faultedAnalyzerMessages, new ConcurrentSet<string>(), null);
                 }
 
                 var message = diagnostic.GetMessage();
-                if (!faultedAnalyzerMessages.Add(message))
+                if (!_faultedAnalyzerMessages.Add(message))
                 {
                     return true;
                 }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Walk up the syntax tree checking for suppression by any declared symbols encountered
             if (location.IsInSource)
             {
-                var model = this.compilation.GetSemanticModel(location.SourceTree);
+                var model = _compilation.GetSemanticModel(location.SourceTree);
                 bool inImmediatelyContainingSymbol = true;
 
                 for (var node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var declaredSymbols = model.GetDeclaredSymbolsForNode(node);
                     Debug.Assert(declaredSymbols != null);
-   
+
                     foreach (var symbol in declaredSymbols)
                     {
                         if (symbol.Kind == SymbolKind.Namespace)
@@ -178,13 +178,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool IsDiagnosticGloballySuppressed(string id, ISymbol symbolOpt)
         {
             this.DecodeGlobalSuppressMessageAttributes();
-            return this.lazyGlobalSuppressions.HasCompilationWideSuppression(id) ||
-                symbolOpt != null && this.lazyGlobalSuppressions.HasGlobalSymbolSuppression(symbolOpt, id);
+            return _lazyGlobalSuppressions.HasCompilationWideSuppression(id) ||
+                symbolOpt != null && _lazyGlobalSuppressions.HasGlobalSymbolSuppression(symbolOpt, id);
         }
 
         private bool IsDiagnosticLocallySuppressed(string id, ISymbol symbol)
         {
-            var suppressions = this.localSuppressionsBySymbol.GetOrAdd(symbol, this.DecodeSuppressMessageAttributes);
+            var suppressions = _localSuppressionsBySymbol.GetOrAdd(symbol, this.DecodeSuppressMessageAttributes);
             return suppressions.Contains(id);
         }
 
@@ -192,28 +192,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (this.lazySuppressMessageAttribute == null)
+                if (_lazySuppressMessageAttribute == null)
                 {
-                    this.lazySuppressMessageAttribute = this.compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
+                    _lazySuppressMessageAttribute = _compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
                 }
 
-                return this.lazySuppressMessageAttribute;
+                return _lazySuppressMessageAttribute;
             }
         }
 
         private void DecodeGlobalSuppressMessageAttributes()
         {
-            if (this.lazyGlobalSuppressions == null)
+            if (_lazyGlobalSuppressions == null)
             {
                 var suppressions = new GlobalSuppressions();
-                DecodeGlobalSuppressMessageAttributes(this.compilation, compilation.Assembly, this.SuppressMessageAttribute, suppressions);
+                DecodeGlobalSuppressMessageAttributes(_compilation, _compilation.Assembly, this.SuppressMessageAttribute, suppressions);
 
-                foreach (var module in this.compilation.Assembly.Modules)
+                foreach (var module in _compilation.Assembly.Modules)
                 {
-                    DecodeGlobalSuppressMessageAttributes(this.compilation, module, this.SuppressMessageAttribute, suppressions);
+                    DecodeGlobalSuppressMessageAttributes(_compilation, module, this.SuppressMessageAttribute, suppressions);
                 }
 
-                Interlocked.CompareExchange(ref this.lazyGlobalSuppressions, suppressions, null);
+                Interlocked.CompareExchange(ref _lazyGlobalSuppressions, suppressions, null);
             }
         }
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 string scopeString = info.Scope != null ? info.Scope.ToLowerInvariant() : null;
                 TargetScope scope;
 
-                if (SuppressMessageScopeTypes.TryGetValue(scopeString, out scope))
+                if (s_suppressMessageScopeTypes.TryGetValue(scopeString, out scope))
                 {
                     if ((scope == TargetScope.Module || scope == TargetScope.None) && info.Target == null)
                     {

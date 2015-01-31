@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis
         public static readonly SyntaxAnnotation ElasticAnnotation = new SyntaxAnnotation();
 
         // use a value identity instead of object identity so a deserialized instance matches the original instance.
-        private readonly long id;
-        private static long nextId;
+        private readonly long _id;
+        private static long s_nextId;
 
         // use a value identity instead of object identity so a deserialized instance matches the original instance.
         public string Kind { get; private set; }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxAnnotation()
         {
-            this.id = System.Threading.Interlocked.Increment(ref nextId);
+            _id = System.Threading.Interlocked.Increment(ref s_nextId);
         }
 
         public SyntaxAnnotation(string kind)
@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxAnnotation(ObjectReader reader)
         {
-            this.id = reader.ReadInt64();
+            _id = reader.ReadInt64();
             this.Kind = reader.ReadString();
             this.Data = reader.ReadString();
         }
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteInt64(this.id);
+            writer.WriteInt64(_id);
             writer.WriteString(this.Kind);
             writer.WriteString(this.Data);
         }
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SyntaxAnnotation other)
         {
-            return (object)other != null && this.id == other.id;
+            return (object)other != null && _id == other._id;
         }
 
         public static bool operator ==(SyntaxAnnotation left, SyntaxAnnotation right)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.id.GetHashCode();
+            return _id.GetHashCode();
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
-
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -166,14 +165,14 @@ namespace Microsoft.Cci
     [SuppressUnmanagedCodeSecurity]
     internal class PdbMetadataWrapper : IMetaDataEmit, IMetaDataImport
     {
-        private readonly MetadataWriter writer;
+        private readonly MetadataWriter _writer;
 
-        private uint lastTypeDef;
-        private string lastTypeDefName;
+        private uint _lastTypeDef;
+        private string _lastTypeDefName;
 
         internal PdbMetadataWrapper(MetadataWriter writer)
         {
-            this.writer = writer;
+            _writer = writer;
         }
 
         // The only purpose of this method is to get type name and "is nested" flag, everything else is ignored by the SymWriter.
@@ -187,11 +186,11 @@ namespace Microsoft.Cci
             }
 
             // The typeDef name should be fully qualified 
-            ITypeDefinition t = this.writer.GetTypeDefinition(td);
+            ITypeDefinition t = _writer.GetTypeDefinition(td);
             string typeDefName;
-            if (this.lastTypeDef == td)
+            if (_lastTypeDef == td)
             {
-                typeDefName = this.lastTypeDefName;
+                typeDefName = _lastTypeDefName;
             }
             else
             {
@@ -199,13 +198,13 @@ namespace Microsoft.Cci
 
                 INamespaceTypeDefinition namespaceTypeDef;
 
-                if ((namespaceTypeDef = t.AsNamespaceTypeDefinition(this.writer.Context)) != null)
+                if ((namespaceTypeDef = t.AsNamespaceTypeDefinition(_writer.Context)) != null)
                 {
                     typeDefName = CodeAnalysis.MetadataHelpers.BuildQualifiedName(namespaceTypeDef.NamespaceName, typeDefName);
                 }
 
-                this.lastTypeDef = td;
-                this.lastTypeDefName = typeDefName;
+                _lastTypeDef = td;
+                _lastTypeDefName = typeDefName;
             }
 
             pchTypeDef = (uint)typeDefName.Length;
@@ -222,7 +221,7 @@ namespace Microsoft.Cci
 
             *(pointerTypeDef + pchTypeDef) = (char)0;
             uint* pointerFlags = (uint*)pdwTypeDefFlags.ToPointer();
-            *pointerFlags = this.writer.GetTypeDefFlags(t.GetResolvedType(this.writer.Context));
+            *pointerFlags = _writer.GetTypeDefFlags(t.GetResolvedType(_writer.Context));
             return 0;
         }
 
@@ -232,10 +231,10 @@ namespace Microsoft.Cci
         unsafe uint IMetaDataImport.GetMethodProps(uint mb, out uint pointerClass, IntPtr stringMethod, uint cchMethod, out uint pchMethod, IntPtr pdwAttr,
           IntPtr ppvSigBlob, IntPtr pcbSigBlob, IntPtr pulCodeRVA)
         {
-            IMethodDefinition m = this.writer.GetMethodDefinition(mb);
+            IMethodDefinition m = _writer.GetMethodDefinition(mb);
             pchMethod = 0;
             pointerClass = 0;
-            pointerClass = this.writer.GetTypeToken(m.GetContainingType(this.writer.Context));
+            pointerClass = _writer.GetTypeToken(m.GetContainingType(_writer.Context));
             string methName = m.Name;
 
             // if the buffer is too small to fit the name, truncate the name
@@ -256,13 +255,13 @@ namespace Microsoft.Cci
 
         uint IMetaDataImport.GetNestedClassProps(uint typeDefNestedClass)
         {
-            INestedTypeReference nt = this.writer.GetNestedTypeReference(typeDefNestedClass);
+            INestedTypeReference nt = _writer.GetNestedTypeReference(typeDefNestedClass);
             if (nt == null)
             {
                 return 0;
             }
 
-            return this.writer.GetTypeToken(nt.GetContainingType(this.writer.Context));
+            return _writer.GetTypeToken(nt.GetContainingType(_writer.Context));
         }
 
         #region Not Implemented 
@@ -824,7 +823,6 @@ namespace Microsoft.Cci
         {
             throw new NotImplementedException();
         }
-
         #endregion
     }
 }

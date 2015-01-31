@@ -21,9 +21,9 @@ namespace AsyncPackage
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = AsyncVoidAnalyzer.AsyncVoidId), Shared]
     public class AsyncVoidCodeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(AsyncVoidAnalyzer.AsyncVoidId);
+            get { return ImmutableArray.Create(AsyncVoidAnalyzer.AsyncVoidId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -31,7 +31,7 @@ namespace AsyncPackage
             return null;
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -42,7 +42,7 @@ namespace AsyncPackage
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
             // Register a code action that will invoke the fix.
-            context.RegisterFix(
+            context.RegisterCodeFix(
                 new AsyncVoidCodeAction("Async methods should not return void", 
                                         c => VoidToTaskAsync(context.Document, methodDeclaration, c)),
                 diagnostic);

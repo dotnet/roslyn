@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly ImmutableArray<Cci.ITypeReference> StateMachineAwaiterSlotsOpt;
 
         public AddedOrChangedMethodInfo(
-            ImmutableArray<EncLocalInfo> locals, 
+            ImmutableArray<EncLocalInfo> locals,
             string stateMachineTypeNameOpt,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlotsOpt,
             ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlotsOpt)

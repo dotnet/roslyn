@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class SymbolChanges
     {
-        private readonly DefinitionMap definitionMap;
-        private readonly IReadOnlyDictionary<ISymbol, SymbolChange> changes;
-        private readonly Func<ISymbol, bool> isAddedSymbol;
+        private readonly DefinitionMap _definitionMap;
+        private readonly IReadOnlyDictionary<ISymbol, SymbolChange> _changes;
+        private readonly Func<ISymbol, bool> _isAddedSymbol;
 
         public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(edits != null);
             Debug.Assert(isAddedSymbol != null);
 
-            this.definitionMap = definitionMap;
-            this.isAddedSymbol = isAddedSymbol;
-            this.changes = CalculateChanges(edits);
+            _definitionMap = definitionMap;
+            _isAddedSymbol = isAddedSymbol;
+            _changes = CalculateChanges(edits);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public bool IsAdded(ISymbol symbol)
         {
-            return isAddedSymbol(symbol);
+            return _isAddedSymbol(symbol);
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         // The container of the synthesized symbol doesn't exist, we need to add the symbol.
                         // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
-                        if (!this.definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType))
+                        if (!_definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType))
                         {
                             return SymbolChange.Added;
                         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             return SymbolChange.None;
                         }
 
-                        if (!this.definitionMap.DefinitionExists(def))
+                        if (!_definitionMap.DefinitionExists(def))
                         {
                             // A method was changed to a method containing a lambda, to an interator, or to an async method.
                             // The state machine or closure class has been added.
@@ -88,12 +88,12 @@ namespace Microsoft.CodeAnalysis.Emit
                             // The method body might have been updated.
                             return SymbolChange.Updated;
                         }
-                        
+
                         return SymbolChange.None;
 
                     case SymbolChange.Added:
                         // The method has been added - add the synthesized member as well, unless they already exist.
-                        if (!this.definitionMap.DefinitionExists(def))
+                        if (!_definitionMap.DefinitionExists(def))
                         {
                             return SymbolChange.Added;
                         }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the def existed in the previous generation, the def is unchanged
             // (although it may contain changed defs); otherwise, it was added.
-            if (this.definitionMap.DefinitionExists(def))
+            if (_definitionMap.DefinitionExists(def))
             {
                 return (def is ITypeDefinition) ? SymbolChange.ContainsChanges : SymbolChange.None;
             }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private SymbolChange GetChange(ISymbol symbol)
         {
             SymbolChange change;
-            if (this.changes.TryGetValue(symbol, out change))
+            if (_changes.TryGetValue(symbol, out change))
             {
                 return change;
             }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 case SymbolChange.ContainsChanges:
                     var definition = symbol as IDefinition;
 
-                    if (definition != null && !this.definitionMap.DefinitionExists(definition))
+                    if (definition != null && !_definitionMap.DefinitionExists(definition))
                     {
                         // If the definition did not exist in the previous generation, it was added.
                         return SymbolChange.Added;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return type;
             }
 
-            foreach (var symbol in this.changes.Keys)
+            foreach (var symbol in _changes.Keys)
             {
                 var typeDef = symbol as ITypeDefinition;
                 if (typeDef != null)

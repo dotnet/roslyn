@@ -222,6 +222,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(INamespaceSymbol x, int currentHash)
             {
+                if (x.IsGlobalNamespace && symbolEquivalenceComparer.assembliesCanDiffer)
+                {
+                    // Exclude global namespace's container's hash when assemblies can differ.
+                    return Hash.Combine(x.Name, currentHash);
+                }
+
                 return
                     Hash.Combine(x.IsGlobalNamespace,
                     Hash.Combine(x.Name,

@@ -81,10 +81,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return moduleRef
             End If
 
+            moduleRef = TranslateModule([module], diagnostics)
+            moduleRef = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd([module], moduleRef)
+            Return moduleRef
+        End Function
+
+        Protected Overridable Function TranslateModule([module] As ModuleSymbol, diagnostics As DiagnosticBag) As Microsoft.Cci.IModuleReference
             Dim container As AssemblySymbol = [module].ContainingAssembly
 
             If container IsNot Nothing AndAlso container.Modules(0) Is [module] Then
-                moduleRef = New AssemblyReference(container, assemblySymbolMapper)
+                Dim moduleRef As Microsoft.Cci.IModuleReference = New AssemblyReference(container, assemblySymbolMapper)
                 Dim cachedModuleRef As Microsoft.Cci.IModuleReference = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(container, moduleRef)
 
                 If cachedModuleRef Is moduleRef Then
@@ -92,12 +98,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Else
                     moduleRef = cachedModuleRef
                 End If
-            Else
-                moduleRef = New ModuleReference(Me, [module])
-            End If
 
-            moduleRef = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd([module], moduleRef)
-            Return moduleRef
+                Return moduleRef
+            Else
+                Return New ModuleReference(Me, [module])
+            End If
         End Function
 
         Friend Overloads Function Translate(

@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim handlesClauseOpt = GenerateHandlesClause(CodeGenerationMethodInfo.GetHandlesExpressions(method))
 
             Dim begin =
-                SyntaxFactory.MethodStatement(kind, keyword:=SyntaxFactory.Token(keyword), identifier:=method.Name.ToIdentifierToken).
+                SyntaxFactory.MethodStatement(kind, subOrFunctionKeyword:=SyntaxFactory.Token(keyword), identifier:=method.Name.ToIdentifierToken).
                     WithAttributeLists(AttributeGenerator.GenerateAttributeBlocks(method.GetAttributes(), options)).
                     WithModifiers(GenerateModifiers(method, destination, options)).
                     WithTypeParameterList(GenerateTypeParameterList(method)).
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If(isSub, SyntaxKind.SubBlock, SyntaxKind.FunctionBlock),
                 begin,
                 statements:=StatementGenerator.GenerateStatements(method),
-                end:=endConstruct)
+                endSubOrFunctionStatement:=endConstruct)
         End Function
 
         Private Shared Function GenerateAsClause(method As IMethodSymbol, isSub As Boolean, options As CodeGenerationOptions) As SimpleAsClauseSyntax

@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct CommandLineReference : IEquatable<CommandLineReference>
     {
-        private readonly string reference;
-        private readonly MetadataReferenceProperties properties;
+        private readonly string _reference;
+        private readonly MetadataReferenceProperties _properties;
 
         internal CommandLineReference(string reference, MetadataReferenceProperties properties)
         {
             Debug.Assert(!string.IsNullOrEmpty(reference));
-            this.reference = reference;
-            this.properties = properties;
+            _reference = reference;
+            _properties = properties;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string Reference
         {
-            get { return reference; }
+            get { return _reference; }
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public MetadataReferenceProperties Properties
         {
-            get { return properties; }
+            get { return _properties; }
         }
 
         public override bool Equals(object obj)
@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(CommandLineReference other)
         {
-            return this.reference == other.reference
-                && this.properties.Equals(other.properties);
+            return _reference == other._reference
+                && _properties.Equals(other._properties);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(reference, properties.GetHashCode());
+            return Hash.Combine(_reference, _properties.GetHashCode());
         }
     }
 }

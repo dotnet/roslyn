@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -658,7 +658,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterCodeBlockStartAction<SyntaxKind>(new NodeAnalyzer().Initialize);
-                context.RegisterCodeBlockEndAction<SyntaxKind>(OnCodeBlockEnded);
+                context.RegisterCodeBlockEndAction(OnCodeBlockEnded);
             }
 
             public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)

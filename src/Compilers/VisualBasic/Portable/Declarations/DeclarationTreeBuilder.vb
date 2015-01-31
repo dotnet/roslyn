@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim typeBlockSyntax As TypeBlockSyntax = typeEntry.TypeBlockSyntax
-                Dim declarationSyntax As TypeStatementSyntax = typeBlockSyntax.Begin
+                Dim declarationSyntax As TypeStatementSyntax = typeBlockSyntax.BlockStatement
 
                 ' Get the arity for things that can have arity.
                 Dim typeArity As Integer = 0
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         modifiers:=GetModifiers(declarationSyntax.Modifiers),
                         declFlags:=declFlags,
                         syntaxReference:=_syntaxTree.GetReference(typeBlockSyntax),
-                        nameLocation:=_syntaxTree.GetLocation(typeBlockSyntax.Begin.Identifier.Span),
+                        nameLocation:=_syntaxTree.GetLocation(typeBlockSyntax.BlockStatement.Identifier.Span),
                         memberNames:=memberNames,
                         children:=children))
             End While
@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock
                         anyNonTypeMembers = True
-                        Dim methodDecl = DirectCast(statement, MethodBlockBaseSyntax).Begin
+                        Dim methodDecl = DirectCast(statement, MethodBlockBaseSyntax).BlockStatement
                         If methodDecl.AttributeLists.Any Then
                             anyMemberHasAttributes = True
                         End If
@@ -623,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             anyMemberHasAttributes = True
                         Else
                             For Each a In propertyDecl.Accessors
-                                If a.Begin.AttributeLists.Any Then
+                                If a.BlockStatement.AttributeLists.Any Then
                                     anyMemberHasAttributes = True
                                 End If
                             Next
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             anyMemberHasAttributes = True
                         Else
                             For Each a In eventDecl.Accessors
-                                If a.Begin.AttributeLists.Any Then
+                                If a.BlockStatement.AttributeLists.Any Then
                                     anyMemberHasAttributes = True
                                 End If
                             Next

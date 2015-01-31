@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle);
         internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle);
         internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle);
-
     }
 
     internal abstract class DefinitionMap<TSymbolMatcher> : DefinitionMap
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         protected readonly TSymbolMatcher mapToMetadata;
         protected readonly TSymbolMatcher mapToPrevious;
-        
+
         protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits, TSymbolMatcher mapToMetadata, TSymbolMatcher mapToPrevious)
             : base(module, edits)
         {
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Emit
             TSymbolMatcher symbolMap;
 
             uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
-             
+
             // Check if method has changed previously. If so, we already have a map.
             AddedOrChangedMethodInfo addedOrChangedMethod;
             if (baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out addedOrChangedMethod))

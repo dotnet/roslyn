@@ -7,123 +7,123 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class AnalyzerAction
     {
-        private readonly DiagnosticAnalyzer analyzer;
+        private readonly DiagnosticAnalyzer _analyzer;
 
         internal AnalyzerAction(DiagnosticAnalyzer analyzer)
         {
-            this.analyzer = analyzer;
+            _analyzer = analyzer;
         }
 
-        internal DiagnosticAnalyzer Analyzer { get { return this.analyzer; } }
+        internal DiagnosticAnalyzer Analyzer { get { return _analyzer; } }
     }
 
     internal sealed class SymbolAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<SymbolAnalysisContext> action;
-        private readonly ImmutableArray<SymbolKind> kinds;
+        private readonly Action<SymbolAnalysisContext> _action;
+        private readonly ImmutableArray<SymbolKind> _kinds;
 
         public SymbolAnalyzerAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
-            this.kinds = kinds;
+            _action = action;
+            _kinds = kinds;
         }
 
-        public Action<SymbolAnalysisContext> Action { get { return this.action; } }
-        public ImmutableArray<SymbolKind> Kinds { get { return this.kinds; } }
+        public Action<SymbolAnalysisContext> Action { get { return _action; } }
+        public ImmutableArray<SymbolKind> Kinds { get { return _kinds; } }
     }
 
     internal sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
-        private readonly Action<SyntaxNodeAnalysisContext> action;
-        private readonly ImmutableArray<TLanguageKindEnum> kinds;
+        private readonly Action<SyntaxNodeAnalysisContext> _action;
+        private readonly ImmutableArray<TLanguageKindEnum> _kinds;
 
         public SyntaxNodeAnalyzerAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
-            this.kinds = kinds;
+            _action = action;
+            _kinds = kinds;
         }
 
-        public Action<SyntaxNodeAnalysisContext> Action { get { return this.action; } }
-        public ImmutableArray<TLanguageKindEnum> Kinds { get { return this.kinds; } }
+        public Action<SyntaxNodeAnalysisContext> Action { get { return _action; } }
+        public ImmutableArray<TLanguageKindEnum> Kinds { get { return _kinds; } }
     }
 
     internal sealed class CompilationStartAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<CompilationStartAnalysisContext> action;
+        private readonly Action<CompilationStartAnalysisContext> _action;
 
         public CompilationStartAnalyzerAction(Action<CompilationStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
+            _action = action;
         }
 
-        public Action<CompilationStartAnalysisContext> Action { get { return this.action; } }
+        public Action<CompilationStartAnalysisContext> Action { get { return _action; } }
     }
 
     internal sealed class CompilationEndAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<CompilationEndAnalysisContext> action;
+        private readonly Action<CompilationEndAnalysisContext> _action;
 
         public CompilationEndAnalyzerAction(Action<CompilationEndAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
+            _action = action;
         }
 
-        public Action<CompilationEndAnalysisContext> Action { get { return this.action; } }
+        public Action<CompilationEndAnalysisContext> Action { get { return _action; } }
     }
 
     internal sealed class SemanticModelAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<SemanticModelAnalysisContext> action;
+        private readonly Action<SemanticModelAnalysisContext> _action;
 
         public SemanticModelAnalyzerAction(Action<SemanticModelAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
+            _action = action;
         }
 
-        public Action<SemanticModelAnalysisContext> Action { get { return this.action; } }
+        public Action<SemanticModelAnalysisContext> Action { get { return _action; } }
     }
 
     internal sealed class SyntaxTreeAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<SyntaxTreeAnalysisContext> action;
+        private readonly Action<SyntaxTreeAnalysisContext> _action;
 
         public SyntaxTreeAnalyzerAction(Action<SyntaxTreeAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
+            _action = action;
         }
 
-        public Action<SyntaxTreeAnalysisContext> Action { get { return this.action; } }
+        public Action<SyntaxTreeAnalysisContext> Action { get { return _action; } }
     }
 
     internal sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
-        private readonly Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action;
+        private readonly Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> _action;
 
         public CodeBlockStartAnalyzerAction(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
+            _action = action;
         }
 
-        public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get { return this.action; } }
+        public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get { return _action; } }
     }
 
-    internal sealed class CodeBlockEndAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
+    internal sealed class CodeBlockEndAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<CodeBlockEndAnalysisContext> action;
+        private readonly Action<CodeBlockEndAnalysisContext> _action;
 
         public CodeBlockEndAnalyzerAction(Action<CodeBlockEndAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
-            this.action = action;
+            _action = action;
         }
 
-        public Action<CodeBlockEndAnalysisContext> Action { get { return this.action; } }
+        public Action<CodeBlockEndAnalysisContext> Action { get { return _action; } }
     }
 }

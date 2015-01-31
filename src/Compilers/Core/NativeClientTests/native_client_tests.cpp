@@ -37,6 +37,8 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace NativeClientTests
 {       
+    // To run these test from command line 
+    // vstest.console.exe Roslyn.Compilers.NativeClient.UnitTests.dll
     TEST_CLASS(MessageTests)
     {
     public:
@@ -68,7 +70,7 @@ namespace NativeClientTests
 
             vector<byte> expectedBytes = {
                 0x32, 0x0, 0x0, 0x0, // Size of request
-                0x1, 0x0, 0x0, 0x0,  // Protocol version
+                0x2, 0x0, 0x0, 0x0,  // Protocol version
                 0x21, 0x25, 0x53, 0x44, // C# compile token
                 0x2, 0x0, 0x0, 0x0, // Number of arguments
                 0x21, 0x72, 0x14, 0x51, // Current directory token
@@ -119,7 +121,7 @@ namespace NativeClientTests
 
             vector<byte> expectedBytes = {
                 0x54, 0x0, 0x0, 0x0, // Size of request
-                0x1, 0x0, 0x0, 0x0,  // Protocol version
+                0x2, 0x0, 0x0, 0x0,  // Protocol version
                 0x21, 0x25, 0x53, 0x44, // C# compile token
                 0x3, 0x0, 0x0, 0x0, // Number of arguments
                 0x21, 0x72, 0x14, 0x51, // Current directory token

@@ -1,0 +1,11 @@
+﻿/r:System
+/r:System.Core
+/r:System.Data
+/r:System.Data.DataSetExtensions
+/r:System.Xml
+/r:System.Xml.Linq
+/r:Microsoft.CSharp
+/u:System
+/u:System.Collections.Generic
+/u:System.Linq
+/u:System.Text

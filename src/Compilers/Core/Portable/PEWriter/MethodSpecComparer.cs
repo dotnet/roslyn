@@ -6,11 +6,11 @@ namespace Microsoft.Cci
 {
     internal sealed class MethodSpecComparer : IEqualityComparer<IGenericMethodInstanceReference>
     {
-        private readonly MetadataWriter metadataWriter;
+        private readonly MetadataWriter _metadataWriter;
 
         internal MethodSpecComparer(MetadataWriter metadataWriter)
         {
-            this.metadataWriter = metadataWriter;
+            _metadataWriter = metadataWriter;
         }
 
         public bool Equals(IGenericMethodInstanceReference x, IGenericMethodInstanceReference y)
@@ -21,14 +21,14 @@ namespace Microsoft.Cci
             }
 
             return
-                this.metadataWriter.GetMethodDefOrRefCodedIndex(x.GetGenericMethod(metadataWriter.Context)) == this.metadataWriter.GetMethodDefOrRefCodedIndex(y.GetGenericMethod(metadataWriter.Context)) &&
-                this.metadataWriter.GetMethodInstanceSignatureIndex(x) == this.metadataWriter.GetMethodInstanceSignatureIndex(y);
+                _metadataWriter.GetMethodDefOrRefCodedIndex(x.GetGenericMethod(_metadataWriter.Context)) == _metadataWriter.GetMethodDefOrRefCodedIndex(y.GetGenericMethod(_metadataWriter.Context)) &&
+                _metadataWriter.GetMethodInstanceSignatureIndex(x) == _metadataWriter.GetMethodInstanceSignatureIndex(y);
         }
 
         public int GetHashCode(IGenericMethodInstanceReference methodInstanceReference)
         {
-            return (int)((this.metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(metadataWriter.Context)) << 2) ^
-              this.metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference));
+            return (int)((_metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)) << 2) ^
+              _metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference));
         }
     }
 }

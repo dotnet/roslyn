@@ -4,7 +4,6 @@
   <!-- This file is imported by all projects at the end of the project files -->
   <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
     <DeployVSHive>Roslyn</DeployVSHive>
-    <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
     <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
     <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
   </PropertyGroup>
@@ -20,7 +19,7 @@
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(VSLToolsPath)\Rulesets\NonShippingProjectRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(VSLToolsPath)\Rulesets\AnalyzerProjectRules.ruleset</CodeAnalysisRuleSet>
 
-<RoslynInternalKey>002400000480000094000000060200000024000052534131000400000100010055e0217eb635f69281051f9a823e0c7edd90f28063eb6c7a742a19b4f6139778ee0af438f47aed3b6e9f99838aa8dba689c7a71ddb860c96d923830b57bbd5cd6119406ddb9b002cf1c723bf272d6acbb7129e9d6dd5a5309c94e0ff4b2c884d45a55f475cd7dba59198086f61f5a8c8b5e601c0edbf269733f6f578fc8579c2</RoslynInternalKey>
+    <RoslynInternalKey>002400000480000094000000060200000024000052534131000400000100010055e0217eb635f69281051f9a823e0c7edd90f28063eb6c7a742a19b4f6139778ee0af438f47aed3b6e9f99838aa8dba689c7a71ddb860c96d923830b57bbd5cd6119406ddb9b002cf1c723bf272d6acbb7129e9d6dd5a5309c94e0ff4b2c884d45a55f475cd7dba59198086f61f5a8c8b5e601c0edbf269733f6f578fc8579c2</RoslynInternalKey>
   </PropertyGroup>
 
   <!-- settings for strong name signing -->
@@ -38,8 +37,7 @@
           </PropertyGroup>
         </When>
 
-        <!-- Non-shipping binaries in "official" builds, and any binary in an "unofficial" build, are simply
-             signed with the Roslyn internal key. -->
+        <!-- Non-shipping binaries are simply signed with the Roslyn internal key. -->
         <Otherwise>
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
@@ -85,36 +83,6 @@
   </Target>
 
   <!-- ====================================================================================
-  
-         Ensure we rebuild if we do a build with a different strong name key
-
-       ==================================================================================== -->
-
-  <PropertyGroup>
-    <CompileDependsOn>$(CompileDependsOn);CreateFakeInputForStrongNameKey</CompileDependsOn>
-    <GeneratedEmptyFakeInputForStrongNameKeyFile>$(IntermediateOutputPath)GeneratedStrongNameKey$(DefaultLanguageSourceExtension)</GeneratedEmptyFakeInputForStrongNameKeyFile>
-  </PropertyGroup>
-
-  <Target Name="CreateFakeInputForStrongNameKey"
-          Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'">
-    <PropertyGroup>
-      <ExpectedContentsForFakeInputForStrongNameKey Condition="'$(ProjectLanguage)' == 'CSharp'">// $(PublicKeyToken). See VSL.Imports for an explanation of this file.</ExpectedContentsForFakeInputForStrongNameKey>
-      <ExpectedContentsForFakeInputForStrongNameKey Condition="'$(ProjectLanguage)' == 'VB'">' $(PublicKeyToken). See VSL.Imports for an explanation of this file.</ExpectedContentsForFakeInputForStrongNameKey>
-    </PropertyGroup>
-
-    <ReadLinesFromFile File="$(GeneratedEmptyFakeInputForStrongNameKeyFile)">
-      <Output TaskParameter="Lines" ItemName="FakeInputForStrongNameKey" />
-    </ReadLinesFromFile>
-
-    <WriteLinesToFile File="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" Overwrite="true" Lines="$(ExpectedContentsForFakeInputForStrongNameKey)" Condition="'@(FakeInputForStrongNameKey)' != '$(ExpectedContentsForFakeInputForStrongNameKey)'" />
-
-    <ItemGroup>
-      <FileWrites Include="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" />
-      <Compile Include="$(GeneratedEmptyFakeInputForStrongNameKeyFile)" />
-    </ItemGroup>
-  </Target>
-
-  <!-- ====================================================================================
         Deploy binary to 14.0 Package folders 
   ===================================================================================== -->
   <PropertyGroup>
@@ -134,18 +102,6 @@
     <Copy SourceFiles="@(CopySources)" DestinationFolder="$(RoslynOssComponentPath)"  SkipUnchangedFiles="true" />
   </Target>
 
-  <PropertyGroup>
-    <CompileDependsOn>$(CompileDependsOn);FakeSignAssembly</CompileDependsOn>
-    <FakeSignToolPath>$(OutputPath)FakeSign.exe</FakeSignToolPath>
-  </PropertyGroup>
-  <!-- ====================================================================================
-        FakeSign Assembly 
-  ===================================================================================== -->
-  <Target Name="FakeSignAssembly" Condition="'$(NeedsFakeSign)' == 'true' and '$(OpenSourceDebug)' == 'true'">
-    <Exec Command="$(FakeSignToolPath) $(IntermediateOutputPath)$(TargetFileName)"/>
-  </Target>
- 
- 
   <!-- ====================================================================================
   
          Support for a IncludeInVSIXLocalOnly Content metadata
@@ -201,5 +157,5 @@
        
        ==================================================================================== -->
 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true' AND '$(CIBuild)' == ''" />
 </Project>

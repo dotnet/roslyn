@@ -7,23 +7,23 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct ExternNamespace
     {
-        private readonly string namespaceAlias;
-        private readonly string assemblyName;
+        private readonly string _namespaceAlias;
+        private readonly string _assemblyName;
 
         internal ExternNamespace(string namespaceAlias, string assemblyName)
         {
-            this.namespaceAlias = namespaceAlias;
-            this.assemblyName = assemblyName;
+            _namespaceAlias = namespaceAlias;
+            _assemblyName = assemblyName;
         }
 
         /// <summary>
         /// An alias for the global namespace of the assembly.
         /// </summary>
-        public string NamespaceAlias { get { return namespaceAlias; } }
+        public string NamespaceAlias { get { return _namespaceAlias; } }
 
         /// <summary>
         /// The name of the referenced assembly.
         /// </summary>
-        public string AssemblyName { get { return assemblyName; } }
+        public string AssemblyName { get { return _assemblyName; } }
     }
 }

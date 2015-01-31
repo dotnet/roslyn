@@ -89,8 +89,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 string mdName = type.GetMetadataName();
                 var warnings = DiagnosticBag.GetInstance();
-                NamedTypeSymbol result = this.Assembly.GetTypeByMetadataName(
-                    mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: warnings);
+                NamedTypeSymbol result;
+
+                if (IsTypeMissing(type))
+                {
+                    result = null;
+                }
+                else
+                {
+                    result = this.Assembly.GetTypeByMetadataName(
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: warnings);
+                }
 
                 if ((object)result == null)
                 {

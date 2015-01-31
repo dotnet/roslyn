@@ -974,11 +974,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceMethodGroup = addressOfExpression.MethodGroup
             Dim receiver As BoundExpression = sourceMethodGroup.ReceiverOpt
 
+            Dim resolvedTypeOrValueReceiver As BoundExpression = Nothing
             If receiver IsNot Nothing AndAlso
                 Not addressOfExpression.HasErrors AndAlso
                 Not delegateResolutionResult.Diagnostics.HasAnyErrors Then
 
-                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, targetMethod.IsShared, clearIfShared:=True, diagnostics:=diagnostics)
+                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, targetMethod.IsShared, diagnostics, resolvedTypeOrValueReceiver)
             End If
 
             If Me.OptionStrict = OptionStrict.On AndAlso Conversions.IsNarrowingConversion(delegateResolutionResult.DelegateConversions) Then
@@ -1024,18 +1025,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, addressOfExpression.MethodGroup.Syntax, ERRID.ERR_NoPartialMethodInAddressOf1, target)
             End If
 
+            Dim newReceiver As BoundExpression
             If receiver IsNot Nothing Then
                 If receiver.IsPropertyOrXmlPropertyAccess() Then
                     receiver = MakeRValue(receiver, diagnostics)
                 End If
-
-                sourceMethodGroup = sourceMethodGroup.Update(sourceMethodGroup.TypeArgumentsOpt,
-                                                             sourceMethodGroup.Methods,
-                                                             sourceMethodGroup.PendingExtensionMethodsOpt,
-                                                             sourceMethodGroup.ResultKind,
-                                                             Nothing,
-                                                             sourceMethodGroup.QualificationKind)
+                newReceiver = Nothing
+            Else
+                newReceiver = If(resolvedTypeOrValueReceiver, sourceMethodGroup.ReceiverOpt)
             End If
+
+            sourceMethodGroup = sourceMethodGroup.Update(sourceMethodGroup.TypeArgumentsOpt,
+                                                         sourceMethodGroup.Methods,
+                                                         sourceMethodGroup.PendingExtensionMethodsOpt,
+                                                         sourceMethodGroup.ResultKind,
+                                                         newReceiver,
+                                                         sourceMethodGroup.QualificationKind)
+
 
             ' the delegate creation has the lambda stored internally to not clutter the bound tree with synthesized nodes 
             ' in the first pass. Later on in the DelegateRewriter the node get's rewritten with the lambda if needed.

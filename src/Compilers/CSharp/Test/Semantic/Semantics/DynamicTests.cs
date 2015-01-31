@@ -1212,7 +1212,7 @@ class C
     }
     static void Main() {}
 }";
-            TestDynamicMemberAccess(source);
+            TestDynamicMemberAccessCore(source);
         }
 
         [Fact]

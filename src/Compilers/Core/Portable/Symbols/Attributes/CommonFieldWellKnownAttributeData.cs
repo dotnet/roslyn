@@ -12,18 +12,18 @@ namespace Microsoft.CodeAnalysis
     {
         public CommonFieldWellKnownAttributeData()
         {
-            offset = Uninitialized;
+            _offset = Uninitialized;
         }
 
         #region FieldOffsetAttribute
-        private int offset;                    // may be Uninitialized
+        private int _offset;                    // may be Uninitialized
         private const int Uninitialized = -1;
 
         public void SetFieldOffset(int offset)
         {
             VerifySealed(expected: false);
             Debug.Assert(offset >= 0);
-            this.offset = offset;
+            _offset = offset;
             SetDataStored();
         }
 
@@ -32,79 +32,79 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return offset != Uninitialized ? offset : (int?)null;
+                return _offset != Uninitialized ? _offset : (int?)null;
             }
         }
         #endregion
 
         #region DefaultParameterValue, DecimalConstant, DateTimeConstant
-        private ConstantValue constValue = ConstantValue.Unset;
+        private ConstantValue _constValue = ConstantValue.Unset;
 
         public ConstantValue ConstValue
         {
             get
             {
-                return this.constValue;
+                return _constValue;
             }
             set
             {
                 VerifySealed(expected: false);
-                Debug.Assert(constValue == ConstantValue.Unset);
-                this.constValue = value;
+                Debug.Assert(_constValue == ConstantValue.Unset);
+                _constValue = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region SpecialNameAttribute
-        private bool hasSpecialNameAttribute;
+        private bool _hasSpecialNameAttribute;
         public bool HasSpecialNameAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasSpecialNameAttribute;
+                return _hasSpecialNameAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasSpecialNameAttribute = value;
+                _hasSpecialNameAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region NonSerializedAttribute
-        private bool hasNonSerializedAttribute;
+        private bool _hasNonSerializedAttribute;
         public bool HasNonSerializedAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasNonSerializedAttribute;
+                return _hasNonSerializedAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasNonSerializedAttribute = value;
+                _hasNonSerializedAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region MarshalAsAttribute
-        private MarshalPseudoCustomAttributeData lazyMarshalAsData;
+        private MarshalPseudoCustomAttributeData _lazyMarshalAsData;
 
         MarshalPseudoCustomAttributeData IMarshalAsAttributeTarget.GetOrCreateData()
         {
             VerifySealed(expected: false);
-            if (this.lazyMarshalAsData == null)
+            if (_lazyMarshalAsData == null)
             {
-                lazyMarshalAsData = new MarshalPseudoCustomAttributeData();
+                _lazyMarshalAsData = new MarshalPseudoCustomAttributeData();
                 SetDataStored();
             }
 
-            return lazyMarshalAsData;
+            return _lazyMarshalAsData;
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return lazyMarshalAsData;
+                return _lazyMarshalAsData;
             }
         }
         #endregion

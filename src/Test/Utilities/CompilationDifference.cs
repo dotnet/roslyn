@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (!methodToken.IsNil)
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { MetadataTokens.GetToken(methodToken) });
-                sequencePointMarkers = TestBase.GetSequencePointMarkers(actualPdb);
+                sequencePointMarkers = TestBase.GetMarkers(actualPdb);
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);

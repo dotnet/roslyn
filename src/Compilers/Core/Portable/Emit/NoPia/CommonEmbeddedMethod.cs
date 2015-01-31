@@ -34,15 +34,15 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         internal abstract class CommonEmbeddedMethod : CommonEmbeddedMember<TMethodSymbol>, Cci.IMethodDefinition
         {
             public readonly TEmbeddedType ContainingType;
-            private readonly ImmutableArray<TEmbeddedTypeParameter> typeParameters;
-            private readonly ImmutableArray<TEmbeddedParameter> parameters;
+            private readonly ImmutableArray<TEmbeddedTypeParameter> _typeParameters;
+            private readonly ImmutableArray<TEmbeddedParameter> _parameters;
 
             protected CommonEmbeddedMethod(TEmbeddedType containingType, TMethodSymbol underlyingMethod) :
                 base(underlyingMethod)
             {
                 this.ContainingType = containingType;
-                this.typeParameters = GetTypeParameters();
-                this.parameters = GetParameters();
+                _typeParameters = GetTypeParameters();
+                _parameters = GetParameters();
             }
 
             protected abstract ImmutableArray<TEmbeddedTypeParameter> GetTypeParameters();
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return typeParameters;
+                    return _typeParameters;
                 }
             }
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return StaticCast<Cci.IParameterDefinition>.From(parameters);
+                    return StaticCast<Cci.IParameterDefinition>.From(_parameters);
                 }
             }
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return (ushort)typeParameters.Length;
+                    return (ushort)_typeParameters.Length;
                 }
             }
 
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return typeParameters.Length > 0;
+                    return _typeParameters.Length > 0;
                 }
             }
 
@@ -504,13 +504,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return (ushort)parameters.Length;
+                    return (ushort)_parameters.Length;
                 }
             }
 
             ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
             {
-                return StaticCast<Cci.IParameterTypeInformation>.From(parameters);
+                return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
 
             ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers

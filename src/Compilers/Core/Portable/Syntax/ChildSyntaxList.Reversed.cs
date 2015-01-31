@@ -15,43 +15,43 @@ namespace Microsoft.CodeAnalysis
     {
         public partial struct Reversed : IEnumerable<SyntaxNodeOrToken>, IEquatable<Reversed>
         {
-            private readonly SyntaxNode node;
-            private readonly int count;
+            private readonly SyntaxNode _node;
+            private readonly int _count;
 
             internal Reversed(SyntaxNode node, int count)
             {
-                this.node = node;
-                this.count = count;
+                _node = node;
+                _count = count;
             }
 
             public Enumerator GetEnumerator()
             {
-                return new Enumerator(this.node, this.count);
+                return new Enumerator(_node, _count);
             }
 
             IEnumerator<SyntaxNodeOrToken> IEnumerable<SyntaxNodeOrToken>.GetEnumerator()
             {
-                if (this.node == null)
+                if (_node == null)
                 {
                     return SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>();
                 }
 
-                return new EnumeratorImpl(this.node, this.count);
+                return new EnumeratorImpl(_node, _count);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                if (this.node == null)
+                if (_node == null)
                 {
                     return SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>();
                 }
 
-                return new EnumeratorImpl(this.node, this.count);
+                return new EnumeratorImpl(_node, _count);
             }
 
             public override int GetHashCode()
             {
-                return node != null ? Hash.Combine(node.GetHashCode(), count) : 0;
+                return _node != null ? Hash.Combine(_node.GetHashCode(), _count) : 0;
             }
 
             public override bool Equals(object obj)
@@ -61,49 +61,49 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(Reversed other)
             {
-                return this.node == other.node
-                    && this.count == other.count;
+                return _node == other._node
+                    && _count == other._count;
             }
 
             public struct Enumerator
             {
-                private readonly SyntaxNode node;
-                private readonly int count;
-                private int childIndex;
+                private readonly SyntaxNode _node;
+                private readonly int _count;
+                private int _childIndex;
 
                 internal Enumerator(SyntaxNode node, int count)
                 {
-                    this.node = node;
-                    this.count = count;
-                    this.childIndex = count;
+                    _node = node;
+                    _count = count;
+                    _childIndex = count;
                 }
 
                 public bool MoveNext()
                 {
-                    return --childIndex >= 0;
+                    return --_childIndex >= 0;
                 }
 
                 public SyntaxNodeOrToken Current
                 {
                     get
                     {
-                        return ItemInternal(node, childIndex);
+                        return ItemInternal(_node, _childIndex);
                     }
                 }
 
                 public void Reset()
                 {
-                    this.childIndex = this.count;
+                    _childIndex = _count;
                 }
             }
 
             private class EnumeratorImpl : IEnumerator<SyntaxNodeOrToken>
             {
-                private Enumerator enumerator;
+                private Enumerator _enumerator;
 
                 internal EnumeratorImpl(SyntaxNode node, int count)
                 {
-                    this.enumerator = new Enumerator(node, count);
+                    _enumerator = new Enumerator(node, count);
                 }
 
                 /// <summary>
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
                 ///   </returns>
                 public SyntaxNodeOrToken Current
                 {
-                    get { return enumerator.Current; }
+                    get { return _enumerator.Current; }
                 }
 
                 /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 ///   </returns>
                 object IEnumerator.Current
                 {
-                    get { return enumerator.Current; }
+                    get { return _enumerator.Current; }
                 }
 
                 /// <summary>
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
                 /// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created. </exception>
                 public bool MoveNext()
                 {
-                    return enumerator.MoveNext();
+                    return _enumerator.MoveNext();
                 }
 
                 /// <summary>
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
                 /// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created. </exception>
                 public void Reset()
                 {
-                    enumerator.Reset();
+                    _enumerator.Reset();
                 }
 
                 /// <summary>

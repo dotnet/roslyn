@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 beginBlockStmt = New PropertyStatementSyntax(beginBlockStmt.Kind,
                                                              beginBlockStmt.AttributeLists.Node,
                                                              beginBlockStmt.Modifiers.Node,
-                                                             beginBlockStmt.Keyword,
+                                                             beginBlockStmt.PropertyKeyword,
                                                              beginBlockStmt.Identifier,
                                                              Parser.ReportSyntaxError(beginBlockStmt.ParameterList, ERRID.ERR_AutoPropertyCantHaveParams),
                                                              beginBlockStmt.AsClause,

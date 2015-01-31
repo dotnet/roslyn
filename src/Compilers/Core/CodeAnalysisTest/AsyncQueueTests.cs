@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TryDequeueAfterComplete()
         {
-            var queue = new AsyncQueue<int> ();
+            var queue = new AsyncQueue<int>();
             queue.Enqueue(13);
             queue.Complete();
             await queue.WhenCompletedTask.ConfigureAwait(false);

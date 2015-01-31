@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class DebuggerProxy
         {
-            private readonly ArrayBuilder<T> builder;
+            private readonly ArrayBuilder<T> _builder;
 
             public DebuggerProxy(ArrayBuilder<T> builder)
             {
-                this.builder = builder;
+                _builder = builder;
             }
 
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    var result = new T[builder.Count];
+                    var result = new T[_builder.Count];
                     for (int i = 0; i < result.Length; i++)
                     {
-                        result[i] = builder[i];
+                        result[i] = _builder[i];
                     }
 
                     return result;
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        private readonly ImmutableArray<T>.Builder builder;
+        private readonly ImmutableArray<T>.Builder _builder;
 
-        private readonly ObjectPool<ArrayBuilder<T>> pool;
+        private readonly ObjectPool<ArrayBuilder<T>> _pool;
 
         public ArrayBuilder(int size)
         {
-            this.builder = ImmutableArray.CreateBuilder<T>(size);
+            _builder = ImmutableArray.CreateBuilder<T>(size);
         }
 
         public ArrayBuilder() :
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool) :
             this()
         {
-            this.pool = pool;
+            _pool = pool;
         }
 
         /// <summary>
@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<T> ToImmutable()
         {
-            return this.builder.ToImmutable();
+            return _builder.ToImmutable();
         }
 
         public int Count
         {
             get
             {
-                return this.builder.Count;
+                return _builder.Count;
             }
         }
 
@@ -80,93 +80,93 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.builder[index];
+                return _builder[index];
             }
 
             set
             {
-                this.builder[index] = value;
+                _builder[index] = value;
             }
         }
 
         public void Add(T item)
         {
-            this.builder.Add(item);
+            _builder.Add(item);
         }
 
         public void Insert(int index, T item)
         {
-            this.builder.Insert(index, item);
+            _builder.Insert(index, item);
         }
 
         public void EnsureCapacity(int capacity)
         {
-            this.builder.EnsureCapacity(capacity);
+            _builder.EnsureCapacity(capacity);
         }
 
         public void Clear()
         {
-            this.builder.Clear();
+            _builder.Clear();
         }
 
         public bool Contains(T item)
         {
-            return this.builder.Contains(item);
+            return _builder.Contains(item);
         }
 
         public void RemoveAt(int index)
         {
-            this.builder.RemoveAt(index);
+            _builder.RemoveAt(index);
         }
 
         public void RemoveLast()
         {
-            this.builder.RemoveAt(this.builder.Count - 1);
+            _builder.RemoveAt(_builder.Count - 1);
         }
 
         public void ReverseContents()
         {
-            this.builder.ReverseContents();
+            _builder.ReverseContents();
         }
 
         public void Sort()
         {
-            this.builder.Sort();
+            _builder.Sort();
         }
 
         public void Sort(IComparer<T> comparer)
         {
-            this.builder.Sort(comparer);
+            _builder.Sort(comparer);
         }
 
         public void Sort(int startIndex, IComparer<T> comparer)
         {
-            this.builder.Sort(startIndex, this.builder.Count - startIndex, comparer);
+            _builder.Sort(startIndex, _builder.Count - startIndex, comparer);
         }
 
         public T[] ToArray()
         {
-            return this.builder.ToArray();
+            return _builder.ToArray();
         }
 
         public void CopyTo(T[] array, int start)
         {
-            this.builder.CopyTo(array, start);
+            _builder.CopyTo(array, start);
         }
 
         public T Last()
         {
-            return this.builder[this.builder.Count - 1];
+            return _builder[_builder.Count - 1];
         }
 
         public T First()
         {
-            return this.builder[0];
+            return _builder[0];
         }
 
         public bool Any()
         {
-            return this.builder.Count > 0;
+            return _builder.Count > 0;
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         // 1) Expose Freeing primitive. 
         public void Free()
         {
-            var pool = this.pool;
+            var pool = _pool;
             if (pool != null)
             {
                 // According to the statistics of a C# compiler self-build, the most commonly used builder size is 0.  (808003 uses).
@@ -256,10 +256,10 @@ namespace Microsoft.CodeAnalysis
 
         // 2) Expose the pool or the way to create a pool or the way to get an instance.
         //    for now we will expose both and figure which way works better
-        private static readonly ObjectPool<ArrayBuilder<T>> PoolInstance = CreatePool();
+        private static readonly ObjectPool<ArrayBuilder<T>> s_poolInstance = CreatePool();
         public static ArrayBuilder<T> GetInstance()
         {
-            var builder = PoolInstance.Allocate();
+            var builder = s_poolInstance.Allocate();
             Debug.Assert(builder.Count == 0);
             return builder;
         }
@@ -356,49 +356,49 @@ namespace Microsoft.CodeAnalysis
 
         public void AddRange(ArrayBuilder<T> items)
         {
-            this.builder.AddRange(items.builder);
+            _builder.AddRange(items._builder);
         }
 
         public void AddRange<U>(ArrayBuilder<U> items) where U : T
         {
-            this.builder.AddRange(items.builder);
+            _builder.AddRange(items._builder);
         }
 
         public void AddRange(ImmutableArray<T> items)
         {
-            this.builder.AddRange(items);
+            _builder.AddRange(items);
         }
 
         public void AddRange(ImmutableArray<T> items, int length)
         {
-            this.builder.AddRange(items, length);
+            _builder.AddRange(items, length);
         }
 
         public void AddRange(IEnumerable<T> items)
         {
-            this.builder.AddRange(items);
+            _builder.AddRange(items);
         }
 
         public void AddRange(params T[] items)
         {
-            this.builder.AddRange(items);
+            _builder.AddRange(items);
         }
 
         public void AddRange(T[] items, int length)
         {
-            this.builder.AddRange(items, length);
+            _builder.AddRange(items, length);
         }
 
         public void Clip(int limit)
         {
             Debug.Assert(limit <= Count);
-            this.builder.Count = limit;
+            _builder.Count = limit;
         }
 
         public void ZeroInit(int count)
         {
-            this.builder.Clear();
-            this.builder.Count = count;
+            _builder.Clear();
+            _builder.Count = count;
         }
 
         public void AddMany(T item, int count)

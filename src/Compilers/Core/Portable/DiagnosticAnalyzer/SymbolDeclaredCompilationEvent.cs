@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Note that some symbols may have multiple declarations (namespaces, partial types) and may therefore
     /// have multiple events.
     /// </summary>
-    public sealed class SymbolDeclaredCompilationEvent : CompilationEvent
+    internal sealed class SymbolDeclaredCompilationEvent : CompilationEvent
     {
         public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol) : base(compilation)
         {
@@ -17,32 +17,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
         public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol, Lazy<SemanticModel> lazySemanticModel) : this(compilation, symbol)
         {
-            this.lazySemanticModel = lazySemanticModel;
+            _lazySemanticModel = lazySemanticModel;
         }
         public ISymbol Symbol { get; private set; }
 
         // At most one of these should be non-null.
-        private Lazy<SemanticModel> lazySemanticModel;
-        private SemanticModel semanticModel;
-        private WeakReference<SemanticModel> weakModel = null;
+        private Lazy<SemanticModel> _lazySemanticModel;
+        private SemanticModel _semanticModel;
+        private WeakReference<SemanticModel> _weakModel = null;
         public SemanticModel SemanticModel(SyntaxReference reference)
         {
             lock (this)
             {
-                var semanticModel = this.semanticModel;
-                if (semanticModel == null && this.lazySemanticModel != null)
+                var semanticModel = _semanticModel;
+                if (semanticModel == null && _lazySemanticModel != null)
                 {
-                    this.semanticModel = semanticModel = this.lazySemanticModel.Value;
-                    this.lazySemanticModel = null;
+                    _semanticModel = semanticModel = _lazySemanticModel.Value;
+                    _lazySemanticModel = null;
                 }
-                if (semanticModel == null && this.weakModel != null)
+                if (semanticModel == null && _weakModel != null)
                 {
-                    this.weakModel.TryGetTarget(out semanticModel);
+                    _weakModel.TryGetTarget(out semanticModel);
                 }
                 if (semanticModel == null || semanticModel.SyntaxTree != reference.SyntaxTree)
                 {
                     semanticModel = Compilation.GetSemanticModel(reference.SyntaxTree);
-                    this.weakModel = new WeakReference<SemanticModel>(semanticModel);
+                    _weakModel = new WeakReference<SemanticModel>(semanticModel);
                 }
 
                 return semanticModel;
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             lock (this)
             {
-                var semanticModel = this.semanticModel;
-                this.lazySemanticModel = null;
+                var semanticModel = _semanticModel;
+                _lazySemanticModel = null;
                 if (semanticModel == null) return;
-                this.weakModel = new WeakReference<SemanticModel>(semanticModel);
-                this.semanticModel = null;
+                _weakModel = new WeakReference<SemanticModel>(semanticModel);
+                _semanticModel = null;
             }
         }
-        static SymbolDisplayFormat displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
+        private static SymbolDisplayFormat s_displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
         public override string ToString()
         {
             var refs = Symbol.DeclaringSyntaxReferences;

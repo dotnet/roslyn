@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '    2) Additional flags may be set in order to provide specific reason.
         '
         ' Bits from the following values are never set at the same time :
-        ' Identity, Numeric, Nullable, Reference, Array, TypeParameter, Value, [String], WideningNothingLiteral
+        ' Identity, Numeric, Nullable, Reference, Array, TypeParameter, Value, [String], WideningNothingLiteral, InterpolatedString
 
         FailedDueToNumericOverflow = 1 << 31 ' Failure flag
         FailedDueToIntegerOverflow = FailedDueToNumericOverflow Or (1 << 30) ' Failure flag
@@ -379,6 +379,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Some variance delegate conversions are treated as special narrowing (Dev10 #820752).
         ' This flag is combined with Narrowing to indicate the fact.
         NarrowingDueToContraVarianceInDelegate = 1 << 24
+
+        ' Interpolated string conversions
+        InterpolatedString = [Widening] Or (1 << 25)
 
         ' Bits 28 - 31 are reserved for failure flags.
     End Enum
@@ -1028,6 +1031,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.ArrayLiteral
                     Return ClassifyArrayLiteralConversion(DirectCast(source, BoundArrayLiteral), destination, binder, useSiteDiagnostics)
+
+                Case BoundKind.InterpolatedStringExpression
+                    Return ClassifyInterpolatedStringConversion(DirectCast(source, BoundInterpolatedStringExpression), destination, binder)
+
             End Select
 
             Return Nothing 'ConversionKind.NoConversion
@@ -1177,6 +1184,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return ClassifyArrayInitialization(source.Initializer, targetElementType, binder, useSiteDiagnostics)
+        End Function
+
+        Public Shared Function ClassifyInterpolatedStringConversion(source As BoundInterpolatedStringExpression, destination As TypeSymbol, binder As Binder) As ConversionKind
+
+            ' A special conversion exist from an interpolated string expression to System.IFormattable or System.FormattableString.
+            If destination.Equals(binder.Compilation.GetWellKnownType(WellKnownType.System_FormattableString)) OrElse
+               destination.Equals(binder.Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) _
+            Then
+                Return ConversionKind.InterpolatedString
+            End If
+
+            Return Nothing
+
         End Function
 
         Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind

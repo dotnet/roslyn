@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -109,6 +110,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsMethodLevelMember(SyntaxNode node);
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
+
+        bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
 
         SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position);
         SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position);

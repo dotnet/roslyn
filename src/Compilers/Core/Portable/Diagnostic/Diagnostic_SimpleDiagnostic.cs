@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class SimpleDiagnostic : Diagnostic
         {
-            private readonly DiagnosticDescriptor descriptor;
-            private readonly DiagnosticSeverity severity;
-            private readonly int warningLevel;
-            private readonly Location location;
-            private readonly IReadOnlyList<Location> additionalLocations;
-            private readonly object[] messageArgs;
+            private readonly DiagnosticDescriptor _descriptor;
+            private readonly DiagnosticSeverity _severity;
+            private readonly int _warningLevel;
+            private readonly Location _location;
+            private readonly IReadOnlyList<Location> _additionalLocations;
+            private readonly object[] _messageArgs;
 
             private SimpleDiagnostic(
                 DiagnosticDescriptor descriptor,
-                DiagnosticSeverity severity, 
-                int warningLevel, 
+                DiagnosticSeverity severity,
+                int warningLevel,
                 Location location,
                 IEnumerable<Location> additionalLocations,
                 object[] messageArgs)
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException("warningLevel");
                 }
 
-                this.descriptor = descriptor;
-                this.severity = severity;
-                this.warningLevel = warningLevel;
-                this.location = location;
-                this.additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
-                this.messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
+                _descriptor = descriptor;
+                _severity = severity;
+                _warningLevel = warningLevel;
+                _location = location;
+                _additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
+                _messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
             }
 
             internal static SimpleDiagnostic Create(
@@ -68,59 +68,59 @@ namespace Microsoft.CodeAnalysis
 
             public override DiagnosticDescriptor Descriptor
             {
-                get { return this.descriptor; }
+                get { return _descriptor; }
             }
 
             public override string Id
             {
-                get { return this.descriptor.Id; }
+                get { return _descriptor.Id; }
             }
 
             public override string GetMessage(IFormatProvider formatProvider = null)
             {
-                if (this.messageArgs.Length == 0)
+                if (_messageArgs.Length == 0)
                 {
-                    return this.descriptor.MessageFormat.ToString(formatProvider);
+                    return _descriptor.MessageFormat.ToString(formatProvider);
                 }
 
-                var localizedMessageFormat = this.descriptor.MessageFormat.ToString(formatProvider);
-                return string.Format(formatProvider, localizedMessageFormat, this.messageArgs);
+                var localizedMessageFormat = _descriptor.MessageFormat.ToString(formatProvider);
+                return string.Format(formatProvider, localizedMessageFormat, _messageArgs);
             }
 
             internal override IReadOnlyList<object> Arguments
             {
-                get { return this.messageArgs; }
+                get { return _messageArgs; }
             }
 
             public override DiagnosticSeverity Severity
             {
-                get { return this.severity; }
+                get { return _severity; }
             }
 
             public override int WarningLevel
             {
-                get { return this.warningLevel; }
+                get { return _warningLevel; }
             }
 
             public override Location Location
             {
-                get { return this.location; }
+                get { return _location; }
             }
 
             public override IReadOnlyList<Location> AdditionalLocations
             {
-                get { return this.additionalLocations; }
+                get { return _additionalLocations; }
             }
 
             public override bool Equals(Diagnostic obj)
             {
                 var other = obj as SimpleDiagnostic;
                 return other != null
-                    && this.descriptor == other.descriptor
-                    && this.messageArgs.SequenceEqual(other.messageArgs, (a, b) => a == b)
-                    && this.location == other.location
-                    && this.severity == other.severity
-                    && this.warningLevel == other.warningLevel;
+                    && _descriptor == other._descriptor
+                    && _messageArgs.SequenceEqual(other._messageArgs, (a, b) => a == b)
+                    && _location == other._location
+                    && _severity == other._severity
+                    && _warningLevel == other._warningLevel;
             }
 
             public override bool Equals(object obj)
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis
 
             public override int GetHashCode()
             {
-                return Hash.Combine(this.descriptor,
-                        Hash.Combine(this.messageArgs.GetHashCode(),
-                         Hash.Combine(this.location.GetHashCode(),
-                          Hash.Combine(this.severity.GetHashCode(), this.warningLevel)
+                return Hash.Combine(_descriptor,
+                        Hash.Combine(_messageArgs.GetHashCode(),
+                         Hash.Combine(_location.GetHashCode(),
+                          Hash.Combine(_severity.GetHashCode(), _warningLevel)
                         )));
             }
 
@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentNullException("location");
                 }
 
-                if (location != this.location)
+                if (location != _location)
                 {
-                    return new SimpleDiagnostic(this.descriptor, this.severity, this.warningLevel, location, this.additionalLocations, this.messageArgs);
+                    return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs);
                 }
 
                 return this;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.Severity != severity)
                 {
                     var warningLevel = GetDefaultWarningLevel(severity);
-                    return new SimpleDiagnostic(this.descriptor, severity, warningLevel, location, this.additionalLocations, this.messageArgs);
+                    return new SimpleDiagnostic(_descriptor, severity, warningLevel, _location, _additionalLocations, _messageArgs);
                 }
 
                 return this;

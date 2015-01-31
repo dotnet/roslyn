@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal struct DeclarationInfo
     {
-        private readonly SyntaxNode declaredNode;
-        private readonly ImmutableArray<SyntaxNode> executableCodeBlocks;
-        private readonly ISymbol declaredSymbol;
+        private readonly SyntaxNode _declaredNode;
+        private readonly ImmutableArray<SyntaxNode> _executableCodeBlocks;
+        private readonly ISymbol _declaredSymbol;
 
         internal DeclarationInfo(SyntaxNode declaredNode, ImmutableArray<SyntaxNode> executableCodeBlocks, ISymbol declaredSymbol)
         {
@@ -24,24 +24,24 @@ namespace Microsoft.CodeAnalysis
             // Declared node is the identifier, which doesn't contain the initializer. Can we tweak the assert somehow to handle this case?
             // Debug.Assert(executableCodeBlocks.All(n => n.Ancestors().Contains(declaredNode)));
 
-            this.declaredNode = declaredNode;
-            this.executableCodeBlocks = executableCodeBlocks;
-            this.declaredSymbol = declaredSymbol;
+            _declaredNode = declaredNode;
+            _executableCodeBlocks = executableCodeBlocks;
+            _declaredSymbol = declaredSymbol;
         }
 
         /// <summary>
         /// Topmost syntax node for this declaration.
         /// </summary>
-        public SyntaxNode DeclaredNode { get { return this.declaredNode; } }
+        public SyntaxNode DeclaredNode { get { return _declaredNode; } }
 
         /// <summary>
         /// Syntax nodes for executable code blocks (method body, initializers, etc.) associated with this declaration.
         /// </summary>
-        public ImmutableArray<SyntaxNode> ExecutableCodeBlocks { get { return this.executableCodeBlocks; } }
+        public ImmutableArray<SyntaxNode> ExecutableCodeBlocks { get { return _executableCodeBlocks; } }
 
         /// <summary>
         /// Symbol declared by this declaration.
         /// </summary>
-        public ISymbol DeclaredSymbol { get { return this.declaredSymbol; } }
+        public ISymbol DeclaredSymbol { get { return _declaredSymbol; } }
     }
 }

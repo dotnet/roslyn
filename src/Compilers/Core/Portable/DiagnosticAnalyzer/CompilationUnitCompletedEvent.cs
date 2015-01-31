@@ -5,29 +5,29 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    public sealed class CompilationUnitCompletedEvent : CompilationEvent
+    internal sealed class CompilationUnitCompletedEvent : CompilationEvent
     {
         public CompilationUnitCompletedEvent(Compilation compilation, SyntaxTree compilationUnit) : base(compilation)
         {
             this.CompilationUnit = compilationUnit;
         }
-        private WeakReference<SemanticModel> weakModel = null;
+        private WeakReference<SemanticModel> _weakModel = null;
         public SemanticModel SemanticModel
         {
             get
             {
-                var weakModel = this.weakModel;
+                var weakModel = _weakModel;
                 SemanticModel semanticModel;
                 if (weakModel == null || !weakModel.TryGetTarget(out semanticModel))
                 {
                     semanticModel = Compilation.GetSemanticModel(CompilationUnit);
-                    this.weakModel = new WeakReference<SemanticModel>(semanticModel);
+                    _weakModel = new WeakReference<SemanticModel>(semanticModel);
                 }
                 return semanticModel;
             }
             private set
             {
-                this.weakModel = new WeakReference<SemanticModel>(value);
+                _weakModel = new WeakReference<SemanticModel>(value);
             }
         }
         override public void FlushCache()

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly TSemanticModel semanticModelOpt;
         protected readonly int positionOpt;
 
-        private AbstractSymbolDisplayVisitor<TSemanticModel> lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor<TSemanticModel> _lazyNotFirstVisitor;
 
         protected AbstractSymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             // If we're not the first symbol visitor, then we will just recurse into ourselves.
             if (!isFirstSymbolVisited)
             {
-                lazyNotFirstVisitor = this;
+                _lazyNotFirstVisitor = this;
             }
         }
 
@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
             get
             {
-                if (lazyNotFirstVisitor == null)
+                if (_lazyNotFirstVisitor == null)
                 {
-                    lazyNotFirstVisitor = MakeNotFirstVisitor();
+                    _lazyNotFirstVisitor = MakeNotFirstVisitor();
                 }
 
-                return lazyNotFirstVisitor;
+                return _lazyNotFirstVisitor;
             }
         }
 

@@ -348,7 +348,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim mdName As String = WellKnownTypes.GetMetadataName(type)
-                Dim result As NamedTypeSymbol = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                Dim result As NamedTypeSymbol
+
+                If IsTypeMissing(type) Then
+                    result = Nothing
+                Else
+                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                End If
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)

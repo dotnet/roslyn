@@ -55,18 +55,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class TreeDumper
     {
-        private readonly StringBuilder sb;
+        private readonly StringBuilder _sb;
 
         private TreeDumper()
         {
-            this.sb = new StringBuilder();
+            _sb = new StringBuilder();
         }
 
         public static string DumpCompact(TreeDumperNode root)
         {
             var dumper = new TreeDumper();
             dumper.DoDumpCompact(root, string.Empty);
-            return dumper.sb.ToString();
+            return dumper._sb.ToString();
         }
 
         private void DoDumpCompact(TreeDumperNode node, string indent)
@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis
 
             // Precondition: indentation and prefix has already been output
             // Precondition: indent is correct for node's *children*
-            sb.Append(node.Text);
+            _sb.Append(node.Text);
             if (node.Value != null)
             {
-                sb.AppendFormat(": {0}", DumperString(node.Value));
+                _sb.AppendFormat(": {0}", DumperString(node.Value));
             }
 
-            sb.AppendLine();
+            _sb.AppendLine();
             var children = node.Children.ToList();
             for (int i = 0; i < children.Count; ++i)
             {
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                sb.Append(indent);
-                sb.Append(i == children.Count - 1 ? '└' : '├');
-                sb.Append('─');
+                _sb.Append(indent);
+                _sb.Append(i == children.Count - 1 ? '\u2514' : '\u251C');
+                _sb.Append('\u2500');
 
                 // First precondition met; now work out the string needed to indent 
                 // the child node's children:
-                DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "│ "));
+                DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
             }
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
         {
             var dumper = new TreeDumper();
             dumper.DoDumpXML(root, string.Empty, string.IsNullOrEmpty(indent) ? string.Empty : indent);
-            return dumper.sb.ToString();
+            return dumper._sb.ToString();
         }
 
         private void DoDumpXML(TreeDumperNode node, string indent, string relativeIndent)
@@ -114,27 +114,27 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(node != null);
             if (!node.Children.Any(child => child != null))
             {
-                sb.Append(indent);
+                _sb.Append(indent);
                 if (node.Value != null)
                 {
-                    sb.AppendFormat("<{0}>{1}</{0}>", node.Text, DumperString(node.Value));
+                    _sb.AppendFormat("<{0}>{1}</{0}>", node.Text, DumperString(node.Value));
                 }
                 else
                 {
-                    sb.AppendFormat("<{0} />", node.Text);
+                    _sb.AppendFormat("<{0} />", node.Text);
                 }
-                sb.AppendLine();
+                _sb.AppendLine();
             }
             else
             {
-                sb.Append(indent);
-                sb.AppendFormat("<{0}>", node.Text);
-                sb.AppendLine();
+                _sb.Append(indent);
+                _sb.AppendFormat("<{0}>", node.Text);
+                _sb.AppendLine();
                 if (node.Value != null)
                 {
-                    sb.Append(indent);
-                    sb.AppendFormat("{0}", DumperString(node.Value));
-                    sb.AppendLine();
+                    _sb.Append(indent);
+                    _sb.AppendFormat("{0}", DumperString(node.Value));
+                    _sb.AppendLine();
                 }
 
                 var childIndent = indent + relativeIndent;
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis
                     DoDumpXML(child, childIndent, relativeIndent);
                 }
 
-                sb.Append(indent);
-                sb.AppendFormat("</{0}>", node.Text);
-                sb.AppendLine();
+                _sb.Append(indent);
+                _sb.AppendFormat("</{0}>", node.Text);
+                _sb.AppendLine();
             }
         }
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return Children.Where(c=>c.Text == child).FirstOrDefault();
+                return Children.Where(c => c.Text == child).FirstOrDefault();
             }
         }
 

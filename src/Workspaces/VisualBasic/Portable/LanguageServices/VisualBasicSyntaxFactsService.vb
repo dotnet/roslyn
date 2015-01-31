@@ -1,9 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
@@ -636,11 +637,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: currently we only support method for now
             Dim method = TryCast(member, MethodBlockBaseSyntax)
             If method IsNot Nothing Then
-                If method.Begin Is Nothing OrElse method.End Is Nothing Then
+                If method.BlockStatement Is Nothing OrElse method.EndBlockStatement Is Nothing Then
                     Return Nothing
                 End If
 
-                Return TextSpan.FromBounds(method.Begin.Span.End, method.End.SpanStart)
+                Return TextSpan.FromBounds(method.BlockStatement.Span.End, method.EndBlockStatement.SpanStart)
             End If
 
             Return Nothing
@@ -708,6 +709,163 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
                    TypeOf node Is EnumBlockSyntax
+        End Function
+
+        Public Function TryGetDeclaredSymbolInfo(node As SyntaxNode, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean Implements ISyntaxFactsService.TryGetDeclaredSymbolInfo
+            Select Case node.Kind()
+                Case SyntaxKind.ClassBlock
+                    Dim classDecl = CType(node, ClassBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(classDecl.ClassStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Class, classDecl.ClassStatement.Identifier.Span)
+                    Return True
+                Case SyntaxKind.ConstructorBlock
+                    Dim constructor = CType(node, ConstructorBlockSyntax)
+                    Dim typeBlock = CType(constructor.Parent, TypeBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        typeBlock.BlockStatement.Identifier.ValueText,
+                        GetNodeName(node.Parent),
+                        DeclaredSymbolInfoKind.Constructor,
+                        constructor.SubNewStatement.NewKeyword.Span,
+                        parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
+                    Return True
+                Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
+                    Dim delegateDecl = CType(node, DelegateStatementSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(delegateDecl.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span)
+                    Return True
+                Case SyntaxKind.EnumBlock
+                    Dim enumDecl = CType(node, EnumBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(enumDecl.EnumStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Enum, enumDecl.EnumStatement.Identifier.Span)
+                    Return True
+                Case SyntaxKind.EnumMemberDeclaration
+                    Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(enumMember.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span)
+                    Return True
+                Case SyntaxKind.EventStatement
+                    Dim eventDecl = CType(node, EventStatementSyntax)
+                    Dim eventParent = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent.Parent, node.Parent)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(eventDecl.Identifier.ValueText, GetNodeName(eventParent), DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span)
+                    Return True
+                Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
+                    Dim funcDecl = CType(node, MethodBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        funcDecl.SubOrFunctionStatement.Identifier.ValueText,
+                        GetNodeName(node.Parent),
+                        DeclaredSymbolInfoKind.Method,
+                        funcDecl.SubOrFunctionStatement.Identifier.Span,
+                        parameterCount:=CType(If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0), UShort),
+                        typeParameterCount:=CType(If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0), UShort))
+                    Return True
+                Case SyntaxKind.InterfaceBlock
+                    Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(interfaceDecl.InterfaceStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Interface, interfaceDecl.InterfaceStatement.Identifier.Span)
+                    Return True
+                Case SyntaxKind.ModifiedIdentifier
+                    Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
+                    Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
+                    Dim fieldDecl = TryCast(variableDeclarator?.Parent, FieldDeclarationSyntax)
+                    If fieldDecl IsNot Nothing Then
+                        Dim kind = If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
+                            DeclaredSymbolInfoKind.Constant,
+                            DeclaredSymbolInfoKind.Field)
+                        declaredSymbolInfo = New DeclaredSymbolInfo(modifiedIdentifier.Identifier.ValueText, GetNodeName(fieldDecl.Parent), kind, modifiedIdentifier.Identifier.Span)
+                        Return True
+                    End If
+                Case SyntaxKind.ModuleBlock
+                    Dim moduleDecl = CType(node, ModuleBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(moduleDecl.ModuleStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Module, moduleDecl.ModuleStatement.Identifier.Span)
+                    Return True
+                Case SyntaxKind.PropertyStatement
+                    Dim propertyDecl = CType(node, PropertyStatementSyntax)
+                    Dim propertyParent = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent.Parent, node.Parent)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(propertyDecl.Identifier.ValueText, GetNodeName(propertyParent), DeclaredSymbolInfoKind.Property, propertyDecl.Identifier.Span)
+                    Return True
+                Case SyntaxKind.StructureBlock
+                    Dim structDecl = CType(node, StructureBlockSyntax)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(structDecl.StructureStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Struct, structDecl.StructureStatement.Identifier.Span)
+                    Return True
+            End Select
+
+            declaredSymbolInfo = Nothing
+            Return False
+        End Function
+
+        Private Shared Function GetNodeName(node As SyntaxNode) As String
+            Dim name As String
+            Dim typeParameterList As TypeParameterListSyntax
+            Select Case node.Kind()
+                Case SyntaxKind.ClassBlock
+                    Dim classDecl = CType(node, ClassBlockSyntax)
+                    name = classDecl.ClassStatement.Identifier.ValueText
+                    typeParameterList = classDecl.ClassStatement.TypeParameterList
+                Case SyntaxKind.CompilationUnit
+                    name = String.Empty
+                    typeParameterList = Nothing
+                Case SyntaxKind.EnumBlock
+                    name = CType(node, EnumBlockSyntax).EnumStatement.Identifier.ValueText
+                    typeParameterList = Nothing
+                Case SyntaxKind.IdentifierName
+                    name = CType(node, IdentifierNameSyntax).Identifier.ValueText
+                    typeParameterList = Nothing
+                Case SyntaxKind.InterfaceBlock
+                    Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
+                    name = interfaceDecl.InterfaceStatement.Identifier.ValueText
+                    typeParameterList = interfaceDecl.InterfaceStatement.TypeParameterList
+                Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
+                    Dim methodDecl = CType(node, MethodBlockSyntax)
+                    name = methodDecl.SubOrFunctionStatement.Identifier.ValueText
+                    typeParameterList = methodDecl.SubOrFunctionStatement.TypeParameterList
+                Case SyntaxKind.ModuleBlock
+                    Dim moduleDecl = CType(node, ModuleBlockSyntax)
+                    name = moduleDecl.ModuleStatement.Identifier.ValueText
+                    typeParameterList = moduleDecl.ModuleStatement.TypeParameterList
+                Case SyntaxKind.NamespaceBlock
+                    name = GetNodeName(CType(node, NamespaceBlockSyntax).NamespaceStatement.Name)
+                    typeParameterList = Nothing
+                Case SyntaxKind.QualifiedName
+                    Dim qualified = CType(node, QualifiedNameSyntax)
+                    If qualified.Left.Kind() = SyntaxKind.GlobalName Then
+                        name = GetNodeName(qualified.Right) ' don't use the Global prefix if specified
+                    Else
+                        name = GetNodeName(qualified.Left) + "." + GetNodeName(qualified.Right)
+                    End If
+                    typeParameterList = Nothing
+                Case SyntaxKind.StructureBlock
+                    Dim structDecl = CType(node, StructureBlockSyntax)
+                    name = structDecl.StructureStatement.Identifier.ValueText
+                    typeParameterList = structDecl.StructureStatement.TypeParameterList
+                Case Else
+                    Debug.Assert(False, "Unexpected node type " + node.Kind().ToString())
+                    Return Nothing
+            End Select
+
+            ' check for nested classes
+            Dim names = New List(Of String)()
+            names.Add(name + ExpandTypeParameterList(typeParameterList))
+            Dim parent = node.Parent
+            While TypeOf parent Is TypeBlockSyntax
+                Dim currentParent = CType(parent, TypeBlockSyntax)
+                names.Add(currentParent.BlockStatement.Identifier.ValueText + ExpandTypeParameterList(currentParent.BlockStatement.TypeParameterList))
+                parent = currentParent.Parent
+            End While
+
+            names.Reverse()
+            Return String.Join(".", names)
+        End Function
+
+        Private Shared Function ExpandTypeParameterList(typeParameterList As TypeParameterListSyntax) As String
+            If typeParameterList IsNot Nothing AndAlso typeParameterList.Parameters.Count > 0 Then
+                Dim builder = New StringBuilder()
+                builder.Append("(Of ")
+                builder.Append(typeParameterList.Parameters(0).Identifier.ValueText)
+                For i = 1 To typeParameterList.Parameters.Count - 1
+                    builder.Append(","c)
+                    builder.Append(typeParameterList.Parameters(i).Identifier.ValueText)
+                Next
+
+                builder.Append(")"c)
+                Return builder.ToString()
+            Else
+                Return Nothing
+            End If
         End Function
 
         Private Sub AppendMethodLevelMembers(node As SyntaxNode, list As List(Of SyntaxNode))

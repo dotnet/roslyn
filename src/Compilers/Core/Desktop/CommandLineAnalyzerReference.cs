@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
     {
-        private readonly string path;
+        private readonly string _path;
 
         public CommandLineAnalyzerReference(string path)
         {
-            this.path = path;
+            _path = path;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return path;
+                return _path;
             }
         }
 
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(CommandLineAnalyzerReference other)
         {
-            return this.path == other.path;
+            return _path == other._path;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(path, 0);
+            return Hash.Combine(_path, 0);
         }
     }
 }

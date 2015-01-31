@@ -330,7 +330,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(toPredefTypeKind);
             }
         }
-
-
     }
 }

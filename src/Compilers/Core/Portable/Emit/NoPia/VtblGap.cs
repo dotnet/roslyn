@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
     internal sealed class VtblGap : Cci.IMethodDefinition
     {
         public readonly Cci.ITypeDefinition ContainingType;
-        private readonly string name;
+        private readonly string _name;
 
         public VtblGap(Cci.ITypeDefinition containingType, string name)
         {
             this.ContainingType = containingType;
-            this.name = name;
+            _name = name;
         }
 
         Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
         string Cci.INamedEntity.Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         bool Cci.IMethodReference.AcceptsExtraArguments

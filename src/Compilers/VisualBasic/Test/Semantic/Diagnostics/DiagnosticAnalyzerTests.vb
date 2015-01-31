@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -490,7 +490,7 @@ End Class
                     Case SyntaxKind.NamespaceBlock
                         location = DirectCast(context.Node, NamespaceBlockSyntax).NamespaceStatement.Name.GetLocation
                     Case SyntaxKind.ClassBlock
-                        location = DirectCast(context.Node, ClassBlockSyntax).Begin.Identifier.GetLocation
+                        location = DirectCast(context.Node, ClassBlockSyntax).BlockStatement.Identifier.GetLocation
                 End Select
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, location))
             End Sub
@@ -532,7 +532,7 @@ End Namespace
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
-                context.RegisterCodeBlockEndAction(Of SyntaxKind)(AddressOf OnCodeBlock)
+                context.RegisterCodeBlockEndAction(AddressOf OnCodeBlock)
             End Sub
 
             Private Shared Sub OnCodeBlock(context As CodeBlockEndAnalysisContext)
@@ -617,5 +617,70 @@ End Class
                 End If
             Next
         End Sub
+
+        Class FieldSymbolAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared desc1 As New DiagnosticDescriptor("FieldSymbolDiagnostic", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(desc1)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.Field)
+            End Sub
+
+            Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
+            End Sub
+
+            <Fact, WorkItem(1109126)>
+            Sub TestFieldSymbolAnalyzer_EnumField()
+                Dim analyzer = New FieldSymbolAnalyzer()
+                Dim sources = <compilation>
+                                  <file name="c.vb">
+                                      <![CDATA[
+Public Enum E
+    X = 0
+End Enum
+]]>
+                                  </file>
+                              </compilation>
+
+                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+                compilation.VerifyDiagnostics()
+                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+                    AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
+            End Sub
+
+            <Fact, WorkItem(1111667)>
+            Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
+                Dim analyzer = New FieldSymbolAnalyzer()
+                Dim sources = <compilation>
+                                  <file name="c.vb">
+                                      <![CDATA[
+Public Class TestClass
+    Public Field As System.IntPtr
+End Class
+]]>
+                                  </file>
+                              </compilation>
+
+                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+                compilation.VerifyDiagnostics()
+                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+                    AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
+            End Sub
+        End Class
     End Class
 End Namespace

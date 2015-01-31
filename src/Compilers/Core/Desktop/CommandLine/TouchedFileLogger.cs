@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class TouchedFileLogger
     {
-        private ConcurrentSet<string> readFiles;
-        private ConcurrentSet<string> writtenFiles;
+        private ConcurrentSet<string> _readFiles;
+        private ConcurrentSet<string> _writtenFiles;
 
         public TouchedFileLogger()
         {
-            readFiles = new ConcurrentSet<string>();
-            writtenFiles = new ConcurrentSet<string>();
+            _readFiles = new ConcurrentSet<string>();
+            _writtenFiles = new ConcurrentSet<string>();
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         public void AddRead(string path)
         {
             if (path == null) throw new ArgumentNullException(path);
-            readFiles.Add(path);
+            _readFiles.Add(path);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         public void AddWritten(string path)
         {
             if (path == null) throw new ArgumentNullException(path);
-            writtenFiles.Add(path);
+            _writtenFiles.Add(path);
         }
 
         /// <summary>
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void WriteReadPaths(TextWriter s)
         {
-            var temp = new string[this.readFiles.Count];
+            var temp = new string[_readFiles.Count];
             int i = 0;
             var readFiles = Interlocked.Exchange(
-                ref this.readFiles,
+                ref _readFiles,
                 null);
             foreach (var path in readFiles)
             {
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void WriteWrittenPaths(TextWriter s)
         {
-            var temp = new string[this.writtenFiles.Count];
+            var temp = new string[_writtenFiles.Count];
             int i = 0;
             var writtenFiles = Interlocked.Exchange(
-                ref this.writtenFiles,
+                ref _writtenFiles,
                 null);
             foreach (var path in writtenFiles)
             {

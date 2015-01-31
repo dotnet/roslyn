@@ -15,35 +15,35 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
-        private readonly SyntaxNode parent;
-        private readonly GreenNode node;
-        private readonly int position;
-        private readonly int index;
+        private readonly SyntaxNode _parent;
+        private readonly GreenNode _node;
+        private readonly int _position;
+        private readonly int _index;
 
         internal SyntaxTokenList(SyntaxNode parent, GreenNode tokenOrList, int position, int index)
         {
             Debug.Assert(tokenOrList != null || (position == 0 && index == 0 && parent == null));
             Debug.Assert(position >= 0);
             Debug.Assert(tokenOrList == null || (tokenOrList.IsToken) || (tokenOrList.IsList));
-            this.parent = parent;
-            this.node = tokenOrList;
-            this.position = position;
-            this.index = index;
+            _parent = parent;
+            _node = tokenOrList;
+            _position = position;
+            _index = index;
         }
 
         internal SyntaxTokenList(SyntaxToken token)
         {
-            this.parent = token.Parent;
-            this.node = token.Node;
-            this.position = token.Position;
-            this.index = 0;
+            _parent = token.Parent;
+            _node = token.Node;
+            _position = token.Position;
+            _index = 0;
         }
 
         internal GreenNode Node
         {
             get
             {
-                return this.node;
+                return _node;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.position;
+                return _position;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return node == null ? 0 : (node.IsList ? node.SlotCount : 1);
+                return _node == null ? 0 : (_node.IsList ? _node.SlotCount : 1);
             }
         }
 
@@ -77,18 +77,18 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (node != null)
+                if (_node != null)
                 {
-                    if (node.IsList)
+                    if (_node.IsList)
                     {
-                        if (unchecked((uint)index < (uint)node.SlotCount))
+                        if (unchecked((uint)index < (uint)_node.SlotCount))
                         {
-                            return new SyntaxToken(this.parent, node.GetSlot(index), this.position + node.GetSlotOffset(index), this.index + index);
+                            return new SyntaxToken(_parent, _node.GetSlot(index), _position + _node.GetSlotOffset(index), _index + index);
                         }
                     }
                     else if (index == 0)
                     {
-                        return new SyntaxToken(this.parent, this.node, this.position, this.index);
+                        return new SyntaxToken(_parent, _node, _position, _index);
                     }
                 }
 
@@ -103,13 +103,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.node == null)
+                if (_node == null)
                 {
                     return default(TextSpan);
                 }
                 else
                 {
-                    return new TextSpan(this.Position, this.node.FullWidth);
+                    return new TextSpan(this.Position, _node.FullWidth);
                 }
             }
         }
@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (node == null)
+                if (_node == null)
                 {
                     return default(TextSpan);
                 }
                 else
                 {
-                    return TextSpan.FromBounds(this.position + this.node.GetLeadingTriviaWidth(),
-                                               this.position + this.node.FullWidth - this.node.GetTrailingTriviaWidth());
+                    return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
+                                               _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
                 }
             }
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return this.node != null ? this.node.ToString() : string.Empty;
+            return _node != null ? _node.ToString() : string.Empty;
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return this.node != null ? this.node.ToFullString() : string.Empty;
+            return _node != null ? _node.ToFullString() : string.Empty;
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the list contains any tokens.</returns>
         public bool Any()
         {
-            return this.node != null;
+            return _node != null;
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private GreenNode GetGreenNodeAt(int i)
         {
-            return GetGreenNodeAt(this.node, i);
+            return GetGreenNodeAt(_node, i);
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTokenList(null, this.node.CreateList(list.Select(n => n.Node)), 0, 0);
+            return new SyntaxTokenList(null, _node.CreateList(list.Select(n => n.Node)), 0, 0);
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTokens);
-                return new SyntaxTokenList(null, this.node.CreateList(list.Select(n => n.Node)), 0, 0);
+                return new SyntaxTokenList(null, _node.CreateList(list.Select(n => n.Node)), 0, 0);
             }
             else
             {
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis
 
         IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
         {
-            if (this.node == null)
+            if (_node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
             }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (this.node == null)
+            if (_node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
             }
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SyntaxTokenList other)
         {
-            return this.node == other.node && this.parent == other.parent && this.index == other.index;
+            return _node == other._node && _parent == other._parent && _index == other._index;
         }
 
         /// <summary>
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             // Not call GHC on parent as it's expensive
-            return Hash.Combine(this.node, this.index);
+            return Hash.Combine(_node, _index);
         }
 
         /// <summary>

@@ -1762,5 +1762,227 @@ class X
             Assert.Equal(parentSymbolKind, parentInfo.Symbol.Kind);
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
         }
+
+        [WorkItem(969006, "DevDiv")]
+        [Fact]
+        public void Bug969006_1()
+        {
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        const E E = E.A;
+        var z = E;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("E E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            compilation.VerifyDiagnostics(
+    // (11,21): error CS0133: The expression being assigned to 'E' must be constant
+    //         const E E = E.A;
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "E.A").WithArguments("E").WithLocation(11, 21),
+    // (12,13): warning CS0219: The variable 'z' is assigned but its value is never used
+    //         var z = E;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(12, 13)
+                );
+        }
+
+        [WorkItem(969006, "DevDiv"), WorkItem(1112493, "DevDiv")]
+        [Fact]
+        public void Bug969006_2()
+        {
+            // E in "E.A" does not qualify for Color Color (and thus does not bind to the enum type) because
+            // the type of the const var E is an error due to the circular reference (and thus the name of
+            // the type cannot be the same as the name of the var).
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        const var E = E.A;
+        var z = E;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
+
+            compilation.VerifyDiagnostics(
+                // (11,9): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var E = E.A;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var E = E.A;").WithLocation(11, 9),
+                // (11,23): error CS0841: Cannot use local variable 'E' before it is declared
+                //         const var E = E.A;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 23)
+                );
+        }
+
+        [WorkItem(969006, "DevDiv")]
+        [Fact]
+        public void Bug969006_3()
+        {
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        E E = E.A;
+        var z = E;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("E E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [WorkItem(969006, "DevDiv")]
+        [Fact]
+        public void Bug969006_4()
+        {
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        var E = E.A;
+        var z = E;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+    // (11,17): error CS0841: Cannot use local variable 'E' before it is declared
+    //         var E = E.A;
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17),
+    // (11,17): error CS0165: Use of unassigned local variable 'E'
+    //         var E = E.A;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "E").WithArguments("E").WithLocation(11, 17)
+                );
+        }
+
     }
 }

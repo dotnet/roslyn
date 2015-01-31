@@ -2,11 +2,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
         /// <summary>
         /// Information about an assembly, used as an input for the Binder class.
@@ -58,6 +57,8 @@ namespace Microsoft.CodeAnalysis
             public abstract bool IsLinked { get; }
 
             public abstract bool DeclaresTheObjectClass { get; }
+
+            public abstract bool GetWinMdVersion(out int majorVersion, out int minorVersion);
         }
     }
 }

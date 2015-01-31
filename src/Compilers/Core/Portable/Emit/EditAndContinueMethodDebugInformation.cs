@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     bool hasOrdinal = (b & (1 << 7)) != 0;
 
                     int syntaxOffset;
-                    if (!blobReader.TryReadCompressedInteger(out syntaxOffset)) 
+                    if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
                     {
                         return default(ImmutableArray<LocalSlotDebugInfo>);
                     }

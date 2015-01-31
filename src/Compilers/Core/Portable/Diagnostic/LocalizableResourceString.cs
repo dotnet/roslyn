@@ -14,11 +14,21 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class LocalizableResourceString : LocalizableString, IObjectReadable, IObjectWritable
     {
-        private readonly string nameOfLocalizableResource;
-        private readonly ResourceManager resourceManager;
-        private readonly Type resourceSource;
-        private readonly string[] formatArguments;
-        private static readonly string[] EmptyArguments = new string[0];
+        private readonly string _nameOfLocalizableResource;
+        private readonly ResourceManager _resourceManager;
+        private readonly Type _resourceSource;
+        private readonly string[] _formatArguments;
+
+        /// <summary>
+        /// Creates a localizable resource string with no formatting arguments.
+        /// </summary>
+        /// <param name="nameOfLocalizableResource">nameof the resource that needs to be localized.</param>
+        /// <param name="resourceManager"><see cref="ResourceManager"/> for the calling assembly.</param>
+        /// <param name="resourceSource">Type handling assembly's resource management. Typically, this is the static class generated for the resources file from which resources are accessed.</param>
+        public LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource)
+            : this(nameOfLocalizableResource, resourceManager, resourceSource, SpecializedCollections.EmptyArray<string>())
+        {
+        }
 
         /// <summary>
         /// Creates a localizable resource string that may possibly be formatted differently depending on culture.
@@ -49,22 +59,22 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(formatArguments));
             }
 
-            this.resourceManager = resourceManager;
-            this.nameOfLocalizableResource = nameOfLocalizableResource;
-            this.resourceSource = resourceSource;
-            this.formatArguments = formatArguments;
+            _resourceManager = resourceManager;
+            _nameOfLocalizableResource = nameOfLocalizableResource;
+            _resourceSource = resourceSource;
+            _formatArguments = formatArguments;
         }
 
         private LocalizableResourceString(ObjectReader reader)
         {
-            this.resourceSource = (Type)reader.ReadValue();
-            this.nameOfLocalizableResource = reader.ReadString();
-            this.resourceManager = new ResourceManager(this.resourceSource);
+            _resourceSource = (Type)reader.ReadValue();
+            _nameOfLocalizableResource = reader.ReadString();
+            _resourceManager = new ResourceManager(_resourceSource);
 
             var length = (int)reader.ReadCompressedUInt();
             if (length == 0)
             {
-                this.formatArguments = EmptyArguments;
+                _formatArguments = SpecializedCollections.EmptyArray<string>();
             }
             else
             {
@@ -74,7 +84,7 @@ namespace Microsoft.CodeAnalysis
                     argumentsBuilder.Add(reader.ReadString());
                 }
 
-                this.formatArguments = argumentsBuilder.ToArrayAndFree();
+                _formatArguments = argumentsBuilder.ToArrayAndFree();
             }
         }
 
@@ -85,22 +95,22 @@ namespace Microsoft.CodeAnalysis
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(this.resourceSource);
-            writer.WriteString(this.nameOfLocalizableResource);
-            var length = (uint)this.formatArguments.Length;
+            writer.WriteValue(_resourceSource);
+            writer.WriteString(_nameOfLocalizableResource);
+            var length = (uint)_formatArguments.Length;
             writer.WriteCompressedUInt(length);
             for (int i = 0; i < length; i++)
             {
-                writer.WriteString(this.formatArguments[i]);
+                writer.WriteString(_formatArguments[i]);
             }
         }
 
         public override string ToString(IFormatProvider formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
-            var resourceString = this.resourceManager.GetString(this.nameOfLocalizableResource, culture);
+            var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
             return resourceString != null ?
-                (this.formatArguments.Length > 0 ? string.Format(resourceString, this.formatArguments) : resourceString) :
+                (_formatArguments.Length > 0 ? string.Format(resourceString, _formatArguments) : resourceString) :
                 string.Empty;
         }
     }

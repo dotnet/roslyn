@@ -41,7 +41,7 @@ HINSTANCE g_hinstMessages;
 
 wstring GetCurrentDirectory()
 {
-    int sizeNeeded = GetCurrentDirectory(0, nullptr);
+    int sizeNeeded = GetCurrentDirectoryW(0, nullptr);
     if (0 == sizeNeeded)
     {
         FailWithGetLastError(IDS_GetCurrentDirectoryFailed);
@@ -50,10 +50,31 @@ wstring GetCurrentDirectory()
     wstring result;
     result.resize(sizeNeeded);
 
-    auto written = (int)GetCurrentDirectory(sizeNeeded, &result[0]);
+    auto written = (int)GetCurrentDirectoryW(sizeNeeded, &result[0]);
     if (written == 0 || written > sizeNeeded)
     {
         FailWithGetLastError(IDS_GetCurrentDirectoryFailed);
+    }
+
+    result.resize(written);
+    return result;
+}
+
+wstring GetTempPath()
+{
+    int sizeNeeded = GetTempPathW(0, nullptr);
+    if (0 == sizeNeeded)
+    {
+        FailWithGetLastError(IDS_GetTempPathFailed);
+    }
+
+    wstring result;
+    result.resize(sizeNeeded);
+
+    auto written = (int)GetTempPathW(sizeNeeded, &result[0]);
+    if (written == 0 || written > sizeNeeded)
+    {
+        FailWithGetLastError(IDS_GetTempPathFailed);
     }
 
     result.resize(written);
@@ -196,15 +217,15 @@ HANDLE ConnectToProcess(DWORD processID, int timeoutMs)
 _Success_(return != false)
 bool TryCompile(HANDLE pipeHandle,
                 RequestLanguage language,
-                _In_z_ LPCWSTR currentDirectory,
                 _In_ const list<wstring>& commandLineArgs,
-                _In_opt_z_ LPCWSTR libEnvVariable,
                 _In_ const wstring& keepAlive,
                 _Out_ CompletedResponse& response)
 {
-    auto request = Request(language, currentDirectory);
+    auto request = Request(language, GetCurrentDirectory());
     request.AddCommandLineArguments(commandLineArgs);
-    if (libEnvVariable != nullptr) 
+
+    wstring libEnvVariable;
+    if (GetEnvVar(L"LIB", libEnvVariable))
     {
         request.AddLibEnvVariable(wstring(libEnvVariable));
     }
@@ -213,6 +234,8 @@ bool TryCompile(HANDLE pipeHandle,
     {
         request.AddKeepAlive(wstring(keepAlive));
     }
+
+    request.AddTempPath(GetTempPath());
 
     RealPipe wrapper(pipeHandle);
     if (!request.WriteToPipe(wrapper))
@@ -536,10 +559,8 @@ bool ParseAndValidateClientArguments(
 
 bool TryRunServerCompilation(
     RequestLanguage language,
-    _In_z_ LPCWSTR currentDirectory,
     _In_ const list<wstring>& commandLineArgs,
     _In_ const wstring& keepAlive,
-    _In_opt_z_ LPCWSTR libEnvVar,
     _Out_ CompletedResponse& response)
 {
     InitializeLogging();
@@ -583,9 +604,7 @@ bool TryRunServerCompilation(
 
             return TryCompile(pipeHandle.get(),
                               language,
-                              currentDirectory,
                               commandLineArgs,
-                              libEnvVar,
                               keepAlive,
                               response);
         }
@@ -606,9 +625,7 @@ bool TryRunServerCompilation(
 
                     return TryCompile(pipeHandle.get(),
                                       language,
-                                      currentDirectory,
                                       commandLineArgs,
-                                      libEnvVar,
                                       keepAlive,
                                       response);
                 }
@@ -770,9 +787,7 @@ void SetPreferredUILangForMessages(LPCWSTR rawCommandLineArgs[], int argsCount, 
 // and stderr. Otherwise, it will be returned through the out parameters.
 // If print output is true the value in the output parameters is undefined.
 int Run(_In_ RequestLanguage language,
-        _In_ LPCWSTR cmdLineString,
-        _In_ LPCWSTR currentDirectory,
-        _In_ LPCWSTR libDirectory)
+        _In_ LPCWSTR cmdLineString)
 {
     int exitCode = 1;
     LPCWSTR uiDllname = L"vbcsc2ui.dll";
@@ -795,7 +810,6 @@ int Run(_In_ RequestLanguage language,
         // Fall back to this module if none was found.
         g_hinstMessages = GetModuleHandle(NULL);
     }
-    wstring libEnvVariable;
 
     // Change stderr, stdout to binary, because the output we get from the server already 
     // has CR and LF in it. If we don't do this, we get CR CR LF at each newline.
@@ -822,10 +836,8 @@ int Run(_In_ RequestLanguage language,
     CompletedResponse response;
     if (TryRunServerCompilation(
         language,
-        currentDirectory,
         argsList,
         keepAlive,
-        libDirectory,
         response))
     {
         exitCode = response.ExitCode;
@@ -858,12 +870,5 @@ int Run(_In_ RequestLanguage language,
 
 int Run(RequestLanguage language)
 {
-    auto currentDirectory = GetCurrentDirectory();
-    wstring libEnvVariable;
-
-    return Run(
-        language,
-        GetCommandLineW(),
-        currentDirectory.c_str(),
-        GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr);
+    return Run(language, GetCommandLineW());
 }

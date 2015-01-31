@@ -18,14 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Const asyncIterator As SourceMemberFlags = SourceMemberFlags.Async Or SourceMemberFlags.Iterator
 
             ' Decode the modifiers.
-            Dim modifiers As SourceMemberFlags = DecodeModifiers(node.Begin.Modifiers, asyncIterator, ERRID.ERR_InvalidLambdaModifier, Accessibility.Public, diagnostics).FoundFlags And asyncIterator
+            Dim modifiers As SourceMemberFlags = DecodeModifiers(node.SubOrFunctionHeader.Modifiers, asyncIterator, ERRID.ERR_InvalidLambdaModifier, Accessibility.Public, diagnostics).FoundFlags And asyncIterator
 
             If (modifiers And asyncIterator) = asyncIterator Then
-                ReportModifierError(node.Begin.Modifiers, ERRID.ERR_InvalidAsyncIteratorModifiers, diagnostics, InvalidAsyncIterator)
+                ReportModifierError(node.SubOrFunctionHeader.Modifiers, ERRID.ERR_InvalidAsyncIteratorModifiers, diagnostics, InvalidAsyncIterator)
             End If
 
             Dim parameters As ImmutableArray(Of ParameterSymbol)
-            parameters = DecodeParameterList(Me.ContainingMember, True, modifiers, node.Begin.ParameterList, diagnostics)
+            parameters = DecodeParameterList(Me.ContainingMember, True, modifiers, node.SubOrFunctionHeader.ParameterList, diagnostics)
 
             For Each param In parameters
                 ' Look up in container binders for name clashes with other locals and parameters.
@@ -37,11 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasErrors As Boolean = False
 
             If node.Kind = SyntaxKind.MultiLineFunctionLambdaExpression AndAlso
-               node.Begin.AsClause IsNot Nothing Then
-                returnType = BindTypeSyntax(node.Begin.AsClause.Type, diagnostics)
+               node.SubOrFunctionHeader.AsClause IsNot Nothing Then
+                returnType = BindTypeSyntax(node.SubOrFunctionHeader.AsClause.Type, diagnostics)
 
                 If returnType.IsRestrictedType() Then
-                    ReportDiagnostic(diagnostics, node.Begin.AsClause.Type, ERRID.ERR_RestrictedType1, returnType)
+                    ReportDiagnostic(diagnostics, node.SubOrFunctionHeader.AsClause.Type, ERRID.ERR_RestrictedType1, returnType)
                     hasErrors = True
 
                 ElseIf Not returnType.IsErrorType() Then
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If modifiers = SourceMemberFlags.Async AndAlso
                            Not returnType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)) AndAlso
                            Not returnType.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)) Then
-                            ReportDiagnostic(diagnostics, node.Begin.AsClause.Type, ERRID.ERR_BadAsyncReturn)
+                            ReportDiagnostic(diagnostics, node.SubOrFunctionHeader.AsClause.Type, ERRID.ERR_BadAsyncReturn)
                         End If
 
                         If modifiers = SourceMemberFlags.Iterator Then
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 originalRetTypeDef.SpecialType <> SpecialType.System_Collections_Generic_IEnumerator_T AndAlso
                                 returnType.SpecialType <> SpecialType.System_Collections_IEnumerable AndAlso
                                 returnType.SpecialType <> SpecialType.System_Collections_IEnumerator Then
-                                ReportDiagnostic(diagnostics, node.Begin.AsClause.Type, ERRID.ERR_BadIteratorReturn)
+                                ReportDiagnostic(diagnostics, node.SubOrFunctionHeader.AsClause.Type, ERRID.ERR_BadIteratorReturn)
                             End If
                         End If
                     End If
@@ -67,10 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf node.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
                 node.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
 
-                returnType = GetSpecialType(SpecialType.System_Void, node.Begin, diagnostics)
+                returnType = GetSpecialType(SpecialType.System_Void, node.SubOrFunctionHeader, diagnostics)
 
                 If modifiers = SourceMemberFlags.Iterator Then
-                    ReportDiagnostic(diagnostics, node.Begin.Keyword, ERRID.ERR_BadIteratorReturn)
+                    ReportDiagnostic(diagnostics, node.SubOrFunctionHeader.DeclarationKeyword, ERRID.ERR_BadIteratorReturn)
                 End If
             End If
 
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.MultiLineSubLambdaExpression
 
                     Dim blockSyntax = DirectCast(lambdaSyntax, MultiLineLambdaExpressionSyntax)
-                    endSyntax = blockSyntax.End
+                    endSyntax = blockSyntax.EndSubOrFunctionStatement
 
                     block = bodyBinder.BindBlock(lambdaSyntax, blockSyntax.Statements, diagnostics).MakeCompilerGenerated()
 
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If lambdaSymbol.IsAsync AndAlso Not CheckAwaitWalker.VisitBlock(bodyBinder, block, diagnostics) AndAlso
                Not block.HasErrors AndAlso Not lambdaSymbol.IsIterator Then
                 ReportDiagnostic(diagnostics,
-                                 DirectCast(lambdaSyntax, LambdaExpressionSyntax).Begin.Keyword,
+                                 DirectCast(lambdaSyntax, LambdaExpressionSyntax).SubOrFunctionHeader.DeclarationKeyword,
                                  ERRID.WRN_AsyncLacksAwaits)
             End If
 
@@ -1020,7 +1020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaSyntax = TryCast(source.Syntax, LambdaExpressionSyntax)
 
             If lambdaSyntax IsNot Nothing Then
-                Return lambdaSyntax.Begin
+                Return lambdaSyntax.SubOrFunctionHeader
             End If
 
             Return source.Syntax
@@ -1112,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim header As LambdaHeaderSyntax = DirectCast(lambdaSymbol.Syntax, LambdaExpressionSyntax).Begin
+            Dim header As LambdaHeaderSyntax = DirectCast(lambdaSymbol.Syntax, LambdaExpressionSyntax).SubOrFunctionHeader
             Return New SynthesizedLocal(lambdaSymbol, lambdaSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, header)
         End Function
 

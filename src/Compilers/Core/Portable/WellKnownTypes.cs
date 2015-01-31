@@ -202,14 +202,15 @@ namespace Microsoft.CodeAnalysis
         System_ComponentModel_EditorBrowsableAttribute,
         System_ComponentModel_EditorBrowsableState,
 
-        System_Linq_IQueryable,
-        System_Linq_IQueryable_T,
+        System_Linq_Enumerable,
         System_Linq_Expressions_Expression,
         System_Linq_Expressions_Expression_T,
         System_Linq_Expressions_ParameterExpression,
         System_Linq_Expressions_ElementInit,
         System_Linq_Expressions_MemberBinding,
         System_Linq_Expressions_ExpressionType,
+        System_Linq_IQueryable,
+        System_Linq_IQueryable_T,
 
         System_Xml_Linq_Extensions,
         System_Xml_Linq_XAttribute,
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] metadataNames = new string[]
+        private static readonly string[] s_metadataNames = new string[]
         {
             "System.Math",
             "System.Array",
@@ -444,14 +445,15 @@ namespace Microsoft.CodeAnalysis
             "System.ComponentModel.EditorBrowsableAttribute",
             "System.ComponentModel.EditorBrowsableState",
 
-            "System.Linq.IQueryable",
-            "System.Linq.IQueryable`1",
+            "System.Linq.Enumerable",
             "System.Linq.Expressions.Expression",
             "System.Linq.Expressions.Expression`1",
             "System.Linq.Expressions.ParameterExpression",
             "System.Linq.Expressions.ElementInit",
             "System.Linq.Expressions.MemberBinding",
             "System.Linq.Expressions.ExpressionType",
+            "System.Linq.IQueryable",
+            "System.Linq.IQueryable`1",
 
             "System.Xml.Linq.Extensions",
             "System.Xml.Linq.XAttribute",
@@ -490,31 +492,31 @@ namespace Microsoft.CodeAnalysis
             "System.IFormatProvider"
         };
 
-        private readonly static Dictionary<string, WellKnownType> nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
+        private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
 
         static WellKnownTypes()
         {
-            for (int i = 0; i < metadataNames.Length; i++)
+            for (int i = 0; i < s_metadataNames.Length; i++)
             {
-                var name = metadataNames[i];
+                var name = s_metadataNames[i];
                 var typeId = (WellKnownType)(i + WellKnownType.First);
                 Debug.Assert(name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
                           || name.IndexOf('`') > 0 // a generic type
                           || name == (typeId.ToString() == "First" ? "System.Math" : typeId.ToString().Replace("__", "+").Replace('_', '.')));
-                nameToTypeIdMap.Add(name, typeId);
+                s_nameToTypeIdMap.Add(name, typeId);
             }
         }
 
         public static string GetMetadataName(this WellKnownType id)
         {
-            return metadataNames[(int)(id - WellKnownType.First)];
+            return s_metadataNames[(int)(id - WellKnownType.First)];
         }
 
         public static WellKnownType GetTypeFromMetadataName(string metadataName)
         {
             WellKnownType id;
 
-            if (nameToTypeIdMap.TryGetValue(metadataName, out id))
+            if (s_nameToTypeIdMap.TryGetValue(metadataName, out id))
             {
                 return id;
             }

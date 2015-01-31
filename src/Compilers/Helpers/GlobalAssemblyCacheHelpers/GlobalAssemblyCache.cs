@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             GAC_64 = 0x40,            // C:\Windows\Assembly\GAC_64
             ROOT_EX = 0x80,           // C:\Windows\Microsoft.NET\assembly
         }
-        
+
         [DllImport("clr", CharSet = CharSet.Auto, PreserveSig = true)]
         private static extern int CreateAssemblyEnum(out IAssemblyEnum ppEnum, FusionAssemblyIdentity.IApplicationContext pAppCtx, FusionAssemblyIdentity.IAssemblyName pName, ASM_CACHE dwFlags, IntPtr pvReserved);
 
@@ -211,7 +211,11 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     // for some reason it might happen that CreateAssemblyEnum returns non-zero HR that doesn't correspond to any exception:
-                    throw new ArgumentException("Invalid assembly name".NeedsLocalization());
+#if SCRIPTING
+                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidAssemblyName);
+#else
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidAssemblyName);
+#endif
                 }
             }
 
@@ -285,7 +289,7 @@ namespace Microsoft.CodeAnalysis
             out string location,
             bool resolveLocation)
         {
-            if (displayName == null) 
+            if (displayName == null)
             {
                 throw new ArgumentNullException("displayName");
             }

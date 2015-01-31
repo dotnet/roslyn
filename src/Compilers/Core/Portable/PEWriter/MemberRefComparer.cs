@@ -7,11 +7,11 @@ namespace Microsoft.Cci
 {
     internal sealed class MemberRefComparer : IEqualityComparer<ITypeMemberReference>
     {
-        private readonly MetadataWriter metadataWriter;
+        private readonly MetadataWriter _metadataWriter;
 
         internal MemberRefComparer(MetadataWriter metadataWriter)
         {
-            this.metadataWriter = metadataWriter;
+            _metadataWriter = metadataWriter;
         }
 
         public bool Equals(ITypeMemberReference x, ITypeMemberReference y)
@@ -21,9 +21,9 @@ namespace Microsoft.Cci
                 return true;
             }
 
-            if (x.GetContainingType(metadataWriter.Context) != y.GetContainingType(metadataWriter.Context))
+            if (x.GetContainingType(_metadataWriter.Context) != y.GetContainingType(_metadataWriter.Context))
             {
-                if (this.metadataWriter.GetMemberRefParentCodedIndex(x) != this.metadataWriter.GetMemberRefParentCodedIndex(y))
+                if (_metadataWriter.GetMemberRefParentCodedIndex(x) != _metadataWriter.GetMemberRefParentCodedIndex(y))
                 {
                     return false;
                 }
@@ -38,14 +38,14 @@ namespace Microsoft.Cci
             IFieldReference/*?*/ yf = y as IFieldReference;
             if (xf != null && yf != null)
             {
-                return this.metadataWriter.GetFieldSignatureIndex(xf) == this.metadataWriter.GetFieldSignatureIndex(yf);
+                return _metadataWriter.GetFieldSignatureIndex(xf) == _metadataWriter.GetFieldSignatureIndex(yf);
             }
 
             IMethodReference/*?*/ xm = x as IMethodReference;
             IMethodReference/*?*/ ym = y as IMethodReference;
             if (xm != null && ym != null)
             {
-                return this.metadataWriter.GetMethodSignatureIndex(xm) == this.metadataWriter.GetMethodSignatureIndex(ym);
+                return _metadataWriter.GetMethodSignatureIndex(xm) == _metadataWriter.GetMethodSignatureIndex(ym);
             }
 
             return false;
@@ -53,19 +53,19 @@ namespace Microsoft.Cci
 
         public int GetHashCode(ITypeMemberReference memberRef)
         {
-            int hash = Hash.Combine(memberRef.Name, (int)this.metadataWriter.GetMemberRefParentCodedIndex(memberRef) << 4);
+            int hash = Hash.Combine(memberRef.Name, (int)_metadataWriter.GetMemberRefParentCodedIndex(memberRef) << 4);
 
             IFieldReference/*?*/ fieldRef = memberRef as IFieldReference;
             if (fieldRef != null)
             {
-                hash = Hash.Combine(hash, (int)this.metadataWriter.GetFieldSignatureIndex(fieldRef));
+                hash = Hash.Combine(hash, (int)_metadataWriter.GetFieldSignatureIndex(fieldRef));
             }
             else
             {
                 IMethodReference/*?*/ methodRef = memberRef as IMethodReference;
                 if (methodRef != null)
                 {
-                    hash = Hash.Combine(hash, (int)this.metadataWriter.GetMethodSignatureIndex(methodRef));
+                    hash = Hash.Combine(hash, (int)_metadataWriter.GetMethodSignatureIndex(methodRef));
                 }
             }
 

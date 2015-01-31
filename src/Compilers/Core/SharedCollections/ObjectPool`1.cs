@@ -18,7 +18,6 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 
 #endif
-
 namespace Roslyn.Utilities
 {
     /// <summary>
@@ -53,13 +52,13 @@ namespace Roslyn.Utilities
 
         // Storage for the pool objects. The first item is stored in a dedicated field because we
         // expect to be able to satisfy most requests from it.
-        private T firstItem;
-        private readonly Element[] items;
+        private T _firstItem;
+        private readonly Element[] _items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
         // expand. compared to "new T()", Func gives more flexibility to implementers and faster
         // than "new T()".
-        private readonly Factory factory;
+        private readonly Factory _factory;
 
 #if DETECT_LEAKS
         private static readonly ConditionalWeakTable<T, LeakTracker> leakTrackers = new ConditionalWeakTable<T, LeakTracker>();
@@ -81,7 +80,7 @@ namespace Roslyn.Utilities
             private string GetTrace()
             {
 #if TRACE_LEAKS
-                return Trace == null? "": Trace.ToString();
+                return Trace == null ? "" : Trace.ToString();
 #else
                 return "Leak tracing information is disabled. Define TRACE_LEAKS on ObjectPool`1.cs to get more info \n";
 #endif
@@ -113,13 +112,13 @@ namespace Roslyn.Utilities
         internal ObjectPool(Factory factory, int size)
         {
             Debug.Assert(size >= 1);
-            this.factory = factory;
-            this.items = new Element[size - 1];
+            _factory = factory;
+            _items = new Element[size - 1];
         }
 
         private T CreateInstance()
         {
-            var inst = factory();
+            var inst = _factory();
             return inst;
         }
 
@@ -137,8 +136,8 @@ namespace Roslyn.Utilities
             // Note that the initial read is optimistically not synchronized. That is intentional. 
             // We will interlock only when we have a candidate. in a worst case we may miss some
             // recently returned objects. Not a big deal.
-            T inst = firstItem;
-            if (inst == null || inst != Interlocked.CompareExchange(ref firstItem, null, inst))
+            T inst = _firstItem;
+            if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
             {
                 inst = AllocateSlow();
             }
@@ -157,7 +156,7 @@ namespace Roslyn.Utilities
 
         private T AllocateSlow()
         {
-            var items = this.items;
+            var items = _items;
             T inst;
 
             for (int i = 0; i < items.Length; i++)
@@ -191,12 +190,12 @@ namespace Roslyn.Utilities
             Validate(obj);
             ForgetTrackedObject(obj);
 
-            if (firstItem == null)
+            if (_firstItem == null)
             {
                 // Intentionally not using interlocked here. 
                 // In a worst case scenario two objects may be stored into same slot.
                 // It is very unlikely to happen and will only mean that one of the objects will get collected.
-                firstItem = obj;
+                _firstItem = obj;
             }
             else
             {
@@ -206,7 +205,7 @@ namespace Roslyn.Utilities
 
         private void FreeSlow(T obj)
         {
-            var items = this.items;
+            var items = _items;
             for (int i = 0; i < items.Length; i++)
             {
                 if (items[i].Value == null)
@@ -260,7 +259,7 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(obj != null, "freeing null?");
 
-            var items = this.items;
+            var items = _items;
             for (int i = 0; i < items.Length; i++)
             {
                 var value = items[i].Value;

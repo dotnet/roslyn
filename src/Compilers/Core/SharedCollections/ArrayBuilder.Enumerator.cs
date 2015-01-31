@@ -11,27 +11,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal struct Enumerator : IEnumerator<T>
         {
-            private readonly ArrayBuilder<T> builder;
-            private int index;
+            private readonly ArrayBuilder<T> _builder;
+            private int _index;
 
             public Enumerator(ArrayBuilder<T> builder)
             {
-                this.builder = builder;
-                this.index = -1;
+                _builder = builder;
+                _index = -1;
             }
 
             public T Current
             {
                 get
                 {
-                    return this.builder[this.index];
+                    return _builder[_index];
                 }
             }
 
             public bool MoveNext()
             {
-                this.index++;
-                return this.index < this.builder.Count;
+                _index++;
+                return _index < _builder.Count;
             }
 
             public void Dispose()
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
             public void Reset()
             {
-                index = -1;
+                _index = -1;
             }
         }
     }

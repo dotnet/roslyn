@@ -234,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ILOpCode.Blt_un:
                 case ILOpCode.Blt_un_s:
                     return true;
-
                     // these are not conditional
 
                     //case ILOpCode.Br:

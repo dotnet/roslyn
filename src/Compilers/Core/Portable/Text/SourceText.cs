@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Text
         private const int CharBufferSize = 32 * 1024;
         private const int CharBufferCount = 5;
 
-        private static readonly ObjectPool<char[]> CharArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
 
-        private readonly SourceHashAlgorithm checksumAlgorithm;
-        private SourceTextContainer lazyContainer;
-        private LineInfo lazyLineInfo;
-        private ImmutableArray<byte> lazyChecksum;
+        private readonly SourceHashAlgorithm _checksumAlgorithm;
+        private SourceTextContainer _lazyContainer;
+        private LineInfo _lazyLineInfo;
+        private ImmutableArray<byte> _lazyChecksum;
 
         protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
         {
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentException(CodeAnalysisResources.InvalidHash, nameof(checksum));
             }
 
-            this.checksumAlgorithm = checksumAlgorithm;
-            this.lazyChecksum = checksum;
-            this.lazyContainer = container;
+            _checksumAlgorithm = checksumAlgorithm;
+            _lazyChecksum = checksum;
+            _lazyContainer = container;
         }
 
         internal static void ValidateChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Text
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             {
                 text = reader.ReadToEnd();
+                encoding = reader.CurrentEncoding;
             }
 
             return new StringText(text, encoding, CalculateChecksum(stream, checksumAlgorithm), checksumAlgorithm);
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public SourceHashAlgorithm ChecksumAlgorithm
         {
-            get { return checksumAlgorithm; }
+            get { return _checksumAlgorithm; }
         }
 
         /// <summary>
@@ -165,12 +166,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (this.lazyContainer == null)
+                if (_lazyContainer == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyContainer, new StaticContainer(this), null);
+                    Interlocked.CompareExchange(ref _lazyContainer, new StaticContainer(this), null);
                 }
 
-                return this.lazyContainer;
+                return _lazyContainer;
             }
         }
 
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             CheckSubSpan(span);
 
-            var buffer = CharArrayPool.Allocate();
+            var buffer = s_charArrayPool.Allocate();
             try
             {
                 int offset = Math.Min(this.Length, span.Start);
@@ -256,13 +257,13 @@ namespace Microsoft.CodeAnalysis.Text
             }
             finally
             {
-                CharArrayPool.Free(buffer);
+                s_charArrayPool.Free(buffer);
             }
         }
 
         internal ImmutableArray<byte> GetChecksum()
         {
-            if (this.lazyChecksum.IsDefault)
+            if (_lazyChecksum.IsDefault)
             {
                 // we shouldn't be asking for a checksum of encoding-less source text:
                 Debug.Assert(this.Encoding != null);
@@ -272,11 +273,11 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     this.Write(writer);
                     writer.Flush();
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyChecksum, CalculateChecksum(stream, checksumAlgorithm));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, CalculateChecksum(stream, _checksumAlgorithm));
                 }
             }
 
-            return this.lazyChecksum;
+            return _lazyChecksum;
         }
 
         private static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
@@ -473,58 +474,58 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (this.lazyLineInfo == null)
+                if (_lazyLineInfo == null)
                 {
                     var info = new LineInfo(this, this.ParseLineStarts());
-                    Interlocked.CompareExchange(ref this.lazyLineInfo, info, null);
+                    Interlocked.CompareExchange(ref _lazyLineInfo, info, null);
                 }
 
-                return this.lazyLineInfo;
+                return _lazyLineInfo;
             }
         }
 
         private class LineInfo : TextLineCollection
         {
-            private readonly SourceText text;
-            private readonly int[] lineStarts;
-            private int lastLineNumber = 0;
+            private readonly SourceText _text;
+            private readonly int[] _lineStarts;
+            private int _lastLineNumber = 0;
 
             public LineInfo(SourceText text, int[] lineStarts)
             {
-                this.text = text;
-                this.lineStarts = lineStarts;
+                _text = text;
+                _lineStarts = lineStarts;
             }
 
             public override int Count
             {
-                get { return this.lineStarts.Length; }
+                get { return _lineStarts.Length; }
             }
 
             public override TextLine this[int index]
             {
                 get
                 {
-                    if (index < 0 || index >= this.lineStarts.Length)
+                    if (index < 0 || index >= _lineStarts.Length)
                     {
                         throw new ArgumentOutOfRangeException("index");
                     }
 
-                    int start = lineStarts[index];
-                    if (index == lineStarts.Length - 1)
+                    int start = _lineStarts[index];
+                    if (index == _lineStarts.Length - 1)
                     {
-                        return TextLine.FromSpan(this.text, TextSpan.FromBounds(start, this.text.Length));
+                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, _text.Length));
                     }
                     else
                     {
-                        int end = lineStarts[index + 1];
-                        return TextLine.FromSpan(this.text, TextSpan.FromBounds(start, end));
+                        int end = _lineStarts[index + 1];
+                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, end));
                     }
                 }
             }
 
             public override int IndexOf(int position)
             {
-                if (position < 0 || position > this.text.Length)
+                if (position < 0 || position > _text.Length)
                 {
                     throw new ArgumentOutOfRangeException("position");
                 }
@@ -533,16 +534,16 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // it is common to ask about position on the same line 
                 // as before or on the next couple lines
-                var lastLineNumber = this.lastLineNumber;
-                if (position >= this.lineStarts[lastLineNumber])
+                var lastLineNumber = _lastLineNumber;
+                if (position >= _lineStarts[lastLineNumber])
                 {
-                    var limit = Math.Min(this.lineStarts.Length, lastLineNumber + 4);
+                    var limit = Math.Min(_lineStarts.Length, lastLineNumber + 4);
                     for (int i = lastLineNumber; i < limit; i++)
                     {
-                        if (position < this.lineStarts[i])
+                        if (position < _lineStarts[i])
                         {
                             lineNumber = i - 1;
-                            this.lastLineNumber = lineNumber;
+                            _lastLineNumber = lineNumber;
                             return lineNumber;
                         }
                     }
@@ -551,13 +552,13 @@ namespace Microsoft.CodeAnalysis.Text
                 // Binary search to find the right line
                 // if no lines start exactly at position, round to the left
                 // EoF position will map to the last line.
-                lineNumber = this.lineStarts.BinarySearch(position);
+                lineNumber = _lineStarts.BinarySearch(position);
                 if (lineNumber < 0)
                 {
                     lineNumber = (~lineNumber) - 1;
                 }
 
-                this.lastLineNumber = lineNumber;
+                _lastLineNumber = lineNumber;
                 return lineNumber;
             }
 
@@ -628,8 +629,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
-            ImmutableArray<byte> leftChecksum = this.lazyChecksum;
-            ImmutableArray<byte> rightChecksum = other.lazyChecksum;
+            ImmutableArray<byte> leftChecksum = _lazyChecksum;
+            ImmutableArray<byte> rightChecksum = other._lazyChecksum;
             if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding && this.ChecksumAlgorithm == other.ChecksumAlgorithm)
             {
                 return leftChecksum.SequenceEqual(rightChecksum);
@@ -658,8 +659,8 @@ namespace Microsoft.CodeAnalysis.Text
                 return false;
             }
 
-            var buffer1 = CharArrayPool.Allocate();
-            var buffer2 = CharArrayPool.Allocate();
+            var buffer1 = s_charArrayPool.Allocate();
+            var buffer2 = s_charArrayPool.Allocate();
             try
             {
                 int position = 0;
@@ -684,8 +685,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
             finally
             {
-                CharArrayPool.Free(buffer2);
-                CharArrayPool.Free(buffer1);
+                s_charArrayPool.Free(buffer2);
+                s_charArrayPool.Free(buffer1);
             }
         }
 
@@ -693,16 +694,16 @@ namespace Microsoft.CodeAnalysis.Text
 
         private class StaticContainer : SourceTextContainer
         {
-            private readonly SourceText text;
+            private readonly SourceText _text;
 
             public StaticContainer(SourceText text)
             {
-                this.text = text;
+                _text = text;
             }
 
             public override SourceText CurrentText
             {
-                get { return this.text; }
+                get { return _text; }
             }
 
             public override event EventHandler<TextChangeEventArgs> TextChanged

@@ -32,20 +32,20 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
     {
         internal abstract class CommonEmbeddedEvent : CommonEmbeddedMember<TEventSymbol>, Cci.IEventDefinition
         {
-            private readonly TEmbeddedMethod adder;
-            private readonly TEmbeddedMethod remover;
-            private readonly TEmbeddedMethod caller;
+            private readonly TEmbeddedMethod _adder;
+            private readonly TEmbeddedMethod _remover;
+            private readonly TEmbeddedMethod _caller;
 
-            private int isUsedForComAwareEventBinding;
+            private int _isUsedForComAwareEventBinding;
 
             protected CommonEmbeddedEvent(TEventSymbol underlyingEvent, TEmbeddedMethod adder, TEmbeddedMethod remover, TEmbeddedMethod caller) :
                 base(underlyingEvent)
             {
                 Debug.Assert(adder != null || remover != null);
 
-                this.adder = adder;
-                this.remover = remover;
-                this.caller = caller;
+                _adder = adder;
+                _remover = remover;
+                _caller = caller;
             }
 
             internal override TEmbeddedTypesManager TypeManager
@@ -75,50 +75,50 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             internal void EmbedCorrespondingComEventInterfaceMethod(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding)
             {
-                if (this.isUsedForComAwareEventBinding == 0 &&
+                if (_isUsedForComAwareEventBinding == 0 &&
                     (!isUsedForComAwareEventBinding ||
-                     Interlocked.CompareExchange(ref this.isUsedForComAwareEventBinding, 1, 0) == 0))
+                     Interlocked.CompareExchange(ref _isUsedForComAwareEventBinding, 1, 0) == 0))
                 {
-                    Debug.Assert(!isUsedForComAwareEventBinding || this.isUsedForComAwareEventBinding != 0);
+                    Debug.Assert(!isUsedForComAwareEventBinding || _isUsedForComAwareEventBinding != 0);
 
                     EmbedCorrespondingComEventInterfaceMethodInternal(syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding);
                 }
 
-                Debug.Assert(!isUsedForComAwareEventBinding || this.isUsedForComAwareEventBinding != 0);
+                Debug.Assert(!isUsedForComAwareEventBinding || _isUsedForComAwareEventBinding != 0);
             }
 
             Cci.IMethodReference Cci.IEventDefinition.Adder
             {
-                get { return adder; }
+                get { return _adder; }
             }
 
             Cci.IMethodReference Cci.IEventDefinition.Remover
             {
-                get { return remover; }
+                get { return _remover; }
             }
 
             Cci.IMethodReference Cci.IEventDefinition.Caller
             {
-                get { return caller; }
+                get { return _caller; }
             }
 
             IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.Accessors
             {
                 get
                 {
-                    if (adder != null)
+                    if (_adder != null)
                     {
-                        yield return adder;
+                        yield return _adder;
                     }
 
-                    if (remover != null)
+                    if (_remover != null)
                     {
-                        yield return remover;
+                        yield return _remover;
                     }
 
-                    if (caller != null)
+                    if (_caller != null)
                     {
-                        yield return caller;
+                        yield return _caller;
                     }
                 }
             }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return adder ?? remover;
+                    return _adder ?? _remover;
                 }
             }
 

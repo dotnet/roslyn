@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
             Dim errorCodes As Array = [Enum].GetValues(GetType(ERRID))
             Dim builder = ImmutableArray.CreateBuilder(Of Integer)
             For Each errorCode As Integer In errorCodes
-                If errorCode > ERRID.ERR_None AndAlso errorCode < ERRID.FEATUREID_First Then
+                If errorCode > ERRID.ERR_None AndAlso errorCode <= ERRID.ERRWRN_Last Then
                     builder.Add(errorCode)
                 End If
             Next

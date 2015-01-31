@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(span2 != span3, span2.ToString() + " : " + span3.ToString());
             Assert.False(span1 == span2, span1.ToString() + " : " + span2.ToString());
 
-            Assert.NotEqual<object>(new string ('a', 3), span1);
+            Assert.NotEqual<object>(new string('a', 3), span1);
         }
 
         [Fact]

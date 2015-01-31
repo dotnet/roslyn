@@ -10,25 +10,25 @@ namespace Microsoft.CodeAnalysis.Collections
     // NOTE: these dictionaries always have the default comparer.
     internal class PooledDictionary<K, V> : Dictionary<K, V>
     {
-        private readonly ObjectPool<PooledDictionary<K, V>> pool;
+        private readonly ObjectPool<PooledDictionary<K, V>> _pool;
 
         private PooledDictionary(ObjectPool<PooledDictionary<K, V>> pool)
             : base()
         {
-            this.pool = pool;
+            _pool = pool;
         }
 
         public void Free()
         {
             this.Clear();
-            if (pool != null)
+            if (_pool != null)
             {
-                pool.Free(this);
+                _pool.Free(this);
             }
         }
 
         // global pool
-        private static readonly ObjectPool<PooledDictionary<K, V>> PoolInstance = CreatePool();
+        private static readonly ObjectPool<PooledDictionary<K, V>> s_poolInstance = CreatePool();
 
         // if someone needs to create a pool;
         public static ObjectPool<PooledDictionary<K, V>> CreatePool()
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static PooledDictionary<K, V> GetInstance()
         {
-            var instance = PoolInstance.Allocate();
+            var instance = s_poolInstance.Allocate();
             Debug.Assert(instance.Count == 0);
             return instance;
         }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, string diagnosticId, CancellationToken cancellationToken);
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 if (newDocument != document)
                 {
                     var codeFixDescription = GetCodeFixDescription(diagnostic.Id);
-                    context.RegisterFix(new MyCodeAction(codeFixDescription, newDocument), diagnostic);
+                    context.RegisterCodeFix(new MyCodeAction(codeFixDescription, newDocument), diagnostic);
                 }
             }
         }

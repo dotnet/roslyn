@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// The stream content can't be decoded using the specified <paramref name="defaultEncoding"/>, or
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
-        /// <exception cref="IOException">An IO error occured while reading from the stream.</exception>
+        /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

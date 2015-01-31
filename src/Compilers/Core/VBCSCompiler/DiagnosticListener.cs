@@ -26,12 +26,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public void UpdateKeepAlive(TimeSpan timeSpan)
         {
-
         }
 
         public void ConnectionProcessed(int count)
         {
-
         }
     }
 }

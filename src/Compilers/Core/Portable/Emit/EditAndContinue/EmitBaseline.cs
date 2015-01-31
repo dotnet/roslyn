@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public sealed class EmitBaseline
     {
-        private static readonly ImmutableArray<int> EmptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
+        private static readonly ImmutableArray<int> s_emptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
 
         /// <summary>
         /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventMapAdded: new Dictionary<uint, uint>(),
                 propertyMapAdded: new Dictionary<uint, uint>(),
                 methodImplsAdded: new Dictionary<MethodImplKey, uint>(),
-                tableEntriesAdded: EmptyTableSizes,
+                tableEntriesAdded: s_emptyTableSizes,
                 blobStreamLengthAdded: 0,
                 stringStreamLengthAdded: 0,
                 userStringStreamLengthAdded: 0,

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The underlying field
         /// </summary>
-        private readonly SyntaxNode node;
+        private readonly SyntaxNode _node;
 
         /// <summary>
         /// The index from the parent's children list of this node.
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(node != null || index == 0);
             if (node != null)
             {
-                this.node = node;
+                _node = node;
                 this.index = index;
             }
         }
@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal SyntaxNode Node
         {
-            get { return this.node; }
+            get { return _node; }
         }
 
         internal int Position
         {
             get
             {
-                return this.node == null ? 0 : this.node.Position;
+                return _node == null ? 0 : _node.Position;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.node == null ? null : this.node.Parent;
+                return _node == null ? null : _node.Parent;
             }
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int Count
         {
-            get { return this.node == null ? 0 : this.node.Green.IsList ? this.node.SlotCount : 1; }
+            get { return _node == null ? 0 : _node.Green.IsList ? _node.SlotCount : 1; }
         }
 
         /// <summary>
@@ -83,27 +83,27 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.node != null)
+                if (_node != null)
                 {
-                    if (!node.IsList)
+                    if (!_node.IsList)
                     {
                         if (index == 0)
                         {
-                            return node;
+                            return _node;
                         }
                     }
                     else
                     {
-                        if (unchecked((uint)index < (uint)this.node.SlotCount))
+                        if (unchecked((uint)index < (uint)_node.SlotCount))
                         {
-                            var green = this.node.Green.GetSlot(index);
+                            var green = _node.Green.GetSlot(index);
                             if (green.IsToken)
                             {
-                                return new SyntaxToken(this.Parent, green, node.GetChildPosition(index), this.index + index);
+                                return new SyntaxToken(this.Parent, green, _node.GetChildPosition(index), this.index + index);
                             }
                             else
                             {
-                                return this.node.GetNodeSlot(index);
+                                return _node.GetNodeSlot(index);
                             }
                         }
                     }
@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.node == null)
+                if (_node == null)
                 {
                     return default(TextSpan);
                 }
                 else
                 {
-                    return this.node.FullSpan;
+                    return _node.FullSpan;
                 }
             }
         }
@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (node == null)
+                if (_node == null)
                 {
                     return default(TextSpan);
                 }
                 else
                 {
-                    return this.node.Span;
+                    return _node.Span;
                 }
             }
         }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return this.node != null ? this.node.ToString() : string.Empty;
+            return _node != null ? _node.ToString() : string.Empty;
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return this.node != null ? this.node.ToFullString() : string.Empty;
+            return _node != null ? _node.ToFullString() : string.Empty;
         }
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns><c>true</c> if there are any elements in the list, else <c>false</c>.</returns>
         public bool Any()
         {
-            return this.node != null;
+            return _node != null;
         }
 
         /// <summary>
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         IEnumerator<SyntaxNodeOrToken> IEnumerable<SyntaxNodeOrToken>.GetEnumerator()
         {
-            return this.node == null ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>() : this.GetEnumerator();
+            return _node == null ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>() : this.GetEnumerator();
         }
 
         /// <summary>
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.node == null ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>() : this.GetEnumerator();
+            return _node == null ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>() : this.GetEnumerator();
         }
 
         /// <summary>
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public bool Equals(SyntaxNodeOrTokenList other)
         {
-            return this.node == other.node;
+            return _node == other._node;
         }
 
         /// <summary>
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override int GetHashCode()
         {
-            return this.node != null ? this.node.GetHashCode() : 0;
+            return _node != null ? _node.GetHashCode() : 0;
         }
 
         /// <summary>
@@ -516,14 +516,14 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<SyntaxNodeOrToken>
         {
-            private SyntaxNodeOrTokenList list;
-            private int index;
+            private SyntaxNodeOrTokenList _list;
+            private int _index;
 
             internal Enumerator(SyntaxNodeOrTokenList list)
                 : this()
             {
-                this.list = list;
-                this.index = -1;
+                _list = list;
+                _index = -1;
             }
 
             /// <summary>
@@ -535,12 +535,12 @@ namespace Microsoft.CodeAnalysis
             /// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created. </exception>
             public bool MoveNext()
             {
-                if (this.index < list.Count)
+                if (_index < _list.Count)
                 {
-                    this.index++;
+                    _index++;
                 }
 
-                return this.index < list.Count;
+                return _index < _list.Count;
             }
 
             /// <summary>
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return this.list[this.index];
+                    return _list[_index];
                 }
             }
 

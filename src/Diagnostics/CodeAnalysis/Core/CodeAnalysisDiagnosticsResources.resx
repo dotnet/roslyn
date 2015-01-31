@@ -127,22 +127,19 @@
     <value>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</value>
   </data>
   <data name="AddLanguageSupportToAnalyzerMessage" xml:space="preserve">
-    <value>'{0}' seems to be a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for '{1}' language support.</value>
+    <value>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</value>
   </data>
   <data name="AddLanguageSupportToAnalyzerTitle" xml:space="preserve">
     <value>Recommend adding language support to diagnostic analyzer.</value>
   </data>
   <data name="AddLanguageSupportToAnalyzerDescription" xml:space="preserve">
-    <value>Given diagnostic analyzer seems to be marked with a DiagnosticAnalyzerAttribute with a specific supported language. However, the analyzer assembly doesn't seem to reference any language specific CodeAnalysis assemblies. Hence, it is likely a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for missing language.</value>
+    <value>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</value>
   </data>
   <data name="ApplyDiagnosticAnalyzerAttribute_1" xml:space="preserve">
-    <value>Apply language-agnostic DiagnosticAnalyzer attribute.</value>
+    <value>Apply DiagnosticAnalyzer attribute for '{0}'.</value>
   </data>
   <data name="ApplyDiagnosticAnalyzerAttribute_2" xml:space="preserve">
-    <value>Apply '{0}' DiagnosticAnalyzer attribute.</value>
-  </data>
-  <data name="ApplyDiagnosticAnalyzerAttribute_3" xml:space="preserve">
-    <value>Apply DiagnosticAnalyzer attributes for both: '{0}' and '{1}'.</value>
+    <value>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</value>
   </data>
   <data name="MissingKindArgumentToRegisterActionMessage" xml:space="preserve">
     <value>Specify at least one '{0}' of interest while registering a {1} analyzer action.</value>

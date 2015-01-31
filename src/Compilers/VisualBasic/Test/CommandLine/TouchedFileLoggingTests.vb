@@ -172,7 +172,8 @@ End Class
                      "/touchedfiles:" + touchedBase,
                      source1},
                     baseDirectory,
-                    libDirectory)
+                    libDirectory,
+                    Path.GetTempPath())
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing
                 BuildTouchedFiles(cmd,
@@ -218,12 +219,9 @@ End Class
 
             Dim writes = New List(Of String)
             writes.Add(outputPath)
-            cmd.PathGetTempFileName = Function()
-                                          ' Named 'GetFileName', but actually a path
-                                          Dim tempPath As String = Path.GetTempFileName()
-                                          writes.Add(tempPath)
-                                          Return tempPath
-                                      End Function
+            AddHandler cmd.OnCreateTempFile, Sub(tempPath, stream)
+                                                 writes.Add(tempPath)
+                                             End Sub
             expectedWrites = writes
         End Sub
 

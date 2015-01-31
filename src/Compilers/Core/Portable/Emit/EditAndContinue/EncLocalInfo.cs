@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return "[invalid]";
             }
 
-            return string.Format("[Id={0}, SynthesizedKind={1}, Type={2}, Constraints={3}, Sig={4}]", 
-                this.SlotInfo.Id, 
-                this.SlotInfo.SynthesizedKind, 
-                this.Type, 
+            return string.Format("[Id={0}, SynthesizedKind={1}, Type={2}, Constraints={3}, Sig={4}]",
+                this.SlotInfo.Id,
+                this.SlotInfo.SynthesizedKind,
+                this.Type,
                 this.Constraints,
                 (this.Signature != null) ? BitConverter.ToString(this.Signature) : "null");
         }

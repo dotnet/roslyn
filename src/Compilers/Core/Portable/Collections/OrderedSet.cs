@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.Collections
 {
     internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>
     {
-        private readonly HashSet<T> set;
-        private readonly ArrayBuilder<T> list;
+        private readonly HashSet<T> _set;
+        private readonly ArrayBuilder<T> _list;
 
         public OrderedSet()
         {
-            set = new HashSet<T>();
-            list = new ArrayBuilder<T>();
+            _set = new HashSet<T>();
+            _list = new ArrayBuilder<T>();
         }
 
         public OrderedSet(IEnumerable<T> items)
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool Add(T item)
         {
-            if (set.Add(item))
+            if (_set.Add(item))
             {
-                list.Add(item);
+                _list.Add(item);
                 return true;
             }
 
@@ -47,29 +47,29 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                return list.Count;
+                return _list.Count;
             }
         }
 
         public bool Contains(T item)
         {
-            return set.Contains(item);
+            return _set.Contains(item);
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return list.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return list.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         public void Clear()
         {
-            set.Clear();
-            list.Clear();
+            _set.Clear();
+            _list.Clear();
         }
     }
 }

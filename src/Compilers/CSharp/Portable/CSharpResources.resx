@@ -3222,7 +3222,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>No source files specified.</value>
   </data>
   <data name="WRN_NoSources_Title" xml:space="preserve">
-    <value>No source files specified.</value>
+    <value>No source files specified</value>
   </data>
   <data name="ERR_NoScriptsSpecified" xml:space="preserve">
     <value>Expected at least one script (.csx file) but none specified</value>
@@ -3357,7 +3357,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'{0}': base type '{1}' is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_BadBase_Title" xml:space="preserve">
-    <value>'Base type is not CLS-compliant</value>
+    <value>Base type is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_BadBase_Description" xml:space="preserve">
     <value>A base type was marked as not having to be compliant with the Common Language Specification (CLS) in an assembly that was marked as being CLS compliant. Either remove the attribute that specifies the assembly is CLS compliant or remove the attribute that indicates the type is not CLS compliant.</value>
@@ -3708,7 +3708,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The entry point of the program is global script code; ignoring '{0}' entry point.</value>
   </data>
   <data name="WRN_MainIgnored_Title" xml:space="preserve">
-    <value>The entry point of the program is global script code; ignoring entry point.</value>
+    <value>The entry point of the program is global script code; ignoring entry point</value>
   </data>
   <data name="ERR_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
@@ -4605,16 +4605,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Alignment value {0} has a magnitude greater than {1} and may result in a large formatted string.</value>
   </data>
   <data name="HDN_UnusedExternAlias_Title" xml:space="preserve">
-    <value>Unused extern alias.</value>
+    <value>Unused extern alias</value>
   </data>
   <data name="HDN_UnusedUsingDirective_Title" xml:space="preserve">
-    <value>Unnecessary using directive.</value>
+    <value>Unnecessary using directive</value>
   </data>
   <data name="INF_UnableToLoadSomeTypesInAnalyzer_Title" xml:space="preserve">
-    <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException.</value>
+    <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException</value>
   </data>
   <data name="WRN_AlignmentMagnitude_Title" xml:space="preserve">
-    <value>Alignment value has a magnitude that may result in a large formatted string.</value>
+    <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
   <data name="ERR_ContantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>

@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyArguments(declarationsInNode, getKind, semanticModel, actions, analyzerOptions, addDiagnostic, continueOnAnalyzerException);
 
             var codeBlockStartActions = actions.GetCodeBlockStartActions<TLanguageKindEnum>();
-            var codeBlockEndActions = actions.GetCodeBlockEndActions<TLanguageKindEnum>();
+            var codeBlockEndActions = actions.CodeBlockEndActions;
 
             if (!codeBlockStartActions.Any() && !codeBlockEndActions.Any())
             {
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
-            IEnumerable<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> codeBlockEndActions,
+            IEnumerable<CodeBlockEndAnalyzerAction> codeBlockEndActions,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(executableCodeBlocks.Any());
 
             // Compute the sets of code block end and stateful syntax node actions.
-            var endedActions = PooledHashSet<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+            var endedActions = PooledHashSet<CodeBlockEndAnalyzerAction>.GetInstance();
             var executableNodeActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
 
             // Include the stateless code block actions.
@@ -367,19 +367,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Execute stateful executable node analyzers, if any.
             if (executableNodeActions.Any())
             {
-                var executableNodeActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
-                GetNodeActionsByKind(executableNodeActions, executableNodeActionsByKind, addDiagnostic);
+                var executableNodeActionsByKind = GetNodeActionsByKind(executableNodeActions, addDiagnostic);
 
                 var nodesToAnalyze = executableCodeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf());
                 ExecuteSyntaxNodeActions(nodesToAnalyze, executableNodeActionsByKind, semanticModel,
                     analyzerOptions, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken);
-
-                foreach (var b in executableNodeActionsByKind.Values)
-                {
-                    b.Free();
-                }
-
-                executableNodeActionsByKind.Free();
             }
 
             // Execute code block end actions.
@@ -393,15 +385,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             executableNodeActions.Free();
         }
 
-        internal static void GetNodeActionsByKind<TLanguageKindEnum>(
+        internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
             IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions,
-            PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             Action<Diagnostic> addDiagnostic)
             where TLanguageKindEnum : struct
         {
             Debug.Assert(nodeActions != null && nodeActions.Any());
-            Debug.Assert(nodeActionsByKind != null && !nodeActionsByKind.Any());
 
+            var nodeActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
             foreach (var nodeAction in nodeActions)
             {
                 foreach (var kind in nodeAction.Kinds)
@@ -415,11 +406,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     actionsForKind.Add(nodeAction);
                 }
             }
+
+            var tuples = nodeActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+            var map = ImmutableDictionary.CreateRange(tuples);
+            nodeActionsByKind.Free();
+            return map;
         }
 
         internal static void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             IEnumerable<SyntaxNode> nodesToAnalyze,
-            IDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
+            IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             SemanticModel model,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
@@ -433,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var child in nodesToAnalyze)
             {
-                ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> actionsForKind;
+                ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> actionsForKind;
                 if (nodeActionsByKind.TryGetValue(getKind(child), out actionsForKind))
                 {
                     foreach (var action in actionsForKind)
@@ -661,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             VerifyArguments(semanticModel, actions, analyzerOptions, addDiagnostic, continueOnAnalyzerException);
         }
-        
+
         internal static void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, Action analyze, CancellationToken cancellationToken)
         {
             try

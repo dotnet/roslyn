@@ -26,7 +26,7 @@
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
-  <ValueType Name="TypeOrValueInfo"/>
+  <ValueType Name="BoundTypeOrValueData"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -161,11 +161,7 @@
   <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ValueSymbol" Type="Symbol" Null="disallow"/>
-    <Field Name="ValueExpression" Type="BoundExpression" Null="disallow"/>
-    <Field Name="ValueDiagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" Null="disallow"/>
-    <Field Name="TypeExpression" Type="BoundExpression" Null="disallow"/>
-    <Field Name="TypeDiagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" Null="disallow"/>
+    <Field Name="Data" Type="BoundTypeOrValueData"/>
   </Node>
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
@@ -799,6 +795,7 @@
     
     <Field Name="ExceptionFilterOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="Body" Type="BoundBlock"/>
+    <Field Name="IsSynthesizedAsyncCatchAll" Type="bool" />
   </Node>
 
   <Node Name="BoundLiteral" Base="BoundExpression">

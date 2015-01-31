@@ -6,42 +6,42 @@ namespace Microsoft.CodeAnalysis
 {
     internal struct AssemblyVersion : IEquatable<AssemblyVersion>, IComparable<AssemblyVersion>
     {
-        private readonly ushort major;
-        private readonly ushort minor;
-        private readonly ushort build;
-        private readonly ushort revision;
+        private readonly ushort _major;
+        private readonly ushort _minor;
+        private readonly ushort _build;
+        private readonly ushort _revision;
 
         public AssemblyVersion(ushort major, ushort minor, ushort build, ushort revision)
         {
-            this.major = major;
-            this.minor = minor;
-            this.build = build;
-            this.revision = revision;
+            _major = major;
+            _minor = minor;
+            _build = build;
+            _revision = revision;
         }
 
         public int Major
         {
-            get { return major; }
+            get { return _major; }
         }
 
         public int Minor
         {
-            get { return minor; }
+            get { return _minor; }
         }
 
         public int Build
         {
-            get { return build; }
+            get { return _build; }
         }
 
         public int Revision
         {
-            get { return revision; }
+            get { return _revision; }
         }
 
         private ulong ToInteger()
         {
-            return ((ulong)major << 48) | ((ulong)minor << 32) | ((ulong)build << 16) | revision;
+            return ((ulong)_major << 48) | ((ulong)_minor << 32) | ((ulong)_build << 16) | _revision;
         }
 
         public int CompareTo(AssemblyVersion other)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return ((this.major & 0x000f) << 28) | ((this.minor & 0x00ff) << 20) | ((this.build & 0x00ff) << 12) | (this.revision & 0x0fff);
+            return ((_major & 0x000f) << 28) | ((_minor & 0x00ff) << 20) | ((_build & 0x00ff) << 12) | (_revision & 0x0fff);
         }
 
         public static bool operator ==(AssemblyVersion left, AssemblyVersion right)

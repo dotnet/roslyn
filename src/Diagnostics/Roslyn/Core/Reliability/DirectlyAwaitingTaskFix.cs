@@ -17,12 +17,12 @@ namespace Roslyn.Diagnostics.CodeFixes
         protected abstract TExpressionSyntax FixExpression(TExpressionSyntax syntaxNode, CancellationToken cancellationToken);
         protected abstract string FalseLiteralString { get; }
 
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId);
+            get { return ImmutableArray.Create(RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId); }
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -32,7 +32,7 @@ namespace Roslyn.Diagnostics.CodeFixes
 
                 if (expression != null)
                 {
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new MyCodeAction(
                             "Append .ConfigureAwait(" + FalseLiteralString + ")",
                             c => GetFix(context.Document, root, expression, c)),

@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private class CompilationAnalyzer
         {
-            private readonly Compilation compilation;
+            private readonly Compilation _compilation;
 
             public CompilationAnalyzer(Compilation compilation)
             {
-                this.compilation = compilation;
+                _compilation = compilation;
             }
 
             public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
             {
-                var semanticModel = compilation.GetSemanticModel(context.Tree);
+                var semanticModel = _compilation.GetSemanticModel(context.Tree);
                 var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation);
             }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static void ReportDiagnostics(ImmutableArray<Diagnostic> diagnostics, Action<Diagnostic> reportDiagnostic, Func<Location, bool> locationFilter)
             {
-                foreach(var diagnostic in diagnostics)
+                foreach (var diagnostic in diagnostics)
                 {
                     if (locationFilter(diagnostic.Location) &&
                         diagnostic.Severity != DiagnosticSeverity.Hidden)
@@ -57,6 +57,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-        }    
+        }
     }
 }

@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y\\"));
             Assert.Equal(@"\\abc\xyz", PathUtilities.GetPathRoot(@"\\abc\xyz"));
             Assert.Equal(@"\\server\$c", PathUtilities.GetPathRoot(@"\\server\$c\Public"));
-
             // TODO (tomat): long UNC paths
             // Assert.Equal(@"\\?\C:\", PathUtilities.GetPathRoot(@"\\?\C:\abc\def"));
         }
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // absolute path:
             TestPath(@"C:\abc\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"C:\abc\def.dll");
             TestPath(@"C:\abc\\\\\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"C:\abc\\\\\def.dll");
-            
+
             // root-relative path:
             TestPath(@"\abc\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"Q:\abc\def.dll");
             TestPath(@"\abc\def.dll", null, baseDir, noSearchPaths, @"X:\abc\def.dll");
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(PathKind.RelativeToCurrentRoot, PathUtilities.GetPathKind(@"/:x.dll"));
             TestPath(@"/:x.dll", null, @"d:\", noSearchPaths, @"d:\:x.dll");
-            
+
             Assert.Equal(PathKind.Absolute, PathUtilities.GetPathKind(@"//:x.dll"));
             TestPath(@"//:x.dll", null, @"d:\", noSearchPaths, @"//:x.dll");
 

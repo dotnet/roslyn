@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal sealed class ChangedText : SourceText
     {
-        private readonly SourceText oldText;
-        private readonly SourceText newText;
-        private readonly ImmutableArray<TextChangeRange> changes;
+        private readonly SourceText _oldText;
+        private readonly SourceText _newText;
+        private readonly ImmutableArray<TextChangeRange> _changes;
 
         public ChangedText(SourceText oldText, ImmutableArray<TextChangeRange> changeRanges, ImmutableArray<SourceText> segments)
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
@@ -21,54 +21,54 @@ namespace Microsoft.CodeAnalysis.Text
             Debug.Assert(!changeRanges.IsDefault);
             Debug.Assert(!segments.IsDefault);
 
-            this.oldText = oldText;
-            this.newText = segments.IsEmpty ? new StringText("", oldText.Encoding, checksumAlgorithm: oldText.ChecksumAlgorithm) : (SourceText)new CompositeText(segments);
-            this.changes = changeRanges;
+            _oldText = oldText;
+            _newText = segments.IsEmpty ? new StringText("", oldText.Encoding, checksumAlgorithm: oldText.ChecksumAlgorithm) : (SourceText)new CompositeText(segments);
+            _changes = changeRanges;
         }
 
         public override Encoding Encoding
         {
-            get { return oldText.Encoding; }
+            get { return _oldText.Encoding; }
         }
 
         public SourceText OldText
         {
-            get { return this.oldText; }
+            get { return _oldText; }
         }
 
         public SourceText NewText
         {
-            get { return this.newText; }
+            get { return _newText; }
         }
 
         public IEnumerable<TextChangeRange> Changes
         {
-            get { return this.changes; }
+            get { return _changes; }
         }
 
         public override int Length
         {
-            get { return this.newText.Length; }
+            get { return _newText.Length; }
         }
 
         public override char this[int position]
         {
-            get { return this.newText[position]; }
+            get { return _newText[position]; }
         }
 
         public override string ToString(TextSpan span)
         {
-            return this.newText.ToString(span);
+            return _newText.ToString(span);
         }
 
         public override SourceText GetSubText(TextSpan span)
         {
-            return this.newText.GetSubText(span);
+            return _newText.GetSubText(span);
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            this.newText.CopyTo(sourceIndex, destination, destinationIndex, count);
+            _newText.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
 
         public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
@@ -78,16 +78,16 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException("oldText");
             }
 
-            if (ReferenceEquals(this.oldText, oldText))
+            if (ReferenceEquals(_oldText, oldText))
             {
                 // check whether the bases are same one
-                return this.changes;
+                return _changes;
             }
 
-            if (this.oldText.GetChangeRanges(oldText).Count == 0)
+            if (_oldText.GetChangeRanges(oldText).Count == 0)
             {
                 // okay, the bases are different, but the contents might be same.
-                return this.changes;
+                return _changes;
             }
 
             if (this == oldText)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return TextChangeRange.NoChanges;
             }
 
-            return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), newText.Length));
+            return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _newText.Length));
         }
     }
 }

@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
-                    var task = fixAllContext.CodeFixProvider.ComputeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+                    var task = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
                     await task.ConfigureAwait(false);
 
                     foreach (var fix in fixes)
                     {
-                        if (fix != null && fix.Id == fixAllContext.CodeActionId)
+                        if (fix != null && fix.EquivalenceKey == fixAllContext.CodeActionEquivalenceKey)
                         {
                             addFix(fix);
                         }

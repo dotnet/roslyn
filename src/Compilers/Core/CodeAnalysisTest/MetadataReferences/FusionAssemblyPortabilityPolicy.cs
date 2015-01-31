@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         // Pointer to unmanaged small CLR struct that must be allocated and deallocated by
         // CLR calls
-        private IntPtr assemblyConfigCookie;
-        private readonly ImmutableArray<byte> fileHash;
-        
+        private IntPtr _assemblyConfigCookie;
+        private readonly ImmutableArray<byte> _fileHash;
+
         private FusionAssemblyPortabilityPolicy(IntPtr asmConfigCookie, ImmutableArray<byte> fileHash)
         {
-            this.assemblyConfigCookie = asmConfigCookie;
-            this.fileHash = fileHash;
+            _assemblyConfigCookie = asmConfigCookie;
+            _fileHash = fileHash;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal IntPtr ConfigCookie
         {
-            get { return assemblyConfigCookie; }
+            get { return _assemblyConfigCookie; }
         }
 
         [DllImport("clr", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, PreserveSig = false)]
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void DisposeInternal()
         {
-            IntPtr ptr = Interlocked.Exchange(ref assemblyConfigCookie, IntPtr.Zero);
+            IntPtr ptr = Interlocked.Exchange(ref _assemblyConfigCookie, IntPtr.Zero);
             if (ptr != IntPtr.Zero)
             {
                 DestroyAssemblyConfigCookie(ptr);
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // policies have the same path and the same timestamp that they are the same.
             // We can't do any better because we don't have access to the config cookie internals.
             return (object)other != null &&
-                   Enumerable.SequenceEqual(this.fileHash, other.fileHash);
+                   Enumerable.SequenceEqual(_fileHash, other._fileHash);
         }
 
         public override int GetHashCode()
         {
             // Modified FNV hash
-            return Hash.GetFNVHashCode(this.fileHash);
+            return Hash.GetFNVHashCode(_fileHash);
         }
 
         ~FusionAssemblyPortabilityPolicy()

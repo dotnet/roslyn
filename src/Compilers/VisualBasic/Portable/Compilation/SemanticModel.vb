@@ -1141,6 +1141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim meParam As ParameterSymbol = GetMeParameter(meReference.Type, containingType, containingMember, resultKind)
                         symbolsBuilder.Add(meParam)
 
+                    Case BoundKind.TypeOrValueExpression
+                        ' If we're seeing a node of this kind, then we failed to resolve the member access
+                        ' as either a type or a property/field/event/local/parameter.  In such cases,
+                        ' the second interpretation applies so just visit the node for that.
+                        Dim boundTypeOrValue = DirectCast(boundNodes.LowestBoundNode, BoundTypeOrValueExpression)
+                        Dim valueBoundNodes = New BoundNodeSummary(boundTypeOrValue.Data.ValueExpression, boundNodes.HighestBoundNode, boundNodes.LowestBoundNodeOfSyntacticParent)
+                        Return GetSemanticSymbols(valueBoundNodes, binderOpt, options, resultKind, memberGroup)
+
                     Case Else
 _Default:
                         ' Currently, only nodes deriving from BoundExpression have symbols or
@@ -2540,7 +2548,7 @@ _Default:
         ''' <param name="declarationSyntax">The syntax node that declares a type block.</param>
         ''' <returns>The type symbol that was declared.</returns>
         Public Overloads Function GetDeclaredSymbol(declarationSyntax As TypeBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Return GetDeclaredSymbol(declarationSyntax.Begin, cancellationToken)
+            Return GetDeclaredSymbol(declarationSyntax.BlockStatement, cancellationToken)
         End Function
 
         ''' <summary>
@@ -2647,7 +2655,7 @@ _Default:
         ''' <param name="declarationSyntax">The syntax node that declares method, property or event.</param>
         ''' <returns>The method, property or event symbol that was declared.</returns>
         Public Overloads Function GetDeclaredSymbol(declarationSyntax As MethodBlockBaseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Return DirectCast(GetDeclaredSymbol(declarationSyntax.Begin, cancellationToken), MethodSymbol)
+            Return DirectCast(GetDeclaredSymbol(declarationSyntax.BlockStatement, cancellationToken), MethodSymbol)
         End Function
 
         ''' <summary>

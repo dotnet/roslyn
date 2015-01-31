@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             context.RegisterCompilationEndAction(this.AnalyzeCompilation);
             context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
-            context.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.AnalyzeCodeBlock);
+            context.RegisterCodeBlockEndAction(this.AnalyzeCodeBlock);
             context.RegisterSymbolAction(this.AnalyzeSymbol, AllSymbolKinds.ToArray());
             context.RegisterSyntaxTreeAction(this.AnalyzeSyntaxTree);
             context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());

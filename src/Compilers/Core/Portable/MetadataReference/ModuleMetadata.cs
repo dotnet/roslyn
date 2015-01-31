@@ -17,27 +17,27 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
     public sealed partial class ModuleMetadata : Metadata
     {
-        private bool isDisposed;
+        private bool _isDisposed;
 
-        private readonly PEModule module;
+        private readonly PEModule _module;
 
         private ModuleMetadata(PEReader peReader)
             : base(isImageOwner: true)
         {
-            this.module = new PEModule(peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
+            _module = new PEModule(peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
             : base(isImageOwner: true)
         {
-            this.module = new PEModule(peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
+            _module = new PEModule(peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
         }
 
         // creates a copy
         private ModuleMetadata(ModuleMetadata metadata)
             : base(isImageOwner: false)
         {
-            this.module = metadata.Module;
+            _module = metadata.Module;
         }
 
         /// <summary>
@@ -214,17 +214,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override void Dispose()
         {
-            isDisposed = true;
+            _isDisposed = true;
 
             if (IsImageOwner)
             {
-                module.Dispose();
+                _module.Dispose();
             }
         }
 
         internal bool IsDisposed
         {
-            get { return isDisposed || module.IsDisposed; }
+            get { return _isDisposed || _module.IsDisposed; }
         }
 
         internal PEModule Module
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ObjectDisposedException(nameof(ModuleMetadata));
                 }
 
-                return module;
+                return _module;
             }
         }
 

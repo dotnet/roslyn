@@ -24,9 +24,9 @@
   <!-- Dependency on PrepareForBuild is necessary so that we don't accidentally get ordered before it.
   We rely on PrepareForBuild to create the IntermediateOutputDirectory if it doesn't exist. -->
   <Target Name="GenerateInternalsVisibleToFile"
-          Inputs="$(MSBuildThisFileFullPath);$(MSBuildProjectFile);$(GeneratedEmptyFakeInputForStrongNameKeyFile)"
+          Inputs="$(MSBuildThisFileFullPath);$(MSBuildProjectFile)"
           Outputs="$(GeneratedInternalsVisibleToFile)"
-          DependsOnTargets="PrepareForBuild;CreateFakeInputForStrongNameKey"
+          DependsOnTargets="PrepareForBuild"
           Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != ''">
 
     <!--

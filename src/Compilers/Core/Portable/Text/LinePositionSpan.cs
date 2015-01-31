@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public struct LinePositionSpan : IEquatable<LinePositionSpan>
     {
-        private readonly LinePosition start;
-        private readonly LinePosition end;
+        private readonly LinePosition _start;
+        private readonly LinePosition _end;
 
         /// <summary>
         /// Creates <see cref="LinePositionSpan"/>.
@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentException("end", CodeAnalysisResources.EndMustNotBeLessThanStart);
             }
 
-            this.start = start;
-            this.end = end;
+            _start = start;
+            _end = end;
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public LinePosition Start
         {
-            get { return start; }
+            get { return _start; }
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public LinePosition End
         {
-            get { return end; }
+            get { return _end; }
         }
 
         public override bool Equals(object obj)
@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         public bool Equals(LinePositionSpan other)
         {
-            return this.start.Equals(other.start)
-                && this.end.Equals(other.end);
+            return _start.Equals(other._start)
+                && _end.Equals(other._end);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(start.GetHashCode(), end.GetHashCode());
+            return Hash.Combine(_start.GetHashCode(), _end.GetHashCode());
         }
 
         public static bool operator ==(LinePositionSpan left, LinePositionSpan right)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <example>(0,0)-(5,6)</example>
         public override string ToString()
         {
-            return string.Format("({0})-({1})", this.start, this.end);
+            return string.Format("({0})-({1})", _start, _end);
         }
     }
 }

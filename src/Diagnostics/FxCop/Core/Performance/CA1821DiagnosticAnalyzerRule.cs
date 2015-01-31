@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          description: localizableDescription,
-                                                                         helpLink: "http://msdn.microsoft.com/library/bb264476.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/bb264476.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
     }
 }

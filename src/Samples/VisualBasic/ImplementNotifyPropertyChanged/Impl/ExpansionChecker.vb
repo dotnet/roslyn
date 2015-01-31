@@ -71,8 +71,8 @@ Friend Class ExpansionChecker
                                     ByRef getter As AccessorBlockSyntax,
                                     ByRef setter As AccessorBlockSyntax) As Boolean
         Dim accessors = propertyBlock.Accessors
-        getter = accessors.FirstOrDefault(Function(ad) ad.Begin.Kind() = SyntaxKind.GetAccessorStatement)
-        setter = accessors.FirstOrDefault(Function(ad) ad.Begin.Kind() = SyntaxKind.SetAccessorStatement)
+        getter = accessors.FirstOrDefault(Function(ad) ad.AccessorStatement.Kind() = SyntaxKind.GetAccessorStatement)
+        setter = accessors.FirstOrDefault(Function(ad) ad.AccessorStatement.Kind() = SyntaxKind.SetAccessorStatement)
         Return getter IsNot Nothing AndAlso setter IsNot Nothing
     End Function
 

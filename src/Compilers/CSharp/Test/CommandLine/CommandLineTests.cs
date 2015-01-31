@@ -3589,6 +3589,16 @@ public class CS1698_a {}
         [Fact]
         public void Bug15538()
         {
+            // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
+            // in that environment.  Removing this check is being tracked by issue #79.  
+            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                if (identity.IsSystem)
+                {
+                    return;
+                }
+            }
+
             var folder = Temp.CreateDirectory();
             var source = folder.CreateFile("src.vb").WriteAllText("").Path;
             var _ref = folder.CreateFile("ref.dll").WriteAllText("").Path;
@@ -5604,19 +5614,22 @@ class Program
             string sourcePath = MakeTrivialExe();
             ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
             MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", sourcePath);
+            string tempFilePath = null;
+
             csc.FileOpen = (path, mode, access, share) =>
             {
-                throw new IOException();
+                tempFilePath = path;
+                throw new IOException(path);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
 
-            var expectedOutput = string.Format("error CS0016: Could not write to output file '{0}' -- 'I/O error occurred.'", tempFilePaths[0]);
+            var expectedOutput = string.Format("error CS1619: Cannot create temporary file -- {0}", tempFilePath);
             Assert.Equal(expectedOutput, outWriter.ToString().Trim());
 
             Assert.NotEqual(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
+            Assert.Equal(0, tempFilePaths.Count);
 
             tempFilePaths.Free();
         }
@@ -5627,11 +5640,14 @@ class Program
             string sourcePath = MakeTrivialExe();
             ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
             MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", "/debug", sourcePath);
+            string tempFilePath = null;
+
             csc.FileOpen = (path, mode, access, share) =>
             {
-                if (tempFilePaths.Count == 2)
+                if (tempFilePaths.Count == 1)
                 {
-                    throw new IOException();
+                    tempFilePath = path;
+                    throw new IOException(path);
                 }
                 else
                 {
@@ -5642,11 +5658,11 @@ class Program
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
 
-            var expectedOutput = string.Format("error CS0016: Could not write to output file '{0}' -- 'I/O error occurred.'", tempFilePaths[1]);
+            var expectedOutput = string.Format("error CS1619: Cannot create temporary file -- {0}", tempFilePath);
             Assert.Equal(expectedOutput, outWriter.ToString().Trim());
 
             Assert.NotEqual(0, exitCode);
-            Assert.Equal(2, tempFilePaths.Count);
+            Assert.Equal(1, tempFilePaths.Count);
 
             tempFilePaths.Free();
         }
@@ -5919,15 +5935,13 @@ class Program
         /// </summary>
         private MockCSharpCompiler MakeTrackingCsc(ArrayBuilder<string> tempFilePaths, params string[] args)
         {
-            return new MockCSharpCompiler(null, baseDirectory, args)
-            {
-                PathGetTempFileName = () =>
-                {
-                    string path = Path.GetTempFileName();
-                    tempFilePaths.Add(path);
-                    return path;
-                }
-            };
+            var result = new MockCSharpCompiler(null, baseDirectory, args);
+
+            result.OnCreateTempFile += (path, stream) =>
+                                        {
+                                            tempFilePaths.Add(path);
+                                        };
+            return result;
         }
 
         [Fact, WorkItem(546452, "DevDiv")]
@@ -6183,10 +6197,12 @@ public class C { }
         public void TestTempFileCreationFail()
         {
             var comp = new MockCSharpCompiler(null, baseDirectory, new[] { "/out:foo", "/t:library" });
-            comp.PathGetTempFileName = () =>
-            {
-                throw new IOException("Ronnie James Dio");
-            };
+            comp.OnCreateTempFile += (path, stream) =>
+                                        {
+                                            stream.Dispose();
+                                            File.Delete(path);
+                                            throw new IOException("Ronnie James Dio");
+                                        };
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var result = comp.Run(outWriter);
             Assert.Contains("CS1619", outWriter.ToString());

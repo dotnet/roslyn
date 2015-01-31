@@ -13,14 +13,14 @@ namespace Roslyn.Utilities
         internal const char AltDirectorySeparatorChar = '/';
         internal const char VolumeSeparatorChar = ':';
 
-        private static readonly char[] DirectorySeparators = new[]
+        private static readonly char[] s_directorySeparators = new[]
         {
             DirectorySeparatorChar, AltDirectorySeparatorChar, VolumeSeparatorChar
         };
 
         internal static bool HasDirectorySeparators(string path)
         {
-            return path.IndexOfAny(DirectorySeparators) >= 0;
+            return path.IndexOfAny(s_directorySeparators) >= 0;
         }
 
         internal static string GetExtension(string path)
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
 
             return path.Substring(0, fileNameStart);
         }
-        
+
         internal static PathKind GetPathKind(string path)
         {
             if (string.IsNullOrWhiteSpace(path))

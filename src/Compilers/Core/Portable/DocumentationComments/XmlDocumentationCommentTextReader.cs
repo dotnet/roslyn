@@ -12,50 +12,50 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal partial class XmlDocumentationCommentTextReader
     {
-        private XmlReader reader;
-        private readonly Reader textReader = new Reader();
+        private XmlReader _reader;
+        private readonly Reader _textReader = new Reader();
 
-        private static readonly ObjectPool<XmlDocumentationCommentTextReader> pool = 
+        private static readonly ObjectPool<XmlDocumentationCommentTextReader> s_pool =
             new ObjectPool<XmlDocumentationCommentTextReader>(() => new XmlDocumentationCommentTextReader(), size: 2);
 
         public static XmlException ParseAndGetException(string text)
         {
-            var reader = pool.Allocate();
+            var reader = s_pool.Allocate();
             var retVal = reader.ParseInternal(text);
-            pool.Free(reader);
+            s_pool.Free(reader);
             return retVal;
         }
 
-        private static readonly XmlReaderSettings xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
 
         // internal for testing
         internal XmlException ParseInternal(string text)
         {
-            textReader.SetText(text);
+            _textReader.SetText(text);
 
-            if (reader == null)
+            if (_reader == null)
             {
-                reader = XmlReader.Create(textReader, xmlSettings);
+                _reader = XmlReader.Create(_textReader, s_xmlSettings);
             }
 
             try
             {
                 do
                 {
-                    reader.Read();
+                    _reader.Read();
                 }
-                while (!Reader.ReachedEnd(reader));
+                while (!Reader.ReachedEnd(_reader));
 
                 return null;
             }
             catch (XmlException ex)
             {
                 // The reader is in a bad state, so dispose of it and recreate a new one next time we get called.
-                reader.Dispose();
-                reader = null;
-                textReader.Reset();
+                _reader.Dispose();
+                _reader = null;
+                _textReader.Reset();
                 return ex;
             }
-        }           
+        }
     }
 }

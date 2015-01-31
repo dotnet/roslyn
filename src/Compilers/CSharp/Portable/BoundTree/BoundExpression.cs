@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -509,26 +510,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundTypeOrValueExpression : BoundExpression
+    // NOTE: this type exists in order to hide the presence of {Value,Type}Expression inside of a
+    //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
+    //       a constructor that may spuriously set hasErrors to true if either field had errors.
+    //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
+    struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
     {
-        // NOTE: this constructor should always be used instead of the generated constructor, since the generated
-        //       constructor may spuriously set hasErrors to true if valueExpression or typeExpression have errors.
-        //       This node should never have errors if it is present in the tree.
-        public BoundTypeOrValueExpression(CSharpSyntaxNode syntax, Symbol valueSymbol, BoundExpression valueExpression, ImmutableArray<Diagnostic> valueDiagnostics, BoundExpression typeExpression, ImmutableArray<Diagnostic> typeDiagnostics, TypeSymbol type)
-            : base(BoundKind.TypeOrValueExpression, syntax, type, hasErrors: false)
+        public Symbol ValueSymbol { get; }
+        public BoundExpression ValueExpression { get; }
+        public DiagnosticBag ValueDiagnostics { get; }
+        public BoundExpression TypeExpression { get; }
+        public DiagnosticBag TypeDiagnostics { get; }
+
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, DiagnosticBag valueDiagnostics, BoundExpression typeExpression, DiagnosticBag typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(!valueDiagnostics.IsDefault, "Field 'valueDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(valueDiagnostics != null, "Field 'valueDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(!typeDiagnostics.IsDefault, "Field 'typeDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(typeDiagnostics != null, "Field 'typeDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ValueSymbol = valueSymbol;
             this.ValueExpression = valueExpression;
             this.ValueDiagnostics = valueDiagnostics;
             this.TypeExpression = typeExpression;
             this.TypeDiagnostics = typeDiagnostics;
+        }
+
+        // operator==, operator!=, GetHashCode, and Equals are needed by the generated bound tree.
+
+        public static bool operator==(BoundTypeOrValueData a, BoundTypeOrValueData b)
+        {
+            return (object)a.ValueSymbol == (object)b.ValueSymbol &&
+                (object)a.ValueExpression == (object)b.ValueExpression &&
+                (object)a.ValueDiagnostics == (object)b.ValueDiagnostics &&
+                (object)a.TypeExpression == (object)b.TypeExpression &&
+                (object)a.TypeDiagnostics == (object)b.TypeDiagnostics;
+        }
+
+        public static bool operator!=(BoundTypeOrValueData a, BoundTypeOrValueData b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is BoundTypeOrValueData && (BoundTypeOrValueData)obj == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ValueSymbol.GetHashCode(),
+                Hash.Combine(ValueExpression.GetHashCode(),
+                Hash.Combine(ValueDiagnostics.GetHashCode(),
+                Hash.Combine(TypeExpression.GetHashCode(), TypeDiagnostics.GetHashCode()))));
+        }
+
+        bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
+        {
+            return b == this;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports Microsoft.CodeAnalysis.Text
@@ -817,9 +817,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' add a line break between begin statement and the ones from the statement list
             If Not hasInherits AndAlso Not hasImplements AndAlso node.Members.Count > 0 Then
-                AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 2)
+                AddLinebreaksAfterTokenIfNeeded(node.BlockStatement.GetLastToken(), 2)
             Else
-                AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+                AddLinebreaksAfterTokenIfNeeded(node.BlockStatement.GetLastToken(), 1)
             End If
 
             If hasImplements Then
@@ -911,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            AddLinebreaksAfterTokenIfNeeded(node.BlockStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
@@ -921,7 +921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitConstructorBlock(node As ConstructorBlockSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            AddLinebreaksAfterTokenIfNeeded(node.BlockStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
@@ -931,7 +931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitOperatorBlock(node As OperatorBlockSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            AddLinebreaksAfterTokenIfNeeded(node.BlockStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
@@ -941,7 +941,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitAccessorBlock(node As AccessorBlockSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            AddLinebreaksAfterTokenIfNeeded(node.BlockStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
@@ -1041,7 +1041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitCaseBlock(node As CaseBlockSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            AddLinebreaksAfterTokenIfNeeded(node.CaseStatement.GetLastToken(), 1)
 
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)
 
@@ -1115,7 +1115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Public Overrides Function VisitMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax) As SyntaxNode
-            AddLinebreaksAfterTokenIfNeeded(node.Begin.GetLastToken(), 1)
+            AddLinebreaksAfterTokenIfNeeded(node.SubOrFunctionHeader.GetLastToken(), 1)
 
             ' one statement per line
             AddLinebreaksAfterElementsIfNeeded(node.Statements, 1, 1)

@@ -15,42 +15,42 @@ namespace Roslyn.Utilities
     {
         public static readonly ConsList<T> Empty = new ConsList<T>();
 
-        private readonly T head;
-        private readonly ConsList<T> tail;
+        private readonly T _head;
+        private readonly ConsList<T> _tail;
 
         internal struct Enumerator : IEnumerator<T>
         {
-            private T current;
-            private ConsList<T> tail;
+            private T _current;
+            private ConsList<T> _tail;
 
             internal Enumerator(ConsList<T> list)
             {
-                current = default(T);
-                tail = list;
+                _current = default(T);
+                _tail = list;
             }
 
             public T Current
             {
                 get
                 {
-                    Debug.Assert(tail != null);
-                    return current;
+                    Debug.Assert(_tail != null);
+                    return _current;
                 }
             }
 
             public bool MoveNext()
             {
-                var currentTail = this.tail;
-                var newTail = currentTail.tail;
+                var currentTail = _tail;
+                var newTail = currentTail._tail;
 
                 if (newTail != null)
                 {
-                    this.current = currentTail.head;
-                    this.tail = newTail;
+                    _current = currentTail._head;
+                    _tail = newTail;
                     return true;
                 }
 
-                this.current = default(T);
+                _current = default(T);
                 return false;
             }
 
@@ -74,16 +74,16 @@ namespace Roslyn.Utilities
 
         private ConsList()
         {
-            this.head = default(T);
-            this.tail = null;
+            _head = default(T);
+            _tail = null;
         }
 
         public ConsList(T head, ConsList<T> tail)
         {
             Debug.Assert(tail != null);
 
-            this.head = head;
-            this.tail = tail;
+            _head = head;
+            _tail = tail;
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -92,7 +92,7 @@ namespace Roslyn.Utilities
             get
             {
                 Debug.Assert(this != Empty);
-                return head;
+                return _head;
             }
         }
 
@@ -102,7 +102,7 @@ namespace Roslyn.Utilities
             get
             {
                 Debug.Assert(this != Empty);
-                return tail;
+                return _tail;
             }
         }
 
@@ -135,14 +135,14 @@ namespace Roslyn.Utilities
         {
             StringBuilder result = new StringBuilder("ConsList[");
             bool any = false;
-            for (ConsList<T> list = this; list.tail != null; list = list.tail)
+            for (ConsList<T> list = this; list._tail != null; list = list._tail)
             {
                 if (any)
                 {
                     result.Append(", ");
                 }
 
-                result.Append(list.head);
+                result.Append(list._head);
                 any = true;
             }
 

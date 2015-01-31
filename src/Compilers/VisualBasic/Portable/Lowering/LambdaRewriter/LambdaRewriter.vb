@@ -805,7 +805,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                rewrittenExceptionSource,
                                rewrittenErrorLineNumberOpt,
                                rewrittenFilter,
-                               rewrittenBody)
+                               rewrittenBody,
+                               node.IsSynthesizedAsyncCatchAll)
         End Function
 
         Public Overrides Function VisitStatementList(node As BoundStatementList) As BoundNode

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
-
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -54,7 +53,7 @@ namespace Microsoft.Cci
         /// <paramref name="value"/> has type <see cref="VariantStructure"/>, rather than <see cref="object"/>,
         /// so that we can do custom marshalling of <see cref="System.DateTime"/>.  Unfortunately, .NET marshals
         /// <see cref="System.DateTime"/>s as the number of days since 1899/12/30, whereas the native VB compiler
-       ///  marshalled them as the number of ticks since the Unix epoch (i.e. a much, much larger number).
+        ///  marshalled them as the number of ticks since the Unix epoch (i.e. a much, much larger number).
         /// </remarks>
         void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] string name, VariantStructure value, uint sigToken);
     }
@@ -80,36 +79,36 @@ namespace Microsoft.Cci
     {
         public VariantStructure(DateTime date) : this() // Need this to avoid errors about the uninteresting union fields.
         {
-            this.longValue = date.Ticks;
-            this.type = (short)VarEnum.VT_DATE;
+            _longValue = date.Ticks;
+            _type = (short)VarEnum.VT_DATE;
         }
 
         [FieldOffset(0)]
-        private readonly short type;
+        private readonly short _type;
 
         [FieldOffset(8)]
-        private readonly long longValue;
+        private readonly long _longValue;
 
         /// <summary>
         /// This field determines the size of the struct 
         /// (16 bytes on 32-bit platforms, 24 bytes on 64-bit platforms).
         /// </summary>
         [FieldOffset(8)]
-        private readonly VariantPadding padding;
+        private readonly VariantPadding _padding;
 
         // Fields below this point are only used to make inspecting this struct in the debugger easier.
 
         [FieldOffset(0)] // NB: 0, not 8
-        private readonly decimal decimalValue;
+        private readonly decimal _decimalValue;
 
         [FieldOffset(8)]
-        private readonly bool boolValue;
+        private readonly bool _boolValue;
 
         [FieldOffset(8)]
-        private readonly long intValue;
+        private readonly long _intValue;
 
         [FieldOffset(8)]
-        private readonly double doubleValue;
+        private readonly double _doubleValue;
     }
 
     /// <summary>

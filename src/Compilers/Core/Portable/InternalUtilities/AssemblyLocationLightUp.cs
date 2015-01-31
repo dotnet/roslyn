@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 {
     internal static class AssemblyLocationLightUp
     {
-        private static Lazy<Func<Assembly, string>> lazyLocationGetter = new Lazy<Func<Assembly, string>>(() =>
+        private static Lazy<Func<Assembly, string>> s_lazyLocationGetter = new Lazy<Func<Assembly, string>>(() =>
         {
             try
             {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 
         internal static string GetAssemblyLocation(Assembly assembly)
         {
-            var getter = lazyLocationGetter.Value;
+            var getter = s_lazyLocationGetter.Value;
             if (getter == null)
             {
                 throw new PlatformNotSupportedException();

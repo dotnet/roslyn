@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class AnalyzerImageReference : AnalyzerReference
     {
-        private readonly ImmutableArray<DiagnosticAnalyzer> analyzers;
-        private readonly string fullPath;
-        private readonly string display;
+        private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private readonly string _fullPath;
+        private readonly string _display;
 
         public AnalyzerImageReference(ImmutableArray<DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null)
         {
@@ -25,26 +25,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException("Cannot have null-valued analyzer", "analyzers");
             }
 
-            this.analyzers = analyzers;
-            this.fullPath = fullPath;
-            this.display = display;
+            _analyzers = analyzers;
+            _fullPath = fullPath;
+            _display = display;
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
-            return this.analyzers;
+            return _analyzers;
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
-            return this.analyzers;
+            return _analyzers;
         }
 
         public override string FullPath
         {
             get
             {
-                return this.fullPath;
+                return _fullPath;
             }
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                return display ?? fullPath ?? CodeAnalysisResources.InMemoryAssembly;
+                return _display ?? _fullPath ?? CodeAnalysisResources.InMemoryAssembly;
             }
         }
 
@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var sb = new StringBuilder();
             sb.Append("Assembly");
 
-            if (fullPath != null)
+            if (_fullPath != null)
             {
                 sb.Append(" Path='");
-                sb.Append(fullPath);
+                sb.Append(_fullPath);
                 sb.Append("'");
             }
 
-            if (display != null)
+            if (_display != null)
             {
                 sb.Append(" Display='");
-                sb.Append(display);
+                sb.Append(_display);
                 sb.Append("'");
             }
 

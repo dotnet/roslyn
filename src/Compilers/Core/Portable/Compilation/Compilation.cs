@@ -43,6 +43,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract bool IsCaseSensitive { get; }
 
+        /// <summary>
+        /// Used for test purposes only to emulate missing members.
+        /// </summary>
+        private SmallDictionary<int, bool> _lazyMakeWellKnownTypeMissingMap;
+
+        /// <summary>
+        /// Used for test purposes only to emulate missing members.
+        /// </summary>
+        private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
+
         internal Compilation(
             string name,
             ImmutableArray<MetadataReference> references,
@@ -61,13 +71,13 @@ namespace Microsoft.CodeAnalysis
 
             if (isSubmission)
             {
-                this.lazySubmissionSlotIndex = SubmissionSlotIndexToBeAllocated;
+                _lazySubmissionSlotIndex = SubmissionSlotIndexToBeAllocated;
                 this.SubmissionReturnType = submissionReturnType ?? typeof(object);
                 this.HostObjectType = hostObjectType;
             }
             else
             {
-                this.lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
+                _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
             }
         }
 
@@ -144,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new compilation with a given event queue.
         /// </summary>
-        public abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
+        internal abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
 
         /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
@@ -246,7 +256,7 @@ namespace Microsoft.CodeAnalysis
         // -1 ... neither this nor previous submissions in the chain allocated a slot (the submissions don't contain code)
         // -2 ... the slot of this submission hasn't been determined yet
         // -3 ... this is not a submission compilation
-        private int lazySubmissionSlotIndex;
+        private int _lazySubmissionSlotIndex;
         private const int SubmissionSlotIndexNotApplicable = -3;
         private const int SubmissionSlotIndexToBeAllocated = -2;
 
@@ -257,7 +267,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return lazySubmissionSlotIndex != SubmissionSlotIndexNotApplicable;
+                return _lazySubmissionSlotIndex != SubmissionSlotIndexNotApplicable;
             }
         }
 
@@ -267,14 +277,14 @@ namespace Microsoft.CodeAnalysis
         /// <returns>Non-negative integer if this is a submission and it or a previous submission contains code, negative integer otherwise.</returns>
         internal int GetSubmissionSlotIndex()
         {
-            if (lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
+            if (_lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
                 int lastSlotIndex = (PreviousSubmission != null) ? PreviousSubmission.GetSubmissionSlotIndex() : 0;
-                lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
+                _lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 
-            return lazySubmissionSlotIndex;
+            return _lazySubmissionSlotIndex;
         }
 
         // The type of interactive submission result requested by the host, or null if this compilation doesn't represent a submission. 
@@ -1556,8 +1566,8 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         pdbWriter = new Cci.PdbWriter(
-                            pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"), 
-                            pdbTempStream ?? pdbStream, 
+                            pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
+                            pdbTempStream ?? pdbStream,
                             testSymWriterFactory);
                     }
 
@@ -1666,10 +1676,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private Dictionary<string, string> lazyFeatures;
+        private Dictionary<string, string> _lazyFeatures;
         internal string Feature(string p)
         {
-            if (this.lazyFeatures == null)
+            if (_lazyFeatures == null)
             {
                 var set = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 if (Options.Features != null)
@@ -1690,23 +1700,23 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                Interlocked.CompareExchange(ref this.lazyFeatures, set, null);
+                Interlocked.CompareExchange(ref _lazyFeatures, set, null);
             }
 
             string v;
-            return this.lazyFeatures.TryGetValue(p, out v) ? v : null;
+            return _lazyFeatures.TryGetValue(p, out v) ? v : null;
         }
 
         #endregion
 
-        private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts> lazyTreeToUsedImportDirectivesMap;
-        private static readonly Func<SyntaxTree, SmallConcurrentSetOfInts> createSetCallback = t => new SmallConcurrentSetOfInts();
+        private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts> _lazyTreeToUsedImportDirectivesMap;
+        private static readonly Func<SyntaxTree, SmallConcurrentSetOfInts> s_createSetCallback = t => new SmallConcurrentSetOfInts();
 
         private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts> TreeToUsedImportDirectivesMap
         {
             get
             {
-                return LazyInitializer.EnsureInitialized(ref this.lazyTreeToUsedImportDirectivesMap);
+                return LazyInitializer.EnsureInitialized(ref _lazyTreeToUsedImportDirectivesMap);
             }
         }
 
@@ -1719,7 +1729,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree != null)
             {
-                var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, createSetCallback);
+                var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
                 set.Add(position);
             }
         }
@@ -1835,5 +1845,55 @@ namespace Microsoft.CodeAnalysis
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         #endregion
+
+        internal void MakeMemberMissing(WellKnownMember member)
+        {
+            MakeMemberMissing((int)member);
+        }
+
+        internal void MakeMemberMissing(SpecialMember member)
+        {
+            MakeMemberMissing(-(int)member - 1);
+        }
+
+        internal bool IsMemberMissing(WellKnownMember member)
+        {
+            return IsMemberMissing((int)member);
+        }
+
+        internal bool IsMemberMissing(SpecialMember member)
+        {
+            return IsMemberMissing(-(int)member - 1);
+        }
+
+        private void MakeMemberMissing(int member)
+        {
+            if (_lazyMakeMemberMissingMap == null)
+            {
+                _lazyMakeMemberMissingMap = new SmallDictionary<int, bool>();
+            }
+
+            _lazyMakeMemberMissingMap[member] = true;
+        }
+
+        private bool IsMemberMissing(int member)
+        {
+            return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
+        }
+
+        internal void MakeTypeMissing(WellKnownType type)
+        {
+            if (_lazyMakeWellKnownTypeMissingMap == null)
+            {
+                _lazyMakeWellKnownTypeMissingMap = new SmallDictionary<int, bool>();
+            }
+
+            _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
+        }
+
+        internal bool IsTypeMissing(WellKnownType type)
+        {
+            return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
+        }
     }
 }

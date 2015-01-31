@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class WellKnownMembers
     {
-        private readonly static ImmutableArray<MemberDescriptor> descriptors;
+        private readonly static ImmutableArray<MemberDescriptor> s_descriptors;
 
         static WellKnownMembers()
         {
@@ -2840,12 +2840,12 @@ namespace Microsoft.CodeAnalysis
                 "Format",                                   // System_String__Format_IFormatProvider
             };
 
-            descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
+            s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
         }
 
         public static MemberDescriptor GetDescriptor(WellKnownMember member)
         {
-            return descriptors[(int)member];
+            return s_descriptors[(int)member];
         }
 
         /// <summary>

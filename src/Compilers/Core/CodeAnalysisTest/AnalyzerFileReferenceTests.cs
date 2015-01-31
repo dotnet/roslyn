@@ -136,7 +136,7 @@ Delta: Gamma: Beta: Test B
             reference.AnalyzerLoadFailed -= errorHandler;
 
             Assert.Equal(2, errors.Count);
-            var failedTypes = errors.Where(e=> e.ErrorCode == AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer).Select(e => e.TypeName);
+            var failedTypes = errors.Where(e => e.ErrorCode == AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer).Select(e => e.TypeName);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AbstractAnalyzer", failedTypes);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", failedTypes);
         }

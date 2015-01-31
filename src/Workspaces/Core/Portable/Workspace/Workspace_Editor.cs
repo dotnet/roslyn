@@ -136,35 +136,43 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Open the specified document.
+        /// Open the specified document in the host environment.
         /// </summary>
         public virtual void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            throw new NotSupportedException();
+            this.CheckCanOpenDocuments();
         }
 
         /// <summary>
-        /// Close the specified document.
+        /// Close the specified document in the host environment.
         /// </summary>
         public virtual void CloseDocument(DocumentId documentId)
         {
-            throw new NotSupportedException();
+            this.CheckCanOpenDocuments();
         }
 
         /// <summary>
-        /// Open the specified document.
+        /// Open the specified additional document in the host environment.
         /// </summary>
         public virtual void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
-            throw new NotSupportedException();
+            this.CheckCanOpenDocuments();
         }
 
         /// <summary>
-        /// Close the specified document.
+        /// Close the specified additional document in the host environment.
         /// </summary>
         public virtual void CloseAdditionalDocument(DocumentId documentId)
         {
-            throw new NotSupportedException();
+            this.CheckCanOpenDocuments();
+        }
+
+        protected void CheckCanOpenDocuments()
+        {
+            if (!this.CanOpenDocuments)
+            {
+                throw new NotSupportedException(WorkspacesResources.OpenDocumentNotSupported);
+            }
         }
 
         protected void CheckProjectDoesNotContainOpenDocuments(ProjectId projectId)
@@ -400,19 +408,16 @@ namespace Microsoft.CodeAnalysis
                 var newText = textContainer.CurrentText;
                 var currentSolution = oldSolution;
 
-                if (oldText != newText)
+                if (oldText == newText || oldText.ContentEquals(newText))
                 {
-                    if (oldText.ContentEquals(newText))
-                    {
-                        // if the supplied text is the same as the previous text, then add with same version
-                        var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
-                        currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
-                    }
-                    else
-                    {
-                        currentSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveIdentity);
-                    }
+                    // if the supplied text is the same as the previous text, then also use same version
+                    var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
+                    currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                }
+                else
+                {
+                    currentSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveIdentity);
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
@@ -468,19 +473,16 @@ namespace Microsoft.CodeAnalysis
                 var newText = textContainer.CurrentText;
                 var currentSolution = oldSolution;
 
-                if (oldText != newText)
+                if (oldText == newText || oldText.ContentEquals(newText))
                 {
-                    if (oldText.ContentEquals(newText))
-                    {
-                        // if the supplied text is the same as the previous text, then add with same version
-                        var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
-                        currentSolution = oldSolution.WithAdditionalDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
-                    }
-                    else
-                    {
-                        currentSolution = oldSolution.WithAdditionalDocumentText(documentId, newText, PreservationMode.PreserveIdentity);
-                    }
+                    // if the supplied text is the same as the previous text, then also use same version
+                    var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
+                    currentSolution = oldSolution.WithAdditionalDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                }
+                else
+                {
+                    currentSolution = oldSolution.WithAdditionalDocumentText(documentId, newText, PreservationMode.PreserveIdentity);
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);

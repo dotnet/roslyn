@@ -234,8 +234,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Dim originalSingleLineLambda = DirectCast(originalLambda, SingleLineLambdaExpressionSyntax)
                     Dim replacedSingleLineLambda = DirectCast(replacedLambda, SingleLineLambdaExpressionSyntax)
 
-                    originalParams = originalSingleLineLambda.Begin.ParameterList.Parameters
-                    replacedParams = replacedSingleLineLambda.Begin.ParameterList.Parameters
+                    originalParams = originalSingleLineLambda.SubOrFunctionHeader.ParameterList.Parameters
+                    replacedParams = replacedSingleLineLambda.SubOrFunctionHeader.ParameterList.Parameters
                     originalLambdaBody = originalSingleLineLambda.Body
                     replacedLambdaBody = replacedSingleLineLambda.Body
 
@@ -243,8 +243,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Dim originalMultiLineLambda = DirectCast(originalLambda, MultiLineLambdaExpressionSyntax)
                     Dim replacedMultiLineLambda = DirectCast(replacedLambda, MultiLineLambdaExpressionSyntax)
 
-                    originalParams = originalMultiLineLambda.Begin.ParameterList.Parameters
-                    replacedParams = replacedMultiLineLambda.Begin.ParameterList.Parameters
+                    originalParams = originalMultiLineLambda.SubOrFunctionHeader.ParameterList.Parameters
+                    replacedParams = replacedMultiLineLambda.SubOrFunctionHeader.ParameterList.Parameters
                     originalLambdaBody = originalMultiLineLambda
                     replacedLambdaBody = replacedMultiLineLambda
 

@@ -14,7 +14,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers</AssemblyName>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.FxCopRules.DiagnosticAnalyzers.xml</DocumentationFile>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">

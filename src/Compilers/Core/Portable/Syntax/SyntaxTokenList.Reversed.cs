@@ -19,36 +19,36 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public struct Reversed : IEnumerable<SyntaxToken>, IEquatable<Reversed>
         {
-            private SyntaxTokenList list;
+            private SyntaxTokenList _list;
 
             public Reversed(SyntaxTokenList list)
             {
-                this.list = list;
+                _list = list;
             }
 
             public Enumerator GetEnumerator()
             {
-                return new Enumerator(ref list);
+                return new Enumerator(ref _list);
             }
 
             IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
             {
-                if (list.Count == 0)
+                if (_list.Count == 0)
                 {
                     return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
                 }
 
-                return new EnumeratorImpl(ref list);
+                return new EnumeratorImpl(ref _list);
             }
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
-                if (list.Count == 0)
+                if (_list.Count == 0)
                 {
                     return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
                 }
 
-                return new EnumeratorImpl(ref list);
+                return new EnumeratorImpl(ref _list);
             }
 
             public override bool Equals(object obj)
@@ -58,56 +58,56 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(Reversed other)
             {
-                return list.Equals(other.list);
+                return _list.Equals(other._list);
             }
 
             public override int GetHashCode()
             {
-                return list.GetHashCode();
+                return _list.GetHashCode();
             }
 
             [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
             public struct Enumerator
             {
-                private readonly SyntaxNode parent;
-                private readonly GreenNode singleNodeOrList;
-                private readonly int baseIndex;
-                private readonly int count;
+                private readonly SyntaxNode _parent;
+                private readonly GreenNode _singleNodeOrList;
+                private readonly int _baseIndex;
+                private readonly int _count;
 
-                private int index;
-                private GreenNode current;
-                private int position;
+                private int _index;
+                private GreenNode _current;
+                private int _position;
 
                 public Enumerator(ref SyntaxTokenList list)
                     : this()
                 {
                     if (list.Any())
                     {
-                        this.parent = list.parent;
-                        this.singleNodeOrList = list.node;
-                        this.baseIndex = list.index;
-                        this.count = list.Count;
+                        _parent = list._parent;
+                        _singleNodeOrList = list._node;
+                        _baseIndex = list._index;
+                        _count = list.Count;
 
-                        this.index = this.count;
-                        this.current = null;
+                        _index = _count;
+                        _current = null;
 
                         var last = list.Last();
-                        this.position = last.Position + last.FullWidth;
+                        _position = last.Position + last.FullWidth;
                     }
                 }
 
                 public bool MoveNext()
                 {
-                    if (this.count == 0 || index <= 0)
+                    if (_count == 0 || _index <= 0)
                     {
-                        this.current = null;
+                        _current = null;
                         return false;
                     }
 
-                    index--;
+                    _index--;
 
-                    this.current = GetGreenNodeAt(this.singleNodeOrList, this.index);
-                    this.position -= this.current.FullWidth;
+                    _current = GetGreenNodeAt(_singleNodeOrList, _index);
+                    _position -= _current.FullWidth;
 
                     return true;
                 }
@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     get
                     {
-                        if (this.current == null)
+                        if (_current == null)
                         {
                             throw new InvalidOperationException();
                         }
 
-                        return new SyntaxToken(this.parent, this.current, this.position, this.baseIndex + this.index);
+                        return new SyntaxToken(_parent, _current, _position, _baseIndex + _index);
                     }
                 }
 
@@ -138,27 +138,27 @@ namespace Microsoft.CodeAnalysis
 
             private class EnumeratorImpl : IEnumerator<SyntaxToken>
             {
-                private Enumerator enumerator;
+                private Enumerator _enumerator;
 
                 // SyntaxTriviaList is a relatively big struct so is passed as ref
                 internal EnumeratorImpl(ref SyntaxTokenList list)
                 {
-                    this.enumerator = new Enumerator(ref list);
+                    _enumerator = new Enumerator(ref list);
                 }
 
                 public SyntaxToken Current
                 {
-                    get { return enumerator.Current; }
+                    get { return _enumerator.Current; }
                 }
 
                 object IEnumerator.Current
                 {
-                    get { return enumerator.Current; }
+                    get { return _enumerator.Current; }
                 }
 
                 public bool MoveNext()
                 {
-                    return enumerator.MoveNext();
+                    return _enumerator.MoveNext();
                 }
 
                 public void Reset()

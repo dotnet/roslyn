@@ -15,49 +15,49 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Current text to validate.
             /// </summary>
-            private string text;    
+            private string _text;
 
-            private int position;
+            private int _position;
 
             // Base the root element name on a GUID to avoid accidental (or intentional) collisions. An underscore is
             // prefixed because element names must not start with a number.
-            private static readonly string RootElementName = "_" + Guid.NewGuid().ToString("N");
-            private static readonly string CurrentElementName = "_" + Guid.NewGuid().ToString("N");
+            private static readonly string s_rootElementName = "_" + Guid.NewGuid().ToString("N");
+            private static readonly string s_currentElementName = "_" + Guid.NewGuid().ToString("N");
 
             // internal for testing
-            internal static readonly string RootStart = "<" + RootElementName + ">";
-            internal static readonly string CurrentStart = "<" + CurrentElementName + ">";
-            internal static readonly string CurrentEnd = "</" + CurrentElementName + ">";
+            internal static readonly string RootStart = "<" + s_rootElementName + ">";
+            internal static readonly string CurrentStart = "<" + s_currentElementName + ">";
+            internal static readonly string CurrentEnd = "</" + s_currentElementName + ">";
 
             public void Reset()
             {
-                this.text = null;
-                this.position = 0;
+                _text = null;
+                _position = 0;
             }
 
             public void SetText(string text)
             {
-                this.text = text;
+                _text = text;
 
                 // The first read shall read the <root>, 
                 // the subsequents reads shall start with <current> element
-                if (this.position > 0)
+                if (_position > 0)
                 {
-                    this.position = RootStart.Length;
+                    _position = RootStart.Length;
                 }
             }
 
             // for testing
             internal int Position
             {
-                get { return position; }
+                get { return _position; }
             }
 
             public static bool ReachedEnd(XmlReader reader)
             {
-                return reader.Depth == 1 
-                    && reader.NodeType == XmlNodeType.EndElement 
-                    && reader.Name == CurrentElementName;
+                return reader.Depth == 1
+                    && reader.NodeType == XmlNodeType.EndElement
+                    && reader.Name == s_currentElementName;
             }
 
             public override int Read(char[] buffer, int index, int count)
@@ -76,16 +76,16 @@ namespace Microsoft.CodeAnalysis
                 int initialCount = count;
 
                 // <root>
-                position += EncodeAndAdvance(RootStart, position, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(RootStart, _position, buffer, ref index, ref count);
 
                 // <current>
-                position += EncodeAndAdvance(CurrentStart, position - RootStart.Length, buffer, ref index, ref count);
-                
+                _position += EncodeAndAdvance(CurrentStart, _position - RootStart.Length, buffer, ref index, ref count);
+
                 // text
-                position += EncodeAndAdvance(text, position - RootStart.Length - CurrentStart.Length, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(_text, _position - RootStart.Length - CurrentStart.Length, buffer, ref index, ref count);
 
                 // </current>
-                position += EncodeAndAdvance(CurrentEnd, position - RootStart.Length - CurrentStart.Length - text.Length, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(CurrentEnd, _position - RootStart.Length - CurrentStart.Length - _text.Length, buffer, ref index, ref count);
 
                 // Pretend that the stream is infinite, i.e. never return 0 characters read.
                 if (initialCount == count)

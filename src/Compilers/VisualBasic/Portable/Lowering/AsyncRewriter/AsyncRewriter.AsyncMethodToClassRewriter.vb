@@ -171,7 +171,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me.F.Catch(
                                 exceptionLocal,
                                 Me.F.Block(
-                                    Me.F.NoOp(If(Me._asyncMethodKind = AsyncMethodKind.Sub, NoOpStatementFlavor.AsyncMethodCatchHandler, NoOpStatementFlavor.Default)),
                                     Me.F.HiddenSequencePoint(),
                                     Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
                                     Me.F.ExpressionStatement(
@@ -180,7 +179,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             Me._owner._builderType,
                                             "SetException",
                                             Me.F.Local(exceptionLocal, False))),
-                                    Me.F.Goto(Me._exitLabel))))))
+                                    Me.F.Goto(Me._exitLabel)),
+                                isSynthesizedAsyncCatchAll:=True))))
 
                 ' STMT:   ExprReturnLabel: ' for the rewritten 'Return <expressions>' statements in the user's method body
                 bodyBuilder.Add(Me.F.Label(Me._exprReturnLabel))
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)
                 Else
-                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.End.Span, stateDone))
+                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
                     bodyBuilder.Add(Me.F.HiddenSequencePoint())
                 End If
 

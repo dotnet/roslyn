@@ -10,7 +10,7 @@ namespace Microsoft.Cci
     {
         internal byte[] Buffer;
         internal uint Length;
-        private uint position;
+        private uint _position;
 
         internal MemoryStream()
         {
@@ -25,7 +25,7 @@ namespace Microsoft.Cci
         internal MemoryStream(ObjectPool<MemoryStream> pool)
             : this()
         {
-            this.pool = pool;
+            _pool = pool;
         }
 
         // Grows to at least m
@@ -51,7 +51,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return this.position;
+                return _position;
             }
 
             set
@@ -62,7 +62,7 @@ namespace Microsoft.Cci
                 }
 
                 this.Length = Math.Max(this.Length, value);
-                this.position = value;
+                _position = value;
             }
         }
 
@@ -85,8 +85,8 @@ namespace Microsoft.Cci
 
         internal void Write(byte value, int count)
         {
-            int position = (int)this.position;
-            
+            int position = (int)_position;
+
             // resize, if needed
             this.Position += (uint)count;
 
@@ -98,7 +98,7 @@ namespace Microsoft.Cci
 
         internal void Write(byte[] buffer, int index, int length)
         {
-            int position = (int)this.position;
+            int position = (int)_position;
 
             // resize, if needed
             this.Position += (uint)length;
@@ -108,7 +108,7 @@ namespace Microsoft.Cci
 
         internal void Write(ImmutableArray<byte> buffer, int index, int length)
         {
-            int position = (int)this.position;
+            int position = (int)_position;
 
             // resize, if needed
             this.Position += (uint)length;
@@ -129,13 +129,13 @@ namespace Microsoft.Cci
         // Reset to zero-length, but don't reduce or free the array.
         internal void Clear()
         {
-            this.position = 0;
+            _position = 0;
             this.Length = 0;
         }
 
         #region Poolable
 
-        private readonly ObjectPool<MemoryStream> pool;
+        private readonly ObjectPool<MemoryStream> _pool;
 
         //
         // To implement Poolable, you need two things:
@@ -144,25 +144,25 @@ namespace Microsoft.Cci
         {
             // Note that poolables are not finalizable. If one gets collected - no big deal.
             this.Clear();
-            if (pool != null)
+            if (_pool != null)
             {
                 if (this.Capacity < 1024)
                 {
-                    pool.Free(this);
+                    _pool.Free(this);
                 }
                 else
                 {
-                    pool.ForgetTrackedObject(this);
+                    _pool.ForgetTrackedObject(this);
                 }
             }
         }
 
         //2) Expose  the way to get an instance.
-        private static readonly ObjectPool<MemoryStream> PoolInstance = CreatePool();
+        private static readonly ObjectPool<MemoryStream> s_poolInstance = CreatePool();
 
         public static MemoryStream GetInstance()
         {
-            var stream = PoolInstance.Allocate();
+            var stream = s_poolInstance.Allocate();
             return stream;
         }
 
@@ -177,8 +177,6 @@ namespace Microsoft.Cci
             pool = new ObjectPool<MemoryStream>(() => new MemoryStream(pool), size);
             return pool;
         }
-
         #endregion
-
     }
 }

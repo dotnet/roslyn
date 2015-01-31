@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
 
         public MockCsi(string responseFIle, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFIle, args, baseDirectory, null)
+            : base(CSharpCommandLineParser.Interactive, responseFIle, args, baseDirectory, null, System.IO.Path.GetTempPath())
         {
 
         }

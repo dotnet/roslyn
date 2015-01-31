@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Given diagnostic analyzer seems to be marked with a DiagnosticAnalyzerAttribute with a specific supported language. However, the analyzer assembly doesn&apos;t seem to reference any language specific CodeAnalysis assemblies. Hence, it is likely a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for missing language..
+        ///   Looks up a localized string similar to Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn&apos;t seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute..
         /// </summary>
         internal static string AddLanguageSupportToAnalyzerDescription {
             get {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; seems to be a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for &apos;{1}&apos; language support..
+        ///   Looks up a localized string similar to Diagnostic analyzer &apos;{0}&apos; may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for &apos;{1}&apos; language support..
         /// </summary>
         internal static string AddLanguageSupportToAnalyzerMessage {
             get {
@@ -89,20 +89,20 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply &apos;{0}&apos; DiagnosticAnalyzer attribute..
+        ///   Looks up a localized string similar to Apply DiagnosticAnalyzer attribute for &apos;{0}&apos;..
         /// </summary>
         internal static string ApplyDiagnosticAnalyzerAttribute_1 {
             get {
-                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_2", resourceCulture);
+                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_1", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply DiagnosticAnalyzer attributes for both: &apos;{0}&apos; and &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Apply DiagnosticAnalyzer attribute for both &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
         internal static string ApplyDiagnosticAnalyzerAttribute_2 {
             get {
-                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_3", resourceCulture);
+                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_2", resourceCulture);
             }
         }
         

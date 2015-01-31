@@ -229,7 +229,7 @@ namespace Roslyn.Utilities
             return source.Count == 0;
         }
 
-        private static readonly Func<object, bool> NotNullTest = x => x != null;
+        private static readonly Func<object, bool> s_notNullTest = x => x != null;
 
         public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source)
             where T : class
@@ -239,7 +239,7 @@ namespace Roslyn.Utilities
                 return SpecializedCollections.EmptyEnumerable<T>();
             }
 
-            return source.Where((Func<T, bool>)NotNullTest);
+            return source.Where((Func<T, bool>)s_notNullTest);
         }
 
         public static bool All(this IEnumerable<bool> source)

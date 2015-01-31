@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// For the name we will use a word "Error" followed by a guid, generated on the spot.
         /// </summary>
-        private static readonly string name = "Error" + Guid.NewGuid().ToString("B");
+        private static readonly string s_name = "Error" + Guid.NewGuid().ToString("B");
 
         Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             get
             {
-                return name;
+                return s_name;
             }
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
             /// <summary>
             /// For the name we will use a word "Error" followed by a guid, generated on the spot.
             /// </summary>
-            private static readonly string name = "Error" + Guid.NewGuid().ToString("B");
+            private static readonly string s_name = "Error" + Guid.NewGuid().ToString("B");
 
             string Cci.IAssemblyReference.Culture
             {
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 get
                 {
-                    return name;
+                    return s_name;
                 }
             }
         }

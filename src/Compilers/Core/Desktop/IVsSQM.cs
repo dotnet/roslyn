@@ -2,16 +2,15 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// IVsSqm.cs : Interop definitions for interfaces defined in VsLog.idl
 //
 ///////////////////////////////////////////////////////////////////////////////
+
 #pragma warning disable 3001
+using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.Shell.Interop
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     [ComImport()]
     [ComVisible(false)]
     [Guid("C1F63D0C-4CAE-4907-BE74-EEB75D386ECB")]
@@ -313,5 +312,4 @@ namespace Microsoft.VisualStudio.Shell.Interop
     internal interface SVsLog
     {
     }
-
 }

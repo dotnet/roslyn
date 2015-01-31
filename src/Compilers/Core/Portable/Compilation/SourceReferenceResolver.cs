@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="baseFilePath">Path of the source file that contains the <paramref name="path"/> (may also be relative), or null if not available.</param>
         /// <returns>Normalized path, or null if <paramref name="path"/> can't be normalized. The resulting path doesn't need to exist.</returns>
         public abstract string NormalizePath(string path, string baseFilePath);
-        
+
         /// <summary>
         /// Resolves specified path with respect to base file path.
         /// </summary>

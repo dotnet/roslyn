@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis
 
         // NOTE: The CLR caches assembly identities, but doesn't do so in a threadsafe manner.
         // Wrap all calls to this with a lock.
-        private static object assemblyIdentityGate = new object();
+        private static object s_assemblyIdentityGate = new object();
         private static int CreateAssemblyNameObject(out IAssemblyName ppEnum, string szAssemblyName, uint dwFlags, IntPtr pvReserved)
         {
-            lock (assemblyIdentityGate)
+            lock (s_assemblyIdentityGate)
             {
                 return RealCreateAssemblyNameObject(out ppEnum, szAssemblyName, dwFlags, pvReserved);
             }
@@ -471,7 +471,18 @@ namespace Microsoft.CodeAnalysis
             {
                 if (assemblyName.IndexOf('\0') >= 0)
                 {
-                    throw new ArgumentException("Invalid characters in assemblyName".NeedsLocalization(), "name");
+#if SCRIPTING
+
+                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
+
+#elif WORKSPACE_DESKTOP
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, "name");
+
+#else
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
+#endif
                 }
 
                 SetProperty(result, PropertyId.NAME, assemblyName);
@@ -491,7 +502,18 @@ namespace Microsoft.CodeAnalysis
                 string cultureName = info.Name;
                 if (cultureName.IndexOf('\0') >= 0)
                 {
-                    throw new ArgumentException("Invalid characters in assembly name".NeedsLocalization(), "name");
+#if SCRIPTING
+
+                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
+
+#elif WORKSPACE_DESKTOP
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, "name");
+
+#else
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
+#endif
                 }
 
                 SetProperty(result, PropertyId.CULTURE, cultureName);

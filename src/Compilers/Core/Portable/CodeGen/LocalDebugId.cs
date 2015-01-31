@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             return Hash.Combine(SyntaxOffset, Ordinal);
         }
-        
+
         public override bool Equals(object obj)
         {
             return obj is LocalDebugId && Equals((LocalDebugId)obj);

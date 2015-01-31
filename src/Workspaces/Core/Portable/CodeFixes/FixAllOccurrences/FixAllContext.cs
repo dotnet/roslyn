@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -50,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public ImmutableHashSet<string> DiagnosticIds { get; private set; }
 
         /// <summary>
-        /// CodeAction Id to generate a fix all occurrences code fix.
+        /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string CodeActionId { get; private set; }
+        public string CodeActionEquivalenceKey { get; private set; }
 
         /// <summary>
         /// CancellationToken for fix all session.
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
-            string codeActionId,
+            string codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
             Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.Project = project;
             this.CodeFixProvider = codeFixProvider;
             this.Scope = scope;
-            this.CodeActionId = codeActionId;
+            this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
             this.getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
             this.getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 this.Project,
                 this.CodeFixProvider,
                 this.Scope,
-                this.CodeActionId,
+                this.CodeActionEquivalenceKey,
                 this.DiagnosticIds,
                 this.getDocumentDiagnosticsAsync,
                 this.getProjectDiagnosticsAsync,

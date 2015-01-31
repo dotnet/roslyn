@@ -75,13 +75,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function WithBegin(node As TypeBlockSyntax, [begin] As TypeStatementSyntax) As TypeBlockSyntax
             Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithBegin(DirectCast([begin], ModuleStatementSyntax))
+                    Return DirectCast(node, ModuleBlockSyntax).WithBlockStatement(DirectCast([begin], ModuleStatementSyntax))
                 Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithBegin(DirectCast([begin], InterfaceStatementSyntax))
+                    Return DirectCast(node, InterfaceBlockSyntax).WithBlockStatement(DirectCast([begin], InterfaceStatementSyntax))
                 Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithBegin(DirectCast([begin], StructureStatementSyntax))
+                    Return DirectCast(node, StructureBlockSyntax).WithBlockStatement(DirectCast([begin], StructureStatementSyntax))
                 Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithBegin(DirectCast([begin], ClassStatementSyntax))
+                    Return DirectCast(node, ClassBlockSyntax).WithBlockStatement(DirectCast([begin], ClassStatementSyntax))
             End Select
 
             Throw ExceptionUtilities.Unreachable
@@ -91,13 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function WithEnd(node As TypeBlockSyntax, [end] As EndBlockStatementSyntax) As TypeBlockSyntax
             Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithEnd([end])
+                    Return DirectCast(node, ModuleBlockSyntax).WithEndBlockStatement([end])
                 Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithEnd([end])
+                    Return DirectCast(node, InterfaceBlockSyntax).WithEndBlockStatement([end])
                 Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithEnd([end])
+                    Return DirectCast(node, StructureBlockSyntax).WithEndBlockStatement([end])
                 Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithEnd([end])
+                    Return DirectCast(node, ClassBlockSyntax).WithEndBlockStatement([end])
             End Select
 
             Throw ExceptionUtilities.Unreachable
@@ -110,14 +110,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim indices = New List(Of Boolean)
             If members.Count = 0 Then
-                Dim start = destination.Begin.Span.End
-                Dim [end] = destination.End.SpanStart
+                Dim start = destination.BlockStatement.Span.End
+                Dim [end] = destination.EndBlockStatement.SpanStart
 
-                indices.Add(Not destination.OverlapsHiddenPosition(destination.Begin, destination.End, cancellationToken))
+                indices.Add(Not destination.OverlapsHiddenPosition(destination.BlockStatement, destination.EndBlockStatement, cancellationToken))
             Else
                 ' First, see if we can insert between the start of the typeblock, and it's first
                 ' member.
-                indices.Add(Not destination.OverlapsHiddenPosition(destination.Begin, destination.Members.First, cancellationToken))
+                indices.Add(Not destination.OverlapsHiddenPosition(destination.BlockStatement, destination.Members.First, cancellationToken))
 
                 ' Now, walk between each member and see if something can be inserted between it and
                 ' the next member
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Next
 
                 ' Last, see if we can insert between the last member and the end of the typeblock
-                indices.Add(Not destination.OverlapsHiddenPosition(destination.Members.Last, destination.End, cancellationToken))
+                indices.Add(Not destination.OverlapsHiddenPosition(destination.Members.Last, destination.EndBlockStatement, cancellationToken))
             End If
 
             Return indices
@@ -174,15 +174,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function EnsureProperBegin(destinationType As TypeBlockSyntax) As TypeStatementSyntax
             If destinationType.Inherits.Count = 0 AndAlso
                destinationType.Implements.Count = 0 AndAlso
-               destinationType.Begin.GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
-                Return ReplaceTrailingColonToEndOfLineTrivia(destinationType.Begin)
+               destinationType.BlockStatement.GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
+                Return ReplaceTrailingColonToEndOfLineTrivia(destinationType.BlockStatement)
             End If
 
-            Return destinationType.Begin
+            Return destinationType.BlockStatement
         End Function
 
         Private Function EnsureEndTokens(destinationType As TypeBlockSyntax) As EndBlockStatementSyntax
-            If destinationType.End.IsMissing Then
+            If destinationType.EndBlockStatement.IsMissing Then
                 Select Case destinationType.Kind
                     Case SyntaxKind.ClassBlock
                         Return SyntaxFactory.EndClassStatement().WithAdditionalAnnotations(Formatter.Annotation)
@@ -193,15 +193,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End Select
             End If
 
-            Return destinationType.End
+            Return destinationType.EndBlockStatement
         End Function
 
         <Extension>
         Public Function FixTerminators(destinationType As TypeBlockSyntax) As TypeBlockSyntax
             Return destinationType.WithInherits(EnsureProperInherits(destinationType)).
                                    WithImplements(EnsureProperImplements(destinationType)).
-                                   WithBegin(EnsureProperBegin(destinationType)).
-                                   WithEnd(EnsureEndTokens(destinationType))
+                                   WithBlockStatement(EnsureProperBegin(destinationType)).
+                                   WithEndBlockStatement(EnsureEndTokens(destinationType))
         End Function
     End Module
 End Namespace

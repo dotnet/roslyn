@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis
     internal class CommonEventWellKnownAttributeData : WellKnownAttributeData
     {
         #region SpecialNameAttribute
-        private bool hasSpecialNameAttribute;
+        private bool _hasSpecialNameAttribute;
         public bool HasSpecialNameAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasSpecialNameAttribute;
+                return _hasSpecialNameAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasSpecialNameAttribute = value;
+                _hasSpecialNameAttribute = value;
                 SetDataStored();
             }
         }

@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis
     /// If you need to manage the lifetime of the metadata (and the file stream) explicitly use <see cref="MetadataImageReference"/> or 
     /// implement a custom subclass of <see cref="PortableExecutableReference"/>.
     /// </remarks>
-    [Obsolete("To be removed", error:false)]
+    [Obsolete("To be removed", error: false)]
     internal sealed class MetadataFileReference : PortableExecutableReference
     {
-        private Metadata lazyMetadata;
+        private Metadata _lazyMetadata;
 
         internal MetadataFileReference(string fullPath, MetadataImageKind kind = MetadataImageKind.Assembly, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false, DocumentationProvider documentation = null)
             : this(fullPath, new MetadataReferenceProperties(kind, aliases, embedInteropTypes), documentation)
@@ -85,13 +85,12 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException"/>
         protected override Metadata GetMetadataImpl()
         {
-            if (lazyMetadata == null)
+            if (_lazyMetadata == null)
             {
-                Interlocked.CompareExchange(ref lazyMetadata, MetadataCache.GetOrCreateFromFile(FilePath, this.Properties.Kind), null);
+                Interlocked.CompareExchange(ref _lazyMetadata, MetadataCache.GetOrCreateFromFile(FilePath, this.Properties.Kind), null);
             }
 
-            return lazyMetadata;
+            return _lazyMetadata;
         }
-
     }
 }

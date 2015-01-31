@@ -14,31 +14,31 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class RuleSetInclude
     {
-        private readonly string includePath;
+        private readonly string _includePath;
         /// <summary>
         /// The path of the included file.
         /// </summary>
         public string IncludePath
         {
-            get { return includePath; }
+            get { return _includePath; }
         }
 
-        private readonly ReportDiagnostic action;
+        private readonly ReportDiagnostic _action;
         /// <summary>
         /// The effective action to apply on this included ruleset.
         /// </summary>
         public ReportDiagnostic Action
         {
-            get { return action; }
+            get { return _action; }
         }
 
         /// <summary>
         /// Create a RuleSetInclude given the includepath and the effective action.
         /// </summary>
-        public  RuleSetInclude(string includePath, ReportDiagnostic action)
+        public RuleSetInclude(string includePath, ReportDiagnostic action)
         {
-            this.includePath = includePath;
-            this.action = action;
+            _includePath = includePath;
+            _action = action;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             RuleSet ruleSet = null;
             Exception ex = null;
 
-            string path = includePath;
+            string path = _includePath;
             try
             {
                 path = GetIncludePath(parent);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         private string GetIncludePath(RuleSet parent)
         {
             List<string> found = new List<string>();
-            string expandedPath = Environment.ExpandEnvironmentVariables(includePath);
+            string expandedPath = Environment.ExpandEnvironmentVariables(_includePath);
 
             // If a full path is specified then use it
             if (Path.IsPathRooted(expandedPath))
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
             // If we still couldn't find it then throw an exception;
             if (found.Count == 0)
             {
-                throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, includePath), includePath);
+                throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, _includePath), _includePath);
             }
 
             // Return the canonical full path

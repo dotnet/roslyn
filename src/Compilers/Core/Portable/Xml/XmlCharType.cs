@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis
     /// 
     internal static class XmlCharType
     {
-
         // Surrogate constants
         internal const int SurHighStart = 0xd800;    // 1101 10xx
         internal const int SurHighEnd = 0xdbff;
@@ -42,22 +41,22 @@ namespace Microsoft.CodeAnalysis
         // Letter characters          -- Appending B: Characters Classes in XML 1.0 4th edition and earlier
         //                               This appendix has been deprecated in XML 1.0 5th edition, but we still need to use
         //                               the Letter and NCName definitions from the 4th edition in some places because of backwards compatibility
-        internal const int fWhitespace    = 1;
-        internal const int fLetter        = 2;
+        internal const int fWhitespace = 1;
+        internal const int fLetter = 2;
         internal const int fNCStartNameSC = 4;  // SC = Single Char
-        internal const int fNCNameSC      = 8;  // SC = Single Char
-        internal const int fCharData      = 16;
-        internal const int fNCNameXml4e   = 32; // NCName char according to the XML 1.0 4th edition
-        internal const int fText          = 64;
-        internal const int fAttrValue     = 128;
+        internal const int fNCNameSC = 8;  // SC = Single Char
+        internal const int fCharData = 16;
+        internal const int fNCNameXml4e = 32; // NCName char according to the XML 1.0 4th edition
+        internal const int fText = 64;
+        internal const int fAttrValue = 128;
 
         // name surrogate constants
         private const int s_NCNameSurCombinedStart = 0x10000;
-        private const int s_NCNameSurCombinedEnd   = 0xEFFFF;
-        private const int s_NCNameSurHighStart     = SurHighStart + ((s_NCNameSurCombinedStart - 0x10000) / 1024);
-        private const int s_NCNameSurHighEnd       = SurHighStart + ((s_NCNameSurCombinedEnd   - 0x10000) / 1024);
-        private const int s_NCNameSurLowStart      = SurLowStart  + ((s_NCNameSurCombinedStart - 0x10000) % 1024);
-        private const int s_NCNameSurLowEnd        = SurLowStart  + ((s_NCNameSurCombinedEnd   - 0x10000) % 1024);
+        private const int s_NCNameSurCombinedEnd = 0xEFFFF;
+        private const int s_NCNameSurHighStart = SurHighStart + ((s_NCNameSurCombinedStart - 0x10000) / 1024);
+        private const int s_NCNameSurHighEnd = SurHighStart + ((s_NCNameSurCombinedEnd - 0x10000) / 1024);
+        private const int s_NCNameSurLowStart = SurLowStart + ((s_NCNameSurCombinedStart - 0x10000) % 1024);
+        private const int s_NCNameSurLowEnd = SurLowStart + ((s_NCNameSurCombinedEnd - 0x10000) % 1024);
 #else
         // Characters defined in the XML 1.0 Fourth Edition
         // Whitespace chars -- Section 2.3 [3]
@@ -921,30 +920,32 @@ namespace Microsoft.CodeAnalysis
         }
 
 #if XML10_FIFTH_EDITION
-        public static bool IsNCNameSurrogateChar( string str, int index ) {
-            if ( index + 1 >= str.Length ) {
+        public static bool IsNCNameSurrogateChar(string str, int index)
+        {
+            if (index + 1 >= str.Length)
+            {
                 return false;
             }
-            return InRange( str[index], s_NCNameSurHighStart, s_NCNameSurHighEnd ) &&
-                   InRange( str[index + 1], s_NCNameSurLowStart, s_NCNameSurLowEnd );
+            return InRange(str[index], s_NCNameSurHighStart, s_NCNameSurHighEnd) &&
+                   InRange(str[index + 1], s_NCNameSurLowStart, s_NCNameSurLowEnd);
         }
 
         // Surrogate characters for names are the same for NameChar and StartNameChar, 
         // so this method can be used for both
         public static bool IsNCNameSurrogateChar(char lowChar, char highChar)
         {
-            return InRange( highChar, s_NCNameSurHighStart, s_NCNameSurHighEnd ) &&
-                   InRange( lowChar, s_NCNameSurLowStart, s_NCNameSurLowEnd );
+            return InRange(highChar, s_NCNameSurHighStart, s_NCNameSurHighEnd) &&
+                   InRange(lowChar, s_NCNameSurLowStart, s_NCNameSurLowEnd);
         }
 
         public static bool IsNCNameHighSurrogateChar(char highChar)
         {
-            return InRange( highChar, s_NCNameSurHighStart, s_NCNameSurHighEnd );
+            return InRange(highChar, s_NCNameSurHighStart, s_NCNameSurHighEnd);
         }
 
         public static bool IsNCNameLowSurrogateChar(char lowChar)
         {
-            return InRange( lowChar, s_NCNameSurLowStart, s_NCNameSurLowEnd );
+            return InRange(lowChar, s_NCNameSurLowStart, s_NCNameSurLowEnd);
         }
 #endif
 

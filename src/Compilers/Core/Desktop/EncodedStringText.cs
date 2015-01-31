@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Underlying string on which this SourceText instance is based
         /// </summary>
-        private readonly string source;
+        private readonly string _source;
 
-        private readonly Encoding encoding;
+        private readonly Encoding _encoding;
 
         private EncodedStringText(string source, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
             : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(source != null);
             Debug.Assert(encoding != null);
-            this.source = source;
-            this.encoding = encoding;
+            _source = source;
+            _encoding = encoding;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override Encoding Encoding
         {
-            get { return this.encoding; }
+            get { return _encoding; }
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public string Source
         {
-            get { return source; }
+            get { return _source; }
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // NOTE: we are not validating position here as that would not 
                 //       add any value to the range check that string accessor performs anyways.
 
-                return this.source[position];
+                return _source[position];
             }
         }
 
@@ -273,16 +273,16 @@ namespace Microsoft.CodeAnalysis.Text
         // available through the UnmanagedMemoryStream._offset field which is not exposed publicly.
         //
         // Cache the FieldInfo here to minimize any reflection overhead.
-        private static FieldInfo unmanagedMemoryStreamOffset = null;
+        private static FieldInfo s_unmanagedMemoryStreamOffset = null;
         private static long GetPrivateOffset(UnmanagedMemoryStream stream)
         {
             // Reflection code to workaround known bug 6441
-            if (unmanagedMemoryStreamOffset == null)
+            if (s_unmanagedMemoryStreamOffset == null)
             {
-                unmanagedMemoryStreamOffset = typeof(UnmanagedMemoryStream).GetField("_offset", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+                s_unmanagedMemoryStreamOffset = typeof(UnmanagedMemoryStream).GetField("_offset", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
             }
 
-            return (long)unmanagedMemoryStreamOffset.GetValue(stream);
+            return (long)s_unmanagedMemoryStreamOffset.GetValue(stream);
         }
 
         /// <summary>
@@ -315,26 +315,26 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         [ThreadStatic]
-        private static byte[] bomBytes;
+        private static byte[] t_bomBytes;
 
         internal static Encoding TryReadByteOrderMark(Stream data)
         {
             // PERF: Avoid repeated calls to Stream.ReadByte since that method allocates a 1-byte array on each call.
             // Instead, using a thread local byte array.
-            if (bomBytes == null)
+            if (t_bomBytes == null)
             {
-                bomBytes = new byte[2];
+                t_bomBytes = new byte[2];
             }
 
             data.Seek(0, SeekOrigin.Begin);
 
-            int bytesRead = data.Read(bomBytes, 0, 2);
+            int bytesRead = data.Read(t_bomBytes, 0, 2);
             if (bytesRead == 2)
             {
-                switch (bomBytes[0])
+                switch (t_bomBytes[0])
                 {
                     case 0xFE:
-                        if (bomBytes[1] == 0xFF)
+                        if (t_bomBytes[1] == 0xFF)
                         {
                             return Encoding.BigEndianUnicode;
                         }
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Text
                         break;
 
                     case 0xFF:
-                        if (bomBytes[1] == 0xFE)
+                        if (t_bomBytes[1] == 0xFE)
                         {
                             return Encoding.Unicode;
                         }
@@ -350,9 +350,9 @@ namespace Microsoft.CodeAnalysis.Text
                         break;
 
                     case 0xEF:
-                        if (bomBytes[1] == 0xBB)
+                        if (t_bomBytes[1] == 0xBB)
                         {
-                            if (data.Read(bomBytes, 0, 1) == 1 && bomBytes[0] == 0xBF)
+                            if (data.Read(t_bomBytes, 0, 1) == 1 && t_bomBytes[0] == 0xBF)
                             {
                                 return Encoding.UTF8;
                             }
@@ -365,7 +365,6 @@ namespace Microsoft.CodeAnalysis.Text
             data.Seek(0, SeekOrigin.Begin);
             return null;
         }
-
         #endregion
     }
 }

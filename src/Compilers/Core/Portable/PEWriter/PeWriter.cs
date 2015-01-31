@@ -18,42 +18,42 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if we should attempt to generate a deterministic output (no timestamps or random data).
         /// </summary>
-        private readonly bool deterministic;
+        private readonly bool _deterministic;
 
-        private readonly IModule module;
-        private readonly PdbWriter pdbWriter;
-        private readonly bool emitRuntimeStartupStub;
-        private readonly uint sizeOfImportAddressTable;
+        private readonly IModule _module;
+        private readonly PdbWriter _pdbWriter;
+        private readonly bool _emitRuntimeStartupStub;
+        private readonly uint _sizeOfImportAddressTable;
 
         private PeWriter(IModule module, PdbWriter pdbWriter, bool deterministic)
         {
-            this.module = module;
-            this.emitRuntimeStartupStub = module.RequiresStartupStub;
-            this.pdbWriter = pdbWriter;
-            this.deterministic = deterministic;
-            this.sizeOfImportAddressTable = this.emitRuntimeStartupStub ? (!this.module.Requires64bits ? 8u : 16u) : 0;
+            _module = module;
+            _emitRuntimeStartupStub = module.RequiresStartupStub;
+            _pdbWriter = pdbWriter;
+            _deterministic = deterministic;
+            _sizeOfImportAddressTable = _emitRuntimeStartupStub ? (!_module.Requires64bits ? 8u : 16u) : 0;
         }
 
-        private PeDebugDirectory debugDirectory;
-        private MemoryStream headerStream = new MemoryStream(1024);
+        private PeDebugDirectory _debugDirectory;
+        private MemoryStream _headerStream = new MemoryStream(1024);
 
-        private readonly MemoryStream emptyStream = new MemoryStream(0);
+        private readonly MemoryStream _emptyStream = new MemoryStream(0);
 
-        private readonly NtHeader ntHeader = new NtHeader();
+        private readonly NtHeader _ntHeader = new NtHeader();
 
-        private readonly BinaryWriter rdataWriter = new BinaryWriter(new MemoryStream());
-        private readonly BinaryWriter sdataWriter = new BinaryWriter(new MemoryStream());
-        private readonly BinaryWriter tlsDataWriter = new BinaryWriter(new MemoryStream());
-        private readonly BinaryWriter win32ResourceWriter = new BinaryWriter(new MemoryStream(1024));
-        private readonly BinaryWriter coverageDataWriter = new BinaryWriter(new MemoryStream());
+        private readonly BinaryWriter _rdataWriter = new BinaryWriter(new MemoryStream());
+        private readonly BinaryWriter _sdataWriter = new BinaryWriter(new MemoryStream());
+        private readonly BinaryWriter _tlsDataWriter = new BinaryWriter(new MemoryStream());
+        private readonly BinaryWriter _win32ResourceWriter = new BinaryWriter(new MemoryStream(1024));
+        private readonly BinaryWriter _coverageDataWriter = new BinaryWriter(new MemoryStream());
 
-        private SectionHeader coverSection;
-        private SectionHeader relocSection;
-        private SectionHeader resourceSection;
-        private SectionHeader rdataSection;
-        private SectionHeader sdataSection;
-        private SectionHeader textSection;
-        private SectionHeader tlsSection;
+        private SectionHeader _coverSection;
+        private SectionHeader _relocSection;
+        private SectionHeader _resourceSection;
+        private SectionHeader _rdataSection;
+        private SectionHeader _sdataSection;
+        private SectionHeader _textSection;
+        private SectionHeader _tlsSection;
 
         public static void WritePeToStream(
             EmitContext context,
@@ -108,21 +108,21 @@ namespace Microsoft.Cci
             // Since we are producing a full assembly, we should not have a module version ID
             // imposed ahead-of time. Instead we will compute a deterministic module version ID
             // based on the contents of the generated stream.
-            Debug.Assert(this.module.PersistentIdentifier == default(Guid));
+            Debug.Assert(_module.PersistentIdentifier == default(Guid));
 
             uint moduleVersionIdOffsetInMetadataStream;
             var calculateMethodBodyStreamRva = new Func<MetadataSizes, int>(mdSizes =>
             {
                 FillInTextSectionHeader(mdSizes);
-                return (int)(this.textSection.RelativeVirtualAddress + this.sizeOfImportAddressTable + 72);
+                return (int)(_textSection.RelativeVirtualAddress + _sizeOfImportAddressTable + 72);
             });
 
             MetadataSizes metadataSizes;
             mdWriter.SerializeMetadataAndIL(
                 pdbWriterOpt,
-                metadataWriter, 
-                ilWriter, 
-                mappedFieldDataWriter, 
+                metadataWriter,
+                ilWriter,
+                mappedFieldDataWriter,
                 managedResourceWriter,
                 calculateMethodBodyStreamRva,
                 CalculateMappedFieldDataStreamRva,
@@ -144,13 +144,13 @@ namespace Microsoft.Cci
             long positionOfDebugTableTimestamp;
 
             WriteTextSection(
-                peStream, 
+                peStream,
                 corHeader,
                 metadataBuffer,
                 ilBuffer,
                 mappedFieldDataBuffer,
                 managedResourceBuffer,
-                out startOfMetadataStream, 
+                out startOfMetadataStream,
                 out positionOfDebugTableTimestamp);
 
             WriteRdataSection(peStream);
@@ -160,7 +160,7 @@ namespace Microsoft.Cci
             WriteResourceSection(peStream);
             WriteRelocSection(peStream);
 
-            if (this.deterministic)
+            if (_deterministic)
             {
                 var positionOfModuleVersionId = startOfMetadataStream + moduleVersionIdOffsetInMetadataStream;
                 WriteDeterministicGuidAndTimestamps(peStream, positionOfModuleVersionId, positionOfHeaderTimestamp, positionOfDebugTableTimestamp);
@@ -172,7 +172,7 @@ namespace Microsoft.Cci
             FillInTextSectionHeader(metadataSizes);
 
             Debug.Assert(metadataSizes.MappedFieldDataSize % MetadataWriter.MappedFieldDataAlignment == 0);
-            return (int)(this.textSection.RelativeVirtualAddress + this.textSection.VirtualSize - metadataSizes.MappedFieldDataSize);
+            return (int)(_textSection.RelativeVirtualAddress + _textSection.VirtualSize - metadataSizes.MappedFieldDataSize);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Microsoft.Cci
 
         private uint ComputeStrongNameSignatureSize()
         {
-            IAssembly assembly = this.module.AsAssembly;
+            IAssembly assembly = _module.AsAssembly;
             if (assembly == null)
             {
                 return 0;
@@ -297,7 +297,7 @@ namespace Microsoft.Cci
         private uint ComputeOffsetToMetadata(int ilStreamLength)
         {
             uint result = 0;
-            result += this.sizeOfImportAddressTable;
+            result += _sizeOfImportAddressTable;
             result += 72; // size of CLR header
             result += BitArithmeticUtilities.Align((uint)ilStreamLength, 4);
             return result;
@@ -305,32 +305,32 @@ namespace Microsoft.Cci
 
         private uint ComputeSizeOfDebugTable(uint offsetToMetadata)
         {
-            if (this.pdbWriter == null)
+            if (_pdbWriter == null)
             {
                 return 0;
             }
 
-            this.debugDirectory = this.pdbWriter.GetDebugDirectory();
-            this.debugDirectory.TimeDateStamp = this.ntHeader.TimeDateStamp;
-            this.debugDirectory.PointerToRawData = offsetToMetadata + 0x1c;
-            return 0x1c + (uint)this.debugDirectory.Data.Length;
+            _debugDirectory = _pdbWriter.GetDebugDirectory();
+            _debugDirectory.TimeDateStamp = _ntHeader.TimeDateStamp;
+            _debugDirectory.PointerToRawData = offsetToMetadata + 0x1c;
+            return 0x1c + (uint)_debugDirectory.Data.Length;
         }
-        
+
         private uint ComputeSizeOfPeHeaders()
         {
             ushort numberOfSections = 1; // .text 
-            if (this.emitRuntimeStartupStub) numberOfSections++; //.reloc
-            if (this.tlsDataWriter.BaseStream.Length > 0) numberOfSections++; //.tls
-            if (this.rdataWriter.BaseStream.Length > 0) numberOfSections++; //.rdata
-            if (this.sdataWriter.BaseStream.Length > 0) numberOfSections++; //.sdata
-            if (this.coverageDataWriter.BaseStream.Length > 0) numberOfSections++; //.cover
-            if (!IteratorHelper.EnumerableIsEmpty(this.module.Win32Resources) ||
-                this.module.Win32ResourceSection != null)
+            if (_emitRuntimeStartupStub) numberOfSections++; //.reloc
+            if (_tlsDataWriter.BaseStream.Length > 0) numberOfSections++; //.tls
+            if (_rdataWriter.BaseStream.Length > 0) numberOfSections++; //.rdata
+            if (_sdataWriter.BaseStream.Length > 0) numberOfSections++; //.sdata
+            if (_coverageDataWriter.BaseStream.Length > 0) numberOfSections++; //.cover
+            if (!IteratorHelper.EnumerableIsEmpty(_module.Win32Resources) ||
+                _module.Win32ResourceSection != null)
                 numberOfSections++; //.rsrc;
 
-            this.ntHeader.NumberOfSections = numberOfSections;
+            _ntHeader.NumberOfSections = numberOfSections;
             uint sizeOfPeHeaders = 128 + 4 + 20 + 224 + 40u * numberOfSections;
-            if (this.module.Requires64bits)
+            if (_module.Requires64bits)
             {
                 sizeOfPeHeaders += 16;
             }
@@ -342,12 +342,12 @@ namespace Microsoft.Cci
         {
             uint textSectionLength = this.ComputeOffsetToImportTable(metadataSizes);
 
-            if (this.emitRuntimeStartupStub)
+            if (_emitRuntimeStartupStub)
             {
-                textSectionLength += !this.module.Requires64bits ? 66u : 70u; //size of import table
+                textSectionLength += !_module.Requires64bits ? 66u : 70u; //size of import table
                 textSectionLength += 14; //size of name table
-                textSectionLength = BitArithmeticUtilities.Align(textSectionLength, !this.module.Requires64bits ? 4u : 8u); //optional padding to make startup stub's target address align on word or double word boundary
-                textSectionLength += !this.module.Requires64bits ? 8u : 16u; //fixed size of runtime startup stub
+                textSectionLength = BitArithmeticUtilities.Align(textSectionLength, !_module.Requires64bits ? 4u : 8u); //optional padding to make startup stub's target address align on word or double word boundary
+                textSectionLength += !_module.Requires64bits ? 8u : 16u; //fixed size of runtime startup stub
             }
 
             Debug.Assert(metadataSizes.MappedFieldDataSize % MetadataWriter.MappedFieldDataAlignment == 0);
@@ -359,9 +359,9 @@ namespace Microsoft.Cci
         {
             this.SerializeWin32Resources(resourcesRva);
             uint result = 0;
-            if (this.win32ResourceWriter.BaseStream.Length > 0)
+            if (_win32ResourceWriter.BaseStream.Length > 0)
             {
-                result += BitArithmeticUtilities.Align(this.win32ResourceWriter.BaseStream.Length, 4);
+                result += BitArithmeticUtilities.Align(_win32ResourceWriter.BaseStream.Length, 4);
             }            // result += Align(this.win32ResourceWriter.BaseStream.Length+1, 8);
 
             return result;
@@ -377,7 +377,7 @@ namespace Microsoft.Cci
             corHeader.ExportAddressTableJumps.Size = 0;
             corHeader.Flags = this.GetCorHeaderFlags();
             corHeader.MajorRuntimeVersion = 2;
-            corHeader.MetadataDirectory.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + this.ComputeOffsetToMetadata(metadataSizes.ILStreamSize);
+            corHeader.MetadataDirectory.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + this.ComputeOffsetToMetadata(metadataSizes.ILStreamSize);
             corHeader.MetadataDirectory.Size = (uint)metadataSizes.MetadataSize;
             corHeader.MinorRuntimeVersion = 5;
             corHeader.Resources.RelativeVirtualAddress = corHeader.MetadataDirectory.RelativeVirtualAddress + corHeader.MetadataDirectory.Size;
@@ -392,32 +392,32 @@ namespace Microsoft.Cci
 
         private void FillInNtHeader(MetadataSizes metadataSizes, int mappedFieldDataStreamRva)
         {
-            bool use32bitAddresses = !this.module.Requires64bits;
-            NtHeader ntHeader = this.ntHeader;
-            ntHeader.AddressOfEntryPoint = this.emitRuntimeStartupStub ? (uint)mappedFieldDataStreamRva - (use32bitAddresses ? 6u : 10u) : 0;
-            ntHeader.BaseOfCode = this.textSection.RelativeVirtualAddress;
-            ntHeader.BaseOfData = this.rdataSection.RelativeVirtualAddress;
+            bool use32bitAddresses = !_module.Requires64bits;
+            NtHeader ntHeader = _ntHeader;
+            ntHeader.AddressOfEntryPoint = _emitRuntimeStartupStub ? (uint)mappedFieldDataStreamRva - (use32bitAddresses ? 6u : 10u) : 0;
+            ntHeader.BaseOfCode = _textSection.RelativeVirtualAddress;
+            ntHeader.BaseOfData = _rdataSection.RelativeVirtualAddress;
             ntHeader.PointerToSymbolTable = 0;
-            ntHeader.SizeOfCode = this.textSection.SizeOfRawData;
-            ntHeader.SizeOfInitializedData = this.rdataSection.SizeOfRawData + this.coverSection.SizeOfRawData + this.sdataSection.SizeOfRawData + this.tlsSection.SizeOfRawData + this.resourceSection.SizeOfRawData + this.relocSection.SizeOfRawData;
-            ntHeader.SizeOfHeaders = BitArithmeticUtilities.Align(this.ComputeSizeOfPeHeaders(), this.module.FileAlignment);
-            ntHeader.SizeOfImage = BitArithmeticUtilities.Align(this.relocSection.RelativeVirtualAddress + this.relocSection.VirtualSize, 0x2000);
+            ntHeader.SizeOfCode = _textSection.SizeOfRawData;
+            ntHeader.SizeOfInitializedData = _rdataSection.SizeOfRawData + _coverSection.SizeOfRawData + _sdataSection.SizeOfRawData + _tlsSection.SizeOfRawData + _resourceSection.SizeOfRawData + _relocSection.SizeOfRawData;
+            ntHeader.SizeOfHeaders = BitArithmeticUtilities.Align(this.ComputeSizeOfPeHeaders(), _module.FileAlignment);
+            ntHeader.SizeOfImage = BitArithmeticUtilities.Align(_relocSection.RelativeVirtualAddress + _relocSection.VirtualSize, 0x2000);
             ntHeader.SizeOfUninitializedData = 0;
 
             // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
             // the file was created in seconds since January 1st 1970 00:00:00 or 0"
             // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
-            ntHeader.TimeDateStamp = deterministic ? 0 : (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            ntHeader.TimeDateStamp = _deterministic ? 0 : (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            ntHeader.ImportAddressTable.RelativeVirtualAddress = (this.emitRuntimeStartupStub) ? this.textSection.RelativeVirtualAddress : 0;
-            ntHeader.ImportAddressTable.Size = this.sizeOfImportAddressTable;
+            ntHeader.ImportAddressTable.RelativeVirtualAddress = (_emitRuntimeStartupStub) ? _textSection.RelativeVirtualAddress : 0;
+            ntHeader.ImportAddressTable.Size = _sizeOfImportAddressTable;
 
-            ntHeader.CliHeaderTable.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + ntHeader.ImportAddressTable.Size;
+            ntHeader.CliHeaderTable.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + ntHeader.ImportAddressTable.Size;
             ntHeader.CliHeaderTable.Size = 72;
 
-            ntHeader.ImportTable.RelativeVirtualAddress = this.textSection.RelativeVirtualAddress + this.ComputeOffsetToImportTable(metadataSizes);
+            ntHeader.ImportTable.RelativeVirtualAddress = _textSection.RelativeVirtualAddress + this.ComputeOffsetToImportTable(metadataSizes);
 
-            if (!this.emitRuntimeStartupStub)
+            if (!_emitRuntimeStartupStub)
             {
                 ntHeader.ImportTable.Size = 0;
                 ntHeader.ImportTable.RelativeVirtualAddress = 0;
@@ -428,16 +428,16 @@ namespace Microsoft.Cci
                 ntHeader.ImportTable.Size += 13;  //size of nametable
             }
 
-            ntHeader.BaseRelocationTable.RelativeVirtualAddress = (this.emitRuntimeStartupStub) ? this.relocSection.RelativeVirtualAddress : 0;
-            ntHeader.BaseRelocationTable.Size = this.relocSection.VirtualSize;
+            ntHeader.BaseRelocationTable.RelativeVirtualAddress = (_emitRuntimeStartupStub) ? _relocSection.RelativeVirtualAddress : 0;
+            ntHeader.BaseRelocationTable.Size = _relocSection.VirtualSize;
             ntHeader.BoundImportTable.RelativeVirtualAddress = 0;
             ntHeader.BoundImportTable.Size = 0;
             ntHeader.CertificateTable.RelativeVirtualAddress = 0;
             ntHeader.CertificateTable.Size = 0;
             ntHeader.CopyrightTable.RelativeVirtualAddress = 0;
             ntHeader.CopyrightTable.Size = 0;
-            ntHeader.DebugTable.RelativeVirtualAddress = this.pdbWriter == null ? 0u : this.textSection.RelativeVirtualAddress + this.ComputeOffsetToDebugTable(metadataSizes);
-            ntHeader.DebugTable.Size = this.pdbWriter == null ? 0u : 0x1c; // Only the size of the fixed part of the debug table goes here.
+            ntHeader.DebugTable.RelativeVirtualAddress = _pdbWriter == null ? 0u : _textSection.RelativeVirtualAddress + this.ComputeOffsetToDebugTable(metadataSizes);
+            ntHeader.DebugTable.Size = _pdbWriter == null ? 0u : 0x1c; // Only the size of the fixed part of the debug table goes here.
             ntHeader.DelayImportTable.RelativeVirtualAddress = 0;
             ntHeader.DelayImportTable.Size = 0;
             ntHeader.ExceptionTable.RelativeVirtualAddress = 0;
@@ -450,30 +450,30 @@ namespace Microsoft.Cci
             ntHeader.LoadConfigTable.Size = 0;
             ntHeader.Reserved.RelativeVirtualAddress = 0;
             ntHeader.Reserved.Size = 0;
-            ntHeader.ResourceTable.RelativeVirtualAddress = this.resourceSection.SizeOfRawData == 0 ? 0u : this.resourceSection.RelativeVirtualAddress;
-            ntHeader.ResourceTable.Size = this.resourceSection.VirtualSize;
-            ntHeader.ThreadLocalStorageTable.RelativeVirtualAddress = this.tlsSection.SizeOfRawData == 0 ? 0u : this.tlsSection.RelativeVirtualAddress;
-            ntHeader.ThreadLocalStorageTable.Size = this.tlsSection.SizeOfRawData;
+            ntHeader.ResourceTable.RelativeVirtualAddress = _resourceSection.SizeOfRawData == 0 ? 0u : _resourceSection.RelativeVirtualAddress;
+            ntHeader.ResourceTable.Size = _resourceSection.VirtualSize;
+            ntHeader.ThreadLocalStorageTable.RelativeVirtualAddress = _tlsSection.SizeOfRawData == 0 ? 0u : _tlsSection.RelativeVirtualAddress;
+            ntHeader.ThreadLocalStorageTable.Size = _tlsSection.SizeOfRawData;
         }
 
         private void FillInTextSectionHeader(MetadataSizes metadataSizes)
         {
-            if (this.textSection == null)
+            if (_textSection == null)
             {
                 uint sizeOfPeHeaders = this.ComputeSizeOfPeHeaders();
                 uint sizeOfTextSection = this.ComputeSizeOfTextSection(metadataSizes);
 
-                this.textSection = new SectionHeader
+                _textSection = new SectionHeader
                 {
                     Characteristics = 0x60000020, // section is read + execute + code 
                     Name = ".text",
                     NumberOfLinenumbers = 0,
                     NumberOfRelocations = 0,
                     PointerToLinenumbers = 0,
-                    PointerToRawData = BitArithmeticUtilities.Align(sizeOfPeHeaders, this.module.FileAlignment),
+                    PointerToRawData = BitArithmeticUtilities.Align(sizeOfPeHeaders, _module.FileAlignment),
                     PointerToRelocations = 0,
                     RelativeVirtualAddress = BitArithmeticUtilities.Align(sizeOfPeHeaders, 0x2000),
-                    SizeOfRawData = BitArithmeticUtilities.Align(sizeOfTextSection, this.module.FileAlignment),
+                    SizeOfRawData = BitArithmeticUtilities.Align(sizeOfTextSection, _module.FileAlignment),
                     VirtualSize = sizeOfTextSection
                 };
             }
@@ -481,118 +481,118 @@ namespace Microsoft.Cci
 
         private void FillInSectionHeaders()
         {
-            this.rdataSection = new SectionHeader
+            _rdataSection = new SectionHeader
             {
                 Characteristics = 0x40000040, // section is read + initialized
                 Name = ".rdata",
                 NumberOfLinenumbers = 0,
                 NumberOfRelocations = 0,
                 PointerToLinenumbers = 0,
-                PointerToRawData = this.textSection.PointerToRawData + this.textSection.SizeOfRawData,
+                PointerToRawData = _textSection.PointerToRawData + _textSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.textSection.RelativeVirtualAddress + this.textSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(this.rdataWriter.BaseStream.Length, this.module.FileAlignment),
-                VirtualSize = this.rdataWriter.BaseStream.Length,
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(_textSection.RelativeVirtualAddress + _textSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(_rdataWriter.BaseStream.Length, _module.FileAlignment),
+                VirtualSize = _rdataWriter.BaseStream.Length,
             };
 
-            this.sdataSection = new SectionHeader
+            _sdataSection = new SectionHeader
             {
                 Characteristics = 0xC0000040, // section is write + read + initialized 
                 Name = ".sdata",
                 NumberOfLinenumbers = 0,
                 NumberOfRelocations = 0,
                 PointerToLinenumbers = 0,
-                PointerToRawData = this.rdataSection.PointerToRawData + this.rdataSection.SizeOfRawData,
+                PointerToRawData = _rdataSection.PointerToRawData + _rdataSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.rdataSection.RelativeVirtualAddress + this.rdataSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(this.sdataWriter.BaseStream.Length, this.module.FileAlignment),
-                VirtualSize = this.sdataWriter.BaseStream.Length,
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(_rdataSection.RelativeVirtualAddress + _rdataSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(_sdataWriter.BaseStream.Length, _module.FileAlignment),
+                VirtualSize = _sdataWriter.BaseStream.Length,
             };
 
-            this.coverSection = new SectionHeader
+            _coverSection = new SectionHeader
             {
                 Characteristics = 0xC8000040, // section is not paged + write + read + initialized 
                 Name = ".cover",
                 NumberOfLinenumbers = 0,
                 NumberOfRelocations = 0,
                 PointerToLinenumbers = 0,
-                PointerToRawData = this.sdataSection.PointerToRawData + this.sdataSection.SizeOfRawData,
+                PointerToRawData = _sdataSection.PointerToRawData + _sdataSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.sdataSection.RelativeVirtualAddress + this.sdataSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(this.coverageDataWriter.BaseStream.Length, this.module.FileAlignment),
-                VirtualSize = this.coverageDataWriter.BaseStream.Length,
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(_sdataSection.RelativeVirtualAddress + _sdataSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(_coverageDataWriter.BaseStream.Length, _module.FileAlignment),
+                VirtualSize = _coverageDataWriter.BaseStream.Length,
             };
 
-            this.tlsSection = new SectionHeader
+            _tlsSection = new SectionHeader
             {
                 Characteristics = 0xC0000040, // section is write + read + initialized 
                 Name = ".tls",
                 NumberOfLinenumbers = 0,
                 NumberOfRelocations = 0,
                 PointerToLinenumbers = 0,
-                PointerToRawData = this.coverSection.PointerToRawData + this.coverSection.SizeOfRawData,
+                PointerToRawData = _coverSection.PointerToRawData + _coverSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.coverSection.RelativeVirtualAddress + this.coverSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(this.tlsDataWriter.BaseStream.Length, this.module.FileAlignment),
-                VirtualSize = this.tlsDataWriter.BaseStream.Length,
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(_coverSection.RelativeVirtualAddress + _coverSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(_tlsDataWriter.BaseStream.Length, _module.FileAlignment),
+                VirtualSize = _tlsDataWriter.BaseStream.Length,
             };
 
-            uint resourcesRva = BitArithmeticUtilities.Align(this.tlsSection.RelativeVirtualAddress + this.tlsSection.VirtualSize, 0x2000);
+            uint resourcesRva = BitArithmeticUtilities.Align(_tlsSection.RelativeVirtualAddress + _tlsSection.VirtualSize, 0x2000);
             uint sizeOfWin32Resources = this.ComputeSizeOfWin32Resources(resourcesRva);
 
-            this.resourceSection = new SectionHeader
+            _resourceSection = new SectionHeader
             {
                 Characteristics = 0x40000040, // section is read + initialized  
                 Name = ".rsrc",
                 NumberOfLinenumbers = 0,
                 NumberOfRelocations = 0,
                 PointerToLinenumbers = 0,
-                PointerToRawData = this.tlsSection.PointerToRawData + this.tlsSection.SizeOfRawData,
+                PointerToRawData = _tlsSection.PointerToRawData + _tlsSection.SizeOfRawData,
                 PointerToRelocations = 0,
                 RelativeVirtualAddress = resourcesRva,
-                SizeOfRawData = BitArithmeticUtilities.Align(sizeOfWin32Resources, this.module.FileAlignment),
+                SizeOfRawData = BitArithmeticUtilities.Align(sizeOfWin32Resources, _module.FileAlignment),
                 VirtualSize = sizeOfWin32Resources,
             };
 
-            this.relocSection = new SectionHeader
+            _relocSection = new SectionHeader
             {
                 Characteristics = 0x42000040, // section is read + discardable + initialized  
                 Name = ".reloc",
                 NumberOfLinenumbers = 0,
                 NumberOfRelocations = 0,
                 PointerToLinenumbers = 0,
-                PointerToRawData = this.resourceSection.PointerToRawData + this.resourceSection.SizeOfRawData,
+                PointerToRawData = _resourceSection.PointerToRawData + _resourceSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.resourceSection.RelativeVirtualAddress + this.resourceSection.VirtualSize, 0x2000),
-                SizeOfRawData = this.emitRuntimeStartupStub ? this.module.FileAlignment : 0,
-                VirtualSize = this.emitRuntimeStartupStub ? (this.module.Requires64bits && !this.module.RequiresAmdInstructionSet ? 14u : 12u) : 0,
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(_resourceSection.RelativeVirtualAddress + _resourceSection.VirtualSize, 0x2000),
+                SizeOfRawData = _emitRuntimeStartupStub ? _module.FileAlignment : 0,
+                VirtualSize = _emitRuntimeStartupStub ? (_module.Requires64bits && !_module.RequiresAmdInstructionSet ? 14u : 12u) : 0,
             };
         }
 
         private CorFlags GetCorHeaderFlags()
         {
             CorFlags result = 0;
-            if (this.module.ILOnly)
+            if (_module.ILOnly)
             {
                 result |= CorFlags.ILOnly;
             }
 
-            if (this.module.Requires32bits)
+            if (_module.Requires32bits)
             {
                 result |= CorFlags.Requires32Bit;
             }
 
-            if (this.module.StrongNameSigned)
+            if (_module.StrongNameSigned)
             {
                 result |= CorFlags.StrongNameSigned;
             }
 
-            if (this.module.TrackDebugData)
+            if (_module.TrackDebugData)
             {
                 result |= CorFlags.TrackDebugData;
             }
 
-            if (this.module.Prefers32bits)
+            if (_module.Prefers32bits)
             {
                 result |= CorFlags.Requires32Bit | CorFlags.Prefers32Bit;
             }
@@ -764,14 +764,14 @@ namespace Microsoft.Cci
         //the .OBJ into our output and apply some fixups.
         private void SerializeWin32Resources(uint resourcesRva)
         {
-            var resourceSection = this.module.Win32ResourceSection;
+            var resourceSection = _module.Win32ResourceSection;
             if (resourceSection != null)
             {
                 SerializeWin32Resources(resourceSection, resourcesRva);
                 return;
             }
 
-            var theResources = this.module.Win32Resources;
+            var theResources = _module.Win32Resources;
 
             if (IteratorHelper.EnumerableIsEmpty(theResources))
             {
@@ -844,12 +844,12 @@ namespace Microsoft.Cci
             BinaryWriter dataWriter = new BinaryWriter(stream, true);
 
             //'dataWriter' is where opaque resource data goes as well as strings that are used as type or name identifiers
-            this.WriteDirectory(typeDirectory, this.win32ResourceWriter, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
-            dataWriter.BaseStream.WriteTo(this.win32ResourceWriter.BaseStream);
-            this.win32ResourceWriter.WriteByte(0);
-            while ((this.win32ResourceWriter.BaseStream.Length % 4) != 0)
+            this.WriteDirectory(typeDirectory, _win32ResourceWriter, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
+            dataWriter.BaseStream.WriteTo(_win32ResourceWriter.BaseStream);
+            _win32ResourceWriter.WriteByte(0);
+            while ((_win32ResourceWriter.BaseStream.Length % 4) != 0)
             {
-                this.win32ResourceWriter.WriteByte(0);
+                _win32ResourceWriter.WriteByte(0);
             }
             stream.Free();
         }
@@ -970,21 +970,21 @@ namespace Microsoft.Cci
 
         private void SerializeWin32Resources(ResourceSection resourceSections, uint resourcesRva)
         {
-            this.win32ResourceWriter.WriteBytes(resourceSections.SectionBytes);
+            _win32ResourceWriter.WriteBytes(resourceSections.SectionBytes);
 
-            var savedPosition = this.win32ResourceWriter.BaseStream.Position;
+            var savedPosition = _win32ResourceWriter.BaseStream.Position;
 
             var readStream = new System.IO.MemoryStream(resourceSections.SectionBytes);
             var reader = new System.IO.BinaryReader(readStream);
 
             foreach (int addressToFixup in resourceSections.Relocations)
             {
-                this.win32ResourceWriter.BaseStream.Position = (uint)addressToFixup;
+                _win32ResourceWriter.BaseStream.Position = (uint)addressToFixup;
                 reader.BaseStream.Position = addressToFixup;
-                this.win32ResourceWriter.WriteUint(reader.ReadUInt32() + resourcesRva);
+                _win32ResourceWriter.WriteUint(reader.ReadUInt32() + resourcesRva);
             }
 
-            this.win32ResourceWriter.BaseStream.Position = savedPosition;
+            _win32ResourceWriter.BaseStream.Position = savedPosition;
         }
 
         //#define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
@@ -1003,7 +1003,7 @@ namespace Microsoft.Cci
         //#define IMAGE_FILE_UP_SYSTEM_ONLY            0x4000  // File should only be run on a UP machine
         //#define IMAGE_FILE_BYTES_REVERSED_HI         0x8000  // Bytes of machine word are reversed.
 
-        private static readonly byte[] dosHeader = new byte[]
+        private static readonly byte[] s_dosHeader = new byte[]
         {
             0x4d, 0x5a, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00,
             0x04, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00,
@@ -1025,12 +1025,12 @@ namespace Microsoft.Cci
 
         private void WriteHeaders(Stream peStream, out long timestampOffset)
         {
-            IModule module = this.module;
-            NtHeader ntHeader = this.ntHeader;
-            BinaryWriter writer = new BinaryWriter(this.headerStream);
+            IModule module = _module;
+            NtHeader ntHeader = _ntHeader;
+            BinaryWriter writer = new BinaryWriter(_headerStream);
 
             // MS-DOS stub (128 bytes)
-            writer.WriteBytes(dosHeader); // TODO: provide an option to suppress the second half of the DOS header?
+            writer.WriteBytes(s_dosHeader); // TODO: provide an option to suppress the second half of the DOS header?
 
             // PE Signature (4 bytes)
             writer.WriteUint(0x00004550); /* "PE\0\0" */
@@ -1053,12 +1053,12 @@ namespace Microsoft.Cci
             if (module.Requires32bits)
             {
                 characteristics |= 0x0100; // 32 bit machine (The standard says to always set this, the linker team says otherwise)
-                //The loader team says that this is not used for anything in the OS. 
+                                           //The loader team says that this is not used for anything in the OS. 
             }
             else
             {
                 characteristics |= 0x0020; // large address aware (the standard says never to set this, the linker team says otherwise).
-                //The loader team says that this is not overridden for managed binaries and will be respected if set.
+                                           //The loader team says that this is not overridden for managed binaries and will be respected if set.
             }
 
             writer.WriteUshort(characteristics);
@@ -1170,16 +1170,16 @@ namespace Microsoft.Cci
             writer.WriteUlong(0); // 224|240
 
             // Section Headers
-            WriteSectionHeader(this.textSection, writer);
-            WriteSectionHeader(this.rdataSection, writer);
-            WriteSectionHeader(this.sdataSection, writer);
-            WriteSectionHeader(this.coverSection, writer);
-            WriteSectionHeader(this.resourceSection, writer);
-            WriteSectionHeader(this.relocSection, writer);
-            WriteSectionHeader(this.tlsSection, writer);
+            WriteSectionHeader(_textSection, writer);
+            WriteSectionHeader(_rdataSection, writer);
+            WriteSectionHeader(_sdataSection, writer);
+            WriteSectionHeader(_coverSection, writer);
+            WriteSectionHeader(_resourceSection, writer);
+            WriteSectionHeader(_relocSection, writer);
+            WriteSectionHeader(_tlsSection, writer);
 
             writer.BaseStream.WriteTo(peStream);
-            this.headerStream = this.emptyStream;
+            _headerStream = _emptyStream;
         }
 
         private static void WriteSectionHeader(SectionHeader sectionHeader, BinaryWriter writer)
@@ -1213,17 +1213,17 @@ namespace Microsoft.Cci
         }
 
         private void WriteTextSection(
-            Stream peStream, 
+            Stream peStream,
             CorHeader corHeader,
             MemoryStream metadataStream,
-            MemoryStream ilStream, 
+            MemoryStream ilStream,
             MemoryStream mappedFieldDataStream,
             MemoryStream managedResourceStream,
             out long startOfMetadata,
             out long positionOfTimestamp)
         {
-            peStream.Position = this.textSection.PointerToRawData;
-            if (this.emitRuntimeStartupStub)
+            peStream.Position = _textSection.PointerToRawData;
+            if (_emitRuntimeStartupStub)
             {
                 this.WriteImportAddressTable(peStream);
             }
@@ -1238,21 +1238,21 @@ namespace Microsoft.Cci
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
             this.WriteDebugTable(peStream, out positionOfTimestamp);
 
-            if (this.emitRuntimeStartupStub)
+            if (_emitRuntimeStartupStub)
             {
                 this.WriteImportTable(peStream);
                 this.WriteNameTable(peStream);
                 this.WriteRuntimeStartupStub(peStream);
             }
 
-            WriteMappedFieldData(peStream, mappedFieldDataStream);            
+            WriteMappedFieldData(peStream, mappedFieldDataStream);
         }
 
         private void WriteImportAddressTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(16));
-            bool use32bitAddresses = !this.module.Requires64bits;
-            uint importTableRVA = this.ntHeader.ImportTable.RelativeVirtualAddress;
+            bool use32bitAddresses = !_module.Requires64bits;
+            uint importTableRVA = _ntHeader.ImportTable.RelativeVirtualAddress;
             uint ilRVA = importTableRVA + 40;
             uint hintRva = ilRVA + (use32bitAddresses ? 12u : 16u);
 
@@ -1274,8 +1274,8 @@ namespace Microsoft.Cci
         private void WriteImportTable(Stream peStream)
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(70));
-            bool use32bitAddresses = !this.module.Requires64bits;
-            uint importTableRVA = this.ntHeader.ImportTable.RelativeVirtualAddress;
+            bool use32bitAddresses = !_module.Requires64bits;
+            uint importTableRVA = _ntHeader.ImportTable.RelativeVirtualAddress;
             uint ilRVA = importTableRVA + 40;
             uint hintRva = ilRVA + (use32bitAddresses ? 12u : 16u);
             uint nameRva = hintRva + 12 + 2;
@@ -1285,7 +1285,7 @@ namespace Microsoft.Cci
             writer.WriteUint(0); // 8
             writer.WriteUint(0); // 12
             writer.WriteUint(nameRva); // 16
-            writer.WriteUint(this.ntHeader.ImportAddressTable.RelativeVirtualAddress); // 20
+            writer.WriteUint(_ntHeader.ImportAddressTable.RelativeVirtualAddress); // 20
             writer.BaseStream.Position += 20; // 40
 
             // Import Lookup table
@@ -1304,7 +1304,7 @@ namespace Microsoft.Cci
             // Hint table
             writer.WriteUshort(0); // Hint 54|58
             string entryPointName =
-                (this.module.Kind == ModuleKind.DynamicallyLinkedLibrary || this.module.Kind == ModuleKind.WindowsRuntimeMetadata)
+                (_module.Kind == ModuleKind.DynamicallyLinkedLibrary || _module.Kind == ModuleKind.WindowsRuntimeMetadata)
                 ? "_CorDllMain" : "_CorExeMain";
 
             foreach (char ch in entryPointName)
@@ -1402,7 +1402,7 @@ namespace Microsoft.Cci
         private void WriteDebugTable(Stream peStream, out long timestampOffset)
         {
             timestampOffset = 0;
-            PeDebugDirectory debugDirectory = this.debugDirectory;
+            PeDebugDirectory debugDirectory = _debugDirectory;
             if (debugDirectory == null)
             {
                 return;
@@ -1417,8 +1417,8 @@ namespace Microsoft.Cci
             writer.WriteUshort(debugDirectory.MinorVersion);
             writer.WriteUint(debugDirectory.Type);
             writer.WriteUint(debugDirectory.SizeOfData);
-            debugDirectory.AddressOfRawData = debugDirectory.PointerToRawData + this.textSection.RelativeVirtualAddress;
-            debugDirectory.PointerToRawData += this.textSection.PointerToRawData;
+            debugDirectory.AddressOfRawData = debugDirectory.PointerToRawData + _textSection.RelativeVirtualAddress;
+            debugDirectory.PointerToRawData += _textSection.PointerToRawData;
             writer.WriteUint(debugDirectory.AddressOfRawData);
             writer.WriteUint(debugDirectory.PointerToRawData);
             writer.WriteBytes(debugDirectory.Data);
@@ -1430,14 +1430,14 @@ namespace Microsoft.Cci
         {
             BinaryWriter writer = new BinaryWriter(new MemoryStream(16));
             // entry point code, consisting of a jump indirect to _CorXXXMain
-            if (!this.module.Requires64bits)
+            if (!_module.Requires64bits)
             {
                 //emit 0's (nops) to pad the entry point code so that the target address is aligned on a 4 byte boundary.
                 for (uint i = 0, n = (uint)(BitArithmeticUtilities.Align((uint)peStream.Position, 4) - peStream.Position); i < n; i++) writer.WriteByte(0);
                 writer.WriteUshort(0);
                 writer.WriteByte(0xff);
                 writer.WriteByte(0x25); //4
-                writer.WriteUint(this.ntHeader.ImportAddressTable.RelativeVirtualAddress + (uint)this.module.BaseAddress); //8
+                writer.WriteUint(_ntHeader.ImportAddressTable.RelativeVirtualAddress + (uint)_module.BaseAddress); //8
             }
             else
             {
@@ -1447,69 +1447,69 @@ namespace Microsoft.Cci
                 writer.WriteUshort(0);
                 writer.WriteByte(0xff);
                 writer.WriteByte(0x25); //8
-                writer.WriteUlong(this.ntHeader.ImportAddressTable.RelativeVirtualAddress + this.module.BaseAddress); //16
+                writer.WriteUlong(_ntHeader.ImportAddressTable.RelativeVirtualAddress + _module.BaseAddress); //16
             }
             writer.BaseStream.WriteTo(peStream);
         }
 
         private void WriteCoverSection(Stream peStream)
         {
-            peStream.Position = this.coverSection.PointerToRawData;
-            this.coverageDataWriter.BaseStream.WriteTo(peStream);
+            peStream.Position = _coverSection.PointerToRawData;
+            _coverageDataWriter.BaseStream.WriteTo(peStream);
         }
 
         private void WriteRdataSection(Stream peStream)
         {
-            peStream.Position = this.rdataSection.PointerToRawData;
-            this.rdataWriter.BaseStream.WriteTo(peStream);
+            peStream.Position = _rdataSection.PointerToRawData;
+            _rdataWriter.BaseStream.WriteTo(peStream);
         }
 
         private void WriteSdataSection(Stream peStream)
         {
-            peStream.Position = this.sdataSection.PointerToRawData;
-            this.sdataWriter.BaseStream.WriteTo(peStream);
+            peStream.Position = _sdataSection.PointerToRawData;
+            _sdataWriter.BaseStream.WriteTo(peStream);
         }
 
         private void WriteRelocSection(Stream peStream)
         {
-            if (!this.emitRuntimeStartupStub)
+            if (!_emitRuntimeStartupStub)
             {
                 //No need to write out a reloc section, but there is still a need to pad out the peStream so that it is an even multiple of module.FileAlignment
-                if (this.relocSection.PointerToRawData != peStream.Position)
+                if (_relocSection.PointerToRawData != peStream.Position)
                 { //for example, the resource section did not end bang on the alignment boundary
-                    peStream.Position = this.relocSection.PointerToRawData - 1;
+                    peStream.Position = _relocSection.PointerToRawData - 1;
                     peStream.WriteByte(0);
                 }
                 return;
             }
 
-            peStream.Position = this.relocSection.PointerToRawData;
-            BinaryWriter writer = new BinaryWriter(new MemoryStream(this.module.FileAlignment));
-            writer.WriteUint(((this.ntHeader.AddressOfEntryPoint + 2) / 0x1000) * 0x1000);
-            writer.WriteUint(this.module.Requires64bits && !this.module.RequiresAmdInstructionSet ? 14u : 12u);
-            uint offsetWithinPage = (this.ntHeader.AddressOfEntryPoint + 2) % 0x1000;
-            uint relocType = this.module.Requires64bits ? 10u : 3u;
+            peStream.Position = _relocSection.PointerToRawData;
+            BinaryWriter writer = new BinaryWriter(new MemoryStream(_module.FileAlignment));
+            writer.WriteUint(((_ntHeader.AddressOfEntryPoint + 2) / 0x1000) * 0x1000);
+            writer.WriteUint(_module.Requires64bits && !_module.RequiresAmdInstructionSet ? 14u : 12u);
+            uint offsetWithinPage = (_ntHeader.AddressOfEntryPoint + 2) % 0x1000;
+            uint relocType = _module.Requires64bits ? 10u : 3u;
             ushort s = (ushort)((relocType << 12) | offsetWithinPage);
             writer.WriteUshort(s);
-            if (this.module.Requires64bits && !this.module.RequiresAmdInstructionSet)
+            if (_module.Requires64bits && !_module.RequiresAmdInstructionSet)
             {
                 writer.WriteUint(relocType << 12);
             }
 
             writer.WriteUshort(0); // next chunk's RVA
-            writer.BaseStream.Position = this.module.FileAlignment;
+            writer.BaseStream.Position = _module.FileAlignment;
             writer.BaseStream.WriteTo(peStream);
         }
 
         private void WriteResourceSection(Stream peStream)
         {
-            if (this.win32ResourceWriter.BaseStream.Length == 0)
+            if (_win32ResourceWriter.BaseStream.Length == 0)
             {
                 return;
             }
 
-            peStream.Position = this.resourceSection.PointerToRawData;
-            this.win32ResourceWriter.BaseStream.WriteTo(peStream);
+            peStream.Position = _resourceSection.PointerToRawData;
+            _win32ResourceWriter.BaseStream.WriteTo(peStream);
             peStream.WriteByte(0);
             while (peStream.Position % 8 != 0)
             {
@@ -1519,8 +1519,8 @@ namespace Microsoft.Cci
 
         private void WriteTlsSection(Stream peStream)
         {
-            peStream.Position = this.tlsSection.PointerToRawData;
-            this.tlsDataWriter.BaseStream.WriteTo(peStream);
+            peStream.Position = _tlsSection.PointerToRawData;
+            _tlsDataWriter.BaseStream.WriteTo(peStream);
         }
     }
 }

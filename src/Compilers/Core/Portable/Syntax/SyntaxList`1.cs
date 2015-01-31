@@ -16,18 +16,18 @@ namespace Microsoft.CodeAnalysis
     public partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {
-        private readonly SyntaxNode node;
+        private readonly SyntaxNode _node;
 
         internal SyntaxList(SyntaxNode node)
         {
-            this.node = node;
+            _node = node;
         }
 
         internal SyntaxNode Node
         {
             get
             {
-                return this.node;
+                return _node;
             }
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return node == null ? 0 : (node.IsList ? node.SlotCount : 1);
+                return _node == null ? 0 : (_node.IsList ? _node.SlotCount : 1);
             }
         }
 
@@ -51,18 +51,18 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (node != null)
+                if (_node != null)
                 {
-                    if (node.IsList)
+                    if (_node.IsList)
                     {
-                        if (unchecked((uint)index < (uint)node.SlotCount))
+                        if (unchecked((uint)index < (uint)_node.SlotCount))
                         {
-                            return (TNode)node.GetNodeSlot(index);
+                            return (TNode)_node.GetNodeSlot(index);
                         }
                     }
                     else if (index == 0)
                     {
-                        return (TNode)node;
+                        return (TNode)_node;
                     }
                 }
                 throw new ArgumentOutOfRangeException();
@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxNode ItemInternal(int index)
         {
-            if (node.IsList)
+            if (_node.IsList)
             {
-                return node.GetNodeSlot(index);
+                return _node.GetNodeSlot(index);
             }
 
             Debug.Assert(index == 0);
-            return node;
+            return _node;
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return this.node != null ? this.node.ToString() : string.Empty;
+            return _node != null ? _node.ToString() : string.Empty;
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return this.node != null ? this.node.ToFullString() : string.Empty;
+            return _node != null ? _node.ToFullString() : string.Empty;
         }
 
         /// <summary>
@@ -343,8 +343,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Any()
         {
-            Debug.Assert(node == null || Count != 0);
-            return node != null;
+            Debug.Assert(_node == null || Count != 0);
+            return _node != null;
         }
 
         // for debugging
@@ -383,17 +383,17 @@ namespace Microsoft.CodeAnalysis
 
         public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
-            return left.node == right.node;
+            return left._node == right._node;
         }
 
         public static bool operator !=(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
-            return left.node != right.node;
+            return left._node != right._node;
         }
 
         public bool Equals(SyntaxList<TNode> other)
         {
-            return node == other.node;
+            return _node == other._node;
         }
 
         public override bool Equals(object obj)
@@ -403,12 +403,12 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.node?.GetHashCode() ?? 0;
+            return _node?.GetHashCode() ?? 0;
         }
 
         public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
         {
-            return new SyntaxList<TNode>(nodes.node);
+            return new SyntaxList<TNode>(nodes._node);
         }
 
         public static implicit operator SyntaxList<SyntaxNode>(SyntaxList<TNode> nodes)

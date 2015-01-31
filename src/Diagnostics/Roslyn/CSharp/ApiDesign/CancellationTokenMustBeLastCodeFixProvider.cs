@@ -18,9 +18,9 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CancellationAnalyzerCodeFixProvider"), Shared]
     public class CancellationTokenMustBeLastCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId);
+            get { return ImmutableArray.Create(RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -28,7 +28,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics.First();
@@ -40,7 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
             // TODO: When we have a public Change Signature API, use that
             // instead of introducing a bunch of build breaks :(
 
-            context.RegisterFix(new MyCodeAction(context.Document, root, declaration), diagnostic);
+            context.RegisterCodeFix(new MyCodeAction(context.Document, root, declaration), diagnostic);
         }
 
         private class MyCodeAction : CodeAction

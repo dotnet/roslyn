@@ -30,5 +30,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
+
+        <Extension>
+        Friend Function GetErrorName(value As LanguageVersion) As String
+
+            Select Case value
+                Case LanguageVersion.VisualBasic9
+                    Return "9.0"
+                Case LanguageVersion.VisualBasic10
+                    Return "10.0"
+                Case LanguageVersion.VisualBasic11
+                    Return "11.0"
+                Case LanguageVersion.VisualBasic12
+                    Return "12.0"
+                Case LanguageVersion.VisualBasic14
+                    Return "14.0"
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(value)
+            End Select
+
+        End Function
+
     End Module
 End Namespace

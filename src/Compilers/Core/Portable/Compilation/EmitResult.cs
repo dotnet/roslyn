@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Emit
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class EmitResult
     {
-        private readonly bool success;
-        private readonly ImmutableArray<Diagnostic> diagnostics;
+        private readonly bool _success;
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
 
         /// <summary>
         /// True if the compilation successfully produced an executable.
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public bool Success
         {
-            get { return this.success; }
+            get { return _success; }
         }
 
         /// <summary>
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public ImmutableArray<Diagnostic> Diagnostics
         {
-            get { return this.diagnostics; }
+            get { return _diagnostics; }
         }
 
         internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics)
         {
-            this.success = success;
-            this.diagnostics = diagnostics;
+            _success = success;
+            _diagnostics = diagnostics;
         }
 
         protected virtual string GetDebuggerDisplay()

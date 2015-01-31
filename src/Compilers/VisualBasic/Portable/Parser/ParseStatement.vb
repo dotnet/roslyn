@@ -1844,6 +1844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(yieldKeyword IsNot Nothing AndAlso yieldKeyword.Kind = SyntaxKind.YieldKeyword)
 
+            yieldKeyword = CheckFeatureAvailability(Feature.Iterators, yieldKeyword)
             GetNextToken()
 
             Dim expression As ExpressionSyntax = ParseExpression()

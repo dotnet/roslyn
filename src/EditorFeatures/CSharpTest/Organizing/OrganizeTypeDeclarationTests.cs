@@ -1,0 +1,1066 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
+{
+    public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
+    {
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestFieldsWithoutInitializers1()
+        {
+            var initial =
+@"class C {
+    int A;
+    int B;
+    int C;
+}";
+
+            var final =
+@"class C {
+    int A;
+    int B;
+    int C;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestFieldsWithoutInitializers2()
+        {
+            var initial =
+@"class C {
+    int C;
+    int B;
+    int A;
+}";
+
+            var final =
+@"class C {
+    int A;
+    int B;
+    int C;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestFieldsWithInitializers1()
+        {
+            var initial =
+@"class C {
+    int C = 0;
+    int B;
+    int A;
+}";
+
+            var final =
+@"class C {
+    int A;
+    int B;
+    int C = 0;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestFieldsWithInitializers2()
+        {
+            var initial =
+@"class C {
+    int C = 0;
+    int B = 0;
+    int A;
+}";
+
+            var final =
+@"class C {
+    int A;
+    int C = 0;
+    int B = 0;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestEventFieldDeclaration()
+        {
+            var initial =
+@"class C {
+    public void Foo() {}     
+    public event EventHandler MyEvent;
+}";
+
+            var final =
+@"class C {
+    public event EventHandler MyEvent;
+    public void Foo() {}     
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestEventDeclaration()
+        {
+            var initial =
+@"class C  {
+    public void Foo() {}     
+    public event EventHandler Event
+    {
+        remove { }
+        add { }
+    }
+
+    public static int Property { get; set; }
+}";
+
+            var final =
+@"class C  {
+    public static int Property { get; set; }
+    public event EventHandler Event
+    {
+        remove { }
+        add { }
+    }
+
+    public void Foo() {}     
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestOperator()
+        {
+            var initial =
+@"class C  {
+    public void Foo() {}     
+    public static int operator +(Foo<T> a, int b)
+    {
+        return 1;
+    }
+}";
+
+            var final =
+@"class C  {
+    public static int operator +(Foo<T> a, int b)
+    {
+        return 1;
+    }
+    public void Foo() {}     
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestIndexer()
+        {
+            var initial =
+@"class C  {
+    public void Foo() {}     
+    public T this[int i]
+    {
+        get
+        {
+            return default(T);
+        }
+    }
+
+    C() {}
+}";
+
+            var final =
+@"class C  {
+    C() {}
+    public T this[int i]
+    {
+        get
+        {
+            return default(T);
+        }
+    }
+
+    public void Foo() {}     
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestConstructorAndDestructors()
+        {
+            var initial =
+@"class C  {
+    public ~Foo() {}        
+    enum Days {Sat, Sun};        
+    public Foo() {}  
+}";
+
+            var final =
+@"class C  {
+    public ~Foo() {}        
+    public Foo() {}  
+    enum Days {Sat, Sun};        
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInterface()
+        {
+            var initial =
+@"class C  {}
+interface I
+{
+   void Foo();
+   int Property { get; set; }
+   event EventHandler Event;
+}";
+
+            var final =
+@"class C  {}
+interface I
+{
+   event EventHandler Event;
+   int Property { get; set; }
+   void Foo();
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestStaticInstance()
+        {
+            var initial =
+@"class C {
+    int A;
+    static int B;
+    int C;
+    static int D;
+}";
+
+            var final =
+@"class C {
+    static int B;
+    static int D;
+    int A;
+    int C;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestAccessiblity()
+        {
+            var initial =
+@"class C {
+    int A;
+    private int B;
+    internal int C;
+    protected int D;
+    public int E;
+    protected internal int F;
+}";
+
+            var final =
+@"class C {
+    public int E;
+    protected int D;
+    protected internal int F;
+    internal int C;
+    int A;
+    private int B;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestStaticAccessiblity()
+        {
+            var initial =
+@"class C {
+    int A1;
+    private int B1;
+    internal int C1;
+    protected int D1;
+    public int E1;
+    static int A2;
+    static private int B2;
+    static internal int C2;
+    static protected int D2;
+    static public int E2;
+}";
+
+            var final =
+@"class C {
+    public static int E2;
+    protected static int D2;
+    internal static int C2;
+    static int A2;
+    private static int B2;
+    public int E1;
+    protected int D1;
+    internal int C1;
+    int A1;
+    private int B1;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestGenerics()
+        {
+            var initial =
+@"class C {
+    void B<X,Y>();
+    void B<Z>();
+    void B();
+    void A<X,Y>();
+    void A<Z>();
+    void A();
+}";
+
+            var final =
+@"class C {
+    void A();
+    void A<Z>();
+    void A<X,Y>();
+    void B();
+    void B<Z>();
+    void B<X,Y>();
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInsidePPRegion()
+        {
+            var initial =
+@"class C {
+#if true
+    int c;
+    int b;
+    int a;
+#endif
+}";
+
+            var final =
+@"class C {
+#if true
+    int a;
+    int b;
+    int c;
+#endif
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInsidePPRegion2()
+        {
+            var initial =
+@"class C {
+#if true
+    int z;
+    int y;
+    int x;
+#endif
+#if true
+    int c;
+    int b;
+    int a;
+#endif
+}";
+
+            var final =
+@"class C {
+#if true
+    int x;
+    int y;
+    int z;
+#endif
+#if true
+    int a;
+    int b;
+    int c;
+#endif
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInsidePPRegion3()
+        {
+            var initial =
+@"class C {
+    int z;
+    int y;
+#if true
+    int x;
+    int c;
+#endif
+    int b;
+    int a;
+}";
+
+            var final =
+@"class C {
+    int y;
+    int z;
+#if true
+    int c;
+    int x;
+#endif
+    int a;
+    int b;
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInsidePPRegion4()
+        {
+            var initial =
+@"class C {
+    int c() {
+    }
+    int b {
+    }
+    int a {
+#if true
+#endif
+    }
+}";
+
+            var final =
+@"class C {
+    int a {
+#if true
+#endif
+    }
+    int b {
+    }
+    int c() {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInsidePPRegion5()
+        {
+            var initial =
+@"class C {
+    int c() {
+    }
+    int b {
+    }
+    int a {
+#if true
+#else
+#endif
+    }
+}";
+
+            var final =
+@"class C {
+    int a {
+#if true
+#else
+#endif
+    }
+    int b {
+    }
+    int c() {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestInsidePPRegion6()
+        {
+            var initial =
+@"class C {
+#region
+    int e() {
+    }
+    int d() {
+    }
+    int c() {
+#region
+    }
+#endregion
+    int b {
+    }
+    int a {
+    }
+#endregion
+}";
+
+            var final =
+@"class C {
+#region
+    int d() {
+    }
+    int e() {
+    }
+    int c() {
+#region
+    }
+#endregion
+    int a {
+    }
+    int b {
+    }
+#endregion
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestPinned()
+        {
+            var initial =
+@"class C {
+    int z() {
+    }
+    int y() {
+    }
+    int x() {
+#if true
+    }
+    int n;
+    int m;
+    int c() {
+#endif
+    }
+    int b() {
+    }
+    int a() {
+    }
+}";
+
+            var final =
+@"class C {
+    int y() {
+    }
+    int z() {
+    }
+    int x() {
+#if true
+    }
+    int m;
+    int n;
+    int c() {
+#endif
+    }
+    int a() {
+    }
+    int b() {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void TestSensitivity()
+        {
+            var initial =
+@"class C {
+    int Bb;
+    int B;
+    int bB;
+    int b;
+    int Aa;
+    int a;
+    int A;
+    int aa;
+    int aA;
+    int AA;
+    int bb;
+    int BB;
+    int bBb;
+    int bbB;
+    int あ;
+    int ア;
+    int ｱ;
+    int ああ;
+    int あア;
+    int あｱ;
+    int アあ;
+    int cC;
+    int Cc;
+    int アア;
+    int アｱ;
+    int ｱあ;
+    int ｱア;
+    int ｱｱ;
+    int BBb;
+    int BbB;
+    int bBB;
+    int BBB;
+    int c;
+    int C;
+    int bbb;
+    int Bbb;
+    int cc;
+    int cC;
+    int CC;
+}";
+
+            var final =
+@"class C {
+    int a;
+    int A;
+    int aa;
+    int aA;
+    int Aa;
+    int AA;
+    int b;
+    int B;
+    int bb;
+    int bB;
+    int Bb;
+    int BB;
+    int bbb;
+    int bbB;
+    int bBb;
+    int bBB;
+    int Bbb;
+    int BbB;
+    int BBb;
+    int BBB;
+    int c;
+    int C;
+    int cc;
+    int cC;
+    int cC;
+    int Cc;
+    int CC;
+    int ア;
+    int ｱ;
+    int あ;
+    int アア;
+    int アｱ;
+    int ｱア;
+    int ｱｱ;
+    int アあ;
+    int ｱあ;
+    int あア;
+    int あｱ;
+    int ああ;
+}";
+
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestWhitespaceBetweenMethods1()
+        {
+            var initial =
+@"class Program
+{
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestWhitespaceBetweenMethods2()
+        {
+            var initial =
+@"class Program
+{
+    void B()
+    {
+    }
+
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    void A()
+    {
+    }
+
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestWhitespaceBetweenMethods3()
+        {
+            var initial =
+@"class Program
+{
+
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestWhitespaceBetweenMethods4()
+        {
+            var initial =
+@"class Program
+{
+
+
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+
+
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestWhitespaceBetweenMethods5()
+        {
+            var initial =
+@"class Program
+{
+
+
+    void B()
+    {
+    }
+
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+
+
+    void A()
+    {
+    }
+
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestWhitespaceBetweenMethods6()
+        {
+            var initial =
+@"class Program
+{
+
+
+    void B()
+    {
+    }
+
+
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+
+
+    void A()
+    {
+    }
+
+
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestMoveComments1()
+        {
+            var initial =
+@"class Program
+{
+    // B
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    void A()
+    {
+    }
+
+    // B
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestMoveComments2()
+        {
+            var initial =
+@"class Program
+{
+    // B
+    void B()
+    {
+    }
+
+    // A
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    // A
+    void A()
+    {
+    }
+
+    // B
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestMoveDocComments1()
+        {
+            var initial =
+@"class Program
+{
+    /// B
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    void A()
+    {
+    }
+
+    /// B
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestMoveDocComments2()
+        {
+            var initial =
+@"class Program
+{
+    /// B
+
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    void A()
+    {
+    }
+
+    /// B
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestDontMoveBanner()
+        {
+            var initial =
+@"class Program
+{
+    // Banner
+
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    // Banner
+
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+
+        [WorkItem(537614)]
+        [Fact]
+        public void TestDontMoveBanner2()
+        {
+            var initial =
+@"class Program
+{
+    // Banner
+
+    // More banner
+    // Bannery stuff
+
+    void B()
+    {
+    }
+
+    void A()
+    {
+    }
+}";
+
+            var final =
+@"class Program
+{
+    // Banner
+
+    // More banner
+    // Bannery stuff
+
+    void A()
+    {
+    }
+
+    void B()
+    {
+    }
+}";
+            Check(initial, final);
+        }
+    }
+}
