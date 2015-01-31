@@ -331,13 +331,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Protected Sub New(reader As ObjectReader)
                 MyBase.New(reader)
-                Me._children = ArrayElement(Of VisualBasicSyntaxNode).MakeElementArray(DirectCast(reader.ReadValue(), VisualBasicSyntaxNode()))
+
+                Dim length = reader.ReadInt32()
+
+                Me._children = New ArrayElement(Of VisualBasicSyntaxNode)(length - 1) {}
+                For i = 0 To length - 1
+                    Me._children(i).Value = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
+                Next
+
                 InitChildren()
             End Sub
 
             Friend Overrides Sub WriteTo(writer As ObjectWriter)
                 MyBase.WriteTo(writer)
-                writer.WriteValue(ArrayElement(Of VisualBasicSyntaxNode).MakeArray(Me._children))
+
+                ' PERF Write the array out manually.Profiling shows that this Is cheaper than converting to 
+                ' an array in order to use writer.WriteValue.
+                writer.WriteInt32(Me._children.Length)
+
+                For i = 0 To Me._children.Length - 1
+                    writer.WriteValue(Me._children(i).Value)
+                Next
             End Sub
 
             Friend Overrides Sub CopyTo(nodes As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)

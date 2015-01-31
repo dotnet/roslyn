@@ -998,7 +998,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            var text = "public class C {}";
+            var text = @"public class C {
+    public void Method1() {}
+    public void Method2() {}
+    public void Method3() {}
+    public void Method4() {}
+    public void Method5() {}
+    public void Method6() {}
+}";
 
             var sol = CreateNotKeptAliveSolution()
                         .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
@@ -1014,7 +1021,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            var text = @"Public Class C\r\nEnd Class";
+            var text = @"Public Class C
+    Sub Method1()
+    End Sub
+    Sub Method2()
+    End Sub
+    Sub Method3()
+    End Sub
+    Sub Method4()
+    End Sub
+    Sub Method5()
+    End Sub
+    Sub Method6()
+    End Sub
+End Class";
 
             var sol = CreateNotKeptAliveSolution()
                         .AddProject(pid, "foo", "foo.dll", LanguageNames.VisualBasic)
