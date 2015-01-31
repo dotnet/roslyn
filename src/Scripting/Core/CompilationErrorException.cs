@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// An exception thrown when the compilation stage of interactive execution produces compilation errors.

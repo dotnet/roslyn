@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Roslyn.Scripting
+Imports Microsoft.CodeAnalysis.Scripting
 Imports VisualBasicInteractive.BasicInteractive
 
 Friend NotInheritable Class Vbi

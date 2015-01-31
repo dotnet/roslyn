@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Ref = System.Reflection;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Runtime representation of an interactive session.

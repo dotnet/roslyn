@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Scripting;
-using Roslyn.Scripting.CommonTest;
-using Roslyn.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -53,7 +53,7 @@ namespace InteractiveFixtures
 
 #endregion
 
-namespace Roslyn.Scripting.CSharp.Test
+namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
 {
     public class HostModel
     {

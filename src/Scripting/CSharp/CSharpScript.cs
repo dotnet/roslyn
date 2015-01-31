@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Roslyn.Scripting.CSharp
+namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
     /// <summary>
     /// A factory for creating and running csharp scripts.

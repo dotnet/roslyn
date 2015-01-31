@@ -9,8 +9,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{066F0DBD-C46C-4C20-AFEC-99829A172625}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Roslyn.Scripting.CSharp</RootNamespace>
-    <AssemblyName>Roslyn.Scripting.CSharp</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.Scripting.CSharp</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting.CSharp</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -27,9 +27,9 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
@@ -41,6 +41,8 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -63,8 +65,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpScriptingResources.resx">

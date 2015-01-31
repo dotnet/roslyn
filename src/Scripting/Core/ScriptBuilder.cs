@@ -8,10 +8,10 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Roslyn.Scripting.Emit;
+using Microsoft.CodeAnalysis.Scripting.Emit;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Represents a runtime execution context for C# scripts.

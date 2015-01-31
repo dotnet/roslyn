@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;

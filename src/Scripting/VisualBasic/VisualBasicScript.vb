@@ -4,7 +4,7 @@ Imports System.Globalization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Roslyn.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
     Public NotInheritable Class VisualBasicScript
         Inherits Script

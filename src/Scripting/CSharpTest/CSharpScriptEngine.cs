@@ -4,7 +4,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Roslyn.Scripting.CSharp
+namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
     /// <summary>
     /// Represents a runtime execution context for C# scripts.

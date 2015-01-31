@@ -8,7 +8,7 @@ Imports System.IO
 Imports System.Linq
 Imports Microsoft.CodeAnalysis
 
-Namespace Roslyn.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
     ''' <summary> 
     ''' Represents a runtime execution context for Visual Basic scripts.
     ''' </summary>    

@@ -11,8 +11,8 @@
     <ProjectGuid>{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Roslyn.Scripting.CSharpTest</RootNamespace>
-    <AssemblyName>Roslyn.Scripting.CSharp.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.Scripting.CSharpTest</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -50,13 +50,13 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
       <Name>CSharpCompilerTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Test\CommonScriptingTest.csproj">
+    <ProjectReference Include="..\Test\ScriptingTest.csproj">
       <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>CommonScriptingTest</Name>
+      <Name>ScriptingTest</Name>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpScripting.csproj">
       <Project>{066F0DBD-C46C-4C20-AFEC-99829A172625}</Project>

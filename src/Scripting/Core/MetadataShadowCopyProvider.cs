@@ -10,7 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Implements shadow-copying metadata file cache.
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.AbsolutePathExpected, argumentName);
+                throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.AbsolutePathExpected, argumentName);
             }
         }
 

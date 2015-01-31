@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// A delegate that will run a script when invoked.
@@ -269,7 +269,7 @@ namespace Roslyn.Scripting
                     }
                     else
                     {
-                        throw new InvalidOperationException(CommonScriptingResources.StartingStateIncompatible);
+                        throw new InvalidOperationException(ScriptingResources.StartingStateIncompatible);
                     }
                 }
             }
@@ -284,7 +284,7 @@ namespace Roslyn.Scripting
                     var runtimeType = globals.GetType();
                     if (!_globalsType.IsAssignableFrom(runtimeType))
                     {
-                        throw new ArgumentException(string.Format(CommonScriptingResources.GlobalsNotAssignable, runtimeType, _globalsType));
+                        throw new ArgumentException(string.Format(ScriptingResources.GlobalsNotAssignable, runtimeType, _globalsType));
                     }
                 }
 

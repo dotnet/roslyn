@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Extends <see cref="MetadataFileReferenceResolver"/> to enable resolution of assembly

@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// The result of loading an assembly reference to the interactive session.

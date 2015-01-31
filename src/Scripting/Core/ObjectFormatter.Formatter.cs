@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 using Ref = System.Reflection;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     public abstract partial class ObjectFormatter
     {
@@ -54,7 +54,7 @@ namespace Roslyn.Scripting
                 }
                 catch (InsufficientExecutionStackException)
                 {
-                    return CommonScriptingResources.StackOverflowWhileEvaluat;
+                    return ScriptingResources.StackOverflowWhileEvaluat;
                 }
             }
 

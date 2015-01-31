@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Roslyn.Scripting.Emit
+namespace Microsoft.CodeAnalysis.Scripting.Emit
 {
     internal partial class ReflectionEmitter
     {

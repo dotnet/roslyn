@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
-Namespace Roslyn.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
     Public NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
@@ -116,7 +116,7 @@ Namespace Roslyn.Scripting.VisualBasic
         End Function
 
         Private Shared Function GetPrimitiveTypeName(type As Type) As String
-            Select Case type.GetTypeCode(type)
+            Select Case Type.GetTypeCode(type)
                 Case TypeCode.Boolean
                     Return "Boolean"
                 Case TypeCode.Byte

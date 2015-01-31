@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 
-namespace Roslyn.Scripting.Emit
+namespace Microsoft.CodeAnalysis.Scripting.Emit
 {
     /// <summary>
     /// Emits types in a given <see cref="Cci.IModule"/> to a <see cref="ModuleBuilder"/>.

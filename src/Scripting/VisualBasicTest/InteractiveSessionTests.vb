@@ -6,11 +6,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
-Imports Roslyn.Scripting.CommonTest
+Imports Microsoft.CodeAnalysis.Scripting
+Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
+Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Roslyn.Scripting.VisualBasic.Test
+
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.Test
 
     Public Class InteractiveSessionTests
         Inherits BasicTestBase

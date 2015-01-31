@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>
     </RootNamespace>
-    <AssemblyName>Roslyn.Scripting.VisualBasic.UnitTests</AssemblyName>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -43,13 +43,13 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
       <Name>BasicCompilerTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Test\CommonScriptingTest.csproj">
+    <ProjectReference Include="..\Test\ScriptingTest.csproj">
       <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>CommonScriptingTest</Name>
+      <Name>ScriptingTest</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicScripting.vbproj">
       <Project>{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}</Project>

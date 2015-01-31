@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// A collection that holds the final state of all global variables used by the script.

@@ -49,9 +49,9 @@
       <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
       <Name>BasicCodeAnalysis.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\TestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>

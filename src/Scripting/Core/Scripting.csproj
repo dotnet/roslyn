@@ -9,8 +9,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{12A68549-4E8C-42D6-8703-A09335F97997}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Roslyn.Scripting</RootNamespace>
-    <AssemblyName>Roslyn.Scripting.Common</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -86,10 +86,10 @@
     <Compile Include="ObjectFormatter.Formatter.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
-    <Compile Include="CommonScriptingResources.Designer.cs">
+    <Compile Include="ScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>CommonScriptingResources.resx</DependentUpon>
+      <DependentUpon>ScriptingResources.resx</DependentUpon>
     </Compile>
     <Compile Include="CompilationErrorException.cs" />
     <Compile Include="Emit\CommonCompilationExtensions.cs" />
@@ -109,8 +109,8 @@
     <Compile Include="ShadowCopy.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
     <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
@@ -118,16 +118,16 @@
     <InternalsVisibleTo Include="vbi" />
     <!-- GAC helpers -->
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CommonScriptingResources.resx">
+    <EmbeddedResource Include="ScriptingResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommonScriptingResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>

@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using System.Reflection;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Loads assemblies for Reflection based APIs.

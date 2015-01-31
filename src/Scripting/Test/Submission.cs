@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Compiled executable submission.

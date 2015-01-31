@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// A variable declared by the script.

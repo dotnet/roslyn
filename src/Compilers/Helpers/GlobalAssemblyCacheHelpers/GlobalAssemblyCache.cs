@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // for some reason it might happen that CreateAssemblyEnum returns non-zero HR that doesn't correspond to any exception:
 #if SCRIPTING
-                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidAssemblyName);
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidAssemblyName);
 #else
                     throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidAssemblyName);
 #endif

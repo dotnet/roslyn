@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting.CSharp
+namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
     public sealed class CSharpObjectFormatter : ObjectFormatter
     {

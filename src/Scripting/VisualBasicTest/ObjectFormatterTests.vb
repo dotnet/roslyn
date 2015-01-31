@@ -3,8 +3,8 @@
 Imports System.Globalization
 Imports System.Threading.Thread
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Roslyn.Scripting
-Imports Roslyn.Scripting.VisualBasic
+Imports Microsoft.CodeAnalysis.Scripting
+Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
 Imports Roslyn.Test.Utilities
 Imports Xunit
 

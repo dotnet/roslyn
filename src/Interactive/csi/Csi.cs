@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace CSharpInteractive
 {

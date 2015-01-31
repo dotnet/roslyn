@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Represents the submission states and globals that get passed to a script entry point when run.
@@ -66,7 +66,7 @@ namespace Roslyn.Scripting
         {
             if (_frozen != 0)
             {
-                throw new InvalidOperationException(CommonScriptingResources.ExecutionStateFrozen);
+                throw new InvalidOperationException(ScriptingResources.ExecutionStateFrozen);
             }
 
             // make sure there is enough free space for the submission to add its state

@@ -17,7 +17,7 @@ using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using Roslyn.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive

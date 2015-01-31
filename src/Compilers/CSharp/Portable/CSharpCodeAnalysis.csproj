@@ -862,7 +862,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
-    <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -874,8 +874,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>

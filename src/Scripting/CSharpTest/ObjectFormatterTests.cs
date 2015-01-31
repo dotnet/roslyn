@@ -19,7 +19,7 @@ using Xunit;
 using SymbolDisplay = Microsoft.CodeAnalysis.CSharp.SymbolDisplay;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using ObjectFormatterFixtures;
-using Roslyn.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting.CSharp;
 
 #region Fixtures
 
@@ -500,7 +500,7 @@ namespace ObjectFormatterFixtures
 
 #endregion
 
-namespace Roslyn.Scripting.UnitTests
+namespace Microsoft.CodeAnalysis.Scripting.UnitTests
 {
     public class ObjectFormatterTests
     {

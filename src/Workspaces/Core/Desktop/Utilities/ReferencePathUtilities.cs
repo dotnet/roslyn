@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
 
             // 1. Look in subdirectories based on the current culture
             // TODO: This logic is somewhat duplicated between here and 
-            // Roslyn.Scripting.MetadataShadowCopyProvider
+            // Microsoft.CodeAnalysis.Scripting.MetadataShadowCopyProvider
             string xmlFileName = Path.ChangeExtension(Path.GetFileName(assemblyFilePath), ".xml");
             string originalDirectory = Path.GetDirectoryName(assemblyFilePath);
 

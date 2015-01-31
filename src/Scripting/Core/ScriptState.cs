@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// The result of running a script.

@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Represents a runtime execution context for C# scripts.
@@ -144,7 +144,7 @@ namespace Roslyn.Scripting
             Type actualType = hostObject.GetType();
             if (!hostObjectType.IsAssignableFrom(actualType))
             {
-                throw new ArgumentException(String.Format(CommonScriptingResources.CantAssignTo, actualType, hostObjectType), "hostObjectType");
+                throw new ArgumentException(String.Format(ScriptingResources.CantAssignTo, actualType, hostObjectType), "hostObjectType");
             }
 
             return new Session(this, _options, hostObject, hostObjectType);
@@ -264,7 +264,7 @@ namespace Roslyn.Scripting
 
             if (reference.Properties.Kind != MetadataImageKind.Assembly)
             {
-                throw new ArgumentException(CommonScriptingResources.ExpectedAnAssemblyReference, nameof(reference));
+                throw new ArgumentException(ScriptingResources.ExpectedAnAssemblyReference, nameof(reference));
             }
 
             _options = _options.AddReferences(reference);

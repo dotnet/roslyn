@@ -9,7 +9,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Roslyn.Scripting.VisualBasic</AssemblyName>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting.VisualBasic</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -30,9 +30,9 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -42,12 +42,14 @@
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
+    <DocumentationFile>Microsoft.CodeAnalysis.Scripting.VisualBasic.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
+    <DocumentationFile>Microsoft.CodeAnalysis.Scripting.VisualBasic.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -57,6 +59,7 @@
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
+    <DocumentationFile>Microsoft.CodeAnalysis.Scripting.VisualBasic.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <DefineTrace>true</DefineTrace>
@@ -64,6 +67,7 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>ARM</PlatformTarget>
+    <DocumentationFile>Microsoft.CodeAnalysis.Scripting.VisualBasic.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -97,12 +101,12 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBScriptingResources.resx">
-      <CustomToolNamespace>Roslyn.Scripting.VisualBasic</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.Scripting.VisualBasic</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBScriptingResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>

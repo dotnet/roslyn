@@ -11,8 +11,8 @@
     <ProjectGuid>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Roslyn.Scripting.CommonTest</RootNamespace>
-    <AssemblyName>Roslyn.Scripting.Common.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.Scripting.Test</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -50,9 +50,9 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpScripting.csproj">
       <Project>{066F0DBD-C46C-4C20-AFEC-99829A172625}</Project>
@@ -89,8 +89,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

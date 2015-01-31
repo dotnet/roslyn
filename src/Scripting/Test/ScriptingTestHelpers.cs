@@ -9,12 +9,12 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Roslyn.Scripting;
-using Roslyn.Scripting.Emit;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.Scripting.CommonTest
+namespace Microsoft.CodeAnalysis.Scripting.Test
 {
     public class ScriptingTestHelpers
     {

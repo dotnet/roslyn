@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Options for creating and running scripts.
@@ -294,7 +294,7 @@ namespace Roslyn.Scripting
             string fullPath = _referenceResolver.PathResolver.ResolveReference(assemblyDisplayNameOrPath, baseFilePath: null);
             if (fullPath == null)
             {
-                throw new System.IO.FileNotFoundException(CommonScriptingResources.AssemblyNotFound, assemblyDisplayNameOrPath);
+                throw new System.IO.FileNotFoundException(ScriptingResources.AssemblyNotFound, assemblyDisplayNameOrPath);
             }
 
             return _referenceResolver.Provider.GetReference(fullPath, MetadataReferenceProperties.Assembly);

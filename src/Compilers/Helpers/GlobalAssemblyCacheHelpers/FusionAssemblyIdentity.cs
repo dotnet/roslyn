@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis
                 {
 #if SCRIPTING
 
-                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, "name");
 
 #elif WORKSPACE_DESKTOP
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis
                 {
 #if SCRIPTING
 
-                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, "name");
 
 #elif WORKSPACE_DESKTOP
 

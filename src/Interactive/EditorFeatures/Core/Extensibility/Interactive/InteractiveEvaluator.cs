@@ -22,9 +22,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Editor.InteractiveWindow;
 using Roslyn.Editor.InteractiveWindow.Commands;
-using Roslyn.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
-using GacFileResolver = WORKSPACES::Roslyn.Scripting.GacFileResolver;
+using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {

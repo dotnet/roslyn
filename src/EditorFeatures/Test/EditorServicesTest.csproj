@@ -125,9 +125,9 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\CommonScripting.csproj">
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>CommonScripting</Name>
+      <Name>Scripting</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>

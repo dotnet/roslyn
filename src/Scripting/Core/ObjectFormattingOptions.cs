@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     [Serializable]
     public sealed class ObjectFormattingOptions

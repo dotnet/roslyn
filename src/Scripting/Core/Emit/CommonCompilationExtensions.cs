@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Roslyn.Scripting.Emit
+namespace Microsoft.CodeAnalysis.Scripting.Emit
 {
     internal static class CommonCompilationExtensions
     {

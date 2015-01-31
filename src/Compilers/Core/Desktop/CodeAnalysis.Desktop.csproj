@@ -127,9 +127,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
-    <InternalsVisibleTo Include="Roslyn.Scripting.Common" />
-    <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
@@ -157,9 +157,9 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>

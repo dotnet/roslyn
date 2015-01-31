@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a submission initialization part of a Script type constructor that represents an interactive submission.
         /// </summary>
         /// <remarks>
-        /// The constructor takes a parameter of type Roslyn.Scripting.Session - the session reference.
+        /// The constructor takes a parameter of type Microsoft.CodeAnalysis.Scripting.Session - the session reference.
         /// It adds the object being constructed into the session by calling Microsoft.CSharp.RuntimeHelpers.SessionHelpers.SetSubmission,
         /// and retrieves strongly typed references on all previous submission script classes whose members are referenced by this submission.
         /// The references are stored to fields of the submission (<paramref name="synthesizedFields"/>).

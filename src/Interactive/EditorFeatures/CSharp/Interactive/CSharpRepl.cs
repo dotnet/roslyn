@@ -3,8 +3,8 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Interactive;
-using Roslyn.Scripting;
-using Roslyn.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {

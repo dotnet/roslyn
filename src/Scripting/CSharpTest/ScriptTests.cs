@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Roslyn.Scripting.CSharp.Test
+namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
 {
     public class ScriptTests : CSharpTestBase
     {

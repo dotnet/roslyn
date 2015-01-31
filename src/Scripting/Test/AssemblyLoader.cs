@@ -4,9 +4,9 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Roslyn.Scripting.CommonTest
+namespace Microsoft.CodeAnalysis.Scripting.Test
 {
-    internal sealed class AssemblyLoader : Roslyn.Scripting.AssemblyLoader
+    internal sealed class AssemblyLoader : Microsoft.CodeAnalysis.Scripting.AssemblyLoader
     {
         private readonly RuntimeAssemblyManager _manager;
 

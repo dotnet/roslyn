@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Ref = System.Reflection;
 
-namespace Roslyn.Scripting
+namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// Object pretty printer.
