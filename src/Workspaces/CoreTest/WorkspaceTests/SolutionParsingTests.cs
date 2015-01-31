@@ -33,7 +33,7 @@ namespace Roslyn.Editor.UnitTests.SolutionParsing
         {
             var emptySolution = @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-" + visualStudio2010 + @"
+" + s_visualStudio2010 + @"
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,7 +63,7 @@ EndGlobal
         {
             var vbConsoleApplicationSolution = @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-" + visualStudio2010 + @"
+" + s_visualStudio2010 + @"
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""ConsoleApplication1"", ""ConsoleApplication1\ConsoleApplication1.vbproj"", ""{09BC9F5A-FBFA-4BEE-A13C-77A99C95D06B}""
 EndProject
 Global
@@ -116,7 +116,7 @@ EndGlobal
         {
             var vbConsoleApplicationSolution = @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-" + visualStudio2010 + @"
+" + s_visualStudio2010 + @"
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") =""ConsoleApplication1"" ,    ""Console Application1\ConsoleApplication1.vbproj"",""{09BC9F5A-FBFA-4BEE-A13C-77A99C95D06B}""
 EndProject
 Global
@@ -152,7 +152,7 @@ EndGlobal
         {
             var vbConsoleApplicationSolution = @"
 Microsoft Visual Studio Solution File, Format Version 12.00
-" + visualStudio2012 + @"
+" + s_visualStudio2012 + @"
 VisualStudioVersion = 12.0.20430.1 PREVIEW
 MinimumVisualStudioVersion = 10.0.40219.1
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") =""ConsoleApplication1"" ,    ""Console Application1\ConsoleApplication1.vbproj"",""{09BC9F5A-FBFA-4BEE-A13C-77A99C95D06B}""
