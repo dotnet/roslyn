@@ -1,0 +1,8 @@
+﻿/r:System
+/r:System.Core
+/r:Microsoft.CSharp
+/r:System.Data
+/r:System.Data.DataSetExtensions
+/r:System.Xml
+/r:System.Xml.Linq
+SeedUsings.csx

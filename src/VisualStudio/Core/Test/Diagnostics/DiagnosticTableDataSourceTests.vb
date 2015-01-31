@@ -1,0 +1,577 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
+Imports System.Threading
+Imports System.Windows
+Imports System.Windows.Controls
+Imports System.Windows.Documents
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+Imports Microsoft.VisualStudio.TableControl
+Imports Microsoft.VisualStudio.TableManager
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
+
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
+    Public Class DiagnosticTableDataSourceTests
+        <Fact>
+        Public Sub TestCreation()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim provider = New TestDiagnosticService()
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+
+                Assert.Equal(manager.Identifier, StandardTables.ErrorsTable)
+                Assert.Equal(1, manager.Sources.Count())
+
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                AssertEx.SetEqual(table.Columns, manager.GetColumnsForSources(SpecializedCollections.SingletonEnumerable(source)))
+
+                Assert.Equal(ServicesVSResources.DiagnosticsTableSourceName, source.DisplayName)
+                Assert.Equal(StandardTableDataSources.ErrorTableDataSource, source.SourceTypeIdentifier)
+
+                Assert.Equal(1, manager.Sinks_TestOnly.Count())
+
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim subscription = sinkAndSubscription.Value
+
+                Assert.Equal(0, sink.Entries.Count())
+                Assert.Equal(1, source.NumberOfSubscription_TestOnly)
+
+                subscription.Dispose()
+                Assert.Equal(0, source.NumberOfSubscription_TestOnly)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestInitialEntries()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim provider = New TestDiagnosticService(CreateItem(workspace, documentId))
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Assert.Equal(1, sink.Entries.Count)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestEntryChanged()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim provider = New TestDiagnosticService()
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+
+                provider.Items = New DiagnosticData() {CreateItem(workspace, documentId)}
+                provider.RaiseDiagnosticsUpdated(workspace)
+                Assert.Equal(1, sink.Entries.Count)
+
+                provider.Items = New DiagnosticData() {}
+                provider.RaiseClearDiagnosticsUpdated(workspace, documentId.ProjectId, documentId)
+                Assert.Equal(0, sink.Entries.Count)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestEntry()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+
+                Dim item = CreateItem(workspace, documentId)
+                Dim provider = New TestDiagnosticService(item)
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim subscription = sinkAndSubscription.Value
+
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+
+                Assert.Equal(1, snapshot.Count)
+
+                Dim filename = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.Equal(item.OriginalFilePath, filename)
+
+                Dim text = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
+                Assert.Equal(item.Message, text)
+
+                Dim line = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
+                Assert.Equal(item.MappedStartLine, line)
+
+                Dim column = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
+                Assert.Equal(item.MappedStartColumn, column)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestSnapshotEntry()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+
+                Dim item = CreateItem(workspace, documentId)
+                Dim provider = New TestDiagnosticService(item)
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim subscription = sinkAndSubscription.Value
+
+                Dim factory = TryCast(sink.Entries.First(), AbstractTableEntriesFactory(Of DiagnosticData))
+                Dim snapshot1 = factory.GetCurrentSnapshot()
+
+                factory.OnUpdated()
+                Dim snapshot2 = factory.GetCurrentSnapshot()
+
+                Assert.Equal(snapshot1.VersionNumber + 1, snapshot2.VersionNumber)
+
+                Assert.Equal(1, snapshot1.Count)
+
+                Dim filename = Nothing
+                Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.Equal(item.OriginalFilePath, filename)
+
+                Dim text = Nothing
+                Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
+                Assert.Equal(item.Message, text)
+
+                Dim line = Nothing
+                Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
+                Assert.Equal(item.MappedStartLine, line)
+
+                Dim column = Nothing
+                Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
+                Assert.Equal(item.MappedStartColumn, column)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestInvalidEntry()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+
+                Dim item = CreateItem(workspace, documentId)
+                Dim provider = New TestDiagnosticService(item)
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim subscription = sinkAndSubscription.Value
+
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+
+                Assert.Equal(1, snapshot.Count)
+
+                Dim temp = Nothing
+                Assert.False(snapshot.TryGetValue(-1, StandardTableKeyNames.DocumentName, temp))
+                Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.DocumentName, temp))
+                Assert.False(snapshot.TryGetValue(0, "Test", temp))
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestNoHiddenEntry()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+
+                Dim item = CreateItem(workspace, documentId, DiagnosticSeverity.Error)
+                Dim item2 = CreateItem(workspace, documentId, DiagnosticSeverity.Hidden)
+                Dim provider = New TestDiagnosticService(item, item2)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim subscription = sinkAndSubscription.Value
+
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+
+                Assert.Equal(1, snapshot.Count)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestProjectEntry()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim projectId = workspace.CurrentSolution.Projects.First().Id
+
+                Dim item = CreateItem(workspace, projectId, Nothing, DiagnosticSeverity.Error)
+                Dim provider = New TestDiagnosticService(item)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim subscription = sinkAndSubscription.Value
+
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+
+                Assert.Equal(1, snapshot.Count)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestMultipleWorkspace()
+            Using workspace1 = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Using workspace2 = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                    Dim documentId = workspace1.CurrentSolution.Projects.First().DocumentIds.First()
+                    Dim projectId = documentId.ProjectId
+
+                    Dim item1 = CreateItem(workspace1, projectId, documentId, DiagnosticSeverity.Error)
+                    Dim provider = New TestDiagnosticService(item1)
+
+                    Dim tableManagerProvider = New TestTableManagerProvider()
+
+                    Dim table = New VisualStudioDiagnosticListTable(workspace1, provider, tableManagerProvider)
+                    provider.RaiseDiagnosticsUpdated(workspace1)
+
+                    Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                    Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                    Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                    Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                    Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                    Assert.Equal(1, snapshot.Count)
+
+                    Dim item2 = CreateItem(workspace2, projectId, documentId, DiagnosticSeverity.Error)
+                    provider.RaiseDiagnosticsUpdated(workspace2, item2)
+                    Assert.Equal(1, sink.Entries.Count)
+
+                    Dim item3 = CreateItem(workspace1, projectId, Nothing, DiagnosticSeverity.Error)
+                    provider.RaiseDiagnosticsUpdated(workspace1, item3)
+
+                    Assert.Equal(2, sink.Entries.Count)
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestDetailExpander()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim wpfTableEntriesSnapshot = TryCast(snapshot, IWpfTableEntriesSnapshot)
+                Assert.NotNull(wpfTableEntriesSnapshot)
+
+                Assert.True(wpfTableEntriesSnapshot.CanCreateDetailsContent(0))
+
+                Dim ui As FrameworkElement = Nothing
+                Assert.True(wpfTableEntriesSnapshot.TryCreateDetailsContent(0, ui))
+
+                Dim textBlock = TryCast(ui, TextBlock)
+                Assert.Equal(item1.Description, textBlock.Text)
+                Assert.Equal(New Thickness(10, 6, 10, 8), textBlock.Padding)
+                Assert.Equal(Nothing, textBlock.Background)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestHyperLink()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link")
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim wpfTableEntriesSnapshot = TryCast(snapshot, IWpfTableEntriesSnapshot)
+                Assert.NotNull(wpfTableEntriesSnapshot)
+
+                Dim ui As FrameworkElement = Nothing
+                Assert.True(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
+
+                Dim textBlock = TryCast(ui, TextBlock)
+                Assert.NotNull(textBlock)
+                Assert.Equal(1, textBlock.Inlines.Count)
+
+                Dim hyperLink = TryCast(textBlock.Inlines(0), Hyperlink)
+                Assert.NotNull(hyperLink)
+                Assert.Equal(1, hyperLink.Inlines.Count)
+                Assert.Equal(item1.HelpLink, hyperLink.NavigateUri.OriginalString)
+
+                Dim run = TryCast(hyperLink.Inlines(0), Run)
+                Assert.NotNull(run)
+                Assert.Equal(item1.Id, run.Text)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestBingHyperLink()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim wpfTableEntriesSnapshot = TryCast(snapshot, IWpfTableEntriesSnapshot)
+                Assert.NotNull(wpfTableEntriesSnapshot)
+
+                Dim ui As FrameworkElement = Nothing
+                Assert.True(wpfTableEntriesSnapshot.TryCreateColumnContent(0, ShimTableKeyNames.ErrorCode, False, ui))
+
+                Dim textBlock = TryCast(ui, TextBlock)
+                Assert.NotNull(textBlock)
+                Assert.Equal(1, textBlock.Inlines.Count)
+
+                Dim hyperLink = TryCast(textBlock.Inlines(0), Hyperlink)
+                Assert.NotNull(hyperLink)
+                Assert.Equal(1, hyperLink.Inlines.Count)
+                Assert.Equal("http://www.bing.com/search?form=VSHELP&q=test test format", hyperLink.NavigateUri.OriginalString)
+
+                Dim run = TryCast(hyperLink.Inlines(0), Run)
+                Assert.NotNull(run)
+                Assert.Equal(item1.Id, run.Text)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestHelpLink()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim helpLink As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpLink, helpLink))
+
+                Assert.Equal(item1.HelpLink, helpLink.ToString())
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestBingHelpLink()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim helpLink As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpLink, helpLink))
+
+                Assert.Equal("http://www.bing.com/search?form=VSHELP&q=test%20test%20format", helpLink.ToString())
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub TestProjectRank()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim content As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, ShimTableKeyNames.ProjectRank, content))
+                Assert.NotNull(content)
+                Assert.Equal(CType(content, Integer), 0)
+            End Using
+        End Sub
+
+        Private Function CreateItem(workspace As Workspace, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
+            Return CreateItem(workspace, documentId.ProjectId, documentId, severity)
+        End Function
+
+        Private Function CreateItem(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+            Return New DiagnosticData("test", "test", "test", "test format", severity, severity, True, 0, ImmutableArray(Of String).Empty,
+                                      workspace, projectId, documentId, TextSpan.FromBounds(0, 10), Nothing, 10, 10, 10, 10, "test", 20, 20, 20, 20,
+                                      title:="Title", description:="Description", helpLink:=link)
+        End Function
+
+        Private Class TestDiagnosticService
+            Implements IDiagnosticService
+
+            Public Items As DiagnosticData()
+
+            Public Sub New(ParamArray items As DiagnosticData())
+                Me.Items = items
+            End Sub
+
+            Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
+
+            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+                Assert.NotNull(workspace)
+
+                If documentId IsNot Nothing Then
+                    Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
+                End If
+
+                If projectId IsNot Nothing Then
+                    Return Items.Where(Function(t) t.ProjectId Is projectId).ToImmutableArrayOrEmpty()
+                End If
+
+                Return ImmutableArray(Of DiagnosticData).Empty
+            End Function
+
+            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())
+                Dim item = items(0)
+
+                Dim id = If(CObj(item.DocumentId), item.ProjectId)
+                RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
+                        ValueTuple.Create(Of IDiagnosticService, Object)(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
+            End Sub
+
+            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
+                Dim documentMap = Items.Where(Function(t) t.DocumentId IsNot Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.DocumentId)
+
+                For Each group In documentMap
+                    RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
+                        ValueTuple.Create(Of IDiagnosticService, Object)(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                Next
+
+                Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.ProjectId)
+
+                For Each group In projectMap
+                    RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
+                        ValueTuple.Create(Of IDiagnosticService, Object)(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty()))
+                Next
+            End Sub
+
+            Public Sub RaiseClearDiagnosticsUpdated(workspace As Workspace, projectId As ProjectId, documentId As DocumentId)
+                RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
+                    ValueTuple.Create(Of IDiagnosticService, Object)(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray(Of DiagnosticData).Empty))
+            End Sub
+        End Class
+    End Class
+End Namespace

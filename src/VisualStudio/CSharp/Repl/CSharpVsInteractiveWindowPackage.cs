@@ -1,0 +1,73 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel.Design;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.LanguageServices.Interactive;
+using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
+using Roslyn.VisualStudio.InteractiveWindow;
+using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
+
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
+{
+    [Guid(LanguageServiceGuids.CSharpReplPackageIdString)]
+    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [ProvideMenuResource("Menus.ctmenu", 16)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.CSharpProject_string)]
+    [ProvideLanguageExtension(LanguageServiceGuids.CSharpLanguageServiceIdString, ".csx")]
+    [ProvideInteractiveWindow(
+        IdString,
+        Orientation = ToolWindowOrientation.Bottom,
+        Style = VsDockStyle.Tabbed,
+        Window = CommonVsUtils.OutputWindowId)]
+    internal partial class CSharpVsInteractiveWindowPackage : VsInteractiveWindowPackage<CSharpVsInteractiveWindowProvider>
+    {
+        private const string IdString = "CA8CC5C7-0231-406A-95CD-AA5ED6AC0190";
+        internal static readonly Guid Id = new Guid(IdString);
+
+        protected override Guid ToolWindowId
+        {
+            get { return Id; }
+        }
+
+        protected override string LanguageName
+        {
+            get { return "C#"; }
+        }
+
+        protected override Guid LanguageServiceGuid
+        {
+            get { return LanguageServiceGuids.CSharpLanguageServiceId; }
+        }
+
+        protected override string ProjectKind
+        {
+            get { return VSLangProj.PrjKind.prjKindCSharpProject; }
+        }
+
+        protected override void InitializeMenuCommands(OleMenuCommandService menuCommandService)
+        {
+            var openInteractiveCommand = new MenuCommand(
+                (sender, args) => this.InteractiveWindowProvider.Open(instanceId: 0, focus: true),
+                new CommandID(CSharpInteractiveCommands.InteractiveCommandSetId, CSharpInteractiveCommands.InteractiveToolWindow));
+
+            menuCommandService.AddCommand(openInteractiveCommand);
+        }
+
+        protected override CommandID GetResetInteractiveFromProjectCommandID()
+        {
+            return new CommandID(CSharpInteractiveCommands.InteractiveCommandSetId, CSharpInteractiveCommands.ResetInteractiveFromProject);
+        }
+
+        protected override string CreateReference(string referenceName)
+        {
+            return string.Format("#r \"{0}\"", referenceName);
+        }
+
+        protected override string CreateImport(string namespaceName)
+        {
+            return string.Format("using {0};", namespaceName);
+        }
+    }
+}
