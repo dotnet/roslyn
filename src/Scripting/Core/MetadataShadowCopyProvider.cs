@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             bool fault = true;
             try
             {
-                key = new FileKey(fullPath, FileUtilities.GetLastWriteTimeStamp(newCopy.Public.PrimaryModule.FullPath));
+                key = new FileKey(fullPath, FileUtilities.GetFileTimeStamp(newCopy.Public.PrimaryModule.FullPath));
                 fault = false;
             }
             finally
