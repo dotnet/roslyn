@@ -7,16 +7,16 @@ using Microsoft.VisualStudio.Utilities;
 namespace Roslyn.Editor.InteractiveWindow
 {
     [Export(typeof(ISmartIndentProvider))]
-    [ContentType(InteractiveContentTypeNames.InteractiveContentType)]
+    [ContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName)]
     internal class InteractiveSmartIndenterProvider : ISmartIndentProvider
     {
         private readonly ITextEditorFactoryService editorFactory;
-        private readonly IEnumerable<Lazy<ISmartIndentProvider, IContentTypeMetadata>> indentProviders;
+        private readonly IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> indentProviders;
 
         [ImportingConstructor]
         public InteractiveSmartIndenterProvider(
             ITextEditorFactoryService editorFactory,
-            [ImportMany] IEnumerable<Lazy<ISmartIndentProvider, IContentTypeMetadata>> indentProviders)
+            [ImportMany] IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> indentProviders)
         {
             if (editorFactory == null)
             {

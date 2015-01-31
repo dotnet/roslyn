@@ -158,7 +158,7 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                 switch ((CommandIds)nCmdID)
                 {
                     case CommandIds.BreakLine:
-                        if (_window.BreakLine())
+                        if (_window.Operations.BreakLine())
                         {
                             return VSConstants.S_OK;
                         }
@@ -170,7 +170,7 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case VSConstants.VSStd2KCmdID.RETURN:
-                        if (_window.Return())
+                        if (_window.Operations.Return())
                         {
                             return VSConstants.S_OK;
                         }
@@ -182,7 +182,7 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                     //    break;
 
                     case VSConstants.VSStd2KCmdID.BACKSPACE:
-                        if (_window.Backspace())
+                        if (_window.Operations.Backspace())
                         {
                             return VSConstants.S_OK;
                         }
@@ -193,7 +193,7 @@ namespace Roslyn.VisualStudio.InteractiveWindow
 
                         if (_window.CurrentLanguageBuffer != null && !_window.IsRunning && CaretAtEnd && UseSmartUpDown)
                         {
-                            _window.HistoryPrevious();
+                            _window.Operations.HistoryPrevious();
                             return VSConstants.S_OK;
                         }
                         break;
@@ -201,7 +201,7 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                     case VSConstants.VSStd2KCmdID.DOWN:
                         if (_window.CurrentLanguageBuffer != null && !_window.IsRunning && CaretAtEnd && UseSmartUpDown)
                         {
-                            _window.HistoryNext();
+                            _window.Operations.HistoryNext();
                             return VSConstants.S_OK;
                         }
                         break;
@@ -209,24 +209,24 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                     case VSConstants.VSStd2KCmdID.CANCEL:
                         if (_window.TextView.Selection.IsEmpty)
                         {
-                            _window.Cancel();
+                            _window.Operations.Cancel();
                         }
                         break;
 
                     case VSConstants.VSStd2KCmdID.BOL:
-                        _window.Home(false);
+                        _window.Operations.Home(false);
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd2KCmdID.BOL_EXT:
-                        _window.Home(true);
+                        _window.Operations.Home(true);
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd2KCmdID.EOL:
-                        _window.End(false);
+                        _window.Operations.End(false);
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd2KCmdID.EOL_EXT:
-                        _window.End(true);
+                        _window.Operations.End(true);
                         return VSConstants.S_OK;
                 }
             }
@@ -236,22 +236,22 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
                     case VSConstants.VSStd97CmdID.Paste:
-                        _window.Paste();
+                        _window.Operations.Paste();
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd97CmdID.Cut:
-                        _window.Cut();
+                        _window.Operations.Cut();
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd97CmdID.Delete:
-                        if (_window.Delete())
+                        if (_window.Operations.Delete())
                         {
                             return VSConstants.S_OK;
                         }
                         break;
 
                     case VSConstants.VSStd97CmdID.SelectAll:
-                        _window.SelectAll();
+                        _window.Operations.SelectAll();
                         return VSConstants.S_OK;
                 }
             }
@@ -301,11 +301,15 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                 }
             }
 
-            var result = nextTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+            if (nextTarget != null)
+            {
+                var result = nextTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
 #if DUMP_COMMANDS
             //DumpCmd("QS", result, ref pguidCmdGroup, prgCmds[0].cmdID, prgCmds[0].cmdf);
 #endif
-            return result;
+                return result;
+            }
+            return VSConstants.E_FAIL;
         }
 
         private int PreLanguageCommandFilterExec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
@@ -317,16 +321,16 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                 switch ((CommandIds)nCmdID)
                 {
                     case CommandIds.AbortExecution: _window.AbortCommand(); return VSConstants.S_OK;
-                    case CommandIds.Reset: _window.ResetAsync(); return VSConstants.S_OK;
-                    case CommandIds.SmartExecute: _window.ExecuteInput(); return VSConstants.S_OK;
-                    case CommandIds.HistoryNext: _window.HistoryNext(); return VSConstants.S_OK;
-                    case CommandIds.HistoryPrevious: _window.HistoryPrevious(); return VSConstants.S_OK;
-                    case CommandIds.ClearScreen: _window.ClearView(); return VSConstants.S_OK;
+                    case CommandIds.Reset: _window.Operations.ResetAsync(); return VSConstants.S_OK;
+                    case CommandIds.SmartExecute: _window.Operations.ExecuteInput(); return VSConstants.S_OK;
+                    case CommandIds.HistoryNext: _window.Operations.HistoryNext(); return VSConstants.S_OK;
+                    case CommandIds.HistoryPrevious: _window.Operations.HistoryPrevious(); return VSConstants.S_OK;
+                    case CommandIds.ClearScreen: _window.Operations.ClearView(); return VSConstants.S_OK;
                     case CommandIds.SearchHistoryNext:
-                        _window.HistorySearchNext();
+                        _window.Operations.HistorySearchNext();
                         return VSConstants.S_OK;
                     case CommandIds.SearchHistoryPrevious:
-                        _window.HistorySearchPrevious();
+                        _window.Operations.HistorySearchPrevious();
                         return VSConstants.S_OK;
                 }
             }
@@ -335,11 +339,11 @@ namespace Roslyn.VisualStudio.InteractiveWindow
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        _window.Delete();
+                        _window.Operations.Delete();
                         break;
 
                     case VSConstants.VSStd2KCmdID.RETURN:
-                        if (_window.TrySubmitStandardInput())
+                        if (_window.Operations.TrySubmitStandardInput())
                         {
                             return VSConstants.S_OK;
                         }

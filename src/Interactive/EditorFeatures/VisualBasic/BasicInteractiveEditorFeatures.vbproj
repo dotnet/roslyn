@@ -30,6 +30,10 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01e9bd68-0339-4a13-b42f-a3ca84d164f3}</Project>
+      <Name>InteractiveWindow</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Scripting\VisualBasic\BasicScripting.vbproj">
       <Project>{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}</Project>
       <Name>BasicScripting</Name>
@@ -61,10 +65,6 @@
     <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj">
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>

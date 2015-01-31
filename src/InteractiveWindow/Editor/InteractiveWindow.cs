@@ -48,6 +48,7 @@ namespace Roslyn.Editor.InteractiveWindow
 
         private readonly IWpfTextView textView;
         private readonly IEditorOperations editorOperations;
+        private readonly InteractiveOperations interactiveOperations;
         private readonly History history;
         private readonly TaskScheduler uiScheduler;
         
@@ -142,6 +143,7 @@ namespace Roslyn.Editor.InteractiveWindow
             this.host = host;
             this.Properties = new PropertyCollection();
             this.history = new History();
+            this.interactiveOperations = new InteractiveOperations(this);
 
             this.projectionBufferFactory = projectionBufferFactory;
             this.bufferFactory = bufferFactory;
@@ -152,8 +154,8 @@ namespace Roslyn.Editor.InteractiveWindow
             this.smartIndenterService = smartIndenterService;
 
             var textContentType = contentTypeRegistry.GetContentType("text");
-            var replContentType = contentTypeRegistry.GetContentType(InteractiveContentTypeNames.InteractiveContentType);
-            var replOutputContentType = contentTypeRegistry.GetContentType(InteractiveContentTypeNames.InteractiveOutputContentType);
+            var replContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName);
+            var replOutputContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveOutputContentTypeName);
 
             this.outputBuffer = bufferFactory.CreateTextBuffer(replOutputContentType);
             this.stdInputBuffer = bufferFactory.CreateTextBuffer();
@@ -238,7 +240,7 @@ namespace Roslyn.Editor.InteractiveWindow
                 PredefinedTextViewRoles.Editable,
                 PredefinedTextViewRoles.Interactive,
                 PredefinedTextViewRoles.Zoomable,
-                InteractiveConstants.InteractiveTextViewRole);
+                PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
         }
 
         public void Close()
@@ -1188,6 +1190,14 @@ namespace Roslyn.Editor.InteractiveWindow
             }
         }
 
+        public IInteractiveWindowOperations Operations
+        {
+            get
+            {
+                return interactiveOperations;
+            }
+        }
+
         public bool Delete()
         {
             historySearch = null;
@@ -1634,7 +1644,7 @@ namespace Roslyn.Editor.InteractiveWindow
         /// <summary>
         /// Sets the active code to the specified text w/o executing it.
         /// </summary>
-        private void SetActiveCode(string text, object editTag = null)
+        private void SetActiveCode(string text)
         {
             // TODO (tomat): this should be handled by the language intellisense provider, not here:
             var completionSession = this.SessionStack.TopSession;
@@ -1643,7 +1653,7 @@ namespace Roslyn.Editor.InteractiveWindow
                 completionSession.Dismiss();
             }
 
-            using (var edit = currentLanguageBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: editTag))
+            using (var edit = currentLanguageBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
             {
                 edit.Replace(new Span(0, currentLanguageBuffer.CurrentSnapshot.Length), text);
                 edit.Apply();
@@ -1656,14 +1666,7 @@ namespace Roslyn.Editor.InteractiveWindow
         /// <param name="entry"></param>
         private void SetActiveCodeToHistory(History.Entry entry)
         {
-            object editTag = null;
-
-            if (entry.OriginalSpan.HasValue)
-            {
-                editTag = new RestoreHistoryEditTag(entry.OriginalSpan.Value);
-            }
-
-            SetActiveCode(entry.Text, editTag);
+            SetActiveCode(entry.Text);
         }
 
         /// <summary>
@@ -3016,5 +3019,110 @@ namespace Roslyn.Editor.InteractiveWindow
         }
 
         #endregion
+
+        class InteractiveOperations : IInteractiveWindowOperations
+        {
+            private readonly InteractiveWindow window;
+
+            public InteractiveOperations(InteractiveWindow window)
+            {
+                this.window = window;
+            }
+
+            public bool Backspace()
+            {
+                return window.Backspace();
+            }
+
+            public bool BreakLine()
+            {
+                return window.BreakLine();
+            }
+
+            public void Cancel()
+            {
+                window.Cancel();
+            }
+
+            public void ClearHistory()
+            {
+                window.ClearHistory();
+            }
+
+            public void ClearView()
+            {
+                window.ClearView();
+            }
+
+            public void Cut()
+            {
+                window.Cut();
+            }
+
+            public bool Delete()
+            {
+                return window.Delete();
+            }
+
+            public void End(bool extendSelection)
+            {
+                window.End(extendSelection);
+            }
+
+            public void ExecuteInput()
+            {
+                window.ExecuteInput();
+            }
+
+            public void HistoryNext(string search = null)
+            {
+                window.HistoryNext(search);
+            }
+
+            public void HistoryPrevious(string search = null)
+            {
+                window.HistoryPrevious(search);
+            }
+
+            public void HistorySearchNext()
+            {
+                window.HistorySearchNext();
+            }
+
+            public void HistorySearchPrevious()
+            {
+                window.HistorySearchPrevious();
+            }
+
+            public void Home(bool extendSelection)
+            {
+                window.Home(extendSelection);
+            }
+
+            public bool Paste()
+            {
+                return window.Paste();
+            }
+
+            public Task<ExecutionResult> ResetAsync(bool initialize = true)
+            {
+                return window.ResetAsync(initialize);
+            }
+
+            public bool Return()
+            {
+                return window.Return();
+            }
+
+            public void SelectAll()
+            {
+                window.SelectAll();
+            }
+
+            public bool TrySubmitStandardInput()
+            {
+                return window.TrySubmitStandardInput();
+            }
+        }
     }
 }

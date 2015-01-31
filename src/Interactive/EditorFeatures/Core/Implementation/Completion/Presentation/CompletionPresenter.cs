@@ -8,12 +8,13 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Editor.InteractiveWindow;
+using Roslyn.Editor.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
 {
     [Export(typeof(IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>))]
     [Export(typeof(ICompletionSourceProvider))]
-    [ContentType(InteractiveContentTypeNames.InteractiveCommandContentType)]
+    [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     internal partial class CompletionPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, ICompletionSourceProvider
     {
         private readonly ICompletionBroker _completionBroker;
