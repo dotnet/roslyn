@@ -117,10 +117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException("changes")
             End If
 
-            Dim scanner As Scanner
+            Dim scanner As scanner
             If changes.Length = 1 AndAlso changes(0).Span = New TextSpan(0, Me.Length) AndAlso changes(0).NewLength = newText.Length Then
                 ' if entire text is replaced then do a full reparse
-                scanner = New Scanner(newText, Options)
+                scanner = New scanner(newText, Options)
             Else
                 scanner = New Blender(newText, changes, Me, Me.Options)
             End If
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options = If(options, VisualBasicParseOptions.Default)
 
                 Dim node As InternalSyntax.CompilationUnitSyntax
-                Using parser As New Parser(text, options, cancellationToken)
+                Using parser As New parser(text, options, cancellationToken)
                     node = parser.ParseCompilationUnit()
                 End Using
 
@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function IsAnyPreprocessorSymbolDefined(conditionalSymbolNames As IEnumerable(Of String), atNode As SyntaxNodeOrToken) As Boolean
             Debug.Assert(conditionalSymbolNames IsNot Nothing)
 
-            Dim conditionalSymbolsMap As ConditionalSymbolsMap = Me.ConditionalSymbols
+            Dim conditionalSymbolsMap As conditionalSymbolsMap = Me.ConditionalSymbols
             If conditionalSymbolsMap Is Nothing Then
                 Return False
             End If

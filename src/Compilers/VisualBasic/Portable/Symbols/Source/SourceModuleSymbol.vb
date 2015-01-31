@@ -603,10 +603,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
                 Parallel.For(0, trees.Count, options,
-                             Sub(i As Integer)
-                                 cancellationToken.ThrowIfCancellationRequested()
-                                 GetSourceFile(trees(i)).GenerateAllDeclarationErrors()
-                             End Sub)
+                    UICultureUtilities.WithCurrentUICulture(
+                        Sub(i As Integer)
+                            cancellationToken.ThrowIfCancellationRequested()
+                            GetSourceFile(trees(i)).GenerateAllDeclarationErrors()
+                        End Sub))
                 trees.Free()
             Else
                 For Each tree In SyntaxTrees
@@ -680,13 +681,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If tasks IsNot Nothing Then
                         Dim worker As Task = Task.Run(
-                            Sub()
-                                Try
-                                    visitor(symbol)
-                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
-                                    Throw ExceptionUtilities.Unreachable
-                                End Try
-                            End Sub,
+                            UICultureUtilities.WithCurrentUICulture(
+                                Sub()
+                                    Try
+                                        visitor(symbol)
+                                    Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                        Throw ExceptionUtilities.Unreachable
+                                    End Try
+                                End Sub),
                             cancellationToken)
                         tasks.Push(worker)
                     Else

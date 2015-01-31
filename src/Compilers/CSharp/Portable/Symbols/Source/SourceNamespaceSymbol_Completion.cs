@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     ? new ParallelOptions() { CancellationToken = cancellationToken }
                                     : CSharpCompilation.DefaultParallelOptions;
 
-                                Parallel.For(0, members.Length, po, i =>
+                                Parallel.For(0, members.Length, po, UICultureUtilities.WithCurrentUICulture<int>(i =>
                                 {
                                     var member = members[i];
                                     ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
-                                });
+                                }));
 
                                 foreach (var member in members)
                                 {

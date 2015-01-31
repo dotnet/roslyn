@@ -1905,7 +1905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Options.ConcurrentBuild Then
                         Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
                         Parallel.For(0, SyntaxTrees.Length, options,
-                            Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken)))
+                            UICultureUtilities.WithCurrentUICulture(Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))))
                     Else
                         For Each tree In SyntaxTrees
                             cancellationToken.ThrowIfCancellationRequested()

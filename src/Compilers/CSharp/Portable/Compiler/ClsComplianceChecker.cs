@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var options = this.cancellationToken.CanBeCanceled
                     ? new ParallelOptions() { CancellationToken = this.cancellationToken }
                     : CSharpCompilation.DefaultParallelOptions; // i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, Visit);
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
             }
             else
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var options = this.cancellationToken.CanBeCanceled
                     ? new ParallelOptions() { CancellationToken = this.cancellationToken }
                     : CSharpCompilation.DefaultParallelOptions; //i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, Visit);
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
             }
             else
             {

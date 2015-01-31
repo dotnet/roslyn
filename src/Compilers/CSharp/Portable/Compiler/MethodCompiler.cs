@@ -293,18 +293,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
         {
-            return Task.Run(() =>
+            return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
+            {
+                try
                 {
-                    try
-                    {
-                        CompileNamespace(symbol);
-                        return (object)null;
-                    }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }, this.cancellationToken);
+                    CompileNamespace(symbol);
+                }
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }), this.cancellationToken);
         }
 
         private void CompileNamespace(NamespaceSymbol symbol)
@@ -340,18 +339,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
         {
-            return Task.Run(() =>
+            return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
+            {
+                try
                 {
-                    try
-                    {
-                        CompileNamedType(symbol);
-                        return (object)null;
-                    }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }, this.cancellationToken);
+                    CompileNamedType(symbol);
+                }
+                catch (Exception e) when (FatalError.Report(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }), this.cancellationToken);
         }
 
         private void CompileNamedType(NamedTypeSymbol symbol)

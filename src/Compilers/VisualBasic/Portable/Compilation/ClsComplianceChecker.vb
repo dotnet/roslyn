@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
                 Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
-                Parallel.ForEach(symbol.Modules, options, AddressOf VisitModule)
+                Parallel.ForEach(symbol.Modules, options, UICultureUtilities.WithCurrentUICulture(Of ModuleSymbol)(AddressOf VisitModule))
             Else
                 For Each m In symbol.Modules
                     VisitModule(m)
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If _compilation.Options.ConcurrentBuild Then
                 Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, AddressOf Visit)
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
             Else
                 For Each m In symbol.GetMembersUnordered()
                     Visit(m)
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If _compilation.Options.ConcurrentBuild Then
                 Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, AddressOf Visit)
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
             Else
                 For Each m In symbol.GetMembersUnordered()
                     Visit(m)

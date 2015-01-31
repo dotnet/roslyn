@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Try
                 _recursionDepth += 1
                 If _recursionDepth >= _maxUncheckedRecursionDepth Then
-                    _ensureSufficientExecutionStack()
+                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack()
                 End If
 
                 '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,

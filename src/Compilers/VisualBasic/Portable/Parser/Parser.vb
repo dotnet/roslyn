@@ -20,8 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             IfPrecededByLineBreak
         End Enum
 
-        Private Shared _ensureSufficientExecutionStack As Action = Nothing
-
         ' Keep this value in sync with C# LanguageParser
         Private Const _maxUncheckedRecursionDepth As Integer = 30
 
@@ -61,20 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _scanner = scanner
             _context = New CompilationUnitContext(Me)
             _syntaxFactory = New ContextAwareSyntaxFactory(Me)
-
-            ' TODO (DevDiv workitem 966425): Replace with the RuntimeHelpers.EnsureSufficientExecutionStack API when
-            ' available.  
-            If _ensureSufficientExecutionStack Is Nothing Then
-                Dim type = System.Type.GetType("System.Runtime.CompilerServices.RuntimeHelpers, mscorlib, Version=4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089")
-                Dim methodInfo = Reflection.IntrospectionExtensions.GetTypeInfo(type).GetDeclaredMethod("EnsureSufficientExecutionStack")
-                If methodInfo IsNot Nothing Then
-                    _ensureSufficientExecutionStack = DirectCast(methodInfo.CreateDelegate(GetType(Action)), Action)
-                Else
-                    _ensureSufficientExecutionStack = Sub()
-
-                                                      End Sub
-                End If
-            End If
         End Sub
 
         Friend Sub Dispose() Implements IDisposable.Dispose
@@ -860,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Try
                 _recursionDepth += 1
                 If _recursionDepth >= _maxUncheckedRecursionDepth Then
-                    _ensureSufficientExecutionStack()
+                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack()
                 End If
 
                 _hadImplicitLineContinuation = False

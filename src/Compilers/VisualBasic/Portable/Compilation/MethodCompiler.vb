@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -477,13 +477,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function CompileNamespaceAsTask(symbol As NamespaceSymbol) As Task
             Return Task.Run(
-                Sub()
-                    Try
-                        CompileNamespace(symbol)
-                    Catch e As Exception When FatalError.ReportUnlessCanceled(e)
-                        Throw ExceptionUtilities.Unreachable
-                    End Try
-                End Sub,
+                UICultureUtilities.WithCurrentUICulture(
+                    Sub()
+                        Try
+                            CompileNamespace(symbol)
+                        Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                            Throw ExceptionUtilities.Unreachable
+                        End Try
+                    End Sub),
                 Me._cancellationToken)
         End Function
 
@@ -509,13 +510,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function CompileNamedTypeAsTask(symbol As NamedTypeSymbol, filter As Predicate(Of Symbol)) As Task
             Return Task.Run(
-                Sub()
-                    Try
-                        CompileNamedType(symbol, filter)
-                    Catch e As Exception When FatalError.ReportUnlessCanceled(e)
-                        Throw ExceptionUtilities.Unreachable
-                    End Try
-                End Sub,
+                UICultureUtilities.WithCurrentUICulture(
+                    Sub()
+                        Try
+                            CompileNamedType(symbol, filter)
+                        Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                            Throw ExceptionUtilities.Unreachable
+                        End Try
+                    End Sub),
                 Me._cancellationToken)
         End Function
 

@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             : DefaultParallelOptions;
 
                         Parallel.For(0, this.SyntaxTrees.Length, parallelOptions,
-                            i => builder.AddRange(this.SyntaxTrees[i].GetDiagnostics(cancellationToken)));
+                            UICultureUtilities.WithCurrentUICulture<int>(i => builder.AddRange(this.SyntaxTrees[i].GetDiagnostics(cancellationToken))));
                     }
                     else
                     {

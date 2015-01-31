@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //     discovered was 7.  Having 20 as a minimum seems reasonable in that context 
         //
         private const int MaxUncheckedRecursionDepth = 20;
-        private static Action ensureSufficientExecutionStack;
 
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
@@ -54,22 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             this.syntaxFactoryContext = new SyntaxFactoryContext();
             this.syntaxFactory = new ContextAwareSyntax(syntaxFactoryContext);
-
-            // TODO (DevDiv workitem 966425): Replace with the RuntimeHelpers.EnsureSufficientExecutionStack API when
-            // available.  
-            if (ensureSufficientExecutionStack == null)
-            {
-                var type = Type.GetType("System.Runtime.CompilerServices.RuntimeHelpers, mscorlib, Version=4.0.0.0, Culture = neutral, PublicKeyToken = b77a5c561934e089");
-                var methodInfo = System.Reflection.IntrospectionExtensions.GetTypeInfo(type).GetDeclaredMethod("EnsureSufficientExecutionStack");
-                if (methodInfo != null)
-                {
-                    ensureSufficientExecutionStack = (Action)methodInfo.CreateDelegate(typeof(Action));
-                }
-                else
-                {
-                    ensureSufficientExecutionStack = () => { };
-                }
-            }
         }
 
         // Special Name checks
@@ -6312,7 +6295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.recursionDepth++;
                 if (this.recursionDepth > MaxUncheckedRecursionDepth)
                 {
-                    LanguageParser.ensureSufficientExecutionStack();
+                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack();
                 }
 
                 if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
@@ -8241,7 +8224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.recursionDepth > MaxUncheckedRecursionDepth)
             {
-                LanguageParser.ensureSufficientExecutionStack();
+                EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack();
             }
 
             var result = ParseSubExpressionCore(precedence);
