@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var solutionFolder = Path.GetDirectoryName(absoluteSolutionPath);
 
             // seed loaders from known project types
-            using (this.dataGuard.DisposableWait())
+            using (_dataGuard.DisposableWait())
             {
                 foreach (var projectBlock in solutionFile.ProjectBlocks)
                 {
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         var loader = ProjectFileLoader.GetLoaderForProjectTypeGuid(this, projectBlock.ProjectTypeGuid);
                         if (loader != null)
                         {
-                            this.projectPathToLoaderMap[absoluteProjectPath] = loader;
+                            _projectPathToLoaderMap[absoluteProjectPath] = loader;
                         }
                     }
                 }
