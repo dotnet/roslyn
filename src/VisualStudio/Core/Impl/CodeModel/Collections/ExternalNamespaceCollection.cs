@@ -1,0 +1,93 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+{
+    [ComVisible(true)]
+    [ComDefaultInterface(typeof(ICodeElements))]
+    public sealed class ExternalNamespaceCollection : AbstractCodeElementCollection
+    {
+        internal static EnvDTE.CodeElements Create(
+            CodeModelState state,
+            object parent,
+            ProjectId projectId,
+            INamespaceSymbol namespaceSymbol)
+        {
+            var collection = new ExternalNamespaceCollection(state, parent, projectId, namespaceSymbol);
+            return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+        }
+
+        private readonly ProjectId _projectId;
+        private readonly SymbolKey _namespaceSymbolId;
+        private ImmutableArray<EnvDTE.CodeElement> _children;
+
+        internal ExternalNamespaceCollection(CodeModelState state, object parent, ProjectId projectId, INamespaceSymbol namespaceSymbol)
+            : base(state, parent)
+        {
+            _projectId = projectId;
+            _namespaceSymbolId = namespaceSymbol.GetSymbolKey();
+        }
+
+        private ImmutableArray<EnvDTE.CodeElement> GetChildren()
+        {
+            if (_children == null)
+            {
+                var childrenBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+
+                foreach (var child in ExternalNamespaceEnumerator.ChildrenOfNamespace(this.State, _projectId, _namespaceSymbolId))
+                {
+                    childrenBuilder.Add(child);
+                }
+
+                _children = childrenBuilder.ToImmutable();
+            }
+
+            return _children;
+        }
+
+        protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
+        {
+            var children = GetChildren();
+            if (index < children.Length)
+            {
+                element = children[index];
+                return true;
+            }
+
+            element = null;
+            return false;
+        }
+
+        protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
+        {
+            var children = GetChildren();
+            var index = children.IndexOf(e => e.Name == name);
+
+            if (index < children.Length)
+            {
+                element = children[index];
+                return true;
+            }
+
+            element = null;
+            return false;
+        }
+
+        public override int Count
+        {
+            get { return GetChildren().Length; }
+        }
+
+        public override System.Collections.IEnumerator GetEnumerator()
+        {
+            return ExternalNamespaceEnumerator.Create(this.State, _projectId, _namespaceSymbolId);
+        }
+    }
+}

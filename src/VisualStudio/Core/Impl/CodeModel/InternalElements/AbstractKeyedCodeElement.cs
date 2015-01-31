@@ -1,0 +1,112 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
+{
+    /// <summary>
+    /// This is the base class of all code elements located with a SyntaxNodeKey.
+    /// </summary>
+    public abstract class AbstractKeyedCodeElement : AbstractCodeElement
+    {
+        private SyntaxNodeKey _nodeKey;
+        private readonly string _name;
+
+        internal AbstractKeyedCodeElement(
+            CodeModelState state,
+            FileCodeModel fileCodeModel,
+            SyntaxNodeKey nodeKey,
+            int? nodeKind)
+            : base(state, fileCodeModel, nodeKind)
+        {
+            _nodeKey = nodeKey;
+            _name = null;
+        }
+
+        // This constructor is called for "unknown" code elements.
+        internal AbstractKeyedCodeElement(
+            CodeModelState state,
+            FileCodeModel fileCodeModel,
+            int nodeKind,
+            string name)
+            : base(state, fileCodeModel, nodeKind)
+        {
+            _nodeKey = new SyntaxNodeKey(name, -1);
+            _name = name;
+        }
+
+        internal SyntaxNodeKey NodeKey
+        {
+            get { return _nodeKey; }
+            set { _nodeKey = value; }
+        }
+
+        internal bool IsUnknown
+        {
+            get { return _nodeKey.Ordinal == -1; }
+        }
+
+        internal override SyntaxNode LookupNode()
+        {
+            return CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
+        }
+
+        internal bool TryLookupNode(out SyntaxNode node)
+        {
+            return CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
+        }
+
+        /// <summary>
+        /// This function re-acquires the key for this code element using the given syntax path.
+        /// </summary>
+        internal void ReaquireNodeKey(SyntaxPath syntaxPath, CancellationToken cancellationToken)
+        {
+            Debug.Assert(syntaxPath != null);
+
+            SyntaxNode node;
+            if (!syntaxPath.TryResolve(GetSyntaxTree(), cancellationToken, out node))
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            var nodeKey = CodeModelService.GetNodeKey(node);
+
+            FileCodeModel.ResetElementNodeKey(this, nodeKey);
+        }
+
+        protected void UpdateNodeAndReaquireNodeKey<T>(Action<SyntaxNode, T> updater, T value, bool trackKinds = true)
+        {
+            FileCodeModel.EnsureEditor(() =>
+            {
+                // Sometimes, changing an element can result in needing to update its node key.
+
+                var node = LookupNode();
+                var nodePath = new SyntaxPath(node, trackKinds);
+
+                updater(node, value);
+
+                ReaquireNodeKey(nodePath, CancellationToken.None);
+            });
+        }
+
+        protected override string GetName()
+        {
+            if (IsUnknown)
+            {
+                return _name;
+            }
+
+            return base.GetName();
+        }
+
+        protected override void SetName(string value)
+        {
+            UpdateNodeAndReaquireNodeKey(FileCodeModel.UpdateName, value);
+        }
+    }
+}

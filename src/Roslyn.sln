@@ -223,6 +223,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveWindowTest", "In
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveWindow", "InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj", "{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesVisualStudio", "VisualStudio\Core\Def\ServicesVisualStudio.csproj", "{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesVisualStudioImpl", "VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj", "{C0E80510-4FBE-4B0C-AF2C-4F473787722C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolutionExplorerShim", "VisualStudio\Core\SolutionExplorerShim\SolutionExplorerShim.csproj", "{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 4
@@ -1313,6 +1319,24 @@ Global
 		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Release|x64.ActiveCfg = Release|Any CPU
+		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}.Release|x64.ActiveCfg = Release|Any CPU
+		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C0E80510-4FBE-4B0C-AF2C-4F473787722C}.Release|x64.ActiveCfg = Release|Any CPU
+		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

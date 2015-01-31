@@ -1,0 +1,209 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows.Media;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+{
+    internal sealed partial class DiagnosticItem : BaseItem
+    {
+        private readonly DiagnosticDescriptor _descriptor;
+        private ReportDiagnostic _effectiveSeverity;
+        private readonly AnalyzerItem _analyzerItem;
+
+        private static readonly ContextMenuController s_diagnosticContextMenuController =
+            new ContextMenuController(
+                ID.RoslynCommands.DiagnosticContextMenu,
+                items => items.All(item => item is DiagnosticItem));
+
+        public override event PropertyChangedEventHandler PropertyChanged;
+
+        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity)
+            : base(string.Format("{0}: {1}", descriptor.Id, descriptor.Title))
+        {
+            _analyzerItem = analyzerItem;
+            _descriptor = descriptor;
+            _effectiveSeverity = effectiveSeverity;
+        }
+
+        public override ImageMoniker IconMoniker
+        {
+            get
+            {
+                return MapEffectiveSeverityToIconMoniker(_effectiveSeverity);
+            }
+        }
+
+        public AnalyzerItem AnalyzerItem
+        {
+            get
+            {
+                return _analyzerItem;
+            }
+        }
+
+        public DiagnosticDescriptor Descriptor
+        {
+            get
+            {
+                return _descriptor;
+            }
+        }
+
+        public ReportDiagnostic EffectiveSeverity
+        {
+            get
+            {
+                return _effectiveSeverity;
+            }
+        }
+
+        public override object GetBrowseObject()
+        {
+            return new BrowseObject(this);
+        }
+
+        public override IContextMenuController ContextMenuController
+        {
+            get
+            {
+                return s_diagnosticContextMenuController;
+            }
+        }
+
+        internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
+        {
+            if (_effectiveSeverity != newEffectiveSeverity)
+            {
+                _effectiveSeverity = newEffectiveSeverity;
+
+                NotifyPropertyChanged(nameof(EffectiveSeverity));
+                NotifyPropertyChanged(nameof(IconMoniker));
+            }
+        }
+
+        private ImageMoniker MapEffectiveSeverityToIconMoniker(ReportDiagnostic effectiveSeverity)
+        {
+            switch (effectiveSeverity)
+            {
+                case ReportDiagnostic.Error:
+                    return KnownMonikers.StatusError;
+                case ReportDiagnostic.Warn:
+                    return KnownMonikers.StatusWarning;
+                case ReportDiagnostic.Info:
+                    return KnownMonikers.StatusInformation;
+                case ReportDiagnostic.Hidden:
+                    return KnownMonikers.StatusHidden;
+                case ReportDiagnostic.Suppress:
+                    return KnownMonikers.StatusSuppressed;
+                default:
+                    return default(ImageMoniker);
+            }
+        }
+
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        internal void SetSeverity(ReportDiagnostic value, string pathToRuleSet)
+        {
+            UpdateRuleSetFile(pathToRuleSet, value);
+        }
+
+        private void UpdateRuleSetFile(string pathToRuleSet, ReportDiagnostic value)
+        {
+            var ruleSetDocument = XDocument.Load(pathToRuleSet);
+
+            var newAction = ConvertReportDiagnosticToAction(value);
+
+            var analyzerID = _analyzerItem.AnalyzerReference.Display;
+            var rules = FindOrCreateRulesElement(ruleSetDocument, analyzerID);
+            var rule = FindOrCreateRuleElement(rules, _descriptor.Id);
+            rule.Attribute("Action").Value = newAction;
+
+            var allMatchingRules = ruleSetDocument.Root
+                                   .Descendants("Rule")
+                                   .Where(r => r.Attribute("Id").Value.Equals(_descriptor.Id));
+
+            foreach (var matchingRule in allMatchingRules)
+            {
+                matchingRule.Attribute("Action").Value = newAction;
+            }
+
+            ruleSetDocument.Save(pathToRuleSet);
+        }
+
+        private XElement FindOrCreateRuleElement(XElement rules, string id)
+        {
+            var ruleElement = rules
+                              .Elements("Rule")
+                              .FirstOrDefault(r => r.Attribute("Id").Value.Equals(id));
+
+            if (ruleElement == null)
+            {
+                ruleElement = new XElement("Rule",
+                                    new XAttribute("Id", id),
+                                    new XAttribute("Action", "Warning"));
+                rules.Add(ruleElement);
+            }
+
+            return ruleElement;
+        }
+
+        private XElement FindOrCreateRulesElement(XDocument ruleSetDocument, string analyzerID)
+        {
+            var rulesElement = ruleSetDocument.Root
+                               .Elements("Rules")
+                               .FirstOrDefault(r => r.Attribute("AnalyzerId").Value.Equals(analyzerID));
+
+            if (rulesElement == null)
+            {
+                rulesElement = new XElement("Rules",
+                                    new XAttribute("AnalyzerId", analyzerID),
+                                    new XAttribute("RuleNamespace", analyzerID));
+                ruleSetDocument.Root.Add(rulesElement);
+            }
+
+            return rulesElement;
+        }
+
+        private static string ConvertReportDiagnosticToAction(ReportDiagnostic value)
+        {
+            switch (value)
+            {
+                case ReportDiagnostic.Default:
+                    return "Default";
+                case ReportDiagnostic.Error:
+                    return "Error";
+                case ReportDiagnostic.Warn:
+                    return "Warning";
+                case ReportDiagnostic.Info:
+                    return "Info";
+                case ReportDiagnostic.Hidden:
+                    return "Hidden";
+                case ReportDiagnostic.Suppress:
+                    return "None";
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+    }
+}
