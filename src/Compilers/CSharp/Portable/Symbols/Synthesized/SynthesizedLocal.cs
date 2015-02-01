@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isPinned = false,
             RefKind refKind = RefKind.None)
         {
-            this.containingMethodOpt = containingMethodOpt;
-            this.type = type;
-            this.kind = kind;
-            this.syntaxOpt = syntaxOpt;
-            this.isPinned = isPinned;
-            this.refKind = refKind;
+            _containingMethodOpt = containingMethodOpt;
+            _type = type;
+            _kind = kind;
+            _syntaxOpt = syntaxOpt;
+            _isPinned = isPinned;
+            _refKind = refKind;
         }
 #endif
         public SyntaxNode SyntaxOpt
