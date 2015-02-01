@@ -1694,7 +1694,7 @@ class B
 ";
             // CONSIDER: this cascading is a bit verbose.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (18,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
                 // (7,25): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
@@ -1731,7 +1731,7 @@ struct B
 ";
             // CONSIDER: this cascading is a bit verbose.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (18,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
                 // (13,25): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
@@ -1768,7 +1768,7 @@ interface B
 ";
             // CONSIDER: this cascading is a bit verbose.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (18,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
                 // (13,18): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
@@ -1817,7 +1817,7 @@ class B<T>
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
                 // (7,25): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
@@ -1850,7 +1850,7 @@ struct B<T>
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
                 // (7,25): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
@@ -1883,7 +1883,7 @@ interface B<T>
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
                 // (7,25): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
@@ -2027,10 +2027,10 @@ class B
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (13,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (13,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Name)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Name"),
-                // (7,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (7,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(B.Name)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.Name"));
         }
@@ -2055,10 +2055,10 @@ class B
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (7,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(B.GetName())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.GetName()"),
-                // (13,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (13,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(A.GetName())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.GetName()"));
         }
@@ -2907,7 +2907,7 @@ class C
                 // (4,18): error CS0145: A const field requires a value to be provided
                 //     const string F;
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "F").WithLocation(4, 18),
-                // (5,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (5,18): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [IndexerName(F)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F").WithLocation(5, 18));
         }

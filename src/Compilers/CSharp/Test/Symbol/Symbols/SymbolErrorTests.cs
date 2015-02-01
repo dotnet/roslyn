@@ -2487,7 +2487,7 @@ public class A4 : Attribute
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,46): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (5,46): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [System.Diagnostics.ConditionalAttribute(s)]   // CS0182
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "s"),
                 // (3,19): warning CS0414: The field 'MyClass.s' is assigned but its value is never used

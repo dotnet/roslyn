@@ -793,7 +793,7 @@ unsafe class Attr : System.Attribute
             // CONSIDER: Dev10 reports both CS0214 (unsafe) and CS0182 (not a constant), but this makes
             // just as much sense.
             CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (4,11): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Unsafe() == null"));
         }
 

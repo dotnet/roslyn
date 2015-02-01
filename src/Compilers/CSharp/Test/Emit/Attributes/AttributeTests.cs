@@ -4168,16 +4168,16 @@ class A : Attribute
 ";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
-                // (3,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (3,16): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new int[1] {Program.f})]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Program.f"),
-                // (4,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (4,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new int[1])]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new int[1]"),
-                // (5,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (5,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new int[1,1])]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new int[1,1]"),
-                // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (7,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new A[0])]                       
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new A[0]"));
         }
@@ -4205,7 +4205,7 @@ class A : Attribute
 ";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
-                // (4,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (4,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new int[][] { new int[] { 1 } })]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new int[][] { new int[] { 1 } }").WithLocation(4, 4));
         }
@@ -4290,7 +4290,7 @@ public class C<T>
 ";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(
-                // (14,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (14,12): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [A(X = default(E))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(14, 12),
                 // (17,12): error CS0416: 'C<T>.E2': an attribute argument cannot use type parameters
@@ -4989,11 +4989,11 @@ class C
     }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (8,16): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B()").WithLocation(8, 16),
-                // (10,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (10,12): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B()").WithLocation(10, 12),
-                // (11,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (11,19): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B()").WithLocation(11, 19));
         }
 
@@ -5010,10 +5010,10 @@ public class A : Attribute
 class C<T, U> { public enum E {} }";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (7,31): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
-                // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (7,19): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19));
         }
@@ -5030,7 +5030,7 @@ public class A : Attribute
 }";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (2,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (2,8): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(X = new decimal())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new decimal()").WithLocation(2, 8));
         }
@@ -5599,7 +5599,7 @@ class A : Attribute
             var comp = CreateCompilationWithMscorlib(source);
 
             comp.VerifyDiagnostics(
-                // (4,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (4,8): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(X = new Array[] { new[] { 1 } })]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new Array[] { new[] { 1 } }").WithLocation(4, 8));
         }
@@ -5617,7 +5617,7 @@ class A : Attribute
     public A(int x) { }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (3,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (3,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A((int)(object)"ABC")]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(int)(object)""ABC""").WithLocation(3, 4));
         }
@@ -5642,10 +5642,10 @@ class B : Attribute
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (3,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (3,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A((object[])(object)( new [] { 1 }))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(object[])(object)( new [] { 1 })").WithLocation(3, 4),
-                // (9,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,4): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [B((object[])(object)(new string[] { "a", null }))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(object[])(object)(new string[] { ""a"", null })").WithLocation(9, 4));
         }
@@ -5688,7 +5688,7 @@ class C<T>
             var comp = CreateCompilationWithMscorlib(source);
 
             comp.VerifyDiagnostics(
-                // (11,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (11,12): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [A(X = C<T>.E.V)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C<T>.E.V").WithLocation(11, 12));
         }
@@ -5777,7 +5777,7 @@ public class Class1 {
 ";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (11,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (11,17): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [field: Foo(((System.Func<int>)(() => 5))())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "((System.Func<int>)(() => 5))()"),
                 // (12,31): warning CS0067: The event 'Class1.Click' is never used
@@ -6669,10 +6669,10 @@ public class ArrayOrObjectAttribute : Attribute
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (6,6): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [ArrayOnlyAttribute(new string[] { "A" })] //error
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ArrayOnlyAttribute(new string[] { ""A"" })"),
-                // (8,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (8,6): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [ArrayOrObjectAttribute(new string[] { "A" })] //error, even though the object ctor would work
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ArrayOrObjectAttribute(new string[] { ""A"" })"));
 
@@ -6748,10 +6748,10 @@ public class ParamArrayOrObjectAttribute : Attribute
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (6,6): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [ParamArrayOnlyAttribute(new string[] { "A" })] //error
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ParamArrayOnlyAttribute(new string[] { ""A"" })"),
-                // (8,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (8,6): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [ParamArrayOrObjectAttribute(new string[] { "A" })] //error, even though the object ctor would work
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ParamArrayOrObjectAttribute(new string[] { ""A"" })"));
 
@@ -6836,7 +6836,7 @@ public class StringOrObjectAttribute : Attribute
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (7,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (7,6): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 //     [ObjectOnlyAttribute(new string[] { "A" })] //error
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ObjectOnlyAttribute(new string[] { ""A"" })"));
 

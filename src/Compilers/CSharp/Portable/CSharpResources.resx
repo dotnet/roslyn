@@ -805,7 +805,7 @@
     <value>Attribute constructor parameter '{0}' has type '{1}', which is not a valid attribute parameter type</value>
   </data>
   <data name="ERR_BadAttributeArgument" xml:space="preserve">
-    <value>An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type</value>
+    <value>An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type</value>
   </data>
   <data name="ERR_BadAttributeParamDefaultArgument" xml:space="preserve">
     <value>Attribute constructor parameter '{0}' is optional, but no default parameter value was specified.</value>
