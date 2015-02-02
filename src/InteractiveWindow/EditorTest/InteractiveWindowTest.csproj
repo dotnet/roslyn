@@ -59,7 +59,7 @@
     </Reference>
     <Reference Include="BasicUndo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=d60426e557e4842b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\BasicUndo.0.9.2\lib\net45\BasicUndo.dll</HintPath>
+      <HintPath>..\..\..\packages\BasicUndo.0.9.3\lib\net45\BasicUndo.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
