@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
@@ -210,30 +209,30 @@ namespace Microsoft.CodeAnalysis
                 {
                     switch (compilationReference.Properties.Kind)
                     {
-                        case MetadataImageKind.Assembly:
-                            existingReference = TryAddAssembly(
-                                compilationReference.Compilation.Assembly.Identity,
-                                boundReference,
-                                diagnostics,
-                                location,
-                                ref assemblyReferencesBySimpleName);
+                    case MetadataImageKind.Assembly:
+                        existingReference = TryAddAssembly(
+                            compilationReference.Compilation.Assembly.Identity,
+                            boundReference,
+                            diagnostics,
+                            location,
+                            ref assemblyReferencesBySimpleName);
 
-                            if (existingReference != null)
-                            {
-                                MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
-                                continue;
-                            }
+                        if (existingReference != null)
+                        {
+                            MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                            continue;
+                        }
 
-                            // Note, if SourceAssemblySymbol hasn't been created for 
-                            // compilationAssembly.Compilation yet, we want this to happen 
-                            // right now. Conveniently, this constructor will trigger creation of the 
-                            // SourceAssemblySymbol.
-                            var asmData = CreateAssemblyDataForCompilation(compilationReference);
-                            AddAssembly(asmData, referenceIndex, referenceMap, ref assembliesBuilder);
-                            break;
+                        // Note, if SourceAssemblySymbol hasn't been created for 
+                        // compilationAssembly.Compilation yet, we want this to happen 
+                        // right now. Conveniently, this constructor will trigger creation of the 
+                        // SourceAssemblySymbol.
+                        var asmData = CreateAssemblyDataForCompilation(compilationReference);
+                        AddAssembly(asmData, referenceIndex, referenceMap, ref assembliesBuilder);
+                        break;
 
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(compilationReference.Properties.Kind);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(compilationReference.Properties.Kind);
                     }
 
                     continue;
@@ -251,66 +250,66 @@ namespace Microsoft.CodeAnalysis
 
                     switch (peReference.Properties.Kind)
                     {
-                        case MetadataImageKind.Assembly:
-                            var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
+                    case MetadataImageKind.Assembly:
+                        var assemblyMetadata = (AssemblyMetadata)metadata;
+                        WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
 
-                            if (assemblyMetadata.IsValidAssembly())
+                        if (assemblyMetadata.IsValidAssembly())
+                        {
+                            PEAssembly assembly = assemblyMetadata.GetAssembly();
+                            existingReference = TryAddAssembly(
+                                assembly.Identity,
+                                peReference,
+                                diagnostics,
+                                location,
+                                ref assemblyReferencesBySimpleName);
+
+                            if (existingReference != null)
                             {
-                                PEAssembly assembly = assemblyMetadata.GetAssembly();
-                                existingReference = TryAddAssembly(
-                                    assembly.Identity,
-                                    peReference,
-                                    diagnostics,
-                                    location,
-                                    ref assemblyReferencesBySimpleName);
-
-                                if (existingReference != null)
-                                {
-                                    MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
-                                    continue;
-                                }
-
-                                var asmData = CreateAssemblyDataForFile(
-                                    assembly,
-                                    cachedSymbols,
-                                    peReference.DocumentationProvider,
-                                    SimpleAssemblyName,
-                                    compilation.Options.MetadataImportOptions,
-                                    peReference.Properties.EmbedInteropTypes);
-
-                                AddAssembly(asmData, referenceIndex, referenceMap, ref assembliesBuilder);
-                            }
-                            else
-                            {
-                                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, location, peReference.Display));
+                                MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                                continue;
                             }
 
-                            // asmData keeps strong ref after this point
-                            GC.KeepAlive(assemblyMetadata);
-                            break;
+                            var asmData = CreateAssemblyDataForFile(
+                                assembly,
+                                cachedSymbols,
+                                peReference.DocumentationProvider,
+                                SimpleAssemblyName,
+                                compilation.Options.MetadataImportOptions,
+                                peReference.Properties.EmbedInteropTypes);
 
-                        case MetadataImageKind.Module:
-                            var moduleMetadata = (ModuleMetadata)metadata;
-                            if (moduleMetadata.Module.IsLinkedModule)
+                            AddAssembly(asmData, referenceIndex, referenceMap, ref assembliesBuilder);
+                        }
+                        else
+                        {
+                            diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, location, peReference.Display));
+                        }
+
+                        // asmData keeps strong ref after this point
+                        GC.KeepAlive(assemblyMetadata);
+                        break;
+
+                    case MetadataImageKind.Module:
+                        var moduleMetadata = (ModuleMetadata)metadata;
+                        if (moduleMetadata.Module.IsLinkedModule)
+                        {
+                            // We don't support netmodules since some checks in the compiler need information from the full PE image
+                            // (Machine, Bit32Required, PE image hash).
+                            if (!moduleMetadata.Module.IsEntireImageAvailable)
                             {
-                                // We don't support netmodules since some checks in the compiler need information from the full PE image
-                                // (Machine, Bit32Required, PE image hash).
-                                if (!moduleMetadata.Module.IsEntireImageAvailable)
-                                {
-                                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage, location, peReference.Display));
-                                }
-
-                                AddModule(moduleMetadata.Module, referenceIndex, referenceMap, ref modulesBuilder);
+                                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage, location, peReference.Display));
                             }
-                            else
-                            {
-                                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotModule, location, peReference.Display));
-                            }
-                            break;
 
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(peReference.Properties.Kind);
+                            AddModule(moduleMetadata.Module, referenceIndex, referenceMap, ref modulesBuilder);
+                        }
+                        else
+                        {
+                            diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotModule, location, peReference.Display));
+                        }
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(peReference.Properties.Kind);
                     }
                 }
             }
@@ -407,7 +406,7 @@ namespace Microsoft.CodeAnalysis
                     bool dummy = ((ModuleMetadata)newMetadata).Module.IsLinkedModule;
                 }
             }
-            catch (Exception e) when(e is BadImageFormatException || e is IOException)
+            catch (Exception e) when (e is BadImageFormatException || e is IOException)
             {
                 newDiagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProvider, location, peReference.Display, peReference.Properties.Kind);
                 newMetadata = null;
@@ -428,7 +427,7 @@ namespace Microsoft.CodeAnalysis
                 ObservedMetadata.Add(peReference, (MetadataOrDiagnostic)newMetadata ?? newDiagnostic);
                 return newMetadata;
             }
-            }
+        }
 
         private bool TryGetObservedMetadata(PortableExecutableReference peReference, DiagnosticBag diagnostics, out Metadata metadata)
         {
@@ -794,33 +793,33 @@ namespace Microsoft.CodeAnalysis
 
                 switch (assemblyIdentityComparer.Compare(reference, definition))
                 {
-                    case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
-                        continue;
+                case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
+                    continue;
 
-                    case AssemblyIdentityComparer.ComparisonResult.Equivalent:
-                        return new AssemblyReferenceBinding(reference, i);
+                case AssemblyIdentityComparer.ComparisonResult.Equivalent:
+                    return new AssemblyReferenceBinding(reference, i);
 
-                    case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
-                        if (reference.Version < definition.Version)
+                case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
+                    if (reference.Version < definition.Version)
+                    {
+                        // Refers to an older assembly than we have
+                        if (minHigherVersionDefinition == -1 || definition.Version < definitions[minHigherVersionDefinition].Identity.Version)
                         {
-                            // Refers to an older assembly than we have
-                            if (minHigherVersionDefinition == -1 || definition.Version < definitions[minHigherVersionDefinition].Identity.Version)
-                            {
-                                minHigherVersionDefinition = i;
-                            }
+                            minHigherVersionDefinition = i;
                         }
-                        else
+                    }
+                    else
+                    {
+                        Debug.Assert(reference.Version > definition.Version);
+
+                        // Refers to a newer assembly than we have
+                        if (maxLowerVersionDefinition == -1 || definition.Version > definitions[maxLowerVersionDefinition].Identity.Version)
                         {
-                            Debug.Assert(reference.Version > definition.Version);
-
-                            // Refers to a newer assembly than we have
-                            if (maxLowerVersionDefinition == -1 || definition.Version > definitions[maxLowerVersionDefinition].Identity.Version)
-                            {
-                                maxLowerVersionDefinition = i;
-                            }
+                            maxLowerVersionDefinition = i;
                         }
+                    }
 
-                        continue;
+                    continue;
                 }
             }
 
@@ -841,7 +840,7 @@ namespace Microsoft.CodeAnalysis
             // debugger EE which constructs a compilation from the modules of
             // the running process where Windows.winmd loaded at runtime is a
             // substitute for a collection of Windows.*.winmd compile-time references.
-            if (IsWindowsComponent(reference))
+            if (reference.IsWindowsComponent())
             {
                 for (int i = definitionOffset; i < definitions.Length; i++)
                 {
@@ -865,23 +864,9 @@ namespace Microsoft.CodeAnalysis
             return new AssemblyReferenceBinding(reference);
         }
 
-        // Windows.*[.winmd]
-        private static bool IsWindowsComponent(AssemblyIdentity identity)
-        {
-            return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
-                identity.Name.StartsWith("windows.", StringComparison.OrdinalIgnoreCase);
-        }
-
-        // Windows[.winmd]
-        private static bool IsWindowsRuntime(AssemblyIdentity identity)
-        {
-            return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
-                string.Equals(identity.Name, "windows", StringComparison.OrdinalIgnoreCase);
-        }
-
         private static bool IsWindowsRuntime(AssemblyData definition)
         {
-            if (!IsWindowsRuntime(definition.Identity))
+            if (!definition.Identity.IsWindowsRuntime())
             {
                 return false;
             }

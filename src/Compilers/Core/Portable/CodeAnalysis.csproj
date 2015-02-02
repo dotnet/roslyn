@@ -322,6 +322,7 @@
     <Compile Include="MetadataReference\AssemblyIdentity.cs" />
     <Compile Include="MetadataReference\AssemblyIdentity.DisplayName.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityComparer.cs" />
+    <Compile Include="MetadataReference\AssemblyIdentityExtensions.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityParts.cs" />
     <Compile Include="MetadataReference\AssemblyMetadata.cs" />
     <Compile Include="MetadataReference\CompilationReference.cs" />

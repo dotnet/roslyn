@@ -8,16 +8,6 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[] items)
-        {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return ImmutableArray.Create<T>(items);
-        }
-
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T> items)
         {
             if (items == null)
