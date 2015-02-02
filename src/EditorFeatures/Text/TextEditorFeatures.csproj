@@ -102,7 +102,6 @@
   <ItemGroup>
     <EmbeddedResource Include="TextEditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TextEditorResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

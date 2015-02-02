@@ -242,6 +242,7 @@
     <Compile Include="Diagnostics\GenerateType\TestProjectManagementService.cs" />
     <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
+    <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
