@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Internal.Log
@@ -279,6 +279,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Log
                 Public Sub SetSharedStringPiiProperty(szPropertyName As String, varValue As String) Implements IVsTelemetrySession.SetSharedStringPiiProperty
                     Throw New NotImplementedException()
                 End Sub
+
+                Public Function GetSharedProperty(szPropertyName As String) As Object Implements IVsTelemetrySession.GetSharedProperty
+                    Throw New NotImplementedException()
+                End Function
+
+                Public Function GetContext(szContextName As String) As IVsTelemetryContext Implements IVsTelemetrySession.GetContext
+                    Throw New NotImplementedException()
+                End Function
             End Class
 
             Public Class TelemetryEvent

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Threading
@@ -266,6 +266,14 @@ End Module
             End Function
 
             Public Function Create(displayInfo As IPeekResultDisplayInfo2, image As ImageMoniker, filePath As String, startLine As Integer, startIndex As Integer, endLine As Integer, endIndex As Integer, idStartLine As Integer, idStartIndex As Integer, idEndLine As Integer, idEndIndex As Integer, isReadOnly As Boolean) As IDocumentPeekResult Implements IPeekResultFactory.Create
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function Create(displayInfo As IPeekResultDisplayInfo2, image As ImageMoniker, filePath As String, startLine As Integer, startIndex As Integer, endLine As Integer, endIndex As Integer, idStartLine As Integer, idStartIndex As Integer, idEndLine As Integer, idEndIndex As Integer, isReadOnly As Boolean, editorDestination As Guid) As IDocumentPeekResult Implements IPeekResultFactory.Create
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function Create(displayInfo As IPeekResultDisplayInfo2, image As ImageMoniker, filePath As String, startLine As Integer, startIndex As Integer, endLine As Integer, endIndex As Integer, idStartLine As Integer, idStartIndex As Integer, idEndLine As Integer, idEndIndex As Integer, isReadOnly As Boolean, editorDestination As Guid, postNavigationCallback As Action(Of IPeekResult, Object, Object)) As IDocumentPeekResult Implements IPeekResultFactory.Create
                 Throw New NotImplementedException()
             End Function
         End Class
