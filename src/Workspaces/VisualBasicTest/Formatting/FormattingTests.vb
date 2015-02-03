@@ -1320,6 +1320,7 @@ End Namespace]]></Code>
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
+        <WorkItem(1087167)>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub MultipleAttributesOnClass()
             Dim code = <Code><![CDATA[Namespace SomeNamespace
@@ -1331,10 +1332,77 @@ End Namespace]]></Code>
 
             Dim expected = <Code><![CDATA[Namespace SomeNamespace
     <SomeAttribute()>
-    <SomeAttribute2()>
+                <SomeAttribute2()>
     Class Foo
     End Class
 End Namespace]]></Code>
+
+            AssertFormatLf2CrLf(code.Value, expected.Value)
+        End Sub
+
+        <WorkItem(1087167)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub MultipleAttributesOnParameter_1()
+            Dim code = <Code><![CDATA[Class Program
+    Sub P(
+                <Foo>
+                        <Foo>
+                    som As Integer)
+    End Sub
+End Class
+
+
+Public Class Foo
+    Inherits Attribute
+End Class]]></Code>
+
+            AssertFormatLf2CrLf(code.Value, code.Value)
+        End Sub
+
+        <WorkItem(1087167)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub MultipleAttributesOnParameter_2()
+            Dim code = <Code><![CDATA[Class Program
+    Sub P(
+                        <Foo>
+                    som As Integer)
+    End Sub
+End Class
+
+
+Public Class Foo
+    Inherits Attribute
+End Class]]></Code>
+
+            AssertFormatLf2CrLf(code.Value, code.Value)
+        End Sub
+
+        <WorkItem(1087167)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub MultipleAttributesOnParameter_3()
+            Dim code = <Code><![CDATA[Class Program
+    Sub P(     <Foo>
+                        <Foo>
+                    som As Integer)
+    End Sub
+End Class
+
+
+Public Class Foo
+    Inherits Attribute
+End Class]]></Code>
+
+            Dim expected = <Code><![CDATA[Class Program
+    Sub P(<Foo>
+                        <Foo>
+                    som As Integer)
+    End Sub
+End Class
+
+
+Public Class Foo
+    Inherits Attribute
+End Class]]></Code>
 
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub

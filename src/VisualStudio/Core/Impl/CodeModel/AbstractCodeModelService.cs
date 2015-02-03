@@ -45,14 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly AbstractCodeModelEventCollector _eventCollector;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-        private readonly IFormattingRule _blankLineFormattingRule;
+        private readonly IFormattingRule _lineAdjustmentFormattingRule;
         private readonly IFormattingRule _endRegionFormattingRule;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IFormattingRule blankLineFormattingRule,
+            IFormattingRule lineAdjustmentFormattingRule,
             IFormattingRule endRegionFormattingRule)
         {
             Debug.Assert(languageServiceProvider != null);
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             this.SyntaxFactsService = languageServiceProvider.GetService<ISyntaxFactsService>();
 
             _editorOptionsFactoryService = editorOptionsFactoryService;
-            _blankLineFormattingRule = blankLineFormattingRule;
+            _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
             _refactorNotifyServices = refactorNotifyServices;
             _nodeNameGenerator = CreateNodeNameGenerator();
@@ -1109,7 +1109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
-            document = FormatAnnotatedNode(document, annotation, new[] { _blankLineFormattingRule, _endRegionFormattingRule }, cancellationToken);
+            document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);
 
             // out param
             newDocument = document;
@@ -1146,7 +1146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             document = document.WithSyntaxRoot(newRoot);
 
             var additionalRules = AddBlankLineToMethodBody(node, newNode)
-                ? SpecializedCollections.SingletonEnumerable(_blankLineFormattingRule)
+                ? SpecializedCollections.SingletonEnumerable(_lineAdjustmentFormattingRule)
                 : null;
 
             document = FormatAnnotatedNode(document, annotation, additionalRules, cancellationToken);

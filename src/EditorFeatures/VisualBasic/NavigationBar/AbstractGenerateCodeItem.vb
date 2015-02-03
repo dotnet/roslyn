@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             MyBase.New(text, glyph, SpecializedCollections.EmptyList(Of TextSpan))
         End Sub
 
-        Protected Overridable ReadOnly Property ApplyBlankLineFormattingRule As Boolean
+        Protected Overridable ReadOnly Property ApplyLineAdjustmentFormattingRule As Boolean
             Get
                 Return True
             End Get
@@ -36,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).WaitAndGetResult(cancellationToken)
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
-            If ApplyBlankLineFormattingRule Then
-                formatterRules = New BlankLineInGeneratedMethodFormattingRule().Concat(formatterRules)
+            If ApplyLineAdjustmentFormattingRule Then
+                formatterRules = New LineAdjustmentFormattingRule().Concat(formatterRules)
             End If
 
 

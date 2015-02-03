@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
-    Friend Class BlankLineInGeneratedMethodFormattingRule
+    Friend Class LineAdjustmentFormattingRule
         Implements IFormattingRule
 
         Public Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
@@ -46,6 +46,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 
                     Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines)
                 End If
+            End If
+
+            ' Introduce Line operation between 2 AttributeList
+            If currentToken.Kind = SyntaxKind.LessThanToken AndAlso currentToken.Parent IsNot Nothing AndAlso TypeOf currentToken.Parent Is AttributeListSyntax AndAlso
+               previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
+                Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
             End If
 
             Return nextOperation.Invoke()

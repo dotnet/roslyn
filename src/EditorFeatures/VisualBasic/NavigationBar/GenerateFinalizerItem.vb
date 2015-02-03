@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             _destinationTypeSymbolKey = destinationTypeSymbolKey
         End Sub
 
-        Protected Overrides ReadOnly Property ApplyBlankLineFormattingRule As Boolean
+        Protected Overrides ReadOnly Property ApplyLineAdjustmentFormattingRule As Boolean
             Get
                 Return False
             End Get

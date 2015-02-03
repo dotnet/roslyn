@@ -551,7 +551,7 @@ End Class</text>.Value
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
-                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.LineAdjustmentFormattingRule(),
                     cancellationToken:=Nothing)
 
                 ' Since a valid handler exists, item2 and item3 of the tuple returned must be nothing
@@ -596,7 +596,7 @@ End Sub</text>.NormalizedValue
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
-                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.LineAdjustmentFormattingRule(),
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Button1_Click(Object,System.EventArgs)", eventHandlerIdTextPosition.Item1)
@@ -640,7 +640,7 @@ End Sub"
                     eventHandlerName:="Page_Load",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
-                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.LineAdjustmentFormattingRule(),
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Page_Load(Object,System.EventArgs)", eventHandlerIdTextPosition.Item1)

@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         Implements IAdditionalFormattingRuleLanguageService
 
         Public Function GetAdditionalCodeGenerationRule() As IFormattingRule Implements IAdditionalFormattingRuleLanguageService.GetAdditionalCodeGenerationRule
-            Return New BlankLineInGeneratedMethodFormattingRule()
+            Return New LineAdjustmentFormattingRule()
         End Function
     End Class
 End Namespace

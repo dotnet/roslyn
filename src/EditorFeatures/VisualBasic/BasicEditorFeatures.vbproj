@@ -242,7 +242,7 @@
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />
     <Compile Include="TodoComment\BasicTodoCommentIncrementalAnalyzerProvider.vb" />
-    <Compile Include="Utilities\BlankLineInGeneratedMethodFormattingRule.vb" />
+    <Compile Include="Utilities\LineAdjustmentFormattingRule.vb" />
     <Compile Include="Utilities\CommandHandlers\AbstractImplementAbstractClassOrInterfaceCommandHandler.vb" />
     <Compile Include="Utilities\NamedTypeSymbolExtensions.vb" />
     <Compile Include="Utilities\NavigationPointHelpers.vb" />
