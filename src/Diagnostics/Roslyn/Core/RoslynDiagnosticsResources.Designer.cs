@@ -376,6 +376,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unused code.
+        /// </summary>
+        internal static string UnusedDeclarationsCodeFixTitle {
+            get {
+                return ResourceManager.GetString("UnusedDeclarationsCodeFixTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not used in solution..
+        /// </summary>
+        internal static string UnusedDeclarationsMessage {
+            get {
+                return ResourceManager.GetString("UnusedDeclarationsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unused code.
+        /// </summary>
+        internal static string UnusedDeclarationsTitle {
+            get {
+                return ResourceManager.GetString("UnusedDeclarationsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Avoid zero-length array allocations..
         /// </summary>
         internal static string UseArrayEmptyDescription {

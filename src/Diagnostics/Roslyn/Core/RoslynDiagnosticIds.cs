@@ -24,5 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string RemoveDeletedApiRuleId = "RS0017";
         public const string DoNotCreateTasksWithoutTaskSchedulerRuleId = "RS0018";
         public const string SymbolDeclaredEventRuleId = "RS0019";
+        public const string DeadCodeRuleId = "RS0020";
+        public const string DeadCodeTriggerRuleId = "RS0021";
     }
 }

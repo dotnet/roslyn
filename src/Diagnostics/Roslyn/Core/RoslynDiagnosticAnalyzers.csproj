@@ -74,6 +74,8 @@
     <Compile Include="DocumentChangedAction.cs" />
     <Compile Include="ISymbolExtensions.cs" />
     <Compile Include="Performance\CodeActionCreateAnalyzer.cs" />
+    <Compile Include="Maintainability\UnusedDeclarationsAnalyzer.cs" />
+    <Compile Include="Maintainability\UnusedDeclarationsCodeFixer.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzer.cs" />
     <Compile Include="Performance\EquatableAnalyzer.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
