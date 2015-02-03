@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Text {
         /// <summary>
         ///   Looks up a localized string similar to textContainer is not a SourceTextContainer that was created from an ITextBuffer..
         /// </summary>
-        internal static string TextContainerIsNotASource {
+        internal static string TextContainerNotFromTextBuffer {
             get {
-                return ResourceManager.GetString("TextContainerIsNotASource", resourceCulture);
+                return ResourceManager.GetString("TextContainerNotFromTextBuffer", resourceCulture);
             }
         }
     }
