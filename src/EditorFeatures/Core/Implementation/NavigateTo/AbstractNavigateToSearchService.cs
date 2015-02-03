@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             var document = result.Item2;
             var matches = result.Item3;
             var matchKind = GetNavigateToMatchKind(matches);
+
+            // A match is considered to be case sensitive if all its constituent pattern matches are
+            // case sensitive. 
+            var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document, cancellationToken);
-            return new SearchResult(
-                document,
-                declaredSymbolInfo,
-                kind,
-                matchKind,
-                navigableItem);
+
+            return new SearchResult(document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem);
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)

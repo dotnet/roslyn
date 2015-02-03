@@ -100,7 +100,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
-                var navigateToItem = new NavigateToItem(result.Name, result.Kind, GetNavigateToLanguage(project.Language), result.SecondarySort, result, result.MatchKind, _displayFactory);
+                var navigateToItem = new NavigateToItem(
+                    result.Name,
+                    result.Kind,
+                    GetNavigateToLanguage(project.Language),
+                    result.SecondarySort,
+                    result,
+                    result.MatchKind,
+                    result.IsCaseSensitive, 
+                    _displayFactory);
                 _callback.AddItem(navigateToItem);
             }
 

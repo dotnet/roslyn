@@ -14,24 +14,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private class SearchResult : INavigateToSearchResult
         {
             public string AdditionalInformation => _lazyAdditionalInfo.Value;
+            public string Name => _declaredSymbolInfo.Name;
+            public string Summary => _lazySummary.Value;
+
             public string Kind { get; }
             public MatchKind MatchKind { get; }
-            public string Name => _declaredSymbolInfo.Name;
             public INavigableItem NavigableItem { get; }
             public string SecondarySort { get; }
-            public string Summary => _lazySummary.Value;
+            public bool IsCaseSensitive { get; }
 
             private Document _document;
             private DeclaredSymbolInfo _declaredSymbolInfo;
             private Lazy<string> _lazyAdditionalInfo;
             private Lazy<string> _lazySummary;
 
-            public SearchResult(Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind, MatchKind matchKind, INavigableItem navigableItem)
+            public SearchResult(Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind, MatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem)
             {
                 _document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
                 Kind = kind;
                 MatchKind = matchKind;
+                IsCaseSensitive = isCaseSensitive;
                 NavigableItem = navigableItem;
                 SecondarySort = ConstructSecondarySortString(declaredSymbolInfo);
 

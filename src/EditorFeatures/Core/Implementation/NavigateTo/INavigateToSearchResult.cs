@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         string AdditionalInformation { get; }
         string Kind { get; }
         MatchKind MatchKind { get; }
+        bool IsCaseSensitive { get; }
         string Name { get; }
         string SecondarySort { get; }
         string Summary { get; }

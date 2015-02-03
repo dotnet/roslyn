@@ -105,8 +105,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, Nothing),
-                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, Nothing)
+                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
+                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
                 }
 
                 Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Foo").ToList()
@@ -312,8 +312,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, Nothing),
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, Nothing)
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
                 }
 
                 Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Bar").ToList()
@@ -348,8 +348,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, Nothing),
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, Nothing)
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
                 }
 
                 Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Bar").ToList()
@@ -417,8 +417,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
                                        "Class Test", "Private Sub Foo()", "End Sub", "End Class")
                 Dim expectedItems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Foo", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, Nothing),
-                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, Nothing)
+                    New NavigateToItem("Foo", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
+                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
                 }
 
                 Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Foo").ToList()
@@ -521,6 +521,7 @@ End Class
                 Assert.Equal(expectedItems(index).MatchKind, items(index).MatchKind)
                 Assert.Equal(expectedItems(index).Language, items(index).Language)
                 Assert.Equal(expectedItems(index).Kind, items(index).Kind)
+                Assert.Equal(expectedItems(index).IsCaseSensitive, items(index).IsCaseSensitive)
             Next
         End Sub
 

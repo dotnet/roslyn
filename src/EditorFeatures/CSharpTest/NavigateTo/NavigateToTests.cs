@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         {
             using (var workspace = SetupWorkspace("public partial class Foo { int a; } partial class Foo { int b; }"))
             {
-                var expecteditem1 = new NavigateToItem("Foo", NavigateToItemKind.Class, "csharp", null, null, MatchKind.Exact, null);
+                var expecteditem1 = new NavigateToItem("Foo", NavigateToItemKind.Class, "csharp", null, null, MatchKind.Exact, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
 
                 var items = _aggregator.GetItems("Foo");
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         {
             using (var workspace = SetupWorkspace("partial class Foo { partial void Bar(); } partial class Foo { partial void Bar() { Console.Write(\"hello\"); } }"))
             {
-                var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, null);
+                var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
 
                 var items = _aggregator.GetItems("Bar");
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             using (var workspace = SetupWorkspace(program))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic);
-                var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, null);
+                var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
 
                 var items = _aggregator.GetItems("Name");
@@ -500,8 +500,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var expectedItems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("Foo", NavigateToItemKind.Method, "csharp", "Foo", null, MatchKind.Exact, null),
-                    new NavigateToItem("Foo", NavigateToItemKind.Class, "csharp", "Foo", null, MatchKind.Exact, null)
+                    new NavigateToItem("Foo", NavigateToItemKind.Method, "csharp", "Foo", null, MatchKind.Exact, true, null),
+                    new NavigateToItem("Foo", NavigateToItemKind.Class, "csharp", "Foo", null, MatchKind.Exact, true, null)
                 };
                 var items = _aggregator.GetItems("Foo");
                 VerifyNavigateToResultItems(expectedItems, items);
@@ -535,11 +535,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("C1", NavigateToItemKind.Class, "csharp", "C1", null, MatchKind.Prefix, null),
-                    new NavigateToItem("C1", NavigateToItemKind.Method, "csharp", "C1", null, MatchKind.Prefix, null),
-                    new NavigateToItem("C2", NavigateToItemKind.Class, "csharp", "C2", null, MatchKind.Prefix, null),
-                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, MatchKind.Prefix, null), // this is the static ctor
-                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, MatchKind.Prefix, null),
+                    new NavigateToItem("C1", NavigateToItemKind.Class, "csharp", "C1", null, MatchKind.Prefix, true, null),
+                    new NavigateToItem("C1", NavigateToItemKind.Method, "csharp", "C1", null, MatchKind.Prefix, true, null),
+                    new NavigateToItem("C2", NavigateToItemKind.Class, "csharp", "C2", null, MatchKind.Prefix, true, null),
+                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, MatchKind.Prefix, true, null), // this is the static ctor
+                    new NavigateToItem("C2", NavigateToItemKind.Method, "csharp", "C2", null, MatchKind.Prefix, true, null),
                 };
                 var items = _aggregator.GetItems("C").ToList();
                 items.Sort(CompareNavigateToItems);
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
                 var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem3 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
+                var expecteditem3 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2, expecteditem3 };
 
                 var items = _aggregator.GetItems("GK");
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             using (var workspace = SetupWorkspace(source))
             {
                 var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
+                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
                 var items = _aggregator.GetItems("GKW");
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             using (var workspace = SetupWorkspace(source))
             {
                 var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
-                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Substring, null);
+                var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Substring, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
                 var items = _aggregator.GetItems("K W");
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Prefix, null),
+                    new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Prefix, true, null),
                     new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Prefix, null)
                 };
 
@@ -723,7 +723,7 @@ class D
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("this[]", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, null),
+                    new NavigateToItem("this[]", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, true, null),
                 };
 
                 var items = _aggregator.GetItems("this");
@@ -747,6 +747,7 @@ class D
                 Assert.Equal(expectedItem.MatchKind, actualItem.MatchKind);
                 Assert.Equal(expectedItem.Language, actualItem.Language);
                 Assert.Equal(expectedItem.Kind, actualItem.Kind);
+                Assert.Equal(expectedItem.IsCaseSensitive, actualItem.IsCaseSensitive);
                 if (!string.IsNullOrEmpty(expectedItem.SecondarySort))
                 {
                     Assert.Contains(expectedItem.SecondarySort, actualItem.SecondarySort);
