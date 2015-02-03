@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Performance
         [Fact]
         public void EmptyArrayCSharp()
         {
-            const string ArrayEmptySource =
-                @"namespace System { public class Array { public static T[] Empty<T>() { return null; } } }";
-
             const string Source = @"
 [System.Runtime.CompilerServices.Dynamic(new bool[0])] // no
 class C
@@ -66,8 +63,7 @@ class C
     }
 }";
 
-            VerifyCSharp(Source); // no diagnostics until building against a core lib that has Array.Empty<T>
-            VerifyCSharp(Source + ArrayEmptySource, new[]
+            VerifyCSharp(Source, new[]
             {
                 GetCSharpResultAt(7, 22, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
                 GetCSharpResultAt(8, 23, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
@@ -77,27 +73,18 @@ class C
                 GetCSharpResultAt(16, 26, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor)
             });
             VerifyCSharpFix(
-                ArrayEmptySource + Source,
-                ArrayEmptySource + FixedSource,
+                Source,
+                FixedSource,
                 allowNewCompilerDiagnostics: true);
             VerifyCSharpFix(
-                "using System;\r\n" + ArrayEmptySource + Source,
-                "using System;\r\n" + ArrayEmptySource + FixedSource.Replace("System.Array.Empty", "Array.Empty"),
+                "using System;\r\n" + Source,
+                "using System;\r\n" + FixedSource.Replace("System.Array.Empty", "Array.Empty"),
                 allowNewCompilerDiagnostics: true);
         }
 
         [Fact]
         public void EmptyArrayVisualBasic()
         {
-            const string ArrayEmptySource = @"
-Namespace System
-    Public Class Array
-       Public Shared Function Empty(Of T)() As T()
-           Return Nothing
-       End Function
-    End Class
-End Namespace
-";
             const string Source = @"
 <System.Runtime.CompilerServices.Dynamic(new Boolean(-1) {})> _
 Class C
@@ -140,8 +127,7 @@ Class C
     End Sub
 End Class";
 
-            VerifyBasic(Source);
-            VerifyBasic(Source + ArrayEmptySource, new[]
+            VerifyBasic(Source, new[]
             {
                 GetBasicResultAt(5, 33, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
                 GetBasicResultAt(6, 30, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
@@ -151,12 +137,12 @@ End Class";
                 GetBasicResultAt(14, 37, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor)
             });
             VerifyBasicFix(
-                ArrayEmptySource + Source,
-                ArrayEmptySource + FixedSource,
+                Source,
+                FixedSource,
                 allowNewCompilerDiagnostics: true);
             VerifyBasicFix(
-                "Imports System\r\n" + ArrayEmptySource + Source,
-                "Imports System\r\n" + ArrayEmptySource + FixedSource.Replace("System.Array.Empty", "Array.Empty"),
+                "Imports System\r\n" + Source,
+                "Imports System\r\n" + FixedSource.Replace("System.Array.Empty", "Array.Empty"),
                 allowNewCompilerDiagnostics: true);
         }
     }
