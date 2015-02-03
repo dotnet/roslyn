@@ -123,6 +123,12 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     var oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
                     var oldMember = syntaxFactsService.GetMethodLevelMember(oldRoot, memberId);
+                    if (oldMember == null)
+                    {
+                        // oops, something went wrong. we can't find old member. 
+                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
                     var oldModel = oldCompilation.GetSemanticModel(oldTree);
 
                     SemanticModel model;

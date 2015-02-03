@@ -1120,7 +1120,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int currentId = 0;
             SyntaxNode currentNode;
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out currentNode));
+            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out currentNode))
+            {
+                return null;
+            }
 
             Contract.ThrowIfNull(currentNode);
             CheckMemberId(root, currentNode, memberId);

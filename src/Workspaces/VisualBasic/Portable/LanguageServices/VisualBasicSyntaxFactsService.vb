@@ -897,7 +897,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetMethodLevelMember(root As SyntaxNode, memberId As Integer) As SyntaxNode Implements ISyntaxFactsService.GetMethodLevelMember
             Dim currentId As Integer = Nothing
             Dim currentNode As SyntaxNode = Nothing
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, Function(n, i) i = memberId, currentId, currentNode))
+
+            If Not TryGetMethodLevelMember(root, Function(n, i) i = memberId, currentId, currentNode) Then
+                Return Nothing
+            End If
 
             Contract.ThrowIfNull(currentNode)
             CheckMemberId(root, currentNode, memberId)
