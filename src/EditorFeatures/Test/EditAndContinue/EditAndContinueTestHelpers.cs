@@ -357,4 +357,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return span + ": [" + source.Substring(span.Start, span.Length).Replace("\r\n", " ") + "]";
         }
     }
+
+    internal static class EditScriptTestUtils
+    {
+        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
+        {
+            AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
+        }
+    }
 }
