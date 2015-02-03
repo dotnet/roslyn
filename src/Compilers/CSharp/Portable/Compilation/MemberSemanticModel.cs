@@ -692,15 +692,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (bound == null) return default(QueryClauseInfo);
             var castInfo = (bound.Cast == null) ? default(SymbolInfo) : GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Cast, bound.Cast, boundNodeForSyntacticParent: null, binderOpt: null);
-            var operationInfo = (bound.Operation == null) ? default(SymbolInfo) : GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Operation, bound.Operation, boundNodeForSyntacticParent: null, binderOpt: null);
+            var operationInfo = GetSymbolInfoForQuery(bound);
             return new QueryClauseInfo(castInfo: castInfo, operationInfo: operationInfo);
         }
 
         private SymbolInfo GetSymbolInfoForQuery(BoundQueryClause bound)
         {
-            return (bound == null || bound.Operation == null) ?
-                default(SymbolInfo) :
-                GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Operation, bound.Operation, boundNodeForSyntacticParent: null, binderOpt: null);
+            var call = bound?.Operation as BoundCall;
+            if (call == null)
+            {
+                return default(SymbolInfo);
+            }
+
+            var operation = call.IsDelegateCall ? call.ReceiverOpt : call;
+            return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, operation, operation, boundNodeForSyntacticParent: null, binderOpt: null);
         }
 
         private CSharpTypeInfo GetTypeInfoForQuery(BoundQueryClause bound)

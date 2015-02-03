@@ -1467,7 +1467,7 @@ class C
             Assert.Equal(null, info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
-            Assert.Equal("Invoke", infoSelect.Symbol.Name);
+            Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
         [WorkItem(542624, "DevDiv")]

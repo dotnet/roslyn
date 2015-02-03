@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     using Utils = CompilationUtils;
 
-    public class GetExtendedSemanticInfoTests : SemanticModelTestBase
+    public class SemanticModelGetSemanticInfoTests : SemanticModelTestBase
     {
         [Fact]
         public void FailedOverloadResolution()
@@ -15144,6 +15144,39 @@ class Name
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact, WorkItem(1084693, "DevDiv")]
+        public void Bug1084693()
+        {
+            const string sourceCode =
+@"
+using System;
+public class C {
+    public Func<Func<C, C>, C> Select;
+    public Func<Func<C, bool>, C> Where => null;
+
+    public void M() {
+        var e =
+            from i in this
+            where true
+            select true?i:i;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            string[] expectedNames = { null, "Where", "Select" };
+            int i = 0;
+            foreach (var qc in tree.GetRoot().DescendantNodes().OfType<QueryClauseSyntax>())
+            {
+                var infoSymbol = semanticModel.GetQueryClauseInfo(qc).OperationInfo.Symbol;
+                Assert.Equal(expectedNames[i++], infoSymbol?.Name);
+            }
+            var qe = tree.GetRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
+            var infoSymbol2 = semanticModel.GetSymbolInfo(qe.Body.SelectOrGroup).Symbol;
+            Assert.Equal(expectedNames[i++], infoSymbol2.Name);
         }
     }
 }
