@@ -126,6 +126,11 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     if (oldMember == null)
                     {
                         // oops, something went wrong. we can't find old member. 
+                        //
+                        // due to how we do versioning (filestamp based versioning), there is always a possiblity that 
+                        // sources get changed without proper version changes in some rare situations,
+                        // so in those rare cases which we can't control until we move to content based versioning,
+                        // just bail out and use full semantic model
                         return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     }
 
