@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -24,8 +26,15 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
-            AddSemanticClassifications(semanticModel, textSpan, document.Project.Solution.Workspace, getNodeClassifiers, getTokenClassifiers, result, cancellationToken);
+            try
+            {
+                var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
+                AddSemanticClassifications(semanticModel, textSpan, document.Project.Solution.Workspace, getNodeClassifiers, getTokenClassifiers, result, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers, List<ClassifiedSpan> result, CancellationToken cancellationToken = default(CancellationToken))

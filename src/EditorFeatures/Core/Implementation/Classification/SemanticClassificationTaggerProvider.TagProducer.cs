@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,35 +35,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 int? caretPosition,
                 CancellationToken cancellationToken)
             {
-                var snapshot = snapshotSpan.Snapshot;
-                if (document == null)
+                try
                 {
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                    var snapshot = snapshotSpan.Snapshot;
+                    if (document == null)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                    }
+
+                    if (_classificationService == null)
+                    {
+                        _classificationService = document.Project.LanguageServices.GetService<IEditorClassificationService>();
+                    }
+
+                    if (_classificationService == null)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                    }
+
+                    // we don't directly reference the semantic model here, we just keep it alive so 
+                    // the classification service does not need to block to produce it.
+                    using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
+                    {
+                        var textSpan = snapshotSpan.Span.ToTextSpan();
+                        var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+
+                        var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+
+                        await _classificationService.AddSemanticClassificationsAsync(
+                            document, textSpan, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                        return ClassificationUtilities.ConvertAndReturnList(_typeMap, snapshotSpan.Snapshot, classifiedSpans);
+                    }
                 }
-
-                if (_classificationService == null)
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
-                    _classificationService = document.Project.LanguageServices.GetService<IEditorClassificationService>();
-                }
-
-                if (_classificationService == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
-                }
-
-                // we don't directly reference the semantic model here, we just keep it alive so 
-                // the classification service does not need to block to produce it.
-                using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
-                {
-                    var textSpan = snapshotSpan.Span.ToTextSpan();
-                    var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-
-                    var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-
-                    await _classificationService.AddSemanticClassificationsAsync(
-                        document, textSpan, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    return ClassificationUtilities.ConvertAndReturnList(_typeMap, snapshotSpan.Snapshot, classifiedSpans);
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }
