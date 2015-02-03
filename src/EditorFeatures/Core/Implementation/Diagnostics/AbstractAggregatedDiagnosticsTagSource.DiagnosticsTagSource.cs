@@ -179,11 +179,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 public bool Equals(Data data1, Data data2)
                 {
-                    return data1.Diagnostic.Id == data2.Diagnostic.Id;
+                    return data1.Diagnostic.Id == data2.Diagnostic.Id && data1.Diagnostic.Severity == data2.Diagnostic.Severity;
                 }
 
                 public SnapshotSpan GetSpan(Data data)
                 {
+                    if (data.TrackingSpan.TextBuffer != _snapshot.TextBuffer)
+                    {
+                        // when two different buffers are compared, we make whole buffer as changed.
+                        return new SnapshotSpan(_snapshot, 0, _snapshot.Length);
+                    }
+
                     return data.GetSnapshotSpan(_snapshot, _minimumLength);
                 }
             }
