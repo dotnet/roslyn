@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 RuntimeAssemblyManager manager;
                 try
                 {   
-                    appDomain = AppDomain.CreateDomain("HostedRuntimeEnvironment", null, Environment.CurrentDirectory, null, false);
+                    appDomain = AppDomain.CreateDomain("HostedRuntimeEnvironment", null, AppDomain.CurrentDomain.BaseDirectory, null, false);
                     manager = (RuntimeAssemblyManager)appDomain.CreateInstanceAndUnwrap(thisAssembly.FullName, appDomainProxyType.FullName);
                 }
                 catch
