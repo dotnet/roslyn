@@ -15,24 +15,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Performance
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer() { return new BasicEmptyArrayDiagnosticAnalyzer(); }
         protected override CodeFixProvider GetBasicCodeFixProvider() { return new BasicEmptyArrayCodeFixProvider(); }
 
-		/// <summary>
-		/// This type isn't defined in all locations where this test runs.  Need to alter the 
-		/// test code slightly to account for this.
-		/// </summary>
-		private static bool IsArrayEmptyDefined()
-		{
-			var assembly = typeof(object).Assembly;
-			var type = assembly.GetType("System.Array");
-			return type.GetMethod("Empty", BindingFlags.Public | BindingFlags.Static) != null;
-		}
+        /// <summary>
+        /// This type isn't defined in all locations where this test runs.  Need to alter the 
+        /// test code slightly to account for this.
+        /// </summary>
+        private static bool IsArrayEmptyDefined()
+        {
+            var assembly = typeof(object).Assembly;
+            var type = assembly.GetType("System.Array");
+            return type.GetMethod("Empty", BindingFlags.Public | BindingFlags.Static) != null;
+        }
 
         [Fact]
         public void EmptyArrayCSharp()
         {
-			const string arrayEmptySource =
-				@"namespace System { public class Array { public static T[] Empty<T>() { return null; } } }";
+            const string arrayEmptySourceRaw =
+                @"namespace System { public class Array { public static T[] Empty<T>() { return null; } } }";
 
-			const string badSourceRaw = @"
+            const string badSource = @"
 [System.Runtime.CompilerServices.Dynamic(new bool[0])] // no
 class C
 {
@@ -55,7 +55,7 @@ class C
     }
 }";
 
-            const string fixedSourceRaw = @"
+            const string fixedSource = @"
 [System.Runtime.CompilerServices.Dynamic(new bool[0])] // no
 class C
 {
@@ -77,11 +77,9 @@ class C
         List<int> list1 = new List<int>() { }          // no
     }
 }";
+            var arrayEmptySource = IsArrayEmptyDefined() ? string.Empty : arrayEmptySourceRaw;
 
-			var badSource = IsArrayEmptyDefined() ? badSourceRaw : arrayEmptySource + badSourceRaw;
-			var fixedSource = IsArrayEmptyDefined() ? fixedSourceRaw : arrayEmptySource + fixedSourceRaw;
-
-            VerifyCSharp(badSource, new[]
+            VerifyCSharp(badSource + arrayEmptySource, new[]
             {
                 GetCSharpResultAt(7, 22, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
                 GetCSharpResultAt(8, 23, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
@@ -91,19 +89,19 @@ class C
                 GetCSharpResultAt(16, 26, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor)
             });
             VerifyCSharpFix(
-                badSource,
-                fixedSource,
+                arrayEmptySource + badSource,
+                arrayEmptySource + fixedSource,
                 allowNewCompilerDiagnostics: true);
             VerifyCSharpFix(
-                "using System;\r\n" + badSource,
-                "using System;\r\n" + fixedSource.Replace("System.Array.Empty", "Array.Empty"),
+                "using System;\r\n" + arrayEmptySource + badSource,
+                "using System;\r\n" + arrayEmptySource + fixedSource.Replace("System.Array.Empty", "Array.Empty"),
                 allowNewCompilerDiagnostics: true);
         }
 
         [Fact]
         public void EmptyArrayVisualBasic()
         {
-			const string arrayEmptySource = @"
+            const string arrayEmptySourceRaw = @"
 Namespace System
     Public Class Array
        Public Shared Function Empty(Of T)() As T()
@@ -112,7 +110,7 @@ Namespace System
     End Class
 End Namespace
 ";
-			const string badSourceRaw = @"
+            const string badSource = @"
 <System.Runtime.CompilerServices.Dynamic(new Boolean(-1) {})> _
 Class C
     Sub M1()
@@ -133,7 +131,7 @@ Class C
     End Sub
 End Class";
 
-            const string fixedSourceRaw = @"
+            const string fixedSource = @"
 <System.Runtime.CompilerServices.Dynamic(new Boolean(-1) {})> _
 Class C
     Sub M1()
@@ -154,10 +152,9 @@ Class C
     End Sub
 End Class";
 
-			var badSource = IsArrayEmptyDefined() ? badSourceRaw : arrayEmptySource + badSourceRaw;
-			var fixedSource = IsArrayEmptyDefined() ? fixedSourceRaw : arrayEmptySource + fixedSourceRaw;
+            var arrayEmptySource = IsArrayEmptyDefined() ? string.Empty : arrayEmptySourceRaw;
 
-            VerifyBasic(badSource, new[]
+            VerifyBasic(badSource + arrayEmptySource, new[]
             {
                 GetBasicResultAt(5, 33, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
                 GetBasicResultAt(6, 30, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor),
@@ -167,12 +164,12 @@ End Class";
                 GetBasicResultAt(14, 37, EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor)
             });
             VerifyBasicFix(
-                badSource,
-                fixedSource,
+                arrayEmptySource + badSource,
+                arrayEmptySource + fixedSource,
                 allowNewCompilerDiagnostics: true);
             VerifyBasicFix(
-                "Imports System\r\n" + badSource,
-                "Imports System\r\n" + fixedSource.Replace("System.Array.Empty", "Array.Empty"),
+                "Imports System\r\n" + arrayEmptySource + badSource,
+                "Imports System\r\n" + arrayEmptySource + fixedSource.Replace("System.Array.Empty", "Array.Empty"),
                 allowNewCompilerDiagnostics: true);
         }
     }
