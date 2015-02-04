@@ -233,7 +233,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveComp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveServices", "VisualStudio\InteractiveServices\VisualStudioInteractiveServices.csproj", "{A31228BB-F05C-4D4A-B98A-0E681D876B7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorListDiagnostics", "VisualStudio\ErrorList\ErrorListDiagnosticsPackage\ErrorListDiagnostics.csproj", "{5DAB19A2-85A2-478E-8E0A-CA1A4ED923AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetupInteractive", "VisualStudio\SetupInteractive\VisualStudioSetupInteractive.csproj", "{C467FEFA-337D-4705-BB5A-BDF41A555FDC}"
 EndProject
