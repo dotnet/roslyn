@@ -1475,7 +1475,8 @@ namespace x
         }
 
         [WorkItem(528539, "DevDiv")]
-        [Fact]
+        [WorkItem(1119609, "DevDiv")]
+        [Fact(Skip = "1119609")]
         public void CS0030ERR_NoExplicitConv02()
         {
             var text = @"
@@ -7605,7 +7606,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "E.A - 1").WithArguments("-1", "E"));
         }
 
-        [Fact]
+        [WorkItem(1119609, "DevDiv")]
+        [Fact(Skip = "1119609")]
         public void CS0221ERR_ConstOutOfRangeChecked03()
         {
             var text =
