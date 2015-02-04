@@ -1574,7 +1574,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             };
         }
 
-        [Fact]
+        [Fact(Skip = "1119752"), WorkItem(1119752)]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AnalyzerChangesOnDisk()
         {
