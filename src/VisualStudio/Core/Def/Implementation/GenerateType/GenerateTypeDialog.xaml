@@ -13,7 +13,10 @@
             MinHeight="370" MinWidth="460"
             Title="{Binding ElementName=dialog, Path=GenerateTypeDialogTitle}"
             HasHelpButton="True"
-            ResizeMode="CanResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+            ResizeMode="CanResizeWithGrip"
+            ShowInTaskbar="False"
+            HasDialogFrame="True"
+            WindowStartupLocation="CenterOwner">
     <StackPanel Margin="0,0,0,9" >
         <Label Content="{Binding ElementName=dialog, Path=TypeDetails}" FontWeight="Bold" Margin="20,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"/>
         <Grid Margin="20,0,1,0" Height="49">
