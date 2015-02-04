@@ -196,6 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _sourceAssembly.Identity.Version; }
         }
 
+        string Cci.IAssemblyReference.GetDisplayName()
+        {
+            return _sourceAssembly.Identity.GetDisplayName();
+        }
+
         internal override string Name
         {
             get { return _metadataName; }

@@ -4380,9 +4380,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsUsingAliasInScope(string name)
         {
             var isSemanticModel = this.IsSemanticModelBinder;
-            foreach (var importsList in this.ImportsList)
+            for (var chain = this.ImportChain; chain != null; chain = chain.ParentOpt)
             {
-                if (importsList.IsUsingAlias(name, isSemanticModel))
+                if (chain.Imports.IsUsingAlias(name, isSemanticModel))
                 {
                     return true;
                 }

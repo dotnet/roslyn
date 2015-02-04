@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return MetadataIdentity.Version; }
         }
 
+        string Cci.IAssemblyReference.GetDisplayName()
+        {
+            return MetadataIdentity.GetDisplayName();
+        }
+
         string Cci.INamedEntity.Name
         {
             get { return MetadataIdentity.Name; }

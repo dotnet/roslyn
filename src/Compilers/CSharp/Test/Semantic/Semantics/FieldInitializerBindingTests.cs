@@ -287,14 +287,14 @@ class C
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             try
             {
-                ConsList<Imports> unused;
+                ImportChain unused;
                 var boundInitializers = Binder.BindFieldInitializers(
                     containingType: typeSymbol,
                     scriptCtor: null,
                     initializers: initializers,
                     diagnostics: diagnostics,
                     generateDebugInfo: false,
-                    firstDebugImports: out unused);
+                    firstImportChain: out unused);
 
                 var filteredDiag = diagnostics.AsEnumerable();
                 foreach (var diagnostic in filteredDiag)

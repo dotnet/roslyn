@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -97,7 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If generateDebugInfo Then
                 Me._debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
-                Me._namespaceScopeBuilder = New NamespaceScopeBuilder()
             End If
 
             If compilation.Options.ConcurrentBuild Then
@@ -306,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnostics,
-                                                     namespaceScopes:=Nothing)
+                                                     generateDebugInfo:=False)
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody)
                 moduleBeingBuilt.AddSynthesizedDefinition(compilation.ScriptClass, scriptEntryPoint)
@@ -362,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For index = 0 To builder.Count - 1
-                    Dim symbol As Symbol = builder(index)
+                    Dim symbol As symbol = builder(index)
                     processedSymbols.Add(symbol)
 
 #If DEBUG Then
@@ -537,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim processedStaticInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
             Dim processedInstanceInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
-            Dim synthesizedSubmissionFields = If(symbol.IsSubmissionClass, New SynthesizedSubmissionFields(_compilation, symbol), Nothing)
+            Dim synthesizedSubmissionFields = If(symbol.IsSubmissionClass, New synthesizedSubmissionFields(_compilation, symbol), Nothing)
 
             ' if this is a type symbol from source we'll try to bind the field initializers as well
             Dim sourceTypeSymbol = TryCast(symbol, SourceMemberContainerTypeSymbol)
@@ -732,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If sourceMethod IsNot Nothing AndAlso
                        sourceMethod.MethodKind = MethodKind.Constructor AndAlso
                        Not compilationState.CallsInitializeComponent(sourceMethod) Then
-                        Dim location As Location = sourceMethod.NonMergedLocation
+                        Dim location As location = sourceMethod.NonMergedLocation
                         Debug.Assert(location IsNot Nothing)
 
                         If location IsNot Nothing Then
@@ -853,7 +852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnosticsThisMethod,
-                                                     namespaceScopes:=Nothing)
+                                                     generateDebugInfo:=False)
 
                 _diagnostics.AddRange(diagnosticsThisMethod)
                 diagnosticsThisMethod.Free()
@@ -912,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              variableSlotAllocatorOpt,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
-                                                             namespaceScopes:=Nothing)
+                                                             generateDebugInfo:=False)
                         End If
                     End If
 
@@ -955,7 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=_debugDocumentProvider,
                                                          diagnostics:=diagnosticsThisMethod,
-                                                         namespaceScopes:=GetNamespaceScopes(methodWithBody.Method))
+                                                         generateDebugInfo:=_generateDebugInfo AndAlso method.GenerateDebugInfo)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
                     diagnosticsThisMethod.Free()
@@ -1214,7 +1213,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    processedInitializers,
                                    previousSubmissionFields,
                                    If(injectConstructorCall, referencedConstructor, Nothing),
-                                   GetNamespaceScopes(method),
                                    delegateRelaxationIdDispenser)
 
                 ' if method happen to handle events of a base WithEvents, ensure that we have an overriding WithEvents property
@@ -1234,16 +1232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _diagnostics.AddRange(diagsForCurrentMethod)
             diagsForCurrentMethod.Free()
         End Sub
-
-        Private Function GetNamespaceScopes(method As MethodSymbol) As ImmutableArray(Of Cci.NamespaceScope)
-            Debug.Assert(Me._generateDebugInfo = (_namespaceScopeBuilder IsNot Nothing))
-
-            If _generateDebugInfo AndAlso method.GenerateDebugInfo Then
-                Return _namespaceScopeBuilder.GetNamespaceScopes(method)
-            End If
-
-            Return Nothing
-        End Function
 
         ''' <summary> 
         ''' If any of the "Handles" in the list have synthetic WithEvent override
@@ -1349,7 +1337,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             processedInitializers As Binder.ProcessedFieldOrPropertyInitializers,
             previousSubmissionFields As SynthesizedSubmissionFields,
             constructorToInject As MethodSymbol,
-            namespaceScopes As ImmutableArray(Of Cci.NamespaceScope),
             ByRef delegateRelaxationIdDispenser As Integer
         )
             Dim constructorInitializerOpt = If(constructorToInject Is Nothing,
@@ -1437,14 +1424,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' NOTE: additional check for statement.HasErrors is needed to identify parse errors which didn't get into diagsForCurrentMethod
-            Dim methodBody As MethodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
+            Dim methodBody As methodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                               method,
                                                               body,
                                                               stateMachineTypeOpt,
                                                               variableSlotAllocatorOpt,
                                                               _debugDocumentProvider,
                                                               diagnostics,
-                                                              namespaceScopes)
+                                                              generateDebugInfo:=_generateDebugInfo AndAlso method.GenerateDebugInfo)
 
             If diagnostics IsNot diagsForCurrentMethod Then
                 DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics, diagsForCurrentMethod)
@@ -1461,10 +1448,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagnostics As DiagnosticBag,
-                                                  namespaceScopes As ImmutableArray(Of Cci.NamespaceScope)) As MethodBody
+                                                  generateDebugInfo As Boolean) As MethodBody
 
             Dim compilation = moduleBuilder.Compilation
-            Dim localSlotManager = New LocalSlotManager(variableSlotAllocatorOpt)
+            Dim localSlotManager = New localSlotManager(variableSlotAllocatorOpt)
             Dim optimizations = compilation.Options.OptimizationLevel
 
             If method.IsEmbedded Then
@@ -1472,13 +1459,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, optimizations)
-            Dim emittingPdbs = Not namespaceScopes.IsDefault
 
             Try
                 Debug.Assert(Not diagnostics.HasAnyErrors)
 
                 Dim asyncDebugInfo As Cci.AsyncMethodBodyDebugInfo = Nothing
-                Dim codeGen = New CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdbs)
+                Dim codeGen = New codeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, generateDebugInfo)
 
                 ' We need to save additional debugging information for MoveNext of an async state machine.
                 Dim stateMachineMethod = TryCast(method, SynthesizedStateMachineMethod)
@@ -1527,6 +1513,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), stateMachineHoistedLocalSlots, stateMachineAwaiterSlots)
                 End If
 
+                Dim namespaceScopes = If(generateDebugInfo, moduleBuilder.SourceModule.GetSourceFile(method.Syntax.SyntaxTree), Nothing)
+
                 ' edgeInclusive must be true as that is what VB EE expects.
 
                 '<PdbUtil.cpp>
@@ -1548,6 +1536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 'Error:
                 '    return hr;
                 '}
+                Dim localScopes = builder.GetAllScopes(edgeInclusive:=True)
 
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,
@@ -1557,10 +1546,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       builder.RealizedSequencePoints,
                                       debugDocumentProvider,
                                       builder.RealizedExceptionHandlers,
-                                      builder.GetAllScopes(edgeInclusive:=True),
+                                      localScopes,
                                       hasDynamicLocalVariables:=False,
-                                      namespaceScopes:=namespaceScopes,
-                                      namespaceScopeEncoding:=Cci.NamespaceScopeEncoding.Forwarding,
+                                      importScopeOpt:=namespaceScopes,
                                       lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                       closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                       stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo

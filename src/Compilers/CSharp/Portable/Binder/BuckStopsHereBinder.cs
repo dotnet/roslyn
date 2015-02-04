@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ConsList<Imports> ImportsList
+        internal override ImportChain ImportChain
         {
             get
             {
-                return ConsList<Imports>.Empty;
+                return null;
             }
         }
 

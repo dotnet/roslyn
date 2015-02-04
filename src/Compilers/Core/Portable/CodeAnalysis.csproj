@@ -356,7 +356,7 @@
     <Compile Include="PEWriter\DirectoryEntry.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />
-    <Compile Include="PEWriter\ExternNamespace.cs" />
+    <Compile Include="PEWriter\AssemblyReferenceAlias.cs" />
     <Compile Include="PEWriter\FullMetadataWriter.cs" />
     <Compile Include="PEWriter\ICustomAttribute.cs" />
     <Compile Include="PEWriter\IFileReference.cs" />
@@ -374,7 +374,7 @@
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
     <Compile Include="PEWriter\Miscellaneous.cs" />
     <Compile Include="PEWriter\ModifiedTypeReference.cs" />
-    <Compile Include="PEWriter\NamespaceScope.cs" />
+    <Compile Include="PEWriter\IImportScope.cs" />
     <Compile Include="PEWriter\NtHeader.cs" />
     <Compile Include="PEWriter\PdbMetadataWrapper.cs" />
     <Compile Include="PEWriter\PdbWriter.cs" />
@@ -391,7 +391,6 @@
     <Compile Include="PEWriter\TypeSpecComparer.cs" />
     <Compile Include="PEWriter\Units.cs" />
     <Compile Include="PEWriter\UsedNamespaceOrType.cs" />
-    <Compile Include="PEWriter\UsedNamespaceOrTypeKind.cs" />
     <Compile Include="PrimitiveTypeCodeExtensions.cs" />
     <Compile Include="ReferenceManager\AssemblyData.cs" />
     <Compile Include="ReferenceManager\AssemblyDataForAssemblyBeingBuilt.cs" />

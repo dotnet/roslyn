@@ -486,6 +486,7 @@ class C { void M() { } }
                     new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("global", "A")),
                     new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("B", "global"))
                 });
+
             compilation.VerifyDiagnostics(
                 // (5,1): hidden CS8019: Unnecessary using directive.
                 // using Y = B::N;
@@ -497,8 +498,7 @@ class C { void M() { } }
                 // using Z = global::N;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = global::N;").WithLocation(6, 1));
 
-            string actual = GetPdbXml(compilation);
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
     <methods>
         <method containingType=""C"" name=""M"">
@@ -523,8 +523,7 @@ class C { void M() { } }
             </scope>
         </method>
     </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]

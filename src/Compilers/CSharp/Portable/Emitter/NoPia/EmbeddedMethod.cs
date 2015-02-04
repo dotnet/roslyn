@@ -200,5 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 return (Cci.ISignature)UnderlyingMethod;
             }
         }
+
+        protected override Cci.INamespace ContainingNamespace
+        {
+            get
+            {
+                return UnderlyingMethod.ContainingNamespace;
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -21,6 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly m_MetadataName As String
 
         Private m_LazyExportedTypes As ImmutableArray(Of TypeExport(Of NamedTypeSymbol))
+        Private m_lazyImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
+        Private m_lazyDefaultNamespace As String
 
         ' These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
         Private m_TestData As ConcurrentDictionary(Of String, CompilationTestData.MethodData)
@@ -82,6 +85,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property GenerateVisualBasicStylePdb As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
+            Get
+                ' NOTE: Dev12 does not seem to emit anything but the name (i.e. no version, token, etc).
+                ' See Builder::WriteNoPiaPdbList
+                Return SourceModule.ReferencedAssemblySymbols.Where(Function(a) a.IsLinked).Select(Function(a) a.Name)
+            End Get
+        End Property
+
+        Protected NotOverridable Overrides Function GetImports(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType)
+            If m_lazyImports.IsDefault Then
+                ImmutableInterlocked.InterlockedInitialize(
+                    m_lazyImports,
+                    NamespaceScopeBuilder.BuildNamespaceScope(context, SourceModule.XmlNamespaces, SourceModule.AliasImports, SourceModule.MemberImports))
+            End If
+
+            Return m_lazyImports
+        End Function
+
+        Protected NotOverridable Overrides ReadOnly Property DefaultNamespace As String
+            Get
+                If m_lazyDefaultNamespace IsNot Nothing Then
+                    Return m_lazyDefaultNamespace
+                End If
+
+                Dim rootNamespace = SourceModule.RootNamespace
+                If rootNamespace Is Nothing OrElse rootNamespace.IsGlobalNamespace Then
+                    Return Nothing
+                End If
+
+                m_lazyDefaultNamespace = rootNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
+                Return m_lazyDefaultNamespace
+            End Get
+        End Property
+
         Protected Overrides Iterator Function GetAssemblyReferencesFromAddedModules(diagnostics As DiagnosticBag) As IEnumerable(Of Cci.IAssemblyReference)
             Dim modules As ImmutableArray(Of ModuleSymbol) = SourceModule.ContainingAssembly.Modules
 
@@ -120,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                Not (refMachine = Machine.I386 AndAlso Not assembly.Bit32Required) Then
                 Dim machine = SourceModule.Machine
 
-                If Not (machine = Machine.I386 AndAlso Not SourceModule.Bit32Required) AndAlso
+                If Not (machine = machine.I386 AndAlso Not SourceModule.Bit32Required) AndAlso
                     machine <> refMachine Then
                     ' Different machine types, and neither is agnostic
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.WRN_ConflictingMachineAssembly, assembly), NoLocation.Singleton)

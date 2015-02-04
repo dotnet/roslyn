@@ -127,6 +127,7 @@
     <Compile Include="Binder\HostObjectModeBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
+    <Compile Include="Binder\ImportChain.cs" />
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
     <Compile Include="Binder\InMethodBinder.cs" />
@@ -256,7 +257,6 @@
     <Compile Include="Compiler\MethodBodySynthesizer.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.Lowered.cs" />
     <Compile Include="Compiler\ModuleCompilationState.cs" />
-    <Compile Include="Compiler\NamespaceScopeBuilder.cs" />
     <Compile Include="Compiler\SynthesizedMetadataCompiler.cs" />
     <Compile Include="Compiler\TypeCompilationState.cs" />
     <Compile Include="Compiler\UnprocessedDocumentationCommentFinder.cs" />
@@ -307,6 +307,7 @@
     <Compile Include="Emitter\Model\ModuleReference.cs" />
     <Compile Include="Emitter\Model\NamedTypeReference.cs" />
     <Compile Include="Emitter\Model\NamedTypeSymbolAdapter.cs" />
+    <Compile Include="Emitter\Model\NamespaceSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs">
       <SubType>Code</SubType>
     </Compile>

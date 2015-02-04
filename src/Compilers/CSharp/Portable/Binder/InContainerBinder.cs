@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpSyntaxNode _declarationSyntax;
         private readonly bool _allowStaticClassUsings;
         private Imports _imports; // might be initialized lazily
-        private ConsList<Imports> _lazyImportsList;
+        private ImportChain _lazyImportChain;
         private readonly bool _inUsing;
 
         /// <summary>
@@ -80,23 +80,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _imports;
         }
 
-        internal override ConsList<Imports> ImportsList
+        internal override ImportChain ImportChain
         {
             get
             {
-                if (_lazyImportsList == null)
+                if (_lazyImportChain == null)
                 {
-                    ConsList<Imports> importsList = this.Next.ImportsList;
+                    ImportChain importChain = this.Next.ImportChain;
                     if (_container.Kind == SymbolKind.Namespace)
                     {
-                        importsList = new ConsList<Imports>(GetImports(), importsList);
+                        importChain = new ImportChain(GetImports(), importChain);
                     }
-                    Interlocked.CompareExchange(ref _lazyImportsList, importsList, null);
+
+                    Interlocked.CompareExchange(ref _lazyImportChain, importChain, null);
                 }
 
-                Debug.Assert(_lazyImportsList != null);
+                Debug.Assert(_lazyImportChain != null);
 
-                return _lazyImportsList;
+                return _lazyImportChain;
             }
         }
 
