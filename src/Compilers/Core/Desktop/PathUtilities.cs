@@ -2,25 +2,32 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Roslyn.Utilities
 {
+    // Contains path parsing utilities.
+    // We need our own because System.IO.Path is insufficient for our purposes
+    // For example we need to be able to work with invalid paths or paths containing wildcards
     internal static class PathUtilities
     {
-        internal const string DirectorySeparatorStr = "\\";
-        internal const char DirectorySeparatorChar = '\\';
-        internal const char AltDirectorySeparatorChar = '/';
+        // We consider '/' a directory separator on Unix like systems. 
+        // On Windows both / and \ are equally accepted.
+        internal static readonly char DirectorySeparatorChar = IsUnixLikePlatform ? '/' : '\\';
+        internal static readonly char AltDirectorySeparatorChar = '/';
+        internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
 
-        private static readonly char[] s_directorySeparators = new[]
+        private static bool IsUnixLikePlatform
         {
-            DirectorySeparatorChar, AltDirectorySeparatorChar, VolumeSeparatorChar
-        };
+            get
+            {
+               return System.IO.Path.DirectorySeparatorChar == '/';
+            }
+        }
 
-        internal static bool HasDirectorySeparators(string path)
+        internal static bool IsDirectorySeparator(char c)
         {
-            return path.IndexOfAny(s_directorySeparators) >= 0;
+            return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
         }
 
         internal static string GetExtension(string path)
@@ -73,6 +80,7 @@ namespace Roslyn.Utilities
 
             // "C:\"
             // "\\machine" (UNC)
+            // "/etc"      (Unix)
             if (IsAbsolute(path))
             {
                 return PathKind.Absolute;
@@ -98,17 +106,21 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // "\"
-            // "\foo"
-            if (path.Length >= 1 && IsDirectorySeparator(path[0]))
+            if (!IsUnixLikePlatform)
             {
-                return PathKind.RelativeToCurrentRoot;
-            }
+                // "\"
+                // "\foo"
+                if (path.Length >= 1 && IsDirectorySeparator(path[0]))
+                {
+                    return PathKind.RelativeToCurrentRoot;
+                }
 
-            // "C:foo"
-            if (path.Length >= 2 && path[1] == VolumeSeparatorChar && (path.Length <= 2 || !IsDirectorySeparator(path[2])))
-            {
-                return PathKind.RelativeToDriveDirectory;
+                // "C:foo"
+
+                if (path.Length >= 2 && path[1] == VolumeSeparatorChar && (path.Length <= 2 || !IsDirectorySeparator(path[2])))
+                {
+                    return PathKind.RelativeToDriveDirectory;
+                }
             }
 
             // "foo.dll"
@@ -122,6 +134,11 @@ namespace Roslyn.Utilities
                 return false;
             }
 
+            if (IsUnixLikePlatform)
+            {
+                return path[0] == DirectorySeparatorChar;
+            }
+
             // "C:\"
             if (IsDriveRootedAbsolutePath(path))
             {
@@ -130,13 +147,10 @@ namespace Roslyn.Utilities
             }
 
             // "\\machine\share"
-            if (path.Length >= 2 && IsDirectorySeparator(path[0]) && IsDirectorySeparator(path[1]))
-            {
-                // Including invalid/incomplete UNC paths (e.g. "\\foo")
-                return true;
-            }
-
-            return false;
+            // Including invalid/incomplete UNC paths (e.g. "\\foo")
+            return path.Length >= 2 &&
+                IsDirectorySeparator(path[0]) &&
+                IsDirectorySeparator(path[1]);
         }
 
         /// <summary>
@@ -144,6 +158,7 @@ namespace Roslyn.Utilities
         /// </summary>
         private static bool IsDriveRootedAbsolutePath(string path)
         {
+            Debug.Assert(!IsUnixLikePlatform);
             return path.Length >= 3 && path[1] == VolumeSeparatorChar && IsDirectorySeparator(path[2]);
         }
 
@@ -167,25 +182,32 @@ namespace Roslyn.Utilities
 
         private static int GetPathRootLength(string path)
         {
-            Debug.Assert(path != null);
+            Debug.Assert(!string.IsNullOrEmpty(path));
 
-            // "C:\"
-            if (IsDriveRootedAbsolutePath(path))
+            if (IsUnixLikePlatform)
             {
-                return 3;
+                if (IsDirectorySeparator(path[0]))
+                {
+                    //  "/*"
+                    return 1;
+                }
+            }
+            else
+            {
+                // "C:\"
+                if (IsDriveRootedAbsolutePath(path))
+                {
+                    return 3;
+                }
+
+                if (IsDirectorySeparator(path[0]))
+                {
+                    // "\\machine\share"
+                    return GetUncPathRootLength(path);
+                }
             }
 
-            // If this is a Unix system, '/' starts a rooted path
-            var platform = Environment.OSVersion.Platform;
-            if ((platform == PlatformID.MacOSX || platform == PlatformID.Unix)
-                && (IsDirectorySeparator(path[0]) &&
-                    (path.Length == 1 || !IsDirectorySeparator(path[1]))))
-            {
-                return 1;
-            }
-
-            // "\\machine\share"
-            return GetUncPathRootLength(path);
+            return -1;
         }
 
         /// <summary>
@@ -196,12 +218,12 @@ namespace Roslyn.Utilities
         /// </remarks>
         private static int GetUncPathRootLength(string path)
         {
-            Debug.Assert(path != null);
+            Debug.Assert(IsDirectorySeparator(path[0]));
 
             // root:
             // [directory-separator]{2,}[^directory-separator]+[directory-separator]+[^directory-separator]+
 
-            int serverIndex = IndexOfNonDirectorySeparator(path, 0);
+            int serverIndex = IndexOfNonDirectorySeparator(path, 1);
             if (serverIndex < 2)
             {
                 return -1;
@@ -307,11 +329,6 @@ namespace Roslyn.Utilities
             }
 
             return root + relativePath;
-        }
-
-        internal static bool IsDirectorySeparator(char c)
-        {
-            return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
         }
 
         internal static string RemoveTrailingDirectorySeparator(string path)

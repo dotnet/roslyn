@@ -75,6 +75,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             int colon = arg.IndexOf(':');
+
+            // temporary heuristic to detect Unix-style rooted paths
+            // pattern /foo/*  or  //* will not be treated as a compiler option
+            //
+            // TODO: consider introducing "/s:path" to disambiguate paths starting with /
+            if (arg.Length > 1)
+            {
+                int separator = arg.IndexOf('/', 1);
+                if (separator > 0 && (colon < 0 || separator < colon))
+                {
+                    //   "/foo/
+                    //   "//
+                    name = null;
+                    value = null;
+                    return false;
+                }
+            }
+
             if (colon >= 0)
             {
                 name = arg.Substring(1, colon - 1);
@@ -620,7 +638,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            Debug.Assert(!arg.StartsWith("/") && !arg.StartsWith("-") && !arg.StartsWith("@"));
+            Debug.Assert(!arg.StartsWith("-") && !arg.StartsWith("@"));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\foo.cs
