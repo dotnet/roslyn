@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
                (currentTokenParentParent is MemberDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
+                if (!optionSet.GetOption(currentTokenParentParent is BasePropertyDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax ?
+                    CSharpFormattingOptions.NewLinesForBracesInProperties : CSharpFormattingOptions.NewLinesForBracesInMethods))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
