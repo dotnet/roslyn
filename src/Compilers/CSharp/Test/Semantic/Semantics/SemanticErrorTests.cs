@@ -3581,17 +3581,21 @@ class C
         [Fact]
         public void CS0133ERR_NotConstantExpression04()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source =
 @"class C
 {
     static void M()
     {
         const int x = x + x;
     }
-}
-",
-                //"'x + x' error CS0133: The expression being assigned to 'x' must be constant",
-                "'x + x' error CS0133: The expression being assigned to 'x' must be constant");
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (5,27): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //         const int x = x + x;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(5, 27),
+                // (5,23): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //         const int x = x + x;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(5, 23));
         }
 
         [Fact]

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override ConstantValue GetConstantValue(LocalSymbol inProgress)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
         {
             return null;
         }

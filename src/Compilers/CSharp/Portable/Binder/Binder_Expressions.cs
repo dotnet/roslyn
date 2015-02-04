@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var localSymbol = (LocalSymbol)symbol;
-                        var constantValueOpt = localSymbol.IsConst ? localSymbol.GetConstantValue(this.LocalInProgress) : null;
+                        var constantValueOpt = localSymbol.IsConst ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
                         TypeSymbol type;
 
                         Location localSymbolLocation = localSymbol.Locations[0];

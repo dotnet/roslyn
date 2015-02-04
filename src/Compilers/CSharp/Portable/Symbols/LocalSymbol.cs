@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                ConstantValue constantValue = this.GetConstantValue(null);
+                ConstantValue constantValue = this.GetConstantValue(null, null, null);
                 return constantValue != null && !constantValue.IsBad; //can be null in error scenarios
             }
         }
@@ -307,9 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-
-                ConstantValue constantValue = this.GetConstantValue(null); //null just means we aren't currently evaluating another constant
-                return constantValue == null ? null : constantValue.Value; //can be null in error scenarios
+                ConstantValue constantValue = this.GetConstantValue(null, null, null);
+                return constantValue?.Value; //can be null in error scenarios
             }
         }
 
@@ -320,8 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get;
         }
-
-        internal abstract ConstantValue GetConstantValue(LocalSymbol inProgress);
+        
+        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 

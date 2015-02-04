@@ -1809,12 +1809,9 @@ class C
             Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
 
             compilation.VerifyDiagnostics(
-    // (11,21): error CS0133: The expression being assigned to 'E' must be constant
-    //         const E E = E.A;
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "E.A").WithArguments("E").WithLocation(11, 21),
-    // (12,13): warning CS0219: The variable 'z' is assigned but its value is never used
-    //         var z = E;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(12, 13)
+                // (12,13): warning CS0219: The variable 'z' is assigned but its value is never used
+                //         var z = E;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(12, 13)
                 );
         }
 
@@ -1872,6 +1869,9 @@ class C
                 // (11,9): error CS0822: Implicitly-typed variables cannot be constant
                 //         const var E = E.A;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var E = E.A;").WithLocation(11, 9),
+                // (11,23): error CS0110: The evaluation of the constant value for 'E' involves a circular definition
+                //         const var E = E.A;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "E").WithArguments("E").WithLocation(11, 23),
                 // (11,23): error CS0841: Cannot use local variable 'E' before it is declared
                 //         const var E = E.A;
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 23)

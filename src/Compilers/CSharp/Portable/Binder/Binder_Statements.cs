@@ -682,6 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)declTypeOpt != null || isVar);
             Debug.Assert(typeSyntax != null);
 
+            var localDiagnostics = DiagnosticBag.GetInstance();
             // if we are not given desired syntax, we use declarator
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
@@ -690,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression initializerOpt;
 
             // Check for variable declaration errors.
-            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, localDiagnostics);
 
             EqualsValueClauseSyntax equalsValueClauseSyntax = declarator.Initializer;
             if (isVar)
@@ -698,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 aliasOpt = null;
 
                 var binder = new ImplicitlyTypedLocalBinder(this, localSymbol);
-                initializerOpt = binder.BindInferredVariableInitializer(diagnostics, equalsValueClauseSyntax, declarator);
+                initializerOpt = binder.BindInferredVariableInitializer(localDiagnostics, equalsValueClauseSyntax, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
                 if ((object)initializerOpt?.Type != null)
@@ -707,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt);
+                        Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt);
                         declTypeOpt = CreateErrorType("var");
                         hasErrors = true;
                     }
@@ -716,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (declTypeOpt.IsStatic)
                         {
-                            Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerOpt.Type);
+                            Error(localDiagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerOpt.Type);
                             hasErrors = true;
                         }
                     }
@@ -736,11 +737,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Basically inlined BindVariableInitializer, but with conversion optional.
-                    initializerOpt = BindPossibleArrayInitializer(equalsValueClauseSyntax.Value, declTypeOpt, diagnostics);
+                    initializerOpt = BindPossibleArrayInitializer(equalsValueClauseSyntax.Value, declTypeOpt, localDiagnostics);
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
-                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, diagnostics);
+                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics);
                     }
                 }
             }
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!hasErrors)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedLocalCannotBeFixed, declarator);
+                        Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedLocalCannotBeFixed, declarator);
                         hasErrors = true;
                     }
                 }
@@ -763,11 +764,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!hasErrors)
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadFixedInitType, declarator);
+                        Error(localDiagnostics, ErrorCode.ERR_BadFixedInitType, declarator);
                         hasErrors = true;
                     }
                 }
-                else if (!IsValidFixedVariableInitializer(declTypeOpt, localSymbol, ref initializerOpt, diagnostics))
+                else if (!IsValidFixedVariableInitializer(declTypeOpt, localSymbol, ref initializerOpt, localDiagnostics))
                 {
                     hasErrors = true;
                 }
@@ -777,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
                 && declTypeOpt.IsRestrictedType())
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declTypeOpt);
+                Error(localDiagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declTypeOpt);
                 hasErrors = true;
             }
 
@@ -788,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)localSymbol != null);
 
-            ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, diagnostics);
+            ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
             if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
             {
@@ -799,19 +800,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerOpt == null)
                 {
-                    Error(diagnostics, ErrorCode.ERR_FixedMustInit, declarator);
+                    Error(localDiagnostics, ErrorCode.ERR_FixedMustInit, declarator);
                     hasErrors = true;
                 }
             }
-            else if (kind == LocalDeclarationKind.Constant && initializerOpt != null)
+            else if (kind == LocalDeclarationKind.Constant && initializerOpt != null && !localDiagnostics.HasAnyResolvedErrors())
             {
-                foreach (var diagnostic in localSymbol.GetConstantValueDiagnostics(initializerOpt))
+                var constantValueDiagnostics = localSymbol.GetConstantValueDiagnostics(initializerOpt);
+                foreach (var diagnostic in constantValueDiagnostics)
                 {
                     diagnostics.Add(diagnostic);
                     hasErrors = true;
                 }
             }
 
+            diagnostics.AddRangeAndFree(localDiagnostics);
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt);
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
         }

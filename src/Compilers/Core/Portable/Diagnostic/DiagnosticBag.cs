@@ -77,6 +77,33 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns true if the bag has any non-lazy diagnostics with Severity=Error.
+        /// </summary>
+        /// <remarks>
+        /// Does not resolve any lazy diagnostics in the bag.
+        /// 
+        /// Generally, this should only be called by the creator (modulo pooling) of the bag (i.e. don't use bags to communicate -
+        /// if you need more info, pass more info).
+        /// </remarks>
+        internal bool HasAnyResolvedErrors()
+        {
+            if (IsEmptyWithoutResolution)
+            {
+                return false;
+            }
+
+            foreach (Diagnostic diagnostic in Bag)
+            {
+                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Add a diagnostic to the bag.
         /// </summary>
         public void Add(Diagnostic diag)
