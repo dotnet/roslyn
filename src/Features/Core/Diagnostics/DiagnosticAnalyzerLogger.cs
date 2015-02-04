@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m =>
             {
-                m[AnalyzerCount] = analyzers.Length.ToString();
+                m[AnalyzerCount] = analyzers.Length;
             }));
         }
 
@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var key = (ValueTuple<bool, Type, Type>)analyzerCrash.Key;
                     bool telemetry = key.Item1;
-                    m[Id] = correlationId.ToString();
+                    m[Id] = correlationId;
 
                     // we log analyzer name and exception as it is, if telemetry is allowed
                     if (telemetry)
                     {
                         m[AnalyzerName] = key.Item2.FullName;
-                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount().ToString();
+                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount();
                         m[AnalyzerException] = key.Item3.FullName;
                     }
                     else
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         string exceptionName = key.Item3.FullName;
 
                         m[AnalyzerHashCode] = ComputeSha256Hash(analyzerName);
-                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount().ToString();
+                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount();
                         m[AnalyzerExceptionHashCode] = ComputeSha256Hash(exceptionName);
                     }
                 }));
@@ -107,25 +107,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Logger.Log(FunctionId.DiagnosticAnalyzerDriver_AnalyzerTypeCount, KeyValueLogMessage.Create(m =>
                 {
-                    m[Id] = correlationId.ToString();
+                    m[Id] = correlationId;
 
-                    var ai = kvp.Value;
-                    bool hasTelemetry = ai.Telemetry;
+                    var analyzerInfo = kvp.Value;
+                    bool hasTelemetry = analyzerInfo.Telemetry;
 
                     // we log analyzer name as it is, if telemetry is allowed
                     if (hasTelemetry)
                     {
-                        m[AnalyzerName] = ai.CLRType.FullName;
+                        m[AnalyzerName] = analyzerInfo.CLRType.FullName;
                     }
                     else
                     {
                         // if it is from third party, we use hashcode
-                        m[AnalyzerHashCode] = ComputeSha256Hash(ai.CLRType.FullName);
+                        m[AnalyzerHashCode] = ComputeSha256Hash(analyzerInfo.CLRType.FullName);
                     }
 
-                    for (var i = 0; i < ai.Counts.Length; i++)
+                    for (var i = 0; i < analyzerInfo.Counts.Length; i++)
                     {
-                        m[DiagnosticLogAggregator.AnalyzerTypes[i]] = ai.Counts[i].ToString();
+                        m[DiagnosticLogAggregator.AnalyzerTypes[i]] = analyzerInfo.Counts[i];
                     }
                 }));
             }

@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 Logger.Log(
                     FunctionId.SolutionExplorer_AnalyzerItemSource_GetItems,
-                    KeyValueLogMessage.Create(m => { m["Count"] = _analyzerItems.Count.ToString(); }));
+                    KeyValueLogMessage.Create(m => m["Count"] = _analyzerItems.Count));
 
                 return _analyzerItems;
             }

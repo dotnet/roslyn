@@ -55,43 +55,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return LogAggregator.GetNextId();
         }
 
-        private static void CreateSessionKeyValue(Dictionary<string, string> map, int sessionId, EncDebuggingSessionInfo session)
+        private static void CreateSessionKeyValue(Dictionary<string, object> map, int sessionId, EncDebuggingSessionInfo session)
         {
-            map[SessionId] = sessionId.ToString();
-            map[SessionCount] = session.EditSessions.Count.ToString();
-            map[EmptySessionCount] = session.EmptyEditSessions.ToString();
+            map[SessionId] = sessionId;
+            map[SessionCount] = session.EditSessions.Count;
+            map[EmptySessionCount] = session.EmptyEditSessions;
         }
 
-        private static void CreateSessionEditKeyValue(Dictionary<string, string> map, int sessionId, int editSessionId, EncEditSessionInfo editSession)
+        private static void CreateSessionEditKeyValue(Dictionary<string, object> map, int sessionId, int editSessionId, EncEditSessionInfo editSession)
         {
-            map[SessionId] = sessionId.ToString();
-            map[EditSessionId] = editSessionId.ToString();
+            map[SessionId] = sessionId;
+            map[EditSessionId] = editSessionId;
 
-            map[HadCompilationErrors] = editSession.HadCompilationErrors.ToString();
-            map[HadRudeEdits] = editSession.HadRudeEdits.ToString();
-            map[HadValidChanges] = editSession.HadValidChanges.ToString();
-            map[HadValidInsignificantChanges] = editSession.HadValidInsignificantChanges.ToString();
+            map[HadCompilationErrors] = editSession.HadCompilationErrors;
+            map[HadRudeEdits] = editSession.HadRudeEdits;
+            map[HadValidChanges] = editSession.HadValidChanges;
+            map[HadValidInsignificantChanges] = editSession.HadValidInsignificantChanges;
 
-            map[RudeEditsCount] = editSession.RudeEdits.Count.ToString();
-            map[EmitDeltaErrorIdCount] = editSession.EmitDeltaErrorIds != null ? editSession.EmitDeltaErrorIds.Count().ToString() : "0";
+            map[RudeEditsCount] = editSession.RudeEdits.Count;
+            map[EmitDeltaErrorIdCount] = editSession.EmitDeltaErrorIds != null ? editSession.EmitDeltaErrorIds.Count() : 0;
         }
 
-        private static void CreateEditSessionErrorId(Dictionary<string, string> map, int sessionId, int editSessionId, string error)
+        private static void CreateEditSessionErrorId(Dictionary<string, object> map, int sessionId, int editSessionId, string error)
         {
-            map[SessionId] = sessionId.ToString();
-            map[EditSessionId] = editSessionId.ToString();
+            map[SessionId] = sessionId;
+            map[EditSessionId] = editSessionId;
 
             map[ErrorId] = error;
         }
 
-        private static void CreateEditSessionRudeEdit(Dictionary<string, string> map, int sessionId, int editSessionId, ValueTuple<ushort, ushort> rudeEdit, bool blocking)
+        private static void CreateEditSessionRudeEdit(Dictionary<string, object> map, int sessionId, int editSessionId, ValueTuple<ushort, ushort> rudeEdit, bool blocking)
         {
-            map[SessionId] = sessionId.ToString();
-            map[EditSessionId] = editSessionId.ToString();
+            map[SessionId] = sessionId;
+            map[EditSessionId] = editSessionId;
 
-            map[RudeEditKind] = rudeEdit.Item1.ToString();
-            map[RudeEditSyntaxKind] = rudeEdit.Item2.ToString();
-            map[RudeEditBlocking] = blocking.ToString();
+            map[RudeEditKind] = rudeEdit.Item1;
+            map[RudeEditSyntaxKind] = rudeEdit.Item2;
+            map[RudeEditBlocking] = blocking;
         }
     }
 }

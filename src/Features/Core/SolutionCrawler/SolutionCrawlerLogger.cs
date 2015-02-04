@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Register, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
+                m[Id] = correlationId;
                 m[Kind] = workspace.Kind;
             }));
         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Unregister, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
+                m[Id] = correlationId;
             }));
         }
 
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
+                m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
-                m[DocumentCount] = documentIds == null ? "0" : documentIds.Count().ToString();
+                m[DocumentCount] = documentIds == null ? 0 : documentIds.Count();
             }));
         }
 
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Logger.Log(FunctionId.WorkCoordinator_SolutionCrawlerOption, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
-                m[Enabled] = value.ToString();
+                m[Id] = correlationId;
+                m[Enabled] = value;
             }));
         }
 
@@ -111,15 +111,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             // log registered analyzers.
             Logger.Log(analyzersId, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
-                m[AnalyzerCount] = reordered.Length.ToString();
+                m[Id] = correlationId;
+                m[AnalyzerCount] = reordered.Length;
             }));
 
             foreach (var analyzer in reordered)
             {
                 Logger.Log(analyzerId, KeyValueLogMessage.Create(m =>
                 {
-                    m[Id] = correlationId.ToString();
+                    m[Id] = correlationId;
                     m[Analyzer] = analyzer.ToString();
                 }));
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Logger.Log(FunctionId.WorkCoordinator_ShutdownTimeout, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
+                m[Id] = correlationId;
             }));
         }
 
@@ -142,12 +142,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Logger.Log(FunctionId.WorkCoordinator_Shutdown, KeyValueLogMessage.Create(m =>
             {
-                m[Id] = correlationId.ToString();
+                m[Id] = correlationId;
 
                 foreach (var kv in logAggregator)
                 {
                     var change = ((WorkspaceChangeKind)kv.Key).ToString();
-                    m[change] = kv.Value.GetCount().ToString();
+                    m[change] = kv.Value.GetCount();
                 }
             }));
         }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 var solutionHash = GetSolutionHash(solution);
 
-                m[Id] = correlationId.ToString();
+                m[Id] = correlationId;
                 m[SolutionHash] = solutionHash.ToString();
 
                 var statMap = new Dictionary<string, List<int>>();
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (kv.Key is string)
                     {
-                        m[kv.Key.ToString()] = kv.Value.GetCount().ToString();
+                        m[kv.Key.ToString()] = kv.Value.GetCount();
                         continue;
                     }
 
@@ -235,13 +235,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var key = kv.Key.ToString();
                     var result = LogAggregator.GetStatistics(kv.Value);
 
-                    m[CreateProperty(key, Max)] = result.Maximum.ToString();
-                    m[CreateProperty(key, Min)] = result.Minimum.ToString();
-                    m[CreateProperty(key, Median)] = result.Median.ToString();
-                    m[CreateProperty(key, Mean)] = result.Mean.ToString();
-                    m[CreateProperty(key, Mode)] = result.Mode.ToString();
-                    m[CreateProperty(key, Range)] = result.Range.ToString();
-                    m[CreateProperty(key, Count)] = result.Count.ToString();
+                    m[CreateProperty(key, Max)] = result.Maximum;
+                    m[CreateProperty(key, Min)] = result.Minimum;
+                    m[CreateProperty(key, Median)] = result.Median;
+                    m[CreateProperty(key, Mean)] = result.Mean;
+                    m[CreateProperty(key, Mode)] = result.Mode;
+                    m[CreateProperty(key, Range)] = result.Range;
+                    m[CreateProperty(key, Count)] = result.Count;
                 }
             }));
 

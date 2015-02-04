@@ -112,18 +112,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         descriptors = analyzer.SupportedDiagnostics;
                     }
-                    catch when(ShouldHandleAnalyzer(analyzer))
+                    catch when (ShouldHandleAnalyzer(analyzer))
                     {
                         // If the SupportedDiagnostics throws an exception, then we don't want to run the analyzer.
                         descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
                     }
 
                     _diagnosticMap.Add(analyzer, descriptors);
-                    }
                 }
-
-                return descriptors;
             }
+
+            return descriptors;
+        }
 
         public static bool ShouldHandleAnalyzer(DiagnosticAnalyzer analyzer)
         {

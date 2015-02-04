@@ -99,16 +99,16 @@ namespace Microsoft.CodeAnalysis.Versions
         {
             Logger.Log(FunctionId.PersistedSemanticVersion_Info, KeyValueLogMessage.Create(m =>
             {
-                m[ProjectCount] = s_logAggregator.GetCount(ProjectCount).ToString();
-                m[InitialSemanticVersionCount] = s_logAggregator.GetCount(InitialSemanticVersionCount).ToString();
-                m[InitialDependentSemanticVersionCount] = s_logAggregator.GetCount(InitialDependentSemanticVersionCount).ToString();
+                m[ProjectCount] = s_logAggregator.GetCount(ProjectCount);
+                m[InitialSemanticVersionCount] = s_logAggregator.GetCount(InitialSemanticVersionCount);
+                m[InitialDependentSemanticVersionCount] = s_logAggregator.GetCount(InitialDependentSemanticVersionCount);
 
-                m[Text] = s_logAggregator.GetCount(Text).ToString();
-                m[SyntaxTree] = s_logAggregator.GetCount(SyntaxTree).ToString();
-                m[Project] = s_logAggregator.GetCount(Project).ToString();
-                m[DependentProject] = s_logAggregator.GetCount(DependentProject).ToString();
-                m[Semantic] = s_logAggregator.GetCount(Semantic).ToString();
-                m[DependentSemantic] = s_logAggregator.GetCount(DependentSemantic).ToString();
+                m[Text] = s_logAggregator.GetCount(Text);
+                m[SyntaxTree] = s_logAggregator.GetCount(SyntaxTree);
+                m[Project] = s_logAggregator.GetCount(Project);
+                m[DependentProject] = s_logAggregator.GetCount(DependentProject);
+                m[Semantic] = s_logAggregator.GetCount(Semantic);
+                m[DependentSemantic] = s_logAggregator.GetCount(DependentSemantic);
             }));
         }
     }
