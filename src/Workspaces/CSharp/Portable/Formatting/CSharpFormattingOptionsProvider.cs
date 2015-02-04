@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods,
                 CSharpFormattingOptions.NewLinesForBracesInControlBlocks,
                 CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes,
-                CSharpFormattingOptions.NewLinesForBracesInObjectInitializers,
+                CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers,
                 CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody,
                 CSharpFormattingOptions.NewLineForElse,
                 CSharpFormattingOptions.NewLineForCatch,

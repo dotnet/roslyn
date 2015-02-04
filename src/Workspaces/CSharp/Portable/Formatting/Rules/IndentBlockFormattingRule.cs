@@ -137,8 +137,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var anonymousObjectCreation = node as AnonymousObjectCreationExpressionSyntax;
             if (anonymousObjectCreation != null)
             {
-                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
-                SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, option);
+                SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                return;
+            }
+
+            var arrayCreation = node as ArrayCreationExpressionSyntax;
+            if (arrayCreation != null && arrayCreation.Initializer != null)
+            {
+                SetAlignmentBlockOperation(list, arrayCreation.NewKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                return;
+            }
+
+            var implicitArrayCreation = node as ImplicitArrayCreationExpressionSyntax;
+            if (implicitArrayCreation != null && implicitArrayCreation.Initializer != null)
+            {
+                SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             }
         }

@@ -951,7 +951,7 @@ label3:
         public void RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false);
             AssertFormat(@"class Program
 {
     static void Main(string[] args)
@@ -1516,7 +1516,7 @@ public class foo : System.Object
             changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, false);
             changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false);
             changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false);
             changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
             AssertFormat(@"class f00 {
     void br() {

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // new { - Object Initialization
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null && currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers))
+                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -224,10 +224,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // new { - Object Initialization
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression)
+            // new MyObject { - Object Initialization
+            // new List<int> { - Collection Initialization
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null &&
+                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers))
+                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -235,6 +238,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     return null;
                 }
+            }
+
+            // Array Initialization Expression
+            // int[] arr = new int[] {
+            //             new[] {
+            //             { - Implicit Array
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null &&
+                (currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
+            {
+                return null;
             }
 
             var currentTokenParentParent = currentToken.Parent.Parent;

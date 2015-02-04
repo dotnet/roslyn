@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
-                    if (!previousToken.IsParenInParenthesizedExpression() && previousToken.Parent != null && !previousToken.Parent.IsKind(SyntaxKind.ArrayRankSpecifier))
+                    if (!previousToken.IsParenInParenthesizedExpression())
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }

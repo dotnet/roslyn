@@ -187,11 +187,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return openingPoint - openingSpanLine.Start;
         }
 
-        private class BraceCompletionFormattingRule : AbstractFormattingRule
+        private class BraceCompletionFormattingRule : BaseFormattingRule
         {
             private static readonly Predicate<SuppressOperation> s_predicate = o => o == null || o.Option.IsOn(SuppressOption.NoWrapping);
 
             public static readonly IFormattingRule Instance = new BraceCompletionFormattingRule();
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            {
+                // Eg Cases -
+                // new MyObject {
+                // new List<int> {
+                // int[] arr = {
+                //           = new[] {
+                //           = new int[] {
+                if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null &&
+                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
+                {
+                    if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
+                    {
+                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+            }
 
             public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
             {
@@ -200,24 +227,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())
                 {
-                    if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers))
-                    {
                         // remove any suppression operation
                         list.RemoveAll(s_predicate);
                     }
-                    else
-                    {
-                        // remove only space suppression operation.
-                        for (var i = 0; i < list.Count; i++)
-                        {
-                            var operation = list[i];
-                            if (operation.Option.IsMaskOn(SuppressOption.NoSpacing))
-                            {
-                                list[i] = FormattingOperations.CreateSuppressOperation(operation.StartToken, operation.EndToken, operation.Option & ~SuppressOption.NoSpacing);
-                            }
-                        }
-                    }
-                }
             }
         }
     }

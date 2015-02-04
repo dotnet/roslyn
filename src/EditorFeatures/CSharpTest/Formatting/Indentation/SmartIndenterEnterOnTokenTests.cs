@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -663,6 +663,7 @@ int
         }
 
         [Fact]
+        [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ArrayInitializer1()
         {
@@ -672,9 +673,8 @@ int
 { 1, 2, 3 }
 }
 ";
-            AssertIndentUsingSmartTokenFormatter(
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
                 code,
-                '{',
                 indentationLine: 3,
                 expectedIndentation: 4);
         }
@@ -696,6 +696,27 @@ int
                 '}',
                 indentationLine: 5,
                 expectedIndentation: 4);
+        }
+
+        [Fact]
+        [WorkItem(1070773)]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void ArrayInitializer3()
+        {
+            var code = @"namespace NS
+{
+    class Class
+    {
+        void Method(int i)
+        {
+            var a = new []
+{
+        }";
+
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
         }
 
         [Fact]
@@ -781,6 +802,7 @@ int
 
         [Fact]
         [WorkItem(939305)]
+        [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ArrayExpression()
         {
@@ -789,13 +811,62 @@ int
     void M(object[] q)
     {
         M(
-            q: new object[] 
+              q: new object[] 
 { });
     }
 }
 ";
             AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
                 code,
+                indentationLine: 6,
+                expectedIndentation: 14);
+        }
+
+        [Fact]
+        [WorkItem(1070773)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void CollectionExpression()
+        {
+            var code = @"class C
+{
+    void M(List<int> e)
+    {
+        M(
+            new List<int> 
+{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+    }
+}
+";
+            AssertIndentUsingSmartTokenFormatter(
+                code,
+                '{',
+                indentationLine: 6,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [WorkItem(1070773)]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ObjectInitializer()
+        {
+            var code = @"class C
+{
+    void M(What dd)
+    {
+        M(
+            new What 
+{ d = 3, dd = "" });
+    }
+}
+
+class What
+{
+    public int d;
+    public string dd;
+}";
+            AssertIndentUsingSmartTokenFormatter(
+                code,
+                '{',
                 indentationLine: 6,
                 expectedIndentation: 12);
         }

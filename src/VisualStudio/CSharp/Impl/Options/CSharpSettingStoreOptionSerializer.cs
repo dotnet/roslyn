@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, nameof(AutomationObject.NewLines_Braces_ControlFlow) },
                 { CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, nameof(AutomationObject.NewLines_Braces_AnonymousMethod) },
                 { CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, nameof(AutomationObject.NewLines_Braces_AnonymousTypeInitializer) },
-                { CSharpFormattingOptions.NewLinesForBracesInObjectInitializers, nameof(AutomationObject.NewLines_Braces_ObjectInitializer) },
+                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, nameof(AutomationObject.NewLines_Braces_ObjectInitializer) },
                 { CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, nameof(AutomationObject.NewLines_Braces_LambdaExpressionBody) },
                 { CSharpFormattingOptions.NewLineForElse, nameof(AutomationObject.NewLines_Keywords_Else) },
                 { CSharpFormattingOptions.NewLineForCatch, nameof(AutomationObject.NewLines_Keywords_Catch) },

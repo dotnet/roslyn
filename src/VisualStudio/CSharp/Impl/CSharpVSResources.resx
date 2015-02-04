@@ -192,8 +192,8 @@
   <data name="NewLinesForBracesMethod" xml:space="preserve">
     <value>Place open brace on new line for methods</value>
   </data>
-  <data name="NewLinesForBracesInObjectInitializers" xml:space="preserve">
-    <value>Place open brace on new line for object initializers</value>
+  <data name="NewLinesForBracesInObjectCollectionArrayInitializers" xml:space="preserve">
+    <value>Place open brace on new line for object, collection and array initializers</value>
   </data>
   <data name="NewLinesBracesType" xml:space="preserve">
     <value>Place open brace on new line for types</value>

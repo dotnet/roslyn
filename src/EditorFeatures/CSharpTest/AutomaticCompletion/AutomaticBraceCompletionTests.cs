@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
@@ -393,6 +394,359 @@ class C
 
         }
     };
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Collection_Initializer_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"using System.Collections.Generic;
+ 
+class C
+{
+    public void man()
+    {
+        List<C> list = new List<C> $$
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+ 
+class C
+{
+    public void man()
+    {
+        List<C> list = new List<C> {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using (var session = CreateSession(code, optionSet))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Collection_Initializer_OpenBraceOnDifferentLine_Enter()
+        {
+            var code = @"using System.Collections.Generic;
+ 
+class C
+{
+    public void man()
+    {
+        List<C> list = new List<C> $$
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+ 
+class C
+{
+    public void man()
+    {
+        List<C> list = new List<C>
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Object_Initializer_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        var foo = new Foo $$
+    }
+}
+
+class Foo
+{
+    public int bar;
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        var foo = new Foo {
+
+        }
+    }
+}
+
+class Foo
+{
+    public int bar;
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using (var session = CreateSession(code, optionSet))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Object_Initializer_OpenBraceOnDifferentLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        var foo = new Foo $$
+    }
+}
+
+class Foo
+{
+    public int bar;
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        var foo = new Foo
+        {
+
+        }
+    }
+}
+
+class Foo
+{
+    public int bar;
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        int[] arr = $$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        int[] arr = {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using (var session = CreateSession(code, optionSet))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        int[] arr = $$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        int[] arr =
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        int[] arr = new[] $$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        int[] arr = new[] {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using (var session = CreateSession(code, optionSet))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        int[] arr = new[] $$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        int[] arr = new[]
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        int[] arr = new int[] $$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        int[] arr = new int[] {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using (var session = CreateSession(code, optionSet))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 12, expected);
+            }
+        }
+
+        [WorkItem(1070773)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
+        {
+            var code = @"class C
+{
+    public void man()
+    {
+        int[] arr = new int[] $$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void man()
+    {
+        int[] arr = new int[]
+        {
+
+        }
+    }
 }";
             using (var session = CreateSession(code))
             {

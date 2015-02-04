@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
@@ -381,26 +381,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expected,
                 code,
                 indentationLine: 6);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void ArrayInitializer2()
-        {
-            var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-            var a = new []
-{
-        }";
-
-            AssertSmartTokenFormatterOpenBrace(
-                code,
-                indentationLine: 7,
-                expectedSpace: 12);
         }
 
         [Fact]
