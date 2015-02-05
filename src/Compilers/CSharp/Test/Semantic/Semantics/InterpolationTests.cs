@@ -499,18 +499,19 @@ class Program
                 );
         }
 
-        [Fact]
-        public void NoFillIns()
+        [Fact, WorkItem(1119878, "DevDiv")]
+        public void NoFillIns01()
         {
             string source =
 @"class Program
 {
     static void Main()
     {
-        System.Console.WriteLine($""{{ x }}"");
+        System.Console.Write($""{{ x }}"");
+        System.Console.WriteLine($@""This is a test"");
     }
 }";
-            string expectedOutput = @"{ x }";
+            string expectedOutput = @"{ x }This is a test";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
