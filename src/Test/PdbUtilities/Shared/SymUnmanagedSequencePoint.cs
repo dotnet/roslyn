@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         private string GetDebuggerDisplay()
         {
             return string.Format(
-                "SequencePoint: Offset = {0:x4}, Range = ({1}, {2})..({3}, {4})", 
+                "SequencePoint: Offset = {0:x4}, Range = ({1}, {2})..({3}, {4})",
                 Offset, StartLine, StartColumn, EndLine, EndColumn);
         }
     }
