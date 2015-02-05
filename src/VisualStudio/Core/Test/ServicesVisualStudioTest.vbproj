@@ -198,6 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractTextViewFilterTests.vb" />
+    <Compile Include="AnalyzerSupport\AnalyzerDependencyCheckerTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureViewModelTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureViewModelTestState.vb" />
     <Compile Include="CodeModel\AbstractCodeAttributeTests.vb" />

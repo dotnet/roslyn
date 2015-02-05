@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class AbstractProject : IAnalyzerHost
     {
         private AnalyzerFileWatcherService _analyzerFileWatcherService = null;
+        private AnalyzerDependencyCheckingService _dependencyCheckingService = null;
 
         public void AddAnalyzerAssembly(string analyzerAssemblyFullPath)
         {
@@ -30,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(_id, analyzerReference));
+
+                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
 
             GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(_id, analyzerAssemblyFullPath);
@@ -51,6 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(_id, analyzerReference));
+
+                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
 
             analyzer.Dispose();
@@ -145,6 +150,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return _analyzerFileWatcherService;
+        }
+
+        private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
+        {
+            if (_dependencyCheckingService == null)
+            {
+                var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
+
+                _dependencyCheckingService = componentModel.GetService<AnalyzerDependencyCheckingService>();
+            }
+
+            return _dependencyCheckingService;
         }
     }
 }
