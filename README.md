@@ -76,7 +76,7 @@ From the NuGet package manager console:
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
 
-* [How to Contribute|Contributing Code]
+* [How to Contribute](https://github.com/dotnet/roslyn/wiki/Contributing-Code)
 * [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
