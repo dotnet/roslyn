@@ -84,7 +84,7 @@ namespace A.B {
             Assert.Equal(1, comp.ExternalReferences.Length);
             var ref1 = comp.ExternalReferences[0];
             Assert.True(ref1.Properties.EmbedInteropTypes);
-            Assert.True(ref1.Properties.Aliases.IsDefault);
+            Assert.True(ref1.Properties.Aliases.IsEmpty);
 
             // Create Compilation with PreProcessorSymbols of Option is empty
             var ops1 = TestOptions.DebugExe;

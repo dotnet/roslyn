@@ -956,7 +956,7 @@ class C1
             var projRefs = project.ProjectReferences.ToList();
             var metaRefs = project.MetadataReferences.ToList();
             Assert.Equal(1, projRefs.Count);
-            Assert.False(metaRefs.Any(r => !r.Properties.Aliases.IsDefault && r.Properties.Aliases.Contains("CSharpProject")));
+            Assert.False(metaRefs.Any(r => r.Properties.Aliases.Contains("CSharpProject")));
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/454"), Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -983,7 +983,7 @@ class C1
             // show that the vb project now references the c# project directly (not as metadata)
             vbproject = ws.CurrentSolution.GetProject(vbproject.Id);
             Assert.Equal(1, vbproject.ProjectReferences.Count());
-            Assert.False(vbproject.MetadataReferences.Any(r => !r.Properties.Aliases.IsDefault && r.Properties.Aliases.Contains("CSharpProject")));
+            Assert.False(vbproject.MetadataReferences.Any(r => r.Properties.Aliases.Contains("CSharpProject")));
         }
 
         [ConditionalFact(typeof(Framework35Installed))]

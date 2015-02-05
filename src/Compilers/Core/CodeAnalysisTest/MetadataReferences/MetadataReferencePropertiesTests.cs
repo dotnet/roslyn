@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Constructor()
         {
             var m = new MetadataReferenceProperties();
-            Assert.True(m.Aliases.IsDefault);
+            Assert.True(m.Aliases.IsEmpty);
             Assert.False(m.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, m.Kind);
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(MetadataImageKind.Assembly, m.Kind);
 
             m = new MetadataReferenceProperties(MetadataImageKind.Module);
-            Assert.True(m.Aliases.IsDefault);
+            Assert.True(m.Aliases.IsEmpty);
             Assert.False(m.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Module, m.Kind);
 

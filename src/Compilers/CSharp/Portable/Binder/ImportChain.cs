@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MetadataReference reference = context.ModuleBuilder.CommonCompilation.GetMetadataReference(containingAssembly);
                 if (reference != null &&
-                    !reference.Properties.Aliases.IsDefault &&
+                    !reference.Properties.Aliases.IsEmpty &&
                     !reference.Properties.Aliases.Contains(MetadataReferenceProperties.GlobalAlias))
                 {
                     return context.ModuleBuilder.Translate(containingAssembly, context.Diagnostics);

@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return executedProject.GetItems("ProjectReference")
                 .Select(reference => new ProjectFileReference(
                     path: reference.EvaluatedInclude,
-                    aliases: default(ImmutableArray<string>)));
+                    aliases: ImmutableArray<string>.Empty));
         }
 
         protected IEnumerable<ProjectItemInstance> GetProjectReferenceItems(ProjectInstance executedProject)
@@ -478,14 +478,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (peRef != null && peRef.FilePath != null)
             {
                 var metadata = new Dictionary<string, string>();
-                if (!peRef.Properties.Aliases.IsDefault && peRef.Properties.Aliases.Length > 0)
+                if (!peRef.Properties.Aliases.IsEmpty)
                 {
                     metadata.Add("Aliases", string.Join(",", peRef.Properties.Aliases));
                 }
 
                 if (IsInGAC(peRef.FilePath) && identity != null)
                 {
-                    _loadedProject.AddItem("Reference", identity.ToAssemblyName().FullName, metadata);
+                    _loadedProject.AddItem("Reference", identity.GetDisplayName(), metadata);
                 }
                 else
                 {
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var metadata = new Dictionary<string, string>();
             metadata.Add("Name", projectName);
 
-            if (!reference.Aliases.IsDefault && reference.Aliases.Length > 0)
+            if (!reference.Aliases.IsEmpty)
             {
                 metadata.Add("Aliases", string.Join(",", reference.Aliases));
             }

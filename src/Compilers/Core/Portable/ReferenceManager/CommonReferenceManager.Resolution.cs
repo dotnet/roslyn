@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis
                 return aliases.ToImmutableAndFree();
             }
 
-            return reference.Properties.Aliases.NullToEmpty();
+            return reference.Properties.Aliases;
         }
 
         /// <summary>
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis
                 aliases = ArrayBuilder<string>.GetInstance();
                 aliasMap.Add(primaryReference, aliases);
 
-                if (primaryReference.Properties.Aliases.IsDefaultOrEmpty)
+                if (primaryReference.Properties.Aliases.IsEmpty)
                 {
                     aliases.Add(MetadataReferenceProperties.GlobalAlias);
                 }
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // we could avoid duplicates but there is no need to do so:
-            if (newReference.Properties.Aliases.IsDefaultOrEmpty)
+            if (newReference.Properties.Aliases.IsEmpty)
             {
                 aliases.Add(MetadataReferenceProperties.GlobalAlias);
             }

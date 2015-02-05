@@ -508,12 +508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
 
             var aliases = metadataReference.Properties.Aliases;
-            if (aliases == null)
+            if (aliases.IsEmpty)
             {
                 return false;
             }
 
-            aliases = aliases.Where(a => a != "global").ToImmutableArray();
+            aliases = metadataReference.Properties.Aliases.Where(a => a != MetadataReferenceProperties.GlobalAlias).ToImmutableArray();
             if (!aliases.Any())
             {
                 return false;

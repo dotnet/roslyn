@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -20,13 +19,22 @@ namespace Microsoft.CodeAnalysis
         public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
         {
             Contract.ThrowIfNull(projectId);
+
             _projectId = projectId;
-            _aliases = aliases;
+            _aliases = aliases.NullToEmpty();
             _embedInteropTypes = embedInteropTypes;
         }
 
         public ProjectId ProjectId { get { return _projectId; } }
+
+        /// <summary>
+        /// Aliases for the reference. Empty if the reference has no aliases.
+        /// </summary>
         public ImmutableArray<string> Aliases { get { return _aliases; } }
+
+        /// <summary>
+        /// True if interop types defined in the referenced project should be embedded into the referencing project.
+        /// </summary>
         public bool EmbedInteropTypes { get { return _embedInteropTypes; } }
 
         public override bool Equals(object obj)
@@ -42,9 +50,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             return !ReferenceEquals(reference, null) &&
-                   this.ProjectId == reference.ProjectId &&
-                   this.Aliases.NullToEmpty().SequenceEqual(reference.Aliases.NullToEmpty()) &&
-                   this.EmbedInteropTypes == reference.EmbedInteropTypes;
+                   _projectId == reference._projectId &&
+                   _aliases.SequenceEqual(reference._aliases) &&
+                   _embedInteropTypes == reference._embedInteropTypes;
         }
 
         public static bool operator ==(ProjectReference left, ProjectReference right)

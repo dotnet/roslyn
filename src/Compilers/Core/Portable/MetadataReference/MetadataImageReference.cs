@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         {
             var sb = new StringBuilder();
             sb.Append(Properties.Kind == MetadataImageKind.Module ? "Module" : "Assembly");
-            if (!Properties.Aliases.IsDefaultOrEmpty)
+            if (!Properties.Aliases.IsEmpty)
             {
                 sb.Append(" Aliases={");
                 sb.Append(string.Join(", ", Properties.Aliases));

@@ -118,14 +118,18 @@ namespace Microsoft.CodeAnalysis
         public static readonly string GlobalAlias = "global";
 
         /// <summary>
-        /// Aliases for the metadata reference, or default(<see cref="ImmutableArray"/>) if no aliases were specified.
+        /// Aliases for the metadata reference. Empty if the reference has no aliases.
         /// </summary>
         /// <remarks>
         /// In C# these aliases can be used in "extern alias" syntax to disambiguate type names. 
         /// </remarks>
         public ImmutableArray<string> Aliases
         {
-            get { return _aliases; }
+            get
+            {
+                // Simplify usage - we can't avoid the _aliases field being null but we can always return empty array here:
+                return _aliases.NullToEmpty();
+            }
         }
 
         /// <summary>
@@ -143,14 +147,14 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(MetadataReferenceProperties other)
         {
-            return _aliases.NullToEmpty().SequenceEqual(other._aliases.NullToEmpty())
+            return Aliases.SequenceEqual(other.Aliases)
                 && _embedInteropTypes == other._embedInteropTypes
                 && _kind == other._kind;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.CombineValues(_aliases), Hash.Combine(_embedInteropTypes, _kind.GetHashCode()));
+            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, _kind.GetHashCode()));
         }
 
         public static bool operator ==(MetadataReferenceProperties left, MetadataReferenceProperties right)
