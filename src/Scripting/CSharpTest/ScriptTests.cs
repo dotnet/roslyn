@@ -72,7 +72,7 @@ namespace Roslyn.Scripting.CSharp.Test
             var result = CSharpScript.Run("Console.WriteLine(0);");
         }
 
-        [Fact]
+        [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
 
@@ -89,7 +89,7 @@ d.Do();"
 
         }
 
-        [Fact]
+        [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
 
