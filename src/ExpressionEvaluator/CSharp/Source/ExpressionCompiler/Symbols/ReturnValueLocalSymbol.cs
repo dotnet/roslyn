@@ -1,0 +1,51 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using System.Collections.Immutable;
+
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+{
+    internal sealed class ReturnValueLocalSymbol : PlaceholderLocalSymbol
+    {
+        private readonly int _index;
+
+        internal ReturnValueLocalSymbol(MethodSymbol method, string name, TypeSymbol type, int index) :
+            base(method, name, type)
+        {
+            _index = index;
+        }
+
+        internal override bool IsWritable
+        {
+            get { return false; }
+        }
+
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
+        {
+            var method = container.GetOrAddSynthesizedMethod(
+                ExpressionCompilerConstants.GetReturnValueMethodName,
+                (c, n, s) =>
+                {
+                    var parameterType = compilation.GetSpecialType(SpecialType.System_Int32);
+                    var returnType = compilation.GetSpecialType(SpecialType.System_Object);
+                    return new PlaceholderMethodSymbol(
+                        c,
+                        s,
+                        n,
+                        returnType,
+                        m => ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(m, parameterType, ordinal: 0, refKind: RefKind.None)));
+                });
+            var argument = new BoundLiteral(
+                syntax,
+                Microsoft.CodeAnalysis.ConstantValue.Create(_index),
+                method.Parameters[0].Type);
+            var call = BoundCall.Synthesized(
+                syntax,
+                receiverOpt: null,
+                method: method,
+                arguments: ImmutableArray.Create<BoundExpression>(argument));
+            return ConvertToLocalType(compilation, call, this.Type);
+        }
+    }
+}

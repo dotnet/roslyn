@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xunit>
+  <assemblies>
+    <assembly filename="..\..\..\..\..\Binaries\Debug\Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests.dll" shadow-copy="false" />
+  </assemblies>
+</xunit>

@@ -1,0 +1,463 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PDB;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.SymReaderInterop;
+using Roslyn.Test.Utilities;
+using Xunit;
+using PDB::Roslyn.Test.MetadataUtilities;
+
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+{
+    internal sealed class Scope
+    {
+        internal readonly int StartOffset;
+        internal readonly int EndOffset;
+        internal readonly ImmutableArray<string> Locals;
+
+        internal Scope(int startOffset, int endOffset, ImmutableArray<string> locals, bool isEndInclusive)
+        {
+            this.StartOffset = startOffset;
+            this.EndOffset = endOffset + (isEndInclusive ? 1 : 0);
+            this.Locals = locals;
+        }
+
+        internal int Length
+        {
+            get { return this.EndOffset - this.StartOffset + 1; }
+        }
+
+        internal bool Contains(int offset)
+        {
+            return (offset >= this.StartOffset) && (offset < this.EndOffset);
+        }
+    }
+
+    internal static class ExpressionCompilerTestHelpers
+    {
+        internal static TypeDefinition GetTypeDef(this MetadataReader reader, string typeName)
+        {
+            return reader.TypeDefinitions.Select(reader.GetTypeDefinition).First(t => reader.StringComparer.Equals(t.Name, typeName));
+        }
+
+        internal static MethodDefinition GetMethodDef(this MetadataReader reader, TypeDefinition typeDef, string methodName)
+        {
+            return typeDef.GetMethods().Select(reader.GetMethodDefinition).First(m => reader.StringComparer.Equals(m.Name, methodName));
+        }
+
+        internal static MethodDefinitionHandle GetMethodDefHandle(this MetadataReader reader, TypeDefinition typeDef, string methodName)
+        {
+            return typeDef.GetMethods().First(h => reader.StringComparer.Equals(reader.GetMethodDefinition(h).Name, methodName));
+        }
+
+        internal static void CheckTypeParameters(this MetadataReader reader, GenericParameterHandleCollection genericParameters, params string[] expectedNames)
+        {
+            var actualNames = genericParameters.Select(reader.GetGenericParameter).Select(tp => reader.GetString(tp.Name)).ToArray();
+            Assert.True(expectedNames.SequenceEqual(actualNames));
+        }
+
+        internal static AssemblyName GetAssemblyName(this byte[] exeBytes)
+        {
+            using (var reader = new PEReader(ImmutableArray.CreateRange(exeBytes)))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                var def = metadataReader.GetAssemblyDefinition();
+                var name = metadataReader.GetString(def.Name);
+                return new AssemblyName() { Name = name, Version = def.Version };
+            }
+        }
+
+        internal static Guid GetModuleVersionId(this byte[] exeBytes)
+        {
+            using (var reader = new PEReader(ImmutableArray.CreateRange(exeBytes)))
+            {
+                return reader.GetMetadataReader().GetModuleVersionId();
+            }
+        }
+
+        /// <summary>
+        /// Helper method to write the bytes to a file.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void WriteBytes(this ImmutableArray<byte> bytes, string path = null)
+        {
+            if (path == null)
+            {
+                path = Path.Combine(Path.GetTempPath(), "__ee_temp.dll");
+            }
+            File.WriteAllBytes(path, bytes.ToArray());
+        }
+
+        internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int methodVersion = 1)
+        {
+            var method = symReader.GetMethodByVersion(methodToken, methodVersion);
+            if (method == null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+            var scopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            method.GetAllScopes(scopes);
+            var names = ArrayBuilder<string>.GetInstance();
+            foreach (var scope in scopes)
+            {
+                var locals = scope.GetLocals();
+                foreach (var local in locals)
+                {
+                    var name = local.GetName();
+                    int slot;
+                    local.GetAddressField1(out slot);
+                    while (names.Count <= slot)
+                    {
+                        names.Add(null);
+                    }
+                    names[slot] = name;
+                }
+            }
+            scopes.Free();
+            return names.ToImmutableAndFree();
+        }
+
+        internal static void VerifyIL(
+            this ImmutableArray<byte> assembly,
+            string qualifiedName,
+            string expectedIL,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            var parts = qualifiedName.Split('.');
+            if (parts.Length != 2)
+            {
+                throw new NotImplementedException();
+            }
+
+            using (var module = new PEModule(new PEReader(assembly), metadataOpt: IntPtr.Zero, metadataSizeOpt: 0))
+            {
+                var reader = module.MetadataReader;
+                var typeDef = reader.GetTypeDef(parts[0]);
+                var methodName = parts[1];
+                var methodHandle = reader.GetMethodDefHandle(typeDef, methodName);
+                var methodBody = module.GetMethodBodyOrThrow(methodHandle);
+
+                var pooled = PooledStringBuilder.GetInstance();
+                var builder = pooled.Builder;
+                var writer = new StringWriter(pooled.Builder);
+                var visualizer = new MetadataVisualizer(reader, writer);
+                visualizer.VisualizeMethodBody(methodBody, methodHandle, emitHeader: false);
+                var actualIL = pooled.ToStringAndFree();
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
+            }
+        }
+
+        internal static bool EmitAndGetReferences(
+            this Compilation compilation,
+            out byte[] exeBytes,
+            out byte[] pdbBytes,
+            out ImmutableArray<MetadataReference> references)
+        {
+            using (var pdbStream = new MemoryStream())
+            {
+                using (var exeStream = new MemoryStream())
+                {
+                    var result = compilation.Emit(
+                        peStream: exeStream,
+                        pdbStream: pdbStream,
+                        xmlDocumentationStream: null,
+                        win32Resources: null,
+                        manifestResources: null,
+                        options: EmitOptions.Default,
+                        testData: null,
+                        cancellationToken: default(CancellationToken));
+
+                    if (!result.Success)
+                    {
+                        result.Diagnostics.Verify();
+                        exeBytes = null;
+                        pdbBytes = null;
+                        references = default(ImmutableArray<MetadataReference>);
+                        return false;
+                    }
+
+                    exeBytes = exeStream.ToArray();
+                    pdbBytes = pdbStream.ToArray();
+                }
+            }
+
+            // Determine the set of references that were actually used
+            // and ignore any references that were dropped in emit.
+            HashSet<string> referenceNames;
+            using (var metadata = ModuleMetadata.CreateFromImage(exeBytes))
+            {
+                var reader = metadata.MetadataReader;
+                referenceNames = new HashSet<string>(reader.AssemblyReferences.Select(h => GetAssemblyReferenceName(reader, h)));
+            }
+
+            references = ImmutableArray.CreateRange(compilation.References.Where(r => IsReferenced(r, referenceNames)));
+            return true;
+        }
+
+        internal static ImmutableArray<Scope> GetScopes(this ISymUnmanagedReader symReader, int methodToken, int methodVersion, bool isEndInclusive)
+        {
+            var method = symReader.GetMethodByVersion(methodToken, methodVersion);
+            if (method == null)
+            {
+                return ImmutableArray<Scope>.Empty;
+            }
+            var scopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
+            method.GetAllScopes(scopes);
+            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), s.GetLocals().SelectAsArray(l => l.GetName()), isEndInclusive));
+            scopes.Free();
+            return result;
+        }
+
+        internal static Scope GetInnermostScope(this ImmutableArray<Scope> scopes, int offset)
+        {
+            Scope result = null;
+            foreach (var scope in scopes)
+            {
+                if (scope.Contains(offset))
+                {
+                    if ((result == null) || (result.Length > scope.Length))
+                    {
+                        result = scope;
+                    }
+                }
+            }
+            return result;
+        }
+
+        private static string GetAssemblyReferenceName(MetadataReader reader, AssemblyReferenceHandle handle)
+        {
+            var reference = reader.GetAssemblyReference(handle);
+            return reader.GetString(reference.Name);
+        }
+
+        private static bool IsReferenced(MetadataReference reference, HashSet<string> referenceNames)
+        {
+            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadata() as AssemblyMetadata;
+            if (assemblyMetadata == null)
+            {
+                // Netmodule. Assume it is referenced.
+                return true;
+            }
+            var name = assemblyMetadata.GetAssembly().Identity.Name;
+            return referenceNames.Contains(name);
+        }
+
+        /// <summary>
+        /// Verify the set of module metadata blocks
+        /// contains all blocks referenced by the set.
+        /// </summary>
+        internal static void VerifyAllModules(this ImmutableArray<ModuleInstance> modules)
+        {
+            var blocks = modules.SelectAsArray(m => m.MetadataBlock).SelectAsArray(b => ModuleMetadata.CreateFromMetadata(b.Pointer, b.Size));
+            var names = new HashSet<string>(blocks.Select(b => b.Name));
+            foreach (var block in blocks)
+            {
+                foreach (var name in block.GetModuleNames())
+                {
+                    Assert.True(names.Contains(name));
+                }
+            }
+        }
+
+        internal static ModuleInstance ToModuleInstance(
+            this MetadataReference reference,
+            byte[] fullImage,
+            object symReader,
+            bool includeLocalSignatures = true)
+        {
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
+            var assemblyMetadata = metadata as AssemblyMetadata;
+            Assert.True((assemblyMetadata == null) || (assemblyMetadata.GetModules().Length == 1));
+            var moduleMetadata = (assemblyMetadata == null) ? (ModuleMetadata)metadata : assemblyMetadata.GetModules()[0];
+            var moduleId = moduleMetadata.Module.GetModuleVersionIdOrThrow();
+            // The Expression Compiler expects metadata only, no headers or IL.
+            var metadataBytes = moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent().ToArray();
+            return new ModuleInstance(
+                reference,
+                moduleMetadata,
+                moduleId,
+                fullImage,
+                metadataBytes,
+                symReader,
+                includeLocalSignatures);
+        }
+
+        internal static void VerifyLocal<TMethodSymbol>(
+            this CompilationTestData testData,
+            string typeName,
+            LocalAndMethod localAndMethod,
+            string expectedMethodName,
+            string expectedLocalName,
+            DkmClrCompilationResultFlags expectedFlags,
+            Action<TMethodSymbol> verifyTypeParameters,
+            string expectedILOpt,
+            bool expectedGeneric,
+            string expectedValueSourcePath,
+            int expectedValueSourceLine)
+            where TMethodSymbol : IMethodSymbol
+        {
+            Assert.Equal(expectedLocalName, localAndMethod.LocalName);
+            Assert.True(expectedMethodName.StartsWith(localAndMethod.MethodName), expectedMethodName + " does not start with " + localAndMethod.MethodName); // Expected name may include type arguments and parameters.
+            Assert.Equal(expectedFlags, localAndMethod.Flags);
+            var methodData = testData.GetMethodData(typeName + "." + expectedMethodName);
+            verifyTypeParameters((TMethodSymbol)methodData.Method);
+            if (expectedILOpt != null)
+            {
+                string actualIL = methodData.GetMethodIL();
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                    expectedILOpt,
+                    actualIL,
+                    escapeQuotes: true,
+                    expectedValueSourcePath: expectedValueSourcePath,
+                    expectedValueSourceLine: expectedValueSourceLine);
+            }
+
+            Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
+        }
+
+        internal static ISymUnmanagedReader ConstructSymReaderWithImports(byte[] exeBytes, string methodName, params string[] importStrings)
+        {
+            using (var peReader = new PEReader(ImmutableArray.Create(exeBytes)))
+            {
+                var metadataReader = peReader.GetMetadataReader();
+                var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, methodName));
+                var methodToken = metadataReader.GetToken(methodHandle);
+
+                return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+                {
+                    { methodToken, new MethodDebugInfo.Builder(new [] { importStrings }).Build() },
+                }.ToImmutableDictionary());
+            }
+        }
+
+        /// <summary>
+        /// Return MetadataReferences to the .winmd assemblies
+        /// for the given namespaces.
+        /// </summary>
+        internal static ImmutableArray<MetadataReference> GetRuntimeWinMds(params string[] namespaces)
+        {
+            var paths = new HashSet<string>();
+            foreach (var @namespace in namespaces)
+            {
+                foreach (var path in WindowsRuntimeMetadata.ResolveNamespace(@namespace, null))
+                {
+                    paths.Add(path);
+                }
+            }
+            return ImmutableArray.CreateRange(paths.Select(GetAssembly));
+        }
+
+        private const string Version1_3CLRString = "WindowsRuntime 1.3;CLR v4.0.30319";
+        private const string Version1_3String = "WindowsRuntime 1.3";
+        private const string Version1_4String = "WindowsRuntime 1.4";
+        private static readonly int s_versionStringLength = Version1_3CLRString.Length;
+
+        private static readonly byte[] s_version1_3CLRBytes = ToByteArray(Version1_3CLRString, s_versionStringLength);
+        private static readonly byte[] s_version1_3Bytes = ToByteArray(Version1_3String, s_versionStringLength);
+        private static readonly byte[] s_version1_4Bytes = ToByteArray(Version1_4String, s_versionStringLength);
+
+        private static byte[] ToByteArray(string str, int length)
+        {
+            var bytes = new byte[length];
+            for (int i = 0; i < str.Length; i++)
+            {
+                bytes[i] = (byte)str[i];
+            }
+            return bytes;
+        }
+
+        internal static byte[] ToVersion1_3(byte[] bytes)
+        {
+            return ToVersion(bytes, s_version1_3CLRBytes, s_version1_3Bytes);
+        }
+
+        internal static byte[] ToVersion1_4(byte[] bytes)
+        {
+            return ToVersion(bytes, s_version1_3CLRBytes, s_version1_4Bytes);
+        }
+
+        private static byte[] ToVersion(byte[] bytes, byte[] from, byte[] to)
+        {
+            int n = bytes.Length;
+            var copy = new byte[n];
+            Array.Copy(bytes, copy, n);
+            int index = IndexOf(copy, from);
+            Array.Copy(to, 0, copy, index, to.Length);
+            return copy;
+        }
+
+        private static int IndexOf(byte[] a, byte[] b)
+        {
+            int m = b.Length;
+            int n = a.Length - m;
+            for (int x = 0; x < n; x++)
+            {
+                var matches = true;
+                for (int y = 0; y < m; y++)
+                {
+                    if (a[x + y] != b[y])
+                    {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches)
+                {
+                    return x;
+                }
+            }
+            return -1;
+        }
+
+        private static MetadataReference GetAssembly(string path)
+        {
+            var bytes = File.ReadAllBytes(path);
+            var metadata = ModuleMetadata.CreateFromImage(bytes);
+            return metadata.GetReference(filePath: path);
+        }
+
+        internal static int GetOffset(int methodToken, ISymUnmanagedReader symReader, int atLineNumber)
+        {
+            int ilOffset;
+            if (symReader == null)
+            {
+                ilOffset = 0;
+            }
+            else
+            {
+                var symMethod = symReader.GetMethod(methodToken);
+                if (symMethod == null)
+                {
+                    ilOffset = 0;
+                }
+                else
+                {
+                    var sequencePoints = symMethod.GetSequencePoints();
+                    ilOffset = atLineNumber < 0
+                        ? sequencePoints.Where(sp => sp.StartLine != SequencePointList.HiddenSequencePointLine).Select(sp => sp.Offset).FirstOrDefault()
+                        : sequencePoints.First(sp => sp.StartLine == atLineNumber).Offset;
+                }
+            }
+            Assert.InRange(ilOffset, 0, int.MaxValue);
+            return ilOffset;
+        }
+    }
+}

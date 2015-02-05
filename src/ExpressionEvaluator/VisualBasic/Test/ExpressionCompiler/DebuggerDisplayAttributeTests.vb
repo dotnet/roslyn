@@ -1,0 +1,49 @@
+﻿Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Xunit
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Public Class DebuggerDisplayAttributeTests
+        Inherits ExpressionCompilerTestBase
+
+        <Fact()>
+        Public Sub VirtualMethod()
+            Const source = "
+Imports System.Diagnostics
+
+<DebuggerDisplay(""{GetDebuggerDisplay()}"")>
+Public Class Base
+    Protected Overridable Function GetDebuggerDisplay() As String
+        Return ""Base""
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Protected Overrides Function GetDebuggerDisplay() As String
+        Return ""Derived""
+    End Function
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=False)
+            Dim context = CreateTypeContext(runtime, "Derived")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim testData As New CompilationTestData()
+            Dim result = context.CompileExpression("GetDebuggerDisplay()", resultProperties, errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""Function Derived.GetDebuggerDisplay() As String""
+  IL_0006:  ret
+}")
+        End Sub
+    End Class
+End Namespace

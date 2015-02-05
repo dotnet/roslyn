@@ -1,0 +1,68 @@
+﻿Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+
+    Friend NotInheritable Class EETypeNameDecoder
+        Inherits TypeNameDecoder(Of PEModuleSymbol, TypeSymbol)
+
+        Private ReadOnly _compilation As VisualBasicCompilation
+
+        Friend Sub New(compilation As VisualBasicCompilation, moduleSymbol As PEModuleSymbol)
+            MyBase.New(SymbolFactory.Instance, moduleSymbol)
+            _compilation = compilation
+        End Sub
+
+        Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
+            Dim assemblies = GetAssemblies()
+            ' Find assembly matching identity.
+            Dim index = assemblies.IndexOf(Function(assembly, id) id.Equals(assembly.Identity), identity)
+            If index >= 0 Then
+                Return index
+            End If
+            If identity.IsWindowsComponent() Then
+                ' Find placeholder Windows.winmd assembly (created
+                ' in MetadataUtilities.MakeAssemblyReferences).
+                index = assemblies.IndexOf(Function(assembly, unused) assembly.Identity.IsWindowsRuntime(), DirectCast(Nothing, Object))
+                If index >= 0 Then
+                    ' Find module in Windows.winmd matching identity.
+                    Dim modules = assemblies(index).Modules
+                    Dim moduleIndex = modules.IndexOf(Function(m, id) id.Equals(GetComponentAssemblyIdentity(m)), identity)
+                    If moduleIndex >= 0 Then
+                        Return index
+                    End If
+                End If
+            End If
+            Return -1
+        End Function
+
+        Protected Overrides Function IsContainingAssembly(identity As AssemblyIdentity) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function LookupNestedTypeDefSymbol(container As TypeSymbol, ByRef emittedName As MetadataTypeName) As TypeSymbol
+            Return container.LookupMetadataType(emittedName)
+        End Function
+
+        Protected Overrides Function LookupTopLevelTypeDefSymbol(referencedAssemblyIndex As Integer, ByRef emittedName As MetadataTypeName) As TypeSymbol
+            Dim assembly = GetAssemblies()(referencedAssemblyIndex)
+            Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+        End Function
+
+        Protected Overrides Function LookupTopLevelTypeDefSymbol(ByRef emittedName As MetadataTypeName, ByRef isNoPiaLocalType As Boolean) As TypeSymbol
+            Return moduleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
+        End Function
+
+        Private Function GetAssemblies() As ImmutableArray(Of AssemblySymbol)
+            Return _compilation.Assembly.Modules.Single().GetReferencedAssemblySymbols()
+        End Function
+
+        Private Shared Function GetComponentAssemblyIdentity([module] As ModuleSymbol) As AssemblyIdentity
+            Return DirectCast([module], PEModuleSymbol).Module.ReadAssemblyIdentityOrThrow()
+        End Function
+
+    End Class
+
+End Namespace
