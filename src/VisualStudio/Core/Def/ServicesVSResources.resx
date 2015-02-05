@@ -423,9 +423,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
-  <data name="MissingPreviewMessageText" xml:space="preserve">
-    <value>No Preview</value>
-  </data>
   <data name="PreviewChangesAddedPrefix" xml:space="preserve">
     <value>[+] </value>
   </data>

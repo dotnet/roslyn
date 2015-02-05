@@ -610,15 +610,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Preview.
-        /// </summary>
-        internal static string MissingPreviewMessageText {
-            get {
-                return ResourceManager.GetString("MissingPreviewMessageText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifier.
         /// </summary>
         internal static string Modifier {

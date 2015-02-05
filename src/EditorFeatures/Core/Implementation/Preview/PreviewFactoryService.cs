@@ -518,6 +518,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 diffViewer.InlineHost.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Visibility = Visibility.Collapsed;
             }
 
+            // Disable focus / tab stop for the diff viewer.
+            diffViewer.RightView.VisualElement.Focusable = false;
+            diffViewer.LeftView.VisualElement.Focusable = false;
+            diffViewer.InlineView.VisualElement.Focusable = false;
+
             diffViewer.SizeToFit();
 
             if (leftWorkspace != null)

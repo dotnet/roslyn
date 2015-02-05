@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
             {
-                HeaderStackPanel.Visibility = Visibility.Visible;
+                HeaderDockPanel.Visibility = Visibility.Visible;
 
                 SeverityIconBorder.Child = severityIcon;
 
@@ -63,6 +63,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
+            InitializePreviewElement(previewContent);
+
+            _serviceProvider = serviceProvider;
+            _errorId = id;
+
+            // save permission whether we are allowed to save data as it is or not.
+            _telemetry = telemetry;
+        }
+
+        private void InitializePreviewElement(object previewContent)
+        {
             FrameworkElement previewElement = null;
             if (previewContent is IWpfDifferenceViewer)
             {
@@ -78,15 +89,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             {
                 previewElement = previewContent as FrameworkElement;
             }
-            else
-            {
-                // previewContent is either null or some type that we don't know how to display.
-                previewElement = GetEmptyPreview();
-            }
 
-            PreviewScrollViewer.Content = previewElement;
-            previewElement.VerticalAlignment = VerticalAlignment.Top;
-            previewElement.HorizontalAlignment = HorizontalAlignment.Left;
+            if (previewElement != null)
+            {
+                PreviewDockPanel.Visibility = Visibility.Visible;
+                PreviewScrollViewer.Content = previewElement;
+                previewElement.VerticalAlignment = VerticalAlignment.Top;
+                previewElement.HorizontalAlignment = HorizontalAlignment.Left;
+            }
 
             // 1. Width of the header section should not exceed the width of the preview content.
             // In other words, the text we put in the header at the top of the preview pane
@@ -95,12 +105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // 2. Adjust the height of the header section so that it displays only three lines worth
             // by default.
             AdjustWidthAndHeight(previewElement);
-
-            _serviceProvider = serviceProvider;
-            _errorId = id;
-
-            // save permission whether we are allowed to save data as it is or not.
-            _telemetry = telemetry;
         }
 
         private void InitializeHyperlinkStyles()
@@ -117,11 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.LearnMoreLinkText, id));
             LearnMoreHyperlink.NavigateUri = helpUri;
-        }
-
-        public static Border GetEmptyPreview()
-        {
-            return GetPreviewForString(ServicesVSResources.MissingPreviewMessageText, useItalicFontStyle: true, centerAlignTextHorizontally: true);
         }
 
         public static Border GetPreviewForString(string previewContent, bool useItalicFontStyle = false, bool centerAlignTextHorizontally = false)
@@ -160,30 +159,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         // worth by default.
         private void AdjustWidthAndHeight(FrameworkElement previewElement)
         {
-            PreviewDockPanel.Measure(availableSize: new Size(previewElement.Width, double.PositiveInfinity));
-            var width = PreviewDockPanel.DesiredSize.Width;
-            if (IsNormal(width))
+            var headerDockPanelWidth = double.PositiveInfinity;
+            var titleTextBlockHeight = double.PositiveInfinity;
+            if (previewElement == null)
             {
-                HeaderStackPanel.Width = width;
+                HeaderDockPanel.Measure(availableSize: s_infiniteSize);
+                headerDockPanelWidth = HeaderDockPanel.DesiredSize.Width;
 
-                TitleTextBlock.Measure(availableSize: new Size(width, double.PositiveInfinity));
-                var height = TitleTextBlock.DesiredSize.Height;
-
-                // If the pixel height required to render the complete title in the
-                // TextBlock is larger than that required to render three lines worth,
-                // then trim the contents of the TextBlock with an ellipsis at the end and
-                // display the expander button that will allow users to view the full text.
-                if ((IsNormal(height) && (height > _heightForThreeLineTitle)) || HasDescription)
+                TitleTextBlock.Measure(availableSize: s_infiniteSize);
+                titleTextBlockHeight = TitleTextBlock.DesiredSize.Height;
+            }
+            else
+            {
+                PreviewDockPanel.Measure(availableSize: new Size(previewElement.Width, double.PositiveInfinity));
+                headerDockPanelWidth = PreviewDockPanel.DesiredSize.Width;
+                if (IsNormal(headerDockPanelWidth))
                 {
-                    TitleTextBlock.MaxHeight = _heightForThreeLineTitle;
-                    TitleTextBlock.TextTrimming = TextTrimming.CharacterEllipsis;
+                    TitleTextBlock.Measure(availableSize: new Size(headerDockPanelWidth, double.PositiveInfinity));
+                    titleTextBlockHeight = TitleTextBlock.DesiredSize.Height;
+                }
+            }
 
-                    ExpanderToggleButton.Visibility = Visibility.Visible;
+            if (IsNormal(headerDockPanelWidth))
+            {
+                HeaderDockPanel.Width = headerDockPanelWidth;
+            }
 
-                    if (_isExpanded)
-                    {
-                        ExpanderToggleButton.IsChecked = true;
-                    }
+            // If the pixel height required to render the complete title in the
+            // TextBlock is larger than that required to render three lines worth,
+            // then trim the contents of the TextBlock with an ellipsis at the end and
+            // display the expander button that will allow users to view the full text.
+            if (HasDescription || (IsNormal(titleTextBlockHeight) && (titleTextBlockHeight > _heightForThreeLineTitle)))
+            {
+                TitleTextBlock.MaxHeight = _heightForThreeLineTitle;
+                TitleTextBlock.TextTrimming = TextTrimming.CharacterEllipsis;
+
+                ExpanderToggleButton.Visibility = Visibility.Visible;
+
+                if (_isExpanded)
+                {
+                    ExpanderToggleButton.IsChecked = true;
                 }
             }
         }
