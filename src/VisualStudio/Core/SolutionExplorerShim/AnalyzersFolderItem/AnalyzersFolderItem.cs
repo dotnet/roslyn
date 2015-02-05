@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return KnownMonikers.Reference;
+                return KnownMonikers.CodeInformation;
             }
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return KnownMonikers.Reference;
+                return KnownMonikers.CodeInformation;
             }
         }
 
