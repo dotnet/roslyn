@@ -739,6 +739,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
+        Private Function ScanSingleLineTrivia(includeFollowingBlankLines As Boolean) As SyntaxList(Of VisualBasicSyntaxNode)
+            Dim tList = triviaListPool.Allocate()
+            ScanSingleLineTrivia(tList)
+
+            If includeFollowingBlankLines AndAlso IsBlankLine(tList) Then
+                Dim more = triviaListPool.Allocate()
+
+                While True
+                    Dim offsets = CreateOffsetRestorePoint()
+
+                    _lineBufferOffset = _endOfTerminatorTrivia
+                    ScanSingleLineTrivia(more)
+
+                    If Not IsBlankLine(more) Then
+                        offsets.Restore()
+                        Exit While
+                    End If
+
+                    Dim n = more.Count
+                    For i = 0 To n - 1
+                        tList.Add(more(i))
+                    Next
+                    more.Clear()
+                End While
+
+                triviaListPool.Free(more)
+            End If
+
+            Dim result = tList.ToList()
+            triviaListPool.Free(tList)
+            Return result
+        End Function
+
         ''' <summary>
         ''' Return True if the builder is a (possibly empty) list of
         ''' WhitespaceTrivia followed by an EndOfLineTrivia.

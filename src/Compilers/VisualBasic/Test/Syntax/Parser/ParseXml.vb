@@ -2381,16 +2381,7 @@ Module M
             
         %>/>
 End Module
-]]>,
-            <errors>
-                <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="1" end="9"/>
-                <error id="31151" message="Element is missing an end tag." start="22" end="112"/>
-                <error id="31159" message="Expected closing '%>' for embedded expression." start="88" end="88"/>
-                <error id="31169" message="Character '%' (&amp;H25) is not allowed at the beginning of an XML name." start="110" end="111"/>
-                <error id="30249" message="'=' expected." start="111" end="111"/>
-                <error id="31165" message="Expected beginning '&lt;' for an XML tag." start="126" end="126"/>
-                <error id="30636" message="'>' expected." start="126" end="126"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2399,11 +2390,7 @@ Module M
 
         )
 End Module
-]]>,
-            <errors>
-                <error id="30198" message="')' expected." start="58" end="58"/>
-                <error id="30035" message="Syntax error." start="68" end="69"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2414,17 +2401,7 @@ Module M
 
         ) %>/>
 End Module
-]]>,
-            <errors>
-                <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="1" end="9"/>
-                <error id="31151" message="Element is missing an end tag." start="22" end="85"/>
-                <error id="30198" message="')' expected." start="69" end="69"/>
-                <error id="31159" message="Expected closing '%>' for embedded expression." start="69" end="69"/>
-                <error id="30636" message="'>' expected." start="81" end="82"/>
-                <error id="31169" message="Character '%' (&amp;H25) is not allowed at the beginning of an XML name." start="83" end="84"/>
-                <error id="31165" message="Expected beginning '&lt;' for an XML tag." start="99" end="99"/>
-                <error id="30636" message="'>' expected." start="99" end="99"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2436,10 +2413,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="147" end="155"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2452,10 +2426,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="178" end="186"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2467,10 +2438,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="149" end="157"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2482,10 +2450,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="154" end="162"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2495,10 +2460,7 @@ Module M
  
         Distinct
 End Module
-]]>,
-            <errors>
-                <error id="30188" message="Declaration expected." start="99" end="107"/>
-            </errors>)
+]]>)
     End Sub
 
     <WorkItem(598156, "DevDiv")>
@@ -4476,7 +4438,7 @@ Imports <xmlns = ""http://xml"">
     End Sub
 
     <WorkItem(1042696)>
-    <Fact(Skip:="1042696")>
+    <Fact>
     Public Sub ParseXmlTrailingNewLinesBeforeDistinct()
         ParseAndVerify(<![CDATA[
 Module M
