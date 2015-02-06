@@ -613,6 +613,21 @@ class C1
             Assert.Equal(1, diagnostics.Count);
         }
 
+        [WorkItem(985906)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void HandleSolutionProjectTypeSolutionFolder()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"TestSolution.sln", GetResourceText("TestSolution_SolutionFolder.sln")));
+            var ws = MSBuildWorkspace.Create();
+            ws.WorkspaceFailed += (s, args) =>
+            {
+                Assert.True(false, "There should be no failure");
+            };
+
+            var sol = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
         {
