@@ -1135,5 +1135,41 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u2").WithLocation(8, 52)
                 );
         }
+
+        [Fact, WorkItem(1098612, "DevDiv")]
+        public void MissingConversionFromFormattableStringToIFormattable()
+        {
+            var text =
+@"namespace System.Runtime.CompilerServices
+{
+    public static class FormattableStringFactory
+    {
+        public static FormattableString Create(string format, params object[] arguments)
+        {
+            return null;
+        }
+    }
+}
+
+namespace System
+{
+    public abstract class FormattableString
+    {
+    }
+}
+
+static class C
+{
+    static void Main()
+    {
+        System.IFormattable i = $""{""""}"";
+    }
+}";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyEmitDiagnostics(
+                // (23,33): error CS0029: Cannot implicitly convert type 'FormattableString' to 'IFormattable'
+                //         System.IFormattable i = $"{""}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)
+                );
+        }
     }
 }

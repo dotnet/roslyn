@@ -455,6 +455,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Helper method to generate a lowered conversion from the given <paramref name="rewrittenOperand"/> to the given <paramref name="rewrittenType"/>.
+        /// </summary>
+        /// <remarks>
+        /// If we're converting a default parameter value to the parameter type, then the conversion can actually fail
+        /// (e.g. if the default value was specified by an attribute and was, therefore, not checked by the compiler).
+        /// Set acceptFailingConversion if you want to see default(rewrittenType) in such cases.
+        /// The error will be suppressed only for conversions from <see cref="decimal"/> or <see cref="DateTime"/>.
+        /// </remarks>
+        private BoundExpression MakeImplicitConversion(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = _compilation.Conversions.ClassifyConversion(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
+            _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            if (!conversion.IsImplicit)
+            {
+                // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                _diagnostics.Add(
+                    ErrorCode.ERR_NoImplicitConv,
+                    rewrittenOperand.Syntax.Location,
+                    rewrittenOperand.Type,
+                    rewrittenType);
+
+                return _factory.NullOrDefault(rewrittenType);
+            }
+
+            return MakeConversion(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
+        }
+
+        /// <summary>
         /// Helper method to generate a lowered conversion from the given rewrittenOperand to the given rewrittenType with the given conversion kind.
         /// </summary>
         /// <remarks>

@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(error);
             // Multiple semicolons: not supported.
             result = context.CompileExpression("x;;", out error);
-            Assert.Equal(error, "(1,1): error CS1056: Unexpected character ';'");
+            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ';'");
             // // comments.
             result = context.CompileExpression("x;//", out error);
             Assert.Equal(error, "error CS0726: ';//' is not a valid format specifier");
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             result = context.CompileAssignment("x", "null, y", out error);
             Assert.Null(result.Assembly);
             Assert.Null(result.FormatSpecifiers);
-            Assert.Equal(error, "(1,1): error CS1056: Unexpected character ','");
+            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
             // Trailing semicolon, no format specifiers.
             result = context.CompileExpression("x; ", out error);
             CheckFormatSpecifiers(result);
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(error, "(1,1): error CS1525: Invalid expression term ','");
             // Format specifiers before semicolon: not supported.
             result = context.CompileExpression("x,f;\t", out error);
-            Assert.Equal(error, "(1,1): error CS1056: Unexpected character ','");
+            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
             // Format specifiers after semicolon: not supported.
             result = context.CompileExpression("x;,f", out error);
             Assert.Equal(error, "error CS0726: ';' is not a valid format specifier");
@@ -4539,7 +4539,7 @@ class C
                 expr: "(System.Func<object>)(() => 2))(",
                 error: out error,
                 testData: testData);
-            Assert.Equal("(1,1): error CS1056: Unexpected character ')'", error);
+            Assert.Equal("(1,1): error CS1073: Unexpected token ')'", error);
         }
 
         [WorkItem(1015887)]
