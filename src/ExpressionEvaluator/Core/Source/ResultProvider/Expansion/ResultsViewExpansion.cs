@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var enumerableType = GetEnumerableType(value);
                 if (enumerableType != null)
                 {
-                    var expansion = ResultsViewExpansion.CreateExpansion(value, enumerableType, formatter);
+                    var expansion = CreateExpansion(value, enumerableType, formatter);
                     if (expansion != null)
                     {
                         return expansion.CreateEvaluationResult(name, parent, formatter);

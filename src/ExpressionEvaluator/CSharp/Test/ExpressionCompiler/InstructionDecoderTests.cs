@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     public class InstructionDecoderTests : ExpressionCompilerTestBase
     {
         [Fact, WorkItem(1107977)]
-        private void GetNameGenericAsync()
+        public void GetNameGenericAsync()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -32,9 +32,9 @@ class C
                     "C.M<T>(T x)",
                     GetName(source, "C.<M>d__0.MoveNext", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameLambda()
+        [Fact]
+        public void GetNameLambda()
         {
             var source = @"
 using System;
@@ -50,9 +50,9 @@ class C
                 "C.M.AnonymousMethod__0_0()",
                 GetName(source, "C.<>c.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameGenericLambda()
+        [Fact]
+        public void GetNameGenericLambda()
         {
             var source = @"
 using System;
@@ -68,9 +68,9 @@ class C<T>
                 "C<T>.M.AnonymousMethod__0_0(U u)",
                 GetName(source, "C.<>c__0.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameProperties()
+        [Fact]
+        public void GetNameProperties()
         {
             var source = @"
 class C
@@ -99,9 +99,9 @@ class C
                 "C.this[object].set(object x, int value)",
                 GetName(source, "C.set_Item", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameExplicitInterfaceImplementation()
+        [Fact]
+        public void GetNameExplicitInterfaceImplementation()
         {
             var source = @"
 using System;
@@ -114,9 +114,9 @@ class C : IDisposable
                 "C.System.IDisposable.Dispose()",
                 GetName(source, "C.System.IDisposable.Dispose", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameExtensionMethod()
+        [Fact]
+        public void GetNameExtensionMethod()
         {
             var source = @"
 static class Extensions
@@ -128,9 +128,9 @@ static class Extensions
                 "Extensions.M(string this)",
                 GetName(source, "Extensions.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
         }
-        [Fact]
 
-        private void GetNameArgumentFlagsNone()
+        [Fact]
+        public void GetNameArgumentFlagsNone()
         {
             var source = @"
 static class C

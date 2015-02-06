@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine < DkmGetChildrenAsyncResult > completionRoutine)
+        void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
             var dataItem = evaluationResult.GetDataItem<EvalResultDataItem>();
             if (dataItem == null)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             completionRoutine(GetChildren(inspectionContext, evaluationResult, dataItem, initialRequestSize));
         }
 
-        void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine < DkmEvaluationEnumAsyncResult > completionRoutine)
+        void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
         {
             try
             {

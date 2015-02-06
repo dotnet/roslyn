@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
