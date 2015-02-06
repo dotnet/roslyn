@@ -83,13 +83,14 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles);
+                var publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
 
                 if (publicApiAdditionalText == null)
                 {
                     return;
                 }
 
-                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiAdditionalText);
+                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText);
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
 
@@ -141,18 +142,42 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                     foreach (var symbol in deletedSymbols)
                     {
-                        var location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
+                        var span = FindString(publicApiSourceText, symbol);
+                        Location location;
+                        if (span.HasValue)
+                        {
+                            var linePositionSpan = publicApiSourceText.Lines.GetLinePositionSpan(span.Value);
+                            location = Location.Create(publicApiAdditionalText.Path, span.Value, linePositionSpan);
+                        }
+                        else
+                        {
+                            location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
+                        }
+
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, symbol));
                     }
                 });
             });
         }
 
-        private static HashSet<string> ReadPublicSymbols(AdditionalText additionalFile)
+        private TextSpan? FindString(SourceText sourceText, string symbol)
+        {
+            foreach (var line in sourceText.Lines)
+            {
+                if (line.ToString() == symbol)
+                {
+                    return line.Span;
+                }
+            }
+
+            return null;
+        }
+
+        private static HashSet<string> ReadPublicSymbols(SourceText file)
         {
             HashSet<string> publicSymbols = new HashSet<string>();
 
-            foreach (var line in additionalFile.GetText().Lines)
+            foreach (var line in file.Lines)
             {
                 var text = line.ToString();
 
