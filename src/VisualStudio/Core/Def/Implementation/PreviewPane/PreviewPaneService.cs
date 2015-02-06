@@ -69,8 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             if ((diagnostic == null) || (diagnostic.Descriptor is TriggerDiagnosticDescriptor))
             {
-                // We don't have any additional info to display in the preview pane.
-                return previewContent;
+                return new PreviewPane(
+                    null, null, null, null, null, null, telemetry, previewContent, _serviceProvider);
             }
             else
             {
