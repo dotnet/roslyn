@@ -29,7 +29,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         #region Fields that can only be accessed from the foreground thread
 
         private readonly IController<TModel> _controller;
-        private readonly TaskScheduler _taskScheduler;
+        private readonly TaskScheduler __taskScheduler;
+
+		private TaskScheduler _taskScheduler
+		{
+			get
+			{
+				AssertIsForeground();
+				return __taskScheduler;
+			}
+		}
+
         private readonly CancellationTokenSource _stopTokenSource;
 
         // There may be multiple compute tasks chained together.  When a compute task finishes it
@@ -45,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public ModelComputation(IController<TModel> controller, TaskScheduler computationTaskScheduler)
         {
             _controller = controller;
-            _taskScheduler = computationTaskScheduler;
+            __taskScheduler = computationTaskScheduler;
 
             _stopTokenSource = new CancellationTokenSource();
             _stopCancellationToken = _stopTokenSource.Token;

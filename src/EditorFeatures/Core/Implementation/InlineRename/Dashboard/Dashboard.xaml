@@ -13,7 +13,8 @@
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
              MinWidth="180"
              Focusable="True"
-             AutomationProperties.AutomationId="Rename">
+             AutomationProperties.AutomationId="Rename"
+             UseLayoutRounding="True">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -37,63 +38,69 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" 
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" BorderBrush="Transparent" 
             Background="{DynamicResource {x:Static utilities:CodeAnalysisColors.BackgroundBrushKey}}"  
-            BorderThickness="1" 
-            Padding="4">
-        <StackPanel>
+            BorderThickness="0" 
+            Padding="7">
+            <StackPanel>
 
-            <Grid Height="16">
+                <Grid Height="16">
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- error or info icon -->
-                <imaging:CrispImage Grid.Column="0" Height="16" Width="16" Margin="0,0,4,0" VerticalAlignment="Center">
+                    <!-- error or info icon -->
+                    <imaging:CrispImage Grid.Column="0" Height="16" Width="16" Margin="0,0,4,0" VerticalAlignment="Center">
 
-                    <!-- determine the image visibility and icon from the severity -->
-                    <imaging:CrispImage.Style>
-                        <Style TargetType="imaging:CrispImage">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                        <!-- determine the image visibility and icon from the severity -->
+                        <imaging:CrispImage.Style>
+                            <Style TargetType="imaging:CrispImage">
+                                <Setter Property="Visibility" Value="Collapsed"/>
 
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusError}"/>
-                                </DataTrigger>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusError}"/>
+                                    </DataTrigger>
 
-                                <DataTrigger Binding="{Binding Path=Severity}" Value="Info">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusInformation}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </imaging:CrispImage.Style>
+                                    <DataTrigger Binding="{Binding Path=Severity}" Value="Info">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusInformation}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </imaging:CrispImage.Style>
 
-                </imaging:CrispImage>
+                    </imaging:CrispImage>
 
-                <!-- description text -->
-                <TextBlock Grid.Column="1" Text="{Binding Path=Description}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                    <!-- description text -->
+                    <TextBlock Grid.Column="1" Text="{Binding Path=Description}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                         
                         <!-- if severity is error, make the description text red -->
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
 
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
-                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
 
-                </TextBlock>
+                    </TextBlock>
 
-                <Button 
+                    <Button 
                     Name="CloseButton"
                     Grid.Column="2"
                     Width="18" Height="18"
@@ -107,87 +114,87 @@
                     Click="CloseButton_Click"
                     ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"/>
 
-            </Grid>
+                </Grid>
 
-            <TextBlock Text="{Binding Path=SearchText}" Margin="0,4,0,8" Foreground="{StaticResource ForegroundText}"/>
+                <TextBlock Text="{Binding Path=SearchText}" Margin="0,4,0,8" Foreground="{StaticResource ForegroundText}"/>
 
-            <!-- conflicts and errors -->
-            <StackPanel Margin="0,0,0,8">
+                <!-- conflicts and errors -->
+                <StackPanel Margin="0,0,0,8">
 
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-
-                            <DataTrigger Binding="{Binding Path=Severity}" Value="Info">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
-
-                <TextBlock Text="{Binding Path=ResolvableConflictText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameResolvableConflictTextBrushKey}}">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Collapsed"/>
 
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=HasResolvableConflicts}" Value="True">
+                                <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding Path=Severity}" Value="Info">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                    </StackPanel.Style>
 
-                <TextBlock Text="{Binding Path=UnresolvableConflictText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}" FontWeight="Bold">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                    <TextBlock Text="{Binding Path=ResolvableConflictText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameResolvableConflictTextBrushKey}}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
 
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=HasUnresolvableConflicts}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=HasResolvableConflicts}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
 
-                <TextBlock Text="{Binding Path=ErrorText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}" FontWeight="Bold">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                    <TextBlock Text="{Binding Path=UnresolvableConflictText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}" FontWeight="Bold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
 
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=HasError}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </StackPanel>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=HasUnresolvableConflicts}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
 
-            <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}" Cursor="Arrow"
+                    <TextBlock Text="{Binding Path=ErrorText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}" FontWeight="Bold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=HasError}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+
+                <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}" Cursor="Arrow"
                       Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}"/>
-            <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" Cursor="Arrow" />
-            <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" Cursor="Arrow" />
+                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" Cursor="Arrow" />
+                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" Cursor="Arrow" />
 
-            <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" Cursor="Arrow"/>
+                <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" Cursor="Arrow"/>
 
-            <Button Name="ApplyButton" Click="Apply_Click" IsDefault="True" MinWidth="75" MinHeight="23" Padding="10,1,10,1" Margin="0,8,0,0" HorizontalAlignment="Right"
+                <Button Name="ApplyButton" Click="Apply_Click" IsDefault="True" MinWidth="75" MinHeight="23" Padding="10,1,10,1" Margin="0,8,0,0" HorizontalAlignment="Right"
                     ToolTip="{Binding ElementName=dashboard, Path=ApplyToolTip}"
                     Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}" >
-                <AccessText Text="{Binding ElementName=dashboard, Path=ApplyRename}" />
-            </Button>
+                    <AccessText Text="{Binding ElementName=dashboard, Path=ApplyRename}" />
+                </Button>
+            </StackPanel>
+        </Border>
 
-
-
-        </StackPanel>
-    </Border>
+        <Rectangle Name="DashboardAccentBar" Grid.Row="1" Height="4" Fill="{DynamicResource {x:Static utilities:CodeAnalysisColors.AccentBarColorKey}}" />
+    </Grid>
 </UserControl>
