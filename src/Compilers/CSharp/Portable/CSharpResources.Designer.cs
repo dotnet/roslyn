@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type.
+        ///   Looks up a localized string similar to An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type.
         /// </summary>
         internal static string ERR_BadAttributeArgument {
             get {

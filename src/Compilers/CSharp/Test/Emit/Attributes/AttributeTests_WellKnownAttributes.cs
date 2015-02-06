@@ -491,7 +491,7 @@ public class C
 }
 ";
             CreateCompilationWithMscorlib(source, new[] { SystemRef }).VerifyDiagnostics(
-                // (6,59): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (6,59): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(decimal)"));
         }
 
@@ -4566,7 +4566,7 @@ public class MyAttribute : Attribute
                 // (7,54): error CS0103: The name 'Missing' does not exist in the current context
                 // 	public const AttributeTargets badAttributeTargets = Missing;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing"),
-                // (4,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (4,17): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [AttributeUsage(badAttributeTargets)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "badAttributeTargets"));
         }

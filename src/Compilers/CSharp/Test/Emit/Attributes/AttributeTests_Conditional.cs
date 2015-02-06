@@ -678,10 +678,10 @@ class Bar
                 // (8,14): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
                 // [Conditional(Bar.M)]
                 Diagnostic(ErrorCode.ERR_BadArgType, "Bar.M").WithArguments("1", "method group", "string"),
-                // (9,14): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,14): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [Conditional(Bar.M())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Bar.M()"),
-                // (6,14): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (6,14): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [Conditional(Foo.M)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Foo.M"));
         }

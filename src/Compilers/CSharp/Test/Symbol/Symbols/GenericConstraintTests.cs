@@ -851,7 +851,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (11,18): error CS0452: The type 'float' must be a reference type in order to use it as parameter 'T' in the generic type or method 'B<T>'
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "float").WithArguments("B<T>", "T", "float").WithLocation(11, 18),
-                // (11,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (11,12): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B<float>()").WithLocation(11, 12),
                 // (10,20): error CS0452: The type 'byte' must be a reference type in order to use it as parameter 'T' in the generic type or method 'B<T>'
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "F").WithArguments("B<T>", "T", "byte").WithLocation(10, 20),
@@ -859,11 +859,11 @@ class C
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "o").WithArguments("B<T>", "T", "double").WithLocation(12, 19),
                 // (8,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'B<T>'
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("B<T>", "T", "int").WithLocation(8, 14),
-                // (8,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (8,8): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B<int>()").WithLocation(8, 8),
                 // (9,22): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'B<T>'
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "short").WithArguments("B<T>", "T", "short").WithLocation(9, 22),
-                // (9,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,16): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B<short>()").WithLocation(9, 16));
         }
 

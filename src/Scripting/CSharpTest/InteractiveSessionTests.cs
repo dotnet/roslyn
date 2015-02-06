@@ -676,7 +676,7 @@ M();
                                 syntaxTrees: new[] { tree });
 
             compilation.VerifyDiagnostics(
-                // (9,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // (9,8): error CS0182: An attribute argument must be a constant-, typeof-, nameof- or array creation expression of an attribute parameter type
                 // [A(P = new { a = 1 })]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new { a = 1 }"));
         }
