@@ -6,7 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal sealed class ZoomableInlineAdornment : ContentControl
     {

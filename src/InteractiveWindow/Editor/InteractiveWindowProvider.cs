@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     [Export(typeof(IInteractiveWindowFactoryService))]
     internal class InteractiveWindowProvider : IInteractiveWindowFactoryService

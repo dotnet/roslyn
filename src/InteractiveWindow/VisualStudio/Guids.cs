@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     internal static class Guids
     {

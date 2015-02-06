@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     // TODO: We should condense committed language buffers into a single language buffer and save the
     // classifications from the previous language buffer if the perf of having individual buffers

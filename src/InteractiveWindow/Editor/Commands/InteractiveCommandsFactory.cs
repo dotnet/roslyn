@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow.Commands
+namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     [Export(typeof(IInteractiveWindowCommandsFactory))]
     internal class InteractiveCommandsFactory : IInteractiveWindowCommandsFactory

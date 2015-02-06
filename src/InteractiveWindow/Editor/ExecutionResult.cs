@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     /// <summary>
     /// The result of command execution.  
