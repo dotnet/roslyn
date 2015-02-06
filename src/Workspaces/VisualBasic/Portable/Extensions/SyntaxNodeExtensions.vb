@@ -1085,77 +1085,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
         End Function
 
-		<Extension()>
-		Public Iterator Function GetAliasImportsClauses(root As CompilationUnitSyntax) As IEnumerable(Of SimpleImportsClauseSyntax)
-			For i = 0 To root.Imports.Count - 1
-				Dim statement = root.Imports(i)
+        <Extension()>
+        Public Iterator Function GetAliasImportsClauses(root As CompilationUnitSyntax) As IEnumerable(Of SimpleImportsClauseSyntax)
+            For i = 0 To root.Imports.Count - 1
+                Dim statement = root.Imports(i)
 
-				For j = 0 To statement.ImportsClauses.Count - 1
-					Dim importsClause = statement.ImportsClauses(j)
+                For j = 0 To statement.ImportsClauses.Count - 1
+                    Dim importsClause = statement.ImportsClauses(j)
 
-					If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
-						Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
+                    If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
 
-						If simpleImportsClause.Alias IsNot Nothing Then
-							Yield simpleImportsClause
-						End If
-					End If
-				Next
-			Next
-		End Function
+                        If simpleImportsClause.Alias IsNot Nothing Then
+                            Yield simpleImportsClause
+                        End If
+                    End If
+                Next
+            Next
+        End Function
 
-		''' <summary>
-		''' Given an expression within a tree of <see cref="ConditionalAccessExpressionSyntax"/>s, 
-		''' finds the <see cref="ConditionalAccessExpressionSyntax"/> that it is part of.
-		''' </summary>
-		''' <param name="node"></param>
-		''' <returns></returns>
-		<Extension>
-		Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
-			Dim access As SyntaxNode = node
-			Dim parent As SyntaxNode = access.Parent
+        ''' <summary>
+        ''' Given an expression within a tree of <see cref="ConditionalAccessExpressionSyntax"/>s, 
+        ''' finds the <see cref="ConditionalAccessExpressionSyntax"/> that it is part of.
+        ''' </summary>
+        ''' <param name="node"></param>
+        ''' <returns></returns>
+        <Extension>
+        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            Dim access As SyntaxNode = node
+            Dim parent As SyntaxNode = access.Parent
 
-			While parent IsNot Nothing
-				Select Case parent.Kind
-					Case SyntaxKind.DictionaryAccessExpression,
-						 SyntaxKind.SimpleMemberAccessExpression
+            While parent IsNot Nothing
+                Select Case parent.Kind
+                    Case SyntaxKind.DictionaryAccessExpression,
+                         SyntaxKind.SimpleMemberAccessExpression
 
-						If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
-							Return Nothing
-						End If
+                        If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
 
-					Case SyntaxKind.XmlElementAccessExpression,
-						 SyntaxKind.XmlDescendantAccessExpression,
-						 SyntaxKind.XmlAttributeAccessExpression
+                    Case SyntaxKind.XmlElementAccessExpression,
+                         SyntaxKind.XmlDescendantAccessExpression,
+                         SyntaxKind.XmlAttributeAccessExpression
 
-						If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
-							Return Nothing
-						End If
+                        If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
+                            Return Nothing
+                        End If
 
-					Case SyntaxKind.InvocationExpression
+                    Case SyntaxKind.InvocationExpression
 
-						If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
-							Return Nothing
-						End If
+                        If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
 
-					Case SyntaxKind.ConditionalAccessExpression
+                    Case SyntaxKind.ConditionalAccessExpression
 
-						Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
-						If conditional.WhenNotNull Is access Then
-							Return conditional
-						ElseIf conditional.Expression IsNot access Then
-							Return Nothing
-						End If
+                        Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
+                        If conditional.WhenNotNull Is access Then
+                            Return conditional
+                        ElseIf conditional.Expression IsNot access Then
+                            Return Nothing
+                        End If
 
-					Case Else
-						Return Nothing
-				End Select
+                    Case Else
+                        Return Nothing
+                End Select
 
-				access = parent
-				parent = access.Parent
-			End While
+                access = parent
+                parent = access.Parent
+            End While
 
-			Return Nothing
-		End Function
-	End Module
+            Return Nothing
+        End Function
+    End Module
 End Namespace

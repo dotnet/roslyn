@@ -5319,10 +5319,10 @@ End Module
             VerifyItemExists(text, "ToString")
         End Sub
 
-		<WorkItem(1109319)>
-		<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-		Public Sub UnwrapNullableForConditionalFromStructure()
-			Dim text =
+        <WorkItem(1109319)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub UnwrapNullableForConditionalFromStructure()
+            Dim text =
 <code><![CDATA[
 Module Program
     Sub Main(args As String())
@@ -5343,14 +5343,14 @@ Public Class C
 End Class
 ]]></code>.Value
 
-			VerifyItemExists(text, "b")
-			VerifyItemIsAbsent(text, "c")
-		End Sub
+            VerifyItemExists(text, "b")
+            VerifyItemIsAbsent(text, "c")
+        End Sub
 
-		<WorkItem(1109319)>
-		<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-		Public Sub WithinChainOfConditionalAccess()
-			Dim text =
+        <WorkItem(1109319)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub WithinChainOfConditionalAccess()
+            Dim text =
 <code><![CDATA[
 Module Program
     Sub Main(args As String())
@@ -5371,12 +5371,12 @@ Public Class C
 End Class
 ]]></code>.Value
 
-			VerifyItemExists(text, "b")
-			VerifyItemIsAbsent(text, "c")
-		End Sub
+            VerifyItemExists(text, "b")
+            VerifyItemIsAbsent(text, "c")
+        End Sub
 
 
-		<WorkItem(1079694)>
+        <WorkItem(1079694)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DontThrowForNullPropagatingOperatorOnTypeParameter()
             Dim text =

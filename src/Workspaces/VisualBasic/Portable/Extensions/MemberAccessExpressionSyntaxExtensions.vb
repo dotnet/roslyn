@@ -68,27 +68,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         End Function
 
-		<Extension>
-		Public Function GetExpressionOfMemberAccessExpression(memberAccessExpression As MemberAccessExpressionSyntax) As ExpressionSyntax
-			If memberAccessExpression Is Nothing Then
-				Return Nothing
-			End If
+        <Extension>
+        Public Function GetExpressionOfMemberAccessExpression(memberAccessExpression As MemberAccessExpressionSyntax) As ExpressionSyntax
+            If memberAccessExpression Is Nothing Then
+                Return Nothing
+            End If
 
-			If memberAccessExpression.Expression IsNot Nothing Then
-				Return memberAccessExpression.Expression
-			End If
+            If memberAccessExpression.Expression IsNot Nothing Then
+                Return memberAccessExpression.Expression
+            End If
 
             ' Maybe we're part of a ConditionalAccessExpression
             Dim conditional = memberAccessExpression.GetCorrespondingConditionalAccessExpression()
-			If conditional IsNot Nothing Then
-				If conditional.Parent.IsKind(SyntaxKind.ExpressionStatement) AndAlso conditional.Parent.Parent.IsKind(SyntaxKind.WithBlock) AndAlso
-					conditional.Expression Is Nothing Then
+            If conditional IsNot Nothing Then
+                If conditional.Parent.IsKind(SyntaxKind.ExpressionStatement) AndAlso conditional.Parent.Parent.IsKind(SyntaxKind.WithBlock) AndAlso
+                    conditional.Expression Is Nothing Then
 
-					Return DirectCast(conditional.Parent.Parent, WithBlockSyntax).WithStatement.Expression
-				End If
+                    Return DirectCast(conditional.Parent.Parent, WithBlockSyntax).WithStatement.Expression
+                End If
 
-				Return conditional.Expression
-			End If
+                Return conditional.Expression
+            End If
 
             ' we have a member access expression with a null expression, this may be one of the
             ' following forms:
@@ -99,23 +99,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim current As SyntaxNode = memberAccessExpression
 
-			While current IsNot Nothing
-				If TypeOf current Is AnonymousObjectCreationExpressionSyntax Then
-					Return DirectCast(current, ExpressionSyntax)
-				ElseIf TypeOf current Is WithBlockSyntax Then
-					Dim withBlock = DirectCast(current, WithBlockSyntax)
-					If memberAccessExpression IsNot withBlock.WithStatement.Expression Then
-						Return withBlock.WithStatement.Expression
-					End If
-				ElseIf TypeOf current Is ObjectMemberInitializerSyntax AndAlso
-					   TypeOf current.Parent Is ObjectCreationExpressionSyntax Then
-					Return DirectCast(current.Parent, ExpressionSyntax)
-				End If
+            While current IsNot Nothing
+                If TypeOf current Is AnonymousObjectCreationExpressionSyntax Then
+                    Return DirectCast(current, ExpressionSyntax)
+                ElseIf TypeOf current Is WithBlockSyntax Then
+                    Dim withBlock = DirectCast(current, WithBlockSyntax)
+                    If memberAccessExpression IsNot withBlock.WithStatement.Expression Then
+                        Return withBlock.WithStatement.Expression
+                    End If
+                ElseIf TypeOf current Is ObjectMemberInitializerSyntax AndAlso
+                       TypeOf current.Parent Is ObjectCreationExpressionSyntax Then
+                    Return DirectCast(current.Parent, ExpressionSyntax)
+                End If
 
-				current = current.Parent
-			End While
+                current = current.Parent
+            End While
 
-			Return Nothing
-		End Function
-	End Module
+            Return Nothing
+        End Function
+    End Module
 End Namespace
