@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         case DeclaredSymbolInfoKind.Struct:
                             return EditorFeaturesResources.Project + document.Project.Name;
                         default:
-                            return EditorFeaturesResources.Type + declaredSymbolInfo.Container;
+                            return EditorFeaturesResources.Type + declaredSymbolInfo.ContainerDisplayName;
                     }
                 });
             }

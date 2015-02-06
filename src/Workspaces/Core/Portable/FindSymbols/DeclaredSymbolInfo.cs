@@ -28,17 +28,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal struct DeclaredSymbolInfo
     {
         public string Name { get; }
-        public string Container { get; }
+        public string ContainerDisplayName { get; }
+        public string FullyQualifiedContainerName { get; }
         public DeclaredSymbolInfoKind Kind { get; }
         public TextSpan Span { get; }
         public ushort ParameterCount { get; }
         public ushort TypeParameterCount { get; }
 
-        public DeclaredSymbolInfo(string name, string container, DeclaredSymbolInfoKind kind, TextSpan span, ushort parameterCount = 0, ushort typeParameterCount = 0)
+        public DeclaredSymbolInfo(string name, string containerDisplayName, string fullyQualifiedContainerName, DeclaredSymbolInfoKind kind, TextSpan span, ushort parameterCount = 0, ushort typeParameterCount = 0)
             : this()
         {
             Name = name;
-            Container = container;
+            ContainerDisplayName = containerDisplayName;
+            FullyQualifiedContainerName = fullyQualifiedContainerName;
             Kind = kind;
             Span = span;
             ParameterCount = parameterCount;
@@ -57,7 +59,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);
-            writer.WriteString(Container);
+            writer.WriteString(ContainerDisplayName);
+            writer.WriteString(FullyQualifiedContainerName);
             writer.WriteByte((byte)Kind);
             writer.WriteInt32(Span.Start);
             writer.WriteInt32(Span.Length);
@@ -70,14 +73,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             try
             {
                 var name = reader.ReadString();
-                var container = reader.ReadString();
+                var immediateContainer = reader.ReadString();
+                var entireContainer = reader.ReadString();
                 var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
                 var spanStart = reader.ReadInt32();
                 var spanLength = reader.ReadInt32();
                 var parameterCount = reader.ReadUInt16();
                 var typeParameterCount = reader.ReadUInt16();
 
-                return new DeclaredSymbolInfo(name, container, kind, new TextSpan(spanStart, spanLength), parameterCount, typeParameterCount);
+                return new DeclaredSymbolInfo(name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength), parameterCount, typeParameterCount);
             }
             catch
             {

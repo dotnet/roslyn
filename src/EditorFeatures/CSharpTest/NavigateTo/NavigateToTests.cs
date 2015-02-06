@@ -732,6 +732,123 @@ class D
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern1()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Prefix, true, null)
+                };
+
+                var items = _aggregator.GetItems("B.Q");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern2()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                };
+
+                var items = _aggregator.GetItems("C.Q");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern3()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Prefix, true, null)
+                };
+
+                var items = _aggregator.GetItems("B.B.Q");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern4()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                };
+
+                var items = _aggregator.GetItems("Baz.Quux");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern5()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                };
+
+                var items = _aggregator.GetItems("F.B.B.Quux");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern6()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                };
+
+                var items = _aggregator.GetItems("F.F.B.B.Quux");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void DottedPattern7()
+        {
+            var source = "namespace Foo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
+            using (var workspace = SetupWorkspace(source))
+            {
+                var expecteditems = new List<NavigateToItem>
+                {
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                };
+
+                var items = _aggregator.GetItems("Baz.Q");
+
+                VerifyNavigateToResultItems(expecteditems, items);
+            }
+        }
+
         private void VerifyNavigateToResultItems(List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
             expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
