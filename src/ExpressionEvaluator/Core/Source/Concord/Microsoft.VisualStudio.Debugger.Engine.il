@@ -39,13 +39,13 @@
   .ver 1:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Engine.dll
-// MVID: {A50E0CED-4411-4ADF-871D-8D5FD0A07AC1}
+// MVID: {BFA40F2E-694F-49EC-8E73-490D818E5E51}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x006C0000
+// Image base: 0x00BA0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
