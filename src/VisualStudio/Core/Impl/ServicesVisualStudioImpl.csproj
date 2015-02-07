@@ -140,6 +140,7 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Threading, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Utilities, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -280,6 +281,7 @@
     <Compile Include="Options\AbstractOptionPage.cs" />
     <Compile Include="Options\AbstractOptionPageControl.cs" />
     <Compile Include="Options\AbstractRadioButtonViewModel.cs" />
+    <Compile Include="Options\AbstractSettingsManagerOptionSerializer.cs" />
     <Compile Include="Options\AbstractSettingStoreOptionSerializer.cs" />
     <Compile Include="Options\CheckBoxViewModel.cs" />
     <Compile Include="Options\HeaderItemViewModel.cs" />
