@@ -155,6 +155,39 @@ namespace Microsoft.CodeAnalysis
         }
 
         public abstract int GetSlotOffset(int index);
+
+        /// <summary>
+        /// Find the slot that contains the given offset.
+        /// </summary>
+        /// <param name="offset">The target offset. Must be between 0 and <see cref="FullWidth"/>.</param>
+        /// <returns>The slot index of the slot containing the given offset.</returns>
+        /// <remarks>
+        /// The base implementation is a linear search. This should be overridden
+        /// if a derived class can implement it more efficiently.
+        /// </remarks>
+        public virtual int FindSlotIndexContainingOffset(int offset)
+        {
+            Debug.Assert(0 <= offset && offset < FullWidth);
+
+            int i;
+            int accumulatedWidth = 0;
+            for (i = 0; ; i++)
+            {
+                Debug.Assert(i < SlotCount);
+                var child = GetSlot(i);
+                if (child != null)
+                {
+                    accumulatedWidth += child.FullWidth;
+                    if (offset < accumulatedWidth)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return i;
+        }
+
         #endregion
 
         #region Flags 

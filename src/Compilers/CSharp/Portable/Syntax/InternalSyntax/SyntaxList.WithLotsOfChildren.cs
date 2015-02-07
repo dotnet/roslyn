@@ -2,6 +2,7 @@
 
 using System;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -37,6 +38,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             public override int GetSlotOffset(int index)
             {
                 return _childOffsets[index];
+            }
+
+            /// <summary>
+            /// Find the slot that contains the given offset.
+            /// </summary>
+            /// <param name="offset">The target offset. Must be between 0 and <see cref="GreenNode.FullWidth"/>.</param>
+            /// <returns>The slot index of the slot containing the given offset.</returns>
+            /// <remarks>
+            /// This implementation uses a binary search to find the first slot that contains
+            /// the given offset.
+            /// </remarks>
+            public override int FindSlotIndexContainingOffset(int offset)
+            {
+                Debug.Assert(offset >= 0 && offset < FullWidth);
+                int idx = Array.BinarySearch(_childOffsets, offset);
+                return idx >= 0 ? idx : (~idx - 1);
             }
 
             private static int[] CalculateOffsets(ArrayElement<CSharpSyntaxNode>[] children)
