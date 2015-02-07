@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -27,41 +30,121 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             _unknownContentType = contentTypeRegistryService.UnknownContentType;
         }
 
+        private static readonly Encoding ThrowingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
         public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var encoding = EncodedStringText.TryReadByteOrderMark(stream)
-                ?? defaultEncoding
-                ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            Debug.Assert(stream != null);
+            Debug.Assert(stream.CanSeek);
+            Debug.Assert(stream.CanRead);
 
-            // Close the stream here since we might throw an exception trying to determine the encoding
-            using (stream)
+            if (defaultEncoding == null)
             {
-                return CreateTextInternal(stream, encoding, cancellationToken)
-                    ?? CreateTextInternal(stream, Encoding.Default, cancellationToken);
+                // Try UTF-8
+                try
+                {
+                    return CreateTextInternal(stream, ThrowingUtf8Encoding, cancellationToken);
+                }
+                catch (DecoderFallbackException)
+                {
+                    // Try Encoding.Default
+                    defaultEncoding = Encoding.Default;
+                }
+            }
+
+            try
+            {
+                return CreateTextInternal(stream, defaultEncoding, cancellationToken);
+            }
+            catch (DecoderFallbackException)
+            {
+                return null;
             }
         }
 
-        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
+        private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var buffer = _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
-            return buffer.CurrentSnapshot.AsRoslynText(encoding ?? Encoding.UTF8);
+            return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
         }
 
         private SourceText CreateTextInternal(Stream stream, Encoding encoding, CancellationToken cancellationToken)
         {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                stream.Seek(0, SeekOrigin.Begin);
+            cancellationToken.ThrowIfCancellationRequested();
+            stream.Seek(0, SeekOrigin.Begin);
 
-                using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
-                {
-                    return CreateText(reader, reader.CurrentEncoding, cancellationToken);
-                }
-            }
-            catch (DecoderFallbackException) when (encoding != Encoding.Default)
+            // Detect text coming from temporary storage
+            var accessor = stream as ISupportDirectMemoryAccess;
+            if (accessor != null)
             {
-                return null;
+                return CreateTextFromTemporaryStorage(accessor, (int)stream.Length, cancellationToken);
+            }
+
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
+            {
+                var buffer = CreateTextBuffer(reader, cancellationToken);
+                return buffer.CurrentSnapshot.AsRoslynText(reader.CurrentEncoding ?? Encoding.UTF8);
+            }
+        }
+
+        private unsafe SourceText CreateTextFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
+        {
+            char* src = (char*)accessor.GetPointer();
+            Debug.Assert(*src == 0xFEFF); // BOM: Unicode, little endian
+            // Skip the BOM when creating the reader
+            using (var reader = new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1))
+            {
+                var buffer = CreateTextBuffer(reader, cancellationToken);
+                return buffer.CurrentSnapshot.AsRoslynText(Encoding.Unicode);
+            }
+        }
+
+        private unsafe class DirectMemoryAccessStreamReader : TextReader
+        {
+            private char* _position;
+            private readonly char* _end;
+
+            public DirectMemoryAccessStreamReader(char* src, int length)
+            {
+                Debug.Assert(src != null);
+                Debug.Assert(length >= 0);
+                _position = src;
+                _end = _position + length;
+            }
+
+            public override int Read()
+            {
+                if(_position >= _end)
+                {
+                    return -1;
+                }
+
+                return *_position++;
+            }
+
+            public override int Read(char[] buffer, int index, int count)
+            {
+                if (buffer == null)
+                {
+                    throw new ArgumentNullException(nameof(buffer));
+                }
+
+                if (index < 0 || index >= buffer.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                if (count < 0 || (index + count) > buffer.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(count));
+                }
+
+                count = Math.Min(count, (int)(_end - _position));
+                if (count > 0)
+                {
+                    Marshal.Copy((IntPtr)_position, buffer, index, count);
+                    _position += count;
+                }
+                return count;
             }
         }
     }

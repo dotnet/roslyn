@@ -268,11 +268,8 @@ namespace Microsoft.CodeAnalysis.Text
                 // we shouldn't be asking for a checksum of encoding-less source text:
                 Debug.Assert(this.Encoding != null);
 
-                var stream = new MemoryStream();
-                using (var writer = new StreamWriter(stream, this.Encoding))
+                using (var stream = new SourceTextStream(this))
                 {
-                    this.Write(writer);
-                    writer.Flush();
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, CalculateChecksum(stream, _checksumAlgorithm));
                 }
             }
@@ -285,8 +282,20 @@ namespace Microsoft.CodeAnalysis.Text
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
                 Debug.Assert(algorithm != null);
-                stream.Seek(0, SeekOrigin.Begin);
+                if (stream.CanSeek)
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                }
                 return ImmutableArray.Create(algorithm.ComputeHash(stream));
+            }
+        }
+
+        protected static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
+        {
+            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            {
+                Debug.Assert(algorithm != null);
+                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
             }
         }
 

@@ -12,6 +12,7 @@ namespace Roslyn.Utilities
     internal abstract class HashAlgorithm : IDisposable
     {
         private static readonly MethodInfo s_bytesMethod;
+        private static readonly MethodInfo s_bytesOffsetCountMethod;
         private static readonly MethodInfo s_streamMethod;
 
         private readonly IDisposable _hashInstance;
@@ -24,6 +25,11 @@ namespace Roslyn.Utilities
             s_bytesMethod = (from m in methods
                              let ps = m.GetParameters()
                              where ps.Length == 1 && ps[0].ParameterType == typeof(byte[])
+                             select m).Single();
+
+            s_bytesOffsetCountMethod = (from m in methods
+                             let ps = m.GetParameters()
+                             where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
                              select m).Single();
 
             s_streamMethod = (from m in methods
@@ -54,6 +60,11 @@ namespace Roslyn.Utilities
         public byte[] ComputeHash(byte[] bytes)
         {
             return (byte[])s_bytesMethod.Invoke(_hashInstance, new object[] { bytes });
+        }
+
+        public byte[] ComputeHash(byte[] bytes, int offset, int count)
+        {
+            return (byte[])s_bytesOffsetCountMethod.Invoke(_hashInstance, new object[] { bytes, offset, count });
         }
 
         public byte[] ComputeHash(Stream stream)

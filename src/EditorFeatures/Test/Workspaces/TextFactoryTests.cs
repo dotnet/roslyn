@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -52,21 +53,53 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.UTF8);
         }
 
-        private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
+        [Fact]
+        public void TestCreateFromTemporaryStorage()
+        {
+            var textFactory = CreateMockTextFactoryService();
+            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+
+            var text = Text.SourceText.From("Hello, World!");
+
+            // Create a temporary storage location
+            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
+            {
+
+                // Write text into it
+                temporaryStorage.WriteTextAsync(text).Wait();
+
+                // Read text back from it
+                var text2 = temporaryStorage.ReadTextAsync().Result;
+
+                Assert.NotSame(text, text2);
+                Assert.Equal(text.ToString(), text2.ToString());
+                Assert.Equal(text2.Encoding, Encoding.Unicode);
+            }
+        }
+
+        private EditorTextFactoryService CreateMockTextFactoryService()
         {
             var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>();
             mockTextBufferFactoryService
                 .Setup(t => t.CreateTextBuffer(It.IsAny<TextReader>(), It.IsAny<IContentType>()))
                 .Returns<TextReader, IContentType>((reader, contentType) =>
-                    {
-                        reader.ReadToEnd();
+                {
+                    var text = reader.ReadToEnd();
 
-                        var mockTextBuffer = new Mock<ITextBuffer>();
-                        mockTextBuffer.Setup(b => b.CurrentSnapshot).Returns(new Mock<ITextSnapshot>().Object);
-                        return mockTextBuffer.Object;
-                    });
+                    var mockSnapshot = new Mock<ITextSnapshot>();
+                    mockSnapshot.Setup(s => s.GetText()).Returns(text);
 
-            var factory = new EditorTextFactoryService(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+                    var mockTextBuffer = new Mock<ITextBuffer>();
+                    mockTextBuffer.Setup(b => b.CurrentSnapshot).Returns(mockSnapshot.Object);
+                    return mockTextBuffer.Object;
+                });
+
+            return new EditorTextFactoryService(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+        }
+
+        private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
+        {
+            var factory = CreateMockTextFactoryService();
             using (var stream = new MemoryStream(bytes))
             {
                 var text = factory.CreateText(stream, defaultEncoding);

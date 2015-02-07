@@ -2008,6 +2008,7 @@ static Microsoft.CodeAnalysis.Text.LinePosition.operator >(Microsoft.CodeAnalysi
 static Microsoft.CodeAnalysis.Text.LinePosition.operator >=(Microsoft.CodeAnalysis.Text.LinePosition left, Microsoft.CodeAnalysis.Text.LinePosition right)
 static Microsoft.CodeAnalysis.Text.LinePositionSpan.operator !=(Microsoft.CodeAnalysis.Text.LinePositionSpan left, Microsoft.CodeAnalysis.Text.LinePositionSpan right)
 static Microsoft.CodeAnalysis.Text.LinePositionSpan.operator ==(Microsoft.CodeAnalysis.Text.LinePositionSpan left, Microsoft.CodeAnalysis.Text.LinePositionSpan right)
+static Microsoft.CodeAnalysis.Text.SourceText.CalculateChecksum(byte[] buffer, int offset, int count, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm algorithmId)
 static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1)
 static Microsoft.CodeAnalysis.Text.SourceText.From(string text, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1)
 static Microsoft.CodeAnalysis.Text.TextChange.implicit operator Microsoft.CodeAnalysis.Text.TextChangeRange(Microsoft.CodeAnalysis.Text.TextChange change)

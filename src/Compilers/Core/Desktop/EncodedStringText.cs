@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal sealed partial class EncodedStringText : SourceText
+    internal sealed class EncodedStringText : SourceText
     {
         /// <summary>
         /// Underlying string on which this SourceText instance is based
@@ -20,14 +19,27 @@ namespace Microsoft.CodeAnalysis.Text
 
         private readonly Encoding _encoding;
 
-        private EncodedStringText(string source, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
-            : base(checksumAlgorithm: checksumAlgorithm)
+        private const int LargeObjectHeapLimit = 80 * 1024; // 80KB
+
+        private EncodedStringText(string source, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinary)
+            : base(checksum: checksum, checksumAlgorithm: checksumAlgorithm)
         {
+            if (throwIfBinary && IsBinary(source))
+            {
+                throw new InvalidDataException();
+            }
+
             Debug.Assert(source != null);
             Debug.Assert(encoding != null);
             _source = source;
             _encoding = encoding;
         }
+
+        /// <summary>
+        /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
+        /// if the stream contains invalid UTF-8 bytes.
+        /// </summary>
+        private static readonly Encoding FallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
         /// Initializes an instance of <see cref="EncodedStringText"/> with provided bytes.
@@ -44,60 +56,32 @@ namespace Microsoft.CodeAnalysis.Text
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
-        internal static EncodedStringText Create(Stream stream, Encoding defaultEncoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+        internal static SourceText Create(Stream stream, Encoding defaultEncoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanRead && stream.CanSeek);
 
             bool detectEncoding = defaultEncoding == null;
-            string text;
-            Encoding preambleEncoding;
-            Encoding actualEncoding;
             if (detectEncoding)
             {
-                preambleEncoding = TryReadByteOrderMark(stream);
-
-                if (preambleEncoding == null)
+                try
                 {
-                    // If we didn't find a recognized byte order mark, check to see if the file contents are valid UTF-8
-                    // with no byte order mark.  Detecting UTF-8 with no byte order mark implicitly decodes the entire stream
-                    // to check each byte, so we won't decode again unless we've already detected some other encoding or
-                    // this is not valid UTF-8.
-
-                    var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-                    try
-                    {
-                        // If we successfully decode the content of the stream as UTF8 it is likely not binary,
-                        // so we don't need to check that.
-                        text = Decode(stream, utf8NoBom, out actualEncoding);
-                        return new EncodedStringText(text, actualEncoding, checksumAlgorithm);
-                    }
-                    catch (DecoderFallbackException)
-                    {
-                        // fall back to default encoding
-                    }
+                    return Decode(stream, FallbackEncoding, checksumAlgorithm, throwIfBinaryDetected: false);
                 }
-            }
-            else
-            {
-                preambleEncoding = null;
+                catch (DecoderFallbackException)
+                {
+                    // Fall back to Encoding.Default
+                }
             }
 
             try
             {
-                text = Decode(stream, preambleEncoding ?? defaultEncoding ?? Encoding.Default, out actualEncoding);
+                return Decode(stream, defaultEncoding ?? Encoding.Default, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {
                 throw new InvalidDataException(e.Message);
             }
-
-            if (detectEncoding && IsBinary(text))
-            {
-                throw new InvalidDataException();
-            }
-
-            return new EncodedStringText(text, actualEncoding, checksumAlgorithm);
         }
 
         public override Encoding Encoding
@@ -180,23 +164,105 @@ namespace Microsoft.CodeAnalysis.Text
         #region Encoding Detection
 
         /// <summary>
-        /// The heuristic checks
-        /// for occurrence of two consecutive NUL (U+0000) characters in the stream, which are 
-        /// highly unlikely to appear in a text file. Since the heuristic is applied after 
-        /// the text has been decoded, it can be used with any encoding.
+        /// Check for occurrence of two consecutive NUL (U+0000) characters.
+        /// This is unlikely to appear in genuine text, so it's a good heuristic
+        /// to detect binary files.
         /// </summary>
+        /// <remarks>
+        /// internal for unit testing
+        /// </remarks>
         internal static bool IsBinary(string text)
         {
-            bool wasLastCharNul = text.Length > 0 ? text[0] == '\0' : false;
-            for (int i = 1; i < text.Length; i++)
+            // PERF: We can advance two chars at a time unless we find a NUL.
+            for (int i = 1; i < text.Length;)
             {
-                if (wasLastCharNul & (wasLastCharNul = text[i] == '\0'))
+                if (text[i] == '\0')
                 {
-                    return true;
+                    if (text[i - 1] == '\0')
+                    {
+                        return true;
+                    }
+
+                    i += 1;
+                }
+                else
+                {
+                    i += 2;
                 }
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Try to create a <see cref="EncodedStringText"/> from the given stream using the given encoding.
+        /// </summary>
+        /// <param name="data">The input stream containing the encoded text. The stream will not be closed.</param>
+        /// <param name="encoding">The expected encoding of the stream. The actual encoding used may be different if byte order marks are detected.</param>
+        /// <param name="checksumAlgorithm">The checksum algorithm to use.</param>
+        /// <param name="throwIfBinaryDetected">Throw <see cref="InvalidDataException"/> if binary (non-text) data is detected.</param>
+        /// <returns>The <see cref="EncodedStringText"/> decoded from the stream.</returns>
+        /// <exception cref="DecoderFallbackException">The decoder was unable to decode the stream with the given encoding.</exception>
+        /// <remarks>
+        /// internal for unit testing
+        /// </remarks>
+        internal static SourceText Decode(Stream data, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected = false)
+        {
+            data.Seek(0, SeekOrigin.Begin);
+
+            if (data.Length > LargeObjectHeapLimit)
+            {
+                return LargeEncodedText.Decode(data, encoding, checksumAlgorithm, throwIfBinaryDetected);
+            }
+
+            Encoding actualEncoding;
+            ImmutableArray<byte> checksum = default(ImmutableArray<byte>);
+            string text;
+
+            byte[] buffer = TryGetByteArrayFromStream(data);
+            if (buffer != null)
+            {
+                text = Decode(buffer, (int)data.Length, encoding, out actualEncoding);
+
+                // Since we have the buffer, compute the checksum here. This saves allocations if we later
+                // need to write out debugging information.
+                checksum = CalculateChecksum(buffer, offset: 0, count: (int)data.Length, algorithmId: checksumAlgorithm);
+            }
+            else
+            {
+                text = Decode(data, encoding, out actualEncoding);
+            }
+
+            return new EncodedStringText(text, actualEncoding, checksum, checksumAlgorithm, throwIfBinary: throwIfBinaryDetected);
+        }
+
+        /// <summary>
+        /// Some streams are easily represented as byte arrays.
+        /// </summary>
+        /// <param name="data">The stream</param>
+        /// <returns>
+        /// The contents of <paramref name="data"/> as a byte array or null if the stream can't easily
+        /// be read into a byte array.
+        /// </returns>
+        private static byte[] TryGetByteArrayFromStream(Stream data)
+        {
+            byte[] buffer;
+
+            // PERF: If the input is a MemoryStream, we may be able to get at the buffer directly
+            var memoryStream = data as MemoryStream;
+            if (memoryStream != null && TryGetByteArrayFromMemoryStream(memoryStream, out buffer))
+            {
+                return buffer;
+            }
+
+            // PERF: If the input is a FileStream, we may be able to minimize allocations
+            var fileStream = data as FileStream;
+            if (fileStream != null && TryGetByteArrayFromFileStream(fileStream, out buffer))
+            {
+                return buffer;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -208,163 +274,196 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="actualEncoding">Actual encoding used to read the text.</param>
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use <see cref="DecoderExceptionFallback"/> as its fallback decoder.</exception>
         /// <returns>Decoded stream as a text string</returns>
-        internal static string Decode(Stream data, Encoding encoding, out Encoding actualEncoding)
+        private static string Decode(Stream data, Encoding encoding, out Encoding actualEncoding)
         {
             data.Seek(0, SeekOrigin.Begin);
 
-            // PERF: Detect streams coming from TemporaryStorage.
-            var memoryMappedViewStream = data as MemoryMappedViewStream;
-            if (memoryMappedViewStream != null && encoding == Encoding.Unicode)
+            int length = (int)data.Length;
+            if (length == 0)
             {
                 actualEncoding = encoding;
-                return ReadUnicodeStringFromMemoryMappedViewStream(memoryMappedViewStream);
+                return string.Empty;
             }
 
-            string text;
-
-            // PERF: If the input is a MemoryStream, we may be able to save an allocation
-            var memoryStream = data as MemoryStream;
-            if (memoryStream != null && TryDecodeMemoryStream(memoryStream, encoding, out actualEncoding, out text))
+            // Note: We are setting the buffer size to 4KB instead of the default 1KB. That's
+            // because we can reach this code path for FileStreams that are larger than 80KB
+            // and, to avoid FileStream buffer allocations for small files, we may intentionally
+            // be using a FileStream with a very small (1 byte) buffer. Using 4KB here matches
+            // the default buffer size for FileStream and means we'll still be doing file I/O
+            // in 4KB chunks.
+            using (var reader = new StreamReader(data, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(4096, length), leaveOpen: true))
             {
+                string text = reader.ReadToEnd();
+                actualEncoding = reader.CurrentEncoding;
                 return text;
             }
-
-            // No using block so we don't close the stream
-            var reader = new StreamReader(data, encoding);
-            text = reader.ReadToEnd();
-            actualEncoding = reader.CurrentEncoding;
-            return text;
-        }
-
-        /// <summary>
-        /// Read a Unicode string from a memory mapped view. The stream is not closed on exit.
-        /// </summary>
-        /// <param name="memoryMappedViewStream">A view over a memory mapped stream which contains a Unicode string (preceded by a Unicode BOM)</param>
-        /// <returns>The string</returns>
-        private static unsafe string ReadUnicodeStringFromMemoryMappedViewStream(MemoryMappedViewStream memoryMappedViewStream)
-        {
-            var buffer = memoryMappedViewStream.SafeMemoryMappedViewHandle;
-            var privateOffset = GetPrivateOffset(memoryMappedViewStream); // Workaround known bug Devdiv 6441
-            byte* ptr = null;
-            RuntimeHelpers.PrepareConstrainedRegions();
-            try
-            {
-                buffer.AcquirePointer(ref ptr);
-                ptr += privateOffset;
-                char* src = (char*)ptr;
-                Debug.Assert(*src == 0xFEFF); // BOM: Unicode, little endian
-                int length = (int)(memoryMappedViewStream.Length / sizeof(char)) - 1; // -1 since we don't need the BOM
-                return new string(src, startIndex: 1, length: length);
-            }
-            finally
-            {
-                if (ptr != null)
-                {
-                    buffer.ReleasePointer();
-                }
-            }
-        }
-
-        // This is a Reflection workaround for known bug Devdiv 6441.  
-        //
-        // MemoryMappedViewStream.SafeMemoryMappedViewHandle.AcquirePointer returns a pointer
-        // that has been aligned to SYSTEM_INFO.dwAllocationGranularity.  Unfortunately the 
-        // offset from this pointer to our requested offset into the MemoryMappedFile is only
-        // available through the UnmanagedMemoryStream._offset field which is not exposed publicly.
-        //
-        // Cache the FieldInfo here to minimize any reflection overhead.
-        private static FieldInfo s_unmanagedMemoryStreamOffset = null;
-        private static long GetPrivateOffset(UnmanagedMemoryStream stream)
-        {
-            // Reflection code to workaround known bug 6441
-            if (s_unmanagedMemoryStreamOffset == null)
-            {
-                s_unmanagedMemoryStreamOffset = typeof(UnmanagedMemoryStream).GetField("_offset", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
-            }
-
-            return (long)s_unmanagedMemoryStreamOffset.GetValue(stream);
         }
 
         /// <summary>
         /// If the MemoryStream was created with publiclyVisible=true, then we can access its buffer
         /// directly and save allocations in StreamReader. The input MemoryStream is not closed on exit.
         /// </summary>
-        /// <exception cref="DecoderFallbackException">If the given encoding is set to use <see cref="DecoderExceptionFallback"/> 
-        /// as its fallback decoder.</exception>
-        private static bool TryDecodeMemoryStream(MemoryStream data, Encoding encoding, out Encoding actualEncoding, out string decodedText)
+        /// <returns>True if a byte array could be created.</returns>
+        private static bool TryGetByteArrayFromMemoryStream(MemoryStream data, out byte[] buffer)
         {
             Debug.Assert(data.Position == 0);
 
-            byte[] buffer;
             try
             {
                 buffer = data.GetBuffer();
+                return true;
             }
             catch (UnauthorizedAccessException)
             {
-                decodedText = null;
-                actualEncoding = null;
+                buffer = null;
                 return false;
             }
-
-            actualEncoding = TryReadByteOrderMark(data) ?? encoding;
-            int preambleSize = (int)data.Position;
-
-            decodedText = actualEncoding.GetString(buffer, preambleSize, (int)data.Length - preambleSize);
-            return true;
         }
 
-        [ThreadStatic]
-        private static byte[] t_bomBytes;
-
-        internal static Encoding TryReadByteOrderMark(Stream data)
+        /// <summary>
+        /// Read the contents of a <see cref="FileStream"/> into a byte array.
+        /// </summary>
+        /// <param name="stream">The FileStream with encoded text.</param>
+        /// <param name="buffer">A byte array filled with the contents of the file.</param>
+        /// <returns>True if a byte array could be created.</returns>
+        private static bool TryGetByteArrayFromFileStream(FileStream stream, out byte[] buffer)
         {
-            // PERF: Avoid repeated calls to Stream.ReadByte since that method allocates a 1-byte array on each call.
-            // Instead, using a thread local byte array.
-            if (t_bomBytes == null)
+            Debug.Assert(stream != null);
+            Debug.Assert(stream.Position == 0);
+
+            int length = (int)stream.Length;
+            if (length == 0)
             {
-                t_bomBytes = new byte[2];
+                buffer = SpecializedCollections.EmptyBytes;
+                return true;
             }
 
-            data.Seek(0, SeekOrigin.Begin);
+            // PERF: While this is an obvious byte array allocation, it is still cheaper than
+            // using StreamReader.ReadToEnd. The alternative allocates:
+            // 1. A 1KB byte array in the StreamReader for buffered reads
+            // 2. A 4KB byte array in the FileStream for buffered reads
+            // 3. A StringBuilder and its associated char arrays (enough to represent the final decoded string)
 
-            int bytesRead = data.Read(t_bomBytes, 0, 2);
-            if (bytesRead == 2)
+            // TODO: Can this allocation be pooled?
+            buffer = new byte[length];
+
+            // Note: FileStream.Read may still allocate its internal buffer if length is less
+            // than the buffer size. The default buffer size is 4KB, so this will incur a 4KB
+            // allocation for any files less than 4KB. That's why, for example, the command
+            // line compiler actually specifies a very small buffer size.
+            return stream.Read(buffer, 0, length) == length;
+        }
+
+        /// <summary>
+        /// Decode text from a byte array.
+        /// </summary>
+        /// <param name="buffer">The byte array containing encoded text.</param>
+        /// <param name="length">The count of valid bytes in <paramref name="buffer"/>.</param>
+        /// <param name="encoding">The encoding to use if an encoding cannot be determined from the byte order mark.</param>
+        /// <param name="actualEncoding">The actual encoding used.</param>
+        /// <returns>The decoded text.</returns>
+        /// <exception cref="DecoderFallbackException">If the given encoding is set to use <see cref="DecoderExceptionFallback"/> 
+        /// as its fallback decoder.</exception>
+        private static string Decode(byte[] buffer, int length, Encoding encoding, out Encoding actualEncoding)
+        {
+            int preambleLength;
+            actualEncoding = TryReadByteOrderMark(buffer, length, out preambleLength) ?? encoding;
+            return actualEncoding.GetString(buffer, preambleLength, length - preambleLength);
+        }
+
+        /// <summary>
+        /// Detect an encoding by looking for byte order marks.
+        /// </summary>
+        /// <param name="source">A buffer containing the encoded text.</param>
+        /// <param name="length">The length of valid data in the buffer.</param>
+        /// <param name="preambleLength">The length of any detected byte order marks.</param>
+        /// <returns>The detected encoding or null if no recognized byte order mark was present.</returns>
+        private static Encoding TryReadByteOrderMark(byte[] source, int length, out int preambleLength)
+        {
+            Debug.Assert(source != null);
+            Debug.Assert(length <= source.Length);
+
+            if (length >= 2)
             {
-                switch (t_bomBytes[0])
+                switch (source[0])
                 {
                     case 0xFE:
-                        if (t_bomBytes[1] == 0xFF)
+                        if (source[1] == 0xFF)
                         {
+                            preambleLength = 2;
                             return Encoding.BigEndianUnicode;
                         }
 
                         break;
 
                     case 0xFF:
-                        if (t_bomBytes[1] == 0xFE)
+                        if (source[1] == 0xFE)
                         {
+                            preambleLength = 2;
                             return Encoding.Unicode;
                         }
 
                         break;
 
                     case 0xEF:
-                        if (t_bomBytes[1] == 0xBB)
+                        if (source[1] == 0xBB && length >= 3 && source[2] == 0xBF)
                         {
-                            if (data.Read(t_bomBytes, 0, 1) == 1 && t_bomBytes[0] == 0xBF)
-                            {
-                                return Encoding.UTF8;
-                            }
+                            preambleLength = 3;
+                            return Encoding.UTF8;
                         }
 
                         break;
                 }
             }
 
-            data.Seek(0, SeekOrigin.Begin);
+            preambleLength = 0;
             return null;
         }
+
+        [ThreadStatic]
+        private static byte[] t_bomBytes;
+
+        /// <summary>
+        /// Detect an encoding by looking for byte order marks at the beginning of the stream.
+        /// </summary>
+        /// <param name="data">The stream containing encoded text.</param>
+        /// <returns>The detected encoding or null if no recognized byte order mark was present.</returns>
+        /// <remarks>
+        /// On exit, the stream's position is set to the first position after any decoded byte order
+        /// mark or rewound to the start if no byte order mark was detected.
+        /// </remarks>
+        internal static Encoding TryReadByteOrderMark(Stream data)
+        {
+            Debug.Assert(data != null);
+            data.Seek(0, SeekOrigin.Begin);
+
+            if (data.Length < 2)
+            {
+                // Not long enough for any valid BOM prefix
+                return null;
+            }
+
+            // PERF: Avoid repeated calls to Stream.ReadByte since that method allocates a 1-byte array on each call.
+            // Instead, using a thread local byte array.
+            if (t_bomBytes == null)
+            {
+                t_bomBytes = new byte[3];
+            }
+
+            int validLength = Math.Min((int)data.Length, t_bomBytes.Length);
+            data.Read(t_bomBytes, 0, validLength);
+
+            int preambleLength;
+            Encoding detectedEncoding = TryReadByteOrderMark(t_bomBytes, validLength, out preambleLength);
+
+            if (preambleLength != validLength)
+            {
+                data.Seek(preambleLength, SeekOrigin.Begin);
+            }
+
+            return detectedEncoding;
+        }
+
         #endregion
     }
 }
