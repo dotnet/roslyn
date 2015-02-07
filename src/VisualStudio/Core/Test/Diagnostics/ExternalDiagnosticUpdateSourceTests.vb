@@ -150,8 +150,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetAllDiagnosticDescriptors(projectOpt As Project) As IReadOnlyDictionary(Of String, IEnumerable(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetAllDiagnosticDescriptors
-                Return New Dictionary(Of String, IEnumerable(Of DiagnosticDescriptor))()
+            Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
+                Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty
             End Function
 
             Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync

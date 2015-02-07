@@ -149,7 +149,7 @@ class C
         private void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
             var diagnosticService = new DiagnosticAnalyzerService(LanguageNames.CSharp, analyzer);
-            diagnosticService.GetAllDiagnosticDescriptors(projectOpt: null);
+            diagnosticService.GetDiagnosticDescriptors(projectOpt: null);
         }
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct

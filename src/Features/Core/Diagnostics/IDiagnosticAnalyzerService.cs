@@ -69,6 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Otherwise, returns the global set of diagnostics enabled for the workspace.
         /// </summary>
         /// <returns>A mapping from analyzer name to the diagnostics produced by that analyzer</returns>
-        IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(Project projectOpt);
+        ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt);
     }
 }

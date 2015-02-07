@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Global cache for assemblies imported from files.
-        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// </summary>
         private static Dictionary<FileKey, CachedAssembly> s_assembliesFromFiles =
             new Dictionary<FileKey, CachedAssembly>();
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Global cache for net-modules imported from files.
-        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// </summary>
         private static Dictionary<FileKey, CachedModule> s_modulesFromFiles =
             new Dictionary<FileKey, CachedModule>();
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Global cache for diagnostic analyzers imported from analyzer assembly files.
-        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// </summary>
         private static Dictionary<FileKey, CachedAnalyzers> s_analyzersFromFiles =
             new Dictionary<FileKey, CachedAnalyzers>();
@@ -462,7 +459,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Global cache for assemblies imported from files.
-        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// Internal accessibility is for test purpose only.
         /// </summary>
         internal static Dictionary<FileKey, CachedAssembly> AssembliesFromFiles
@@ -486,7 +482,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Global cache for net-modules imported from files.
-        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// Internal accessibility is for test purpose only.
         /// </summary>
         /// <remarks></remarks>
@@ -511,7 +506,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Global cache for analyzers imported from files.
-        /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// Internal accessibility is for test purpose only.
         /// </summary>
         internal static Dictionary<FileKey, CachedAnalyzers> AnalyzersFromFiles
@@ -730,22 +724,70 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // get all analyzers in the assembly:
-                var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-                analyzerReference.AddAnalyzers(builder, langauge);
-                var analyzers = builder.ToImmutable();
+                if (langauge == null)
+                {
+                    return CreateAnalyzersFromFile(analyzerReference);
+                }
 
-                // refresh the timestamp (the file may have changed just before we memory-mapped it):
-                key = FileKey.Create(fullPath);
-
-                s_analyzersFromFiles[key] = new CachedAnalyzers(analyzers, langauge);
-                Debug.Assert(!s_analyzerAssemblyKeys.Contains(key));
-                s_analyzerAssemblyKeys.Add(key);
-                EnableCompactTimer();
-
-                return analyzers;
+                return CreateAnalyzersFromFile(analyzerReference, langauge);
             }
         }
+
+        private static ImmutableArray<DiagnosticAnalyzer> CreateAnalyzersFromFile(AnalyzerFileReference reference)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(reference.FullPath));
+
+            // get all analyzers in the assembly;
+            var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+            reference.AddAnalyzers(map);
+
+            // TODO: fix the cache mechanism. I don't understand how the cache is supposed to work
+            // so I am leaving it as it is for now. (does weak reference things currently actually work?)
+            // also, current one looks like assume a file can have analzyers for only one language.
+            // is this assumption right?
+            //
+            // foreach (var kv in mapBuilder)
+            // {
+            //     CacheAnalyzers(kv.Key, fullPath, kv.Value);
+            // }
+            //
+            // EnableCompactTimer();
+
+            var array = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var analyzers in map.Values)
+            {
+                array.AddRange(analyzers);
+            }
+
+            return array.ToImmutable();
+        }
+
+        private static ImmutableArray<DiagnosticAnalyzer> CreateAnalyzersFromFile(AnalyzerFileReference reference, string langauge)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(reference.FullPath));
+
+            // get all analyzers in the assembly for the given language;
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder, langauge);
+            var analyzers = builder.ToImmutable();
+
+            CacheAnalyzers(langauge, reference.FullPath, analyzers);
+            EnableCompactTimer();
+
+            return analyzers;
+        }
+
+        private static void CacheAnalyzers(string langauge, string fullPath, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            // refresh the timestamp (the file may have changed just before we memory-mapped it):
+            var key = FileKey.Create(fullPath);
+
+            s_analyzersFromFiles[key] = new CachedAnalyzers(analyzers, langauge);
+            Debug.Assert(!s_analyzerAssemblyKeys.Contains(key));
+
+            s_analyzerAssemblyKeys.Add(key);
+        }
+
 
         /// <exception cref="IOException"/>
         private static AssemblyMetadata GetOrCreateAssemblyFromFile(string fullPath)
