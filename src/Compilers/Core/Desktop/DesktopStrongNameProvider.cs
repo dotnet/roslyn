@@ -7,9 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.Runtime.Hosting.Interop;
+using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Instrumentation;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,6 +43,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
+
+        // for testing/mocking
+        internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
         /// <summary>
         /// Creates an instance of <see cref="DesktopStrongNameProvider"/>.
@@ -226,22 +228,15 @@ namespace Microsoft.CodeAnalysis
         // public key to establish the assembly name and another to do 
         // the actual signing
 
-        private static Guid s_CLSID_CLRStrongName =
-            new Guid(0xB79B0ACD, 0xF5CD, 0x409b, 0xB5, 0xA5, 0xA1, 0x62, 0x44, 0x61, 0x0B, 0x92);
-
-
-        // for testing/mocking
-        internal Func<ICLRStrongName> alternativeGetStrongNameInterface;
-
         // internal for testing
-        internal ICLRStrongName GetStrongNameInterface()
+        internal IClrStrongName GetStrongNameInterface()
         {
-            return alternativeGetStrongNameInterface?.Invoke() ?? ClrMetaHost.CurrentRuntime.GetInterface<ICLRStrongName>(s_CLSID_CLRStrongName);
+            return TestStrongNameInterfaceFactory?.Invoke() ?? ClrStrongName.GetInstance();
         }
 
         internal ImmutableArray<byte> GetPublicKey(string keyContainer)
         {
-            ICLRStrongName strongName = GetStrongNameInterface();
+            IClrStrongName strongName = GetStrongNameInterface();
 
             IntPtr keyBlob;
             int keyBlobByteCount;
@@ -271,15 +266,17 @@ namespace Microsoft.CodeAnalysis
         //            GET_ALG_CLASS(VAL32(p->HashAlgID)) == ALG_CLASS_HASH);         // is it a valid hash alg?
         //}
 
-        private const uint ALG_CLASS_SIGNATURE = 1 << 13;
-        private const uint ALG_CLASS_HASH = 4 << 13;
-
         private static uint GET_ALG_CLASS(uint x) { return x & (7 << 13); }
 
         internal static unsafe bool IsPublicKeyBlob(byte[] keyFileContents)
         {
+            const uint ALG_CLASS_SIGNATURE = 1 << 13;
+            const uint ALG_CLASS_HASH = 4 << 13;
+
             if (keyFileContents.Length < (4 * 3))
+            {
                 return false;
+            }
 
             fixed (byte* p = keyFileContents)
             {
@@ -301,7 +298,7 @@ namespace Microsoft.CodeAnalysis
                     return lastSeen.Item2;
                 }
 
-                ICLRStrongName strongName = GetStrongNameInterface();
+                IClrStrongName strongName = GetStrongNameInterface();
 
                 IntPtr keyBlob;
                 int keyBlobByteCount;
@@ -335,7 +332,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                ICLRStrongName strongName = GetStrongNameInterface();
+                IClrStrongName strongName = GetStrongNameInterface();
 
                 int unused;
                 strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, out unused);
@@ -351,7 +348,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                ICLRStrongName strongName = GetStrongNameInterface();
+                IClrStrongName strongName = GetStrongNameInterface();
 
                 fixed (byte* pinned = keyPair.ToArray())
                 {

@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.Runtime.Hosting.Interop;
+using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
@@ -38,7 +38,7 @@ namespace Roslyn.Test.Utilities
         {
             try
             {
-                ICLRStrongName strongName = new DesktopStrongNameProvider().GetStrongNameInterface();
+                IClrStrongName strongName = new DesktopStrongNameProvider().GetStrongNameInterface();
 
                 //EDMAURER use marshal to be safe?
                 fixed (byte* p = keyBlob)
