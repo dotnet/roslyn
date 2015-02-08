@@ -22,7 +22,7 @@ namespace Roslyn.Test.Utilities
         private static bool keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
 
-        internal static readonly ImmutableArray<byte> PublicKey = DesktopStrongNameProvider.GetPublicKey(TestResources.SymbolsTests.General.snKey);
+        internal static readonly ImmutableArray<byte> PublicKey = new DesktopStrongNameProvider().GetPublicKey(TestResources.SymbolsTests.General.snKey);
 
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
@@ -38,7 +38,7 @@ namespace Roslyn.Test.Utilities
         {
             try
             {
-                ICLRStrongName strongName = DesktopStrongNameProvider.GetStrongNameInterface();
+                ICLRStrongName strongName = new DesktopStrongNameProvider().GetStrongNameInterface();
 
                 //EDMAURER use marshal to be safe?
                 fixed (byte* p = keyBlob)

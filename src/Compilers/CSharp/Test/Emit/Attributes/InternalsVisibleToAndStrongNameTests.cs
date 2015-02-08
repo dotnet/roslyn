@@ -153,6 +153,36 @@ public class Test
     }
 
     [Fact]
+    public void SigningNotAvailable001()
+    {
+        string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
+        string keyFileName = Path.GetFileName(s_keyPairFile);
+
+        string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""..\", keyFileName, @""")] public class C {}");
+        var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
+
+        // verify failure 
+        var comp = CSharpCompilation.Create(
+            GetUniqueName(),
+            new[] { syntaxTree },
+            new[] { MscorlibRef },
+            TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\"))));
+
+        var provider = (DesktopStrongNameProvider)comp.Options.StrongNameProvider;
+
+        provider.alternativeGetStrongNameInterface = () =>
+        {
+            throw new DllNotFoundException("aaa.dll not found.");
+        };
+
+        comp.VerifyEmitDiagnostics(
+            // error CS7027: Error signing output with public key from file '..\KeyPair_6187d0d6-f691-47fd-985b-03570bc0668d.snk' -- aaa.dll not found.
+            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("..\\" + keyFileName, "aaa.dll not found.").WithLocation(1, 1)
+        );
+
+    }
+
+    [Fact]
     public void PubKeyFromKeyContainerAttribute()
     {
         var x = s_keyPairFile;
