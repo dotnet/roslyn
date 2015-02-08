@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.SymReaderInterop;
 using CDI = Microsoft.VisualStudio.SymReaderInterop.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
+using ImportScope = Microsoft.VisualStudio.SymReaderInterop.ImportScope;
 
 namespace Roslyn.Test.PdbUtilities
 {

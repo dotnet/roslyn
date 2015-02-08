@@ -338,6 +338,7 @@
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
+    <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
