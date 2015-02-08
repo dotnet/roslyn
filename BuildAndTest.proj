@@ -8,7 +8,7 @@
     TaskName="Xunit.Runner.MSBuild.xunit" />
 
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
-       use a 2013 compatible solution -->
+       use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
     <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
