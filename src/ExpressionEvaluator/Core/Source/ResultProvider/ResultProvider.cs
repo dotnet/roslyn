@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                var dataItem = enumContext.GetDataItem<EvalResultDataItem>();
+                var dataItem = enumContext.GetDataItem<EnumContextDataItem>().EvalResultDataItem;
                 if (dataItem == null)
                 {
                     // We don't know about this result.  Call next implementation
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return result.GetUnderlyingString();
                 }
 
-                return dataItem.Value != null ? dataItem.Value.GetUnderlyingString() : null;
+                return dataItem.Value?.GetUnderlyingString();
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var rows = builder.ToArrayAndFree();
             Debug.Assert(index >= rows.Length);
             Debug.Assert(initialRequestSize >= rows.Length);
-            var enumContext = DkmEvaluationResultEnumContext.Create(index, evaluationResult.StackFrame, evaluationResult.InspectionContext, dataItem);
+            var enumContext = DkmEvaluationResultEnumContext.Create(index, evaluationResult.StackFrame, evaluationResult.InspectionContext, dataItem.EnumContextDataItem);
             return new DkmGetChildrenAsyncResult(rows, enumContext);
         }
 

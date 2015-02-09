@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly DkmEvaluationResultCategory Category;
         public readonly DkmEvaluationResultFlags Flags;
         public readonly string EditableValue;
+        public readonly EnumContextDataItem EnumContextDataItem;
 
         public string FullName
         {
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.EditableValue = editableValue;
             this.Flags = flags | GetFlags(value) | ((expansion == null) ? DkmEvaluationResultFlags.None : DkmEvaluationResultFlags.Expandable);
             this.Expansion = expansion;
+            this.EnumContextDataItem = new EnumContextDataItem(this);
         }
 
         private static DkmEvaluationResultFlags GetFlags(DkmClrValue value)
@@ -109,6 +111,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return resultFlags;
+        }
+
+        protected override void OnClose()
+        {
+            Debug.WriteLineIf(true, "Closing " + FullName);
+            Value.Close();
         }
     }
 }
