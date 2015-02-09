@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
 
+                // Cancellation isn't supported when computing the various properties that depend on the symbol, hence
+                // CancellationToken.None.
                 _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult());
                 _lazyDisplayName = new Lazy<string>(() =>
                 {
