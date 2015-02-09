@@ -3058,15 +3058,14 @@ End Class
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
-            
-            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+
+			CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As String)' requires an object reference.
    at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
-   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
    at Program.Main()]]>)
-        End Sub
+		End Sub
 
         <WorkItem(1108007, "DevDiv")>
         <Fact()>
@@ -3368,14 +3367,13 @@ End Class
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
 
-            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+			CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As String)' requires an object reference.
    at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
-   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
    at Outer.Program.M()]]>)
-        End Sub
+		End Sub
 
         <WorkItem(1108007, "DevDiv")>
         <Fact()>

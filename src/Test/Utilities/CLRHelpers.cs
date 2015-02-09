@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Test.Utilities.ComTypes;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -64,12 +65,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return PeVerify(File.ReadAllBytes(filePath), AppDomain.CurrentDomain.Id, filePath);
         }
 
-        private static readonly object Guard = new object();
+        private static readonly Mutex Guard = new Mutex(false, new Guid().ToString());
 
         private static string[] PeVerify(byte[] peImage, int domainId, string assemblyPath)
         {
-            lock (Guard)
+            try
             {
+                Guard.WaitOne();
+
                 GCHandle pinned = GCHandle.Alloc(peImage, GCHandleType.Pinned);
                 try
                 {
@@ -105,6 +108,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     pinned.Free();
                 }
+            }
+            finally
+            {
+                Guard.ReleaseMutex();
             }
         }
 
