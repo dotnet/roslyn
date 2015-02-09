@@ -43,7 +43,9 @@
   <Target Name="Test">
 
     <ItemGroup Condition="'$(CIBuild)' == ''">
-      <TestAssemblies Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" />
+      <TestAssemblies 
+        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Exclude="Binaries\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(CIBuild)' == 'true'">

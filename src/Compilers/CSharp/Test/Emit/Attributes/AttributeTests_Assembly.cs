@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCulture, @"""\0""").WithLocation(1, 55));
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #321")]
         public void CultureAttributeMismatch()
         {
             var neutral = CreateCompilationWithMscorlib(
