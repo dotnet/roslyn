@@ -163,12 +163,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                 updatedProperty = updatedProperty.ReplaceNode(setter, setter.WithEndBlockStatement(SyntaxFactory.EndSetStatement()))
             End If
 
+            Dim gen = document.GetLanguageService(Of SyntaxGenerator)()
+
+            If getter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
+                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, {}), PropertyBlockSyntax)
+            End If
+
+            If setter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
+                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, {}), PropertyBlockSyntax)
+            End If
+
+
+#If False Then
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim propertySymbol = TryCast(semanticModel.GetDeclaredSymbol(node), IPropertySymbol)
 
             If propertySymbol IsNot Nothing Then
                 Dim codeGenService = document.GetLanguageService(Of ICodeGenerationService)()
-                Dim syntaxFactory = document.GetLanguageService(Of SyntaxGenerator)()
 
                 Dim generatedAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList(Of AttributeData)(),
                                                                                    Accessibility.Public,
@@ -184,6 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                                                                                    getMethod:=generatedAccessor,
                                                                                    setMethod:=generatedAccessor,
                                                                                    isIndexer:=propertySymbol.IsIndexer)
+
                 ' Generate any missing setter or getter
                 Dim generatedPropertyCode = DirectCast(codeGenService.CreatePropertyDeclaration(generatedProperty, options:=CodeGenerationOptions.Default), PropertyBlockSyntax)
 
@@ -195,6 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                     updatedProperty = updatedProperty.AddAccessors(generatedPropertyCode.Accessors.FirstOrDefault(Function(n) n.Kind = SyntaxKind.SetAccessorBlock))
                 End If
             End If
+#End If
 
             Dim updatedDocument = Await document.ReplaceNodeAsync(node, updatedProperty.WithAdditionalAnnotations(Formatter.Annotation), cancellationToken).ConfigureAwait(False)
             Return updatedDocument
