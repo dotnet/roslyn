@@ -77,7 +77,7 @@ The representation is optimized for an efficient deserialization of the name int
 
 MethodBody table is either empty (missing) or has exactly as many rows as MethodDef table and the following column:
 
-* _SequencePoints_ (Blob heap index, 0 if the method doesn’t have a body, encoding: [sequence points blob](SequencePointsBlob))
+* _SequencePoints_ (Blob heap index, 0 if the method doesn’t have a body, encoding: [sequence points blob](#SequencePointsBlob))
 
 The table is a logical extension of MethodDef table (adding a column to the table) and as such can be indexed by MethodDef row id.
 
