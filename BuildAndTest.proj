@@ -54,18 +54,18 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CompilerServer.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.NativeClient.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
       -->
 
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Semantic.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Syntax.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Semantic.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.FxCop.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.CSharp.UnitTests.dll" />
