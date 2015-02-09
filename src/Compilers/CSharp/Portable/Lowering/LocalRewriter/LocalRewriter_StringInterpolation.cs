@@ -64,7 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         formatString.Builder.Append(":").Append(fillin.Format.ConstantValue.StringValue);
                     }
                     formatString.Builder.Append("}");
-                    expressions.Add(fillin.Value); // NOTE: must still be lowered
+                    var value = fillin.Value;
+                    if (value.Type?.TypeKind == TypeKind.Dynamic)
+                    {
+                        value = MakeConversion(value, _compilation.ObjectType, @checked: false);
+                    }
+
+                    expressions.Add(value); // NOTE: must still be lowered
                 }
             }
 
