@@ -7,12 +7,11 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">x86</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.InteractiveWindow.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.InteractiveWindow.UnitTests</AssemblyName>
-    <PlatformTarget>x86</PlatformTarget>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -27,11 +26,9 @@
       <Name>InteractiveWindow</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
