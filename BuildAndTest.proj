@@ -3,10 +3,6 @@
   DefaultTargets="BuildAndTest"
   ToolsVersion="12.0">
 
-  <UsingTask
-    AssemblyFile="packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.runner.msbuild.dll"
-    TaskName="Xunit.Runner.MSBuild.xunit" />
-
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
        use a 2013 compatible solution. -->
   <PropertyGroup>
@@ -15,8 +11,7 @@
   </PropertyGroup>
 
   <Target Name="RestorePackages">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
+    <Exec Command="powershell -executionpolicy bypass -noprofile -file &quot;$(MSBuildThisFileDirectory)src\.nuget\NuGetRestore.ps1&quot;" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="RestorePackages">
@@ -33,7 +28,7 @@
              Targets="Clean"/>
   </Target>
 
-  <Target Name="Rebuild">
+  <Target Name="Rebuild" DependsOnTargets="RestorePackages">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
@@ -43,9 +38,7 @@
   <Target Name="Test">
 
     <ItemGroup Condition="'$(CIBuild)' == ''">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
-        Exclude="Binaries\Roslyn.Compilers.NativeClient.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(CIBuild)' == 'true'">
@@ -75,10 +68,9 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.VisualBasic.UnitTests.dll" />
     </ItemGroup>
 
-    <xunit
-      Assemblies="@(TestAssemblies)"
-      Html="UnitTestResults.html"
-      ShadowCopy="false" />
+    <exec
+      Command="packages\xunit.runners.2.0.0-rc1-build2826\tools\xunit.console.exe @(TestAssemblies, ' ') -noshadow -parallel assemblies" />
+
   </Target>
 
   <Target Name="BuildAndTest"
