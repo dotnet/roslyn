@@ -243,7 +243,7 @@ Imports blob has the following structure:
 | _target-type_       | Compressed unsigned integer. | TypeDef, TypeRef or TypeSpec encoded as TypeDefOrRefEncoded (see section 23.2.8 of the ECMA-335 Metadata specification). |
 
 | _kind_ | description |
-|:-      |:- |
+|:-------|:------------|
 | 1      | Imports members of target-namespace. |
 | 2      | Imports members of target-namespace defined in assembly target-assembly.|
 | 3      | Imports members of target-type.|
@@ -283,7 +283,7 @@ Structure:
 Each entry corresponds to an await expression in the async method.
 
 | terminal      | encoding                    | description|
-|:-             |:-                           |:-|
+|:--------------|:----------------------------|:-----------|
 | yield-offset  | compressed unsigned integer | TODO|
 | resume-offset	| compressed unsigned integer | TODO|
 | resume-method	| compressed unsigned integer | TODO (MethodDef row id)|
@@ -298,7 +298,7 @@ The CustomDebugInformation table has the following columns:
 Kind is an id defined by the tool producing the information.
 
 | HasCustomDebugInformation | tag (5 bits)|
-|:- |:-|
+|:--------------------------|:------------|
 | MethodDef|0|
 | Field|1|
 | TypeRef|2|
@@ -344,7 +344,7 @@ Structure:
     Scope::= start-offset end-offset
 
 | terminal | encoding | description|
-|:- |:- |:-|
+|:---------|:---------|:-----------|
 | _start-offset_ | Compressed unsigned integer | Start IL offset of the scope (inclusive)|
 | _end-offset_   | Compressed unsigned integer | End IL offset of the scope (exlusive)|
 
@@ -364,7 +364,7 @@ Structure:
     Blob ::= (slot-index | 0 constant-name) bit-count bit{bit-count} padding
 
 | terminal | encoding | description|
-|:- |:- |:-|
+|:---------|:---------|:-----------|
 | _slot-index_    | Compressed unsigned integer  | 1-based local signature slot index|
 | _constant-name_ | NUL-terminated UTF8 string   | Constant name|
 | _bit-count_     | Compressed unsigned integer  | Number of bits|
@@ -387,9 +387,9 @@ The blob has the following structure:
     Blob ::= (has-syntax-offset-baseline syntax-offset-baseline)? SlotId{slot count}
     SlotId ::= has-ordinal kind syntax-offset ordinal?
 
-| terminal | encoding | description
-|:- |:- |:-
-| _has-syntax-offset-baseline_ | 8 bits or none              | 0xff or not present|
+| terminal | encoding | description |
+|:---------|:---------|:------------|
+| _has-syntax-offset-baseline_ | 8 bits or none              | 0xff or not present.|
 | _syntax-offset-baseline_     | compressed unsigned integer | Negated syntax offset baseline. Only present if the minimal syntax offset stored in the slot map is less than -1. Defaults to -1 if not present.|
 | _has-ordinal_                | 1 bit (highest)             | Set iff ordinal is present.|
 | _kind_                       | 7 bits (lowest)             | Implementation specific slot kind in range [0, 0x7f).|
@@ -414,7 +414,7 @@ The blob has the following structure:
 The number of lambda entries is determined by the size of the blob (the reader shall read lambda records until the end of the blob is reached).
 
 | terminal | encoding | description|
-|:- |:- |:-|
+|:---------|:---------|:-----------|
 | _method-ordinal_ | compressed unsigned integer | Implementation specific number derived from the source location of Parent method.|
 | _syntax-offset-baseline_ | compressed unsigned integer | Negated minimum of syntax offsets stored in the map and -1.|
 | _closure-count_ | compressed unsigned integer | The number of closure entries.|
