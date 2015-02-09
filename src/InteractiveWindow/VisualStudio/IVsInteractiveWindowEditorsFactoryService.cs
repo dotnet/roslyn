@@ -2,7 +2,7 @@
 
 using System;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Editor.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.VisualStudio
 {

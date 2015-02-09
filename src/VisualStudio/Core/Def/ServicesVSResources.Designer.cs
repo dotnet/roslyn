@@ -610,15 +610,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Preview.
-        /// </summary>
-        internal static string MissingPreviewMessageText {
-            get {
-                return ResourceManager.GetString("MissingPreviewMessageText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifier.
         /// </summary>
         internal static string Modifier {
@@ -999,6 +990,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string WRN_AnalyzerChangedMessage {
             get {
                 return ResourceManager.GetString("WRN_AnalyzerChangedMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AnalyzerDependencyConflict.
+        /// </summary>
+        internal static string WRN_AnalyzerDependencyConflictId {
+            get {
+                return ResourceManager.GetString("WRN_AnalyzerDependencyConflictId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assembly &apos;{0}&apos; used by analyzer &apos;{1}&apos; and assembly &apos;{2}&apos; used by analyzer &apos;{3}&apos; have the same identity but different contents. These analyzers may not run correctly..
+        /// </summary>
+        internal static string WRN_AnalyzerDependencyConflictMessage {
+            get {
+                return ResourceManager.GetString("WRN_AnalyzerDependencyConflictMessage", resourceCulture);
             }
         }
         

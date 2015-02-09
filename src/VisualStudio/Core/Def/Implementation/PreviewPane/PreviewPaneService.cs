@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         {
             var telemetry = diagnostic == null ? false : diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry);
 
-            if ((diagnostic == null) || (diagnostic.Severity == DiagnosticSeverity.Hidden))
+            if ((diagnostic == null) || (diagnostic.Descriptor is TriggerDiagnosticDescriptor))
             {
                 return new PreviewPane(
                     null, null, null, null, null, null, telemetry, previewContent, _serviceProvider);

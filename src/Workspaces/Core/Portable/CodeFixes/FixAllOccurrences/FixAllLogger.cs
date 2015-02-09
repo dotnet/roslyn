@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 switch (fixAllContext.Scope)
                 {
                     case CodeFixes.FixAllScope.Project:
-                        m[s_documentCount] = fixAllContext.Project.DocumentIds.Count.ToString();
+                        m[s_documentCount] = fixAllContext.Project.DocumentIds.Count;
                         break;
 
                     case CodeFixes.FixAllScope.Solution:
-                        m[s_documentCount] = fixAllContext.Solution.Projects.Sum(p => p.DocumentIds.Count).ToString();
+                        m[s_documentCount] = fixAllContext.Solution.Projects.Sum(p => p.DocumentIds.Count);
                         break;
                 }
             }));
@@ -93,9 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string value;
             if (applied)
             {
-                value = allChangesApplied ?
-                    s_allChangesApplied :
-                    s_subsetOfChangesApplied;
+                value = allChangesApplied ? s_allChangesApplied : s_subsetOfChangesApplied;
             }
             else
             {
@@ -112,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, KeyValueLogMessage.Create(m =>
             {
-                m[s_documentsWithDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Keys.Count().ToString();
-                m[s_totalDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
+                m[s_documentsWithDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Keys.Count();
+                m[s_totalDiagnosticsToFix] = documentsAndDiagnosticsToFixMap.Values.Sum(v => v.Length);
             }));
         }
 
@@ -121,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, KeyValueLogMessage.Create(m =>
             {
-                m[s_projectsWithDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Keys.Count().ToString();
-                m[s_totalDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Values.Sum(v => v.Length).ToString();
+                m[s_projectsWithDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Keys.Count();
+                m[s_totalDiagnosticsToFix] = projectsAndDiagnosticsToFixMap.Values.Sum(v => v.Length);
             }));
         }
 
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, KeyValueLogMessage.Create(m =>
             {
-                m[s_totalFixesToMerge] = fixesToMerge.Count.ToString();
+                m[s_totalFixesToMerge] = fixesToMerge.Count;
             }));
         }
     }

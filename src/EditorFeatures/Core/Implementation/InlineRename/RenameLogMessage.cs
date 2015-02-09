@@ -33,20 +33,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             return KeyValueLogMessage.Create(m =>
             {
-                m[RenameInComments] = optionSet.GetOption(RenameOptions.RenameInComments).ToString();
-                m[RenameInStrings] = optionSet.GetOption(RenameOptions.RenameInStrings).ToString();
-                m[RenameOverloads] = optionSet.GetOption(RenameOptions.RenameOverloads).ToString();
+                m[RenameInComments] = optionSet.GetOption(RenameOptions.RenameInComments);
+                m[RenameInStrings] = optionSet.GetOption(RenameOptions.RenameInStrings);
+                m[RenameOverloads] = optionSet.GetOption(RenameOptions.RenameOverloads);
 
-                m[Committed] = ((outcome & UserActionOutcome.Committed) == UserActionOutcome.Committed).ToString();
-                m[Canceled] = ((outcome & UserActionOutcome.Canceled) == UserActionOutcome.Canceled).ToString();
+                m[Committed] = (outcome & UserActionOutcome.Committed) == UserActionOutcome.Committed;
+                m[Canceled] = (outcome & UserActionOutcome.Canceled) == UserActionOutcome.Canceled;
 
-                m[ConflictResolutionFinishedComputing] = conflictResolutionFinishedComputing.ToString();
-                m[PreviewChanges] = previewChanges.ToString();
+                m[ConflictResolutionFinishedComputing] = conflictResolutionFinishedComputing;
+                m[PreviewChanges] = previewChanges;
 
-                m[RenamedIdentifiersWithoutConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.NoConflict).ToString();
-                m[ResolvableReferenceConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.ResolvedReferenceConflict).ToString();
-                m[ResolvableNonReferenceConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.ResolvedNonReferenceConflict).ToString();
-                m[UnresolvableConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.UnresolvedConflict).ToString();
+                m[RenamedIdentifiersWithoutConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.NoConflict);
+                m[ResolvableReferenceConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.ResolvedReferenceConflict);
+                m[ResolvableNonReferenceConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.ResolvedNonReferenceConflict);
+                m[UnresolvableConflicts] = replacementKinds.Count(r => r == InlineRenameReplacementKind.UnresolvedConflict);
             });
         }
 

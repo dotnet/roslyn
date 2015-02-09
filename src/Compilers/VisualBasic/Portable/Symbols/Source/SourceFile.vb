@@ -1,17 +1,17 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SourceFile
+        Implements Cci.IImportScope
+
         Private ReadOnly m_sourceModule As SourceModuleSymbol
         Private ReadOnly m_syntaxTree As SyntaxTree
 
@@ -29,6 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private m_lazyQuickAttributeChecker As QuickAttributeChecker
+
+        Private m_lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
 
         ''' <summary>
         ''' The bound information from a file.
@@ -265,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         cancellationToken.ThrowIfCancellationRequested()
-                        Binder.BindImportClause(clause, data, diagBag)
+                        binder.BindImportClause(clause, data, diagBag)
                     Next
                 Next
 
@@ -420,6 +422,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagBag As DiagnosticBag = DiagnosticBag.GetInstance()
             BindFileInformation(diagBag, cancellationToken, filterSpan)
             Return diagBag.ToReadOnlyAndFree()
+        End Function
+
+        Public ReadOnly Property Parent As Cci.IImportScope Implements Cci.IImportScope.Parent
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Function GetUsedNamespaces(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+            If m_lazyTranslatedImports.IsDefault Then
+                ImmutableInterlocked.InterlockedInitialize(m_lazyTranslatedImports, TranslateImports(context))
+            End If
+
+            Return m_lazyTranslatedImports
+        End Function
+
+        Private Function TranslateImports(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType)
+            Return NamespaceScopeBuilder.BuildNamespaceScope(context,
+                                                             XmlNamespaces,
+                                                             If(AliasImports IsNot Nothing, AliasImports.Values, Nothing),
+                                                             MemberImports)
         End Function
     End Class
 End Namespace

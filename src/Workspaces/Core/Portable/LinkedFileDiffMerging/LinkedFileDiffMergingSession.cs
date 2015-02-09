@@ -351,9 +351,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return KeyValueLogMessage.Create(m =>
                 {
-                    m[SessionId] = sessionId.ToString();
-
-                    m[HasLinkedFile] = (sessionInfo.LinkedFileGroups.Count > 0).ToString();
+                    m[SessionId] = sessionId;
+                    m[HasLinkedFile] = sessionInfo.LinkedFileGroups.Count > 0;
                 });
             }
 
@@ -361,17 +360,17 @@ namespace Microsoft.CodeAnalysis
             {
                 return KeyValueLogMessage.Create(m =>
                 {
-                    m[SessionId] = sessionId.ToString();
+                    m[SessionId] = sessionId;
 
-                    m[LinkedDocuments] = groupInfo.LinkedDocuments.ToString();
-                    m[DocumentsWithChanges] = groupInfo.DocumentsWithChanges.ToString();
-                    m[IdenticalDiffs] = groupInfo.IdenticalDiffs.ToString();
-                    m[IsolatedDiffs] = groupInfo.IsolatedDiffs.ToString();
-                    m[OverlappingDistinctDiffs] = groupInfo.OverlappingDistinctDiffs.ToString();
-                    m[OverlappingDistinctDiffsWithSameSpan] = groupInfo.OverlappingDistinctDiffsWithSameSpan.ToString();
-                    m[OverlappingDistinctDiffsWithSameSpanAndSubstringRelation] = groupInfo.OverlappingDistinctDiffsWithSameSpanAndSubstringRelation.ToString();
-                    m[InsertedMergeConflictComments] = groupInfo.InsertedMergeConflictComments.ToString();
-                    m[InsertedMergeConflictCommentsAtAdjustedLocation] = groupInfo.InsertedMergeConflictCommentsAtAdjustedLocation.ToString();
+                    m[LinkedDocuments] = groupInfo.LinkedDocuments;
+                    m[DocumentsWithChanges] = groupInfo.DocumentsWithChanges;
+                    m[IdenticalDiffs] = groupInfo.IdenticalDiffs;
+                    m[IsolatedDiffs] = groupInfo.IsolatedDiffs;
+                    m[OverlappingDistinctDiffs] = groupInfo.OverlappingDistinctDiffs;
+                    m[OverlappingDistinctDiffsWithSameSpan] = groupInfo.OverlappingDistinctDiffsWithSameSpan;
+                    m[OverlappingDistinctDiffsWithSameSpanAndSubstringRelation] = groupInfo.OverlappingDistinctDiffsWithSameSpanAndSubstringRelation;
+                    m[InsertedMergeConflictComments] = groupInfo.InsertedMergeConflictComments;
+                    m[InsertedMergeConflictCommentsAtAdjustedLocation] = groupInfo.InsertedMergeConflictCommentsAtAdjustedLocation;
                 });
             }
 

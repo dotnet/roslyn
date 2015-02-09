@@ -5693,7 +5693,8 @@ End Module
             Assert.Contains("BC2032", outWriter.ToString())
         End Sub
 
-        <Fact>
+        <WorkItem(1119609, "DevDiv")>
+        <Fact(Skip:="1119609")>
         Public Sub PreferredUILang()
             Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang"}).Run(outWriter, Nothing)

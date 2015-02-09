@@ -811,5 +811,60 @@ public class C
                 "C.<>c__DisplayClass1#1_0: {a, <F>b__2}",
                 "C.<>c__DisplayClass1#2_0: {a, <F>b__2}");
         }
+
+        [Fact]
+        public void NestedLambdas()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 1</N:1>)</N:0>);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
     }
 }

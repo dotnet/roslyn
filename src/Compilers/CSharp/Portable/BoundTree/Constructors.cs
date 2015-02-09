@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool NeedsByValueFieldAccess(BoundExpression receiver, FieldSymbol fieldSymbol)
         {
-            if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsValueType)
+            if (fieldSymbol.IsStatic ||
+                !fieldSymbol.ContainingType.IsValueType ||
+                (object)receiver == null) // receiver may be null in error cases
             {
                 return false;
             }

@@ -1030,9 +1030,6 @@ namespace Roslyn.Test.PdbUtilities
                 writer.WriteStartElement("entry");
                 writer.WriteAttributeString("offset", AsILOffset(sequencePoint.Offset));
 
-                // If it's a special 0xFeeFee sequence point (eg, "hidden"), 
-                // place an attribute on it to make it very easy for tools to recognize.
-                // See http://blogs.msdn.com/jmstall/archive/2005/06/19/FeeFee_SequencePoints.aspx
                 if (sequencePoint.IsHidden)
                 {
                     if (sequencePoint.StartLine != sequencePoint.EndLine || sequencePoint.StartColumn != 0 || sequencePoint.EndColumn != 0)
@@ -1052,10 +1049,9 @@ namespace Roslyn.Test.PdbUtilities
                     writer.WriteAttributeString("endColumn", CultureInvariantToString(sequencePoint.EndColumn));
                 }
 
-                //EDMAURER allow there to be PDBs generated for sources that don't have a name (document).
-                int fileRefVal = -1;
-                this.m_fileMapping.TryGetValue(sequencePoint.Document.GetName(), out fileRefVal);
-                writer.WriteAttributeString("document", CultureInvariantToString(fileRefVal));
+                int documentId;
+                this.m_fileMapping.TryGetValue(sequencePoint.Document.GetName(), out documentId);
+                writer.WriteAttributeString("document", CultureInvariantToString(documentId));
 
                 writer.WriteEndElement();
             }
@@ -1312,37 +1308,6 @@ namespace Roslyn.Test.PdbUtilities
         internal static string AsILOffset(int i)
         {
             return string.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
-        }
-
-        internal static int ToInt32(string input)
-        {
-            return ToInt32(input, 10);
-        }
-
-        internal static int ToInt32(string input, int numberBase)
-        {
-            return Convert.ToInt32(input, numberBase);
-        }
-
-        internal static string ToHexString(byte[] input)
-        {
-            PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
-            StringBuilder sb = pooled.Builder;
-            foreach (byte b in input)
-            {
-                sb.AppendFormat("{0:X2}", b);
-            }
-            return pooled.ToStringAndFree();
-        }
-
-        internal static byte[] ToByteArray(string input)
-        {
-            byte[] retval = new byte[input.Length];
-            for (int i = 0; i < input.Length; i++)
-            {
-                retval[i] = Convert.ToByte(input[i]);
-            }
-            return retval;
         }
 
         internal static string CultureInvariantToString(int input)

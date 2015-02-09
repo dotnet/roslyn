@@ -7,9 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.Runtime.Hosting.Interop;
+using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Instrumentation;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,6 +43,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
+
+        // for testing/mocking
+        internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
         /// <summary>
         /// Creates an instance of <see cref="DesktopStrongNameProvider"/>.
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis
             {
                 publicKey = GetPublicKey(keyContainer);
             }
-            catch (COMException ex)
+            catch (Exception ex)
             {
                 throw new IOException(ex.Message);
             }
@@ -173,21 +175,20 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 fileContent = ReadAllBytes(fullPath);
+                if (IsPublicKeyBlob(fileContent))
+                {
+                    publicKey = ImmutableArray.CreateRange(fileContent);
+                    keyPair = default(ImmutableArray<byte>);
+                }
+                else
+                {
+                    publicKey = GetPublicKey(fileContent);
+                    keyPair = ImmutableArray.CreateRange(fileContent);
+                }
             }
             catch (Exception ex)
             {
                 throw new IOException(ex.Message);
-            }
-
-            if (IsPublicKeyBlob(fileContent))
-            {
-                publicKey = ImmutableArray.CreateRange(fileContent);
-                keyPair = default(ImmutableArray<byte>);
-            }
-            else
-            {
-                publicKey = GetPublicKey(fileContent);
-                keyPair = ImmutableArray.CreateRange(fileContent);
             }
         }
 
@@ -227,19 +228,15 @@ namespace Microsoft.CodeAnalysis
         // public key to establish the assembly name and another to do 
         // the actual signing
 
-        private static Guid s_CLSID_CLRStrongName =
-            new Guid(0xB79B0ACD, 0xF5CD, 0x409b, 0xB5, 0xA5, 0xA1, 0x62, 0x44, 0x61, 0x0B, 0x92);
-
         // internal for testing
-        internal static ICLRStrongName GetStrongNameInterface()
+        internal IClrStrongName GetStrongNameInterface()
         {
-            return ClrMetaHost.CurrentRuntime.GetInterface<ICLRStrongName>(s_CLSID_CLRStrongName);
+            return TestStrongNameInterfaceFactory?.Invoke() ?? ClrStrongName.GetInstance();
         }
 
-        // internal for testing
-        internal static ImmutableArray<byte> GetPublicKey(string keyContainer)
+        internal ImmutableArray<byte> GetPublicKey(string keyContainer)
         {
-            ICLRStrongName strongName = GetStrongNameInterface();
+            IClrStrongName strongName = GetStrongNameInterface();
 
             IntPtr keyBlob;
             int keyBlobByteCount;
@@ -269,15 +266,17 @@ namespace Microsoft.CodeAnalysis
         //            GET_ALG_CLASS(VAL32(p->HashAlgID)) == ALG_CLASS_HASH);         // is it a valid hash alg?
         //}
 
-        private const uint ALG_CLASS_SIGNATURE = 1 << 13;
-        private const uint ALG_CLASS_HASH = 4 << 13;
-
         private static uint GET_ALG_CLASS(uint x) { return x & (7 << 13); }
 
         internal static unsafe bool IsPublicKeyBlob(byte[] keyFileContents)
         {
+            const uint ALG_CLASS_SIGNATURE = 1 << 13;
+            const uint ALG_CLASS_HASH = 4 << 13;
+
             if (keyFileContents.Length < (4 * 3))
+            {
                 return false;
+            }
 
             fixed (byte* p = keyFileContents)
             {
@@ -289,7 +288,7 @@ namespace Microsoft.CodeAnalysis
 
         // internal for testing
         /// <exception cref="IOException"/>
-        internal static ImmutableArray<byte> GetPublicKey(byte[] keyFileContents)
+        internal ImmutableArray<byte> GetPublicKey(byte[] keyFileContents)
         {
             try
             {
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis
                     return lastSeen.Item2;
                 }
 
-                ICLRStrongName strongName = GetStrongNameInterface();
+                IClrStrongName strongName = GetStrongNameInterface();
 
                 IntPtr keyBlob;
                 int keyBlobByteCount;
@@ -309,14 +308,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     fixed (byte* p = keyFileContents)
                     {
-                        try
-                        {
-                            strongName.StrongNameGetPublicKey(null, (IntPtr)p, keyFileContents.Length, out keyBlob, out keyBlobByteCount);
-                        }
-                        catch (ArgumentException ex)
-                        {
-                            throw new IOException(ex.Message);
-                        }
+                        strongName.StrongNameGetPublicKey(null, (IntPtr)p, keyFileContents.Length, out keyBlob, out keyBlobByteCount);
                     }
                 }
 
@@ -329,71 +321,34 @@ namespace Microsoft.CodeAnalysis
 
                 return result;
             }
-            catch (COMException ex)
+            catch (Exception ex)
             {
                 throw new IOException(ex.Message);
             }
         }
 
-        /*  leave this out for now. We'll make the command line compilers have this behavior, but
-         * not the compiler library. This differs from previous versions because specifying a keyfile
-         * and container through either the command line or attributes gave this "install the key" behavior.
-         * 
-         * 
-        //EDMAURER alink had weird, MSDN spec'd behavior. from MSDN "In case both /keyfile and /keycontainer are 
-        //specified (either by command-line option or by custom attribute) in the same compilation, the compiler 
-        //first tries the key container. If that succeeds, then the assembly is signed with the information in the 
-        //key container. If the compiler does not find the key container, it tries the file specified with /keyfile. 
-        //If this succeeds, the assembly is signed with the information in the key file, and the key information is 
-        //installed in the key container (similar to sn -i) so that on the next compilation, the key container will 
-        //be valid.
-
-        private static ImmutableArray<byte> GetPublicKeyAndPossiblyInstall(string keyFilename, string keyContainer)
-        {
-            if (keyContainer != null)
-            {
-                ImmutableArray<byte> result = GetPublicKey(keyContainer);
-
-                if (result.IsNotNull)
-                    return result;
-            }
-
-            if (keyFilename != null)
-            {
-                byte[] keyFileContents = System.IO.File.ReadAllBytes(keyFilename);
-
-                if (keyContainer != null)
-                    InstallKey(keyFileContents, keyFilename);
-
-                return GetPublicKey(keyFileContents);
-            }
-
-            return default(ImmutableArray<byte>);
-        }
-         */
-
         /// <exception cref="IOException"/>
-        private static void Sign(string filePath, string keyName)
+        private void Sign(string filePath, string keyName)
         {
             try
             {
-                ICLRStrongName strongName = GetStrongNameInterface();
+                IClrStrongName strongName = GetStrongNameInterface();
 
                 int unused;
                 strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, out unused);
             }
-            catch (COMException ex)
+            catch (Exception ex)
             {
                 throw new IOException(ex.Message, ex);
             }
         }
 
         /// <exception cref="IOException"/>
-        private static unsafe void Sign(string filePath, ImmutableArray<byte> keyPair)
+        private unsafe void Sign(string filePath, ImmutableArray<byte> keyPair)
         {
             try
             {
-                ICLRStrongName strongName = GetStrongNameInterface();
+                IClrStrongName strongName = GetStrongNameInterface();
 
                 fixed (byte* pinned = keyPair.ToArray())
                 {
@@ -401,7 +356,7 @@ namespace Microsoft.CodeAnalysis
                     strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, out unused);
                 }
             }
-            catch (COMException ex)
+            catch (Exception ex)
             {
                 throw new IOException(ex.Message, ex);
             }

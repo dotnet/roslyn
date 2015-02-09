@@ -1,0 +1,84 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Diagnostics;
+using System.Reflection;
+using Microsoft.VisualStudio.Debugger;
+
+#if !EXPRESSIONCOMPILER
+using Microsoft.CodeAnalysis.ErrorReporting;
+
+#endif
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+{
+    internal static class ExpressionEvaluatorFatalError
+    {
+        private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
+        private const string RegistryValue = "EnableFailFast";
+        private static readonly bool s_isFailFastEnabled;
+
+        static ExpressionEvaluatorFatalError()
+        {
+            try
+            {
+                // Microsoft.Win32.Registry is not supported on OneCore/CoreSystem,
+                // so we have to check to see if it's there at runtime.
+                var registry = typeof(object).Assembly.GetType("Microsoft.Win32.Registry");
+                if (registry != null)
+                {
+                    var hKeyCurrentUserField = registry.GetField("CurrentUser", BindingFlags.Static | BindingFlags.Public);
+                    using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
+                    {
+                        var openSubKeyMethod = currentUserKey.GetType().GetMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+                        using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
+                        {
+                            if (eeKey != null)
+                            {
+                                var getValueMethod = eeKey.GetType().GetMethod("GetValue", new Type[] { typeof(string) });
+                                var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
+                                if ((value != null) && (value is int))
+                                {
+                                    s_isFailFastEnabled = ((int)value == 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Assert(false, "Failure checking registry key: " + ex.ToString());
+            }
+        }
+
+        internal static bool CrashIfFailFastEnabled(Exception exception)
+        {
+            if (!s_isFailFastEnabled)
+            {
+                return false;
+            }
+
+            if (exception is NotImplementedException)
+            {
+                // This is part of the dispatcher mechanism.  A NotImplementedException indicates
+                // that another component should handle the call.
+                return false;
+            }
+
+            var dkmException = exception as DkmException;
+            if (dkmException != null)
+            {
+                switch (dkmException.Code)
+                {
+                    case DkmExceptionCode.E_PROCESS_DESTROYED:
+                    case DkmExceptionCode.E_XAPI_REMOTE_CLOSED:
+                    case DkmExceptionCode.E_XAPI_REMOTE_DISCONNECTED:
+                    case DkmExceptionCode.E_XAPI_COMPONENT_DLL_NOT_FOUND:
+                        return false;
+                }
+            }
+
+            return FatalError.Report(exception);
+        }
+    }
+}

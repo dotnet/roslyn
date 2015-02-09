@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 m[From] = from;
                 m[Id] = telemetry ? id : id.GetHashCode().ToString();
-                m[HasDescription] = description.ToString();
+                m[HasDescription] = description;
                 m[Uri] = telemetry ? uri : uri.GetHashCode().ToString();
             }));
         }

@@ -423,9 +423,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
-  <data name="MissingPreviewMessageText" xml:space="preserve">
-    <value>No Preview</value>
-  </data>
   <data name="PreviewChangesAddedPrefix" xml:space="preserve">
     <value>[+] </value>
   </data>
@@ -443,5 +440,11 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="PreviewChangesProjectReference" xml:space="preserve">
     <value>Project reference to '{0}' in project '{1}'</value>
+  </data>
+  <data name="WRN_AnalyzerDependencyConflictId" xml:space="preserve">
+    <value>AnalyzerDependencyConflict</value>
+  </data>
+  <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
+    <value>Assembly '{0}' used by analyzer '{1}' and assembly '{2}' used by analyzer '{3}' have the same identity but different contents. These analyzers may not run correctly.</value>
   </data>
 </root>

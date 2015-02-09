@@ -78,13 +78,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return memberAccessExpression.Expression
             End If
 
+            ' Maybe we're part of a ConditionalAccessExpression
+            Dim conditional = memberAccessExpression.GetCorrespondingConditionalAccessExpression()
+            If conditional IsNot Nothing Then
+                If conditional.Parent.IsKind(SyntaxKind.ExpressionStatement) AndAlso conditional.Parent.Parent.IsKind(SyntaxKind.WithBlock) AndAlso
+                    conditional.Expression Is Nothing Then
+
+                    Return DirectCast(conditional.Parent.Parent, WithBlockSyntax).WithStatement.Expression
+                End If
+
+                Return conditional.Expression
+            End If
+
             ' we have a member access expression with a null expression, this may be one of the
             ' following forms:
             '
             ' 1) new With { .a = 1, .b = .a     <-- .a refers to the anonymous type
             ' 2) With obj : .m                  <-- .m refers to the obj type
             ' 3) new T() With { .a = 1, .b = .a <-- 'a refers to the T type
-            ' 4) With obj : ?.m                 <-- .m refers to the obj type
 
             Dim current As SyntaxNode = memberAccessExpression
 
@@ -99,12 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ElseIf TypeOf current Is ObjectMemberInitializerSyntax AndAlso
                        TypeOf current.Parent Is ObjectCreationExpressionSyntax Then
                     Return DirectCast(current.Parent, ExpressionSyntax)
-                ElseIf current.IsKind(SyntaxKind.ConditionalAccessExpression) Then
-                    Dim conditionalAccess = DirectCast(current, ConditionalAccessExpressionSyntax)
-
-                    If conditionalAccess.Expression IsNot Nothing Then
-                        Return conditionalAccess.Expression
-                    End If
                 End If
 
                 current = current.Parent

@@ -1103,5 +1103,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Next
             Next
         End Function
+
+        ''' <summary>
+        ''' Given an expression within a tree of <see cref="ConditionalAccessExpressionSyntax"/>s, 
+        ''' finds the <see cref="ConditionalAccessExpressionSyntax"/> that it is part of.
+        ''' </summary>
+        ''' <param name="node"></param>
+        ''' <returns></returns>
+        <Extension>
+        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            Dim access As SyntaxNode = node
+            Dim parent As SyntaxNode = access.Parent
+
+            While parent IsNot Nothing
+                Select Case parent.Kind
+                    Case SyntaxKind.DictionaryAccessExpression,
+                         SyntaxKind.SimpleMemberAccessExpression
+
+                        If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.XmlElementAccessExpression,
+                         SyntaxKind.XmlDescendantAccessExpression,
+                         SyntaxKind.XmlAttributeAccessExpression
+
+                        If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.InvocationExpression
+
+                        If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.ConditionalAccessExpression
+
+                        Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
+                        If conditional.WhenNotNull Is access Then
+                            Return conditional
+                        ElseIf conditional.Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case Else
+                        Return Nothing
+                End Select
+
+                access = parent
+                parent = access.Parent
+            End While
+
+            Return Nothing
+        End Function
     End Module
 End Namespace

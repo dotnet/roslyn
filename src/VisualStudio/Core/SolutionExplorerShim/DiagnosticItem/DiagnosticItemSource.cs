@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 Logger.Log(
                     FunctionId.SolutionExplorer_DiagnosticItemSource_GetItems,
-                    KeyValueLogMessage.Create(m => { m["Count"] = _diagnosticItems.Count.ToString(); }));
+                    KeyValueLogMessage.Create(m => m["Count"] = _diagnosticItems.Count));
 
                 return _diagnosticItems;
             }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public ProjectFileReference(string path, ImmutableArray<string> aliases)
         {
+            Debug.Assert(!aliases.IsDefault);
+
             this.Path = path;
             this.Aliases = aliases;
         }

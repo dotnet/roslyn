@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CancellationToken _cancellationToken;
         private readonly DiagnosticBag _diagnostics;
         private readonly bool _hasDeclarationErrors;
-        private readonly NamespaceScopeBuilder _namespaceScopeBuilder;
         private readonly PEModuleBuilder _moduleBeingBuiltOpt; // Null if compiling for diagnostics
         private readonly Predicate<Symbol> _filterOpt;         // If not null, limit analysis to specific symbols
         private readonly DebugDocumentProvider _debugDocumentProvider;
@@ -94,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (generateDebugInfo)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
-                _namespaceScopeBuilder = new NamespaceScopeBuilder(compilation, new EmitContext(moduleBeingBuiltOpt, null, diagnostics));
             }
         }
 
@@ -238,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     variableSlotAllocatorOpt: null,
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
-                    namespaceScopes: default(ImmutableArray<Cci.NamespaceScope>));
+                    importChainOpt: null, 
+                    generateDebugInfo: false);
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody);
                 moduleBeingBuilt.AddSynthesizedDefinition(compilation.ScriptClass, scriptEntryPoint);
@@ -294,15 +293,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
-            {
-            try
-            {
-                CompileNamespace(symbol);
-            }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
                 {
-                throw ExceptionUtilities.Unreachable;
-            }
+                    try
+                    {
+                        CompileNamespace(symbol);
+                    }
+            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
             }), _cancellationToken);
         }
 
@@ -340,15 +339,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
-            {
-            try
-            {
-                CompileNamedType(symbol);
-            }
-            catch (Exception e) when(FatalError.Report(e))
                 {
-                throw ExceptionUtilities.Unreachable;
-            }
+                    try
+                    {
+                        CompileNamedType(symbol);
+                    }
+            catch (Exception e) when(FatalError.Report(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
             }), _cancellationToken);
         }
 
@@ -422,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 submissionCtorOrdinal = memberOrdinal;
                                 continue;
                             }
-
+                                
                             if (IsFieldLikeEventAccessor(method))
                             {
                                 continue;
@@ -623,7 +622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         variableSlotAllocatorOpt,
                         diagnosticsThisMethod,
                         _debugDocumentProvider,
-                        GetNamespaceScopes(method, methodWithBody.DebugImports));
+                        methodWithBody.ImportChainOpt,
+                        generateDebugInfo: _generateDebugInfo && method.GenerateDebugInfo);
                 }
 
                 _diagnostics.AddRange(diagnosticsThisMethod);
@@ -637,14 +637,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody);
             }
-        }
-
-        private ImmutableArray<Cci.NamespaceScope> GetNamespaceScopes(MethodSymbol method, ConsList<Imports> debugImports)
-        {
-            Debug.Assert(_generateDebugInfo == (_namespaceScopeBuilder != null));
-
-            return (_generateDebugInfo && method.GenerateDebugInfo) ?
-                _namespaceScopeBuilder.GetNamespaceScopes(debugImports) : default(ImmutableArray<Cci.NamespaceScope>);
         }
 
         private static bool IsFieldLikeEventAccessor(MethodSymbol method)
@@ -724,7 +716,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         variableSlotAllocatorOpt: null,
                         diagnostics: diagnosticsThisMethod,
                         debugDocumentProvider: _debugDocumentProvider,
-                        namespaceScopes: default(ImmutableArray<Cci.NamespaceScope>));
+                        importChainOpt: null,
+                        generateDebugInfo: false);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -794,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ConsList<Imports> oldDebugImports = compilationState.CurrentDebugImports;
+            ImportChain oldImportChain = compilationState.CurrentImportChain;
 
             // In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
             DiagnosticBag diagsForCurrentMethod = DiagnosticBag.GetInstance();
@@ -825,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // initializers that have been analyzed but not yet lowered.
                 BoundStatementList analyzedInitializers = null;
 
-                ConsList<Imports> debugImports;
+                ImportChain importChain;
 
                 if (methodSymbol.IsScriptConstructor)
                 {
@@ -836,17 +829,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = new BoundBlock(initializerStatements.Syntax, ImmutableArray<LocalSymbol>.Empty, initializerStatements.Statements) { WasCompilerGenerated = true };
                     includeInitializersInBody = false;
 
-                    debugImports = null;
+                    importChain = null;
                 }
                 else
                 {
                     // Do not emit initializers if we are invoking another constructor of this class.
 
                     SourceMemberContainerTypeSymbol container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
-                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
+                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && 
                                                 !HasThisConstructorInitializer(methodSymbol);
 
-                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, _generateDebugInfo, out debugImports);
+                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, _generateDebugInfo, out importChain);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -880,22 +873,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from the first field initializer.
                 if (_generateDebugInfo)
                 {
-                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) &&
+                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) && 
                         methodSymbol.IsImplicitlyDeclared && body == null)
                     {
                         // There was no body to bind, so we didn't get anything from BindMethodBody.
-                        Debug.Assert(debugImports == null);
+                        Debug.Assert(importChain == null);
                     }
 
                     // Either there were no field initializers or we grabbed debug imports from the first one.
-                    Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstDebugImports != null);
+                    Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstImportChain != null);
                 }
 #endif
 
-                debugImports = debugImports ?? processedInitializers.FirstDebugImports;
+                importChain = importChain ?? processedInitializers.FirstImportChain;
 
                 // Associate these debug imports with all methods generated from this one.
-                compilationState.CurrentDebugImports = debugImports;
+                compilationState.CurrentImportChain = importChain;
 
                 if (body != null)
                 {
@@ -1086,7 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lazyVariableSlotAllocator,
                             diagsForCurrentMethod,
                             _debugDocumentProvider,
-                            GetNamespaceScopes(methodSymbol, debugImports));
+                            importChain,
+                            _generateDebugInfo && methodSymbol.GenerateDebugInfo);
 
                         _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
                     }
@@ -1102,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 diagsForCurrentMethod.Free();
-                compilationState.CurrentDebugImports = oldDebugImports;
+                compilationState.CurrentImportChain = oldImportChain;
             }
         }
 
@@ -1238,19 +1232,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
             int methodOrdinal,
-            BoundStatement block,
+            BoundStatement block, 
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
-            ImmutableArray<Cci.NamespaceScope> namespaceScopes)
+            ImportChain importChainOpt,
+            bool generateDebugInfo)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
 
-            bool emittingPdbs = !namespaceScopes.IsDefault;
             var compilation = moduleBuilder.Compilation;
             var localSlotManager = new LocalSlotManager(variableSlotAllocatorOpt);
             var optimizations = compilation.Options.OptimizationLevel;
@@ -1261,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdbs);
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, generateDebugInfo);
 
                 // We need to save additional debugging information for MoveNext of an async state machine.
                 var stateMachineMethod = method as SynthesizedStateMachineMethod;
@@ -1334,8 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedExceptionHandlers,
                     builder.GetAllScopes(),
                     builder.HasDynamicLocal,
-                    namespaceScopes,
-                    Cci.NamespaceScopeEncoding.InPlace,
+                    importChainOpt,
                     lambdaDebugInfo,
                     closureDebugInfo,
                     stateMachineTypeOpt?.Name,
@@ -1357,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void GetStateMachineSlotDebugInfo(
-            IEnumerable<Cci.IFieldDefinition> fieldDefs,
+            IEnumerable<Cci.IFieldDefinition> fieldDefs, 
             out ImmutableArray<EncHoistedLocalInfo> hoistedVariableSlots,
             out ImmutableArray<Cci.ITypeReference> awaiterSlots)
         {
@@ -1400,14 +1393,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            ConsList<Imports> unused;
+            ImportChain unused;
             return BindMethodBody(method, compilationState, diagnostics, false, out unused);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ConsList<Imports> debugImports)
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ImportChain importChain)
         {
-            debugImports = null;
+            importChain = null;
 
             var compilation = method.DeclaringCompilation;
             BoundStatement constructorInitializer = null;
@@ -1458,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = binder.BindBlock(blockSyntax, diagnostics);
                     if (generateDebugInfo)
                     {
-                        debugImports = binder.ImportsList;
+                        importChain = binder.ImportChain;
                     }
 
                     if (inMethodBinder.IsDirectlyInIterator)

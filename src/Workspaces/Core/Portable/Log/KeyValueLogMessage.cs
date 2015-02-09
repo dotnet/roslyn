@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private static readonly ObjectPool<KeyValueLogMessage> s_pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
 
-        public static KeyValueLogMessage Create(Action<Dictionary<string, string>> propertySetter)
+        public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {
             var logMessage = s_pool.Allocate();
             logMessage.Constrcut(propertySetter);
@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return logMessage;
         }
 
-        private Dictionary<string, string> _map = null;
-        private Action<Dictionary<string, string>> _propertySetter = null;
+        private Dictionary<string, object> _map = null;
+        private Action<Dictionary<string, object>> _propertySetter = null;
 
         private KeyValueLogMessage()
         {
             // prevent it from being created directly
         }
 
-        private void Constrcut(Action<Dictionary<string, string>> propertySetter)
+        private void Constrcut(Action<Dictionary<string, object>> propertySetter)
         {
             _propertySetter = propertySetter;
         }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
         }
 
-        public IEnumerable<KeyValuePair<string, string>> Properties
+        public IEnumerable<KeyValuePair<string, object>> Properties
         {
             get
             {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             if (_map != null)
             {
-                SharedPools.Default<Dictionary<string, string>>().ClearAndFree(_map);
+                SharedPools.Default<Dictionary<string, object>>().ClearAndFree(_map);
                 _map = null;
             }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             if (_map == null && _propertySetter != null)
             {
-                _map = SharedPools.Default<Dictionary<string, string>>().AllocateAndClear();
+                _map = SharedPools.Default<Dictionary<string, object>>().AllocateAndClear();
                 _propertySetter(_map);
             }
         }

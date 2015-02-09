@@ -17,6 +17,7 @@
              FocusManager.FocusedElement="{Binding ElementName=interfaceNameTextBox}"
              ResizeMode="CanResizeWithGrip"
              ShowInTaskbar="False"
+             HasDialogFrame="True"
              WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <Style TargetType="ListBoxItem">

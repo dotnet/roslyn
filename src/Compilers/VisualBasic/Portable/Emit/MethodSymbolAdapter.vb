@@ -502,5 +502,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return securityAttributes
             End Get
         End Property
+
+        Private ReadOnly Property IMethodDefinition_ContainingNamespace As Cci.INamespace Implements Cci.IMethodDefinition.ContainingNamespace
+            Get
+                Return ContainingNamespace
+            End Get
+        End Property
     End Class
 End Namespace

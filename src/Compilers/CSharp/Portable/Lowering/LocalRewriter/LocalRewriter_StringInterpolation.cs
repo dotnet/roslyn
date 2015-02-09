@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeConversion(result, conversion.Type, @checked: false);
+                result = MakeImplicitConversion(result, conversion.Type);
             }
 
             return result;
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeConversion(result, node.Type, @checked: false);
+                result = MakeImplicitConversion(result, node.Type);
             }
             return result;
         }

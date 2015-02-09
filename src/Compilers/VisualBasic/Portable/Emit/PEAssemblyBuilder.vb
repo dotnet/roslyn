@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEModuleBuilder
         Implements Cci.IAssembly
 
-        Private ReadOnly m_SourceAssembly As SourceAssemblySymbol
+        Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
         Private ReadOnly m_AdditionalTypes As ImmutableArray(Of NamedTypeSymbol)
         Private m_LazyFiles As ImmutableArray(Of Cci.IFileReference)
 
@@ -167,6 +167,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Private Function IAssemblyReferenceGetDisplayName() As String Implements Cci.IAssemblyReference.GetDisplayName
+            Return m_SourceAssembly.Identity.GetDisplayName()
+        End Function
+
         Friend Overrides ReadOnly Property Name As String
             Get
                 Return m_MetadataName
@@ -206,5 +210,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
     End Class
-
 End Namespace

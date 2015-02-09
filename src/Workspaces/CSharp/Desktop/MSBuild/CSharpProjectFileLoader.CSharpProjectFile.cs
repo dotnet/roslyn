@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var filePath = GetDocumentFilePath(mr);
 
                     var aliases = GetAliases(mr);
-                    if (aliases.IsDefault || aliases.IsEmpty)
+                    if (aliases.IsDefaultOrEmpty)
                     {
                         args.Add("/r:\"" + filePath + "\"");
                     }

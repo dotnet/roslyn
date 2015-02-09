@@ -114,18 +114,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _analyzerIdMap.Values.Flatten();
                     }
 
-                    public ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>> GetAllDiagnosticAnalyzers()
-                    {
-                        var analyzers = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticAnalyzer>>();
-
-                        foreach (var item in _analyzerIdMap)
-                        {
-                            analyzers.Add(item.Key, item.Value.Keys);
-                        }
-
-                        return analyzers.ToImmutable();
-                    }
-
                     public DiagnosticState GetOrCreateDiagnosticState(StateType stateType, ProviderId providerId, DiagnosticAnalyzer provider)
                     {
                         Contract.ThrowIfFalse(providerId >= _startAnalyzerId);

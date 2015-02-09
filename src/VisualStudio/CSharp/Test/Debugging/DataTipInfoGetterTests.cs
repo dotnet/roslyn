@@ -405,5 +405,107 @@ static class Static
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        public void TestConditionalAccessExpression()
+        {
+            var sourceTemplate = @"
+class A
+{{
+    B B;
+
+    object M()
+    {{
+        return {0};
+    }}
+}}
+
+class B
+{{
+    C C;
+}}
+
+class C
+{{
+    D D;
+}}
+
+class D
+{{
+}}
+";
+
+            // One level.
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|]"));
+
+            // Two levels.
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|].C"));
+            Test(string.Format(sourceTemplate, "[|Me?.B.$$C|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me.$$B|]?.C"));
+            Test(string.Format(sourceTemplate, "[|Me.B?.$$C|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|]?.C"));
+            Test(string.Format(sourceTemplate, "[|Me?.B?.$$C|]"));
+
+            // Three levels.
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|].C.D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B.$$C|].D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B.C.$$D|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me.$$B|]?.C.D"));
+            Test(string.Format(sourceTemplate, "[|Me.B?.$$C|].D"));
+            Test(string.Format(sourceTemplate, "[|Me.B?.C.$$D|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me.$$B|].C?.D"));
+            Test(string.Format(sourceTemplate, "[|Me.B.$$C|]?.D"));
+            Test(string.Format(sourceTemplate, "[|Me.B.C?.$$D|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|]?.C.D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B?.$$C|].D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B?.C.$$D|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|].C?.D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B.$$C|]?.D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B.C?.$$D|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me.$$B|]?.C?.D"));
+            Test(string.Format(sourceTemplate, "[|Me.B?.$$C|]?.D"));
+            Test(string.Format(sourceTemplate, "[|Me.B?.C?.$$D|]"));
+
+            Test(string.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D"));
+            Test(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        public void TestConditionalAccessExpression_Trivia()
+        {
+            var sourceTemplate = @"
+class A
+{{
+    B B;
+
+    object M()
+    {{
+        return {0};
+    }}
+}}
+
+class B
+{{
+    C C;
+}}
+
+class C
+{{
+}}
+";
+
+            Test(string.Format(sourceTemplate, "/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/"));
+            Test(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/"));
+            Test(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/"));
+        }
+
     }
 }

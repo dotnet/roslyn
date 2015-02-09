@@ -100,15 +100,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             switch (effectiveSeverity)
             {
                 case ReportDiagnostic.Error:
-                    return KnownMonikers.StatusError;
+                    return KnownMonikers.CodeErrorRule;
                 case ReportDiagnostic.Warn:
-                    return KnownMonikers.StatusWarning;
+                    return KnownMonikers.CodeWarningRule;
                 case ReportDiagnostic.Info:
-                    return KnownMonikers.StatusInformation;
+                    return KnownMonikers.CodeInformationRule;
                 case ReportDiagnostic.Hidden:
-                    return KnownMonikers.StatusHidden;
+                    return KnownMonikers.CodeHiddenRule;
                 case ReportDiagnostic.Suppress:
-                    return KnownMonikers.StatusSuppressed;
+                    return KnownMonikers.CodeSuppressedRule;
                 default:
                     return default(ImageMoniker);
             }

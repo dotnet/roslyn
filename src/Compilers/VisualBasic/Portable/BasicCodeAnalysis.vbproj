@@ -393,6 +393,7 @@
     <Compile Include="Emit\ModuleReference.vb" />
     <Compile Include="Emit\NamedTypeReference.vb" />
     <Compile Include="Emit\NamedTypeSymbolAdapter.vb" />
+    <Compile Include="Emit\NamespaceSymbolAdapter.vb" />
     <Compile Include="Emit\NoPia\EmbeddedEvent.vb" />
     <Compile Include="Emit\NoPia\EmbeddedField.vb" />
     <Compile Include="Emit\NoPia\EmbeddedMethod.vb" />
@@ -966,6 +967,7 @@
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
+    <PublicAPI Include="PublicAPI.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">

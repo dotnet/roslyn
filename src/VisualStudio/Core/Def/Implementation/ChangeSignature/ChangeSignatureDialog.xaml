@@ -13,8 +13,9 @@
     MinHeight="420" MinWidth="560"
     Title="{Binding ElementName=dialog, Path=ChangeSignatureDialogTitle}"
     HasHelpButton="True"
-    ResizeMode="CanResizeWithGrip" 
+    ResizeMode="CanResizeWithGrip"
     ShowInTaskbar="False"
+    HasDialogFrame="True"
     WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <Style x:Key="DataGridStyle" TargetType="DataGrid">

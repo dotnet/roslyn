@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("projectId", new SerializableProjectId(_projectReference.ProjectId));
-            info.AddValue("aliases", _projectReference.Aliases.IsDefault ? null : _projectReference.Aliases.ToArray(), typeof(string[]));
+            info.AddValue("aliases", _projectReference.Aliases.IsEmpty ? null : _projectReference.Aliases.ToArray(), typeof(string[]));
             info.AddValue("embedInteropTypes", _projectReference.EmbedInteropTypes);
         }
 

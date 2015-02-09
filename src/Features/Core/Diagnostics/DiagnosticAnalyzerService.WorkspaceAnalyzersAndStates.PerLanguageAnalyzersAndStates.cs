@@ -28,32 +28,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         private readonly int _analyzerCount;
                         private readonly DiagnosticState[,] _diagnosticStateMaps;
 
-                        public PerLanguageAnalyzersAndStates(ImmutableArray<AnalyzerReference> workspaceAnalyzers, string language)
+                        public PerLanguageAnalyzersAndStates(AnalyzerManager analyzerManager, string language)
                         {
                             _language = language;
 
                             // TODO: dynamically re-order providers so that cheap one runs first and slower runs later.
-                            _diagnosticAnalyzerIdMap = CreateAnalyzerIdMap(workspaceAnalyzers, language);
+                            _diagnosticAnalyzerIdMap = CreateAnalyzerIdMap(analyzerManager, language);
                             _analyzerCount = _diagnosticAnalyzerIdMap.Values.Flatten().Count();
                             _diagnosticStateMaps = new DiagnosticState[s_stateTypeCount, _analyzerCount];
                         }
 
-                        private static ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> CreateAnalyzerIdMap(ImmutableArray<AnalyzerReference> workspaceAnalyzers, string language)
+                        private static ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> CreateAnalyzerIdMap(
+                            AnalyzerManager analyzerManager, string language)
                         {
                             var index = 0;
                             var map = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>>();
 
-                            foreach (var analyzerReference in workspaceAnalyzers)
+                            foreach (var kv in analyzerManager.GetHostDiagnosticAnalyzersPerReference(language))
                             {
-                                // we already have an analyzer with same identity
-                                if (map.ContainsKey(analyzerReference.Display ?? FeaturesResources.Unknown))
-                                {
-                                    continue;
-                                }
-
                                 var perAnalyzerMap = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ProviderId>();
-                                var perLanguageAnalyzers = analyzerReference.GetAnalyzers(language);
-                                if (perLanguageAnalyzers.Any())
+
+                                var referenceIdentity = kv.Key;
+                                var perLanguageAnalyzers = kv.Value;
+
+                                if (perLanguageAnalyzers.Length > 0)
                                 {
                                     foreach (var analyzer in perLanguageAnalyzers)
                                     {
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         perAnalyzerMap.Add(analyzer, analyzerId);
                                     }
 
-                                    map.Add(analyzerReference.Display ?? FeaturesResources.Unknown, perAnalyzerMap.ToImmutable());
+                                    map.Add(referenceIdentity, perAnalyzerMap.ToImmutable());
                                 }
                             }
 
@@ -106,18 +104,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         public IEnumerable<KeyValuePair<DiagnosticAnalyzer, ProviderId>> GetAllProviderAndIds()
                         {
                             return _diagnosticAnalyzerIdMap.Values.Flatten();
-                        }
-
-                        public ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>> GetAllDiagnosticAnalyzers()
-                        {
-                            var analyzers = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticAnalyzer>>();
-
-                            foreach (var item in _diagnosticAnalyzerIdMap)
-                            {
-                                analyzers.Add(item.Key, item.Value.Keys);
-                            }
-
-                            return analyzers.ToImmutable();
                         }
 
                         public DiagnosticState GetOrCreateDiagnosticState(StateType stateType, ProviderId providerId, DiagnosticAnalyzer provider)

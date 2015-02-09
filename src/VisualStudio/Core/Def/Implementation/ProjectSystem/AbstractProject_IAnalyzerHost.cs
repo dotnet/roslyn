@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -12,6 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class AbstractProject : IAnalyzerHost
     {
+        private AnalyzerFileWatcherService _analyzerFileWatcherService = null;
+        private AnalyzerDependencyCheckingService _dependencyCheckingService = null;
+
         public void AddAnalyzerAssembly(string analyzerAssemblyFullPath)
         {
             if (_analyzers.ContainsKey(analyzerAssemblyFullPath))
@@ -27,7 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(_id, analyzerReference));
+
+                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
+
+            GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(_id, analyzerAssemblyFullPath);
         }
 
         public void RemoveAnalyzerAssembly(string analyzerAssemblyFullPath)
@@ -38,12 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
+            GetAnalyzerFileWatcherService().RemoveAnalyzerAlreadyLoadedDiagnostics(_id, analyzerAssemblyFullPath);
+
             _analyzers.Remove(analyzerAssemblyFullPath);
 
             if (_pushingChangesToWorkspaceHosts)
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(_id, analyzerReference));
+
+                GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
 
             analyzer.Dispose();
@@ -126,6 +138,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var filePath = this.ruleSet.FilePath;
 
             ResetAnalyzerRuleSet(filePath);
+        }
+
+        private AnalyzerFileWatcherService GetAnalyzerFileWatcherService()
+        {
+            if (_analyzerFileWatcherService == null)
+            {
+                var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
+
+                _analyzerFileWatcherService = componentModel.GetService<AnalyzerFileWatcherService>();
+            }
+
+            return _analyzerFileWatcherService;
+        }
+
+        private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
+        {
+            if (_dependencyCheckingService == null)
+            {
+                var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
+
+                _dependencyCheckingService = componentModel.GetService<AnalyzerDependencyCheckingService>();
+            }
+
+            return _dependencyCheckingService;
         }
     }
 }

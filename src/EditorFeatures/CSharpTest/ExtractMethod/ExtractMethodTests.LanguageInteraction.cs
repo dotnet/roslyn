@@ -1421,6 +1421,63 @@ class X
 }";
                 TestExtractMethod(code, expected);
             }
+
+			[WorkItem(859493)]
+			[Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+			public void ExpressionInYieldReturnStatement()
+			{
+				var code = @"using System;
+using System.Collections.Generic;
+
+public class Test<T> 
+{
+    protected class Node
+    {
+        internal Node(T item) { this._item = item; }
+        internal T _item;
+    }
+    protected Node _current = null;
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        Node _localCurrent = _current;
+
+        while (true)
+        {
+            yield return [|_localCurrent._item|];
         }
     }
+}";
+				var expected = @"using System;
+using System.Collections.Generic;
+
+public class Test<T> 
+{
+    protected class Node
+    {
+        internal Node(T item) { this._item = item; }
+        internal T _item;
+    }
+    protected Node _current = null;
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        Node _localCurrent = _current;
+
+        while (true)
+        {
+            yield return GetItem(_localCurrent);
+        }
+    }
+
+    private static T GetItem(Node _localCurrent)
+    {
+        return _localCurrent._item;
+    }
+}";
+				TestExtractMethod(code, expected);
+			}
+
+		}
+	}
 }

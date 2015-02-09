@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -229,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void PositionDashboard()
         {
-            const int Padding = 10;
             var top = _textView.ViewportTop;
             if (_findAdornmentLayer != null && _findAdornmentLayer.Elements.Count != 0)
             {
@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 top += adornment.RenderSize.Height;
             }
 
-            Canvas.SetTop(this, top + Padding);
-            Canvas.SetLeft(this, _textView.ViewportLeft + _textView.VisualElement.RenderSize.Width - this.RenderSize.Width - Padding);
+            Canvas.SetTop(this, top);
+            Canvas.SetLeft(this, _textView.ViewportLeft + _textView.VisualElement.RenderSize.Width - this.RenderSize.Width);
         }
 
         private void OnTextViewGotAggregateFocus(object sender, EventArgs e)

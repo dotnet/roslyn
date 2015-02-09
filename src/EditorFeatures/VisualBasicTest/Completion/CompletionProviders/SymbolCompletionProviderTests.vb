@@ -5319,6 +5319,63 @@ End Module
             VerifyItemExists(text, "ToString")
         End Sub
 
+        <WorkItem(1109319)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub UnwrapNullableForConditionalFromStructure()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As A
+        x?.$$b?.c
+    End Sub
+End Module
+
+Structure A
+    Public b As B
+End Structure
+
+Public Class B
+    Public c As C
+End Class
+
+Public Class C
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "b")
+            VerifyItemIsAbsent(text, "c")
+        End Sub
+
+        <WorkItem(1109319)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub WithinChainOfConditionalAccess()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As A
+        x?.$$b?.c
+    End Sub
+End Module
+
+Class A
+    Public b As B
+End Class
+
+Public Class B
+    Public c As C
+End Class
+
+Public Class C
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "b")
+            VerifyItemIsAbsent(text, "c")
+        End Sub
+
+
         <WorkItem(1079694)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DontThrowForNullPropagatingOperatorOnTypeParameter()

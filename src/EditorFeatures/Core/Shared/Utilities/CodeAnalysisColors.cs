@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private static object s_systemCaptionTextBrushKey = "SystemCaptionTextBrush";
         private static object s_backgroundBrushKey = "BackgroundBrush";
         private static object s_buttonStyleKey = "ButtonStyle";
+        private static object s_accentBarColorKey = "AccentBarBrush";
 
         public static object SystemCaptionTextColorKey
         {
@@ -100,6 +101,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             set
             {
                 s_buttonStyleKey = value;
+            }
+        }
+
+        public static object AccentBarColorKey
+        {
+            get
+            {
+                return s_accentBarColorKey;
+            }
+
+            set
+            {
+                s_accentBarColorKey = value;
             }
         }
     }

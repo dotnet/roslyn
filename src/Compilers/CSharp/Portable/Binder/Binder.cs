@@ -265,11 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The Imports for all containing namespace declarations (innermost-to-outermost, including global).
         /// </summary>
-        internal virtual ConsList<Imports> ImportsList
+        internal virtual ImportChain ImportChain
         {
             get
             {
-                return _next.ImportsList;
+                return _next.ImportChain;
             }
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)member == null
                     ? null
                     : member.Kind == SymbolKind.NamedType
-                        ? (NamedTypeSymbol)member
+                        ? (NamedTypeSymbol)member 
                         : member.ContainingType;
             }
         }

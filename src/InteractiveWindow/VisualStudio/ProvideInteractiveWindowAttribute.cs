@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using Microsoft.VisualStudio.Shell;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     /// <summary>
     /// This attribute declares that a package own an interactive window.  Visual Studio uses this 

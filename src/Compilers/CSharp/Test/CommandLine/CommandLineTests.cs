@@ -6239,7 +6239,8 @@ using System*
             Assert.True(text.StartsWith("http://foo.bar/baz.aspx"));
         }
 
-        [Fact]
+        [WorkItem(1119609, "DevDiv")]
+        [Fact(Skip = "1119609")]
         public void PreferredUILang()
         {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
-namespace Roslyn.Editor.InteractiveWindow.Commands
+namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     [Export(typeof(IInteractiveWindowCommand))]
     internal sealed class HelpReplCommand : InteractiveWindowCommand

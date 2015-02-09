@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
 
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(file.Path, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
 
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(assembly.Location, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
         }
 
         private class TestDocumentationProvider : DocumentationProvider
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(r.GetMetadata());
             Assert.Equal(false, r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
             Assert.Equal(@"c:\temp", r.FilePath);
 
             var r1 = r.WithAliases(default(ImmutableArray<string>));
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var r5 = r.WithProperties(new MetadataReferenceProperties(MetadataImageKind.Module));
             Assert.Equal(MetadataImageKind.Module, r5.Properties.Kind);
-            Assert.True(r5.Properties.Aliases.IsDefault);
+            Assert.True(r5.Properties.Aliases.IsEmpty);
             Assert.False(r5.Properties.EmbedInteropTypes);
 
             var r6 = r.WithProperties(new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("x"), embedInteropTypes: true));
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var r = c.ToMetadataReference();
             Assert.False(r.Properties.EmbedInteropTypes);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
 
             var r1 = r.WithAliases(new[] { "a", "b" });
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r2 = r.WithEmbedInteropTypes(true);
             Assert.Same(c, r2.Compilation);
             Assert.True(r2.Properties.EmbedInteropTypes);
-            Assert.True(r2.Properties.Aliases.IsDefault);
+            Assert.True(r2.Properties.Aliases.IsEmpty);
             Assert.Equal(MetadataImageKind.Assembly, r2.Properties.Kind);
 
             var r3 = r.WithProperties(new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("x"), embedInteropTypes: true));
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var r = c.ToMetadataReference();
             Assert.False(r.Properties.EmbedInteropTypes);
-            Assert.True(r.Properties.Aliases.IsDefault);
+            Assert.True(r.Properties.Aliases.IsEmpty);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
 
             var r1 = r.WithAliases(new[] { "a", "b" });
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r2 = r.WithEmbedInteropTypes(true);
             Assert.Same(c, r2.Compilation);
             Assert.True(r2.Properties.EmbedInteropTypes);
-            Assert.True(r2.Properties.Aliases.IsDefault);
+            Assert.True(r2.Properties.Aliases.IsEmpty);
             Assert.Equal(MetadataImageKind.Assembly, r2.Properties.Kind);
 
             var r3 = r.WithProperties(new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("x"), embedInteropTypes: true));

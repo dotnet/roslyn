@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 },
                 cancellationToken,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
-                TaskScheduler.Current);
+                TaskScheduler.Default);
 
             return updatedDescriptionTask;
         }

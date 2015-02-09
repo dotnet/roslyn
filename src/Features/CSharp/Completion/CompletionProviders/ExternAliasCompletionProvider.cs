@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (targetToken.IsKind(SyntaxKind.AliasKeyword) && targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective))
             {
                 var compilation = await document.GetCSharpCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var aliases = compilation.ExternalReferences.Where(r => r.Properties.Aliases != null).SelectMany(r => r.Properties.Aliases).ToSet();
+                var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
 
                 if (aliases.Any())
                 {

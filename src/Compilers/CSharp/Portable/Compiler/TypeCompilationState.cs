@@ -25,13 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly MethodSymbol Method;
             public readonly BoundStatement Body;
-            public readonly ConsList<Imports> DebugImports;
+            public readonly ImportChain ImportChainOpt;
 
-            internal MethodWithBody(MethodSymbol method, BoundStatement body, ConsList<Imports> debugImports)
+            internal MethodWithBody(MethodSymbol method, BoundStatement body, ImportChain importChainOpt)
             {
+                Debug.Assert(method != null);
+                Debug.Assert(body != null);
+
                 this.Method = method;
                 this.Body = body;
-                this.DebugImports = debugImports;
+                this.ImportChainOpt = importChainOpt;
             }
         }
 
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// only need one wrapper to call it non-virtually.
         /// </summary>
         private Dictionary<MethodSymbol, MethodSymbol> _wrappers;
-
+        
         private readonly NamedTypeSymbol _type;
 
         /// <summary>
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Any generated methods that don't suppress debug info will use this
         /// list of debug imports.
         /// </summary>
-        public ConsList<Imports> CurrentDebugImports { get; set; }
+        public ImportChain CurrentImportChain { get; set; }
 
         public readonly CSharpCompilation Compilation;
 
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
             }
 
-            _synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentDebugImports : null));
+            _synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentImportChain : null));
         }
 
         /// <summary> 

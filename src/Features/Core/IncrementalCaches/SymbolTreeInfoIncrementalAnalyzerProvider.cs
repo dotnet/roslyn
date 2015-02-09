@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private void ReportCount()
             {
-                var sourceSymbolCount = _symbolCountByProjectMap.Sum(kv => kv.Value).ToString();
+                var sourceSymbolCount = _symbolCountByProjectMap.Sum(kv => kv.Value);
                 Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(m => m["SourceSymbolCount"] = sourceSymbolCount));
 
                 // we only report it once

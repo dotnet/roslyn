@@ -23,13 +23,26 @@ namespace Roslyn.Test.Utilities
             Source = ClearTags(markedSource);
             Tree = parser(Source);
 
-            SpansAndKinds = ImmutableArray.CreateRange(
-                from match in MarkerPattern.Matches(markedSource).ToEnumerable()
-                let markedSyntax = match.Groups["MarkedSyntax"]
-                let syntaxKindOpt = match.Groups["SyntaxKind"].Value
-                let parsedKind = string.IsNullOrEmpty(syntaxKindOpt) ? 0 : getSyntaxKind(syntaxKindOpt)
-                select ValueTuple.Create(new TextSpan(markedSyntax.Index, markedSyntax.Length), parsedKind));
+            SpansAndKinds = ImmutableArray.CreateRange(GetSpansRecursive(markedSource, 0, getSyntaxKind));
         }
+
+        private static IEnumerable<ValueTuple<TextSpan, int>> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
+        {
+            foreach (var match in MarkerPattern.Matches(markedSource).ToEnumerable())
+            {
+                var markedSyntax = match.Groups["MarkedSyntax"];
+                var syntaxKindOpt = match.Groups["SyntaxKind"].Value;
+                var parsedKind = string.IsNullOrEmpty(syntaxKindOpt) ? 0 : getSyntaxKind(syntaxKindOpt);
+                int absoluteOffset = offset + markedSyntax.Index;
+
+                yield return ValueTuple.Create(new TextSpan(absoluteOffset, markedSyntax.Length), parsedKind);
+
+                foreach (var nestedSpan in GetSpansRecursive(markedSyntax.Value, absoluteOffset, getSyntaxKind))
+                {
+                    yield return nestedSpan;
+                }
+            }
+        } 
 
         internal static string ClearTags(string source)
         {

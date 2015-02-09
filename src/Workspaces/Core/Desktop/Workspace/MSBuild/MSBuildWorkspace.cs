@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     // otherwise try to figure it out from extension
                     var extension = Path.GetExtension(projectFilePath);
-                    if (extension.StartsWith("."))
+                    if (extension.Length > 0 && extension[0] == '.')
                     {
                         extension = extension.Substring(1);
                     }
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (solutionFilePath == null)
             {
-                throw new ArgumentNullException("solutionFilePath");
+                throw new ArgumentNullException(nameof(solutionFilePath));
             }
 
             this.ClearSolution();
@@ -383,11 +383,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 foreach (var project in solutionFile.ProjectsInOrder)
                 {
+                    if (project.ProjectType == SolutionProjectType.SolutionFolder)
+                    {
+                        continue;
+                    }
+
                     var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
                     if (projectAbsolutePath != null)
                     {
                         var extension = Path.GetExtension(projectAbsolutePath);
-                        extension = extension.StartsWith(".") ? extension.Substring(1) : extension;
+                        if (extension.Length > 0 && extension[0] == '.')
+                        {
+                            extension = extension.Substring(1);
+                        }
 
                         var loader = ProjectFileLoader.GetLoaderForProjectFileExtension(this, extension);
                         if (loader != null)
@@ -410,7 +418,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!invalidProjects.Contains(project))
+                if (project.ProjectType != SolutionProjectType.SolutionFolder && !invalidProjects.Contains(project))
                 {
                     var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
                     if (projectAbsolutePath != null)

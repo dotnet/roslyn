@@ -57,6 +57,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Private Function IAssemblyReferenceGetDisplayName() As String Implements Cci.IAssemblyReference.GetDisplayName
+            Return MetadataIdentity.GetDisplayName()
+        End Function
+
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
                 Return MetadataIdentity.Name

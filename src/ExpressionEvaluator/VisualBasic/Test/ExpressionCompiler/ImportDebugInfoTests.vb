@@ -1,0 +1,546 @@
+﻿Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Reflection
+Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Reflection.PortableExecutable
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Roslyn.Test.PdbUtilities
+Imports Roslyn.Test.Utilities
+Imports Xunit
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    Public Class ImportsDebugInfoTests
+        Inherits ExpressionCompilerTestBase
+
+#Region "Import strings"
+
+        <Fact>
+        Public Sub SimplestCase()
+            Dim source = "
+Imports System
+
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll)
+            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
+
+            Dim importStrings = GetImportStrings(comp, "M")
+            AssertEx.SetEqual(importStrings, "@F:System", "")
+        End Sub
+
+        <Fact>
+        Public Sub Forward()
+            Dim source = "
+Imports System.IO
+
+Class C
+    ' One of these methods will forward to the other since they're adjacent.
+    Sub M1()
+    End Sub
+    Sub M2()
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll)
+            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
+
+            Dim importStrings1 = GetImportStrings(comp, "M1")
+            AssertEx.SetEqual(importStrings1, "@F:System.IO", "")
+
+            Dim importStrings2 = GetImportStrings(comp, "M2")
+            Assert.Equal(importStrings1.AsEnumerable(), importStrings2)
+        End Sub
+
+        <Fact>
+        Public Sub ImportKinds()
+            Dim source = "
+Imports System
+Imports System.IO.Path
+Imports A = System.Collections
+Imports B = System.Collections.ArrayList
+Imports <xmlns=""http://xml0"">
+Imports <xmlns:C=""http://xml1"">
+
+Namespace N
+    Class C
+        Sub M()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim options As VisualBasicCompilationOptions = TestOptions.ReleaseDll.WithRootNamespace("root").WithGlobalImports(GlobalImport.Parse(
+            {
+                "System.Runtime",
+                "System.Threading.Thread",
+                "D=System.Threading.Tasks",
+                "E=System.Threading.Timer",
+                "<xmlns=""http://xml2"">",
+                "<xmlns:F=""http://xml3"">"
+            }))
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=options)
+            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
+
+            Dim importStrings = GetImportStrings(comp, "M")
+            AssertEx.SetEqual(
+                importStrings,
+                "@F:System", ' File-level namespace
+                "@FT:System.IO.Path", ' File-level type
+                "@FA:A=System.Collections", ' File-level aliased namespace
+                "@FA:B=System.Collections.ArrayList", ' File-level aliased type
+                "@FX:=http://xml0", ' File-level XML namespace
+                "@FX:C=http://xml1", ' File-level aliased XML namespace
+                "@P:System.Runtime", ' Project-level namespace
+                "@PT:System.Threading.Thread", ' Project-level type
+                "@PA:D=System.Threading.Tasks", ' Project-level aliased namespace
+                "@PA:E=System.Threading.Timer", ' Project-level aliased type
+                "@PX:=http://xml2", ' Project-level XML namespace
+                "@PX:F=http://xml3", ' Project-level aliased XML namespace
+                "*root", ' Root namespace
+                "root.N") ' Containing namespace
+        End Sub
+
+        Private Shared Function GetImportStrings(compilation As Compilation, methodName As String) As ImmutableArray(Of String)
+            Assert.NotNull(compilation)
+            Assert.NotNull(methodName)
+
+            Using exebits As New MemoryStream()
+                Using pdbbits As New MemoryStream()
+                    compilation.Emit(exebits, pdbbits)
+
+                    exebits.Position = 0
+                    Using [module] As New PEModule(New PEReader(exebits, PEStreamOptions.LeaveOpen), metadataOpt:=Nothing, metadataSizeOpt:=0)
+                        Dim metadataReader = [module].MetadataReader
+                        Dim methodHandle = metadataReader.MethodDefinitions.Single(Function(mh) metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) = methodName)
+                        Dim methodToken = metadataReader.GetToken(methodHandle)
+
+                        pdbbits.Position = 0
+                        Dim reader = DirectCast(TempPdbReader.CreateUnmanagedReader(pdbbits), ISymUnmanagedReader)
+
+                        Return reader.GetVisualBasicImportStrings(methodToken, methodVersion:=1)
+                    End Using
+                End Using
+            End Using
+        End Function
+
+#End Region
+
+#Region "Invalid PDBs"
+
+        <Fact>
+        Public Sub BadPdb_ForwardChain()
+            Const methodVersion = 1
+            Const methodToken1 = &H600057A ' Forwards to 2
+            Const methodToken2 = &H600055D ' Forwards to 3
+            Const methodToken3 = &H6000540 ' Has an import
+            Const importString = "@F:System"
+
+            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
+                            New Dictionary(Of Integer, MethodDebugInfo)() From
+                            {
+                                {methodToken1, New MethodDebugInfo.Builder({({"@" & methodToken2})}).Build()},
+                                {methodToken2, New MethodDebugInfo.Builder({({"@" & methodToken3})}).Build()},
+                                {methodToken3, New MethodDebugInfo.Builder({({importString})}).Build()}
+                            }.ToImmutableDictionary())
+
+            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken1, methodVersion)
+            Assert.Equal("@" & methodToken3, importStrings.Single())
+
+            importStrings = reader.GetVisualBasicImportStrings(methodToken2, methodVersion)
+            Assert.Equal(importString, importStrings.Single())
+
+            importStrings = reader.GetVisualBasicImportStrings(methodToken3, methodVersion)
+            Assert.Equal(importString, importStrings.Single())
+        End Sub
+
+        <Fact>
+        Public Sub BadPdb_ForwardCycle()
+            Const methodVersion = 1
+            Const methodToken1 = &H600057A ' Forwards to itself
+
+            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
+                            New Dictionary(Of Integer, MethodDebugInfo)() From
+                            {
+                                {methodToken1, New MethodDebugInfo.Builder({({"@" & methodToken1})}).Build()}
+                            }.ToImmutableDictionary())
+
+            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken1, methodVersion)
+            Assert.Equal("@" & methodToken1, importStrings.Single())
+        End Sub
+
+        <WorkItem(999086)>
+        <Fact>
+        Public Sub BadPdb_InvalidAliasTarget()
+            Const source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithMscorlib({source})
+
+            Dim exeBytes As Byte() = Nothing
+            Dim unusedPdbBypes As Byte() = Nothing
+            Dim references As ImmutableArray(Of MetadataReference) = Nothing
+            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBypes, references)
+            Assert.True(result)
+
+            Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
+                exeBytes,
+                "Main",
+                "@F:System", ' Valid
+                "@FA:O=1", ' Invalid
+                "@FA:SC=System.Collections") ' Valid
+
+            Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
+            Dim evalContext = CreateMethodContext(runtime, "C.Main", Nothing)
+            Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
+
+            Dim rootNamespace As NamespaceSymbol = Nothing
+            Dim currentNamespace As NamespaceSymbol = Nothing
+            Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+            Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+            GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)
+
+            Assert.Equal("System", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
+            Assert.Equal("SC", aliases.Keys.Single())
+        End Sub
+
+        <WorkItem(999086)>
+        <Fact>
+        Public Sub BadPdb_InvalidAliasName()
+            Const source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class
+"
+
+            Dim comp = CreateCompilationWithMscorlib({source})
+
+            Dim exeBytes As Byte() = Nothing
+            Dim unusedPdbBypes As Byte() = Nothing
+            Dim references As ImmutableArray(Of MetadataReference) = Nothing
+            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBypes, references)
+            Assert.True(result)
+
+            Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
+                exeBytes,
+                "Main",
+                "@F:System", ' Valid
+                "@FA:S.I=System.IO", ' Invalid
+                "@FA:SC=System.Collections") ' Valid
+
+            Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
+            Dim evalContext = CreateMethodContext(runtime, "C.Main", Nothing)
+            Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
+
+            Dim rootNamespace As NamespaceSymbol = Nothing
+            Dim currentNamespace As NamespaceSymbol = Nothing
+            Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+            Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+            GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)
+
+            Assert.Equal("System", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
+            Assert.Equal("SC", aliases.Keys.Single())
+        End Sub
+
+        <Fact>
+        Public Sub OldPdb_EmbeddedPIA()
+            Const methodVersion = 1
+            Const methodToken = &H6000540 ' Has an import
+            Const importString = "&MyPia"
+
+            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
+                            New Dictionary(Of Integer, MethodDebugInfo)() From
+                            {
+                                {methodToken, New MethodDebugInfo.Builder({({importString})}).Build()}
+                            }.ToImmutableDictionary())
+
+            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion)
+            Assert.Equal(importString, importStrings.Single())
+        End Sub
+
+        <Fact>
+        Public Sub OldPdb_DefunctKinds()
+            Const methodVersion = 1
+            Const methodToken = &H6000540 ' Has an import
+            Const importString1 = "#NotSureWhatGoesHere"
+            Const importString2 = "$NotSureWhatGoesHere"
+
+            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
+                            New Dictionary(Of Integer, MethodDebugInfo)() From
+                            {
+                                {methodToken, New MethodDebugInfo.Builder({({importString1, importString2})}).Build()}
+                            }.ToImmutableDictionary())
+
+            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion)
+            AssertEx.Equal(importStrings, {importString1, importString2})
+        End Sub
+
+#End Region
+
+#Region "Binder chain"
+
+        <Fact>
+        Public Sub ImportKindSymbols()
+            Dim source = "
+Imports System
+Imports System.IO.Path
+Imports A = System.Collections
+Imports B = System.Collections.ArrayList
+Imports <xmlns=""http://xml0"">
+Imports <xmlns:C=""http://xml1"">
+
+Namespace N
+    Class C
+        Sub M()
+            Console.WriteLine()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim options As VisualBasicCompilationOptions = TestOptions.ReleaseDll.WithRootNamespace("root").WithGlobalImports(GlobalImport.Parse(
+            {
+                "System.Runtime",
+                "System.Threading.Thread",
+                "D=System.Threading.Tasks",
+                "E=System.Threading.Timer",
+                "<xmlns=""http://xml2"">",
+                "<xmlns:F=""http://xml3"">"
+            }))
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=options)
+            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
+
+            Dim rootNamespace As NamespaceSymbol = Nothing
+            Dim currentNamespace As NamespaceSymbol = Nothing
+            Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+            Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+
+            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=True)
+            GetImports(
+                runtime,
+                "root.N.C.M",
+                GetExpressionStatement(comp),
+                rootNamespace,
+                currentNamespace,
+                typesAndNamespaces,
+                aliases,
+                xmlNamespaces)
+
+            Assert.Equal("root", rootNamespace.ToTestDisplayString())
+            Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
+
+            AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System.Runtime", "System.Threading.Thread", "root.N")
+
+            AssertEx.SetEqual(aliases.Keys, "A", "B", "D", "E")
+            Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
+            Assert.Equal("System.Collections.ArrayList", aliases("B").Alias.Target.ToTestDisplayString())
+            Assert.Equal("System.Threading.Tasks", aliases("D").Alias.Target.ToTestDisplayString())
+            Assert.Equal("System.Threading.Timer", aliases("E").Alias.Target.ToTestDisplayString())
+
+            AssertEx.SetEqual(xmlNamespaces.Keys, "", "C", "F")
+            Assert.Equal("http://xml0", xmlNamespaces("").XmlNamespace)
+            Assert.Equal("http://xml1", xmlNamespaces("C").XmlNamespace)
+            Assert.Equal("http://xml3", xmlNamespaces("F").XmlNamespace)
+        End Sub
+
+        <Fact>
+        Public Sub EmptyRootNamespace()
+            Dim source = "
+Namespace N
+    Class C
+        Sub M()
+            System.Console.WriteLine()
+        End Sub
+    End Class
+End Namespace
+"
+
+            For Each rootNamespaceName In {"", Nothing}
+                Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
+                comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
+
+                Dim rootNamespace As NamespaceSymbol = Nothing
+                Dim currentNamespace As NamespaceSymbol = Nothing
+                Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+                Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+                Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+
+                Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=True)
+                GetImports(
+                    runtime,
+                    "N.C.M",
+                    GetExpressionStatement(comp),
+                    rootNamespace,
+                    currentNamespace,
+                    typesAndNamespaces,
+                    aliases,
+                    xmlNamespaces)
+
+                Assert.True(rootNamespace.IsGlobalNamespace)
+                Assert.Equal("N", currentNamespace.ToTestDisplayString())
+
+                Assert.Equal("N", typesAndNamespaces.Single().NamespaceOrType.ToTestDisplayString())
+                Assert.Null(aliases)
+                Assert.Null(xmlNamespaces)
+            Next
+        End Sub
+
+        <Fact>
+        Public Sub TieBreaking()
+            Dim source = "
+Imports System
+Imports System.IO.Path
+Imports A = System.Collections
+Imports B = System.Collections.ArrayList
+Imports <xmlns=""http://xml0"">
+Imports <xmlns:C=""http://xml1"">
+
+Namespace N
+    Class C
+        Sub M()
+            Console.WriteLine()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim options As VisualBasicCompilationOptions = TestOptions.ReleaseDll.WithRootNamespace("root").WithGlobalImports(GlobalImport.Parse(
+            {
+                "System",
+                "System.IO.Path",
+                "A=System.Threading.Tasks",
+                "B=System.Threading.Timer",
+                "<xmlns=""http://xml2"">",
+                "<xmlns:C=""http://xml3"">"
+            }))
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=options)
+            comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
+
+            Dim rootNamespace As NamespaceSymbol = Nothing
+            Dim currentNamespace As NamespaceSymbol = Nothing
+            Dim typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
+            Dim aliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
+            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+
+            Dim runtime = CreateRuntimeInstance(comp, includeSymbols:=True)
+            GetImports(
+                runtime,
+                "root.N.C.M",
+                GetExpressionStatement(comp),
+                rootNamespace,
+                currentNamespace,
+                typesAndNamespaces,
+                aliases,
+                xmlNamespaces)
+
+            Assert.Equal("root", rootNamespace.ToTestDisplayString())
+            Assert.Equal("root.N", currentNamespace.ToTestDisplayString())
+
+            ' CONSIDER: We could de-dup unaliased imports as well.
+            AssertEx.SetEqual(typesAndNamespaces.Select(Function(i) i.NamespaceOrType.ToTestDisplayString()), "System", "System.IO.Path", "System", "System.IO.Path", "root.N")
+
+            AssertEx.SetEqual(aliases.Keys, "A", "B")
+            Assert.Equal("System.Collections", aliases("A").Alias.Target.ToTestDisplayString())
+            Assert.Equal("System.Collections.ArrayList", aliases("B").Alias.Target.ToTestDisplayString())
+
+            AssertEx.SetEqual(xmlNamespaces.Keys, "", "C")
+            Assert.Equal("http://xml0", xmlNamespaces("").XmlNamespace)
+            Assert.Equal("http://xml1", xmlNamespaces("C").XmlNamespace)
+        End Sub
+
+        Private Shared Function GetExpressionStatement(compilation As Compilation) As ExpressionStatementSyntax
+            Return DirectCast(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax).Single().Parent, ExpressionStatementSyntax)
+        End Function
+
+        Private Shared Sub GetImports(
+            runtime As RuntimeInstance,
+            methodName As String,
+            syntax As ExpressionStatementSyntax,
+            <Out> ByRef rootNamespace As NamespaceSymbol,
+            <Out> ByRef currentNamespace As NamespaceSymbol,
+            <Out> ByRef typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
+            <Out> ByRef aliases As Dictionary(Of String, AliasAndImportsClausePosition),
+            <Out> ByRef xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
+
+            Dim evalContext = CreateMethodContext(
+                runtime,
+                methodName:=methodName)
+            Dim compContext = evalContext.CreateCompilationContext(syntax)
+
+            GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)
+        End Sub
+
+        Friend Shared Sub GetImports(
+            compContext As CompilationContext,
+            <Out> ByRef rootNamespace As NamespaceSymbol,
+            <Out> ByRef currentNamespace As NamespaceSymbol,
+            <Out> ByRef typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
+            <Out> ByRef aliases As Dictionary(Of String, AliasAndImportsClausePosition),
+            <Out> ByRef xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
+
+            Dim binder = compContext.NamespaceBinder
+            Assert.NotNull(binder)
+
+            rootNamespace = compContext.Compilation.RootNamespace
+
+            Dim containing = binder.ContainingNamespaceOrType
+            Assert.NotNull(containing)
+            currentNamespace = If(containing.Kind = SymbolKind.Namespace, DirectCast(containing, NamespaceSymbol), containing.ContainingNamespace)
+
+            typesAndNamespaces = Nothing
+            aliases = Nothing
+            xmlNamespaces = Nothing
+
+            Const bindingFlags As BindingFlags = bindingFlags.NonPublic Or bindingFlags.Instance
+            Dim typesAndNamespacesField = GetType(ImportedTypesAndNamespacesMembersBinder).GetField("m_importedSymbols", bindingFlags)
+            Assert.NotNull(typesAndNamespacesField)
+            Dim aliasesField = GetType(ImportAliasesBinder).GetField("m_importedAliases", bindingFlags)
+            Assert.NotNull(aliasesField)
+            Dim xmlNamespacesField = GetType(XmlNamespaceImportsBinder).GetField("_namespaces", bindingFlags)
+            Assert.NotNull(xmlNamespacesField)
+
+            While binder IsNot Nothing
+
+                If TypeOf binder Is ImportedTypesAndNamespacesMembersBinder Then
+                    Assert.True(typesAndNamespaces.IsDefault)
+                    typesAndNamespaces = DirectCast(typesAndNamespacesField.GetValue(binder), ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition))
+                    AssertEx.None(typesAndNamespaces, Function(tOrN) tOrN.NamespaceOrType.Kind = SymbolKind.ErrorType)
+                    Assert.False(typesAndNamespaces.IsDefault)
+                ElseIf TypeOf binder Is ImportAliasesBinder Then
+                    Assert.Null(aliases)
+                    aliases = DirectCast(aliasesField.GetValue(binder), Dictionary(Of String, AliasAndImportsClausePosition))
+                    AssertEx.All(aliases, Function(pair) pair.Key = pair.Value.Alias.Name)
+                    Assert.NotNull(aliases)
+                ElseIf TypeOf binder Is XmlNamespaceImportsBinder Then
+                    Assert.Null(xmlNamespaces)
+                    xmlNamespaces = DirectCast(xmlNamespacesField.GetValue(binder), Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
+                    Assert.NotNull(xmlNamespaces)
+                End If
+
+                binder = binder.ContainingBinder
+            End While
+        End Sub
+
+#End Region
+
+    End Class
+End Namespace

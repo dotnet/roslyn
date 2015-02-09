@@ -14,9 +14,9 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Editor.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     /// <summary>
     /// Default tool window for hosting interactive windows inside of Visual Studio.  This hooks up support for

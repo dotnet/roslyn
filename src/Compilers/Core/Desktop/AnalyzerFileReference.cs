@@ -146,7 +146,50 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference.
+        /// Adds the <see cref="ImmutableDictionary{TKey, TValue}"/> of <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> 
+        /// for all languages defined in this assembly reference.
+        /// </summary>
+        internal void AddAnalyzers(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Builder builder)
+        {
+            ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
+            Assembly analyzerAssembly = null;
+
+            try
+            {
+                analyzerTypeNameMap = GetAnalyzerTypeNameMap();
+                analyzerAssembly = GetAssembly();
+            }
+            catch (Exception e) when (e is IOException || e is BadImageFormatException || e is SecurityException || e is ArgumentException)
+            {
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
+                return;
+            }
+
+            var initialCount = builder.Count;
+            var reportedError = false;
+
+            // Add language specific analyzers.
+            foreach (var language in analyzerTypeNameMap.Keys)
+            {
+                if (language == null)
+                {
+                    continue;
+                }
+
+                var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+                builder.Add(language, analyzers.ToImmutableArray());
+            }
+
+            // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
+            // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
+            if (builder.Count == initialCount && !reportedError)
+            {
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
+            }
+        }
+
+        /// <summary>
+        /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
         internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
         {
@@ -176,9 +219,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var reportedError = false;
 
             // Add language specific analyzers.
-            var languageSpecificAnalyzerTypeNames = GetLanguageSpecificAnalyzerTypeNames(analyzerTypeNameMap, language);
-            var languageSpecificAnalyzers = this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames, ref reportedError);
-            builder.AddRange(languageSpecificAnalyzers);
+            var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+            builder.AddRange(analyzers);
 
             // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
             // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
@@ -186,6 +228,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
             }
+        }
+
+        private IEnumerable<DiagnosticAnalyzer> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
+        {
+            var languageSpecificAnalyzerTypeNames = GetLanguageSpecificAnalyzerTypeNames(analyzerTypeNameMap, language);
+            return this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames, ref reportedError);
         }
 
         private static IEnumerable<string> GetLanguageSpecificAnalyzerTypeNames(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language)

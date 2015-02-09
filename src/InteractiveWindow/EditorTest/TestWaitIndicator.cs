@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow.UnitTests
+namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     [Export(typeof(IWaitIndicator))]
     internal class TestWaitIndicator : IWaitIndicator

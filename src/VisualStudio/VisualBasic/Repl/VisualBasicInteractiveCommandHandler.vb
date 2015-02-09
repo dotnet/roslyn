@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.Interactive
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports Roslyn.Editor.InteractiveWindow
+Imports Microsoft.VisualStudio.InteractiveWindow
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 

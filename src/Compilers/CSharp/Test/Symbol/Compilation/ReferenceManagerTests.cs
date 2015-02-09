@@ -878,9 +878,9 @@ public class E : bar::C { }
             Assert.Equal(MetadataImageKind.Assembly, dr2.Properties.Kind);
             Assert.Equal(MetadataImageKind.Assembly, dr3.Properties.Kind);
 
-            Assert.True(dr1.Properties.Aliases.IsDefault);
-            Assert.True(dr2.Properties.Aliases.IsDefault);
-            Assert.True(dr3.Properties.Aliases.IsDefault);
+            Assert.True(dr1.Properties.Aliases.IsEmpty);
+            Assert.True(dr2.Properties.Aliases.IsEmpty);
+            Assert.True(dr3.Properties.Aliases.IsEmpty);
 
             Assert.False(dr1.Properties.EmbedInteropTypes);
             Assert.False(dr2.Properties.EmbedInteropTypes);

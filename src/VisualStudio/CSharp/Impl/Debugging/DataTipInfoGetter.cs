@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 {
@@ -43,7 +43,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 
             if (expression.IsRightSideOfDotOrArrow())
             {
-                expression = (ExpressionSyntax)expression.Parent;
+                var curr = expression;
+                while (true)
+                {
+                    var conditionalAccess = curr.GetParentConditionalAccessExpression();
+                    if (conditionalAccess == null)
+                    {
+                        break;
+                    }
+
+                    curr = conditionalAccess;
+                }
+
+                if (curr == expression)
+                {
+                    // NB: Parent.Span, not Span as below.
+                    return new DebugDataTipInfo(expression.Parent.Span, text: null);
+                }
+
+                // NOTE: There may not be an ExpressionSyntax corresponding to the range we want.
+                // For example, for input a?.$$B?.C, we want span [|a?.B|]?.C.
+                return new DebugDataTipInfo(TextSpan.FromBounds(curr.SpanStart, expression.Span.End), text: null);
             }
 
             // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, i'm not sure if it's

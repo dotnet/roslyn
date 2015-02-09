@@ -1,0 +1,81 @@
+﻿Imports System.Runtime.InteropServices
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.VisualStudio.Debugger
+Imports Microsoft.VisualStudio.Debugger.Clr
+Imports System.Text
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+
+    Friend NotInheritable Class VisualBasicInstructionDecoder : Inherits InstructionDecoder(Of PEMethodSymbol)
+
+        ' These strings were not localized in the old EE.  We'll keep them that way
+        ' so as not to break consumers who may have been parsing frame names...
+        Private Const ClosureDisplayName As String = "<closure>"
+        Private Const LambdaDisplayName As String = "<lambda{0}>"
+
+        ''' <summary>
+        ''' Singleton instance of <see cref="VisualBasicInstructionDecoder"/> (created using default constructor).
+        ''' </summary>
+        Friend Shared ReadOnly Instance as VisualBasicInstructionDecoder = New VisualBasicInstructionDecoder()
+
+        Private Sub New()
+        End Sub
+
+        Friend Overrides Sub AppendFullName(builder As StringBuilder, method As PEMethodSymbol)
+            Dim parts = method.ToDisplayParts(DisplayFormat)
+            Dim numParts = parts.Length
+            For i = 0 To numParts - 1
+                Dim part = parts(i)
+                Dim displayString = part.ToString()
+                Select Case part.Kind
+                    Case SymbolDisplayPartKind.ClassName
+                        If Not displayString.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                            builder.Append(displayString)
+                        Else
+                            ' Drop any remaining display class name parts and the subsequent dot...
+                            Do
+                                i += 1
+                            Loop While ((i < numParts) AndAlso parts(i).Kind <> SymbolDisplayPartKind.MethodName)
+                            i -= 1
+                        End If
+                    Case SymbolDisplayPartKind.MethodName
+                        If displayString.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                            builder.Append(ClosureDisplayName)
+                            builder.Append("."c)
+                            ' NOTE: The old implementation only appended the first ordinal number.  Since this is not useful
+                            ' in uniquely identifying the lambda, we'll append the entire ordinal suffix (which may contain
+                            ' multiple numbers, as well as '-' or '_').
+                            builder.AppendFormat(LambdaDisplayName, displayString.Substring(StringConstants.LambdaMethodNamePrefix.Length))
+                        Else
+                            builder.Append(displayString)
+                        End If
+                    Case SymbolDisplayPartKind.PropertyName
+                        builder.Append(method.Name)
+                    Case Else
+                        builder.Append(displayString)
+                End Select
+            Next
+        End Sub
+
+        Friend Overrides Function GetMethod(instructionAddress As DkmClrInstructionAddress) As PEMethodSymbol
+            Dim moduleInstance = instructionAddress.ModuleInstance
+            Dim appDomain = moduleInstance.AppDomain
+            Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
+            Dim metadataBlocks = instructionAddress.Process.GetMetadataBlocks(appDomain)
+
+            Dim compilation As VisualBasicCompilation
+            If metadataBlocks.HaveNotChanged(previous) Then
+                compilation = previous.Compilation
+            Else
+                compilation = metadataBlocks.ToCompilation()
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New VisualBasicMetadataContext(metadataBlocks))
+            End If
+
+            Return compilation.GetSourceMethod(moduleInstance.Mvid, instructionAddress.MethodId.Token)
+        End Function
+
+    End Class
+
+End Namespace

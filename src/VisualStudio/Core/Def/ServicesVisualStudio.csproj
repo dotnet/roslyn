@@ -18,6 +18,9 @@
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Core\Desktop\IVsSQM.cs" />
+    <Compile Include="Implementation\AnalyzerDependencyChecker.cs" />
+    <Compile Include="Implementation\AnalyzerDependencyCheckingService.cs" />
+    <Compile Include="Implementation\AnalyzerDependencyConflict.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />

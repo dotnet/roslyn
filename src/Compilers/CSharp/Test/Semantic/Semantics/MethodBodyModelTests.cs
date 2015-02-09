@@ -930,5 +930,31 @@ class Test
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(1118749, "DevDiv")]
+        public void InstanceFieldOfEnclosingStruct()
+        {
+            var text = @"
+struct Outer
+{
+    private int f1;
+    void M() { f1 = f1 + 1; }
+    public struct Inner
+    {
+        public Inner(int xyzzy)
+        {
+            var x = f1 - 1;
+        }
+    }
+}";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithMscorlib(tree);
+            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+            comp.GetMethodBodyDiagnostics().Verify(
+                // (10,21): error CS0120: An object reference is required for the non-static field, method, or property 'Outer.f1'
+                //             var x = f1 - 1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "f1").WithArguments("Outer.f1").WithLocation(10, 21)
+                );
+        }
     }
 }

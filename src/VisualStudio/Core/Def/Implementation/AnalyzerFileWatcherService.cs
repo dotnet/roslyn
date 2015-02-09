@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,15 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(AnalyzerFileWatcherService))]
     internal sealed class AnalyzerFileWatcherService
     {
-        private static object s_analyzerChangedErrorId = new object();
+        private static readonly object s_analyzerChangedErrorId = new object();
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _updateSource;
         private readonly IVsFileChangeEx _fileChangeService;
 
         private readonly Dictionary<string, FileChangeTracker> _fileChangeTrackers = new Dictionary<string, FileChangeTracker>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, DateTime> _assemblyUpdatedTimesUtc = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly object _fileChangeTrackersLock = new object();
+        private readonly object _guard = new object();
 
         [ImportingConstructor]
         public AnalyzerFileWatcherService(
@@ -41,9 +43,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
         }
 
+        internal void ErrorIfAnalyzerAlreadyLoaded(ProjectId projectId, string analyzerPath)
+        {
+            DateTime loadedAssemblyUpdateTimeUtc;
+            lock (_guard)
+            {
+                if (!_assemblyUpdatedTimesUtc.TryGetValue(analyzerPath, out loadedAssemblyUpdateTimeUtc))
+                {
+                    return;
+                }
+            }
+
+            DateTime? fileUpdateTimeUtc = GetLastUpdateTimeUtc(analyzerPath);
+
+            if (fileUpdateTimeUtc != null &&
+                loadedAssemblyUpdateTimeUtc != fileUpdateTimeUtc)
+            {
+                RaiseAnalyzerChangedWarning(projectId, analyzerPath);
+            }
+        }
+
+        internal void RemoveAnalyzerAlreadyLoadedDiagnostics(ProjectId projectId, string analyzerPath)
+        {
+            _updateSource.ClearDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath));
+        }
+
+        private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
+        {
+            string id = ServicesVSResources.WRN_AnalyzerChangedId;
+            string category = ServicesVSResources.ErrorCategory;
+            string message = string.Format(ServicesVSResources.WRN_AnalyzerChangedMessage, analyzerPath);
+
+            DiagnosticData data = new DiagnosticData(
+                id,
+                category,
+                message,
+                ServicesVSResources.WRN_AnalyzerChangedMessage,
+                severity: DiagnosticSeverity.Warning,
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                customTags: ImmutableArray<string>.Empty,
+                workspace: _workspace,
+                projectId: projectId);
+
+            _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(data));
+        }
+
+        private DateTime? GetLastUpdateTimeUtc(string fullPath)
+        {
+            try
+            {
+                DateTime creationTimeUtc = File.GetCreationTimeUtc(fullPath);
+                DateTime writeTimeUtc = File.GetLastWriteTimeUtc(fullPath);
+
+                return writeTimeUtc > creationTimeUtc ? writeTimeUtc : creationTimeUtc;
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
         private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)
         {
-            lock (_fileChangeTrackersLock)
+            lock (_guard)
             {
                 FileChangeTracker tracker;
                 if (!_fileChangeTrackers.TryGetValue(e.Path, out tracker))
@@ -54,6 +122,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     _fileChangeTrackers.Add(e.Path, tracker);
                 }
+
+                DateTime? fileUpdateTime = GetLastUpdateTimeUtc(e.Path);
+
+                if (fileUpdateTime.HasValue)
+                {
+                    _assemblyUpdatedTimesUtc[e.Path] = fileUpdateTime.Value;
+                }
             }
         }
 
@@ -62,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             FileChangeTracker tracker = (FileChangeTracker)sender;
             var filePath = tracker.FilePath;
 
-            lock (_fileChangeTrackersLock)
+            lock (_guard)
             {
                 // Once we've created a diagnostic for a given analyzer file, there's
                 // no need to keep watching it.
@@ -71,10 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             tracker.Dispose();
             tracker.UpdatedOnDisk -= Tracker_UpdatedOnDisk;
-
-            string id = ServicesVSResources.WRN_AnalyzerChangedId;
-            string category = ServicesVSResources.ErrorCategory;
-            string message = string.Format(ServicesVSResources.WRN_AnalyzerChangedMessage, filePath);
 
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
@@ -89,20 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var projectsWithAnalyzer = _workspace.ProjectTracker.Projects.Where(p => p.CurrentProjectAnalyzersContains(assemblyPath)).ToArray();
             foreach (var project in projectsWithAnalyzer)
             {
-                DiagnosticData data = new DiagnosticData(
-                    id,
-                    category,
-                    message,
-                    ServicesVSResources.WRN_AnalyzerChangedMessage,
-                    severity: DiagnosticSeverity.Warning,
-                    defaultSeverity: DiagnosticSeverity.Warning,
-                    isEnabledByDefault: true,
-                    warningLevel: 0,
-                    customTags: ImmutableArray<string>.Empty,
-                    workspace: _workspace,
-                    projectId: project.Id);
-
-                _updateSource.UpdateDiagnosticsForProject(project.Id, Tuple.Create(s_analyzerChangedErrorId, filePath), SpecializedCollections.SingletonEnumerable(data));
+                RaiseAnalyzerChangedWarning(project.Id, filePath);
             }
         }
     }

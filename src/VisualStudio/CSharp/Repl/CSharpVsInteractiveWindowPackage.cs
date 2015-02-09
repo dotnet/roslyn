@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive

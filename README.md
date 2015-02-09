@@ -69,19 +69,17 @@ From the NuGet package manager console:
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
-* [Language Design Notes](https://roslyn.codeplex.com/documentation?referringTitle=Home&ANCHOR#langdesignlinks)
+* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Area-Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 
 ### Contribute!
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
 
-* [Questions, Comments, and Feedback](https://roslyn.codeplex.com/wikipage?title=Questions%2c%20Comments%2c%20and%20Feedback&referringTitle=Home)
-
-Looking for something to work on? The list of [up-for-grabs issues](https://roslyn.codeplex.com/workitem/list/advanced?keyword=grabs&status=Open%2b%28not%2bclosed%29&type=All&priority=All&release=All&assignedTo=All&component=All&reasonClosed=All&sortField=LastUpdatedDate&sortDirection=Descending&page=0) is a great place to start.
-
-* [How to Contribute](https://roslyn.codeplex.com/wikipage?title=How%20to%20Contribute&referringTitle=Home) 
+* [How to Contribute](https://github.com/dotnet/roslyn/wiki/Contributing-Code)
 * [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
+
+Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
 
 ### .NET Foundation
 

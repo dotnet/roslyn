@@ -4867,6 +4867,48 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
+        [WorkItem(1098521, "DevDiv")]
+        [Fact]
+        public void InterpolationUsesOverloadResolution()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C : TestBase
+{
+    static void M<T>()
+        where T : struct
+    {
+            Expression<Func<string>> f;
+            f = () => $"""";
+            Check<string>(f, ""Constant( Type:System.String)"");
+            f = () => $""{1}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object)](Constant({0} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object)](Constant({0}{1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}{3}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object, System.Object)](Constant({0}{1}{2} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}{3}{4}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+            Console.WriteLine(""DONE"");
+    }
+
+    static void Main()
+    {
+        M<S>();
+    }
+}";
+
+            const string expectedOutput = @"DONE";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
         #endregion Regression Tests
 
         #region helpers

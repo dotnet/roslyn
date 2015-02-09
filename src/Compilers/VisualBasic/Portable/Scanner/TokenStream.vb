@@ -312,6 +312,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
+            ' If _currentToken is EndOfXmlToken, then we've reached the end of an
+            ' XML document, possibly followed by multiline trivia. In that case, we
+            ' need to include any additional blank lines following the previous token.
+            Dim includeFollowingBlankLines = _currentToken.InnerTokenObject IsNot Nothing AndAlso
+                _currentToken.InnerTokenObject.Kind = SyntaxKind.EndOfXmlToken
+
             AbandonAllTokens()
             RevertState(_prevToken)
 
@@ -324,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _lineBufferOffset += offset
             _endOfTerminatorTrivia = _lineBufferOffset
 
-            toAdd = ScanSingleLineTrivia()
+            toAdd = ScanSingleLineTrivia(includeFollowingBlankLines)
 
             Dim state = ScannerState.VB
             tk = SyntaxToken.AddTrailingTrivia(tk, toAdd.Node)
