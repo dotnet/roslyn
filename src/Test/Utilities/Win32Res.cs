@@ -24,16 +24,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static IntPtr GetResource(IntPtr lib, string resourceId, string resourceType, out uint size)
         {
             IntPtr hrsrc = FindResource(lib, resourceId, resourceType);
-            if (hrsrc.ToInt32() == 0)
+            if (hrsrc == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             size = SizeofResource(lib, hrsrc);
             IntPtr resource = LoadResource(lib, hrsrc);
-            if (resource.ToInt32() == 0)
+            if (resource == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             IntPtr manifest = LockResource(resource);
-            if (resource.ToInt32() == 0)
+            if (resource == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return manifest;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static string GetManifestString(IntPtr ptr, int offset, int length, Encoding encoding)
         {
             byte[] fullmanif = new byte[length];
-            Marshal.Copy((IntPtr)(ptr.ToInt32() + offset), fullmanif, 0, length);
+            Marshal.Copy((IntPtr)(ptr.ToInt64() + offset), fullmanif, 0, length);
             return encoding.GetString(fullmanif, 0, length);
         }
 
