@@ -18,7 +18,7 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
 * [AsyncMethod](#AsyncMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
 
-These tables refer to data in #Guid, #String and #Blob heaps hose structure hasn’t changed.
+These tables refer to data in #Guid, #String and #Blob heaps whose structure hasn’t changed.
 
 Debugging metadata may be generated to the same metadata stream that stores type system metadata, or as a standalone stream. In the latter case the standalone stream shall contain a copy of the Module table from the type system metadata. The Module table effectively links the debugging metadata to the corresponding type system metadata.
 
