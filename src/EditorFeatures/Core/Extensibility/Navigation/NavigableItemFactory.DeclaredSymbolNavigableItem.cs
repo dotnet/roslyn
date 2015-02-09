@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Lazy<string> _lazyDisplayName;
             private readonly Lazy<ISymbol> _lazySymbol;
 
-            public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
+            public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo)
             {
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
 
-                _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult());
+                _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult());
                 _lazyDisplayName = new Lazy<string>(() =>
                 {
                     if (Symbol == null)
