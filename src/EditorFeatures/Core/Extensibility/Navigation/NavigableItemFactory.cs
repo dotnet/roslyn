@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return new SymbolLocationNavigableItem(solution, symbol, location);
         }
 
-        public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document, CancellationToken cancellationToken)
+        public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
         {
-            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo, cancellationToken);
+            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
         }
 
         public static IEnumerable<INavigableItem> GetItemsfromPreferredSourceLocations(Solution solution, ISymbol symbol)
