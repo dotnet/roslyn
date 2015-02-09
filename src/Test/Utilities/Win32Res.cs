@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return manifest;
         }
 
-        private unsafe static string GetManifestString(IntPtr ptr, int offset, int length, Encoding encoding)
+        private static string GetManifestString(IntPtr ptr, int offset, int length, Encoding encoding)
         {
             byte[] fullmanif = new byte[length];
             Marshal.Copy((IntPtr)(ptr + offset), fullmanif, 0, length);

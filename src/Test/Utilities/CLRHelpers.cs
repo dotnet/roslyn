@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return PeVerify(File.ReadAllBytes(filePath), AppDomain.CurrentDomain.Id, filePath);
         }
 
-        private static readonly Mutex Guard = new Mutex(false, new Guid().ToString());
+        private static readonly Mutex s_guard = new Mutex(false, new Guid().ToString());
 
         private static string[] PeVerify(byte[] peImage, int domainId, string assemblyPath)
         {
             try
             {
-                Guard.WaitOne();
+                s_guard.WaitOne();
 
                 GCHandle pinned = GCHandle.Alloc(peImage, GCHandleType.Pinned);
                 try
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             finally
             {
-                Guard.ReleaseMutex();
+                s_guard.ReleaseMutex();
             }
         }
 

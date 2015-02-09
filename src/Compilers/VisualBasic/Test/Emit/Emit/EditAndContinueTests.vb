@@ -3277,6 +3277,7 @@ End Class
         End Sub
 
         <Fact()>
+        <WorkItem(223, "GitHub")>
         Public Sub AnonymousTypes()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
@@ -3325,7 +3326,7 @@ End Namespace
                                                                      testData0.GetMethodData("M.B.M").EncDebugInfoProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.B.M")
                 Dim reader0 = md0.MetadataReader
-                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "VB$AnonymousType_1`2", "VB$AnonymousType_0`2", "VB$AnonymousType_2`1", "A", "B")
+                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "VB$AnonymousType_1`2", "VB$AnonymousType_2`1", "VB$AnonymousType_0`2", "A", "B")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.B.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
