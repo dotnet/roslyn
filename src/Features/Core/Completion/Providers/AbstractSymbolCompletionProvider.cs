@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractSymbolCompletionProvider : AbstractCompletionProvider
     {
-        // PERF: Many CompletionProviders dervice AbstractSymbolCompletionProvider and therefore
+        // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
         private static Document cachedDocument;
