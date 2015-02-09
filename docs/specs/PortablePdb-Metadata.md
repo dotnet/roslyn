@@ -1,7 +1,5 @@
 #Portable PDB v0.1: Format Specification Draft
 
-[TOC]
-
 ## Portable PDB
 The Portable PDB (Program Database) format describes an encoding of debugging information produced by compilers of Common Language Infrastructure (CLI) languages and consumed by debuggers and other tools. The format is based on the ECMA-335 Partition II metadata standard. It extends its schema while using the same physical table and stream layouts and encodings. The schema of the debugging metadata is complementary to the ECMA-335 metadata schema, therefore, the debugging metadata can (but doesn’t need to) be stored in the same metadata section of the PE/COFF file as the type system metadata.
 
@@ -244,17 +242,17 @@ Imports blob has the following structure:
 | _target-namespace_  | Compressed unsigned Blob heap index of a UTF8 string. | Fully qualified namespace name or XML namespace name. |
 | _target-type_       | Compressed unsigned integer. | TypeDef, TypeRef or TypeSpec encoded as TypeDefOrRefEncoded (see section 23.2.8 of the ECMA-335 Metadata specification). |
 
-| _kind_ | description
-|:-      |:-
-| 1      | Imports members of target-namespace.
-| 2      | Imports members of target-namespace defined in assembly target-assembly.
-| 3      | Imports members of target-type.
-| 4      | Imports members of XML namespace target-namespace with prefix alias.
-| 5      | Imports assembly reference alias defined in an ancestor scope.
-| 6      | Defines an alias for assembly target-assembly.
-| 7      | Defines an alias for the target-namespace.
-| 8      | Defines an alias for the part of target-namespace defined in assembly target-assembly.
-| 9      | Defines an alias for the target-type.
+| _kind_ | description |
+|:-      |:- |
+| 1      | Imports members of target-namespace. |
+| 2      | Imports members of target-namespace defined in assembly target-assembly.|
+| 3      | Imports members of target-type.|
+| 4      | Imports members of XML namespace target-namespace with prefix alias.|
+| 5      | Imports assembly reference alias defined in an ancestor scope.|
+| 6      | Defines an alias for assembly target-assembly.|
+| 7      | Defines an alias for the target-namespace.|
+| 8      | Defines an alias for the part of target-namespace defined in assembly target-assembly.|
+| 9      | Defines an alias for the target-type.|
 
 The exact import semantics are language specific.
 
@@ -284,11 +282,11 @@ Structure:
 
 Each entry corresponds to an await expression in the async method.
 
-| terminal      | encoding                    | description
-|:-             |:-                           |:-
-| yield-offset  | compressed unsigned integer | TODO
-| resume-offset	| compressed unsigned integer | TODO
-| resume-method	| compressed unsigned integer | TODO (MethodDef row id)
+| terminal      | encoding                    | description|
+|:-             |:-                           |:-|
+| yield-offset  | compressed unsigned integer | TODO|
+| resume-offset	| compressed unsigned integer | TODO|
+| resume-method	| compressed unsigned integer | TODO (MethodDef row id)|
 
 ### <a name="CustomDebugInformationTable"></a>CustomDebugInformation Table: 0x37
 The CustomDebugInformation table has the following columns:
@@ -299,35 +297,35 @@ The CustomDebugInformation table has the following columns:
 
 Kind is an id defined by the tool producing the information.
 
-| HasCustomDebugInformation | tag (5 bits)
-|:- |:-
-| MethodDef|0
-| Field|1
-| TypeRef|2
-| TypeDef|3
-| Param|4
-| InterfaceImpl|5
-| MemberRef|6
-| Module|7
-| DeclSecurity|8
-| Property|9
-| Event|10
-| StandAloneSig|11
-| ModuleRef|12
-| TypeSpec|13
-| Assembly|14
-| AssemblyRef|15
-| File|16
-| ExportedType|17
-| ManifestResource|18
-| GenericParam|19
-| GenericParamConstraint|20
-| MethodSpec|21
-| Document|22
-| LocalScope|23
-| LocalVariable|24
-| LocalConstant|25
-| ImportScope|26
+| HasCustomDebugInformation | tag (5 bits)|
+|:- |:-|
+| MethodDef|0|
+| Field|1|
+| TypeRef|2|
+| TypeDef|3|
+| Param|4|
+| InterfaceImpl|5|
+| MemberRef|6|
+| Module|7|
+| DeclSecurity|8|
+| Property|9|
+| Event|10|
+| StandAloneSig|11|
+| ModuleRef|12|
+| TypeSpec|13|
+| Assembly|14|
+| AssemblyRef|15|
+| File|16|
+| ExportedType|17|
+| ManifestResource|18|
+| GenericParam|19|
+| GenericParamConstraint|20||
+| MethodSpec|21|
+| Document|22|
+| LocalScope|23|
+| LocalVariable|24|
+| LocalConstant|25|
+| ImportScope|26|
 
 #### Language Specific Custom Debug Information Records
 
@@ -345,10 +343,10 @@ Structure:
     Blob ::= Scope {hoisted-variable-count}
     Scope::= start-offset end-offset
 
-| terminal | encoding | description
-|:- |:- |:-
-| _start-offset_ | Compressed unsigned integer | Start IL offset of the scope (inclusive)
-| _end-offset_   | Compressed unsigned integer | End IL offset of the scope (exlusive)
+| terminal | encoding | description|
+|:- |:- |:-|
+| _start-offset_ | Compressed unsigned integer | Start IL offset of the scope (inclusive)|
+| _end-offset_   | Compressed unsigned integer | End IL offset of the scope (exlusive)|
 
 Each scope spans IL instructions in range [_start-offset_, _end-offset_).
 
@@ -365,13 +363,13 @@ Structure:
 
     Blob ::= (slot-index | 0 constant-name) bit-count bit{bit-count} padding
 
-| terminal | encoding | description
-|:- |:- |:-
-| _slot-index_    | Compressed unsigned integer  | 1-based local signature slot index
-| _constant-name_ | NUL-terminated UTF8 string   | Constant name
-| _bit-count_     | Compressed unsigned integer  | Number of bits
-| _bit_	          | 1 bit                        | 0 or 1
-| _padding_       | n zero bits                  | Padding bits to align to byte boundary.
+| terminal | encoding | description|
+|:- |:- |:-|
+| _slot-index_    | Compressed unsigned integer  | 1-based local signature slot index|
+| _constant-name_ | NUL-terminated UTF8 string   | Constant name|
+| _bit-count_     | Compressed unsigned integer  | Number of bits|
+| _bit_	          | 1 bit                        | 0 or 1|
+| _padding_       | n zero bits                  | Padding bits to align to byte boundary.|
 
 TODO: Bit ordering.
 
@@ -391,12 +389,12 @@ The blob has the following structure:
 
 | terminal | encoding | description
 |:- |:- |:-
-| _has-syntax-offset-baseline_ | 8 bits or none              | 0xff or not present
-| _syntax-offset-baseline_     | compressed unsigned integer | Negated syntax offset baseline. Only present if the minimal syntax offset stored in the slot map is less than -1. Defaults to -1 if not present.
-| _has-ordinal_                | 1 bit (highest)             | Set iff ordinal is present.
-| _kind_                       | 7 bits (lowest)             | Implementation specific slot kind in range [0, 0x7f).
-| _syntax-offset_              | compressed unsigned integer | The value of syntax-offset + syntax-offset-baseline is the distance of the syntax node that declares the corresponding variable from the start of the method body.
-| _ordinal_                    | compressed unsigned integer | Defines ordering of slots with the same syntax offset.
+| _has-syntax-offset-baseline_ | 8 bits or none              | 0xff or not present|
+| _syntax-offset-baseline_     | compressed unsigned integer | Negated syntax offset baseline. Only present if the minimal syntax offset stored in the slot map is less than -1. Defaults to -1 if not present.|
+| _has-ordinal_                | 1 bit (highest)             | Set iff ordinal is present.|
+| _kind_                       | 7 bits (lowest)             | Implementation specific slot kind in range [0, 0x7f).|
+| _syntax-offset_              | compressed unsigned integer | The value of syntax-offset + syntax-offset-baseline is the distance of the syntax node that declares the corresponding variable from the start of the method body.|
+| _ordinal_                    | compressed unsigned integer | Defines ordering of slots with the same syntax offset.|
 
 The exact algorithm used to calculate syntax offsets and the algorithm that maps slots to syntax nodes is language and implementation specific and may change in future versions of the compiler.
 
@@ -415,13 +413,13 @@ The blob has the following structure:
 
 The number of lambda entries is determined by the size of the blob (the reader shall read lambda records until the end of the blob is reached).
 
-| terminal | encoding | description
-|:- |:- |:-
-| _method-ordinal_ | compressed unsigned integer | Implementation specific number derived from the source location of Parent method.
-| _syntax-offset-baseline_ | compressed unsigned integer | Negated minimum of syntax offsets stored in the map and -1.
-| _closure-count_ | compressed unsigned integer | The number of closure entries.
-| _syntax-offset_ | compressed unsigned integer | The value of _syntax-offset_ + _syntax-offset-baseline_ is the distance of the syntax node that represents the lambda/closure in the source from the start of the method body.
-| _closure-ordinal_ | compressed unsigned integer | 0 if the lambda doesn’t have a closure. Otherwise, 1-based index into the closure list.
+| terminal | encoding | description|
+|:- |:- |:-|
+| _method-ordinal_ | compressed unsigned integer | Implementation specific number derived from the source location of Parent method.|
+| _syntax-offset-baseline_ | compressed unsigned integer | Negated minimum of syntax offsets stored in the map and -1.|
+| _closure-count_ | compressed unsigned integer | The number of closure entries.|
+| _syntax-offset_ | compressed unsigned integer | The value of _syntax-offset_ + _syntax-offset-baseline_ is the distance of the syntax node that represents the lambda/closure in the source from the start of the method body.|
+| _closure-ordinal_ | compressed unsigned integer | 0 if the lambda doesn’t have a closure. Otherwise, 1-based index into the closure list.|
 
 The exact algorithm used to calculate syntax offsets and the algorithm that maps lambdas/closures to their implementing methods, types and syntax nodes is language and implementation specific and may change in future versions of the compiler.
 
