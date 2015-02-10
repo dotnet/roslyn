@@ -329,11 +329,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return null;
             }
 
-            // So far so good.  Now break up the container for the candidate and check if all
-            // the dotted parts match up correctly.
-            var totalMatch = candidateMatch.ToList();
-
-            var containerParts = dottedContainer.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+             var containerParts = dottedContainer.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
 
             // -1 because the last part was checked against the name, and only the rest
             // of the parts are checked against the container.
@@ -343,6 +339,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // So this definitely doesn't match.
                 return null;
             }
+
+            // So far so good.  Now break up the container for the candidate and check if all
+            // the dotted parts match up correctly.
+            var totalMatch = candidateMatch.ToList();
 
             for (int i = patternParts.Length - 2, j = containerParts.Length - 1;
                     i >= 0;
