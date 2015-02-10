@@ -5,7 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class DiagnosticAnalyzerService
+    internal partial class DiagnosticIncrementalAnalyzer
     {
         public class AnalysisData
         {

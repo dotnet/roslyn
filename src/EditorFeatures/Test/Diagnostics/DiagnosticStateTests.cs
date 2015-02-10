@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         new TextSpan(50, 60), "mappedFile3", 90, 90, 100, 100, "originalFile3", 110, 110, 120, 120, title: "test3 title", description: "test3 description", helpLink: "http://test3link"),
                 };
 
-                var original = new DiagnosticAnalyzerService.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
-                var state = new DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
+                var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
+                var state = new DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
                 state.PersistAsync(document, original, CancellationToken.None).Wait();
 
                 var recovered = state.TryGetExistingDataAsync(document, CancellationToken.None).Result;
@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         workspace, document.Project.Id, description: "test3 description", helpLink: "http://test3link"),
                 };
 
-                var original = new DiagnosticAnalyzerService.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
-                var state = new DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
+                var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
+                var state = new DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
                 state.PersistAsync(document.Project, original, CancellationToken.None).Wait();
 
                 var recovered = state.TryGetExistingDataAsync(document.Project, CancellationToken.None).Result;

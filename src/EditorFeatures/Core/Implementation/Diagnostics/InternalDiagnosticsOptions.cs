@@ -10,5 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         [ExportOption]
         public static readonly Option<bool> BlueSquiggleForBuildDiagnostic = new Option<bool>(OptionName, "Blue Squiggle For Build Diagnostic", defaultValue: false);
+
+        [ExportOption]
+        public static readonly Option<bool> UseDiagnosticEngineV2 = new Option<bool>(OptionName, "Use Diagnostic Engine V2", defaultValue: false);
     }
 }
