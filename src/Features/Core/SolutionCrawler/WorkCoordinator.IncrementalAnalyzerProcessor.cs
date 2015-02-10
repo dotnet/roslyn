@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private static ImmutableArray<IIncrementalAnalyzer> OrderAnalyzers(IEnumerable<IIncrementalAnalyzer> analyzers)
                 {
-                    return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a.GetType() == typeof(DiagnosticIncrementalAnalyzer)))
-                                                                              .Concat(analyzers.Where(a => a.GetType() != typeof(DiagnosticIncrementalAnalyzer)))
+                    return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer))
+                                                                              .Concat(analyzers.Where(a => !(a is BaseDiagnosticIncrementalAnalyzer)))
                                                                               .WhereNotNull().ToImmutableArray();
                 }
 

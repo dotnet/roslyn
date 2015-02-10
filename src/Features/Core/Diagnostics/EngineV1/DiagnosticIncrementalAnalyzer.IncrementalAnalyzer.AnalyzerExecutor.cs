@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     using ProviderId = Int32;
 

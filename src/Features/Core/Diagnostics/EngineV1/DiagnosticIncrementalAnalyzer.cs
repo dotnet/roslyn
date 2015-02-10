@@ -7,23 +7,22 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     using ProviderId = Int32;
 
-    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
         private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Count();
         private static readonly ImmutableArray<StateType> s_documentScopeStateTypes = ImmutableArray.Create<StateType>(StateType.Syntax, StateType.Document);
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
         }
 
-        public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -70,13 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // so we can't use cached information.
                 return RemoveAllCacheDataAsync(document, cancellationToken);
             }
-        }
-
-        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            return e.Option.Feature == SimplificationOptions.PerLanguageFeatureName ||
-                   e.Option.Feature == SimplificationOptions.NonPerLanguageFeatureName ||
-                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic;
         }
 
         private bool CheckOption(Workspace workspace, string language, bool documentOpened)
@@ -95,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             await AnalyzeSyntaxAsync(document, diagnosticIds: null, skipClosedFileChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -152,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
             await AnalyzeDocumentAsync(document, bodyOpt, diagnosticIds: null, skipClosedFileChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -287,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
             await AnalyzeProjectAsync(project, diagnosticIds: null, skipClosedFileChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -339,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void RemoveDocument(DocumentId documentId)
+        public override void RemoveDocument(DocumentId documentId)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
             {
@@ -363,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void RemoveProject(ProjectId projectId)
+        public override void RemoveProject(ProjectId projectId)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
             {
@@ -386,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public async Task<bool> TryGetDiagnosticAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        public override async Task<bool> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
             try
             {
@@ -415,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
         {
             try
             {
@@ -629,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ReanalyzeAllDocumentsAsync(project, diagnosticIds, cancellationToken).Wait(cancellationToken);
         }
 
-        public void LogAnalyzerCountSummary()
+        public override void LogAnalyzerCountSummary()
         {
             DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, _diagnosticLogAggregator);
             DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, _diagnosticLogAggregator);
@@ -1019,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         #region unused 
-        public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
+        public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }

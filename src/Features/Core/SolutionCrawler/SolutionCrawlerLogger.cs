@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             foreach (var analyzer in analyzers)
             {
-                var diagIncrementalAnalyzer = analyzer as DiagnosticIncrementalAnalyzer;
+                var diagIncrementalAnalyzer = analyzer as BaseDiagnosticIncrementalAnalyzer;
                 if (diagIncrementalAnalyzer != null)
                 {
                     diagIncrementalAnalyzer.LogAnalyzerCountSummary();

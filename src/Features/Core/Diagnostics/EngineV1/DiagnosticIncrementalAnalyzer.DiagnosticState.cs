@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler.State;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {

@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     using ProviderId = Int32;
 

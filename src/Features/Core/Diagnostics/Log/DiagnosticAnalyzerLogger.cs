@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
     internal class DiagnosticAnalyzerLogger
     {

@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class InternalDiagnosticsOptions
     {

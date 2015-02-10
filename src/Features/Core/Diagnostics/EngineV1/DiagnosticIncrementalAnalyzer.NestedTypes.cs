@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
