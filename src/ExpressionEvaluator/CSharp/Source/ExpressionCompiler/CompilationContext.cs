@@ -245,14 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return module;
         }
 
-        private static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(MethodSymbol method)
-        {
-            var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            method.ContainingType.GetAllTypeParameters(builder);
-            builder.AddRange(method.TypeParameters);
-            return builder.ToImmutableAndFree();
-        }
-
         private static string GetNextMethodName(ArrayBuilder<MethodSymbol> builder)
         {
             return string.Format("<>m{0}", builder.Count);
@@ -270,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             DiagnosticBag diagnostics)
         {
             var objectType = this.Compilation.GetSpecialType(SpecialType.System_Object);
-            var allTypeParameters = GetAllTypeParameters(_currentFrame);
+            var allTypeParameters = _currentFrame.GetAllTypeParameters();
             var additionalTypes = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             EENamedTypeSymbol typeVariablesType = null;
