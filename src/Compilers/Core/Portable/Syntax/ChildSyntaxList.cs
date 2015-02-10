@@ -173,53 +173,76 @@ namespace Microsoft.CodeAnalysis
             // The targetPosition must already be within this node
             Debug.Assert(node.FullSpan.Contains(targetPosition));
 
-            var red = node;
             var green = node.Green;
             var position = node.Position;
-            var idx = 0;
+            var index = 0;
 
-#if DEBUG
-            int dbgLoopCount = 0;
-#endif
-            do
+            Debug.Assert(!green.IsList);
+
+            // Find the green node that spans the target position.
+            // We will be skipping whole slots here so we will not loop for long
+            // The max possible number of slots is 11 (TypeDeclarationSyntax)
+            // and typically much less than that
+            int slot;
+            for (slot = 0; ; slot++)
             {
-#if DEBUG
-                // Since we never have "lists of lists" this should never loop more than once.
-                Debug.Assert(dbgLoopCount < 2, "A list of lists. Impossible!");
-                dbgLoopCount++;
-#endif
-                // Find the green node that spans the target position.
-                // We will be skipping whole slots here so we will not loop for long
-                // The max possible number of slots is 11 (TypeDeclarationSyntax)
-                // and typically much less than that
-                for (int slotIndex = 0; ; slotIndex++)
+                GreenNode greenChild = green.GetSlot(slot);
+                if (greenChild != null)
                 {
-                    GreenNode greenChild = green.GetSlot(slotIndex);
-                    if (greenChild != null)
+                    var endPosition = position + greenChild.FullWidth;
+                    if (targetPosition < endPosition)
                     {
-                        var endPosition = position + greenChild.FullWidth;
-                        if (targetPosition < endPosition)
-                        {
-                            // Realize the red node (if any)
-                            if (red != null)
-                            {
-                                red = red.GetNodeSlot(slotIndex);
-                            }
-
-                            // Descend into the child element
-                            green = greenChild;
-                            break;
-                        }
-
-                        position = endPosition;
-                        idx += Occupancy(greenChild);
+                        // Descend into the child element
+                        green = greenChild;
+                        break;
                     }
-                }
-            } while (green.IsList);
 
-            // Reached a single node or token.
-            // If it is a node, we are done. Otherwise, make a token with current child and position.
-            return red ?? new SyntaxNodeOrToken(node, green, position, idx);
+                    position = endPosition;
+                    index += Occupancy(greenChild);
+                }
+            }
+
+            // Realize the red node (if any)
+            var red = node.GetNodeSlot(slot);
+            if (!green.IsList)
+            {
+                // This is a single node or token.
+                // If it is a node, we are done.
+                if (red != null)
+                {
+                    return red;
+                }
+
+                // Otherwise will have to make a token with current green and position
+            }
+            else
+            {
+                slot = green.FindSlotIndexContainingOffset(targetPosition - position);
+
+                // Realize the red node (if any)
+                if (red != null)
+                {
+                    // It is a red list of nodes (separated or not)
+                    red = red.GetNodeSlot(slot);
+                    if (red != null)
+                    {
+                        return red;
+                    }
+
+                    // Must be a separator
+                }
+
+                // Otherwise we have a token.
+                position += green.GetSlotOffset(slot);
+                green = green.GetSlot(slot);
+
+                // Since we can't have "lists of lists", the Occupancy calculation for
+                // child elements in a list is simple.
+                index += slot;
+            }
+
+            // Make a token with current child and position.
+            return new SyntaxNodeOrToken(node, green, position, index);
         }
 
         /// <summary>

@@ -5,9 +5,8 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.

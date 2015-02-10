@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Roslyn.Editor.InteractiveWindow {
+namespace Microsoft.VisualStudio.InteractiveWindow {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Roslyn.Editor.InteractiveWindow {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Roslyn.Editor.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

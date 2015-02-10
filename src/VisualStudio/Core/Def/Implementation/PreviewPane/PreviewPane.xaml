@@ -61,9 +61,9 @@
         </Style>
     </UserControl.Resources>
     <DockPanel MinWidth="400">
-        <DockPanel Name="HeaderDockPanel" DockPanel.Dock="Top" Visibility="Collapsed"
-                   MinWidth="{Binding ElementName=PreviewDockPanel, Path=ActualWidth}">
-            <FlowDocumentScrollViewer DockPanel.Dock="Top" Margin="3" MaxHeight="150" IsTabStop="True"
+        <StackPanel Name="HeaderStackPanel" DockPanel.Dock="Top" Visibility="Collapsed"
+                    MinWidth="{Binding ElementName=PreviewDockPanel, Path=ActualWidth}">
+            <FlowDocumentScrollViewer Margin="3" MaxHeight="150" IsTabStop="True"
                                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <FlowDocument PagePadding="0">
                     <Paragraph TextAlignment="Left"
@@ -98,9 +98,9 @@
                     <Hyperlink Name="LearnMoreHyperlink" IsEnabled="False" RequestNavigate="LearnMoreHyperlink_RequestNavigate"/>
                 </TextBlock>
             </DockPanel>
-        </DockPanel>
+            <Separator Name="HeaderSeparator" Margin="0" Visibility="Collapsed"/>
+        </StackPanel>
         <DockPanel Name="PreviewDockPanel" DockPanel.Dock="Top" Visibility="Collapsed">
-            <Separator DockPanel.Dock="Top" Margin="0"/>
             <ScrollViewer Name="PreviewScrollViewer" IsTabStop="True"
                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
         </DockPanel>

@@ -5,7 +5,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Utilities
-Imports Roslyn.VisualStudio.InteractiveWindow
+Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive

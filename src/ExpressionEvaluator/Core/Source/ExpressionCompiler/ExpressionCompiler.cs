@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -248,8 +249,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // No local signature. May occur when debugging .dmp.
                 localSignatureToken = 0;
-            }
-            return this.CreateMethodContext(
+			}
+			catch (FileNotFoundException)
+			{
+				// No local signature. May occur when debugging heapless dumps.
+				localSignatureToken = 0;
+			}
+			return this.CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
                 new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),

@@ -8207,6 +8207,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected token &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_UnexpectedToken {
+            get {
+                return ResourceManager.GetString("ERR_UnexpectedToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unexpected use of an unbound generic name.
         /// </summary>
         internal static string ERR_UnexpectedUnboundGenericName {

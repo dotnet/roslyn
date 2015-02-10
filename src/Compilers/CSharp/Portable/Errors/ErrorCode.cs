@@ -645,7 +645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleTypeNameNotFoundFwd = 1070,
         //ERR_NoSuchMemberOnNoPIAType = 1071,   //EE
         WRN_IdentifierOrNumericLiteralExpected = 1072,
-        // unused 1073-1098
+        ERR_UnexpectedToken = 1073,
+        // unused 1074-1098
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,

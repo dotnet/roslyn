@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 /// </summary>
                 private partial class WorkspaceAnalyzersAndStates
                 {
-                    private readonly ImmutableArray<AnalyzerReference> _workspaceAnalyzers;
+                    private readonly AnalyzerManager _analyzerManager;
                     private ImmutableDictionary<string, PerLanguageAnalyzersAndStates> _perLanguageAnalyzersAndStatesMap;
 
-                    public WorkspaceAnalyzersAndStates(ImmutableArray<AnalyzerReference> workspaceAnalyzers)
+                    public WorkspaceAnalyzersAndStates(AnalyzerManager analyzerManager)
                     {
-                        _workspaceAnalyzers = workspaceAnalyzers;
+                        _analyzerManager = analyzerManager;
                         _perLanguageAnalyzersAndStatesMap = ImmutableDictionary<string, PerLanguageAnalyzersAndStates>.Empty;
                     }
 
                     private static PerLanguageAnalyzersAndStates CreatePerLanguageAnalyzersAndStates(string language, WorkspaceAnalyzersAndStates @this)
                     {
-                        return new PerLanguageAnalyzersAndStates(@this._workspaceAnalyzers, language);
+                        return new PerLanguageAnalyzersAndStates(@this._analyzerManager, language);
                     }
 
                     private PerLanguageAnalyzersAndStates GetOrCreatePerLanguageAnalyzersAndStates(string language)
@@ -104,12 +104,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         var analyzersAndStates = this.GetOrCreatePerLanguageAnalyzersAndStates(language);
                         return analyzersAndStates.GetAllProviderAndIds();
-                    }
-
-                    public ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>> GetAllDiagnosticAnalyzers(string language)
-                    {
-                        var analyzersAndStates = this.GetOrCreatePerLanguageAnalyzersAndStates(language);
-                        return analyzersAndStates.GetAllDiagnosticAnalyzers();
                     }
 
                     public DiagnosticState GetOrCreateDiagnosticState(StateType stateType, ProviderId providerId, DiagnosticAnalyzer provider, string language)

@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
-Imports Roslyn.Editor.InteractiveWindow
-Imports Roslyn.Editor.InteractiveWindow.Commands
+Imports Microsoft.VisualStudio.InteractiveWindow
+Imports Microsoft.VisualStudio.InteractiveWindow.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 

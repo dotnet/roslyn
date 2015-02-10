@@ -26,6 +26,7 @@ namespace Roslyn.Utilities
         public FileKey(string fullPath, DateTime timestamp)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+            Debug.Assert(timestamp.Kind == DateTimeKind.Utc);
 
             FullPath = fullPath;
             Timestamp = timestamp;

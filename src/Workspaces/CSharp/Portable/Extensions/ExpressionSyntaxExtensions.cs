@@ -138,12 +138,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
         {
             return (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression) ||
-                   (expression.IsParentKind(SyntaxKind.MemberBindingExpression) && expression.Parent.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression) && ((MemberBindingExpressionSyntax)expression.Parent).Name == expression);
+                   (IsMemberBindingExpressionName(expression));
         }
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
         {
-            return expression != null && expression.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression;
+            if (expression == null)
+            {
+                return false;
+            }
+
+            return expression == (expression.Parent as MemberAccessExpressionSyntax)?.Name ||
+                expression.IsMemberBindingExpressionName();
+        }
+
+        private static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
+        {
+            return expression.IsParentKind(SyntaxKind.MemberBindingExpression) &&
+                ((MemberBindingExpressionSyntax)expression.Parent).Name == expression;
         }
 
         public static bool IsRightSideOfQualifiedName(this ExpressionSyntax expression)

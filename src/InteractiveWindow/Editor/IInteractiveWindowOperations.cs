@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     /// <summary>
     /// Provides access to low level editor operations on the REPL window.
@@ -117,7 +117,6 @@ namespace Roslyn.Editor.InteractiveWindow
         /// Resets the execution context clearing all variables.
         /// </summary>
         Task<ExecutionResult> ResetAsync(bool initialize = true);
-
 
         /// <summary>
         /// Executes the current input regardless of the caret position within the input. 

@@ -12,10 +12,10 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Editor.InteractiveWindow;
-using Roslyn.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 
-namespace Microsoft.VisualStudio
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 

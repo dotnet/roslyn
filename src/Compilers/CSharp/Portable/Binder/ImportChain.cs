@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -108,12 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblySymbol containingAssembly = @namespace.ContainingAssembly;
             if ((object)containingAssembly != null && (object)containingAssembly != context.ModuleBuilder.CommonCompilation.Assembly)
             {
-                MetadataReference reference = context.ModuleBuilder.CommonCompilation.GetMetadataReference(containingAssembly);
-                if (reference != null &&
-                    !reference.Properties.Aliases.IsEmpty &&
-                    !reference.Properties.Aliases.Contains(MetadataReferenceProperties.GlobalAlias))
+                var referenceManager = ((CSharpCompilation)context.ModuleBuilder.CommonCompilation).GetBoundReferenceManager();
+
+                foreach (var referencedAssembly in referenceManager.ReferencedAssembliesMap.Values)
                 {
-                    return context.ModuleBuilder.Translate(containingAssembly, context.Diagnostics);
+                    if ((object)referencedAssembly.Symbol == containingAssembly)
+                    {
+                        if (!referencedAssembly.DeclarationsAccessibleWithoutAlias())
+                        {
+                            return context.ModuleBuilder.Translate(containingAssembly, context.Diagnostics);
+                        }
+                    }
                 }
             }
 

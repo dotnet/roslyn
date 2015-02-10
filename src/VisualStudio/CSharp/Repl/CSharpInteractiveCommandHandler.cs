@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Editor.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 {

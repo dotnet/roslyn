@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Editor.InteractiveWindow;
-using Roslyn.Editor.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {

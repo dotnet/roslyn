@@ -1,4 +1,4 @@
-﻿namespace Roslyn.Editor.InteractiveWindow
+﻿namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal enum ReplSpanKind
     {

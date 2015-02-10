@@ -3,7 +3,7 @@
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     /// <summary>
     /// The implementer is given a chance to attach a command filter that routes language services

@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using Roslyn.Editor.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.Editor.InteractiveWindow.UnitTests
+namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     public class InteractiveWindowTests : IDisposable
     {

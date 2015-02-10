@@ -574,6 +574,7 @@
     <Compile Include="Text\SourceHashAlgorithm.cs" />
     <Compile Include="Text\SourceText.cs" />
     <Compile Include="Text\SourceTextContainer.cs" />
+    <Compile Include="Text\SourceTextStream.cs" />
     <Compile Include="Text\StringBuilderText.cs" />
     <Compile Include="Text\StringText.cs" />
     <Compile Include="Text\SubText.cs" />

@@ -6,4 +6,12 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         Pdb = 1,
     }
+
+    internal static partial class DebugInformationFormatExtensions
+    {
+        internal static bool IsValid(this DebugInformationFormat value)
+        {
+            return value == DebugInformationFormat.Pdb;
+        }
+    }
 }

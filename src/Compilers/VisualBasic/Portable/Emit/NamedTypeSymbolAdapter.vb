@@ -405,32 +405,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Friend Overridable Iterator Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
+        Friend Overridable Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
             Debug.Assert(IsDefinition)
             Debug.Assert(TypeOf ContainingModule Is SourceModuleSymbol)
 
+            ' Synthesized implements should go first. Currently they are used only by
+            ' ComClass feature, which depends on the order of implemented interfaces.
             Dim synthesized As IEnumerable(Of NamedTypeSymbol) = GetSynthesizedImplements()
-            If synthesized IsNot Nothing Then
-                ' Synthesized implements should go first. Currently they are used only by
-                ' ComClass feature, which depends on the order of implemented interfaces.
-                For Each [interface] In synthesized
-                    Yield [interface]
-                Next
-            End If
 
             ' If this type implements I, and the base class also implements interface I, and this class
             ' does not implement all the members of I, then do not emit I as an interface. This prevents
             ' the CLR from using implicit interface implementation.
-            Dim base = Me.BaseTypeNoUseSiteDiagnostics
-            Dim result = From i In Me.InterfacesNoUseSiteDiagnostics
-                         Where Not (base IsNot Nothing AndAlso
-                                    base.ImplementsInterface(i, Nothing) AndAlso
-                                    Not Me.ImplementsAllMembersOfInterface(i))
-                         Select i
+            Dim interfaces = Me.InterfacesNoUseSiteDiagnostics
+            If interfaces.IsEmpty Then
+                Return If(synthesized, SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)())
+            End If
 
-            For Each [interface] In result
-                Yield [interface]
-            Next
+            Dim base = Me.BaseTypeNoUseSiteDiagnostics
+            Dim result As IEnumerable(Of NamedTypeSymbol) =
+                interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
+                                     Return Not (base IsNot Nothing AndAlso
+                                                 base.ImplementsInterface(sym, Nothing) AndAlso
+                                                 Not Me.ImplementsAllMembersOfInterface(sym))
+                                 End Function)
+
+            Return If(synthesized Is Nothing, result, synthesized.Concat(result))
         End Function
 
         Private ReadOnly Property ITypeDefinitionIsAbstract As Boolean Implements ITypeDefinition.IsAbstract

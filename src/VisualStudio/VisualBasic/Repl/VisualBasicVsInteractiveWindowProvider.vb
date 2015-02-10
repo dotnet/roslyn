@@ -8,9 +8,9 @@ Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
-Imports Roslyn.Editor.InteractiveWindow
-Imports Roslyn.Editor.InteractiveWindow.Commands
-Imports Roslyn.VisualStudio.InteractiveWindow
+Imports Microsoft.VisualStudio.InteractiveWindow
+Imports Microsoft.VisualStudio.InteractiveWindow.Commands
+Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive

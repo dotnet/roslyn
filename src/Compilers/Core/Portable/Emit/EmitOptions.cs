@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal void ValidateOptions(DiagnosticBag diagnostics, CommonMessageProvider messageProvider)
         {
-            if (DebugInformationFormat != DebugInformationFormat.Pdb)
+            if (!DebugInformationFormat.IsValid())
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidDebugInformationFormat, Location.None, (int)DebugInformationFormat));
             }

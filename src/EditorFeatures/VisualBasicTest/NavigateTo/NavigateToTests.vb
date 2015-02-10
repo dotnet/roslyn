@@ -358,6 +358,100 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern1()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem) From
+                {
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
+                }
+
+                Dim items = _aggregator.GetItems("B.Q").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern2()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem) From
+                {
+                }
+
+                Dim items = _aggregator.GetItems("C.Q").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern3()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem) From
+                {
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
+                }
+
+                Dim items = _aggregator.GetItems("B.B.Q").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern4()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem) From
+                {
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                }
+
+                Dim items = _aggregator.GetItems("Baz.Quux").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern5()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem) From
+                {
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                }
+
+                Dim items = _aggregator.GetItems("F.B.B.Quux").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern6()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem)
+
+                Dim items = _aggregator.GetItems("F.F.B.B.Quux").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub DottedPattern7()
+            Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz(of X, Y, Z)", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
+                Dim expecteditems = New List(Of NavigateToItem) From
+                {
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                }
+
+                Dim items = _aggregator.GetItems("Baz.Q").ToList()
+
+                VerifyNavigateToResultItems(expecteditems, items)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindInterface()
             Using worker = SetupWorkspace("Public Interface IFoo", "End Interface")
                 SetupVerifableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic)

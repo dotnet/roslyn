@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
             {
-                HeaderDockPanel.Visibility = Visibility.Visible;
+                HeaderStackPanel.Visibility = Visibility.Visible;
 
                 SeverityIconBorder.Child = severityIcon;
 
@@ -92,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             if (previewElement != null)
             {
+                HeaderSeparator.Visibility = Visibility.Visible;
                 PreviewDockPanel.Visibility = Visibility.Visible;
                 PreviewScrollViewer.Content = previewElement;
                 previewElement.VerticalAlignment = VerticalAlignment.Top;
@@ -159,12 +160,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         // worth by default.
         private void AdjustWidthAndHeight(FrameworkElement previewElement)
         {
-            var headerDockPanelWidth = double.PositiveInfinity;
+            var headerStackPanelWidth = double.PositiveInfinity;
             var titleTextBlockHeight = double.PositiveInfinity;
             if (previewElement == null)
             {
-                HeaderDockPanel.Measure(availableSize: s_infiniteSize);
-                headerDockPanelWidth = HeaderDockPanel.DesiredSize.Width;
+                HeaderStackPanel.Measure(availableSize: s_infiniteSize);
+                headerStackPanelWidth = HeaderStackPanel.DesiredSize.Width;
 
                 TitleTextBlock.Measure(availableSize: s_infiniteSize);
                 titleTextBlockHeight = TitleTextBlock.DesiredSize.Height;
@@ -172,17 +173,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             else
             {
                 PreviewDockPanel.Measure(availableSize: new Size(previewElement.Width, double.PositiveInfinity));
-                headerDockPanelWidth = PreviewDockPanel.DesiredSize.Width;
-                if (IsNormal(headerDockPanelWidth))
+                headerStackPanelWidth = PreviewDockPanel.DesiredSize.Width;
+                if (IsNormal(headerStackPanelWidth))
                 {
-                    TitleTextBlock.Measure(availableSize: new Size(headerDockPanelWidth, double.PositiveInfinity));
+                    TitleTextBlock.Measure(availableSize: new Size(headerStackPanelWidth, double.PositiveInfinity));
                     titleTextBlockHeight = TitleTextBlock.DesiredSize.Height;
                 }
             }
 
-            if (IsNormal(headerDockPanelWidth))
+            if (IsNormal(headerStackPanelWidth))
             {
-                HeaderDockPanel.Width = headerDockPanelWidth;
+                HeaderStackPanel.Width = headerStackPanelWidth;
             }
 
             // If the pixel height required to render the complete title in the

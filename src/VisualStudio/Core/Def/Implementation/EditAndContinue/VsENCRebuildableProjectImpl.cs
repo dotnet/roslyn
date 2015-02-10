@@ -503,18 +503,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private void TrackingSpansChanged(bool leafChanged)
         {
-            log.Write("Tracking spans changed: {0}", leafChanged);
+            //log.Write("Tracking spans changed: {0}", leafChanged);
 
-            if (leafChanged)
-            {
-                // fire and forget:
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    log.Write("Notifying debugger of active statement change.");
-                    var debugNotify = (Interop.IDebugEncNotify)_vsProject.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
-                    debugNotify.NotifyEncUpdateCurrentStatement();
-                });
-            }
+            //if (leafChanged)
+            //{
+            //    // fire and forget:
+            //    Application.Current.Dispatcher.InvokeAsync(() =>
+            //    {
+            //        log.Write("Notifying debugger of active statement change.");
+            //        var debugNotify = (Interop.IDebugEncNotify)_vsProject.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
+            //        debugNotify.NotifyEncUpdateCurrentStatement();
+            //    });
+            //}
         }
 
         private struct VsActiveStatement

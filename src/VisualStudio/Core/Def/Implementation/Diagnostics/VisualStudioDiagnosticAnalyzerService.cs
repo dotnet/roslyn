@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             if (hierarchyOpt == null)
             {
-                return _diagnosticService.GetAllDiagnosticDescriptors(null);
+                return Transform(_diagnosticService.GetDiagnosticDescriptors(projectOpt: null));
             }
 
             // Analyzers are only supported for C# and VB currently.
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (projectsWithHierarchy.Count() <= 1)
             {
-                return _diagnosticService.GetAllDiagnosticDescriptors(projectsWithHierarchy.FirstOrDefault());
+                return Transform(_diagnosticService.GetDiagnosticDescriptors(projectsWithHierarchy.FirstOrDefault()));
             }
             else
             {
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var newDescriptorTuples = _diagnosticService.GetAllDiagnosticDescriptors(project);
+                    var newDescriptorTuples = _diagnosticService.GetDiagnosticDescriptors(project);
                     foreach (var kvp in newDescriptorTuples)
                     {
                         IEnumerable<DiagnosticDescriptor> existingDescriptors;
@@ -67,6 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 return descriptorsMap.ToImmutable();
             }
+        }
+
+        private IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> Transform(
+            ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> map)
+        {
+            // unfortunately, we had to do this since ruleset editor and us are set to use this signature
+            return map.ToDictionary(kv => kv.Key, kv => (IEnumerable<DiagnosticDescriptor>)kv.Value);
         }
     }
 }

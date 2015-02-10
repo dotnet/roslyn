@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Roslyn.Editor.InteractiveWindow.Commands
+namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     [Export(typeof(IInteractiveWindowCommand))]
     internal sealed class ResetCommand : InteractiveWindowCommand

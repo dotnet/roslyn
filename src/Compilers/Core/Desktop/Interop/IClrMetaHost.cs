@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 
-namespace Microsoft.Runtime.Hosting.Interop
+#pragma warning disable CS0436 // Type conflicts with imported type: SuppressUnmanagedCodeSecurity
+
+namespace Microsoft.CodeAnalysis.Interop
 {
-    [System.Security.SecurityCritical]
-    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("D332DB9E-B9B3-4125-8207-A14884F53216")]
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("D332DB9E-B9B3-4125-8207-A14884F53216"), SuppressUnmanagedCodeSecurity]
     internal interface IClrMetaHost
     {
         [return: MarshalAs(UnmanagedType.Interface)]
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         object GetRuntime(
             [In, MarshalAs(UnmanagedType.LPWStr)] string version,
             [In, MarshalAs(UnmanagedType.LPStruct)] Guid interfaceId);
 
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         [PreserveSig]
         int GetVersionFromFile(
             [In, MarshalAs(UnmanagedType.LPWStr)] string filePath,
@@ -25,26 +24,21 @@ namespace Microsoft.Runtime.Hosting.Interop
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int bufferLength);
 
         [return: MarshalAs(UnmanagedType.Interface)]
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        IEnumUnknown EnumerateInstalledRuntimes();
+        object EnumerateInstalledRuntimes();
 
         [return: MarshalAs(UnmanagedType.Interface)]
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        IEnumUnknown EnumerateLoadedRuntimes(
+        object EnumerateLoadedRuntimes(
             [In] IntPtr processHandle);
 
         // Placeholder for RequestRuntimeLoadedNotification
         [PreserveSig]
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         int Reserved01(
             [In] IntPtr reserved1);
 
         [return: MarshalAs(UnmanagedType.Interface)]
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         object QueryLegacyV2RuntimeBinding(
             [In, MarshalAs(UnmanagedType.LPStruct)] Guid interfaceId);
 
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         void ExitProcess(
             [In, MarshalAs(UnmanagedType.U4)] int exitCode);
     }

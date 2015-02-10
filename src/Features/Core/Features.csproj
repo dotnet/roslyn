@@ -178,6 +178,8 @@
     <Compile Include="Completion\Providers\ITextCompletionProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
+    <Compile Include="Diagnostics\AnalyzerHelper.cs" />
+    <Compile Include="Diagnostics\AnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer.AnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.IncrementalAnalyzer_GetDiagnostics.cs" />

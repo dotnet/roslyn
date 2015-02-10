@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     internal static class SpecializedCollections
     {
