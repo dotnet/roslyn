@@ -176,14 +176,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             #endregion
 
+            public void TurnOff(bool useV2)
+            {
+                var turnedOffAnalyzer = GetAnalyzer(!useV2);
+
+                foreach (var project in _workspace.CurrentSolution.Projects)
+                {
+                    foreach (var document in project.Documents)
+                    {
+                        turnedOffAnalyzer.RemoveDocument(document.Id);
+                    }
+
+                    turnedOffAnalyzer.RemoveProject(project.Id);
+                }
+            }
+
             // internal for testing
             internal BaseDiagnosticIncrementalAnalyzer Analyzer
             {
                 get
                 {
                     var option = _workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
-                    return option ? (BaseDiagnosticIncrementalAnalyzer)_engineV2 : _engineV1;
+                    return GetAnalyzer(option);
                 }
+            }
+
+            private BaseDiagnosticIncrementalAnalyzer GetAnalyzer(bool useV2)
+            {
+                return useV2 ? (BaseDiagnosticIncrementalAnalyzer)_engineV2 : _engineV1;
             }
         }
     }

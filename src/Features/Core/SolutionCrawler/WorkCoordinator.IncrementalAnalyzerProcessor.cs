@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private static ImmutableArray<IIncrementalAnalyzer> OrderAnalyzers(IEnumerable<IIncrementalAnalyzer> analyzers)
                 {
                     return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer))
-                                                                              .Concat(analyzers.Where(a => !(a is BaseDiagnosticIncrementalAnalyzer)))
-                                                                              .WhereNotNull().ToImmutableArray();
+                                                                               .Concat(analyzers.Where(a => !(a is BaseDiagnosticIncrementalAnalyzer)))
+                                                                               .WhereNotNull().ToImmutableArray();
                 }
 
                 public void Enqueue(WorkItem item)
@@ -99,6 +99,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor.Shutdown();
                     _normalPriorityProcessor.Shutdown();
                     _lowPriorityProcessor.Shutdown();
+                }
+
+                // TODO: delete this once prototyping is done
+                public void ChangeDiagnosticsEngine(bool useV2Engine)
+                {
+                    var diagnosticAnalyzer = Analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer) as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
+                    if (diagnosticAnalyzer == null)
+                    {
+                        return;
+                    }
+
+                    diagnosticAnalyzer.TurnOff(useV2Engine);
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers
