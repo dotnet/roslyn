@@ -53,13 +53,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.UTF8);
         }
 
-        [Fact]
+        [Fact, WorkItem(353, "https://github.com/dotnet/roslyn/issues/353")]
         public void TestCreateFromTemporaryStorage()
         {
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!");
+            var originalEncoding = Encoding.ASCII;
+            var text = Text.SourceText.From("Hello, World!", originalEncoding);
 
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, Encoding.Unicode);
+                Assert.Equal(originalEncoding, text2.Encoding);
             }
         }
 

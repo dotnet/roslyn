@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             var accessor = stream as ISupportDirectMemoryAccess;
             if (accessor != null)
             {
-                return CreateTextFromTemporaryStorage(accessor, (int)stream.Length, cancellationToken);
+                return CreateTextFromTemporaryStorage(accessor, (int)stream.Length, encoding, cancellationToken);
             }
 
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             }
         }
 
-        private unsafe SourceText CreateTextFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
+        private unsafe SourceText CreateTextFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, Encoding encoding, CancellationToken cancellationToken)
         {
             char* src = (char*)accessor.GetPointer();
             Debug.Assert(*src == 0xFEFF); // BOM: Unicode, little endian
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             using (var reader = new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1))
             {
                 var buffer = CreateTextBuffer(reader, cancellationToken);
-                return buffer.CurrentSnapshot.AsRoslynText(Encoding.Unicode);
+                return buffer.CurrentSnapshot.AsRoslynText(encoding ?? Encoding.Unicode);
             }
         }
 
