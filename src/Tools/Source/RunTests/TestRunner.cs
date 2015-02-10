@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -37,7 +39,7 @@ namespace RunTests
         {
             var max = Environment.ProcessorCount;
             var allPassed = true;
-            var waiting = new Stack<string>(assemblyList); 
+            var waiting = new Stack<string>(assemblyList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
 

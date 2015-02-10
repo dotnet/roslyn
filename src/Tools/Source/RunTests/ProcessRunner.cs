@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,27 +11,27 @@ namespace RunTests
 {
     public sealed class ProcessOutput
     {
-        private readonly int exitCode;
-        private readonly IEnumerable<string> outputLines;
-        private readonly IEnumerable<string> errorLines;
+        private readonly int _exitCode;
+        private readonly IEnumerable<string> _outputLines;
+        private readonly IEnumerable<string> _errorLines;
 
         public ProcessOutput(int exitCode, IEnumerable<string> outputLines, IEnumerable<string> errorLines)
         {
-            this.exitCode = exitCode;
-            this.outputLines = outputLines;
-            this.errorLines = errorLines;
+            _exitCode = exitCode;
+            _outputLines = outputLines;
+            _errorLines = errorLines;
         }
 
-        public int ExitCode { get { return exitCode; } }
+        public int ExitCode { get { return _exitCode; } }
 
         public IEnumerable<string> OutputLines
         {
-            get { return outputLines; }
+            get { return _outputLines; }
         }
 
         public IEnumerable<string> ErrorLines
         {
-            get { return errorLines; }
+            get { return _errorLines; }
         }
     }
 
