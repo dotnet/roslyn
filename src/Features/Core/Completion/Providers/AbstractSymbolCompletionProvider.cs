@@ -22,10 +22,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static Document cachedDocument;
-        private static int cachedPosition;
-        private static AbstractSyntaxContext cachedContext;
-        private static readonly object cacheGate = new object();
+        private static Dictionary<Document, Task<AbstractSyntaxContext>> s_cachedDocuments = new  Dictionary<Document, Task<AbstractSyntaxContext>>();
+        private static int s_cachedPosition;
+        private static readonly object s_cacheGate = new object();
 
         protected AbstractSymbolCompletionProvider()
         {
@@ -178,11 +177,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, bool preselect, CancellationToken cancellationToken)
         {
+            var relatedDocumentIds = document.GetLinkedDocumentIds();
+            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
+            lock (s_cacheGate)
+            {
+                // Invalidate the cache if it's for a different position or a different set of Documents.
+                // It's fairly likely that we'll only have to check the first document, unless someone
+                // specially constructed a Solution with mismatched linked files.
+                if (s_cachedPosition != position ||
+                    !relatedDocuments.All(s_cachedDocuments.ContainsKey))
+                {
+                    s_cachedPosition = position;
+                    s_cachedDocuments.Clear();
+                    foreach (var related in relatedDocuments)
+                    {
+                        s_cachedDocuments.Add(related, null);
+                    }
+                }
+            }
+
             var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
             var options = GetOptions(document, triggerInfo, context);
-            var relatedDocuments = document.GetLinkedDocumentIds();
 
-            if (!relatedDocuments.Any())
+            if (!relatedDocumentIds.Any())
             {
                 IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
 
@@ -190,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return await CreateItemsAsync(position, itemsForCurrentDocument, context, null, null, preselect, cancellationToken).ConfigureAwait(false);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, relatedDocuments.Concat(document.Id), preselect, cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, relatedDocumentIds.Concat(document.Id), preselect, cancellationToken).ConfigureAwait(false);
 
             Dictionary<ISymbol, AbstractSyntaxContext> orignatingContextMap = null;
             var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out orignatingContextMap);
@@ -276,23 +293,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);
 
-        private async Task<AbstractSyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
+        private Task<AbstractSyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
         {
-            lock (cacheGate)
+            lock (s_cacheGate)
             {
-                if (document == cachedDocument && position == cachedPosition)
+                if (s_cachedDocuments[document] != null)
                 {
-                    return cachedContext;
+                    return s_cachedDocuments[document];
                 }
             }
 
-            var context = await CreateContext(document, position, cancellationToken).ConfigureAwait(false);
-            lock (cacheGate)
+            var context = CreateContext(document, position, cancellationToken);
+            lock (s_cacheGate)
             {
-                cachedDocument = document;
-                cachedPosition = position;
-                cachedContext = context;
-                return cachedContext;
+                s_cachedDocuments[document] = context;
+                return context;
             }
         }
 
