@@ -1,3 +1,4 @@
+#If False Then
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
@@ -128,7 +129,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Public Sub ReplaceSnapshot(oldSnapshot As ITableEntriesSnapshot, newSnapshot As ITableEntriesSnapshot) Implements ITableDataSink.ReplaceSnapshot
                     Throw New NotImplementedException()
                 End Sub
+
+                Public Property IsStable As Boolean Implements ITableDataSink.IsStable
+                    Get
+                        Throw New NotImplementedException()
+                    End Get
+                    Set(value As Boolean)
+                        Throw New NotImplementedException()
+                    End Set
+                End Property
             End Class
         End Class
     End Class
 End Namespace
+#End If
