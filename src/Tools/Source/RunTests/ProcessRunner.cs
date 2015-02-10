@@ -11,18 +11,14 @@ namespace RunTests
 {
     public sealed class ProcessOutput
     {
-        private readonly int _exitCode;
+        private readonly int exitCode;
         private readonly IEnumerable<string> _outputLines;
         private readonly IEnumerable<string> _errorLines;
 
-        public ProcessOutput(int exitCode, IEnumerable<string> outputLines, IEnumerable<string> errorLines)
-        {
-            _exitCode = exitCode;
-            _outputLines = outputLines;
-            _errorLines = errorLines;
+        public int ExitCode 
+        { 
+            get { return _exitCode; } 
         }
-
-        public int ExitCode { get { return _exitCode; } }
 
         public IEnumerable<string> OutputLines
         {
@@ -32,6 +28,13 @@ namespace RunTests
         public IEnumerable<string> ErrorLines
         {
             get { return _errorLines; }
+        }
+
+        public ProcessOutput(int exitCode, IEnumerable<string> outputLines, IEnumerable<string> errorLines)
+        {
+            _exitCode = exitCode;
+            _outputLines = outputLines;
+            _errorLines = errorLines;
         }
     }
 
