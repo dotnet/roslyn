@@ -11,7 +11,7 @@ namespace RunTests
 {
     public sealed class ProcessOutput
     {
-        private readonly int exitCode;
+        private readonly int _exitCode;
         private readonly IEnumerable<string> _outputLines;
         private readonly IEnumerable<string> _errorLines;
 
@@ -56,7 +56,6 @@ namespace RunTests
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            bool elevated = false,
             Dictionary<string, string> environmentVariables = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -65,14 +64,7 @@ namespace RunTests
 
             var process = new Process();
             process.EnableRaisingEvents = true;
-            if (elevated)
-            {
-                process.StartInfo = CreateElevatedStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow);
-            }
-            else
-            {
-                process.StartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow);
-            }
+            process.StartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow);
 
             var task = CreateTask(process, taskCompletionSource, cancellationToken);
 
@@ -161,7 +153,8 @@ namespace RunTests
         }
 
         private static ProcessStartInfo CreateProcessStartInfo(
-            string executable, string arguments,
+            string executable, 
+            string arguments,
             string workingDirectory,
             bool captureOutput,
             bool displayWindow,
@@ -195,39 +188,6 @@ namespace RunTests
             }
 
             return processStartInfo;
-        }
-
-        public static ProcessStartInfo CreateElevatedStartInfo(string executable, string arguments, string workingDirectory, bool captureOutput, bool displayWindow)
-        {
-            var adminInfo = new ProcessStartInfo(executable, arguments);
-            adminInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            adminInfo.CreateNoWindow = true;
-            adminInfo.Verb = "runas";
-
-            if (!string.IsNullOrEmpty(workingDirectory))
-            {
-                adminInfo.WorkingDirectory = workingDirectory;
-            }
-
-            return adminInfo;
-        }
-
-        public static bool WaitForProcessExit(string procName, int timeoutInSeconds = 300)
-        {
-            int count = 0;
-            var procs = Process.GetProcessesByName(procName);
-            while (procs.Length > 0)
-            {
-                Thread.Sleep(1000);
-                procs = Process.GetProcessesByName(procName);
-                count++;
-                if (count > timeoutInSeconds)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
 }

@@ -18,13 +18,15 @@ namespace RunTests
         {
             internal readonly bool Succeeded;
             internal readonly string AssemblyName;
-            internal readonly TimeSpan TimeSpan;
+            internal readonly TimeSpan Elapsed;
+            internal readonly string ErrorOutput;
 
-            internal TestResult(bool succeeded, string assemblyName, TimeSpan timeSpan)
+            internal TestResult(bool succeeded, string assemblyName, TimeSpan elapsed, string errorOutput)
             {
                 Succeeded = succeeded;
                 AssemblyName = assemblyName;
-                TimeSpan = timeSpan;
+                Elapsed = elapsed;
+                ErrorOutput = errorOutput;
             }
         }
 
@@ -83,15 +85,21 @@ namespace RunTests
 
         private void Print(List<TestResult> testResults)
         {
-            testResults.Sort((x, y) => x.TimeSpan.CompareTo(y.TimeSpan));
+            testResults.Sort((x, y) => x.Elapsed.CompareTo(y.Elapsed));
 
             Console.WriteLine("================");
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}", testResult.AssemblyName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.TimeSpan);
+                ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}", testResult.AssemblyName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed);
             }
             Console.WriteLine("================");
+
+            foreach (var testResult in testResults.Where(x => !x.Succeeded))
+            {
+                Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
+                Console.WriteLine(testResult.ErrorOutput);
+            }
         }
 
         private async Task<TestResult> RunTest(string assemblyPath)
@@ -103,9 +111,16 @@ namespace RunTests
             builder.AppendFormat(@" -html ""{0}""", resultsPath);
             builder.Append(" -noshadow");
 
-            var start = DateTime.Now;
-            var processOutput = await ProcessRunner.RunProcessAsync(_xunitConsolePath, builder.ToString(), lowPriority: false, displayWindow: false, captureOutput: true, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            var span = DateTime.Now - start;
+            var errorOutput = string.Empty;
+            var start = DateTime.UtcNow;
+            var processOutput = await ProcessRunner.RunProcessAsync(
+                _xunitConsolePath, 
+                builder.ToString(), 
+                lowPriority: false, 
+                displayWindow: false, 
+                captureOutput: true, 
+                cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            var span = DateTime.UtcNow - start;
 
             if (processOutput.ExitCode != 0)
             {
@@ -118,10 +133,11 @@ namespace RunTests
                     File.WriteAllText(resultsPath, output);
                 }
 
+                errorOutput = processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y);
                 Process.Start(resultsPath);
             }
 
-            return new TestResult(processOutput.ExitCode == 0, assemblyName, span);
+            return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
         }
     }
 }
