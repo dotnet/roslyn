@@ -70,7 +70,7 @@
     </ItemGroup>
 
     <exec
-      Command="packages\xunit.runners.2.0.0-rc1-build2826\tools\xunit.console.exe @(TestAssemblies, ' ') -noshadow -parallel assemblies" />
+      Command="packages\xunit.runners.2.0.0-rc1-build2826\tools\xunit.console.exe @(TestAssemblies, ' ') -noshadow -parallel all" />
 
   </Target>
 
