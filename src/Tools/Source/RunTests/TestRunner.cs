@@ -81,7 +81,7 @@ namespace RunTests
 
         private void Print(List<TestResult> testResults)
         {
-            testResults.Sort((x, y) => x.AssemblyName.CompareTo(y.AssemblyName));
+            testResults.Sort((x, y) => x.TimeSpan.CompareTo(y.TimeSpan));
 
             Console.WriteLine("================");
             foreach (var testResult in testResults)
