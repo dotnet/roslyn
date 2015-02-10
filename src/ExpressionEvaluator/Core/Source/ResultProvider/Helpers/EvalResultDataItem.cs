@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected override void OnClose()
         {
-            Debug.WriteLineIf(true, "Closing " + FullName);
+            Debug.WriteLine("Closing " + FullName);
             Value.Close();
         }
     }
