@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private static string[] BreakIntoDotSeparatedParts(string value)
         {
-            return value.Contains(".")
+            return value.IndexOf('.') >= 0
                 ? value.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
                 : null;
         }
