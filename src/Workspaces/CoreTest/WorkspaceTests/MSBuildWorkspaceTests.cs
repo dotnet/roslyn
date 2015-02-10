@@ -614,7 +614,7 @@ class C1
         }
 
         [WorkItem(985906)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "Issue #317"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void HandleSolutionProjectTypeSolutionFolder()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()

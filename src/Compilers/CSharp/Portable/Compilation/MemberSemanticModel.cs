@@ -632,7 +632,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            BoundAwaitExpression boundAwait = GetUpperBoundNode(node) as BoundAwaitExpression;
+            var bound = GetUpperBoundNode(node);
+            BoundAwaitExpression boundAwait = ((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression;
             if (boundAwait == null)
             {
                 return default(AwaitExpressionInfo);

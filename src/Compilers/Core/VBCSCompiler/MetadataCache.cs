@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// A unique file key encapsulates a file path, and change date as 
-        /// hat can be used as the key to a dictionary.
-        /// If a file hasn't changed name or change date, we assume
+        /// A unique file key encapsulates a file path, and change date
+        /// that can be used as the key to a dictionary.
+        /// If a file hasn't changed name or timestamp, we assume
         /// it is unchanged.
         /// 
         /// Returns null if the file doesn't exist or otherwise can't be accessed.
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else
                 {
-                    return new FileKey(fileInfo.FullName, fileInfo.LastWriteTime);
+                    return new FileKey(fileInfo.FullName, fileInfo.LastWriteTimeUtc);
                 }
             }
             catch (Exception)
