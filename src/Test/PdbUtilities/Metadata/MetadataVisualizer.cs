@@ -513,9 +513,14 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string FormatImports(BlobHandle handle)
         {
+            if (handle.IsNil)
+            {
+                return "nil";
+            }
+
             var sb = new StringBuilder();
 
-            foreach (var import in ReadImports(handle))
+            foreach (var import in reader.GetImportDefinitions(handle))
             {
                 if (sb.Length > 0)
                 {
@@ -579,107 +584,6 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             return sb.ToString();
-        }
-
-        // TODO: move to mdreader
-        private enum ImportScopeKind
-        {
-            ImportNamespace = 1,
-            ImportAssemblyNamespace = 2,
-            ImportType = 3,
-            ImportXmlNamespace = 4,
-            ImportAssemblyReferenceAlias = 5,
-            AliasAssemblyReference = 6,
-            AliasNamespace = 7,
-            AliasAssemblyNamespace = 8,
-            AliasType = 9
-        }
-
-        // TODO: move to mdreader
-        private struct Import
-        {
-            private readonly ImportScopeKind _kind;
-            private readonly int _alias;
-            private readonly int _assembly;
-            private readonly int _typeOrNamespace;
-
-            internal Import(ImportScopeKind kind, int alias = 0, int assembly = 0, int typeOrNamespace = 0)
-            {
-                _kind = kind;
-                _alias = alias;
-                _assembly = assembly;
-                _typeOrNamespace = typeOrNamespace;
-            }
-
-            public ImportScopeKind Kind => _kind;
-            public BlobHandle Alias => MetadataTokens.BlobHandle(_alias);
-            public AssemblyReferenceHandle TargetAssembly => MetadataTokens.AssemblyReferenceHandle(_assembly);
-            public BlobHandle TargetNamespace => MetadataTokens.BlobHandle(_typeOrNamespace);
-            public TypeDefinitionHandle TargetType => MetadataTokens.TypeDefinitionHandle(_typeOrNamespace);
-        }
-
-        // TODO: move to mdreader, struct enumerator
-        private IEnumerable<Import> ReadImports(BlobHandle handle)
-        {
-            var blobReader = reader.GetBlobReader(handle);
-
-            while (blobReader.RemainingBytes > 0)
-            {
-                var kind = (ImportScopeKind)blobReader.ReadByte();
-
-                switch (kind)
-                {
-                    case ImportScopeKind.ImportType:
-                    case ImportScopeKind.ImportNamespace:
-                        yield return new Import(
-                            kind, 
-                            typeOrNamespace: blobReader.ReadCompressedInteger());
-
-                        break;
-
-                    case ImportScopeKind.ImportAssemblyNamespace:
-                        yield return new Import(
-                            kind, 
-                            assembly: blobReader.ReadCompressedInteger(), 
-                            typeOrNamespace: blobReader.ReadCompressedInteger());
-
-                        break;
-
-                    case ImportScopeKind.ImportAssemblyReferenceAlias:
-                        yield return new Import(
-                            kind,
-                            alias: blobReader.ReadCompressedInteger());
-
-                        break;
-
-                    case ImportScopeKind.AliasAssemblyReference:
-                        yield return new Import(
-                            kind,
-                            alias: blobReader.ReadCompressedInteger(),
-                            assembly: blobReader.ReadCompressedInteger());
-
-                        break;
-
-                    case ImportScopeKind.ImportXmlNamespace:
-                    case ImportScopeKind.AliasType:
-                    case ImportScopeKind.AliasNamespace:
-                        yield return new Import(
-                            kind,
-                            alias: blobReader.ReadCompressedInteger(),
-                            typeOrNamespace: blobReader.ReadCompressedInteger());
-
-                        break;
-
-                    case ImportScopeKind.AliasAssemblyNamespace:
-                        yield return new Import(
-                            kind,
-                            alias: blobReader.ReadCompressedInteger(),
-                            assembly: blobReader.ReadCompressedInteger(),
-                            typeOrNamespace: blobReader.ReadCompressedInteger());
-
-                        break;
-                }
-            }
         }
 
         private string SequencePoint(SequencePoint sequencePoint)

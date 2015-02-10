@@ -83,6 +83,7 @@
     </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
+    <Compile Include="Metadata\MetadataReaderPdbExtensions.cs" />
     <Compile Include="Metadata\MetadataVisualizer.cs" />
     <Compile Include="Metadata\MethodILExtensions.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
