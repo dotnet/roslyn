@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,14 +19,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal sealed class PatternMatcher
     {
-        private readonly object _gate = new object();
-        private readonly Dictionary<string, List<TextSpan>> _stringToWordParts = new Dictionary<string, List<TextSpan>>();
-        private readonly Dictionary<string, List<TextSpan>> _stringToCharacterParts = new Dictionary<string, List<TextSpan>>();
-        private readonly Func<string, List<TextSpan>> _breakIntoWordParts = StringBreaker.BreakIntoWordParts;
-        private readonly Func<string, List<TextSpan>> _breakIntoCharacterParts = StringBreaker.BreakIntoCharacterParts;
+        private static readonly char[] DotCharacterArray = new[] { '.' };
 
-        private readonly Dictionary<string, string[]> _patternToParts = new Dictionary<string, string[]>();
-        private readonly Func<string, string[]> _breakPatternIntoParts;
+        private readonly object _gate = new object();
+        private readonly Dictionary<string, List<TextSpan>> _stringToWordSpans = new Dictionary<string, List<TextSpan>>();
+        private readonly Dictionary<string, List<TextSpan>> _stringToCharacterSpans = new Dictionary<string, List<TextSpan>>();
+        private readonly Func<string, List<TextSpan>> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
+        private readonly Func<string, List<TextSpan>> _breakIntoCharacterSpans = StringBreaker.BreakIntoCharacterParts;
+
+        private readonly Dictionary<string, string[]> _patternToWordParts = new Dictionary<string, string[]>();
+        private readonly Dictionary<string, string[]> _patternToDotSeparatedParts = new Dictionary<string, string[]>();
+
+        private readonly Func<string, string[]> _breakPatternIntoWordParts;
+        private readonly Func<string, string[]> _breakPatternIntoDotSeparatedParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
@@ -44,30 +51,51 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public PatternMatcher(CultureInfo culture, bool verbatimIdentifierPrefixIsWordCharacter)
         {
             _compareInfo = culture.CompareInfo;
-            _breakPatternIntoParts = (pattern) => BreakPatternIntoParts(pattern, verbatimIdentifierPrefixIsWordCharacter);
+            _breakPatternIntoWordParts = pattern => BreakPatternIntoParts(pattern, verbatimIdentifierPrefixIsWordCharacter);
+            _breakPatternIntoDotSeparatedParts = BreakIntoDotSeparatedParts;
         }
 
-        private List<TextSpan> GetCharacterParts(string pattern)
+        private static string[] BreakIntoDotSeparatedParts(string value)
+        {
+            return value.Contains(".")
+                ? value.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
+                : null;
+        }
+
+        private List<TextSpan> GetCharacterSpans(string pattern)
         {
             lock (_gate)
             {
-                return _stringToCharacterParts.GetOrAdd(pattern, _breakIntoCharacterParts);
+                return _stringToCharacterSpans.GetOrAdd(pattern, _breakIntoCharacterSpans);
             }
         }
 
-        private List<TextSpan> GetWordParts(string word)
+        private List<TextSpan> GetWordSpans(string word)
         {
             lock (_gate)
             {
-                return _stringToWordParts.GetOrAdd(word, _breakIntoWordParts);
+                return _stringToWordSpans.GetOrAdd(word, _breakIntoWordSpans);
             }
         }
 
-        private string[] GetPatternParts(string pattern)
+        private string[] GetWordParts(string pattern)
         {
             lock (_gate)
             {
-                return _patternToParts.GetOrAdd(pattern, _breakPatternIntoParts);
+                return _patternToWordParts.GetOrAdd(pattern, _breakPatternIntoWordParts);
+            }
+        }
+
+        private string[] GetDotSeparatedParts(string pattern)
+        {
+            if (pattern == null)
+            {
+                return null;
+            }
+
+            lock (_gate)
+            {
+                return _patternToDotSeparatedParts.GetOrAdd(pattern, _breakPatternIntoDotSeparatedParts);
             }
         }
 
@@ -172,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     //    Note: We only have a substring match if the lowercase part is prefix match of some
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
-                    var candidateParts = GetWordParts(candidate);
+                    var candidateParts = GetWordSpans(candidate);
                     foreach (var part in candidateParts)
                     {
                         if (PartStartsWith(candidate, part, pattern, CompareOptions.IgnoreCase))
@@ -196,10 +224,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (!isLowercase)
             {
                 // e) If the part was not entirely lowercase, then attempt a camel cased match as well.
-                var patternParts = GetCharacterParts(pattern);
+                var patternParts = GetCharacterSpans(pattern);
                 if (patternParts.Count > 0)
                 {
-                    var candidateParts = GetWordParts(candidate);
+                    var candidateParts = GetWordSpans(candidate);
                     var camelCaseWeight = TryCamelCaseMatch(candidate, candidateParts, pattern, patternParts, CompareOptions.None);
                     if (camelCaseWeight.HasValue)
                     {
@@ -260,8 +288,82 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// patterns. If it was not a match, it returns null.</returns>
         public IEnumerable<PatternMatch> MatchPattern(string candidate, string pattern)
         {
+            return MatchNonDottedPattern(candidate, pattern);
+        }
+
+        /// <summary>
+        /// Matches a pattern against a candidate, and an optional dotted container for the 
+        /// candidate. If the container is provided, and the pattern itself contains dots, then
+        /// the pattern will be tested against the candidate and container.  Specifically,
+        /// the part of the pattern after the last dot will be tested against the candidate. If
+        /// a match occurs there, then the remaining dot-separated portoins of the pattern will
+        /// be tested against every successive portion of the container from right to left.
+        /// 
+        /// i.e. if you have a pattern of "Con.WL" and the candidate is "WriteLine" with a 
+        /// dotted container of "System.Console", then "WL" will be tested against "WriteLine".
+        /// With a match found there, "Con" will then be tested against "Console".
+        /// </summary>
+        public IEnumerable<PatternMatch> MatchPattern(string candidate, string dottedContainer, string pattern)
+        {
+            var dotParts = GetDotSeparatedParts(pattern);
+            return dotParts == null
+                ? MatchNonDottedPattern(candidate, pattern)
+                : MatchDottedPattern(candidate, dottedContainer, pattern, dotParts);
+        }
+
+        private IEnumerable<PatternMatch> MatchDottedPattern(string candidate, string dottedContainer, string pattern, string[] patternParts)
+        {
+            Debug.Assert(patternParts.Length > 0);
+
+            // First, check that the last part of the dot separated pattern matches the name of the
+            // candidate.  If not, then there's no point in proceeding and doing the more
+            // expensive work.
+            var candidateMatch = MatchNonDottedPattern(candidate, patternParts.Last());
+            if (candidateMatch == null)
+            {
+                return null;
+            }
+
+            // So far so good.  Now break up the container for the candidate and check if all
+            // the dotted parts match up correctly.
+            var totalMatch = candidateMatch.ToList();
+
+            var containerParts = dottedContainer.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+
+            // -1 because the last part was checked against hte name, and only the rest
+            // of the parts are checked against the container.
+            if (patternParts.Length - 1 > containerParts.Length)
+            {
+                // There weren't enough container parts to match against the pattern parts.
+                // So this definitely doesn't match.
+                return null;
+            }
+
+            for (int i = patternParts.Length - 2, j = containerParts.Length - 1;
+                    i >= 0;
+                    i--, j--)
+            {
+                var patternPart = patternParts[i];
+                var containerName = containerParts[j];
+                var containerMatch = MatchNonDottedPattern(containerName, patternPart);
+                if (containerMatch == null)
+                {
+                    // This container didn't match the pattern piece.  So there's no match at all.
+                    return null;
+                }
+
+                totalMatch.AddRange(containerMatch);
+            }
+
+            // Success, this symbol's full name matched against the dotted name the user was asking
+            // about.
+            return totalMatch;
+        }
+
+        private IEnumerable<PatternMatch> MatchNonDottedPattern(string candidate, string pattern)
+        {
             PatternMatch[] matches;
-            var singleMatch = MatchPatternInternal(candidate, pattern, wantAllMatches: true, allMatches: out matches);
+            var singleMatch = MatchNonDottedPattern(candidate, pattern, wantAllMatches: true, allMatches: out matches);
             if (singleMatch.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(singleMatch.Value);
@@ -285,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public PatternMatch? MatchPatternFirstOrNullable(string candidate, string pattern)
         {
             PatternMatch[] ignored;
-            return MatchPatternInternal(candidate, pattern, wantAllMatches: false, allMatches: out ignored);
+            return MatchNonDottedPattern(candidate, pattern, wantAllMatches: false, allMatches: out ignored);
         }
 
         /// <summary>
@@ -302,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <param name="wantAllMatches">Does the caller want all matches or just the first?</param>
         /// <param name="allMatches">If <paramref name="wantAllMatches"/> is true, and there's more than one match, then the list of all matches.</param>
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
-        private PatternMatch? MatchPatternInternal(string candidate, string pattern, bool wantAllMatches, out PatternMatch[] allMatches)
+        private PatternMatch? MatchNonDottedPattern(string candidate, string pattern, bool wantAllMatches, out PatternMatch[] allMatches)
         {
             allMatches = null;
 
@@ -328,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            var patternParts = GetPatternParts(pattern);
+            var patternParts = GetWordParts(pattern);
             PatternMatch[] matches = null;
 
             for (int i = 0; i < patternParts.Length; i++)
