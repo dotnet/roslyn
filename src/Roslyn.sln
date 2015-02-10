@@ -149,6 +149,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicWorkspace.Desktop", "W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeSign", "Tools\Source\FakeSign\FakeSign.csproj", "{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunTests", "Tools\Source\RunTests\RunTests.csproj", "{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenSourceDebug", "Tools\Source\OpenSourceDebug\OpenSourceDebug.csproj", "{43026D51-3083-4850-928D-07E1883D5B1A}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicFeatures", "Features\VisualBasic\BasicFeatures.vbproj", "{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}"
@@ -764,6 +766,14 @@ Global
 		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Any CPU.Build.0 = Release|Any CPU
 		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{43026D51-3083-4850-928D-07E1883D5B1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{43026D51-3083-4850-928D-07E1883D5B1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43026D51-3083-4850-928D-07E1883D5B1A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

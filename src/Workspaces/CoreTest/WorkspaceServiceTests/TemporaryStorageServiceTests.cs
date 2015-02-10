@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class TemporaryStorageServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/380"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageText()
         {
             var textFactory = new TextFactoryService();
