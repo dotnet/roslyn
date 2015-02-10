@@ -156,6 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// True when the compiler is run in "strict" mode, in which it enforces the language specification
+        /// in some cases even at the expense of full compatibility. Such differences typically arise when
+        /// earlier versions of the compiler failed to enforce the full language specification.
+        /// </summary>
+        internal bool FeatureStrictEnabled => Feature("strict") != null;
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion
