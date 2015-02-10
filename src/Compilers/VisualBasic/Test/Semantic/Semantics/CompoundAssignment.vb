@@ -1142,8 +1142,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
-            <![CDATA[
-Position get for item 'Foo'
+            <![CDATA[Position get for item 'Foo'
 Position set for item 'Foo'
 ]]>)
 
