@@ -62,13 +62,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task<bool> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
             BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(document.Project.Solution.Workspace, out analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(async () => await analyzer.TryGetDiagnosticsForSpanAsync(document, range, diagnostics, cancellationToken).ConfigureAwait(false), cancellationToken);
+                return Task.Run(async () => await analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, cancellationToken).ConfigureAwait(false), cancellationToken);
             }
 
             return SpecializedTasks.False;

@@ -649,7 +649,7 @@ class AnonymousFunctions
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                Dim incrementalAnalyzer = DirectCast(diagnosticService.CreateIncrementalAnalyzer(workspace), DiagnosticIncrementalAnalyzer)
+                Dim incrementalAnalyzer = DirectCast(DirectCast(diagnosticService.CreateIncrementalAnalyzer(workspace), DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee).Analyzer, DiagnosticIncrementalAnalyzer)
 
                 ' Verify that for an analyzer which has a registered compilation start action such that the start action registered an end action,
                 ' we go and force complete all document diagnostics for entire project and then invoke and report end action diagnostics.

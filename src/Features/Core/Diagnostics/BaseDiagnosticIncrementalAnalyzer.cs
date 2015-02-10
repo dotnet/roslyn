@@ -5,8 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,16 +30,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
+        public abstract Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
         #endregion
 
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            return e.Option.Feature == SimplificationOptions.PerLanguageFeatureName ||
-                   e.Option.Feature == SimplificationOptions.NonPerLanguageFeatureName ||
-                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
-                   e.Option == InternalDiagnosticsOptions.UseDiagnosticEngineV2;
+            return false;
         }
 
         public virtual void LogAnalyzerCountSummary()

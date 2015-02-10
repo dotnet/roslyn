@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return Task.FromResult(SpecializedCollections.EmptyEnumerable(Of DiagnosticData))
             End Function
 
-            Public Function TryGetDiagnosticsForSpanAsync(document As Document, range As TextSpan, diagnostics As List(Of DiagnosticData), cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDiagnosticAnalyzerService.TryGetDiagnosticsForSpanAsync
+            Public Function TryAppendDiagnosticsForSpanAsync(document As Document, range As TextSpan, diagnostics As List(Of DiagnosticData), cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDiagnosticAnalyzerService.TryAppendDiagnosticsForSpanAsync
                 Return Task.FromResult(False)
             End Function
 

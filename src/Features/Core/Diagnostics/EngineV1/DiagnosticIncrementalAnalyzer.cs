@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public override async Task<bool> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
             try
             {
