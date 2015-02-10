@@ -92,6 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             SyntaxNode initializer)
         {
+            type = this.ClearTrivia(type);
+            initializer = this.ClearTrivia(initializer);
+
             return SyntaxFactory.FieldDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 AsModifierList(accessibility, modifiers, SyntaxKind.FieldDeclaration),
@@ -106,6 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ParameterDeclaration(string name, SyntaxNode type, SyntaxNode initializer, RefKind refKind)
         {
+            type = this.ClearTrivia(type);
+            initializer = this.ClearTrivia(initializer);
+
             return SyntaxFactory.Parameter(
                 default(SyntaxList<AttributeListSyntax>),
                 GetParameterModifiers(refKind),
@@ -137,6 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> statements)
         {
+            parameters = this.ClearTrivia(parameters);
+            returnType = this.ClearTrivia(returnType);
+
             bool hasBody = !modifiers.IsAbstract;
 
             return SyntaxFactory.MethodDeclaration(
@@ -167,6 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> baseConstructorArguments,
             IEnumerable<SyntaxNode> statements)
         {
+            parameters = this.ClearTrivia(parameters);
+            baseConstructorArguments = this.ClearTrivia(baseConstructorArguments);
+
             return SyntaxFactory.ConstructorDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 AsModifierList(accessibility, modifiers, SyntaxKind.ConstructorDeclaration),
@@ -184,6 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> getAccessorStatements,
             IEnumerable<SyntaxNode> setAccessorStatements)
         {
+            type = this.ClearTrivia(type);
+
             var accessors = new List<AccessorDeclarationSyntax>();
             var hasSetter = !modifiers.IsReadOnly;
 
@@ -229,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> getAccessorStatements,
             IEnumerable<SyntaxNode> setAccessorStatements)
         {
+            type = this.ClearTrivia(type);
+
             var accessors = new List<AccessorDeclarationSyntax>();
             var hasSetter = !modifiers.IsReadOnly;
 
@@ -293,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers)
         {
+            type = this.ClearTrivia(type);
+
             return SyntaxFactory.EventFieldDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 AsModifierList(accessibility, modifiers, SyntaxKind.EventFieldDeclaration),
@@ -311,6 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> addAccessorStatements,
             IEnumerable<SyntaxNode> removeAccessorStatements)
         {
+            type = this.ClearTrivia(type);
+            parameters = this.ClearTrivia(parameters);
+
             var accessors = new List<AccessorDeclarationSyntax>();
             if (modifiers.IsAbstract)
             {
@@ -350,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode typeName)
         {
+            typeName = this.ClearTrivia(typeName);
+
             return PreserveTrivia(declaration, d =>
             {
                 var specifier = SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)typeName);
@@ -468,9 +491,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             SyntaxNode baseType,
-            IEnumerable<SyntaxNode> interfaceTypes,
+            IEnumerable<SyntaxNode> interfaceTypes,            
             IEnumerable<SyntaxNode> members)
         {
+            baseType = this.ClearTrivia(baseType);
+            interfaceTypes = this.ClearTrivia(interfaceTypes);
+
             List<BaseTypeSyntax> baseTypes = null;
             if (baseType != null || interfaceTypes != null)
             {
@@ -534,6 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> interfaceTypes,
             IEnumerable<SyntaxNode> members)
         {
+            interfaceTypes = this.ClearTrivia(interfaceTypes);
+
             var itypes = interfaceTypes != null ? interfaceTypes.Select(i => (BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)i)).ToList() : null;
             if (itypes != null && itypes.Count == 0)
             {
@@ -557,6 +585,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null)
         {
+            interfaceTypes = this.ClearTrivia(interfaceTypes);
+
             var itypes = interfaceTypes != null ? interfaceTypes.Select(i => (BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)i)).ToList() : null;
             if (itypes != null && itypes.Count == 0)
             {
@@ -649,6 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode EnumMember(string name, SyntaxNode expression)
         {
+            expression = this.ClearTrivia(expression);
+
             return SyntaxFactory.EnumMemberDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 name.ToIdentifierToken(),
@@ -689,6 +721,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default(DeclarationModifiers))
         {
+            parameters = this.ClearTrivia(parameters);
+            returnType = this.ClearTrivia(returnType);
+
             return SyntaxFactory.DelegateDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 AsModifierList(accessibility, modifiers),
@@ -742,8 +777,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TNode ClearTrivia<TNode>(TNode node)
         {
-            return node.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
-                       .WithTrailingTrivia(SyntaxFactory.ElasticMarker);
+            if (node != null)
+            {
+                return node.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
+                           .WithTrailingTrivia(SyntaxFactory.ElasticMarker);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private SyntaxList<AttributeListSyntax> AsAttributeLists(IEnumerable<SyntaxNode> attributes)
