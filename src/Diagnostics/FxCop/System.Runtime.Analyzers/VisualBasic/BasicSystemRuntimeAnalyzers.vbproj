@@ -9,7 +9,7 @@
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B1A6A74B-E484-48FB-8745-7A30A06DB631}</ProjectGuid>
+    <ProjectGuid>{D835C05E-9D83-40B2-9D25-19EB652F10D7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AnalyzerProject>true</AnalyzerProject>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Analyzers</AssemblyName>

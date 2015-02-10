@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{0C2925AD-CD97-46FA-A686-E2C1AD19DAD8}</ProjectGuid>
+    <ProjectGuid>{0FAE8CB3-4D2F-4A11-B1E6-F47EFF0FB863}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>System.Runtime.Analyzers.UnitTests</RootNamespace>
     <AssemblyName>System.Runtime.Analyzers.UnitTests</AssemblyName>
@@ -63,12 +63,16 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\Core\SystemRuntimeAnalyzers.csproj">
-      <Project>{d8762a0a-3832-47be-bcf6-8b1060be6b28}</Project>
+      <Project>{baa0fee4-93c8-46f0-bb36-53a6053776c8}</Project>
       <Name>SystemRuntimeAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpSystemRuntimeAnalyzers.csproj">
-      <Project>{921b412a-5551-4853-82b4-46ad5a05a03e}</Project>
+      <Project>{a36451ec-1127-40ce-b841-47f393d24624}</Project>
       <Name>CSharpSystemRuntimeAnalyzers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualBasic\BasicSystemRuntimeAnalyzers.vbproj">
+      <Project>{d835c05e-9d83-40b2-9d25-19eb652f10d7}</Project>
+      <Name>BasicSystemRuntimeAnalyzers</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

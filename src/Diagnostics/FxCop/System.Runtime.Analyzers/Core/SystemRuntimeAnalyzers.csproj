@@ -9,7 +9,7 @@
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D8762A0A-3832-47BE-BCF6-8B1060BE6B28}</ProjectGuid>
+    <ProjectGuid>{BAA0FEE4-93C8-46F0-BB36-53A6053776C8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AnalyzerProject>true</AnalyzerProject>
     <RootNamespace>System.Runtime.Analyzers</RootNamespace>
