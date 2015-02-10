@@ -13,21 +13,20 @@
 
   <PropertyGroup>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
-    <CompileDependsOn>$(CompileDependsOn);PostCompileBinaryModification</CompileDependsOn>
-    <CleanDependsOn>$(CleanDependsOn);CleanPostCompileBinaryModification</CleanDependsOn>
   </PropertyGroup>
 
   <Target Name="PostCompileBinaryModification"
+          AfterTargets="CoreCompile"
           DependsOnTargets="ApplyOptimizations;FakeSign"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
     <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
     <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
-  </Target>
 
-  <Target Name="CleanPostCompileBinaryModification">
-    <Delete Files="$(PostCompileBinaryModificationSentinelFile)" />
+    <ItemGroup>
+      <FileWrites Include="$(PostCompileBinaryModificationSentinelFile)" />
+    </ItemGroup>
   </Target>
 
   <!-- ====================================================================================
@@ -71,7 +70,7 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
     
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;$(IntermediateOutputPath)$(TargetFileName)&quot;" />
+    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
     
   </Target>
 
