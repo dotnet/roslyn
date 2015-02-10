@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Equal(text.Encoding, text2.Encoding);
 
             temporaryStorage.Dispose();
         }
