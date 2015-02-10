@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                _loggingIdentifier = _pipeStream.SafePipeHandle.DangerousGetHandle().ToInt32().ToString();
+                _loggingIdentifier = _pipeStream.SafePipeHandle.DangerousGetHandle().ToString();
             }
             catch (Exception e)
             {

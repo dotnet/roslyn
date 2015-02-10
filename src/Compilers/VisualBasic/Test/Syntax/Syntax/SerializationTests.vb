@@ -217,8 +217,9 @@ End Class
             Assert.Equal(annotation, dannotation) ' but are equivalent
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="Bug 327")>
         <WorkItem(530374, "DevDiv")>
+        <WorkItem(327, "GitHub")>
         Public Sub RoundtripSerializeDeepExpression()
             Dim text = <Foo><![CDATA[
 Module Module15

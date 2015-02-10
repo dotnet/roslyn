@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static string GetManifestString(IntPtr ptr, int offset, int length, Encoding encoding)
         {
             byte[] fullmanif = new byte[length];
-            Marshal.Copy((IntPtr)(ptr.ToInt64() + offset), fullmanif, 0, length);
+            Marshal.Copy((IntPtr)(ptr + offset), fullmanif, 0, length);
             return encoding.GetString(fullmanif, 0, length);
         }
 

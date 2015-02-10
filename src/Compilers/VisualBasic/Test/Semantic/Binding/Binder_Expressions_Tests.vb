@@ -1104,7 +1104,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
     Friend Module ExpArrBounds003Errmod
         Sub ExpArrBounds003Err()
             ' COMPILEERROR: BC32059, "0!"
-    	    Dim x1(0! To 5) as Single
+            Dim x1(0! To 5) as Single
             Dim x2(0.0 to 5) as Single
             Dim x3(0d to 5) as Single
         End Sub
@@ -1115,17 +1115,17 @@ BC30108: 'S' is a type and cannot be used as an expression.
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
-                                               <errors>
- BC32059: Array lower bounds can be only '0'.
-    	    Dim x1(0! To 5) as Single
-                ~~
+                                                    <expected>
+BC32059: Array lower bounds can be only '0'.
+            Dim x1(0! To 5) as Single
+                   ~~
 BC32059: Array lower bounds can be only '0'.
             Dim x2(0.0 to 5) as Single
                    ~~~
 BC32059: Array lower bounds can be only '0'.
             Dim x3(0d to 5) as Single
                    ~~
-                                               </errors>)
+                                                    </expected>)
 
         End Sub
 
@@ -2667,7 +2667,7 @@ End Namespace
 
         <Fact()>
         Public Sub RangeVariableColorColor()
-            Dim source = _
+            Dim source =
 <compilation>
     <file name="a.vb">
 Imports System.Linq
@@ -2694,7 +2694,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, { SystemCoreRef }, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
             AssertTheseDiagnostics(compilation, <expected></expected>)
 
             CompileAndVerify(compilation, expectedOutput:="42")
@@ -3012,7 +3012,7 @@ End Class
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
-            
+
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
 
@@ -3058,13 +3058,12 @@ End Class
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
-            
+
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As String)' requires an object reference.
    at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
-   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
    at Program.Main()]]>)
         End Sub
 
@@ -3373,7 +3372,6 @@ System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As
    at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
    at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
-   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
    at Outer.Program.M()]]>)
         End Sub
 

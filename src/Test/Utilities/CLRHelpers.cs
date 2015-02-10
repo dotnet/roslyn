@@ -8,9 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities.ComTypes;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -64,12 +64,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return PeVerify(File.ReadAllBytes(filePath), AppDomain.CurrentDomain.Id, filePath);
         }
 
-        private static readonly object Guard = new object();
+        // The PEVerify call into the CLR is unsafe across multiple app domains
+        // (which is how xunit runs each test), so we use a named mutex to
+        // guard here, rather than a lock object.
+        private static readonly Mutex s_guard = new Mutex(false, Process.GetCurrentProcess().Id.ToString());
 
         private static string[] PeVerify(byte[] peImage, int domainId, string assemblyPath)
         {
-            lock (Guard)
+            try
             {
+                s_guard.WaitOne();
+
                 GCHandle pinned = GCHandle.Alloc(peImage, GCHandleType.Pinned);
                 try
                 {
@@ -105,6 +110,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     pinned.Free();
                 }
+            }
+            finally
+            {
+                s_guard.ReleaseMutex();
             }
         }
 

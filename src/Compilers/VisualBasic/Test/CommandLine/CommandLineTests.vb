@@ -5142,7 +5142,7 @@ End Module
             Assert.Equal(0, vbc.Run(New StringWriter(), Nothing))
 
             Dim library As IntPtr = LoadLibraryEx(Path.Combine(dir.Path, outputFileName), IntPtr.Zero, 2)
-            If library.ToInt32() = 0 Then
+            If library = IntPtr.Zero Then
                 Throw New Win32Exception(Marshal.GetLastWin32Error())
             End If
 
