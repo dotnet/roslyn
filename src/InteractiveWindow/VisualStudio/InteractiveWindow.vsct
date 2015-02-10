@@ -189,21 +189,6 @@
       </Button>
 
       <!-- Toolbar Buttons -->
-      <Button guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0100" type="Button">
-        <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
-        <Icon guid="guidInteractiveToolbarImages" id="bmpClearScreen" />
-        <Strings>
-          <ButtonText>Clear Screen</ButtonText>
-        </Strings>
-      </Button>
-
-      <Button guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0200" type="Button">
-        <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
-        <Icon guid="guidInteractiveToolbarImages" id="bmpResetSession" />
-        <Strings>
-          <ButtonText>Reset</ButtonText>
-        </Strings>
-      </Button>
 
       <!--<Button guid="guidInteractiveWindowCmdSet" id="cmdidAbortExecution" priority="0x0300" type="Button">
                 <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
@@ -255,6 +240,12 @@
   </UsedCommands>
 
   <CommandPlacements>
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0100">
+      <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0100">
+      <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
+    </CommandPlacement>
 
     <!-- Cut/copy/paste group -->
     <CommandPlacement guid="guidVSStd97" id="cmdidCut" priority="0x0100">

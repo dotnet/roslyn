@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 if (symbol != null)
                 {
                     var minimalSymbolName = symbol.ToMinimalDisplayString(semanticModel, location.SourceSpan.Start, DeclarePublicAPIAnalyzer.ShortSymbolNameFormat);
-                    var publicSurfaceAreaSymbolName = symbol.ToDisplayString(DeclarePublicAPIAnalyzer.PublicApiFormat);
+                    var publicSurfaceAreaSymbolName = DeclarePublicAPIAnalyzer.GetPublicApiName(symbol);
 
                     context.RegisterCodeFix(
                             new AdditionalDocumentChangeAction(
@@ -196,7 +196,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                             if (symbol != null)
                             {
-                                var publicSurfaceAreaSymbolName = symbol.ToDisplayString(DeclarePublicAPIAnalyzer.PublicApiFormat);
+                                var publicSurfaceAreaSymbolName = DeclarePublicAPIAnalyzer.GetPublicApiName(symbol);
 
                                 if (symbol != null)
                                 {
