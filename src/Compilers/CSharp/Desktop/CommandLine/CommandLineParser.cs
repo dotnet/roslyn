@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             case "debug":
                                 if (value == null ||
-                                    string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) &&
+                                    string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) ||
                                     string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
                                 {
                                     debugInfoFormat = DebugInformationFormat.Pdb;
