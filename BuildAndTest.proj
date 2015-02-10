@@ -76,7 +76,7 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.VisualBasic.UnitTests.dll" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-rc1-build2826\tools\xunit.console.x86.exe @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.console.x86.exe @(TestAssemblies, ' ')" />
 
   </Target>
 
