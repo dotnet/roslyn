@@ -57,9 +57,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private static string[] BreakIntoDotSeparatedParts(string value)
         {
-            return value.IndexOf('.') >= 0
-                ? value.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
-                : null;
+            if (value.IndexOf('.') >= 0) {
+                var split = value.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length > 0) {
+                    return split;
+                }
+            }
+
+            return null;
         }
 
         private List<TextSpan> GetCharacterSpans(string pattern)

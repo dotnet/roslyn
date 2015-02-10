@@ -23,22 +23,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public SearchGraphQuery(string searchPattern)
         {
-            _entireSearchPattern = searchPattern;
-
             // If the pattern has a dot in it, then when we search the compilations, we actually
             // want to only filter by the last name portion of hte pattern (as the compilers 
             // only support returning the basic name of a symbol when searching and filtering 
             // them).  Then, once we have all the results the compiler returned, we check and
             // verify they match against the full dotted pattern.
-            if (searchPattern.Contains("."))
+            if (searchPattern.IndexOf('.') >= 0)
             {
                 var patternParts = searchPattern.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
-                _lastPatternPart = patternParts.Last();
+                _lastPatternPart = patternParts.LastOrDefault();
             }
-            else
-            {
-                _lastPatternPart = searchPattern;
-            }
+
+            _entireSearchPattern = searchPattern;
+            _lastPatternPart = _lastPatternPart ?? searchPattern;
         }
 
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
