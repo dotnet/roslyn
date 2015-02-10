@@ -101,6 +101,7 @@
     <Compile Include="Helpers\ArrayBuilder.cs" />
     <Compile Include="Helpers\DkmClrValueFlagsExtensions.cs" />
     <Compile Include="Helpers\DkmEvaluationResultFlagsExtensions.cs" />
+    <Compile Include="Helpers\EnumContextDataItem.cs" />
     <Compile Include="Helpers\EvalResultDataItem.cs" />
     <Compile Include="Helpers\GeneratedMetadataNames.cs" />
     <Compile Include="Helpers\HashFunctions.cs" />
@@ -136,3 +137,4 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
+
