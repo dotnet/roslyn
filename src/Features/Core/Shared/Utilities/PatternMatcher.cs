@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// candidate. If the container is provided, and the pattern itself contains dots, then
         /// the pattern will be tested against the candidate and container.  Specifically,
         /// the part of the pattern after the last dot will be tested against the candidate. If
-        /// a match occurs there, then the remaining dot-separated portoins of the pattern will
+        /// a match occurs there, then the remaining dot-separated portions of the pattern will
         /// be tested against every successive portion of the container from right to left.
         /// 
         /// i.e. if you have a pattern of "Con.WL" and the candidate is "WriteLine" with a 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var containerParts = dottedContainer.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
 
-            // -1 because the last part was checked against hte name, and only the rest
+            // -1 because the last part was checked against the name, and only the rest
             // of the parts are checked against the container.
             if (patternParts.Length - 1 > containerParts.Length)
             {
