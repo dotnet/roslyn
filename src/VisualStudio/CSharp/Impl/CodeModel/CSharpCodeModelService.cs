@@ -2128,6 +2128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (symbol.MethodKind)
             {
                 case MethodKind.Ordinary:
+                case MethodKind.ExplicitInterfaceImplementation:
                     return EnvDTE.vsCMFunction.vsCMFunctionFunction;
 
                 case MethodKind.Constructor:
