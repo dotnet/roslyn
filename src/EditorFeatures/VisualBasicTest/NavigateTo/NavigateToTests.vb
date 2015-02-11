@@ -541,6 +541,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
+        <WorkItem(1121267)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        Public Sub FindClassInGlobalNamespace()
+            Using worker = SetupWorkspace("Namespace Global", "Public Class C(Of T)", "End Class", "End Namespace")
+                SetupVerifableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
+                Dim item = _aggregator.GetItems("C").Single
+                VerifyNavigateToResultItem(item, "C", MatchKind.Exact, NavigateToItemKind.Class, displayName:="C(Of T)")
+            End Using
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub StartStopSanity()
             ' Verify that mutliple calls to start/stop don't blow up

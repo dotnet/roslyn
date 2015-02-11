@@ -79,6 +79,7 @@
     <Compile Include="Rewriters\LocalDeclarationRewriter.cs" />
     <Compile Include="Rewriters\MayHaveSideEffectsVisitor.cs" />
     <Compile Include="Rewriters\PlaceholderLocalRewriter.cs" />
+    <Compile Include="SymbolExtensions.cs" />
     <Compile Include="Symbols\DisplayClassInstance.cs" />
     <Compile Include="Symbols\DisplayClassVariable.cs" />
     <Compile Include="Symbols\EEDisplayClassFieldLocalSymbol.cs" />

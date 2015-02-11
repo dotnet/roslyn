@@ -2,10 +2,12 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Navigation
 {
@@ -33,24 +35,31 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult());
                 _lazyDisplayName = new Lazy<string>(() =>
                 {
-                    if (Symbol == null)
+                    try
                     {
-                        return null;
+                        if (Symbol == null)
+                        {
+                            return null;
+                        }
+
+                        var symbolDisplayService = Document.GetLanguageService<ISymbolDisplayService>();
+                        switch (Symbol.Kind)
+                        {
+                            case SymbolKind.NamedType:
+                                return symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers);
+
+                            case SymbolKind.Method:
+                                return Symbol.IsStaticConstructor()
+                                    ? symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers)
+                                    : symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+
+                            default:
+                                return symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+                        }
                     }
-
-                    var symbolDisplayService = Document.GetLanguageService<ISymbolDisplayService>();
-                    switch (Symbol.Kind)
+                    catch (Exception e) when (FatalError.Report(e))
                     {
-                        case SymbolKind.NamedType:
-                            return symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers);
-
-                        case SymbolKind.Method:
-                            return Symbol.IsStaticConstructor()
-                                ? symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers)
-                                : symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
-
-                        default:
-                            return symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+                        throw ExceptionUtilities.Unreachable;
                     }
                 });
             }

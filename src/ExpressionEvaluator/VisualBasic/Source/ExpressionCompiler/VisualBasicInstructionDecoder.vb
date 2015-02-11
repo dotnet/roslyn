@@ -1,6 +1,8 @@
-﻿Imports System.Runtime.InteropServices
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.VisualStudio.Debugger
 Imports Microsoft.VisualStudio.Debugger.Clr
@@ -8,7 +10,7 @@ Imports System.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    Friend NotInheritable Class VisualBasicInstructionDecoder : Inherits InstructionDecoder(Of PEMethodSymbol)
+    Friend NotInheritable Class VisualBasicInstructionDecoder : Inherits InstructionDecoder(Of VisualBasicCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol)
 
         ' These strings were not localized in the old EE.  We'll keep them that way
         ' so as not to break consumers who may have been parsing frame names...
@@ -18,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <summary>
         ''' Singleton instance of <see cref="VisualBasicInstructionDecoder"/> (created using default constructor).
         ''' </summary>
-        Friend Shared ReadOnly Instance as VisualBasicInstructionDecoder = New VisualBasicInstructionDecoder()
+        Friend Shared ReadOnly Instance As VisualBasicInstructionDecoder = New VisualBasicInstructionDecoder()
 
         Private Sub New()
         End Sub
 
-        Friend Overrides Sub AppendFullName(builder As StringBuilder, method As PEMethodSymbol)
+        Friend Overrides Sub AppendFullName(builder As StringBuilder, method As MethodSymbol)
             Dim parts = method.ToDisplayParts(DisplayFormat)
             Dim numParts = parts.Length
             For i = 0 To numParts - 1
@@ -59,9 +61,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Next
         End Sub
 
-        Friend Overrides Function GetMethod(instructionAddress As DkmClrInstructionAddress) As PEMethodSymbol
-            Dim moduleInstance = instructionAddress.ModuleInstance
-            Dim appDomain = moduleInstance.AppDomain
+        Friend Overrides Function ConstructMethod(method As MethodSymbol, typeParameters As ImmutableArray(Of TypeParameterSymbol), typeArguments As ImmutableArray(Of TypeSymbol)) As MethodSymbol
+            Dim methodArity = method.Arity
+            Dim methodArgumentStartIndex = typeParameters.Length - methodArity
+            Dim typeMap = TypeSubstitution.Create(
+                method,
+                ImmutableArray.Create(typeParameters, 0, methodArgumentStartIndex),
+                ImmutableArray.Create(typeArguments, 0, methodArgumentStartIndex))
+            Dim substitutedType = typeMap.SubstituteNamedType(method.ContainingType)
+            method = method.AsMember(substitutedType)
+            If methodArity > 0 Then
+                method = method.Construct(ImmutableArray.Create(typeArguments, methodArgumentStartIndex, methodArity))
+            End If
+            Return method
+        End Function
+
+        Friend Overrides Function GetAllTypeParameters(method As MethodSymbol) As ImmutableArray(Of TypeParameterSymbol)
+            Return method.GetAllTypeParameters()
+        End Function
+
+        Friend Overrides Function GetCompilation(instructionAddress As DkmClrInstructionAddress) As VisualBasicCompilation
+            Dim appDomain = instructionAddress.ModuleInstance.AppDomain
             Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
             Dim metadataBlocks = instructionAddress.Process.GetMetadataBlocks(appDomain)
 
@@ -73,7 +93,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New VisualBasicMetadataContext(metadataBlocks))
             End If
 
-            Return compilation.GetSourceMethod(moduleInstance.Mvid, instructionAddress.MethodId.Token)
+            Return compilation
+        End Function
+
+        Friend Overrides Function GetMethod(compilation As VisualBasicCompilation, instructionAddress As DkmClrInstructionAddress) As MethodSymbol
+            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, instructionAddress.MethodId.Token)
+        End Function
+
+        Friend Overrides Function GetTypeNameDecoder(compilation As VisualBasicCompilation, method As MethodSymbol) As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol)
+            Debug.Assert(TypeOf method Is PEMethodSymbol)
+            Return New EETypeNameDecoder(compilation, DirectCast(method.ContainingModule, PEModuleSymbol))
         End Function
 
     End Class

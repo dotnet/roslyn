@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -175,20 +176,6 @@ namespace Microsoft.Cci
         #region ImportScope
 
         private const int ModuleImportScopeRid = 1;
-
-        // TODO: move to mdreader
-        private enum ImportScopeKind
-        {
-            ImportNamespace = 1,
-            ImportAssemblyNamespace = 2,
-            ImportType = 3,
-            ImportXmlNamespace = 4,
-            ImportAssemblyReferenceAlias = 5,
-            AliasAssemblyReference = 6,
-            AliasNamespace = 7,
-            AliasAssemblyNamespace = 8,
-            AliasType = 9
-        }
 
         private void SerializeImport(BinaryWriter writer, AssemblyReferenceAlias alias)
         {

@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -14,8 +17,90 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     public class InstructionDecoderTests : ExpressionCompilerTestBase
     {
+        [Fact]
+        void GetNameGenerics()
+        {
+            var source = @"
+using System;
+class Class1<T>
+{
+    void M1<U>(Action<Int32> a)
+    {
+    }
+    void M2<U>(Action<T> a)
+    {
+    }
+    void M3<U>(Action<U> a)
+    {
+    }
+}";
+
+            Assert.Equal(
+                "Class1<T>.M1<U>(System.Action<int> a)",
+                GetName(source, "Class1.M1", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
+
+            Assert.Equal(
+                "Class1<T>.M2<U>(System.Action<T> a)",
+                GetName(source, "Class1.M2", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
+
+            Assert.Equal(
+                "Class1<T>.M3<U>(System.Action<U> a)",
+                GetName(source, "Class1.M3", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
+
+            Assert.Equal(
+                "Class1<string>.M1<decimal>(System.Action<int> a)",
+                GetName(source, "Class1.M1", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(string), typeof(decimal) }));
+
+            Assert.Equal(
+                "Class1<string>.M2<decimal>(System.Action<string> a)",
+                GetName(source, "Class1.M2", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(string), typeof(decimal) }));
+
+            Assert.Equal(
+                "Class1<string>.M3<decimal>(System.Action<decimal> a)",
+                GetName(source, "Class1.M3", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(string), typeof(decimal) }));
+        }
+
+        [Fact]
+        void GetNameNullTypeArguments()
+        {
+            var source = @"
+using System;
+class Class1<T>
+{
+    void M<U>(Action<U> a)
+    {
+    }
+}";
+
+            Assert.Equal(
+                "Class1<T>.M<U>(System.Action<U> a)",
+                GetName(source, "Class1.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new Type[] { null, null }));
+
+            Assert.Equal(
+                "Class1<T>.M<U>(System.Action<U> a)",
+                GetName(source, "Class1.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { typeof(string), null }));
+
+            Assert.Equal(
+                "Class1<T>.M<U>(System.Action<U> a)",
+                GetName(source, "Class1.M", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { null, typeof(decimal) }));
+        }
+
+        [Fact]
+        void GetNameGenericArgumentTypeNotInReferences()
+        {
+            var source = @"
+class Class1
+{
+}";
+
+            var serializedTypeArgumentName = "Class1, " + nameof(InstructionDecoderTests) + ", Culture=neutral, PublicKeyToken=null";
+            Assert.Equal(
+                "System.Collections.Generic.Comparer<Class1>.Create(System.Comparison<Class1> comparison)",
+                GetName(source, "System.Collections.Generic.Comparer.Create", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, typeArguments: new[] { serializedTypeArgumentName }));
+        }
+
         [Fact, WorkItem(1107977)]
-        public void GetNameGenericAsync()
+        void GetNameGenericAsync()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -29,12 +114,12 @@ class C
 }";
 
             Assert.Equal(
-                    "C.M<T>(T x)",
-                    GetName(source, "C.<M>d__0.MoveNext", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
+                    "C.M<System.Exception>(System.Exception x)",
+                    GetName(source, "C.<M>d__0.MoveNext", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(Exception) }));
         }
 
         [Fact]
-        public void GetNameLambda()
+        void GetNameLambda()
         {
             var source = @"
 using System;
@@ -52,7 +137,7 @@ class C
         }
 
         [Fact]
-        public void GetNameGenericLambda()
+        void GetNameGenericLambda()
         {
             var source = @"
 using System;
@@ -65,12 +150,12 @@ class C<T>
 }";
 
             Assert.Equal(
-                "C<T>.M.AnonymousMethod__0_0(U u)",
-                GetName(source, "C.<>c__0.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types));
+                "C<System.Exception>.M.AnonymousMethod__0_0(System.ArgumentException u)",
+                GetName(source, "C.<>c__0.<M>b__0_0", DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types, new[] { typeof(Exception), typeof(ArgumentException) }));
         }
 
         [Fact]
-        public void GetNameProperties()
+        void GetNameProperties()
         {
             var source = @"
 class C
@@ -101,7 +186,7 @@ class C
         }
 
         [Fact]
-        public void GetNameExplicitInterfaceImplementation()
+        void GetNameExplicitInterfaceImplementation()
         {
             var source = @"
 using System;
@@ -116,7 +201,7 @@ class C : IDisposable
         }
 
         [Fact]
-        public void GetNameExtensionMethod()
+        void GetNameExtensionMethod()
         {
             var source = @"
 static class Extensions
@@ -130,7 +215,7 @@ static class Extensions
         }
 
         [Fact]
-        public void GetNameArgumentFlagsNone()
+        void GetNameArgumentFlagsNone()
         {
             var source = @"
 static class C
@@ -148,12 +233,126 @@ static class C
                 GetName(source, "C.M2", DkmVariableInfoFlags.None));
         }
 
-        private string GetName(string source, string methodName, DkmVariableInfoFlags argumentFlags, params string[] argumentValues)
+        [Fact]
+        void GetReturnTypeNamePrimitive()
+        {
+            var source = @"
+static class C
+{
+    static uint M1() { return 42; }
+}";
+
+            Assert.Equal("uint", GetReturnTypeName(source, "C.M1"));
+        }
+
+        [Fact]
+        void GetReturnTypeNameNested()
+        {
+            var source = @"
+static class C
+{
+    static N.D.E M1() { return default(N.D.E); }
+}
+namespace N
+{
+    class D
+    {
+        internal struct E
+        {
+        }
+    }
+}";
+
+            Assert.Equal("N.D.E", GetReturnTypeName(source, "C.M1"));
+        }
+
+        [Fact]
+        void GetReturnTypeNameGenericOfPrimitive()
+        {
+            var source = @"
+using System;
+class C
+{
+    Action<Int32> M1() { return null; }
+}";
+
+            Assert.Equal("System.Action<int>", GetReturnTypeName(source, "C.M1"));
+        }
+
+        [Fact]
+        void GetReturnTypeNameGenericOfNested()
+        {
+            var source = @"
+using System;
+class C
+{
+    Action<D> M1() { return null; }
+    class D
+    {
+    }
+}";
+
+            Assert.Equal("System.Action<C.D>", GetReturnTypeName(source, "C.M1"));
+        }
+
+        [Fact]
+        void GetReturnTypeNameGenericOfGeneric()
+        {
+            var source = @"
+using System;
+class C
+{
+    Action<Func<T>> M1<T>() { return null; }
+}";
+
+            Assert.Equal("System.Action<System.Func<object>>", GetReturnTypeName(source, "C.M1", new[] { typeof(object) }));
+        }
+
+        private string GetName(string source, string methodName, DkmVariableInfoFlags argumentFlags, Type[] typeArguments = null, string[] argumentValues = null)
+        {
+            var serializedTypeArgumentNames = typeArguments?.Select(t => t?.AssemblyQualifiedName).ToArray();
+            return GetName(source, methodName, argumentFlags, serializedTypeArgumentNames, argumentValues);
+        }
+
+        private string GetName(string source, string methodName, DkmVariableInfoFlags argumentFlags, string[] typeArguments, string[] argumentValues = null)
         {
             Debug.Assert((argumentFlags & (DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types)) == argumentFlags,
                 "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var instructionDecoder = CSharpInstructionDecoder.Instance;
+            var method = GetConstructedMethod(source, methodName, typeArguments, instructionDecoder);
+
+            var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
+            var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
+            ArrayBuilder<string> builder = null;
+            if (argumentValues != null)
+            {
+                Assert.InRange(argumentValues.Length, 1, int.MaxValue);
+                builder = ArrayBuilder<string>.GetInstance();
+                builder.AddRange(argumentValues);
+            }
+
+            var name = instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, builder);
+            if (builder != null)
+            {
+                builder.Free();
+            }
+
+            return name;
+        }
+
+        private string GetReturnTypeName(string source, string methodName, Type[] typeArguments = null)
+        {
+            var instructionDecoder = CSharpInstructionDecoder.Instance;
+            var serializedTypeArgumentNames = typeArguments?.Select(t => (t != null) ? t.AssemblyQualifiedName : null).ToArray();
+            var method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder);
+
+            return instructionDecoder.GetReturnTypeName(method);
+        }
+
+        private MethodSymbol GetConstructedMethod(string source, string methodName, string[] serializedTypeArgumentNames, CSharpInstructionDecoder instructionDecoder)
+        {
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: nameof(InstructionDecoderTests));
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
@@ -163,26 +362,25 @@ static class C
             // Once we have the method token, we want to look up the method (again)
             // using the same helper as the product code.  This helper will also map
             // async/iterator "MoveNext" methods to the original source method.
-            var method = compilation.GetSourceMethod(
+            MethodSymbol method = compilation.GetSourceMethod(
                 ((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(),
                 MetadataTokens.GetToken(frame.Handle));
-            var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
-            var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
-            ArrayBuilder<string> builder = null;
-            if (argumentValues.Length > 0)
+            if (serializedTypeArgumentNames != null)
             {
-                builder = ArrayBuilder<string>.GetInstance();
-                builder.AddRange(argumentValues);
+                Assert.NotEmpty(serializedTypeArgumentNames);
+                var typeParameters = instructionDecoder.GetAllTypeParameters(method);
+                Assert.NotEmpty(typeParameters);
+                var typeNameDecoder = new EETypeNameDecoder(compilation, (PEModuleSymbol)method.ContainingModule);
+                // Use the same helper method as the FrameDecoder to get the TypeSymbols for the
+                // generic type arguments (rather than using EETypeNameDecoder directly).
+                var typeArguments = instructionDecoder.GetTypeSymbols(compilation, method, serializedTypeArgumentNames);
+                if (!typeArguments.IsEmpty)
+                {
+                    method = instructionDecoder.ConstructMethod(method, typeParameters, typeArguments);
+                }
             }
 
-            var frameDecoder = CSharpInstructionDecoder.Instance;
-            var frameName = frameDecoder.GetName(method, includeParameterTypes, includeParameterNames, builder);
-            if (builder != null)
-            {
-                builder.Free();
-            }
-
-            return frameName;
+            return method;
         }
     }
 }

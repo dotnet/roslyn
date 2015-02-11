@@ -19,6 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// </summary>
     internal sealed class EEMethodSymbol : MethodSymbol
     {
+        // We only create a single EE method (per EE type) that represents an arbitrary expression,
+        // whose lowering may produce synthesized members (lambdas, dynamic sites, etc).
+        // We may thus assume that the method ordinal is always 0.
+        //
+        // Consider making the implementation more flexible in order to avoid this assumption.
+        // In future we might need to compile multiple expression and then we'll need to assign 
+        // a unique method ordinal to each of them to avoid duplicate synthesized member names.
+        private const int _methodOrdinal = 0;
+
         internal readonly TypeMap TypeMap;
         internal readonly MethodSymbol SubstitutedSourceMethod;
         internal readonly ImmutableArray<LocalSymbol> Locals;
@@ -31,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly ParameterSymbol _thisParameter;
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
+
         /// <summary>
         /// Invoked at most once to generate the method body.
         /// (If the compilation has no errors, it will be invoked
@@ -472,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             body = LocalRewriter.Rewrite(
                 compilation: this.DeclaringCompilation,
                 method: this,
-                methodOrdinal: 0,
+                methodOrdinal: _methodOrdinal,
                 containingType: _container,
                 statement: body,
                 compilationState: compilationState,
@@ -544,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     thisType: this.SubstitutedSourceMethod.ContainingType,
                     thisParameter: _thisParameter,
                     method: this,
-                    methodOrdinal: 0,
+                    methodOrdinal: _methodOrdinal,
                     closureDebugInfoBuilder: closureDebugInfoBuilder,
                     lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
                     slotAllocatorOpt: null,
