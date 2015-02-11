@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     public static class PredefinedInteractiveTextViewRoles
     {

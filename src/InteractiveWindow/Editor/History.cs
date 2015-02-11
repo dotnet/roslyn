@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal class History
     {

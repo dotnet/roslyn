@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool checkOverflow = false;
                 bool allowUnsafe = false;
                 bool concurrentBuild = true;
-                bool emitPdb = false;
+                DebugInformationFormat? debugInfoFormat = null;
                 string pdbPath = null;
                 bool noStdLib = false;
                 string outputDirectory = baseDirectory;
@@ -480,21 +480,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
 
                             case "debug":
-                                emitPdb = true;
-
-                                // unused, parsed for backward compat only
-                                if (value != null)
+                                if (value == null ||
+                                    string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    if (value.IsEmpty())
-                                    {
-                                        AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
-                                    }
-                                    else if (!string.Equals(value, "full", StringComparison.OrdinalIgnoreCase) &&
-                                             !string.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
-                                    }
+                                    debugInfoFormat = DebugInformationFormat.Pdb;
                                 }
+                                else if (string.Equals(value, "portable", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    debugInfoFormat = DebugInformationFormat.PortablePdb;
+                                }
+                                else if (string.Equals(value, "embedded", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    debugInfoFormat = DebugInformationFormat.Embedded;
+                                }
+                                else if (value.IsEmpty())
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
+                                }
+                                else
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadDebugType, value);
+                                }
+
                                 continue;
 
                             case "debug+":
@@ -502,14 +510,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value != null)
                                     break;
 
-                                emitPdb = true;
+                                debugInfoFormat = DebugInformationFormat.Pdb;
                                 continue;
 
                             case "debug-":
                                 if (value != null)
                                     break;
 
-                                emitPdb = false;
+                                debugInfoFormat = null;
                                 continue;
 
                             case "o":
@@ -970,13 +978,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     keyFileSearchPaths.Add(outputDirectory);
                 }
 
-                if (!emitPdb)
+                bool emitPdb = debugInfoFormat.HasValue && debugInfoFormat.Value != DebugInformationFormat.Embedded;
+                if (!emitPdb && pdbPath != null)
                 {
-                    if (pdbPath != null)
-                    {
-                        // Can't give a PDB file name and turn off debug information
-                        AddDiagnostic(diagnostics, ErrorCode.ERR_MissingDebugSwitch);
-                    }
+                    // Can't give a PDB file name and turn off debug information
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_MissingDebugSwitch);
                 }
 
                 string compilationName;
@@ -1015,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var emitOptions = new EmitOptions
                 (
                     metadataOnly: false,
-                    debugInformationFormat: DebugInformationFormat.Pdb,
+                    debugInformationFormat: debugInfoFormat ?? DebugInformationFormat.Pdb,
                     pdbFilePath: null, // to be determined later
                     outputNameOverride: null, // to be determined later
                     baseAddress: baseAddress,

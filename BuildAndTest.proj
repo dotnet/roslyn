@@ -8,10 +8,11 @@
     TaskName="Xunit.Runner.MSBuild.xunit" />
 
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
-       use a 2013 compatible solution -->
+       use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
     <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
   </PropertyGroup>
 
   <Target Name="RestorePackages">
@@ -43,7 +44,9 @@
   <Target Name="Test">
 
     <ItemGroup Condition="'$(CIBuild)' == ''">
-      <TestAssemblies Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" />
+      <TestAssemblies 
+        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(CIBuild)' == 'true'">
@@ -54,18 +57,18 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CompilerServer.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.NativeClient.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
       -->
 
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Semantic.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Syntax.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Semantic.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.FxCop.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.CSharp.UnitTests.dll" />
@@ -73,10 +76,8 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.VisualBasic.UnitTests.dll" />
     </ItemGroup>
 
-    <xunit
-      Assemblies="@(TestAssemblies)"
-      Html="UnitTestResults.html"
-      ShadowCopy="false" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.console.x86.exe @(TestAssemblies, ' ')" />
+
   </Target>
 
   <Target Name="BuildAndTest"

@@ -2952,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var colonToken = this.CurrentToken;
                     // Set isStatic to false because pretending we're in a static constructor will just result in more errors.
                     ConstructorInitializerSyntax initializer = this.ParseConstructorInitializer(identifier.ValueText, isStatic: false);
-                    initializer = this.AddErrorToFirstToken(initializer, ErrorCode.ERR_UnexpectedCharacter, colonToken.Text); //CONSIDER: better error code?
+                    initializer = this.AddErrorToFirstToken(initializer, ErrorCode.ERR_UnexpectedToken, colonToken.Text);
                     paramList = AddTrailingSkippedSyntax(paramList, initializer);
 
                     // CONSIDER: Parsing an invalid constructor initializer could, conceivably, get us way
@@ -10490,7 +10490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var trailingTrash = b.ToList();
             _pool.Free(b);
 
-            node = this.AddError(node, ErrorCode.ERR_UnexpectedCharacter, trailingTrash[0].ToString()); // TODO: better diagnostic?
+            node = this.AddError(node, ErrorCode.ERR_UnexpectedToken, trailingTrash[0].ToString());
             node = this.AddTrailingSkippedSyntax(node, trailingTrash.Node);
             return node;
         }

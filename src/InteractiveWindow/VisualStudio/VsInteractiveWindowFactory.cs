@@ -4,9 +4,9 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Editor.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Roslyn.VisualStudio.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     [Export(typeof(IVsInteractiveWindowFactory))]
     internal sealed class VsInteractiveWindowFactory : IVsInteractiveWindowFactory

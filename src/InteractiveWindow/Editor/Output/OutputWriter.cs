@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal sealed class InteractiveWindowWriter : TextWriter
     {

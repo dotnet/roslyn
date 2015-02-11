@@ -40,13 +40,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
         {
-            Contract.ThrowIfTrue(_workspaceAnalyzers.IsDefault);
-
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
             var correlationId = LogAggregator.GetNextId();
-            return new DiagnosticIncrementalAnalyzer(this, correlationId, workspace, _workspaceAnalyzers);
+            return new DiagnosticIncrementalAnalyzer(this, correlationId, workspace, _analyzerManager);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)

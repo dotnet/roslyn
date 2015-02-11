@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
-namespace Roslyn.Editor.InteractiveWindow.Commands
+namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     [Export(typeof(IInteractiveWindowCommand))]
     internal sealed class ClearScreenCommand : InteractiveWindowCommand

@@ -4,10 +4,10 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Debugging
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     ' TODO: Make this class static when we add that functionality to VB.
@@ -39,7 +39,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                 End If
 
                 If expression.IsRightSideOfDotOrBang() Then
-                    expression = DirectCast(expression.Parent, ExpressionSyntax)
+                    Dim parent = DirectCast(expression.Parent, ExpressionSyntax)
+                    Dim curr = parent
+                    While True
+                        Dim conditionalAccess = curr.GetCorrespondingConditionalAccessExpression()
+                        If conditionalAccess Is Nothing Then
+                            Exit While
+                        End If
+
+                        curr = conditionalAccess
+                    End While
+
+                    If curr Is parent Then
+                        ' NB: parent.Span, not Span as below.
+                        Return New DebugDataTipInfo(parent.Span, text:=Nothing)
+                    End If
+
+                    ' NOTE: There may not be an ExpressionSyntax corresponding to the range we want.
+                    ' For example, for input a?.$$B?.C we want span [|a?.B|].C.
+                    Return New DebugDataTipInfo(TextSpan.FromBounds(curr.SpanStart, expression.Span.End), text:=Nothing)
                 End If
 
                 If expression.IsKind(SyntaxKind.InvocationExpression) Then

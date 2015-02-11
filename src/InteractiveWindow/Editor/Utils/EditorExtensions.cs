@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.Text;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal static class EditorExtensions
     {

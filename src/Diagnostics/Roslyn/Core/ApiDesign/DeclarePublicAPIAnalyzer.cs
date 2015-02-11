@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.None);
 
-        internal static readonly SymbolDisplayFormat PublicApiFormat =
+        private static readonly SymbolDisplayFormat PublicApiFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -83,13 +83,14 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles);
+                var publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
 
                 if (publicApiAdditionalText == null)
                 {
                     return;
                 }
 
-                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiAdditionalText);
+                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText);
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
 
@@ -109,7 +110,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         return;
                     }
 
-                    var publicApiName = symbol.ToDisplayString(PublicApiFormat);
+                    string publicApiName = GetPublicApiName(symbol);
 
                     lock (lockObj)
                     {
@@ -141,18 +142,72 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                     foreach (var symbol in deletedSymbols)
                     {
-                        var location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
+                        var span = FindString(publicApiSourceText, symbol);
+                        Location location;
+                        if (span.HasValue)
+                        {
+                            var linePositionSpan = publicApiSourceText.Lines.GetLinePositionSpan(span.Value);
+                            location = Location.Create(publicApiAdditionalText.Path, span.Value, linePositionSpan);
+                        }
+                        else
+                        {
+                            location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
+                        }
+
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, symbol));
                     }
                 });
             });
         }
 
-        private static HashSet<string> ReadPublicSymbols(AdditionalText additionalFile)
+        internal static string GetPublicApiName(ISymbol symbol)
+        {
+            var publicApiName = symbol.ToDisplayString(PublicApiFormat);
+
+            ITypeSymbol memberType = null;
+            if (symbol is IMethodSymbol)
+            {
+                memberType = ((IMethodSymbol)symbol).ReturnType;
+            }
+            else if (symbol is IPropertySymbol)
+            {
+                memberType = ((IPropertySymbol)symbol).Type;
+            }
+            else if (symbol is IEventSymbol)
+            {
+                memberType = ((IEventSymbol)symbol).Type;
+            }
+            else if (symbol is IFieldSymbol)
+            {
+                memberType = ((IFieldSymbol)symbol).Type;
+            }
+
+            if (memberType != null)
+            {
+                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(PublicApiFormat);
+            }
+
+            return publicApiName;
+        }
+
+        private TextSpan? FindString(SourceText sourceText, string symbol)
+        {
+            foreach (var line in sourceText.Lines)
+            {
+                if (line.ToString() == symbol)
+                {
+                    return line.Span;
+                }
+            }
+
+            return null;
+        }
+
+        private static HashSet<string> ReadPublicSymbols(SourceText file)
         {
             HashSet<string> publicSymbols = new HashSet<string>();
 
-            foreach (var line in additionalFile.GetText().Lines)
+            foreach (var line in file.Lines)
             {
                 var text = line.ToString();
 

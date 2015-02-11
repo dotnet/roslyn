@@ -82,12 +82,9 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
-                        // unfortunately, there is no way to re-use stream reader. it will repeatedly re-allocate its buffer(1K).
-                        // but most of time, this shouldn't be used that much since we consume tree directly rather than text.
                         using (var stream = _memoryMappedInfo.CreateReadableStream())
-                        using (var reader = new StreamReader(stream, Encoding.Unicode, detectEncodingFromByteOrderMarks: false))
                         {
-                            return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
+                            return _service._textFactory.CreateText(stream, _encoding, cancellationToken);
                         }
                     }
                 }

@@ -161,7 +161,10 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
+                // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
+                // size, FileStream.Read still allocates the internal buffer.
+                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize: 1))
                 {
                     normalizedFilePath = data.Name;
                     return EncodedStringText.Create(data, encoding, checksumAlgorithm);

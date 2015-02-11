@@ -3,7 +3,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow.UnitTests
+namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     public sealed class TestContentTypeDefinition
     {

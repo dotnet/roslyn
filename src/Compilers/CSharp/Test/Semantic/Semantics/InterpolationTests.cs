@@ -248,6 +248,30 @@ world.";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(306), WorkItem(308)]
+        public void DynamicInterpolation()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main(string[] args)
+    {
+        dynamic nil = null;
+        dynamic a = new string[] {""Hello"", ""world""};
+        Console.WriteLine($""<{nil}>"");
+        Console.WriteLine($""<{a}>"");
+    }
+    Expression<Func<string>> M(dynamic d) {
+        return () => $""Dynamic: {d}"";
+    }
+}";
+            string expectedOutput = @"<>
+<System.String[]>";
+            var verifier = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
         [Fact]
         public void UnclosedInterpolation01()
         {
@@ -1133,6 +1157,42 @@ class Program
                 // (8,52): error CS1009: Unrecognized escape sequence
                 //         Expression<Func<string>> e = () => $"\u1{0:\u2}";
                 Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u2").WithLocation(8, 52)
+                );
+        }
+
+        [Fact, WorkItem(1098612, "DevDiv")]
+        public void MissingConversionFromFormattableStringToIFormattable()
+        {
+            var text =
+@"namespace System.Runtime.CompilerServices
+{
+    public static class FormattableStringFactory
+    {
+        public static FormattableString Create(string format, params object[] arguments)
+        {
+            return null;
+        }
+    }
+}
+
+namespace System
+{
+    public abstract class FormattableString
+    {
+    }
+}
+
+static class C
+{
+    static void Main()
+    {
+        System.IFormattable i = $""{""""}"";
+    }
+}";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyEmitDiagnostics(
+                // (23,33): error CS0029: Cannot implicitly convert type 'FormattableString' to 'IFormattable'
+                //         System.IFormattable i = $"{""}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)
                 );
         }
     }

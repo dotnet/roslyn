@@ -53,7 +53,7 @@ Imports G.H.I
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <Fact(Skip := "Issue #321"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_AddsOnlyNewAliasAndNamespacePairs()
             Dim originalCode = <![CDATA[Imports A = B.C
 Imports D = E.F

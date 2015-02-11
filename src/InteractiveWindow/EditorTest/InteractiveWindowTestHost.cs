@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow.UnitTests
+namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     public class InteractiveWindowTestHost : IDisposable
     {

@@ -4,7 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     [Export(typeof(ISmartIndentProvider))]
     [ContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName)]

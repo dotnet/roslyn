@@ -346,7 +346,7 @@ namespace X
         }
 
         [Fact]
-        public void TestExternAliases()
+        public void TestExternAliases1()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
             CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
@@ -455,6 +455,104 @@ namespace X
   </methods>
 </symbols>";
             AssertXmlEqual(expected, actual);
+        }
+
+        [Fact, WorkItem(1120579)]
+        public void TestExternAliases2()
+        {
+            string source1 = @"
+namespace U.V.W {}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+
+            string source2 = @"
+using U.V.W;
+ 
+class A { void M() {  } }
+";
+            var compilation2 = CreateCompilationWithMscorlib(
+                source2, 
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    // first unaliased reference 
+                    compilation1.ToMetadataReference(),
+                    // second aliased reference
+                    compilation1.ToMetadataReference(ImmutableArray.Create("X"))
+                });
+
+            compilation2.VerifyPdb("A.M", @"
+<symbols>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""23"" endLine=""4"" endColumn=""24"" document=""0"" />
+      </sequencePoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""U.V.W"" />
+        <externinfo alias=""X"" assembly=""TestExternAliases2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact, WorkItem(1120579)]
+        public void TestExternAliases3()
+        {
+            string source1 = @"
+namespace U.V.W {}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+
+            string source2 = @"
+using U.V.W;
+ 
+class A { void M() {  } }
+";
+            var compilation2 = CreateCompilationWithMscorlib(
+                source2,
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    // first aliased reference
+                    compilation1.ToMetadataReference(ImmutableArray.Create("X")),
+                    // second unaliased reference 
+                    compilation1.ToMetadataReference(),
+                });
+
+            compilation2.VerifyPdb("A.M", @"
+<symbols>
+  <methods>
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""23"" endLine=""4"" endColumn=""24"" document=""0"" />
+      </sequencePoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""U.V.W"" />
+        <externinfo alias=""X"" assembly=""TestExternAliases3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
         }
 
         [Fact]

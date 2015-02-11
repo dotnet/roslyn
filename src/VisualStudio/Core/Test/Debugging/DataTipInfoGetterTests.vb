@@ -303,5 +303,102 @@ Class C
 End Class
 </text>)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        Public Sub TestConditionalAccessExpression()
+            Const sourceTemplate = "
+Class A
+    Public B As New B()
+
+    Function M() As Object
+        Return {0}
+    End Function
+End Class
+
+Class B
+    Public C As New C()
+End Class
+
+Class C
+    Public D As New D()
+End Class
+
+Class D
+End Class
+"
+
+            ' One level.
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]") %></text>)
+
+            ' Two levels.
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|]") %></text>)
+
+            ' Three levels.
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|].D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.C.$$D|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|].D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.C.$$D|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|].C?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B.$$C|]?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B.C?.$$D|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|].D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C.$$D|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|].C?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.$$C|]?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B.C?.$$D|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.$$B|]?.C?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.$$C|]?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.B?.C?.$$D|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        Public Sub TestConditionalAccessExpression_Dictionary()
+            Const sourceTemplate = "
+Class A
+    Function M() As Object
+        Return {0}
+    End Function
+
+    Default ReadOnly Property Item(s As String) As A
+        Get
+            Return Me
+        End Get
+    End Property
+End Class
+"
+
+            ' One level
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]") %></text>)
+
+            ' Two levels
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]!C") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?!B!$$C|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me!$$B|]?!C") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me!B?!$$C|]") %></text>)
+
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?!$$B|]?!C") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
+        End Sub
+
     End Class
 End Namespace

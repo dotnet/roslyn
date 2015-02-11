@@ -6210,7 +6210,7 @@ class C
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(2, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_MemberNeedsType, file.Errors()[0].Code); //for the missing 'void'
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code); //colon is unexpected
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedToken, file.Errors()[1].Code); //colon is unexpected
 
             // CONSIDER: Dev10 actually gives 'CS1002: ; expected', because it thinks you were trying to
             // specify a method without a body.  This is a little silly, since we already know the method

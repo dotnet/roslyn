@@ -25,8 +25,9 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Roslyn.Utilities;
 using Microsoft.VisualStudio.SymReaderInterop;
+using Roslyn.Utilities;
+using Document = Microsoft.CodeAnalysis.Document;
 using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
@@ -503,18 +504,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private void TrackingSpansChanged(bool leafChanged)
         {
-            log.Write("Tracking spans changed: {0}", leafChanged);
+            //log.Write("Tracking spans changed: {0}", leafChanged);
 
-            if (leafChanged)
-            {
-                // fire and forget:
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    log.Write("Notifying debugger of active statement change.");
-                    var debugNotify = (Interop.IDebugEncNotify)_vsProject.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
-                    debugNotify.NotifyEncUpdateCurrentStatement();
-                });
-            }
+            //if (leafChanged)
+            //{
+            //    // fire and forget:
+            //    Application.Current.Dispatcher.InvokeAsync(() =>
+            //    {
+            //        log.Write("Notifying debugger of active statement change.");
+            //        var debugNotify = (Interop.IDebugEncNotify)_vsProject.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
+            //        debugNotify.NotifyEncUpdateCurrentStatement();
+            //    });
+            //}
         }
 
         private struct VsActiveStatement

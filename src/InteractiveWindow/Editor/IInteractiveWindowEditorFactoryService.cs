@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     /// <summary>
     /// Implements the service that creates text views and buffers for the interactive window.
@@ -12,8 +12,8 @@ namespace Roslyn.Editor.InteractiveWindow
     /// service understands how the editors and buffers need to be created and sets them up
     /// so that commands are properly routed to the editor window.
     /// 
-    /// This service is imported by <see cref="Roslyn.Editor.InteractiveWindow.IInteractiveWindowFactoryService"/> 
-    /// to use in the creation of <see cref="Roslyn.Editor.InteractiveWindow.IInteractiveWindow"/>s.
+    /// This service is imported by <see cref="Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowFactoryService"/> 
+    /// to use in the creation of <see cref="Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow"/>s.
     /// </summary>
     public interface IInteractiveWindowEditorFactoryService
     {

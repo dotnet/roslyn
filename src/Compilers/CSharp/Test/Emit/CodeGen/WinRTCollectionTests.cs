@@ -6093,7 +6093,7 @@ class AllMembers
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/386")]
         public void LegacyCollectionTest15()
         {
             var source =
@@ -6560,7 +6560,7 @@ class AllMembers
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/386")]
         public void LegacyCollectionTest16()
         {
             var source =
@@ -6650,7 +6650,7 @@ class AllMembers
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/386")]
         public void LegacyCollectionTest17()
         {
             var source =
@@ -6976,7 +6976,7 @@ class AllMembers
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/386")]
         public void LegacyCollectionTest18()
         {
             var source =

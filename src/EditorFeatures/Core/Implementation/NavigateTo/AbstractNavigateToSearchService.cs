@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         public async Task<IEnumerable<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken)
         {
             var results = await NavigateToSymbolFinder.FindNavigableDeclaredSymbolInfos(project, searchPattern, cancellationToken).ConfigureAwait(false);
-            return results.Select(r => ConvertResult(r, cancellationToken));
+            return results.Select(r => ConvertResult(r));
         }
 
-        private INavigateToSearchResult ConvertResult(ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result, CancellationToken cancellationToken)
+        private INavigateToSearchResult ConvertResult(ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
         {
             var declaredSymbolInfo = result.Item1;
             var document = result.Item2;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             // case sensitive. 
             var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document, cancellationToken);
+            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
             return new SearchResult(document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem);
         }

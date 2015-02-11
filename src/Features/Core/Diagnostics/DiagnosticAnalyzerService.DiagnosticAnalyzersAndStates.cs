@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public readonly Workspace Workspace;
 
-                public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, ImmutableArray<AnalyzerReference> workspaceAnalyzers)
+                public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, AnalyzerManager analyzerManager)
                 {
                     _owner = owner;
-                    _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(workspaceAnalyzers);
+                    _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(analyzerManager);
                     _projectAnalyzersAndStatesMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates>();
 
                     this.Workspace = workspace;
@@ -108,27 +108,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     return current;
-                }
-
-                public async Task<ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>>> GetAllDiagnosticAnalyzersAsync(Project project, CancellationToken cancellationToken)
-                {
-                    var builder = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticAnalyzer>>();
-
-                    builder.AddRange(_sharedAnalyzersAndStates.GetAllDiagnosticAnalyzers(project.Language));
-
-                    var projectAnalyzersAndStates = await GetOrCreateProjectAnalyzersAndStatesAsync(project, cancellationToken).ConfigureAwait(false);
-                    if (projectAnalyzersAndStates != null)
-                    {
-                        foreach (var kvp in projectAnalyzersAndStates.GetAllDiagnosticAnalyzers())
-                        {
-                            if (!builder.ContainsKey(kvp.Key))
-                            {
-                                builder.Add(kvp);
-                            }
-                        }
-                    }
-
-                    return builder.ToImmutable();
                 }
 
                 public DiagnosticState GetOrCreateDiagnosticState(StateType stateType, ProviderId providerId, DiagnosticAnalyzer provider, ProjectId projectId, string language)

@@ -455,6 +455,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return _childOffsets(index)
             End Function
 
+            ''' <summary>
+            ''' Find the slot that contains the given offset.
+            ''' </summary>
+            ''' <param name="offset">The target offset. Must be between 0 and <see cref="GreenNode.FullWidth"/>.</param>
+            ''' <returns>The slot index of the slot containing the given offset.</returns>
+            ''' <remarks>
+            ''' This implementation uses a binary search to find the first slot that contains
+            ''' the given offset.
+            ''' </remarks>
+            Public Overrides Function FindSlotIndexContainingOffset(offset As Integer) As Integer
+                Debug.Assert(offset >= 0 AndAlso offset < FullWidth)
+                Dim idx = Array.BinarySearch(_childOffsets, offset)
+                Return If(idx >= 0, idx, (Not idx) - 1)
+            End Function
+
             Friend Overrides Function SetDiagnostics(errors() As DiagnosticInfo) As GreenNode
                 Return New WithLotsOfChildren(errors, Me.GetAnnotations(), Me._children, Me._childOffsets)
             End Function

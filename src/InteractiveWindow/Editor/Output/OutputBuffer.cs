@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Threading;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     /// <summary>
     /// Serializes and buffers output so that we avoid frequent switching to UI thread to write to the editor buffer.

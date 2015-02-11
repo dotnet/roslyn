@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Roslyn.Editor.InteractiveWindow.Commands
+namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     internal sealed class Commands : IInteractiveWindowCommands
     {

@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Editor.InteractiveWindow;
-using Roslyn.Editor.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {

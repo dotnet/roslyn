@@ -17,8 +17,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Editor.InteractiveWindow;
-using Roslyn.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using VSLangProj;
 using Project = EnvDTE.Project;
 

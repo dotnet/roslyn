@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private DiagnosticLogAggregator _diagnosticLogAggregator;
 
-            public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, ImmutableArray<AnalyzerReference> workspaceAnalyzers)
+            public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, AnalyzerManager analyzerManager)
             {
                 _owner = owner;
                 _correlationId = correlationId;
                 _memberRangeMap = new MemberRangeMap();
-                _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzers);
+                _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, analyzerManager);
                 _executor = new AnalyzerExecutor(this);
 
                 _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
             {
@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await AnalyzeBodyDocumentAsync(document, bodyOpt, versions, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task AnalyzeBodyDocumentAsync(Document document, SyntaxNode member, VersionArgument versions, CancellationToken cancellationToken)
             {
@@ -235,11 +235,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task AnalyzeDocumentAsync(Document document, VersionArgument versions, ImmutableHashSet<string> diagnosticIds, bool skipClosedFileChecks, CancellationToken cancellationToken)
             {
@@ -283,11 +283,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
@@ -335,11 +335,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             public void RemoveDocument(DocumentId documentId)
             {
@@ -411,11 +411,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return result;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsAsync(Document document, TextSpan range, CancellationToken cancellationToken)
             {
@@ -450,11 +450,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task<bool> TryGetLatestDiagnosticsAsync(
                 StateType stateType,
@@ -494,11 +494,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return result;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task<bool> TryGetLatestDiagnosticsAsync(
                 DiagnosticAnalyzer provider, ProviderId providerId,
@@ -556,11 +556,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return true;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private bool ShouldRunProviderForClosedFile(bool openedDocument, DiagnosticAnalyzer provider)
             {
@@ -840,12 +840,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await userDiagnosticDriver.GetSyntaxDiagnosticsAsync(provider).ConfigureAwait(false);
                         return GetDiagnosticData(userDiagnosticDriver.Document, userDiagnosticDriver.Span, diagnostics);
                     }
-                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                    }
                 }
+            }
 
             private static async Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(ProviderId providerId, DiagnosticAnalyzer provider, DiagnosticAnalyzerDriver userDiagnosticDriver)
             {
@@ -858,12 +858,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await userDiagnosticDriver.GetSemanticDiagnosticsAsync(provider).ConfigureAwait(false);
                         return GetDiagnosticData(userDiagnosticDriver.Document, userDiagnosticDriver.Span, diagnostics);
                     }
-                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                    }
                 }
+            }
 
             private static async Task<IEnumerable<DiagnosticData>> GetProjectDiagnosticsAsync(ProviderId providerId, DiagnosticAnalyzer provider, DiagnosticAnalyzerDriver userDiagnosticDriver, Action<Project, DiagnosticAnalyzer, CancellationToken> forceAnalyzeAllDocuments)
             {
@@ -876,12 +876,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var diagnostics = await userDiagnosticDriver.GetProjectDiagnosticsAsync(provider, forceAnalyzeAllDocuments).ConfigureAwait(false);
                         return GetDiagnosticData(userDiagnosticDriver.Project, diagnostics);
                     }
-                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                    }
                 }
+            }
 
             private async Task RemoveAllCacheDataAsync(Document document, CancellationToken cancellationToken)
             {
@@ -907,11 +907,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await RemoveCacheDataAsync(document, state, providerId, type, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task RemoveCacheDataAsync(Document document, DiagnosticState state, ProviderId providerId, StateType type, CancellationToken cancellationToken)
             {
@@ -931,11 +931,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     RaiseDiagnosticsUpdated(type, key, providerId, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task RemoveCacheDataAsync(Project project, DiagnosticState state, ProviderId providerId, CancellationToken cancellationToken)
             {
@@ -951,11 +951,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var solutionArgs = new SolutionArgument(project);
                     RaiseDiagnosticsUpdated(StateType.Project, project.Id, providerId, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task RemoveCacheDataAsync(Project project, IEnumerable<Tuple<DiagnosticState, ProviderId, StateType>> states, CancellationToken cancellationToken)
             {
@@ -983,11 +983,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     await RemoveCacheDataAsync(project, state, providerId, cancellationToken).ConfigureAwait(false);
                 }
-            }
-
-            internal async Task<ImmutableDictionary<string, IEnumerable<DiagnosticAnalyzer>>> GetAllDiagnosticAnalyzersAsync(Project project, CancellationToken cancellationToken)
-            {
-                return await _analyzersAndState.GetAllDiagnosticAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
             }
 
             private static string GetSyntaxLogMessage(Document document, TextSpan? span, int providerId)

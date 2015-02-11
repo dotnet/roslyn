@@ -338,6 +338,7 @@
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
+    <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
@@ -574,6 +575,7 @@
     <Compile Include="Text\SourceHashAlgorithm.cs" />
     <Compile Include="Text\SourceText.cs" />
     <Compile Include="Text\SourceTextContainer.cs" />
+    <Compile Include="Text\SourceTextStream.cs" />
     <Compile Include="Text\StringBuilderText.cs" />
     <Compile Include="Text\StringText.cs" />
     <Compile Include="Text\SubText.cs" />
@@ -659,7 +661,7 @@
       <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00001\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />

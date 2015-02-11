@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
-namespace Roslyn.Editor.InteractiveWindow {
+namespace Microsoft.VisualStudio.InteractiveWindow {
     [Export(typeof(IInteractiveWindowCommand))]
     internal sealed class CancelExecutionCommand : InteractiveWindowCommand {
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments) {

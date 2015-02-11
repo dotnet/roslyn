@@ -234,7 +234,8 @@ public class Test : Class2
                     context,
                     compilation.MessageProvider,
                     stream,
-                    pdbWriterOpt: null,
+                    pdbStreamOpt: null,
+                    nativePdbWriterOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,
                     cancellationToken: CancellationToken.None);

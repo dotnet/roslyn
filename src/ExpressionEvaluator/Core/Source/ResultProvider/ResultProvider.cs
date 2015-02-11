@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine < DkmGetChildrenAsyncResult > completionRoutine)
+        void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
             var dataItem = evaluationResult.GetDataItem<EvalResultDataItem>();
             if (dataItem == null)
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             completionRoutine(GetChildren(inspectionContext, evaluationResult, dataItem, initialRequestSize));
         }
 
-        void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine < DkmEvaluationEnumAsyncResult > completionRoutine)
+        void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
         {
             try
             {
-                var dataItem = enumContext.GetDataItem<EvalResultDataItem>();
+                var dataItem = enumContext.GetDataItem<EnumContextDataItem>();
                 if (dataItem == null)
                 {
                     // We don't know about this result.  Call next implementation
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return;
                 }
 
-                completionRoutine(GetItems(enumContext.InspectionContext, dataItem, startIndex, count));
+                completionRoutine(GetItems(enumContext.InspectionContext, dataItem.EvalResultDataItem, startIndex, count));
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return result.GetUnderlyingString();
                 }
 
-                return dataItem.Value != null ? dataItem.Value.GetUnderlyingString() : null;
+                return dataItem.Value?.GetUnderlyingString();
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var rows = builder.ToArrayAndFree();
             Debug.Assert(index >= rows.Length);
             Debug.Assert(initialRequestSize >= rows.Length);
-            var enumContext = DkmEvaluationResultEnumContext.Create(index, evaluationResult.StackFrame, evaluationResult.InspectionContext, dataItem);
+            var enumContext = DkmEvaluationResultEnumContext.Create(index, evaluationResult.StackFrame, evaluationResult.InspectionContext, new EnumContextDataItem(dataItem));
             return new DkmGetChildrenAsyncResult(rows, enumContext);
         }
 

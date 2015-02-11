@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Roslyn.Editor.InteractiveWindow
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     /// <summary>
     /// Maps line numbers in projection buffer to indices of projection spans corresponding to primary and stdin prompts.

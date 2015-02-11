@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeConversion(result, conversion.Type, @checked: false);
+                result = MakeImplicitConversion(result, conversion.Type);
             }
 
             return result;
@@ -64,7 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         formatString.Builder.Append(":").Append(fillin.Format.ConstantValue.StringValue);
                     }
                     formatString.Builder.Append("}");
-                    expressions.Add(fillin.Value); // NOTE: must still be lowered
+                    var value = fillin.Value;
+                    if (value.Type?.TypeKind == TypeKind.Dynamic)
+                    {
+                        value = MakeConversion(value, _compilation.ObjectType, @checked: false);
+                    }
+
+                    expressions.Add(value); // NOTE: must still be lowered
                 }
             }
 
@@ -118,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeConversion(result, node.Type, @checked: false);
+                result = MakeImplicitConversion(result, node.Type);
             }
             return result;
         }

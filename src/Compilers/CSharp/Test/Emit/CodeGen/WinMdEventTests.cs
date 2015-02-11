@@ -533,7 +533,8 @@ class C
         /// <remarks>
         /// I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         /// </remarks>
-        [Fact(), WorkItem(1003193)]
+        [WorkItem(1003193)]
+        [Fact(Skip = "Issue #321")]
         public void FieldLikeEventSerialization()
         {
             var source1 = @"
