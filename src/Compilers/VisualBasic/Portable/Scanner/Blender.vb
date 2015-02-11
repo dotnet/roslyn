@@ -63,15 +63,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Sub PushReverseTerminal(stack As Stack(Of GreenNode), tk As SyntaxToken)
             Dim trivia = tk.GetTrailingTrivia
 
-            If trivia IsNot Nothing Then PushChildReverse(stack, trivia)
-
+            If trivia IsNot Nothing Then
+                PushChildReverse(stack, trivia)
+            End If
 
             PushChildReverse(stack, DirectCast(tk.WithLeadingTrivia(Nothing).WithTrailingTrivia(Nothing), SyntaxToken))
 
             trivia = tk.GetLeadingTrivia
 
-            If trivia IsNot Nothing Then PushChildReverse(stack, trivia)
-
+            If trivia IsNot Nothing Then
+                PushChildReverse(stack, trivia)
+            End If
         End Sub
 
         Private Shared Sub PushChildReverse(stack As Stack(Of GreenNode), child As GreenNode)
@@ -92,17 +94,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim fullSpan = New TextSpan(0, root.FullWidth)
             Dim start = NearestStatementThatContainsPosition(root, span.Start, fullSpan)
             Debug.Assert(start.Start <= span.Start)
-            If span.Length = 0 Then Return start
-            Dim [end] = NearestStatementThatContainsPosition(root, span.End - 1, fullSpan)
-            Debug.Assert([end].End >= span.End)
-            Return TextSpan.FromBounds(start.Start, [end].End)
+            If span.Length = 0 Then
+                Return start
+            Else
+                Dim [end] = NearestStatementThatContainsPosition(root, span.End - 1, fullSpan)
+                Debug.Assert([end].End >= span.End)
+                Return TextSpan.FromBounds(start.Start, [end].End)
+            End If
         End Function
 
         ''' <remarks>
         ''' Not guaranteed to return the span of a StatementSyntax.
         ''' </remarks>
-        Private Shared Function NearestStatementThatContainsPosition _ 
-            (   node As SyntaxNode, position As Integer, rootFullSpan As TextSpan) As TextSpan
+        Private Shared Function NearestStatementThatContainsPosition(
+            node As SyntaxNode,
+            position As Integer,
+            rootFullSpan As TextSpan) As TextSpan
 
             If Not node.FullSpan.Contains(position) Then
                 Debug.Assert(node.FullSpan.End = position)
@@ -112,7 +119,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If node.Kind = SyntaxKind.CompilationUnit OrElse IsStatementLike(node) Then
                 Do
                     Dim child = node.ChildThatContainsPosition(position).AsNode()
-                    If child Is Nothing OrElse Not IsStatementLike(child) Then Return node.FullSpan
+                    If child Is Nothing OrElse Not IsStatementLike(child) Then
+                        Return node.FullSpan
+                    End If
                     node = child
                 Loop
             End If
@@ -152,16 +161,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Move to the left by the look ahead required by the Scanner.
                 For i As Integer = 0 To Scanner.MaxTokensLookAheadBeyondEOL
                     Dim node = root.FindTokenInternal(start)
-                    If node.Kind = SyntaxKind.None Then Exit For
-                    start = node.Position
-                    If start = 0 Then Exit For
-                    start -= 1
+                    If node.Kind = SyntaxKind.None Then
+                        Exit For
+                    Else
+                        start = node.Position
+                        If start = 0 Then
+                            Exit For
+                        Else
+                            start -= 1
+                        End If
+                    End If
                 Next
             End If
 
             ' Allow for look behind of some number of characters.
-            If [end] < fullWidth Then [end] += Scanner.MaxCharsLookBehind
-
+            If [end] < fullWidth Then
+                [end] += Scanner.MaxCharsLookBehind
+            End If
 
             Return TextSpan.FromBounds(start, [end])
         End Function

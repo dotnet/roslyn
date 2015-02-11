@@ -3838,7 +3838,7 @@ Module M
     Dim x = <x/
 $>
 End Module
-]]>.Value.Replace("$"c, _LS_),
+]]>.Value.Replace("$"c, LINE_SEPARATOR),
             <errors>
                 <error id="30625"/>
                 <error id="31151"/>

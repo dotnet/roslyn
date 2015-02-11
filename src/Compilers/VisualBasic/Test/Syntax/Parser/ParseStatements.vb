@@ -7739,10 +7739,10 @@ End Module
     <Fact()>
     Public Sub IsNewLine()
         Dim sourceFormat = "Module M{0}    Dim x = 1 'Comment{0}End Module{0}"
-        ParseAndVerify(String.Format(sourceFormat, _CR_))
-        ParseAndVerify(String.Format(sourceFormat, _LF_))
+        ParseAndVerify(String.Format(sourceFormat, CARRIAGE_RETURN))
+        ParseAndVerify(String.Format(sourceFormat, LINE_FEED))
         ParseAndVerify(String.Format(sourceFormat, NEXT_LINE))
-        ParseAndVerify(String.Format(sourceFormat, _LS_))
+        ParseAndVerify(String.Format(sourceFormat, LINE_SEPARATOR))
         ParseAndVerify(String.Format(sourceFormat, PARAGRAPH_SEPARATOR))
     End Sub
 

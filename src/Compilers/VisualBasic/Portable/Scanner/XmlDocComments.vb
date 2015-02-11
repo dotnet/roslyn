@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(IsAtNewLine)
 
             ' leading whitespace until we see ''' should be regular whitespace
-            If CanGetChar() AndAlso IsWhitespace(Peek()) Then
+            If CanGetChar() AndAlso IsWhitespace(PeekChar()) Then
                 Dim ws = ScanWhitespace()
                 tList.Add(ws)
             End If
@@ -148,8 +148,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' lexes (ws)'''
         Private Function TrySkipXmlDocMarker(ByRef len As Integer) As Boolean
             Dim Here = len
-            While AreCharsUpto(Here)
-                Dim c = Peek(Here)
+            While CanGetCharAtOffset(Here)
+                Dim c = PeekAheadChar(Here)
                 If IsWhitespace(c) Then
                     Here += 1
                 Else
@@ -182,11 +182,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Function ScanXmlTriviaInXmlDoc(c As Char, triviaList As SyntaxListBuilder(Of VisualBasicSyntaxNode)) As Boolean
             Debug.Assert(IsScanningXmlDoc)
-            Debug.Assert(c = _CR_ OrElse c = _LF_ OrElse c = " "c OrElse c = _TAB_)
+            Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
             Dim len = 0
             Do
-                If c = " "c OrElse c = _TAB_ Then
+                If c = " "c OrElse c = CHARACTER_TABULATION Then
                     len += 1
 
                 ElseIf IsNewLine(c) Then
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Exit Do
                 End If
 
-                c = Peek(len)
+                c = PeekAheadChar(len)
             Loop
 
             If len > 0 Then
@@ -241,11 +241,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim Here As Integer = 0
             Dim scratch = GetScratch()
 
-            While AreCharsUpto(Here)
-                Dim c As Char = Peek(Here)
+            While CanGetCharAtOffset(Here)
+                Dim c As Char = PeekAheadChar(Here)
 
                 Select Case (c)
-                    Case _CR_, _LF_
+                    Case CARRIAGE_RETURN, LINE_FEED
                         If Here <> 0 Then
                             Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
                         End If
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' line breaks in Doc comments are separate tokens.
                         Return MakeDocCommentLineBreakToken(precedingTrivia, Here)
 
-                    Case " "c, _TAB_
+                    Case " "c, CHARACTER_TABULATION
                         scratch.Append(c)
                         Here += 1
 
@@ -282,35 +282,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         Debug.Assert(Here = 0)
-                        If AreCharsUpto(1) Then
-                            Dim ch As Char = Peek(1)
+                        If CanGetCharAtOffset(1) Then
+                            Dim ch As Char = PeekAheadChar(1)
                             Select Case ch
                                 Case "!"c
-                                    If AreCharsUpto(2) Then
-                                        Select Case (Peek(2))
+                                    If CanGetCharAtOffset(2) Then
+                                        Select Case (PeekAheadChar(2))
                                             Case "-"c
-                                                If AreCharsUpto(3) AndAlso Peek(3) = "-"c Then
+                                                If CanGetCharAtOffset(3) AndAlso PeekAheadChar(3) = "-"c Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If AreCharsUpto(8) AndAlso _
-                                                    Peek(3) = "C"c AndAlso _
-                                                    Peek(4) = "D"c AndAlso _
-                                                    Peek(5) = "A"c AndAlso _
-                                                    Peek(6) = "T"c AndAlso _
-                                                    Peek(7) = "A"c AndAlso _
-                                                    Peek(8) = "["c Then
+                                                If CanGetCharAtOffset(8) AndAlso _
+                                                    PeekAheadChar(3) = "C"c AndAlso _
+                                                    PeekAheadChar(4) = "D"c AndAlso _
+                                                    PeekAheadChar(5) = "A"c AndAlso _
+                                                    PeekAheadChar(6) = "T"c AndAlso _
+                                                    PeekAheadChar(7) = "A"c AndAlso _
+                                                    PeekAheadChar(8) = "["c Then
 
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If AreCharsUpto(8) AndAlso
-                                                    Peek(3) = "O"c AndAlso
-                                                    Peek(4) = "C"c AndAlso
-                                                    Peek(5) = "T"c AndAlso
-                                                    Peek(6) = "Y"c AndAlso
-                                                    Peek(7) = "P"c AndAlso
-                                                    Peek(8) = "E"c Then
+                                                If CanGetCharAtOffset(8) AndAlso
+                                                    PeekAheadChar(3) = "O"c AndAlso
+                                                    PeekAheadChar(4) = "C"c AndAlso
+                                                    PeekAheadChar(5) = "T"c AndAlso
+                                                    PeekAheadChar(6) = "Y"c AndAlso
+                                                    PeekAheadChar(7) = "P"c AndAlso
+                                                    PeekAheadChar(8) = "E"c Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -325,9 +325,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "]"c
-                        If AreCharsUpto(Here + 2) AndAlso _
-                           Peek(Here + 1) = "]"c AndAlso _
-                           Peek(Here + 2) = ">"c Then
+                        If CanGetCharAtOffset(Here + 2) AndAlso _
+                           PeekAheadChar(Here + 1) = "]"c AndAlso _
+                           PeekAheadChar(Here + 2) = ">"c Then
 
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
@@ -388,9 +388,9 @@ ScanChars:
             If state = ScannerState.StartProcessingInstruction AndAlso CanGetChar() Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                Dim c = Peek()
+                Dim c = PeekChar()
                 Select Case c
-                    Case _CR_, _LF_, " "c, _TAB_
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim offsets = CreateOffsetRestorePoint()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, precedingTrivia)
                         If Not continueLine Then
@@ -402,17 +402,17 @@ ScanChars:
             End If
 
             Dim Here = 0
-            While AreCharsUpto(Here)
-                Dim c As Char = Peek(Here)
+            While CanGetCharAtOffset(Here)
+                Dim c As Char = PeekAheadChar(Here)
                 Select Case (c)
 
-                    Case _CR_, _LF_
+                    Case CARRIAGE_RETURN, LINE_FEED
                         result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
                         GoTo CleanUp
 
                     Case "?"c
-                        If AreCharsUpto(Here + 1) AndAlso _
-                           Peek(Here + 1) = ">"c Then
+                        If CanGetCharAtOffset(Here + 1) AndAlso _
+                           PeekAheadChar(Here + 1) = ">"c Then
 
                             '// If valid characters found then return them.
                             If Here <> 0 Then
@@ -485,12 +485,12 @@ CleanUp:
                     Return MakeEofToken(precedingTrivia)
                 End If
 
-                Dim c As Char = Peek()
+                Dim c As Char = PeekChar()
 
                 Select Case (c)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                    Case _CR_, _LF_, " "c, _TAB_
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         ' we should not visit this place twice
                         Debug.Assert(Not precedingTrivia.Any)
                         Dim offsets = CreateOffsetRestorePoint()
@@ -504,7 +504,7 @@ CleanUp:
                         End If
 
                     Case "/"c
-                        If AreCharsUpto(1) AndAlso Peek(1) = ">" Then
+                        If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = ">" Then
                             Return XmlMakeEndEmptyElementToken(precedingTrivia)
                         End If
                         Return XmlMakeDivToken(precedingTrivia)
@@ -522,35 +522,35 @@ CleanUp:
                         Return XmlMakeDoubleQuoteToken(precedingTrivia, c, isOpening:=True)
 
                     Case "<"c
-                        If AreCharsUpto(1) Then
-                            Dim ch As Char = Peek(1)
+                        If CanGetCharAtOffset(1) Then
+                            Dim ch As Char = PeekAheadChar(1)
                             Select Case ch
                                 Case "!"c
-                                    If AreCharsUpto(2) Then
-                                        Select Case (Peek(2))
+                                    If CanGetCharAtOffset(2) Then
+                                        Select Case (PeekAheadChar(2))
                                             Case "-"c
-                                                If AreCharsUpto(3) AndAlso Peek(3) = "-"c Then
+                                                If CanGetCharAtOffset(3) AndAlso PeekAheadChar(3) = "-"c Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If AreCharsUpto(8) AndAlso
-                                                    Peek(3) = "C"c AndAlso
-                                                    Peek(4) = "D"c AndAlso
-                                                    Peek(5) = "A"c AndAlso
-                                                    Peek(6) = "T"c AndAlso
-                                                    Peek(7) = "A"c AndAlso
-                                                    Peek(8) = "["c Then
+                                                If CanGetCharAtOffset(8) AndAlso
+                                                    PeekAheadChar(3) = "C"c AndAlso
+                                                    PeekAheadChar(4) = "D"c AndAlso
+                                                    PeekAheadChar(5) = "A"c AndAlso
+                                                    PeekAheadChar(6) = "T"c AndAlso
+                                                    PeekAheadChar(7) = "A"c AndAlso
+                                                    PeekAheadChar(8) = "["c Then
 
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If AreCharsUpto(8) AndAlso
-                                                    Peek(3) = "O"c AndAlso
-                                                    Peek(4) = "C"c AndAlso
-                                                    Peek(5) = "T"c AndAlso
-                                                    Peek(6) = "Y"c AndAlso
-                                                    Peek(7) = "P"c AndAlso
-                                                    Peek(8) = "E"c Then
+                                                If CanGetCharAtOffset(8) AndAlso
+                                                    PeekAheadChar(3) = "O"c AndAlso
+                                                    PeekAheadChar(4) = "C"c AndAlso
+                                                    PeekAheadChar(5) = "T"c AndAlso
+                                                    PeekAheadChar(6) = "Y"c AndAlso
+                                                    PeekAheadChar(7) = "P"c AndAlso
+                                                    PeekAheadChar(8) = "E"c Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -566,7 +566,7 @@ CleanUp:
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "?"c
-                        If AreCharsUpto(1) AndAlso Peek(1) = ">"c Then
+                        If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = ">"c Then
                             ' // Create token for the '?>' termination sequence
                             Return XmlMakeEndProcessingInstructionToken(precedingTrivia)
                         End If
