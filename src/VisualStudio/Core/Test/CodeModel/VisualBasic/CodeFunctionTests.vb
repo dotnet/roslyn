@@ -347,6 +347,30 @@ End Class
 
 #End Region
 
+#Region "FunctionKind tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Destructor()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Custom Event E1 As EventHandler
+
+      Protected Overrides Sub $$Finalize()
+      MyBase.Finalize()
+   End Sub
+
+   End Event
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
+        End Sub
+
+#End Region
+
 #Region "MustImplement tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
