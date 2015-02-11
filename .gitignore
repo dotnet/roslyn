@@ -38,6 +38,7 @@ UnitTestResults.html
 *.tmp
 *.tmp_proj
 *.log
+*.wrn
 *.vspscc
 *.vssscc
 .builds
