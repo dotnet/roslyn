@@ -346,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal delegate PlaceholderMethodSymbol CreateSynthesizedMethod(EENamedTypeSymbol container, string methodName, CSharpSyntaxNode syntax);
 
         // Not thread-safe.
+        // TODO: Simplify for the one remaining caller.
         internal PlaceholderMethodSymbol GetOrAddSynthesizedMethod(string methodName, CreateSynthesizedMethod factory)
         {
 #if DEBUG

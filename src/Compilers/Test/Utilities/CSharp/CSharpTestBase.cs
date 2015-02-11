@@ -355,11 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             bool appendDefaultHeader = true)
         {
-            if (string.IsNullOrEmpty(ilSource))
-            {
-                return CreateCompilationWithMscorlib(source, references, options);
-            }
-
             IEnumerable<MetadataReference> metadataReferences = new[] { CompileIL(ilSource, appendDefaultHeader) };
             if (references != null)
             {

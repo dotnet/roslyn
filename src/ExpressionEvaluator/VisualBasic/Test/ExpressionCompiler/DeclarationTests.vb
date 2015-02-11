@@ -33,8 +33,8 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("3", GetType(Integer)),
-                "z = $3",
+                InspectionContextFactory.Empty.Add("c", GetType(Char)),
+                "c = ""B""c",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
                 resultProperties,

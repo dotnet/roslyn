@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -65,51 +64,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""z""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""z""
-  IL_0019:  call       ""int <>x.<>GetVariableAddress<int>(string)""
+  IL_0019:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_001e:  ldc.i4.1
   IL_001f:  stind.i4
   IL_0020:  ldtoken    ""int""
   IL_0025:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_002a:  ldstr      ""F""
-  IL_002f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_002f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0034:  ldstr      ""F""
-  IL_0039:  call       ""int <>x.<>GetVariableAddress<int>(string)""
+  IL_0039:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_003e:  ldc.i4.2
   IL_003f:  stind.i4
   IL_0040:  ret
 }");
-            var assembly = ImmutableArray.CreateRange(result.Assembly);
-            assembly.VerifyIL("<>x.<>CreateVariable",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-            assembly.VerifyIL("<>x.<>GetVariableAddress",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-            // Verify <>CreateVariable is not generic and <>GetVariableAddress is.
-            using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
-            {
-                var reader = metadata.MetadataReader;
-                var typeDef = reader.GetTypeDef("<>x");
-                reader.CheckTypeParameters(typeDef.GetGenericParameters());
-                var methodDef = reader.GetMethodDef(typeDef, "<>CreateVariable");
-                reader.CheckTypeParameters(methodDef.GetGenericParameters());
-                var method = (MethodSymbol)testData.GetMethodData("<>x.<>CreateVariable").Method;
-                Assert.Equal(method.CallingConvention, Cci.CallingConvention.Default);
-                methodDef = reader.GetMethodDef(typeDef, "<>GetVariableAddress");
-                reader.CheckTypeParameters(methodDef.GetGenericParameters(), "<>T");
-                method = (MethodSymbol)testData.GetMethodData("<>x.<>GetVariableAddress<<>T>").Method;
-                Assert.Equal(method.CallingConvention, Cci.CallingConvention.Generic);
-            }
         }
 
         [Fact]
@@ -188,6 +157,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0047:  pop
   IL_0048:  ldsfld     ""object C.G""
   IL_004d:  ret
+}");
+        }
+
+        [Fact]
+        public void Address()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.M");
+            ResultProperties resultProperties;
+            string error;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var testData = new CompilationTestData();
+            var result = context.CompileExpression(
+                InspectionContextFactory.Empty.Add("c", typeof(char)),
+                "*(&c) = 'A'",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
+  IL_0014:  ldstr      ""z""
+  IL_0019:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_001e:  ldc.i4.1
+  IL_001f:  stind.i4
+  IL_0020:  ldtoken    ""int""
+  IL_0025:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_002a:  ldstr      ""F""
+  IL_002f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
+  IL_0034:  ldstr      ""F""
+  IL_0039:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_003e:  ldc.i4.2
+  IL_003f:  stind.i4
+  IL_0040:  ret
 }");
         }
 

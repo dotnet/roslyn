@@ -117,35 +117,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(testData.Methods.Count, 3);
-
-            var assembly = ImmutableArray.CreateRange(result.Assembly);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
   .maxstack  2
-  IL_0000:  call       ""System.Exception <>x.$exception()""
+  IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0018
   IL_000d:  pop
-  IL_000e:  call       ""System.Exception <>x.$stowedexception()""
+  IL_000e:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetStowedException()""
   IL_0013:  castclass  ""System.InvalidOperationException""
   IL_0018:  ret
-}");
-            assembly.VerifyIL("<>x.$exception",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-            assembly.VerifyIL("<>x.$stowedexception",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
 }");
         }
 
@@ -182,29 +166,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(testData.Methods.Count, 2);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0015
   IL_0009:  pop
   IL_000a:  ldc.i4.2
-  IL_000b:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_000b:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0010:  castclass  ""string""
   IL_0015:  ret
 }");
-            testData.GetMethodData("<>x.<>GetReturnValue").VerifyIL(
-@"{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-
             // Value type $ReturnValue.
             testData = new CompilationTestData();
             result = context.CompileExpression(
@@ -224,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   .maxstack  1
   .locals init (int? V_0)
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0006:  unbox.any  ""int?""
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0

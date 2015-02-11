@@ -116,17 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             switch (kind)
             {
-                case PseudoVariableKind.Exception:
-                case PseudoVariableKind.StowedException:
-                    return new ExceptionLocalSymbol(_containingMethod, id, type);
-                case PseudoVariableKind.ReturnValue:
-                    return new ReturnValueLocalSymbol(_containingMethod, id, type, index);
-                case PseudoVariableKind.ObjectId:
-                    return new ObjectIdLocalSymbol(_containingMethod, type, id, isWritable: false);
-                case PseudoVariableKind.DeclaredLocal:
-                    return new ObjectIdLocalSymbol(_containingMethod, type, id, isWritable: true);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+            case PseudoVariableKind.Exception:
+                return new ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName);
+            case PseudoVariableKind.StowedException:
+                return new ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
+            case PseudoVariableKind.ReturnValue:
+                return new ReturnValueLocalSymbol(_containingMethod, id, type, index);
+            case PseudoVariableKind.ObjectId:
+                return new ObjectIdLocalSymbol(_containingMethod, type, id, isWritable: false);
+            case PseudoVariableKind.DeclaredLocal:
+                return new ObjectIdLocalSymbol(_containingMethod, type, id, isWritable: true);
+            default:
+                throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

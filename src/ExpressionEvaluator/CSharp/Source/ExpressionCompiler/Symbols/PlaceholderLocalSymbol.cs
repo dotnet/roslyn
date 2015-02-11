@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -101,6 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 explicitCastInCode: false,
                 constantValueOpt: null,
                 type: type);
+        }
+
+        internal static MethodSymbol GetIntrinsicMethod(CSharpCompilation compilation, string methodName)
+        {
+            var type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName);
+            var members = type.GetMembers(methodName);
+            Debug.Assert(members.Length == 1);
+            return (MethodSymbol)members[0];
         }
     }
 }
