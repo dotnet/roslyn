@@ -17,11 +17,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// <summary>
     /// This class provides function name information for the Breakpoints window.
     /// </summary>
-    internal abstract class LanguageInstructionDecoder<TMethodSymbol> : IDkmLanguageInstructionDecoder where TMethodSymbol : class, IMethodSymbol
+    internal abstract class LanguageInstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> : IDkmLanguageInstructionDecoder
+        where TCompilation : Compilation
+        where TMethodSymbol : class, IMethodSymbol
+        where TModuleSymbol : class, IModuleSymbol
+        where TTypeSymbol : class, ITypeSymbol
+        where TTypeParameterSymbol : class, ITypeParameterSymbol
     {
-        private readonly InstructionDecoder<TMethodSymbol> _instructionDecoder;
+        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
 
-        internal LanguageInstructionDecoder(InstructionDecoder<TMethodSymbol> instructionDecoder)
+        internal LanguageInstructionDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> instructionDecoder)
         {
             _instructionDecoder = instructionDecoder;
         }
@@ -37,7 +42,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.FullNames | DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types)) == argumentFlags,
                     "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
 
-                var method = _instructionDecoder.GetMethod((DkmClrInstructionAddress)languageInstructionAddress.Address);
+                var instructionAddress = (DkmClrInstructionAddress)languageInstructionAddress.Address;
+                var compilation = _instructionDecoder.GetCompilation(instructionAddress);
+                var method = _instructionDecoder.GetMethod(compilation, instructionAddress);
                 var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
                 var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
 

@@ -1,4 +1,6 @@
-﻿Imports System
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -171,13 +173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             resultProperties = properties
             Return moduleBuilder
-        End Function
-
-        Private Shared Function GetAllTypeParameters(method As MethodSymbol) As ImmutableArray(Of TypeParameterSymbol)
-            Dim builder = ArrayBuilder(Of TypeParameterSymbol).GetInstance()
-            method.ContainingType.GetAllTypeParameters(builder)
-            builder.AddRange(method.TypeParameters)
-            Return builder.ToImmutableAndFree()
         End Function
 
         Private Shared Function GetNextMethodName(builder As ArrayBuilder(Of MethodSymbol)) As String

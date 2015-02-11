@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.CallStack;
@@ -19,86 +20,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// always used C# syntax (but with language-specific "special names").  Since these names are exposed through public
     /// APIs, we will remain consistent with the old behavior (for consumers who may be parsing the frame names).
     /// </remarks>
-    internal abstract class FrameDecoder : IDkmLanguageFrameDecoder
+    internal abstract class FrameDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> : IDkmLanguageFrameDecoder
+        where TCompilation : Compilation
+        where TMethodSymbol : class, IMethodSymbol
+        where TModuleSymbol : class, IModuleSymbol
+        where TTypeSymbol : class, ITypeSymbol
+        where TTypeParameterSymbol : class, ITypeParameterSymbol
     {
-        private readonly InstructionDecoder _instructionDecoder;
+        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
 
-        internal FrameDecoder(InstructionDecoder instructionDecoder)
+        internal FrameDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> instructionDecoder)
         {
             _instructionDecoder = instructionDecoder;
         }
 
-        void IDkmLanguageFrameDecoder.GetFrameName(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmVariableInfoFlags argumentFlags, DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
+        void IDkmLanguageFrameDecoder.GetFrameName(
+            DkmInspectionContext inspectionContext,
+            DkmWorkList workList,
+            DkmStackWalkFrame frame,
+            DkmVariableInfoFlags argumentFlags,
+            DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
         {
             try
             {
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Values)) == argumentFlags,
                     "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
 
-                var instructionAddress = (DkmClrInstructionAddress)frame.InstructionAddress;
-                var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
-                var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
-
-                if (argumentFlags.Includes(DkmVariableInfoFlags.Values))
-                {
-                    // No need to compute the Expandable bit on
-                    // argument values since that can be expensive.
-                    inspectionContext = DkmInspectionContext.Create(
-                        inspectionContext.InspectionSession,
-                        inspectionContext.RuntimeInstance,
-                        inspectionContext.Thread,
-                        inspectionContext.Timeout,
-                        inspectionContext.EvaluationFlags | DkmEvaluationFlags.NoExpansion,
-                        inspectionContext.FuncEvalFlags,
-                        inspectionContext.Radix,
-                        inspectionContext.Language,
-                        inspectionContext.ReturnValue,
-                        inspectionContext.AdditionalVisualizationData,
-                        inspectionContext.AdditionalVisualizationDataPriority,
-                        inspectionContext.ReturnValues);
-
-                    // GetFrameArguments returns an array of formatted argument values. We'll pass
-                    // ourselves (GetFrameName) as the continuation of the GetFrameArguments call.
-                    inspectionContext.GetFrameArguments(
-                        workList,
-                        frame,
-                        result =>
-                        {
-                            try
-                            {
-                                var builder = ArrayBuilder<string>.GetInstance();
-                                foreach (var argument in result.Arguments)
-                                {
-                                    var evaluatedArgument = argument as DkmSuccessEvaluationResult;
-                                    // Not expecting Expandable bit, at least not from this EE.
-                                    Debug.Assert((evaluatedArgument == null) || (evaluatedArgument.Flags & DkmEvaluationResultFlags.Expandable) == 0);
-                                    builder.Add((evaluatedArgument != null) ? evaluatedArgument.Value : null);
-                                }
-
-                                var frameName = _instructionDecoder.GetName(instructionAddress, includeParameterTypes, includeParameterNames, builder);
-                                builder.Free();
-                                completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
-                            }
-                            // TODO: Consider calling DkmComponentManager.ReportCurrentNonFatalException() to
-                            // trigger a non-fatal Watson when this occurs.
-                            catch (Exception e) when (!ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
-                            {
-                                completionRoutine(DkmGetFrameNameAsyncResult.CreateErrorResult(e));
-                            }
-                            finally
-                            {
-                                foreach (var argument in result.Arguments)
-                                {
-                                    argument.Close();
-                                }
-                            }
-                        });
-                }
-                else
-                {
-                    var frameName = _instructionDecoder.GetName(instructionAddress, includeParameterTypes, includeParameterNames, null);
-                    completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
-                }
+                GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
+                    onSuccess: method => GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine, method),
+                    onFailure: e => completionRoutine(DkmGetFrameNameAsyncResult.CreateErrorResult(e)));
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -106,17 +56,134 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        void IDkmLanguageFrameDecoder.GetFrameReturnType(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
+        void IDkmLanguageFrameDecoder.GetFrameReturnType(
+            DkmInspectionContext inspectionContext,
+            DkmWorkList workList,
+            DkmStackWalkFrame frame,
+            DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
         {
             try
             {
-                var returnType = _instructionDecoder.GetReturnType((DkmClrInstructionAddress)frame.InstructionAddress);
-                var result = new DkmGetFrameReturnTypeAsyncResult(returnType);
-                completionRoutine(result);
+                GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
+                    onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(_instructionDecoder.GetReturnTypeName(method))),
+                    onFailure: e => completionRoutine(DkmGetFrameReturnTypeAsyncResult.CreateErrorResult(e)));
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private void GetNameWithGenericTypeArguments(
+            DkmInspectionContext inspectionContext,
+            DkmWorkList workList,
+            DkmStackWalkFrame frame,
+            Action<TMethodSymbol> onSuccess,
+            Action<Exception> onFailure)
+        {
+            // NOTE: We could always call GetClrGenericParameters, pass them to GetMethod and have that
+            // return a constructed method symbol, but it seems unwise to call GetClrGenericParameters
+            // for all frames (as this call requires a round-trip to the debuggee process).
+            var instructionAddress = (DkmClrInstructionAddress)frame.InstructionAddress;
+            var compilation = _instructionDecoder.GetCompilation(instructionAddress);
+            var method = _instructionDecoder.GetMethod(compilation, instructionAddress);
+            var typeParameters = _instructionDecoder.GetAllTypeParameters(method);
+            if (!typeParameters.IsEmpty)
+            {
+                frame.GetClrGenericParameters(
+                    workList,
+                    result =>
+                    {
+                        try
+                        {
+                            var typeArguments = _instructionDecoder.GetTypeSymbols(compilation, method, result.ParameterTypeNames);
+                            if (!typeArguments.IsEmpty)
+                            {
+                                method = _instructionDecoder.ConstructMethod(method, typeParameters, typeArguments);
+                            }
+                            onSuccess(method);
+                        }
+                        catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                        {
+                            onFailure(e);
+                        }
+                    });
+            }
+            else
+            {
+                onSuccess(method);
+            }
+        }
+
+        private void GetFrameName(
+            DkmInspectionContext inspectionContext,
+            DkmWorkList workList,
+            DkmStackWalkFrame frame,
+            DkmVariableInfoFlags argumentFlags,
+            DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine,
+            TMethodSymbol method)
+        {
+            var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
+            var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
+
+            if (argumentFlags.Includes(DkmVariableInfoFlags.Values))
+            {
+                // No need to compute the Expandable bit on
+                // argument values since that can be expensive.
+                inspectionContext = DkmInspectionContext.Create(
+                    inspectionContext.InspectionSession,
+                    inspectionContext.RuntimeInstance,
+                    inspectionContext.Thread,
+                    inspectionContext.Timeout,
+                    inspectionContext.EvaluationFlags | DkmEvaluationFlags.NoExpansion,
+                    inspectionContext.FuncEvalFlags,
+                    inspectionContext.Radix,
+                    inspectionContext.Language,
+                    inspectionContext.ReturnValue,
+                    inspectionContext.AdditionalVisualizationData,
+                    inspectionContext.AdditionalVisualizationDataPriority,
+                    inspectionContext.ReturnValues);
+
+                // GetFrameArguments returns an array of formatted argument values. We'll pass
+                // ourselves (GetFrameName) as the continuation of the GetFrameArguments call.
+                inspectionContext.GetFrameArguments(
+                    workList,
+                    frame,
+                    result =>
+                    {
+                        var argumentValues = result.Arguments;
+                        try
+                        {
+                            var builder = ArrayBuilder<string>.GetInstance();
+                            foreach (var argument in argumentValues)
+                            {
+                                var formattedArgument = argument as DkmSuccessEvaluationResult;
+                                // Not expecting Expandable bit, at least not from this EE.
+                                Debug.Assert((formattedArgument == null) || (formattedArgument.Flags & DkmEvaluationResultFlags.Expandable) == 0);
+                                builder.Add(formattedArgument?.Value);
+                            }
+
+                            var frameName = _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, builder);
+                            builder.Free();
+                            completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
+                        }
+                        catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                        {
+                            completionRoutine(DkmGetFrameNameAsyncResult.CreateErrorResult(e));
+                        }
+                        finally
+                        {
+                            foreach (var argument in argumentValues)
+                            {
+                                argument.Close();
+                            }
+                        }
+                    });
+            }
+            else
+            {
+                var frameName = _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames, null);
+                completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
             }
         }
     }
