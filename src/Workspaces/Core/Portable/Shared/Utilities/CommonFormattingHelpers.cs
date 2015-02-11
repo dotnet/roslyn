@@ -149,36 +149,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return line.GetColumnFromLineOffset(startPosition - line.Start, tabSize);
         }
 
-        public static bool IsFirstTokenOnLine(this SyntaxTree tree, SyntaxToken token)
-        {
-            Contract.ThrowIfNull(tree);
-            Contract.ThrowIfTrue(token.RawKind == 0);
-
-            var previousToken = token.GetPreviousToken();
-
-            // there should be only whitespace between two tokens unless the token can't be the first token on line
-            if (!string.IsNullOrWhiteSpace(tree.GetText().GetText(previousToken, token)))
-            {
-                return false;
-            }
-
-            if (previousToken.RawKind == 0)
-            {
-                return true;
-            }
-
-            var previousLine = tree.GetText().Lines.GetLineFromPosition(previousToken.Span.End);
-            var lineNumber = tree.GetText().Lines.IndexOf(token.SpanStart);
-
-            // if span.End is at the edge of two lines, it belongs to previous line
-            if (previousLine.Start == previousToken.Span.End)
-            {
-                return previousLine.LineNumber - 1 < lineNumber;
-            }
-
-            return previousLine.LineNumber < lineNumber;
-        }
-
         public static string GetText(this SourceText text, SyntaxToken token1, SyntaxToken token2)
         {
             return (token1.RawKind == 0) ? text.ToString(TextSpan.FromBounds(0, token2.SpanStart)) : text.ToString(TextSpan.FromBounds(token1.Span.End, token2.SpanStart));

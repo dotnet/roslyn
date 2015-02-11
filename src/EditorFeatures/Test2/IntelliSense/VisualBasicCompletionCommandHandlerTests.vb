@@ -613,6 +613,27 @@ End Module]]></Document>)
             End Using
         End Sub
 
+        <WorkItem(287, "https://github.com/dotnet/roslyn/issues/287")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotEnumPreselectionAfterBackspace()
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Enum E
+    Bat
+End Enum
+ 
+Class C
+    Sub Test(param As E)
+        Dim b As E
+        Test(b.$$)
+    End Sub
+End Class]]></Document>)
+
+                state.SendBackspace()
+                state.AssertSelectedCompletionItem(displayText:="b", isHardSelected:=True)
+            End Using
+        End Sub
+
         <WorkItem(543496)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestNumericLiteralWithNoMatch()
