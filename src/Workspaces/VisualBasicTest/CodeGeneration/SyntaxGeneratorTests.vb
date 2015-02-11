@@ -1198,9 +1198,28 @@ End Namespace
 <x>Public Function m() As t Implements i.m
 End Function</x>.Value)
 
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                g.AsPublicInterfaceImplementation(
+                    g.MethodDeclaration("m", returnType:=g.IdentifierName("t"), modifiers:=DeclarationModifiers.None),
+                    g.IdentifierName("i")),
+<x>Public Function m() As t Implements i.m
+End Function</x>.Value)
+
             VerifySyntax(Of PropertyBlockSyntax)(
                 g.AsPublicInterfaceImplementation(
                     g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Abstract),
+                    g.IdentifierName("i")),
+<x>Public Property p As t Implements i.p
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            VerifySyntax(Of PropertyBlockSyntax)(
+                g.AsPublicInterfaceImplementation(
+                    g.PropertyDeclaration("p", g.IdentifierName("t"), accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.None),
                     g.IdentifierName("i")),
 <x>Public Property p As t Implements i.p
     Get

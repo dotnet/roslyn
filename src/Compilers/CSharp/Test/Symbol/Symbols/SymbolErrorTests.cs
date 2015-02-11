@@ -12462,8 +12462,30 @@ static class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib(text);
 
+            // these diagnostics correspond to those produced by the native compiler.
+            comp.VerifyDiagnostics(
+                // (9,11): error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         M(1 as C);
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "1 as C").WithArguments("int", "C").WithLocation(9, 11),
+                // (10,11): error CS0039: Cannot convert type 'string' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         M("a" as C);
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"""a"" as C").WithArguments("string", "C").WithLocation(10, 11),
+                // (14,11): warning CS0184: The given expression is never of the provided ('C') type
+                //         M(null is C);         // legal in native, warns
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is C").WithArguments("C").WithLocation(14, 11),
+                // (15,11): warning CS0184: The given expression is never of the provided ('C') type
+                //         M(1 is C);            // legal in native, warns
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is C").WithArguments("C").WithLocation(15, 11),
+                // (16,11): warning CS0184: The given expression is never of the provided ('C') type
+                //         M("a" is C);        // legal in native, warns
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"""a"" is C").WithArguments("C").WithLocation(16, 11)
+                );
+
+            // in strict mode we also diagnose "is" and "as" operators with a static type.
+            comp = comp.WithOptions(comp.Options.WithFeatures(new string[] { "strict" }.ToImmutableArray()));
+            comp.VerifyDiagnostics(
                 // In the native compiler these three produce no errors.
 
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o as C").WithArguments("C"),
@@ -12487,7 +12509,8 @@ static class C
 
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "null is C").WithArguments("C"),
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "1 is C").WithArguments("C"),
-                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" is C").WithArguments("C"));
+                Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "\"a\" is C").WithArguments("C")
+                );
         }
 
         [Fact]
