@@ -340,7 +340,7 @@ Scopes of local variables hoisted to state machine fields.
 
 Structure:
 
-    Blob ::= Scope {hoisted-variable-count}
+    Blob ::= Scope{hoisted-variable-count}
     Scope::= start-offset end-offset
 
 | terminal | encoding | description|
@@ -373,7 +373,7 @@ Structure:
 
 TODO: Bit ordering.
 
-##### Root Namespace (VB compiler)
+##### Default Namespace (VB compiler)
 Parent: Module
 
 Kind: {58b2eab6-209f-4e4e-a22c-b2d0f910c782}
@@ -384,7 +384,7 @@ Structure:
 
 | terminal | encoding | description|
 |:---------|:---------|:-----------|
-| _namespace_    | UTF8 string | The root namespace. |
+| _namespace_    | UTF8 string | The default namespace for the module/project. |
 
 ##### Edit and Continue Local Slot Map (C# & VB compilers)
 Parent: MethodDef
