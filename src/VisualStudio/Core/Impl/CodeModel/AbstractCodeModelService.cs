@@ -671,6 +671,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract string GetDocComment(SyntaxNode node);
         public abstract SyntaxNode SetDocComment(SyntaxNode node, string value);
 
+        public abstract EnvDTE.vsCMFunction GetFunctionKind(MethodKind kind);
+
         public abstract EnvDTE80.vsCMInheritanceKind GetInheritanceKind(SyntaxNode typeNode, INamedTypeSymbol typeSymbol);
         public abstract SyntaxNode SetInheritanceKind(SyntaxNode typeNode, EnvDTE80.vsCMInheritanceKind kind);
 

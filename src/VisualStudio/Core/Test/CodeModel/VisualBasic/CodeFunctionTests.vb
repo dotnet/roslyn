@@ -347,9 +347,94 @@ End Class
 
 #End Region
 
+#Region "CanOverride tests"
+
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		Public Sub FunctionKind1()
+			Dim code =
+<Code>
+Imports System
+
+Public Class C1
+
+   Public Custom Event E1 As EventHandler
+
+      $$AddHandler(ByVal value As EventHandler)
+      End AddHandler
+
+      RemoveHandler(ByVal value As EventHandler)
+      End RemoveHandler
+
+      RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+      End RaiseEvent
+
+   End Event
+
+End Clas
+</Code>
+
+			TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
+		End Sub
+
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		Public Sub FunctionKind2()
+			Dim code =
+<Code>
+Imports System
+
+Public Class C1
+
+   Public Custom Event E1 As EventHandler
+
+      AddHandler(ByVal value As EventHandler)
+      End AddHandler
+
+      $$RemoveHandler(ByVal value As EventHandler)
+      End RemoveHandler
+
+      RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+      End RaiseEvent
+
+   End Event
+
+End Clas
+</Code>
+
+			TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
+		End Sub
+
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		Public Sub FunctionKind3()
+			Dim code =
+<Code>
+Imports System
+
+Public Class C1
+
+   Public Custom Event E1 As EventHandler
+
+      AddHandler(ByVal value As EventHandler)
+      End AddHandler
+
+      RemoveHandler(ByVal value As EventHandler)
+      End RemoveHandler
+
+      $$RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+      End RaiseEvent
+
+   End Event
+
+End Clas
+</Code>
+
+			TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
+		End Sub
+
+#End Region
+
 #Region "MustImplement tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+		<ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub MustImplement1()
             Dim code =
 <Code>

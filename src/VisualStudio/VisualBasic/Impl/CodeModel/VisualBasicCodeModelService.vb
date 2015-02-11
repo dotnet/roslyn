@@ -2365,6 +2365,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return member.WithLeadingTrivia(leadingTriviaList)
         End Function
 
+        Public Overrides Function GetFunctionKind(kind As MethodKind) As EnvDTE.vsCMFunction
+            Select Case kind
+                Case MethodKind.PropertyGet
+                    Return EnvDTE.vsCMFunction.vsCMFunctionPropertyGet
+                Case MethodKind.PropertySet
+                    Return EnvDTE.vsCMFunction.vsCMFunctionPropertySet
+                Case MethodKind.EventAdd
+                    Return CType(EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler, EnvDTE.vsCMFunction)
+                Case MethodKind.EventRemove
+                    Return CType(EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler, EnvDTE.vsCMFunction)
+                Case MethodKind.EventRaise
+                    Return CType(EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent, EnvDTE.vsCMFunction)
+                Case Else
+                    Throw Exceptions.ThrowEUnexpected()
+            End Select
+        End Function
+
         Public Overrides Function GetInheritanceKind(typeNode As SyntaxNode, typeSymbol As INamedTypeSymbol) As EnvDTE80.vsCMInheritanceKind
             Dim result As EnvDTE80.vsCMInheritanceKind = 0
 
