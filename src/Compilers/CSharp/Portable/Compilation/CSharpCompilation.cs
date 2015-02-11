@@ -2277,25 +2277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            return this.CreateModuleBuilder(
-                emitOptions,
-                manifestResources,
-                assemblySymbolMapper,
-                testData,
-                diagnostics,
-                ImmutableArray<NamedTypeSymbol>.Empty,
-                cancellationToken);
-        }
-
-        internal CommonPEModuleBuilder CreateModuleBuilder(
-            EmitOptions emitOptions,
-            IEnumerable<ResourceDescription> manifestResources,
-            Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
-            CompilationTestData testData,
-            DiagnosticBag diagnostics,
-            ImmutableArray<NamedTypeSymbol> additionalTypes,
-            CancellationToken cancellationToken)
-        {
             // Do not waste a slot in the submission chain for submissions that contain no executable code
             // (they may only contain #r directives, usings, etc.)
             if (IsSubmission && !HasCodeToEmit())
@@ -2319,8 +2300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             PEModuleBuilder moduleBeingBuilt;
             if (_options.OutputKind.IsNetModule())
             {
-                Debug.Assert(additionalTypes.IsEmpty);
-
                 moduleBeingBuilt = new PENetModuleBuilder(
                     (SourceModuleSymbol)SourceModule,
                     emitOptions,
@@ -2336,8 +2315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     kind,
                     moduleProps,
                     manifestResources,
-                    assemblySymbolMapper,
-                    additionalTypes);
+                    assemblySymbolMapper);
             }
 
             // testData is only passed when running tests.
