@@ -7,7 +7,6 @@ namespace Microsoft.VisualStudio.Debugger
 {
     public delegate void DkmCompletionRoutine<TResult>(TResult result);
 
-    public class DkmDataItem { }
     public class DkmWorkList { }
 
     public enum DkmDataCreationDisposition

@@ -248,6 +248,30 @@ world.";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(306), WorkItem(308)]
+        public void DynamicInterpolation()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main(string[] args)
+    {
+        dynamic nil = null;
+        dynamic a = new string[] {""Hello"", ""world""};
+        Console.WriteLine($""<{nil}>"");
+        Console.WriteLine($""<{a}>"");
+    }
+    Expression<Func<string>> M(dynamic d) {
+        return () => $""Dynamic: {d}"";
+    }
+}";
+            string expectedOutput = @"<>
+<System.String[]>";
+            var verifier = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
         [Fact]
         public void UnclosedInterpolation01()
         {

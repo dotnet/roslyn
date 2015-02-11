@@ -1,3 +1,4 @@
+#If False Then
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
@@ -575,3 +576,4 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Class
     End Class
 End Namespace
+#end if
