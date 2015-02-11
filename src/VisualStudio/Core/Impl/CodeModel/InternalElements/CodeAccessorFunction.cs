@@ -154,7 +154,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                return CodeModelService.GetFunctionKind(this._kind);
+                var methodSymbol = LookupSymbol() as IMethodSymbol;
+                if (methodSymbol == null)
+                {
+                    throw Exceptions.ThrowEUnexpected();
+                }
+
+                return CodeModelService.GetFunctionKind(methodSymbol);
             }
         }
 

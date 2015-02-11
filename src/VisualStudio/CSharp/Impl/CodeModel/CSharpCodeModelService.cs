@@ -2123,10 +2123,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return type.UpdateModifiers(flags);
         }
 
-        public override EnvDTE.vsCMFunction GetFunctionKind(MethodKind kind)
+        public override EnvDTE.vsCMFunction GetFunctionKind(IMethodSymbol symbol)
         {
-            switch (kind)
+            switch (symbol.MethodKind)
             {
+                case MethodKind.Ordinary:
+                    return EnvDTE.vsCMFunction.vsCMFunctionFunction;
+
+                case MethodKind.Constructor:
+                case MethodKind.StaticConstructor:
+                    return EnvDTE.vsCMFunction.vsCMFunctionConstructor;
+
+                case MethodKind.Destructor:
+                    return EnvDTE.vsCMFunction.vsCMFunctionDestructor;
+
+                case MethodKind.UserDefinedOperator:
+                    return EnvDTE.vsCMFunction.vsCMFunctionOperator;
+
                 case MethodKind.PropertyGet:
                 case MethodKind.EventRemove:
                     return EnvDTE.vsCMFunction.vsCMFunctionPropertyGet;

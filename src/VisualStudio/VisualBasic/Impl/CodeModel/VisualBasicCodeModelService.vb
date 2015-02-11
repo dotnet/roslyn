@@ -1043,18 +1043,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Select
         End Function
 
-        Public Overrides Function TryGetAccessorNode(parentNode As SyntaxNode, kind As MethodKind, ByRef accessorNode As SyntaxNode) As Boolean
-            Dim propertyBlock = TryCast(parentNode, PropertyBlockSyntax)
-            If propertyBlock IsNot Nothing Then
-                Dim accessorKind = GetAccessorKind(kind)
+        Private Shared Function GetAccessors(node As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+            Select Case node.Kind()
+                Case SyntaxKind.PropertyBlock
+                    Return DirectCast(node, PropertyBlockSyntax).Accessors
+                Case SyntaxKind.EventBlock
+                    Return DirectCast(node, EventBlockSyntax).Accessors
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
 
-                For Each accessor In propertyBlock.Accessors
-                    If accessor.Kind = accessorKind Then
-                        accessorNode = accessor
-                        Return True
-                    End If
-                Next
-            End If
+        Public Overrides Function TryGetAccessorNode(parentNode As SyntaxNode, kind As MethodKind, ByRef accessorNode As SyntaxNode) As Boolean
+            Dim accessorKind = GetAccessorKind(kind)
+            For Each accessor In GetAccessors(parentNode)
+                If accessor.Kind = accessorKind Then
+                    accessorNode = accessor
+                    Return True
+                End If
+            Next
 
             accessorNode = Nothing
             Return False
@@ -2365,21 +2372,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return member.WithLeadingTrivia(leadingTriviaList)
         End Function
 
-        Public Overrides Function GetFunctionKind(kind As MethodKind) As EnvDTE.vsCMFunction
-            Select Case kind
+        Public Overrides Function GetFunctionKind(symbol As IMethodSymbol) As EnvDTE.vsCMFunction
+            If symbol.IsOverride AndAlso symbol.Name = "Finalize" Then
+                Return EnvDTE.vsCMFunction.vsCMFunctionDestructor
+            End If
+
+            Select Case symbol.MethodKind
+                Case MethodKind.Ordinary
+                    Return EnvDTE.vsCMFunction.vsCMFunctionFunction
+
+                Case MethodKind.Constructor
+                Case MethodKind.StaticConstructor
+                    Return EnvDTE.vsCMFunction.vsCMFunctionConstructor
+
+                Case MethodKind.UserDefinedOperator
+                    Return EnvDTE.vsCMFunction.vsCMFunctionOperator
+
                 Case MethodKind.PropertyGet
                     Return EnvDTE.vsCMFunction.vsCMFunctionPropertyGet
                 Case MethodKind.PropertySet
                     Return EnvDTE.vsCMFunction.vsCMFunctionPropertySet
+
                 Case MethodKind.EventAdd
                     Return CType(EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler, EnvDTE.vsCMFunction)
                 Case MethodKind.EventRemove
                     Return CType(EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler, EnvDTE.vsCMFunction)
                 Case MethodKind.EventRaise
                     Return CType(EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent, EnvDTE.vsCMFunction)
-                Case Else
-                    Throw Exceptions.ThrowEUnexpected()
             End Select
+
+            Throw Exceptions.ThrowEUnexpected()
         End Function
 
         Public Overrides Function GetInheritanceKind(typeNode As SyntaxNode, typeSymbol As INamedTypeSymbol) As EnvDTE80.vsCMInheritanceKind
