@@ -837,10 +837,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function AsPublicInterfaceImplementation(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, Function(decl) AsPublicInterfaceImplementationInternal(decl, typeName))
+        End Function
+
+        Private Function AsPublicInterfaceImplementationInternal(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
             typeName = Me.ClearTrivia(typeName)
             Dim type = DirectCast(typeName, NameSyntax)
 
-            declaration = AsImplementation(declaration, Accessibility.Public, allowDefault:=True)
+            declaration = WithBody(declaration, allowDefault:=True)
+            declaration = WithAccessibility(declaration, Accessibility.Public)
 
             Dim method = TryCast(declaration, MethodBlockSyntax)
             If method IsNot Nothing Then
@@ -860,17 +865,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function AsPrivateInterfaceImplementation(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, Function(decl) AsPrivateInterfaceImplementationInternal(decl, typeName))
+        End Function
+
+        Private Function AsPrivateInterfaceImplementationInternal(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
             typeName = Me.ClearTrivia(typeName)
             Dim type = DirectCast(typeName, NameSyntax)
 
             ' convert declaration statements to blocks
-            declaration = AsImplementation(declaration, Accessibility.Private, allowDefault:=False)
+            declaration = WithBody(declaration, allowDefault:=False)
+            declaration = WithAccessibility(declaration, Accessibility.Private)
 
             Dim method = TryCast(declaration, MethodBlockSyntax)
             If method IsNot Nothing Then
                 Dim interfaceMemberName = SyntaxFactory.IdentifierName(method.SubOrFunctionStatement.Identifier)
 
-                ' original method's name is used for interace member's name
+                ' original method's name is used for interface member's name
                 Dim memberName = SyntaxFactory.IdentifierName(method.SubOrFunctionStatement.Identifier)
 
                 ' change actual method name to hide it
@@ -921,19 +931,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return "[" & type.ToString() & "]"
         End Function
 
-        Private Function AsImplementation(declaration As SyntaxNode, requiredAccess As Accessibility, allowDefault As Boolean) As SyntaxNode
+        Private Function WithBody(declaration As SyntaxNode, allowDefault As Boolean) As SyntaxNode
 
-            Dim access As Accessibility
-            Dim modifiers As DeclarationModifiers
-            Dim isDefault As Boolean
+            declaration = Me.WithModifiersInternal(declaration, Me.GetModifiers(declaration) - DeclarationModifiers.Abstract)
 
             Dim method = TryCast(declaration, MethodStatementSyntax)
             If method IsNot Nothing Then
-                Me.GetAccessibilityAndModifiers(method.Modifiers, access, modifiers, isDefault)
-                If modifiers.IsAbstract OrElse access <> requiredAccess Then
-                    method = method.WithModifiers(GetModifierList(requiredAccess, modifiers - DeclarationModifiers.Abstract, False))
-                End If
-
                 Return SyntaxFactory.MethodBlock(
                     kind:=If(method.IsKind(SyntaxKind.FunctionStatement), SyntaxKind.FunctionBlock, SyntaxKind.SubBlock),
                     subOrFunctionStatement:=method,
@@ -942,10 +945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim prop = TryCast(declaration, PropertyStatementSyntax)
             If prop IsNot Nothing Then
-                Me.GetAccessibilityAndModifiers(prop.Modifiers, access, modifiers, isDefault)
-                If modifiers.IsAbstract OrElse access <> requiredAccess Then
-                    prop = prop.WithModifiers(GetModifierList(requiredAccess, modifiers - DeclarationModifiers.Abstract, isDefault And allowDefault))
-                End If
+                prop = prop.WithModifiers(WithIsDefault(prop.Modifiers, GetIsDefault(prop.Modifiers) And allowDefault))
 
                 Dim accessors = New List(Of AccessorBlockSyntax)
                 accessors.Add(CreateGetAccessorBlock(Nothing))
@@ -961,6 +961,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return declaration
+        End Function
+
+        Private Function GetIsDefault(modifierList As SyntaxTokenList) As Boolean
+            Dim access As Accessibility
+            Dim modifiers As DeclarationModifiers
+            Dim isDefault As Boolean
+
+            Me.GetAccessibilityAndModifiers(modifierList, access, modifiers, isDefault)
+
+            Return isDefault
+        End Function
+
+        Private Function WithIsDefault(modifierList As SyntaxTokenList, isDefault As Boolean) As SyntaxTokenList
+            Dim access As Accessibility
+            Dim modifiers As DeclarationModifiers
+            Dim currentIsDefault As Boolean
+
+            Me.GetAccessibilityAndModifiers(modifierList, access, modifiers, currentIsDefault)
+
+            If currentIsDefault <> isDefault Then
+                Return GetModifierList(access, modifiers, isDefault)
+            Else
+                Return modifierList
+            End If
         End Function
 
         Public Overrides Function ConstructorDeclaration(

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class TemporaryStorageServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/380"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageText()
         {
             var textFactory = new TextFactoryService();
@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
-            Assert.Equal(text.Encoding, text2.Encoding);
 
             temporaryStorage.Dispose();
         }
@@ -334,15 +333,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // test normal string
             var text = SourceText.From(new string(' ', 4096) + "public class A {}", Encoding.ASCII);
-            TestTemporaryStorage(service, text);
+            TestTemporaryStorageWithEncoding(service, text);
 
             // test empty string
             text = SourceText.From(string.Empty);
-            TestTemporaryStorage(service, text);
+            TestTemporaryStorageWithEncoding(service, text);
 
             // test large string
             text = SourceText.From(new string(' ', 1024 * 1024) + "public class A {}");
-            TestTemporaryStorage(service, text);
+            TestTemporaryStorageWithEncoding(service, text);
+        }
+
+        private void TestTemporaryStorageWithEncoding(ITemporaryStorageService temporaryStorageService, SourceText text)
+        {
+            // create a temporary storage location
+            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+
+            // write text into it
+            temporaryStorage.WriteTextAsync(text).Wait();
+
+            // read text back from it
+            var text2 = temporaryStorage.ReadTextAsync().Result;
+
+            Assert.NotSame(text, text2);
+            Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Equal(text.Encoding, text2.Encoding);
+
+            temporaryStorage.Dispose();
         }
     }
 }
