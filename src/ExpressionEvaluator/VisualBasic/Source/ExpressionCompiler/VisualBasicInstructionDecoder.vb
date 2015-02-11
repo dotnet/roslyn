@@ -10,7 +10,7 @@ Imports System.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    Friend NotInheritable Class VisualBasicInstructionDecoder : Inherits InstructionDecoder(Of VisualBasicCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol)
+    Friend NotInheritable Class VisualBasicInstructionDecoder : Inherits InstructionDecoder(Of VisualBasicCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol, ParameterSymbol)
 
         ' These strings were not localized in the old EE.  We'll keep them that way
         ' so as not to break consumers who may have been parsing frame names...

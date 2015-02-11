@@ -17,16 +17,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// <summary>
     /// This class provides function name information for the Breakpoints window.
     /// </summary>
-    internal abstract class LanguageInstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> : IDkmLanguageInstructionDecoder
+    internal abstract class LanguageInstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> : IDkmLanguageInstructionDecoder
         where TCompilation : Compilation
         where TMethodSymbol : class, IMethodSymbol
         where TModuleSymbol : class, IModuleSymbol
         where TTypeSymbol : class, ITypeSymbol
         where TTypeParameterSymbol : class, ITypeParameterSymbol
+        where TParameterSymbol : class, IParameterSymbol
     {
-        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
+        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> _instructionDecoder;
 
-        internal LanguageInstructionDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> instructionDecoder)
+        internal LanguageInstructionDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> instructionDecoder)
         {
             _instructionDecoder = instructionDecoder;
         }
