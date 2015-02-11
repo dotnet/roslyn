@@ -45,34 +45,189 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        Private Shared Sub TestSpan(workspace As TestWorkspace, projected As TestHostDocument, startPosition As Integer, endPosition As Integer)
+        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Sub GotoBraceNavigatesToOuterPositionOfMatchingBrace()
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
+                        <Document>
+                        using System;
+                        class C
+                        {
+                            static void M()
+                            {
+                                Console.WriteLine[|$$(Increment(5))|];
+                            }
+                            static int Increment(int n)
+                            {
+                                return n+1;
+                            }
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim doc = workspace.Documents.Single()
+                Dim span = doc.SelectedSpans.Single()
+                TestSpan(workspace, doc, doc.CursorPosition.Value, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.End, doc.CursorPosition.Value, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBraces()
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
+                        <Document>
+                        using System;
+                        class C
+                        {
+                            static void M()
+                            {
+                                Console.WriteLine(Increment[|$$(5)|]);
+                            }
+                            static int Increment(int n)
+                            {
+                                return n+1;
+                            }
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim doc = workspace.Documents.Single()
+                Dim span = doc.SelectedSpans.Single()
+                TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.End, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.Start + 1, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.End - 1, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Sub GotoBraceExtFindsTheInnerPositionOfCloseBraceAndOuterPositionOfOpenBrace()
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
+                        <Document>
+                        using System;
+                        class C
+                        {
+                            static void M()
+                            {
+                                Console.WriteLine[|(Increment(5)|])$$;
+                            }
+                            static int Increment(int n)
+                            {
+                                return n+1;
+                            }
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim doc = workspace.Documents.Single()
+                Dim span = doc.SelectedSpans.Single()
+                TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                TestSpan(workspace, doc, caretPosition:=doc.CursorPosition.Value, startPosition:=span.End, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBraces()
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
+                        <Document>
+                        using System;
+                        class C
+                        {
+                            static void M()
+                            {
+                                Console.WriteLine(Increment[|(5)|]);
+                            }
+                            static int Increment(int n)
+                            {
+                                return n+1;
+                            }
+                        }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim doc = workspace.Documents.Single()
+                Dim span = doc.SelectedSpans.Single()
+
+                ' Test from left and right of Open parantheses
+                TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+
+                ' Test from left and right of Close parantheses
+                TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+            End Using
+        End Sub
+
+        Private Shared Sub TestSpan(workspace As TestWorkspace, document As TestHostDocument, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing)
             Dim braceMatcher = VisualStudioTestExportProvider.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
-            Dim initialLine = projected.InitialTextSnapshot.GetLineFromPosition(startPosition)
+            Dim initialLine = document.InitialTextSnapshot.GetLineFromPosition(startPosition)
             Dim initialLineNumber = initialLine.LineNumber
             Dim initialIndex = startPosition - initialLine.Start.Position
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
-                         projected.GetTextView(),
+                         document.GetTextView(),
                          workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,
                          spans,
+                         commandId,
                          CancellationToken.None))
 
             ' Note - we only set either the start OR the end to the result, the other gets set to the source.
-            Dim resultLine = projected.InitialTextSnapshot.GetLineFromPosition(endPosition)
+            Dim resultLine = document.InitialTextSnapshot.GetLineFromPosition(endPosition)
             Dim resultIndex = endPosition - resultLine.Start.Position
+            AssertSpansMatch(startPosition, endPosition, initialLineNumber, initialIndex, spans, resultLine, resultIndex)
+        End Sub
+
+        Private Shared Sub TestSpan(workspace As TestWorkspace, document As TestHostDocument, caretPosition As Integer, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing)
+            Dim braceMatcher = VisualStudioTestExportProvider.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
+            Dim initialLine = document.InitialTextSnapshot.GetLineFromPosition(caretPosition)
+            Dim initialLineNumber = initialLine.LineNumber
+            Dim initialIndex = caretPosition - initialLine.Start.Position
+            Dim spans() = {New VsTextSpan()}
+            Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
+                         document.GetTextView(),
+                         workspace,
+                         braceMatcher,
+                         initialLineNumber,
+                         initialIndex,
+                         spans,
+                         commandId,
+                         CancellationToken.None))
+            'In extending selection (GotoBraceExt) scenarios we set both start AND end to the result.
+            Dim startIndex = startPosition - initialLine.Start.Position
+            Dim resultLine = document.InitialTextSnapshot.GetLineFromPosition(endPosition)
+            Dim resultIndex = endPosition - resultLine.Start.Position
+            AssertSpansMatch(startPosition, endPosition, initialLineNumber, startIndex, spans, resultLine, resultIndex)
+        End Sub
+
+        Private Shared Sub AssertSpansMatch(startPosition As Integer, endPosition As Integer, initialLineNumber As Integer, startIndex As Integer, spans() As VsTextSpan, resultLine As Text.ITextSnapshotLine, resultIndex As Integer)
             If endPosition > startPosition Then
                 Assert.Equal(initialLineNumber, spans(0).iStartLine)
-                Assert.Equal(initialIndex, spans(0).iStartIndex)
+                Assert.Equal(startIndex, spans(0).iStartIndex)
                 Assert.Equal(resultLine.LineNumber, spans(0).iEndLine)
                 Assert.Equal(resultIndex, spans(0).iEndIndex)
             Else
                 Assert.Equal(resultLine.LineNumber, spans(0).iStartLine)
                 Assert.Equal(resultIndex, spans(0).iStartIndex)
                 Assert.Equal(initialLineNumber, spans(0).iEndLine)
-                Assert.Equal(initialIndex, spans(0).iEndIndex)
+                Assert.Equal(startIndex, spans(0).iEndIndex)
             End If
         End Sub
     End Class

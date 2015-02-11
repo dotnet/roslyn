@@ -24,6 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly System.IServiceProvider _serviceProvider;
 
+        protected uint CommandID { get; private set; }
+
         public AbstractOleCommandTarget(
             IWpfTextView wpfTextView,
             ICommandHandlerServiceFactory commandHandlerServiceFactory,

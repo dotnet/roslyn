@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public virtual int Exec(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
         {
+            this.CommandID = commandId;
             var subjectBuffer = GetSubjectBufferContainingCaret();
 
             // If we didn't get a subject buffer, then that means we're outside our code and we should ignore it
