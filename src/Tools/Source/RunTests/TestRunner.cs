@@ -129,8 +129,8 @@ namespace RunTests
                 var all = File.ReadAllText(resultsPath).Trim();
                 if (all.Length == 0)
                 {
-                    var output = processOutput.OutputLines.Concat(processOutput.ErrorLines).Aggregate((x, y) => x + Environment.NewLine + y);
-                    File.WriteAllText(resultsPath, output);
+                    var output = processOutput.OutputLines.Concat(processOutput.ErrorLines).ToArray();
+                    File.WriteAllLines(resultsPath, output);
                 }
 
                 errorOutput = processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y);

@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static void AddInterfaceType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode interfaceType)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddInterfaceType(declaration, interfaceType));
+            editor.ReplaceNode(declaration, (d, g) => g.AddInterfaceType(d, interfaceType));
         }
 
         public static void AddBaseType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode baseType)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddBaseType(declaration, baseType));
+            editor.ReplaceNode(declaration, (d, g) => g.AddBaseType(d, baseType));
         }
     }
 }
