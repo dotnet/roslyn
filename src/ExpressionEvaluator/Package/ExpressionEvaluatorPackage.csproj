@@ -27,9 +27,9 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetVsixContainerName>ExpressionEvaluatorPackage.vsix</TargetVsixContainerName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RestorePackages>true</RestorePackages>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\VisualStudio\Components\VisualStudioComponents.csproj">
