@@ -7493,7 +7493,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -7544,18 +7544,18 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
-    Shared E As Expression(Of D) = Function() New C()
-                                              ~~~~~~~
-</errors>)
+
+            'BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
+            '    Shared E As Expression(Of D) = Function() New C()
+            '                                              ~~~~~~~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New C()").WithArguments("System.Type.GetTypeFromHandle").WithLocation(45, 47))
         End Sub
 
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -7618,21 +7618,22 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
-    Shared G As Expression(Of D) = Function() F
-                                              ~
-BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
-    Shared G As Expression(Of D) = Function() F
-                                              ~
-</errors>)
+
+            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
+            '    Shared G As Expression(Of D) = Function() F
+            '                                              ~
+            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
+            '    Shared G As Expression(Of D) = Function() F
+            '                                              ~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "F").WithArguments("System.Reflection.FieldInfo.GetFieldFromHandle").WithLocation(53, 47),
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "F").WithArguments("System.Reflection.FieldInfo.GetFieldFromHandle").WithLocation(57, 47))
         End Sub
 
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -7722,15 +7723,16 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
-    Shared G As Expression(Of D) = Function() M()
-                                              ~~~
-BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
-    Shared G As Expression(Of D) = Function() M()
-                                              ~~~
-</errors>)
+
+            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+            '    Shared G As Expression(Of D) = Function() M()
+            '                                              ~~~
+            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+            '    Shared G As Expression(Of D) = Function() M()
+            '                                              ~~~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "M()").WithArguments("System.Reflection.MethodBase.GetMethodFromHandle").WithLocation(79, 47),
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "M()").WithArguments("System.Reflection.MethodBase.GetMethodFromHandle").WithLocation(70, 47))
         End Sub
 
 #End Region

@@ -4097,12 +4097,11 @@ End Class
                 options:=TestOptions.DebugDll,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
 
-            compilation1.AssertTheseDiagnostics(
-<expected>
-BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.ComAwareEventInfo..ctor' is not defined.
-        AddHandler x.E, Sub() System.Console.WriteLine()
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>)
+            'BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.ComAwareEventInfo..ctor' is not defined.
+            '        AddHandler x.E, Sub() System.Console.WriteLine()
+            '        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            compilation1.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "AddHandler x.E, Sub() System.Console.WriteLine()").WithArguments("System.Runtime.InteropServices.ComAwareEventInfo..ctor").WithLocation(3, 9))
         End Sub
 
         Private Shared Sub AssertTheseDiagnostics(verifier As CompilationVerifier, diagnostics As XElement)

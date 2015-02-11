@@ -5640,7 +5640,7 @@ Class Program
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual"))
         End Sub
 
         <Fact>
@@ -5656,7 +5656,7 @@ Class Program
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual"))
         End Sub
 
         <Fact>
@@ -5672,7 +5672,7 @@ Class Program
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual"))
         End Sub
 
         <Fact>
@@ -5688,7 +5688,7 @@ Class Program
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o = o").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual"))
         End Sub
 
         <WorkItem(538792, "DevDiv")>
@@ -11619,8 +11619,6 @@ expectedOutput:=
 <compilation>
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Module Module1
     Public Sub Main()
     End Sub
@@ -11741,16 +11739,15 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-
-            AssertTheseDiagnostics(compilation,
-<expected>
-BC40054: 'Public Sub New(a As Integer)' in designer-generated type 'FromDesigner1' should call InitializeComponent method.
-    Sub New(a As Integer)
-        ~~~
-BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner5' should call InitializeComponent method.
-    Sub New(c As Integer)
-        ~~~
-</expected>)
+            'BC40054: 'Public Sub New(a As Integer)' in designer-generated type 'FromDesigner1' should call InitializeComponent method.
+            '    Sub New(a As Integer)
+            '        ~~~
+            'BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner5' should call InitializeComponent method.
+            '    Sub New(c As Integer)
+            '        ~~~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.WRN_ExpectedInitComponentCall2, "New").WithArguments("Public Sub New(c As Integer)", "FromDesigner5").WithLocation(98, 9),
+                Diagnostic(ERRID.WRN_ExpectedInitComponentCall2, "New").WithArguments("Public Sub New(a As Integer)", "FromDesigner1").WithLocation(12, 9))
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -12563,7 +12560,7 @@ End Module
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -12592,22 +12589,22 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
-        Select Case s
-                    ~
-BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
-        Select Case s
-                    ~
-</errors>)
+            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
+            '        Select Case s
+            '                    ~
+            'BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
+            '        Select Case s
+            '                    ~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString").WithLocation(19, 21),
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("System.String.get_Chars").WithLocation(19, 21))
         End Sub
 
         ' As above with Microsoft.VisualBasic.CompilerServices.EmbeddedOperators defined.
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -12640,21 +12637,21 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString' is not defined.
-        Select Case s
-                    ~
-BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
-        Select Case s
-                    ~
-</errors>)
+            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString' is not defined.
+            '        Select Case s
+            '                    ~
+            'BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
+            '        Select Case s
+            '                    ~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString").WithLocation(23, 21),
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("System.String.get_Chars").WithLocation(23, 21))
         End Sub
 
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -12676,18 +12673,17 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
-    Shared F As Object = GetType(C)
-                         ~~~~~~~~~~
-</errors>)
+            'BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
+            '    Shared F As Object = GetType(C)
+            '                         ~~~~~~~~~~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "GetType(C)").WithArguments("System.Type.GetTypeFromHandle").WithLocation(16, 26))
         End Sub
 
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -12710,15 +12706,15 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
-<errors>
-BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-        Catch e As Exception
-        ~~~~~~~~~~~~~~~~~~~~
-BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
-        Catch e As Exception
-        ~~~~~~~~~~~~~~~~~~~~
-</errors>)
+            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
+            '        Catch e As Exception
+            '        ~~~~~~~~~~~~~~~~~~~~
+            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
+            '        Catch e As Exception
+            '        ~~~~~~~~~~~~~~~~~~~~
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Catch e As Exception").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError").WithLocation(15, 9),
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Catch e As Exception").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(15, 9))
         End Sub
 
         <WorkItem(765569, "DevDiv")>

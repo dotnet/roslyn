@@ -338,7 +338,6 @@ End Class
 
     <file name="b.vb">
 Option strict on
-imports system
 
 partial Class C1
 
@@ -352,19 +351,19 @@ End Class
 
             ' not referencing vb runtime to get an error in the synthesized assignments
             ' coming from the field initializers
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
                 source,
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
-            AssertTheseDiagnostics(c1,
-<expected>
-BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-    public x1 as string = 33 &amp; 2.34 'No inference here
-                          ~~
-BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-    public x1 as string = 33 &amp; 2.34 'No inference here
-                               ~~~~    
-</expected>)
+            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+            '    public x1 as string = 33 &amp; 2.34 'No inference here
+            '                          ~~
+            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+            '    public x1 as string = 33 &amp; 2.34 'No inference here
+            '                               ~~~~    
+            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "33").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(5, 27),
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "2.34").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(5, 32))
         End Sub
 
         ' Me.New

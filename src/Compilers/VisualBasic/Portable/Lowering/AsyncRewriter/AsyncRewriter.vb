@@ -85,9 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             stateMachineType = New AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, kind)
 
-            If compilationState.ModuleBuilderOpt IsNot Nothing Then
-                compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
-            End If
+            Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
+            compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
             Dim rewriter As New AsyncRewriter(body, method, stateMachineType, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
 

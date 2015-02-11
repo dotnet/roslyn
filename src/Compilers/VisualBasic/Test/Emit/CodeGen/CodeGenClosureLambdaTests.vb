@@ -574,7 +574,7 @@ label1:
 End Module
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
         <Fact>
@@ -616,7 +616,7 @@ label1:
 End Module
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
         <Fact>
@@ -709,7 +709,7 @@ End Module
 
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
         <Fact>
@@ -762,7 +762,7 @@ End Module
 
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
         <Fact>
@@ -816,7 +816,7 @@ End Module
 
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
         <Fact>
@@ -872,7 +872,7 @@ End Module
 
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
         <Fact>
@@ -946,7 +946,7 @@ label2:
 End Module
     </file>
 </compilation>).
-            VerifyDiagnostics(
+            VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label2").WithArguments("Goto ", "label2", "label2"),
                 Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
@@ -1925,7 +1925,7 @@ Module M1
 End Module
     </file>
 </compilation>).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_CannotLiftRestrictedTypeLambda, "lifted").WithArguments("System.ArgIterator"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_CannotLiftRestrictedTypeLambda, "lifted").WithArguments("System.ArgIterator"))
 
         End Sub
 
