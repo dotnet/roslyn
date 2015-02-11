@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -539,20 +540,24 @@ namespace Microsoft.CodeAnalysis
 
         private Solution AddProject(ProjectId projectId, ProjectState projectState)
         {
-            var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
-            var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
+            var notificationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            using (notificationService?.Start("Remove Project"))
+            {
+                var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
+                var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
+                var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+                var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+                var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
-            return this.Branch(
-                projectIds: newProjectIds,
-                idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap,
-                linkedFilesMap: newLinkedFilesMap,
-                dependencyGraph: newDependencyGraph,
-                version: this.Version.GetNewerVersion(),  // changed project list so, increment version.
-                lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
+                return this.Branch(
+                    projectIds: newProjectIds,
+                    idToProjectStateMap: newStateMap,
+                    projectIdToTrackerMap: newTrackerMap,
+                    linkedFilesMap: newLinkedFilesMap,
+                    dependencyGraph: newDependencyGraph,
+                    version: this.Version.GetNewerVersion(),  // changed project list so, increment version.
+                    lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
+            }
         }
 
         /// <summary>
@@ -647,21 +652,25 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            CheckContainsProject(projectId);
+            var notificationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            using (notificationService?.Start("Remove Project"))
+            {
+                CheckContainsProject(projectId);
 
-            var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
-            var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
-            var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newLinkedFilesMap = CreateLinkedFilesMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
+                var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
+                var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
+                var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+                var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
+                var newLinkedFilesMap = CreateLinkedFilesMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
-            return this.Branch(
-                projectIds: newProjectIds,
-                idToProjectStateMap: newStateMap,
-                projectIdToTrackerMap: newTrackerMap.Remove(projectId),
-                linkedFilesMap: newLinkedFilesMap,
-                dependencyGraph: newDependencyGraph,
-                version: this.Version.GetNewerVersion()); // changed project list, so increment version
+                return this.Branch(
+                    projectIds: newProjectIds,
+                    idToProjectStateMap: newStateMap,
+                    projectIdToTrackerMap: newTrackerMap.Remove(projectId),
+                    linkedFilesMap: newLinkedFilesMap,
+                    dependencyGraph: newDependencyGraph,
+                    version: this.Version.GetNewerVersion()); // changed project list, so increment version
+            }
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedProject(ProjectState projectState)
@@ -1756,7 +1765,6 @@ namespace Microsoft.CodeAnalysis
 
             var modifiedDocumentOnly = translate is CompilationTranslationAction.TouchDocumentAction;
             var newLatestProjectVersion = modifiedDocumentOnly ? _lazyLatestProjectVersion : new Lazy<VersionStamp>(() => newProjectState.Version);
-
             return this.Branch(
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
@@ -1915,11 +1923,11 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
@@ -2024,11 +2032,11 @@ namespace Microsoft.CodeAnalysis
 
                 return mdref;
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Attempt to get the best readily available compilation for the project. It may be a
