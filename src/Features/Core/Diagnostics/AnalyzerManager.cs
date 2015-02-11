@@ -30,13 +30,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableDictionary<string, AnalyzerReference> _hostAnalyzerReferencesMap;
 
         /// <summary>
-        /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
-        /// 
-        /// Value is set of <see cref="DiagnosticAnalyzer"/> that belong to the <see cref="AnalyzerReference"/>.
-        /// </summary>
-        private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _hostDiagnosticAnalyzersPerReferenceMap;
-
-        /// <summary>
         /// Key is the language the <see cref="DiagnosticAnalyzer"/> supports and key for the second map is analyzer reference identity and
         /// <see cref="DiagnosticAnalyzer"/> for that assembly reference.
         /// 
@@ -51,6 +44,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache;
 
+        /// <summary>
+        /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
+        /// 
+        /// Value is set of <see cref="DiagnosticAnalyzer"/> that belong to the <see cref="AnalyzerReference"/>.
+        /// 
+        /// We populate it lazily. otherwise, we will bring in all analyzers preemptively
+        /// </summary>
+        private readonly Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
+
         public AnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
             this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies))
         {
@@ -59,10 +61,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
         {
             _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<string, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
-            _hostDiagnosticAnalyzersPerReferenceMap = CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap);
 
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
+
+            _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetHostDiagnosticDescriptorsPerReference()
         {
-            return GetDiagnosticDescriptorsPerReference(_hostDiagnosticAnalyzersPerReferenceMap);
+            return GetDiagnosticDescriptorsPerReference(_lazyHostDiagnosticAnalyzersPerReferenceMap.Value);
         }
 
         /// <summary>
