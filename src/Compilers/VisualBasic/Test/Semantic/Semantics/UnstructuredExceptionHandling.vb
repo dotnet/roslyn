@@ -1431,89 +1431,48 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '    Sub Main()
-            '    ~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
-            '    Sub Main()
-            '    ~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
-            '    Sub Main()
-            '    ~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        On Error GoTo -1
-            '        ~~~~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        On Error GoTo 0
-            '        ~~~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        On Error GoTo label
-            '        ~~~~~~~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        On Error Resume Next
-            '        ~~~~~~~~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        Resume 
-            '        ~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
-            '        Resume 
-            '        ~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        Resume Next
-            '        ~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
-            '        Resume Next
-            '        ~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        Resume Label
-            '        ~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
-            '        Resume Label
-            '        ~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "On Error GoTo -1").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(3, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "On Error GoTo 0").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(4, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "On Error GoTo label").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(5, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "On Error Resume Next").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(6, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Resume").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(8, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Resume").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError").WithLocation(8, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Resume Next").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(9, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Resume Next").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError").WithLocation(9, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Resume Label").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(10, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Resume Label").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError").WithLocation(10, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Sub Main()
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
+    Sub Main()
+    ~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
+    Sub Main()
+    ~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
+    Sub Main()
+    ~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         On Error GoTo -1
+        ~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         On Error GoTo 0
+        ~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         On Error GoTo label
+        ~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         On Error Resume Next
-
+        ~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         Resume 
-        Resume Next
-        Resume Label
-label:
-    End Sub").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError").WithLocation(2, 5),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Sub Main()
-        On Error GoTo -1
-        On Error GoTo 0
-        On Error GoTo label
-        On Error Resume Next
-
+        ~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
         Resume 
+        ~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         Resume Next
-        Resume Label
-label:
-    End Sub").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError").WithLocation(2, 5),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Sub Main()
-        On Error GoTo -1
-        On Error GoTo 0
-        On Error GoTo label
-        On Error Resume Next
-
-        Resume 
+        ~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
         Resume Next
+        ~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         Resume Label
-label:
-    End Sub").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(2, 5))
+        ~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
+        Resume Label
+        ~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14189,11 +14148,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-            'BC36595: Method cannot contain both a 'Resume' statement and a definition of a variable that is used in a lambda or query expression.
-            '        Resume ' 1
-            '        ~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotUseOnErrorGotoWithClosure, "Resume").WithArguments("Resume").WithLocation(4, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36595: Method cannot contain both a 'Resume' statement and a definition of a variable that is used in a lambda or query expression.
+        Resume ' 1
+        ~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14226,11 +14186,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-            'BC36595: Method cannot contain both a 'Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
-            '        Resume Next ' 2
-            '        ~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotUseOnErrorGotoWithClosure, "Resume Next").WithArguments("Resume Next").WithLocation(4, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36595: Method cannot contain both a 'Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
+        Resume Next ' 2
+        ~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14263,11 +14224,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-            'BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
-            '        On Error Resume Next ' 3
-            '        ~~~~~~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotUseOnErrorGotoWithClosure, "On Error Resume Next").WithArguments("On Error Resume Next").WithLocation(4, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
+        On Error Resume Next ' 3
+        ~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14300,11 +14262,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-            'BC36597: 'On Error Goto Label' is not valid because 'Label' is inside a scope that defines a variable that is used in a lambda or query expression.
-            '        On Error Goto Label ' 4
-            '        ~~~~~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "On Error Goto Label").WithArguments("On Error Goto Label", "", "Label").WithLocation(4, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36597: 'On Error Goto Label' is not valid because 'Label' is inside a scope that defines a variable that is used in a lambda or query expression.
+        On Error Goto Label ' 4
+        ~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14430,11 +14393,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-            'BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
-            '        On Error Resume Next
-            '        ~~~~~~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotUseOnErrorGotoWithClosure, "On Error Resume Next").WithArguments("On Error Resume Next").WithLocation(6, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
+        On Error Resume Next
+        ~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14509,11 +14473,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            'BC36597: 'Resume Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
-            '        Resume Label2
-            '        ~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "Resume Label2").WithArguments("Resume Label2", "", "Label2").WithLocation(16, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36597: 'Resume Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
+        Resume Label2
+        ~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14547,11 +14512,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            'BC36597: 'On Error Goto Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
-            '        On Error Goto Label2
-            '        ~~~~~~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "On Error Goto Label2").WithArguments("On Error Goto Label2", "", "Label2").WithLocation(6, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36597: 'On Error Goto Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
+        On Error Goto Label2
+        ~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -14638,11 +14604,12 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
-            '        Error 20
-            '        ~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Error 20").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError").WithLocation(3, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
+        Error 20
+        ~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>

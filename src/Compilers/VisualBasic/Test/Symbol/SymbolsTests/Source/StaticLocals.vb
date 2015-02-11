@@ -217,56 +217,45 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(compilationDef, options:=TestOptions.ReleaseExe)
-
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
-            '        Static x(9) As Integer
-            '               ~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
-            '        Static x(9) As Integer
-            '               ~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
-            '        Static x(9) As Integer
-            '               ~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
-            '        Static y1, y2 As New Integer()
-            '                         ~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
-            '        Static y1, y2 As New Integer()
-            '                         ~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
-            '        Static y1, y2 As New Integer()
-            '                         ~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
-            '        Static y1, y2 As New Integer()
-            '                         ~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
-            '        Static y1, y2 As New Integer()
-            '                         ~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
-            '        Static y1, y2 As New Integer()
-            '                         ~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
-            '        Static z As Integer = 1
-            '                              ~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
-            '        Static z As Integer = 1
-            '                              ~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
-            '        Static z As Integer = 1
-            '                              ~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "x(9)").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor").WithLocation(7, 16),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "x(9)").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State").WithLocation(7, 16),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "x(9)").WithArguments("Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor").WithLocation(7, 16),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New Integer()").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor").WithLocation(8, 26),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New Integer()").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State").WithLocation(8, 26),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New Integer()").WithArguments("Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor").WithLocation(8, 26),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New Integer()").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor").WithLocation(8, 26),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New Integer()").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State").WithLocation(8, 26),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New Integer()").WithArguments("Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor").WithLocation(8, 26),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "1").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor").WithLocation(9, 31),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "1").WithArguments("Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State").WithLocation(9, 31),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "1").WithArguments("Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor").WithLocation(9, 31))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
+        Static x(9) As Integer
+               ~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
+        Static x(9) As Integer
+               ~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
+        Static x(9) As Integer
+               ~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
+        Static y1, y2 As New Integer()
+                         ~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
+        Static y1, y2 As New Integer()
+                         ~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
+        Static y1, y2 As New Integer()
+                         ~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
+        Static y1, y2 As New Integer()
+                         ~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
+        Static y1, y2 As New Integer()
+                         ~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
+        Static y1, y2 As New Integer()
+                         ~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
+        Static z As Integer = 1
+                              ~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag..ctor' is not defined.
+        Static z As Integer = 1
+                              ~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StaticLocalInitFlag.State' is not defined.
+        Static z As Integer = 1
+                              ~
+</expected>)
         End Sub
 
         <Fact>

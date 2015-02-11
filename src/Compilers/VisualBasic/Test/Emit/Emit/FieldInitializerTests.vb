@@ -355,15 +355,15 @@ End Class
                 source,
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-            '    public x1 as string = 33 &amp; 2.34 'No inference here
-            '                          ~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-            '    public x1 as string = 33 &amp; 2.34 'No inference here
-            '                               ~~~~    
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "33").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(5, 27),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "2.34").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(5, 32))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+    public x1 as string = 33 &amp; 2.34 'No inference here
+                          ~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+    public x1 as string = 33 &amp; 2.34 'No inference here
+                               ~~~~    
+</expected>)
         End Sub
 
         ' Me.New

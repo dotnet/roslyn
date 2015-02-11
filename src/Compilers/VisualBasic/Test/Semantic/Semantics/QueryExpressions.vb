@@ -9825,15 +9825,15 @@ Imports System.Linq
     </file>
     </compilation>, additionalRefs:={SystemCoreRef})
 
-            'BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
-            '                Dim q1 = From i In col Where x.GetRemainingCount > 0 Select a = 1
-            '                                             ~
-            'BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
-            '                Dim q2 = From i In col Where y.GetRemainingCount > 0 Select a = 2
-            '                                             ~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotLiftRestrictedTypeQuery, "x").WithArguments("System.ArgIterator").WithLocation(8, 46),
-                Diagnostic(ERRID.ERR_CannotLiftRestrictedTypeQuery, "y").WithArguments("System.ArgIterator").WithLocation(9, 46))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
+                Dim q1 = From i In col Where x.GetRemainingCount > 0 Select a = 1
+                                             ~
+BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
+                Dim q2 = From i In col Where y.GetRemainingCount > 0 Select a = 2
+                                             ~
+</expected>)
         End Sub
 
         <WorkItem(545801, "DevDiv")>

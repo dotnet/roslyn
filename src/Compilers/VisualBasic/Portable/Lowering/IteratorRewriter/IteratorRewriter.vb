@@ -67,7 +67,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             stateMachineType = New IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, elementType, isEnumerable)
 
-            Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
             Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)

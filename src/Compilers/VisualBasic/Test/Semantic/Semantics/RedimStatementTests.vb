@@ -322,12 +322,12 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
-
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Utils.CopyArray' is not defined.
-            '        ReDim Preserve o(1, 2)
-            '                       ~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "o(1, 2)").WithArguments("Microsoft.VisualBasic.CompilerServices.Utils.CopyArray").WithLocation(4, 24))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Utils.CopyArray' is not defined.
+        ReDim Preserve o(1, 2)
+                       ~~~~~~~
+</errors>)
         End Sub
 
     End Class

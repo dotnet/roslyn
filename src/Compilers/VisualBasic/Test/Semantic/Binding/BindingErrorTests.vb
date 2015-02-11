@@ -626,16 +626,15 @@ End structure
         ]]>
     </file>
 </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-            '        Dim x1$ = 33 & 2.34 'No inference here
-            '                  ~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-            '        Dim x1$ = 33 & 2.34 'No inference here
-            '                       ~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "33").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(4, 19),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "2.34").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(4, 24))
+            AssertTheseEmitDiagnostics(compilation,
+<expected><![CDATA[
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+        Dim x1$ = 33 & 2.34 'No inference here
+                  ~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+        Dim x1$ = 33 & 2.34 'No inference here
+                       ~~~~
+]]></expected>)
         End Sub
 
         <Fact()>
@@ -741,18 +740,15 @@ Class Program
 End Class
     </file>
 </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForLoopInitObj' is not defined.
-            '        For Result = 1 To 2
-            '        ~~~~~~~~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForNextCheckObj' is not defined.
-            '        For Result = 1 To 2
-            '        ~~~~~~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "For Result = 1 To 2
-        Next").WithArguments("Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForLoopInitObj").WithLocation(4, 9),
-    Diagnostic(ERRID.ERR_MissingRuntimeHelper, "For Result = 1 To 2
-        Next").WithArguments("Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForNextCheckObj").WithLocation(4, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForLoopInitObj' is not defined.
+        For Result = 1 To 2
+        ~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForNextCheckObj' is not defined.
+        For Result = 1 To 2
+        ~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -788,20 +784,18 @@ Class Program
 End Class
     </file>
 </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateSet' is not defined.
-            '        obj.P1 = 42                         ' assignment    (Set)
-            '        ~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall' is not defined.
-            '        obj.P1()                            ' sideeffect    (Call)
-            '        ~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet' is not defined.
-            '        Console.WriteLine(obj.P1)           ' value         (Get)
-            '                          ~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "obj.P1 = 42").WithArguments("Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateSet").WithLocation(8, 9),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "obj.P1").WithArguments("Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall").WithLocation(9, 9),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "obj.P1").WithArguments("Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet").WithLocation(10, 27))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateSet' is not defined.
+        obj.P1 = 42                         ' assignment    (Set)
+        ~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall' is not defined.
+        obj.P1()                            ' sideeffect    (Call)
+        ~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet' is not defined.
+        Console.WriteLine(obj.P1)           ' value         (Get)
+                          ~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -16812,12 +16806,12 @@ BC36594: Definition of method 'y' is not accessible in this context.
         End Module
     </file>
     </compilation>)
-
-            'BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defines a variable that is used in a lambda or query expression.
-            '                GoTo Label1
-            '                ~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "GoTo Label1").WithArguments("Goto ", "Label1", "Label1").WithLocation(11, 17))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defines a variable that is used in a lambda or query expression.
+                GoTo Label1
+                ~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>
@@ -19616,7 +19610,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb">
 Class C
@@ -19634,24 +19628,21 @@ Class C
 End Class
         </file>
     </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-            '        For Each x As String In "abc"
-            '                                ~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
-            '            For Each S In "abc"
-            '                          ~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
-            '                If S = "B"c Then
-            '                   ~~~~~~~~
-            'BC42104: Variable 'S' is used before it has been assigned a value. A null reference exception could result at runtime.
-            '        System.Console.WriteLine(S)
-            '                                 ~
-            compilation1.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.WRN_DefAsgUseNullRef, "S").WithArguments("S").WithLocation(11, 34),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, """abc""").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(4, 33),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, """abc""").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToString").WithLocation(5, 27),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "S = ""B""c").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString").WithLocation(6, 20))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+        For Each x As String In "abc"
+                                ~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+            For Each S In "abc"
+                          ~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
+                If S = "B"c Then
+                   ~~~~~~~~
+BC42104: Variable 'S' is used before it has been assigned a value. A null reference exception could result at runtime.
+        System.Console.WriteLine(S)
+                                 ~
+</errors>)
         End Sub
 
         <WorkItem(542080, "DevDiv")>

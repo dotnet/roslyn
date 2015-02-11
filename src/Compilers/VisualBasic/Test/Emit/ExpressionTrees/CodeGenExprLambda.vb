@@ -7544,12 +7544,12 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
-            '    Shared E As Expression(Of D) = Function() New C()
-            '                                              ~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "New C()").WithArguments("System.Type.GetTypeFromHandle").WithLocation(45, 47))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
+    Shared E As Expression(Of D) = Function() New C()
+                                              ~~~~~~~
+</errors>)
         End Sub
 
         <WorkItem(797996, "DevDiv")>
@@ -7618,16 +7618,15 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
-            '    Shared G As Expression(Of D) = Function() F
-            '                                              ~
-            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
-            '    Shared G As Expression(Of D) = Function() F
-            '                                              ~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "F").WithArguments("System.Reflection.FieldInfo.GetFieldFromHandle").WithLocation(53, 47),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "F").WithArguments("System.Reflection.FieldInfo.GetFieldFromHandle").WithLocation(57, 47))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
+    Shared G As Expression(Of D) = Function() F
+                                              ~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
+    Shared G As Expression(Of D) = Function() F
+                                              ~
+</errors>)
         End Sub
 
         <WorkItem(797996, "DevDiv")>
@@ -7723,16 +7722,15 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-
-            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
-            '    Shared G As Expression(Of D) = Function() M()
-            '                                              ~~~
-            'BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
-            '    Shared G As Expression(Of D) = Function() M()
-            '                                              ~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "M()").WithArguments("System.Reflection.MethodBase.GetMethodFromHandle").WithLocation(79, 47),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "M()").WithArguments("System.Reflection.MethodBase.GetMethodFromHandle").WithLocation(70, 47))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared G As Expression(Of D) = Function() M()
+                                              ~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared G As Expression(Of D) = Function() M()
+                                              ~~~
+</errors>)
         End Sub
 
 #End Region

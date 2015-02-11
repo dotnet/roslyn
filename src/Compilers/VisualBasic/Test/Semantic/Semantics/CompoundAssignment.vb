@@ -980,11 +980,12 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseDll)
 
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StringType.MidStmtStr' is not defined.
-            '        Mid(x, 2) = "a"
-            '        ~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Mid(x, 2) = ""a""").WithArguments("Microsoft.VisualBasic.CompilerServices.StringType.MidStmtStr").WithLocation(5, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StringType.MidStmtStr' is not defined.
+        Mid(x, 2) = "a"
+        ~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact()>

@@ -152,8 +152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        diagnostics As DiagnosticBag,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
 
-            Debug.Assert(CompilationState.ModuleBuilderOpt IsNot Nothing)
-
             Dim analysis = LambdaRewriter.Analysis.AnalyzeMethodBody(node, method, symbolsCapturedWithoutCopyCtor, diagnostics)
             If Not analysis.seenLambda Then
                 Return node

@@ -11739,15 +11739,15 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            'BC40054: 'Public Sub New(a As Integer)' in designer-generated type 'FromDesigner1' should call InitializeComponent method.
-            '    Sub New(a As Integer)
-            '        ~~~
-            'BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner5' should call InitializeComponent method.
-            '    Sub New(c As Integer)
-            '        ~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.WRN_ExpectedInitComponentCall2, "New").WithArguments("Public Sub New(c As Integer)", "FromDesigner5").WithLocation(98, 9),
-                Diagnostic(ERRID.WRN_ExpectedInitComponentCall2, "New").WithArguments("Public Sub New(a As Integer)", "FromDesigner1").WithLocation(12, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
+BC40054: 'Public Sub New(a As Integer)' in designer-generated type 'FromDesigner1' should call InitializeComponent method.
+    Sub New(a As Integer)
+        ~~~
+BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner5' should call InitializeComponent method.
+    Sub New(c As Integer)
+        ~~~
+</expected>)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -12589,15 +12589,16 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
-            '        Select Case s
-            '                    ~
-            'BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
-            '        Select Case s
-            '                    ~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString").WithLocation(19, 21),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("System.String.get_Chars").WithLocation(19, 21))
+
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareString' is not defined.
+        Select Case s
+                    ~
+BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
+        Select Case s
+                    ~
+</errors>)
         End Sub
 
         ' As above with Microsoft.VisualBasic.CompilerServices.EmbeddedOperators defined.
@@ -12637,15 +12638,15 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString' is not defined.
-            '        Select Case s
-            '                    ~
-            'BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
-            '        Select Case s
-            '                    ~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString").WithLocation(23, 21),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "s").WithArguments("System.String.get_Chars").WithLocation(23, 21))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString' is not defined.
+        Select Case s
+                    ~
+BC35000: Requested operation is not available because the runtime library function 'System.String.get_Chars' is not defined.
+        Select Case s
+                    ~
+</errors>)
         End Sub
 
         <WorkItem(797996, "DevDiv")>
@@ -12673,11 +12674,12 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            'BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
-            '    Shared F As Object = GetType(C)
-            '                         ~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "GetType(C)").WithArguments("System.Type.GetTypeFromHandle").WithLocation(16, 26))
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
+    Shared F As Object = GetType(C)
+                         ~~~~~~~~~~
+</errors>)
         End Sub
 
         <WorkItem(797996, "DevDiv")>
@@ -12706,15 +12708,15 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
-            '        Catch e As Exception
-            '        ~~~~~~~~~~~~~~~~~~~~
-            'BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
-            '        Catch e As Exception
-            '        ~~~~~~~~~~~~~~~~~~~~
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Catch e As Exception").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError").WithLocation(15, 9),
-                Diagnostic(ERRID.ERR_MissingRuntimeHelper, "Catch e As Exception").WithArguments("Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError").WithLocation(15, 9))
+            AssertTheseEmitDiagnostics(compilation,
+<errror>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
+        Catch e As Exception
+        ~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
+        Catch e As Exception
+        ~~~~~~~~~~~~~~~~~~~~
+</errror>)
         End Sub
 
         <WorkItem(765569, "DevDiv")>
