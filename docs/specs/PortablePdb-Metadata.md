@@ -373,6 +373,19 @@ Structure:
 
 TODO: Bit ordering.
 
+##### Root Namespace (VB compiler)
+Parent: Module
+
+Kind: {58b2eab6-209f-4e4e-a22c-b2d0f910c782}
+
+Structure:
+
+    Blob ::= namespace
+
+| terminal | encoding | description|
+|:---------|:---------|:-----------|
+| _namespace_    | UTF8 string | The root namespace. |
+
 ##### Edit and Continue Local Slot Map (C# & VB compilers)
 Parent: MethodDef
 
