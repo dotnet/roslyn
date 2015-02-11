@@ -809,5 +809,41 @@ class Repro
 }
 ");
         }
+
+        [Fact]
+        public void ConcatMutableStructs()
+        {
+            const string source = @"
+using System;
+using static System.Console;
+
+struct Mutable
+{
+    int x;
+
+    public override string ToString() => (x++).ToString();
+
+    static void Main()
+    {
+        Mutable m = new Mutable();
+        Write(""("" + m + "")"");               // (0)
+        Write(""("" + m + "")"");               // (0)
+
+        Write(""("" + m.ToString() + "")"");    // (0)
+        Write(""("" + m.ToString() + "")"");    // (1)
+        Write(""("" + m.ToString() + "")"");    // (2)
+
+        Nullable<Mutable> n = new Mutable();
+        Write(""("" + n + "")"");               // (0)
+        Write(""("" + n + "")"");               // (0)
+
+        Write(""("" + n.ToString() + "")"");    // (0)
+        Write(""("" + n.ToString() + "")"");    // (1)
+        Write(""("" + n.ToString() + "")"");    // (2)
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "(0)(0)(0)(1)(2)(0)(0)(0)(1)(2)");
+        }
     }
 }
