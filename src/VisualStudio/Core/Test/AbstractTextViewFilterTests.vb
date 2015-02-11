@@ -163,11 +163,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
-                ' Test from left and right of Open parantheses
+                ' Test from left and right of Open parentheses
                 TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
                 TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
 
-                ' Test from left and right of Close parantheses
+                ' Test from left and right of Close parentheses
                 TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
                 TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
             End Using

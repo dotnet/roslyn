@@ -78,10 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                     // Notice a couple of things: it arbitrarily increments EndIndex by 1 and does nothing similar for StartIndex.
                                     // So, if we're extending selection: 
-                                    //    case a: set EndIndex to left of closing parantheses -- ^}
-                                    //            this adjustment is for any of the four cases where caret could be. left or right of open or close parantheses -- ^{^ ^}^
-                                    //    case b: set StartIndex to left of opening parantheses -- ^{
-                                    //            this adjustment is for cases where caret was originally to the right of the open parantheses -- {| }
+                                    //    case a: set EndIndex to left of closing parentheses -- ^}
+                                    //            this adjustment is for any of the four cases where caret could be. left or right of open or close parentheses -- ^{^ ^}^
+                                    //    case b: set StartIndex to left of opening parentheses -- ^{
+                                    //            this adjustment is for cases where caret was originally to the right of the open parentheses -- {^ }
 
                                     // if selecting, adjust end position by using the matching opening span that we just computed.
                                     if (commandId.HasValue &&
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         pSpan[0].iEndIndex = vsClosingSpans.iStartIndex; 
                                     }
                                 }
-                                else if (matchingSpan.Value.End > position) // caret is at open parantheses
+                                else if (matchingSpan.Value.End > position) // caret is at open parentheses
                                 {
                                     pSpan[0].iEndLine = vsTextSpan.iEndLine;
                                     pSpan[0].iEndIndex = vsTextSpan.iEndIndex;
