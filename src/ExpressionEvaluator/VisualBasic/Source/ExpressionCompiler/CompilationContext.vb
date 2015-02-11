@@ -40,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         ''' <summary>
         ''' Create a context to compile expressions within a method scope.
-        ''' Include imports if <paramref name="importStrings"/> is set.
         ''' </summary>
         Friend Sub New(
             compilation As VisualBasicCompilation,
@@ -48,26 +47,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             hoistedLocalFieldNames As ImmutableHashSet(Of String),
-            importStrings As ImmutableArray(Of String),
+            methodDebugInfo As MethodDebugInfo,
             syntax As ExecutableStatementSyntax)
 
             _syntax = syntax
             _currentFrame = currentFrame
 
             Debug.Assert(compilation.Options.RootNamespace = "") ' Default value.
-
-            Dim defaultNamespaceName As String = GetDefaultNamespaceName(importStrings)
+            Debug.Assert(methodDebugInfo.ExternAliasRecords.IsDefaultOrEmpty)
 
             Dim originalCompilation = compilation
+
             If syntax IsNot Nothing Then
                 compilation = compilation.AddSyntaxTrees(syntax.SyntaxTree)
             End If
+
+            Dim defaultNamespaceName As String = methodDebugInfo.DefaultNamespaceName
             If defaultNamespaceName IsNot Nothing Then
                 compilation = compilation.WithOptions(compilation.Options.WithRootNamespace(defaultNamespaceName))
             End If
+
             If compilation Is originalCompilation Then
                 compilation = compilation.Clone()
             End If
+
             Me.Compilation = compilation
 
             ' Each expression compile should use a unique compilation
@@ -79,8 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             NamespaceBinder = CreateBinderChain(
                 Me.Compilation,
+                metadataDecoder,
                 currentFrame.ContainingNamespace,
-                importStrings)
+                methodDebugInfo.ImportRecordGroups)
 
             _voidType = Me.Compilation.GetSpecialType(SpecialType.System_Void)
 
@@ -482,16 +486,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function CreateBinderChain(
             compilation As VisualBasicCompilation,
+            metadataDecoder As MetadataDecoder,
             [namespace] As NamespaceSymbol,
-            importStrings As ImmutableArray(Of String)) As Binder
+            importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
             Dim binder = BackstopBinder
             binder = New SuppressObsoleteDiagnosticsBinder(binder)
             binder = New IgnoreAccessibilityBinder(binder)
             binder = New SourceModuleBinder(binder, DirectCast(compilation.Assembly.Modules(0), SourceModuleSymbol))
 
-            If Not importStrings.IsDefault Then
-                binder = BuildImportedSymbolsBinder(binder, importStrings, New NamespaceBinder(binder, compilation.GlobalNamespace))
+            If Not importRecordGroups.IsDefault Then
+                binder = BuildImportedSymbolsBinder(binder, New NamespaceBinder(binder, compilation.GlobalNamespace), metadataDecoder, importRecordGroups)
             End If
 
             Dim stack = ArrayBuilder(Of String).GetInstance()
@@ -573,8 +578,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function BuildImportedSymbolsBinder(
             containingBinder As Binder,
-            importStrings As ImmutableArray(Of String),
-            importBinder As Binder) As Binder
+            importBinder As Binder,
+            metadataDecoder As MetadataDecoder,
+            importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
             Dim projectLevelImportsBuilder As ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
             Dim fileLevelImportsBuilder As ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
@@ -585,121 +591,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim projectLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
             Dim fileLevelXmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
+            Debug.Assert(importRecordGroups.Length = 2) ' First project-level, then file-level.
+            Dim projectLevelImportRecords = importRecordGroups(0)
+            Dim fileLevelImportRecords = importRecordGroups(1)
+
             ' Use this to give the imports different positions
             Dim position = 0
-            For Each importString As String In importStrings
-                Debug.Assert(importString IsNot Nothing)
 
-                Dim [alias] As String = Nothing
-                Dim target As String = Nothing
-                Dim kind As ImportTargetKind = Nothing
-                Dim scope As ImportScope = Nothing
-                If Not CustomDebugInfoReader.TryParseVisualBasicImportString(importString, [alias], target, kind, scope) Then
-                    Debug.WriteLine("Unable to parse import string '{0}'", importString)
-                    Continue For
-                ElseIf kind = ImportTargetKind.Defunct Then
-                    Continue For
+            For Each importRecord As ImportRecord In projectLevelImportRecords
+                If AddImportForRecord(
+                    importRecord,
+                    importBinder,
+                    metadataDecoder,
+                    position,
+                    projectLevelImportsBuilder,
+                    projectLevelAliases,
+                    projectLevelXmlImports) Then
+
+                    position += 1
                 End If
+            Next
 
-                ' NB: It appears that imports of generic types are not included in the PDB, so we never have to worry about parsing them.
-                ' NB: Unlike in C# PDBs, the assembly name will not be present, so we have to just bind the string.
-                Dim targetSyntax As NameSyntax = Nothing
-                If Not String.IsNullOrEmpty(target) AndAlso ' CurrentNamespace may be an empty string.
-                    kind <> ImportTargetKind.XmlNamespace AndAlso
-                    Not TryParseDottedName(target, targetSyntax) Then
+            For Each importRecord As ImportRecord In fileLevelImportRecords
+                If AddImportForRecord(
+                    importRecord,
+                    importBinder,
+                    metadataDecoder,
+                    position,
+                    fileLevelImportsBuilder,
+                    fileLevelAliases,
+                    fileLevelXmlImports) Then
 
-                    Debug.WriteLine("Import string '{0}' has syntactically invalid target '{1}'", importString, target)
-                    Continue For
+                    position += 1
                 End If
-
-                Dim aliasSyntax As IdentifierNameSyntax = Nothing
-                If Not String.IsNullOrEmpty([alias]) Then
-                    Dim aliasNameSyntax As NameSyntax = Nothing
-                    If Not TryParseDottedName([alias], aliasNameSyntax) OrElse aliasNameSyntax.Kind <> SyntaxKind.IdentifierName Then
-                        Debug.WriteLine("Import string '{0}' has syntactically invalid alias '{1}'", importString, [alias])
-                        Continue For
-                    Else
-                        aliasSyntax = DirectCast(aliasNameSyntax, IdentifierNameSyntax)
-                    End If
-                End If
-
-                Select Case kind
-                    ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
-                    ' It seems pointless to add an import for the namespace in which we are binding expressions, but the native source gives
-                    ' the impression that other namespaces may take the same form in Everett PDBs.
-                    Case ImportTargetKind.CurrentNamespace, ImportTargetKind.Namespace, ImportTargetKind.Type ' Unaliased namespace or type
-                        Debug.Assert([alias] Is Nothing) ' Aliased types and namespaces are handled by ImportTargetKind.NamespaceOrType
-                        Debug.Assert(target IsNot Nothing)
-
-                        If target = "" Then
-                            Debug.Assert(kind = ImportTargetKind.CurrentNamespace) ' The current namespace can be empty.
-                            Continue For
-                        End If
-
-                        Debug.Assert(targetSyntax IsNot Nothing)
-
-                        Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                        Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
-                        unusedDiagnostics.Free()
-
-                        Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
-
-                        If namespaceOrTypeSymbol.Kind = SymbolKind.ErrorType Then
-                            ' Type is unrecognized.  The import may have been
-                            ' valid in the original source but unnecessary.
-                            Continue For ' Don't add anything for this import.
-                        End If
-
-                        Dim selectedImportsBuilder = SelectAndInitializeCollection(scope, projectLevelImportsBuilder, fileLevelImportsBuilder, Function() ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance())
-
-                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        selectedImportsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
-                    Case ImportTargetKind.NamespaceOrType ' Unaliased namespace or type
-                        Debug.Assert([alias] IsNot Nothing)
-                        Debug.Assert(target IsNot Nothing)
-                        Debug.Assert(targetSyntax IsNot Nothing)
-
-                        Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                        Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
-                        unusedDiagnostics.Free()
-
-                        Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
-
-                        If namespaceOrTypeSymbol.Kind = SymbolKind.ErrorType Then
-                            ' Type is unrecognized.  The import may have been
-                            ' valid in the original source but unnecessary.
-                            Continue For ' Don't add anything for this import.
-                        End If
-
-                        Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
-
-                        Dim selectedAliases = SelectAndInitializeCollection(scope, projectLevelAliases, fileLevelAliases, Function() New Dictionary(Of String, AliasAndImportsClausePosition))
-
-                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        selectedAliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
-                    Case ImportTargetKind.XmlNamespace
-                        Debug.Assert(target IsNot Nothing)
-
-                        Dim selectedXmlImports = SelectAndInitializeCollection(scope, projectLevelXmlImports, fileLevelXmlImports, Function() New Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
-
-                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        selectedXmlImports([alias]) = New XmlNamespaceAndImportsClausePosition(target, position)
-                    Case ImportTargetKind.DefaultNamespace
-                        ' Processed ahead of time so that it can be incorporated into the compilation before
-                        ' constructing the binder chain.
-                        Continue For
-                    Case ImportTargetKind.MethodToken ' forwarding
-                        ' One level of forwarding is pre-processed away, but invalid PDBs might contain
-                        ' chains.  Just ignore them (as in Dev12).
-                        Continue For
-                    Case ImportTargetKind.Assembly
-                        ' VB doesn't have extern aliases.
-                        Throw ExceptionUtilities.UnexpectedValue(kind)
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(kind)
-                End Select
-
-                position += 1
             Next
 
             ' BinderBuilder.CreateBinderForSourceFile creates separate binders for the project- and file-level
@@ -736,6 +660,158 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Return binder
+        End Function
+
+        Private Shared Function AddImportForRecord(
+            importRecord As ImportRecord,
+            importBinder As Binder,
+            metadataDecoder As MetadataDecoder,
+            position As Integer,
+            ByRef importsBuilder As ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition),
+            ByRef aliases As Dictionary(Of String, AliasAndImportsClausePosition),
+            ByRef xmlImports As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)) As Boolean
+
+            Dim targetString = importRecord.TargetString
+
+            ' NB: It appears that imports of generic types are not included in the PDB, so we never have to worry about parsing them.
+            ' NB: Unlike in C# PDBs, the assembly name will not be present, so we have to just bind the string.
+            Dim targetSyntax As NameSyntax = Nothing
+            If Not String.IsNullOrEmpty(targetString) AndAlso ' CurrentNamespace may be an empty string, new-format types may be null.
+                    importRecord.TargetKind <> ImportTargetKind.XmlNamespace AndAlso
+                    Not TryParseDottedName(targetString, targetSyntax) Then
+
+                Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid target '{targetString}'")
+                Return False
+            End If
+
+            ' Check for syntactically invalid aliases.
+            Dim [alias] = importRecord.Alias
+            If Not String.IsNullOrEmpty([alias]) Then
+                Dim aliasNameSyntax As NameSyntax = Nothing
+                If Not TryParseDottedName([alias], aliasNameSyntax) OrElse aliasNameSyntax.Kind <> SyntaxKind.IdentifierName Then
+                    Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid alias '{[alias]}'")
+                    Return False
+                End If
+            End If
+
+            Select Case importRecord.TargetKind
+                Case ImportTargetKind.Type
+                    Dim typeSymbol As TypeSymbol
+                    Dim portableImportRecord = TryCast(importRecord, PortableImportRecord)
+                    If portableImportRecord IsNot Nothing Then
+                        typeSymbol = portableImportRecord.GetTargetType(metadataDecoder)
+                        Debug.Assert(typeSymbol IsNot Nothing)
+                    Else
+                        Debug.Assert(importRecord.Alias Is Nothing) ' Represented as ImportTargetKind.NamespaceOrType in old-format PDBs.
+
+                        Dim unusedDiagnostics = DiagnosticBag.GetInstance()
+                        typeSymbol = importBinder.BindTypeSyntax(targetSyntax, unusedDiagnostics)
+                        unusedDiagnostics.Free()
+
+                        Debug.Assert(typeSymbol IsNot Nothing)
+
+                        If typeSymbol.Kind = SymbolKind.ErrorType Then
+                            ' Type is unrecognized.  The import may have been
+                            ' valid in the original source but unnecessary.
+                            Return False ' Don't add anything for this import.
+                        End If
+                    End If
+
+                    If [alias] IsNot Nothing Then
+                        Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], typeSymbol, NoLocation.Singleton)
+
+                        If aliases Is Nothing Then
+                            aliases = New Dictionary(Of String, AliasAndImportsClausePosition)()
+                        End If
+
+                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                    Else
+                        If importsBuilder Is Nothing Then
+                            importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
+                        End If
+
+                        ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position))
+                    End If
+
+                ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
+                ' It seems pointless to add an import for the namespace in which we are binding expressions, but the native source gives
+                ' the impression that other namespaces may take the same form in Everett PDBs.
+                Case ImportTargetKind.CurrentNamespace, ImportTargetKind.Namespace ' Unaliased namespace or type
+                    If targetString = "" Then
+                        Debug.Assert(importRecord.TargetKind = ImportTargetKind.CurrentNamespace) ' The current namespace can be empty.
+                        Return False
+                    End If
+
+                    Dim unusedDiagnostics = DiagnosticBag.GetInstance()
+                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
+                    unusedDiagnostics.Free()
+
+                    Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
+
+                    If namespaceOrTypeSymbol.Kind = SymbolKind.ErrorType Then
+                        ' Namespace is unrecognized.  The import may have been
+                        ' valid in the original source but unnecessary.
+                        Return False ' Don't add anything for this import.
+                    End If
+
+                    If importsBuilder Is Nothing Then
+                        importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
+                    End If
+
+                    ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                    importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type
+                    Debug.Assert(TypeOf importRecord Is NativeImportRecord) ' Only happens when reading old-format PDBs
+
+                    Dim unusedDiagnostics = DiagnosticBag.GetInstance()
+                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
+                    unusedDiagnostics.Free()
+
+                    Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
+
+                    If namespaceOrTypeSymbol.Kind = SymbolKind.ErrorType Then
+                        ' Type is unrecognized.  The import may have been
+                        ' valid in the original source but unnecessary.
+                        Return False ' Don't add anything for this import.
+                    End If
+
+                    Debug.Assert([alias] IsNot Nothing) ' Implied by TargetKind
+
+                    Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
+
+                    If aliases Is Nothing Then
+                        aliases = New Dictionary(Of String, AliasAndImportsClausePosition)()
+                    End If
+
+                    ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                Case ImportTargetKind.XmlNamespace
+                    If xmlImports Is Nothing Then
+                        xmlImports = New Dictionary(Of String, XmlNamespaceAndImportsClausePosition)()
+                    End If
+
+                    ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
+                    xmlImports(importRecord.Alias) = New XmlNamespaceAndImportsClausePosition(importRecord.TargetString, position)
+                Case ImportTargetKind.DefaultNamespace
+                    ' Processed ahead of time so that it can be incorporated into the compilation before
+                    ' constructing the binder chain.
+                    Return False
+                Case ImportTargetKind.MethodToken ' forwarding
+                    ' One level of forwarding is pre-processed away, but invalid PDBs might contain
+                    ' chains.  Just ignore them (as in Dev12).
+                    Return False
+                Case ImportTargetKind.Defunct
+                    Return False
+                Case ImportTargetKind.Assembly
+                    ' VB doesn't have extern aliases.
+                    Throw ExceptionUtilities.UnexpectedValue(importRecord.TargetKind)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(importRecord.TargetKind)
+            End Select
+
+            Return True
         End Function
 
         Private Shared Function MergeAliases(Of T)(projectLevel As Dictionary(Of String, T), fileLevel As Dictionary(Of String, T)) As Dictionary(Of String, T)
@@ -783,7 +859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' We don't want to use the real scanner because we want to treat keywords as identifiers.
         ''' Since the inputs are so simple, we'll just do the scanning ourselves.
         ''' </summary>
-        Private Shared Function TryParseDottedName(input As String, <Out> ByRef output As NameSyntax) As Boolean
+        Friend Shared Function TryParseDottedName(input As String, <Out> ByRef output As NameSyntax) As Boolean
             Dim pooled = PooledStringBuilder.GetInstance()
             Try
                 Dim builder = pooled.Builder
@@ -829,46 +905,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Finally
                 pooled.Free()
             End Try
-        End Function
-
-        Private Shared Function GetDefaultNamespaceName(importStrings As ImmutableArray(Of String)) As String
-            Dim defaultNamespaceName As String = Nothing
-            If Not importStrings.IsDefault Then
-                For Each importString As String In importStrings
-                    Debug.Assert(importString IsNot Nothing)
-                    If importString.Length > 0 AndAlso importString(0) = "*"c Then
-                        Dim [alias] As String = Nothing
-                        Dim target As String = Nothing
-                        Dim kind As ImportTargetKind = Nothing
-                        Dim scope As ImportScope = Nothing
-                        If Not CustomDebugInfoReader.TryParseVisualBasicImportString(importString, [alias], target, kind, scope) Then
-                            Debug.WriteLine("Unable to parse import string '{0}'", importString)
-                            Continue For
-                        ElseIf kind = ImportTargetKind.Defunct
-                            Continue For
-                        End If
-
-                        Debug.Assert([alias] Is Nothing) ' The default namespace is never aliased.
-                        Debug.Assert(target IsNot Nothing)
-                        Debug.Assert(kind = ImportTargetKind.DefaultNamespace)
-
-                        ' We only expect to see one of these, but it looks like ProcedureContext::LoadImportsAndDefaultNamespaceNormal
-                        ' implicitly uses the last one if there are multiple.
-                        Debug.Assert(defaultNamespaceName Is Nothing)
-
-                        defaultNamespaceName = target
-                    End If
-                Next
-            End If
-
-            ' Note: We don't need to try to bind this string because this is analogous to passing
-            ' a command-line argument - as long as the syntax is valid, an appropriate symbol will
-            ' be created for us.
-            If String.IsNullOrEmpty(defaultNamespaceName) OrElse Not TryParseDottedName(defaultNamespaceName, Nothing) Then
-                Return ""
-            Else
-                Return defaultNamespaceName
-            End If
         End Function
 
         Friend ReadOnly Property MessageProvider As CommonMessageProvider

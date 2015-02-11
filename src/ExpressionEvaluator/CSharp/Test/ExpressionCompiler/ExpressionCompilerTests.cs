@@ -5832,7 +5832,7 @@ public class C
             var result = comp.EmitAndGetReferences(out exeBytes, out unusedPdbBytes, out references);
             Assert.True(result);
 
-            ISymUnmanagedReader symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfo>.Empty);
+            ISymUnmanagedReader symReader = new MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes>.Empty);
 
             var runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader);
             var evalContext = CreateMethodContext(runtime, "C.Main");
