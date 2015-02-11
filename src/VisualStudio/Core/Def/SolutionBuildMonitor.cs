@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 _notificationService = notificationService;
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged += SolutionBuildingContextChanged;
+                KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContext_UIContextChanged;
             }
         }
 
@@ -42,6 +43,16 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void SolutionBuildingContextChanged(object sender, UIContextChangedEventArgs e)
         {
+            ContextChangedWorker(e, "Solution Building");
+        }
+
+        private void SolutionOpeningContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
+        {
+            ContextChangedWorker(e, "Solution Opening");
+        }
+
+        private void ContextChangedWorker(UIContextChangedEventArgs e, string operation)
+        {
             if (_notificationService != null)
             {
                 if (e.Activated)
@@ -51,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                         _operation.Dispose();
                     }
 
-                    _operation = _notificationService.Start("Solution Building");
+                    _operation = _notificationService.Start(operation);
                 }
                 else if (_operation != null)
                 {

@@ -1128,17 +1128,21 @@ namespace Microsoft.CodeAnalysis
 
         private Solution AddDocument(DocumentState state)
         {
-            if (state == null)
+            var notificationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            using (notificationService?.Start("Remove Document"))
             {
-                throw new ArgumentNullException(nameof(state));
+                if (state == null)
+                {
+                    throw new ArgumentNullException(nameof(state));
+                }
+
+                CheckContainsProject(state.Id.ProjectId);
+
+                var oldProject = this.GetProjectState(state.Id.ProjectId);
+                var newProject = oldProject.AddDocument(state);
+
+                return this.ForkProject(newProject, CompilationTranslationAction.AddDocument(state), withDocumentListChange: true);
             }
-
-            CheckContainsProject(state.Id.ProjectId);
-
-            var oldProject = this.GetProjectState(state.Id.ProjectId);
-            var newProject = oldProject.AddDocument(state);
-
-            return this.ForkProject(newProject, CompilationTranslationAction.AddDocument(state), withDocumentListChange: true);
         }
 
         /// <summary>
@@ -1373,13 +1377,17 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public Solution RemoveDocument(DocumentId documentId)
         {
-            CheckContainsDocument(documentId);
+            var notificationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            using (notificationService?.Start("Remove Document"))
+            {
+                CheckContainsDocument(documentId);
 
-            var oldProject = this.GetProjectState(documentId.ProjectId);
-            var oldDocument = oldProject.GetDocumentState(documentId);
-            var newProject = oldProject.RemoveDocument(documentId);
+                var oldProject = this.GetProjectState(documentId.ProjectId);
+                var oldDocument = oldProject.GetDocumentState(documentId);
+                var newProject = oldProject.RemoveDocument(documentId);
 
-            return this.ForkProject(newProject, CompilationTranslationAction.RemoveDocument(oldDocument), withDocumentListChange: true);
+                return this.ForkProject(newProject, CompilationTranslationAction.RemoveDocument(oldDocument), withDocumentListChange: true);
+            }
         }
 
         /// <summary>
