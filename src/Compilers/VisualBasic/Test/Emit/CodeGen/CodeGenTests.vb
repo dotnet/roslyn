@@ -12709,14 +12709,14 @@ End Class
 ]]></file>
 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
-<errror>
+<errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
         Catch e As Exception
         ~~~~~~~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError' is not defined.
         Catch e As Exception
         ~~~~~~~~~~~~~~~~~~~~
-</errror>)
+</errors>)
         End Sub
 
         <WorkItem(765569, "DevDiv")>
