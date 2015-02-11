@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 
+// TODO: to be moved to System.Reflection.Metadata.
+
 namespace System.Reflection.Metadata
 {
-    public enum ImportScopeKind
+    internal enum ImportScopeKind
     {
         ImportNamespace = 1,
         ImportAssemblyNamespace = 2,
@@ -19,7 +21,7 @@ namespace System.Reflection.Metadata
         AliasType = 9
     }
 
-    public struct ImportDefinition
+    internal struct ImportDefinition
     {
         private readonly ImportScopeKind _kind;
         private readonly BlobHandle _alias;
@@ -28,8 +30,8 @@ namespace System.Reflection.Metadata
 
         internal ImportDefinition(
             ImportScopeKind kind,
-            BlobHandle alias = default(BlobHandle), 
-            AssemblyReferenceHandle assembly = default(AssemblyReferenceHandle), 
+            BlobHandle alias = default(BlobHandle),
+            AssemblyReferenceHandle assembly = default(AssemblyReferenceHandle),
             Handle typeOrNamespace = default(Handle))
         {
             Debug.Assert(

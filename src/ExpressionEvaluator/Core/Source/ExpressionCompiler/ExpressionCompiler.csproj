@@ -18,9 +18,6 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Metadata\MetadataReaderPdbExtensions.cs">
-      <Link>Shared\MetadataReaderPdbExtensions.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
