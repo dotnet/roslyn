@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
     <DkmReportNonFatalWatsonException(ExcludeExceptionType:=GetType(NotImplementedException)), DkmContinueCorruptingException>
-    Friend NotInheritable Class VisualBasicFrameDecoder : Inherits FrameDecoder(Of VisualBasicCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol)
+    Friend NotInheritable Class VisualBasicFrameDecoder : Inherits FrameDecoder(Of VisualBasicCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol, ParameterSymbol)
 
         Public Sub New()
             MyBase.New(VisualBasicInstructionDecoder.Instance)

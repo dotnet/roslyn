@@ -8,12 +8,13 @@ using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>
+    internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol>
         where TCompilation : Compilation
         where TMethodSymbol : class, IMethodSymbol
         where TModuleSymbol : class, IModuleSymbol
         where TTypeSymbol : class, ITypeSymbol
         where TTypeParameterSymbol : class, ITypeParameterSymbol
+        where TParameterSymbol : class, IParameterSymbol
     {
         internal static readonly SymbolDisplayFormat DisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
+
+        internal virtual void AppendParameterTypeName(StringBuilder builder, IParameterSymbol parameter)
+        {
+            builder.Append(parameter.Type.ToDisplayString(DisplayFormat));
+        }
 
         /// <summary>
         /// Constructs a method and any of its generic containing types using the specified <paramref name="typeArguments"/>.
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     if (includeParameterTypes)
                     {
-                        builder.Append(parameter.Type.ToDisplayString(DisplayFormat));
+                        AppendParameterTypeName(builder, parameter);
                     }
 
                     if (includeParameterNames)
