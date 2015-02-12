@@ -76,22 +76,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 var annotation = new SyntaxAnnotation();
                 root = root.ReplaceNodes(nodesToSimplify, (o, n) =>
-                    n.WithAdditionalAnnotations(annotation));
+                    o.WithAdditionalAnnotations(annotation));
                 document = document.WithSyntaxRoot(root);
 
                 while (true)
                 {
-                    var annotatedNode = root.GetAnnotatedNodes(annotation).FirstOrDefault(n => !n.HasAnnotation(Simplifier.Annotation));
+                    root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var annotatedNodes = root.GetAnnotatedNodes(annotation);
+                    var annotatedNode = annotatedNodes.FirstOrDefault(n => !n.HasAnnotation(Simplifier.Annotation));
                     if (annotatedNode == null)
                     {
+                        root = root.ReplaceNodes(annotatedNodes, (o, n) => o.WithoutAnnotations(annotation));
                         break;
                     }
 
                     document = await AddSimplifyAnnotationsAsync(document, annotatedNode, cancellationToken).ConfigureAwait(false);
-                    root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                root = root.WithoutAnnotations(annotation);
+                }                
             }
 
             return document.WithSyntaxRoot(root);
