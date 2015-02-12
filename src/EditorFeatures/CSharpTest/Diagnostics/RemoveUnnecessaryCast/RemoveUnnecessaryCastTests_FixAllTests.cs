@@ -39,6 +39,10 @@ class Program
         // required cast after cast removal in same statement
         string s1 = null, s2 = null;
         var s3 = z ? (object)s1 : (object)s2;
+
+        // cast removal that leads to parenthesis removal
+        var prog = new Program();
+        ((Program)prog).F();
     }
 }
         </Document>
@@ -59,6 +63,10 @@ class Program2
         // required cast after cast removal in same statement
         string s1 = null, s2 = null;
         var s3 = z ? (object)s1 : (object)s2;
+
+        // cast removal that leads to parenthesis removal
+        var prog = new Program();
+        ((Program)prog).F();
     }
 }
         </Document>
@@ -81,6 +89,10 @@ class Program3
         // required cast after cast removal in same statement
         string s1 = null, s2 = null;
         var s3 = z ? (object)s1 : (object)s2;
+
+        // cast removal that leads to parenthesis removal
+        var prog = new Program();
+        ((Program)prog).F();
     }
 }
         </Document>
@@ -107,6 +119,10 @@ class Program
         // required cast after cast removal in same statement
         string s1 = null, s2 = null;
         var s3 = z ? s1 : (object)s2;
+
+        // cast removal that leads to parenthesis removal
+        var prog = new Program();
+        prog.F();
     }
 }
         </Document>
@@ -127,6 +143,10 @@ class Program2
         // required cast after cast removal in same statement
         string s1 = null, s2 = null;
         var s3 = z ? (object)s1 : (object)s2;
+
+        // cast removal that leads to parenthesis removal
+        var prog = new Program();
+        ((Program)prog).F();
     }
 }
         </Document>
@@ -149,6 +169,10 @@ class Program3
         // required cast after cast removal in same statement
         string s1 = null, s2 = null;
         var s3 = z ? (object)s1 : (object)s2;
+
+        // cast removal that leads to parenthesis removal
+        var prog = new Program();
+        ((Program)prog).F();
     }
 }
         </Document>
