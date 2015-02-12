@@ -31,12 +31,10 @@ namespace RunTests
         }
 
         private readonly string _xunitConsolePath;
-        private readonly bool _use64;
 
-        internal TestRunner(string xunitConsolePath, bool use64)
+        internal TestRunner(string xunitConsolePath)
         {
             _xunitConsolePath = xunitConsolePath;
-            _use64 = use64;
         }
 
         internal async Task<bool> RunAll(IEnumerable<string> assemblyList)
@@ -108,14 +106,10 @@ namespace RunTests
         {
             var assemblyName = Path.GetFileName(assemblyPath);
             var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, ".html"));
+            DeleteFile(resultsPath);
+
             var builder = new StringBuilder();
             builder.AppendFormat(@"""{0}""", assemblyPath);
-
-            if (_use64)
-            {
-                builder.Append(@" -notrait ""Require32=true""");
-            }
-
             builder.AppendFormat(@" -html ""{0}""", resultsPath);
             builder.Append(" -noshadow");
 
@@ -162,6 +156,21 @@ namespace RunTests
             }
 
             return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
+        }
+
+        private static void DeleteFile(string filePath)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch
+            {
+                // Ignore
+            }
         }
     }
 }

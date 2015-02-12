@@ -3017,8 +3017,7 @@ End Class
         End Sub
 
         <WorkItem(1108007, "DevDiv")>
-        <Fact()>
-        <Trait("Require32", "true")>
+        <ConditionalFact(GetType(x86))>
         Public Sub Bug1108007_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -3320,8 +3319,7 @@ End Class
         End Sub
 
         <WorkItem(1108007, "DevDiv")>
-        <Fact()>
-        <Trait("Require32", "true")>
+        <ConditionalFact(GetType(x86))>
         Public Sub Bug1108007_8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

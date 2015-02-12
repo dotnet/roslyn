@@ -39,7 +39,7 @@ namespace RunTests
                 ? Path.Combine(xunitPath, "xunit.console.exe")
                 : Path.Combine(xunitPath, "xunit.console.x86.exe");
 
-            var testRunner = new TestRunner(xunit, test64);
+            var testRunner = new TestRunner(xunit);
             var start = DateTime.Now;
             Console.WriteLine("Running {0} tests", list.Count);
             var result = testRunner.RunAll(list).Result;

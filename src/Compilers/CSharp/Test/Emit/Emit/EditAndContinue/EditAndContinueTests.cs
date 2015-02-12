@@ -3775,8 +3775,7 @@ class C
         /// Reuse existing anonymous types.
         /// </summary>
         [WorkItem(825903, "DevDiv")]
-        [Fact]
-        [Trait("Require32", "true")]
+        [ConditionalFact(typeof(x86))]
         public void AnonymousTypes()
         {
             var source0 =
