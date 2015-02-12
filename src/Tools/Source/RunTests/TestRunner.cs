@@ -110,12 +110,14 @@ namespace RunTests
             var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, ".html"));
             var builder = new StringBuilder();
             builder.AppendFormat(@"""{0}""", assemblyPath);
-            builder.AppendFormat(@" -html ""{0}""", resultsPath);
-            builder.Append(" -noshadow");
+
             if (_use64)
             {
-                builder.Append(@" -notrait ""Require32==true""");
+                builder.Append(@" -notrait ""Require32=true""");
             }
+
+            builder.AppendFormat(@" -html ""{0}""", resultsPath);
+            builder.Append(" -noshadow");
 
             var errorOutput = string.Empty;
             var start = DateTime.UtcNow;
@@ -132,14 +134,30 @@ namespace RunTests
             {
                 // On occasion we get a non-0 output but no actual data in the result file.  Switch to output in this 
                 // case.
-                var all = File.ReadAllText(resultsPath).Trim();
+                var all = string.Empty;
+                try
+                {
+                    all = File.ReadAllText(resultsPath).Trim();
+                }
+                catch
+                {
+                    // Happens if xunit didn't produce a log file
+                }
+
                 if (all.Length == 0)
                 {
                     var output = processOutput.OutputLines.Concat(processOutput.ErrorLines).ToArray();
                     File.WriteAllLines(resultsPath, output);
                 }
 
-                errorOutput = processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y);
+                errorOutput = processOutput.ErrorLines.Any()
+                    ? processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y)
+                    : string.Format("xunit produced no error output but had exit code {0}", processOutput.ExitCode);
+
+                errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString()) 
+                    + Environment.NewLine
+                    + errorOutput;
+
                 Process.Start(resultsPath);
             }
 
