@@ -20,6 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
                 Return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken)
             End Function
 
+            Protected Overrides ReadOnly Property NeedsParentFixup As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
             Protected Overrides Async Function AddSimplifyAnnotationsAsync(document As Document, nodeToSimplify As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
                 Dim cast = TryCast(nodeToSimplify, ExpressionSyntax)
                 If cast Is Nothing Then
