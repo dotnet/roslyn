@@ -126,9 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return method.GetAllTypeParameters();
         }
 
-        internal override CSharpCompilation GetCompilation(DkmClrInstructionAddress instructionAddress)
+        internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
-            var moduleInstance = instructionAddress.ModuleInstance;
             var appDomain = moduleInstance.AppDomain;
             var previous = appDomain.GetDataItem<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);

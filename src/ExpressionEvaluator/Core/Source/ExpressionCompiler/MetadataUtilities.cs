@@ -395,14 +395,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(moduleName != null);
             switch (GetHResult(e))
             {
-            case COR_E_BADIMAGEFORMAT:
-                Debug.WriteLine("Module '{0}' contains corrupt metadata.", moduleName);
-                return true;
-            case CORDBG_E_MISSING_METADATA:
-                Debug.WriteLine("Module '{0}' is missing metadata.", moduleName);
-                return true;
-            default:
-                return false;
+                case COR_E_BADIMAGEFORMAT:
+                    Debug.WriteLine("Module '{0}' contains corrupt metadata.", moduleName);
+                    return true;
+                case CORDBG_E_MISSING_METADATA:
+                    Debug.WriteLine("Module '{0}' is missing metadata.", moduleName);
+                    return true;
+                default:
+                    return false;
             }
         }
 
