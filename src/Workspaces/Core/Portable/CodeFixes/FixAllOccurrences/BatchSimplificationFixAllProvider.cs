@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -40,6 +41,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return root.FindNode(diagnostic.Location.SourceSpan, findInsideTrivia: true);
         }
 
+        protected virtual Task<Document> AddSimplifyAnnotationsAsync(Document document, SyntaxNode nodeToSimplify, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual bool NeedsParentFixup { get { return false; } }
+
         private async Task<Document> AddSimplifierAnnotationsAsync(Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
         {
             var cancellationToken = fixAllContext.CancellationToken;
@@ -59,8 +67,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // Add simplifier and formatter annotations to all nodes to simplify.
-            root = root.ReplaceNodes(nodesToSimplify, (o, n) =>
-                n.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation));
+            if (!NeedsParentFixup)
+            {
+                root = root.ReplaceNodes(nodesToSimplify, (o, n) =>
+                    n.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation));
+            }
+            else
+            {
+                var annotation = new SyntaxAnnotation();
+                root = root.ReplaceNodes(nodesToSimplify, (o, n) =>
+                    n.WithAdditionalAnnotations(annotation));
+                document = document.WithSyntaxRoot(root);
+
+                while (true)
+                {
+                    var annotatedNode = root.GetAnnotatedNodes(annotation).FirstOrDefault(n => !n.HasAnnotation(Simplifier.Annotation));
+                    if (annotatedNode == null)
+                    {
+                        break;
+                    }
+
+                    document = await AddSimplifyAnnotationsAsync(document, annotatedNode, cancellationToken).ConfigureAwait(false);
+                    root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                root = root.WithoutAnnotations(annotation);
+            }
+
             return document.WithSyntaxRoot(root);
         }
 
