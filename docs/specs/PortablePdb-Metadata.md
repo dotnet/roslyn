@@ -366,7 +366,7 @@ TODO: The meaning of the bits in the vector.
 Structure:
 
     Blob ::= DynamicLocal+
-    DynamicLocal ::= (slot-index | 0 constant-name) bit-count bit-mask
+    DynamicLocal ::= (slot-index | 0 constant-name) bit-count bit-vector
 
 | terminal | encoding | description|
 |:---------|:---------|:-----------|
