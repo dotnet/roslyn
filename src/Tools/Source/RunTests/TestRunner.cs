@@ -31,10 +31,12 @@ namespace RunTests
         }
 
         private readonly string _xunitConsolePath;
+        private readonly bool _use64;
 
-        internal TestRunner(string xunitConsolePath)
+        internal TestRunner(string xunitConsolePath, bool use64)
         {
             _xunitConsolePath = xunitConsolePath;
+            _use64 = use64;
         }
 
         internal async Task<bool> RunAll(IEnumerable<string> assemblyList)
@@ -87,6 +89,12 @@ namespace RunTests
         {
             testResults.Sort((x, y) => x.Elapsed.CompareTo(y.Elapsed));
 
+            foreach (var testResult in testResults.Where(x => !x.Succeeded))
+            {
+                Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
+                Console.WriteLine(testResult.ErrorOutput);
+            }
+
             Console.WriteLine("================");
             foreach (var testResult in testResults)
             {
@@ -94,12 +102,6 @@ namespace RunTests
                 ConsoleUtil.WriteLine(color, "{0,-75} {1} {2}", testResult.AssemblyName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed);
             }
             Console.WriteLine("================");
-
-            foreach (var testResult in testResults.Where(x => !x.Succeeded))
-            {
-                Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
-                Console.WriteLine(testResult.ErrorOutput);
-            }
         }
 
         private async Task<TestResult> RunTest(string assemblyPath)
@@ -110,6 +112,10 @@ namespace RunTests
             builder.AppendFormat(@"""{0}""", assemblyPath);
             builder.AppendFormat(@" -html ""{0}""", resultsPath);
             builder.Append(" -noshadow");
+            if (_use64)
+            {
+                builder.Append(@" -notrait ""Require32==true""");
+            }
 
             var errorOutput = string.Empty;
             var start = DateTime.UtcNow;

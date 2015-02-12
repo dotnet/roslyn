@@ -19,9 +19,27 @@ namespace RunTests
                 return 1;
             }
 
-            var xunit = args[0];
-            var list = new List<string>(args.Skip(1));
-            var testRunner = new TestRunner(xunit);
+            var xunitPath = args[0];
+            var skipCount = 1;
+            var test64 = false;
+            if (StringComparer.OrdinalIgnoreCase.Equals(args[1], "-test64"))
+            {
+                skipCount = 2;
+                test64 = true;
+            }
+
+            var list = new List<string>(args.Skip(skipCount));
+            if (list.Count == 0)
+            {
+                PrintUsage();
+                return 1;
+            }
+
+            var xunit = test64
+                ? Path.Combine(xunitPath, "xunit.console.exe")
+                : Path.Combine(xunitPath, "xunit.console.x86.exe");
+
+            var testRunner = new TestRunner(xunit, test64);
             var start = DateTime.Now;
             Console.WriteLine("Running {0} tests", list.Count);
             var result = testRunner.RunAll(list).Result;

@@ -3277,6 +3277,7 @@ End Class
         End Sub
 
         <Fact()>
+        <Trait("Require32", "true")>
         Public Sub AnonymousTypes()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[

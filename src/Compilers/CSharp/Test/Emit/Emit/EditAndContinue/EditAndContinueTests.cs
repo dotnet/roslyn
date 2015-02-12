@@ -3776,6 +3776,7 @@ class C
         /// </summary>
         [WorkItem(825903, "DevDiv")]
         [Fact]
+        [Trait("Require32", "true")]
         public void AnonymousTypes()
         {
             var source0 =

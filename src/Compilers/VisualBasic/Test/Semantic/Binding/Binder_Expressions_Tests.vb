@@ -3018,6 +3018,7 @@ End Class
 
         <WorkItem(1108007, "DevDiv")>
         <Fact()>
+        <Trait("Require32", "true")>
         Public Sub Bug1108007_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -3058,7 +3059,7 @@ End Class
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
-            
+
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As String)' requires an object reference.
    at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
@@ -3320,6 +3321,7 @@ End Class
 
         <WorkItem(1108007, "DevDiv")>
         <Fact()>
+        <Trait("Require32", "true")>
         Public Sub Bug1108007_8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

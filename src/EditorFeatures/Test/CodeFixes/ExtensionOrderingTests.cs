@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         private readonly ExportProvider _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
         [Fact]
+        [Trait("Require32", "true")]
         public void TestNoCyclesInFixProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our code fix providers.

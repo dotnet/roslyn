@@ -321,8 +321,8 @@ Global
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 4
 		Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}*SharedItemsImports = 4
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
-		Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
 		Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
 		Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -1900,6 +1900,7 @@ Global
 		{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{E637AD92-8397-4337-A9CD-9F2570078E59} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{43026D51-3083-4850-928D-07E1883D5B1A} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{3973B09A-4FBF-44A5-8359-3D22CEB71F71} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}

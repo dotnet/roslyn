@@ -4761,7 +4761,7 @@ class C
 
             //Open as data
             IntPtr lib = LoadLibraryEx(Path.Combine(dir.Path, outputFileName), IntPtr.Zero, 0x00000002);
-            if (lib.ToInt32() == 0)
+            if (lib == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             const string resourceType = "#24";
