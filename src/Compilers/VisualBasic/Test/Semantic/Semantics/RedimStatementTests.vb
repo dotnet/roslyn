@@ -322,7 +322,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Utils.CopyArray' is not defined.
         ReDim Preserve o(1, 2)

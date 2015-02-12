@@ -967,8 +967,6 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
             Dim compilationDef =
 <compilation>
     <file name="a.vb">
-Imports System        
-
 Class Module1
 
     Sub Main()
@@ -982,7 +980,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseDll)
 
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StringType.MidStmtStr' is not defined.
         Mid(x, 2) = "a"

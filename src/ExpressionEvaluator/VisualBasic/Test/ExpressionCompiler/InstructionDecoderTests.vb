@@ -11,7 +11,6 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    '// TODO: ref/out
     '// TODO: constructors
     '// TODO: keyword identifiers
     '// TODO: containing type and parameter types that are nested types
@@ -22,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     '// TODO: string argument values
     '// TODO: string argument values requiring quotes
     '// TODO: argument flags == names only, types only, values only
-    '// TODO: params Argument values
     '// TODO: generic class/method with 2 or more type parameters
     '// TODO: generic argument type that is not from a referenced assembly
     Public Class InstructionDecoderTests : Inherits ExpressionCompilerTestBase
@@ -327,6 +325,50 @@ End Module"
             Assert.Equal(
                 "Module1.M2",
                 GetName(source, "Module1.M2", DkmVariableInfoFlags.None))
+        End Sub
+
+        <Fact, WorkItem(1107978)>
+        Sub GetNameRefAndOutParameters()
+            Dim source = "
+Imports System.Runtime.InteropServices
+Class C
+    Shared Sub M(ByRef x As Integer, <Out> ByRef y As Integer)
+        y = x
+    End Sub
+End Class"
+
+            Assert.Equal(
+                "C.M",
+                GetName(source, "C.M", DkmVariableInfoFlags.None))
+
+            Assert.Equal(
+                "C.M(1, 2)",
+                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues:={"1", "2"}))
+
+            Assert.Equal(
+                "C.M(Integer, Integer)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Types))
+
+            Assert.Equal(
+                "C.M(x, y)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Names))
+
+            Assert.Equal(
+                "C.M(Integer x, Integer y)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names))
+        End Sub
+
+        <Fact>
+        Sub GetNameParamsParameters()
+            Dim source = "
+Class C
+    Shared Sub M(ParamArray x() As Integer)
+    End Sub
+End Class"
+
+            Assert.Equal(
+                "C.M(Integer() x)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names))
         End Sub
 
         <Fact>

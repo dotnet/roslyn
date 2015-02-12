@@ -1413,8 +1413,6 @@ End Module
 <compilation name="ErrorHandling">
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Class Program
     Sub Main()
         On Error GoTo -1
@@ -1433,8 +1431,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
     Sub Main()
@@ -14127,8 +14124,6 @@ M(15) - 0
 <compilation name="ErrorHandling">
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Class TestOnError1
 
     Sub test1()
@@ -14153,8 +14148,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'Resume' statement and a definition of a variable that is used in a lambda or query expression.
         Resume ' 1
@@ -14168,8 +14162,6 @@ BC36595: Method cannot contain both a 'Resume' statement and a definition of a v
 <compilation name="ErrorHandling">
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Class TestOnError1
 
     Sub test2()
@@ -14194,8 +14186,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
         Resume Next ' 2
@@ -14209,8 +14200,6 @@ BC36595: Method cannot contain both a 'Resume Next' statement and a definition o
 <compilation name="ErrorHandling">
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Class TestOnError1
 
     Sub test3()
@@ -14235,8 +14224,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
         On Error Resume Next ' 3
@@ -14250,8 +14238,6 @@ BC36595: Method cannot contain both a 'On Error Resume Next' statement and a def
 <compilation name="ErrorHandling">
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Class TestOnError1
 
     Sub test4()
@@ -14276,8 +14262,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'On Error Goto Label' is not valid because 'Label' is inside a scope that defines a variable that is used in a lambda or query expression.
         On Error Goto Label ' 4
@@ -14408,8 +14393,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
         On Error Resume Next
@@ -14489,8 +14473,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'Resume Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
         Resume Label2
@@ -14529,8 +14512,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'On Error Goto Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
         On Error Goto Label2
@@ -14612,8 +14594,6 @@ BC30311: Value of type 'NotImplementedException' cannot be converted to 'Integer
 <compilation name="ErrorHandling">
     <file name="a.vb">
         <![CDATA[
-Imports System
-
 Class Program
     Shared Sub Main()
         Error 20
@@ -14624,8 +14604,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
         Error 20
