@@ -224,6 +224,7 @@
     <Compile Include="Diagnostics\Async\AddAwaitTests.cs" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />
+    <Compile Include="Diagnostics\FixAllProvider\BatchFixerTests.cs" />
     <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.cs" />
     <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.cs" />
     <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.cs" />
@@ -614,10 +615,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CodeActions\AddUsing\" />
-    <Folder Include="CodeActions\RemoveUnnecessaryCast\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

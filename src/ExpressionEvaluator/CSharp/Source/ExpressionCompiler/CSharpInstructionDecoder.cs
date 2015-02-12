@@ -88,6 +88,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
+        internal override void AppendParameterTypeName(StringBuilder builder, IParameterSymbol parameter)
+        {
+            // The old EE only displayed "ref" and "out" modifiers in C# and only when displaying parameter
+            // types.  We will do the same here for compatibility with the old behavior.
+            switch (parameter.RefKind)
+            {
+                case RefKind.Out:
+                    builder.Append("out ");
+                    break;
+                case RefKind.Ref:
+                    builder.Append("ref ");
+                    break;
+            }
+
+            base.AppendParameterTypeName(builder, parameter);
+        }
+
         internal override MethodSymbol ConstructMethod(MethodSymbol method, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbol> typeArguments)
         {
             var methodArity = method.Arity;

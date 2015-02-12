@@ -233,6 +233,55 @@ static class C
                 GetName(source, "C.M2", DkmVariableInfoFlags.None));
         }
 
+        [Fact, WorkItem(1107978)]
+        void GetNameRefAndOutParameters()
+        {
+            var source = @"
+class C
+{
+    static void M(ref int x, out int y)
+    {
+        y = x;
+    }
+}";
+
+            Assert.Equal(
+                "C.M",
+                GetName(source, "C.M", DkmVariableInfoFlags.None));
+
+            Assert.Equal(
+                "C.M(1, 2)",
+                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues: new[] { "1", "2" }));
+
+            Assert.Equal(
+                "C.M(ref int, out int)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Types));
+
+            Assert.Equal(
+                "C.M(x, y)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Names));
+
+            Assert.Equal(
+                "C.M(ref int x, out int y)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
+        }
+
+        [Fact]
+        void GetNameParamsParameters()
+        {
+            var source = @"
+class C
+{
+    static void M(params int[] x)
+    {
+    }
+}";
+
+            Assert.Equal(
+                "C.M(int[] x)",
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
+        }
+
         [Fact]
         void GetReturnTypeNamePrimitive()
         {

@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // Determines if any of the given dependencies has the same name as already loaded assembly with different content.
         private static string DetectNameCollision(IEnumerable<ModuleData> modules)
         {
+            modules = modules.Where(m => !m.FullName.Contains("mscorlib"));
             lock (allModuleNames)
             {
                 foreach (var module in modules)
