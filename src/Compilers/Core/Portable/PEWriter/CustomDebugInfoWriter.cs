@@ -105,7 +105,7 @@ namespace Microsoft.Cci
                 // delta doesn't need this information - we use information recorded by previous generation emit
                 if (!isEncDelta)
                 {
-                    var encMethodInfo = GetEncMethodDebugInfo(methodBody);
+                    var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
                     SerializeCustomDebugInformation(encMethodInfo, customDebugInfo);
                 }
             }
@@ -147,45 +147,6 @@ namespace Microsoft.Cci
             cmw.WriteUint(length);
             cmw.BaseStream.Position = length;
             return customMetadata;
-        }
-
-        public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(IMethodBody methodBody)
-        {
-            ImmutableArray<LocalSlotDebugInfo> encLocalSlots;
-
-            // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
-            // so we use its EnC method debug info to store information about locals hoisted to the state machine.
-            var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
-            if (encSlotInfo.IsDefault)
-            {
-                encLocalSlots = GetLocalSlotDebugInfos(methodBody.LocalVariables);
-            }
-            else
-            {
-                encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
-            }
-
-            return new EditAndContinueMethodDebugInformation(methodBody.MethodOrdinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
-        }
-
-        public static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
-        {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
-            {
-                return ImmutableArray<LocalSlotDebugInfo>.Empty;
-            }
-
-            return locals.SelectAsArray(variable => variable.SlotInfo);
-        }
-
-        public static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<EncHoistedLocalInfo> locals)
-        {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
-            {
-                return ImmutableArray<LocalSlotDebugInfo>.Empty;
-            }
-
-            return locals.SelectAsArray(variable => variable.SlotInfo);
         }
 
         private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
