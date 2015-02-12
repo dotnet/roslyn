@@ -74,7 +74,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
         {
             var braceMatcher = _languageService.Package.ComponentModel.GetService<IBraceMatchingService>();
-            return GetPairExtentsWorker(WpfTextView, _languageService.Workspace, braceMatcher, iLine, iIndex, pSpan, cancellationToken);
+            return GetPairExtentsWorker(
+                WpfTextView, 
+                _languageService.Workspace, 
+                braceMatcher, 
+                iLine, 
+                iIndex, 
+                pSpan, 
+                (VSConstants.VSStd2KCmdID)this.CurrentlyExecutingCommand == VSConstants.VSStd2KCmdID.GOTOBRACE_EXT,
+                cancellationToken);
         }
 
         public int GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)
