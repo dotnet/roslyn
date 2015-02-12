@@ -172,6 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         string GetImportAlias(SyntaxNode node);
         string GetImportNamespaceOrType(SyntaxNode node);
         string GetParameterName(SyntaxNode node);
+        string GetParameterFullName(SyntaxNode node);
         EnvDTE80.vsCMParameterKind GetParameterKind(SyntaxNode node);
         SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind);
 

@@ -62,6 +62,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return GetCollection<CodeParameter>(Parent);
         }
 
+        protected override string GetName()
+        {
+            return this._name;
+        }
+
+        protected override string GetFullName()
+        {
+            var node = LookupNode();
+            return CodeModelService.GetParameterFullName(node);
+        }
+
         internal override SyntaxNode LookupNode()
         {
             var parentNode = _parentHandle.Value.LookupNode();
@@ -102,11 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         public override EnvDTE.CodeElements Children
         {
             get { return this.Attributes; }
-        }
-
-        public override string FullName
-        {
-            get { return _name; }
         }
 
         public EnvDTE.CodeElements Attributes

@@ -1069,7 +1069,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function TryGetParameterNode(parentNode As SyntaxNode, name As String, ByRef parameterNode As SyntaxNode) As Boolean
             For Each parameter As ParameterSyntax In GetParameterNodes(parentNode)
-                If parameter.Identifier.ToString() = name Then
+                If String.Equals(parameter.Identifier.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase) Then
                     parameterNode = parameter
                     Return True
                 End If
@@ -1834,6 +1834,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Sub
 
         Public Overrides Function GetParameterName(node As SyntaxNode) As String
+            Dim parameter = TryCast(node, ParameterSyntax)
+            If parameter IsNot Nothing Then
+                Return parameter.Identifier.Identifier.ValueText
+            End If
+
+            Throw New InvalidOperationException()
+        End Function
+
+        Public Overrides Function GetParameterFullName(node As SyntaxNode) As String
             Dim parameter = TryCast(node, ParameterSyntax)
             If parameter IsNot Nothing Then
                 Return parameter.Identifier.ToString()
