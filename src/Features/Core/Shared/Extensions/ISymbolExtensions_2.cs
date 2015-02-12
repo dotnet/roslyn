@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -170,8 +168,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<SymbolDisplayPart> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            var globalNamespace = semanticModel.Compilation.GlobalNamespace;
-
             var documentation = symbol.TypeSwitch(
                     (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name),
                     (ITypeParameterSymbol typeParam) => typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
@@ -181,10 +177,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (documentation != null)
             {
-                return formatter.Format(documentation, semanticModel, position, CrefFormat);
+                // Note: We are using iterator syntax here instead of simply returning the result of formatter.Format
+                // because we want the enumeration to be evaluated lazily.
+                foreach (SymbolDisplayPart part in formatter.Format(documentation, semanticModel, position, CrefFormat))
+                {
+                    yield return part;
+                }
             }
-
-            return SpecializedCollections.EmptyList<SymbolDisplayPart>();
         }
 
         public static readonly SymbolDisplayFormat CrefFormat =

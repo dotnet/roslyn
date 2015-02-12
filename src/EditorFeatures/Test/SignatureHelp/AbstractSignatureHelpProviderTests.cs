@@ -200,14 +200,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             int cursorPosition,
             TextSpan applicableSpan)
         {
-            var signature = new Signature(applicableToSpan: null, signatureHelpItem: actualSignatureHelpItem);
+            int currentParameterIndex = -1;
             if (expectedTestItem.CurrentParameterIndex != null)
             {
-                if (expectedTestItem.CurrentParameterIndex.Value >= 0 && expectedTestItem.CurrentParameterIndex.Value < signature.Parameters.Count)
+                if (expectedTestItem.CurrentParameterIndex.Value >= 0 && expectedTestItem.CurrentParameterIndex.Value < actualSignatureHelpItem.Parameters.Length)
                 {
-                    signature.CurrentParameter = signature.Parameters[expectedTestItem.CurrentParameterIndex.Value];
+                    currentParameterIndex = expectedTestItem.CurrentParameterIndex.Value;
                 }
             }
+
+            var signature = new Signature(applicableToSpan: null, signatureHelpItem: actualSignatureHelpItem, selectedParameterIndex: currentParameterIndex);
 
             // We're a match if the signature matches...
             // We're now combining the signature and documentation to make classification work.

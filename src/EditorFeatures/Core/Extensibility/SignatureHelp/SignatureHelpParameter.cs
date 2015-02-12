@@ -13,41 +13,44 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// The name of this parameter.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// Documentation for this parameter.  This should normally be presented to the user when
         /// this parameter is selected.
         /// </summary>
-        public IList<SymbolDisplayPart> Documentation { get; private set; }
+        /// <remarks>
+        /// Note that this is an IEnumerable, not an IList because we want lazy evaluation.
+        /// </remarks>
+        public IEnumerable<SymbolDisplayPart> Documentation { get; }
 
         /// <summary>
         /// Display parts to show before the normal display parts for the parameter.
         /// </summary>
-        public IList<SymbolDisplayPart> PrefixDisplayParts { get; private set; }
+        public IList<SymbolDisplayPart> PrefixDisplayParts { get; }
 
         /// <summary>
         /// Display parts to show after the normal display parts for the parameter.
         /// </summary>
-        public IList<SymbolDisplayPart> SuffixDisplayParts { get; private set; }
+        public IList<SymbolDisplayPart> SuffixDisplayParts { get; }
 
         /// <summary>
         /// Display parts for this parameter.  This should normally be presented to the user as part
         /// of the entire signature display.
         /// </summary>
-        public IList<SymbolDisplayPart> DisplayParts { get; private set; }
+        public IList<SymbolDisplayPart> DisplayParts { get; }
 
         /// <summary>
         /// True if this parameter is optional or not.  Optional parameters may be presented in a
         /// different manner to users.
         /// </summary>
-        public bool IsOptional { get; private set; }
+        public bool IsOptional { get; }
 
         /// <summary>
         /// Display parts for this parameter that should be presented to the user when this
         /// parameter is selected.
         /// </summary>
-        public IList<SymbolDisplayPart> SelectedDisplayParts { get; private set; }
+        public IList<SymbolDisplayPart> SelectedDisplayParts { get; }
 
         public SignatureHelpParameter(
             string name,
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             this.Name = name ?? string.Empty;
             this.IsOptional = isOptional;
-            this.Documentation = documentation.ToImmutableArrayOrEmpty();
+            this.Documentation = documentation;
             this.DisplayParts = displayParts.ToImmutableArrayOrEmpty();
             this.PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
             this.SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();

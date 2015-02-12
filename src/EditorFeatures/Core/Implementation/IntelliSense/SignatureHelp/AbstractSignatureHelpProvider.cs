@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ? item.DescriptionParts.Concat(startingNewLine.Concat(platformParts))
                 : startingNewLine.Concat(platformParts);
 
-            item.DescriptionParts = updatedDescription.ToList();
+            item.DescriptionParts = updatedDescription.ToImmutableArrayOrEmpty();
             return item;
         }
 
