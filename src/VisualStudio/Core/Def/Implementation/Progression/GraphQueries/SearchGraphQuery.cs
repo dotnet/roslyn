@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,11 +16,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal sealed class SearchGraphQuery : IGraphQuery
     {
-        private readonly string _searchPattern;
+        private static readonly char[] DotCharacterArray = new[] { '.' };
+
+        private readonly string _lastPatternPart;
+        private readonly string _entireSearchPattern;
 
         public SearchGraphQuery(string searchPattern)
         {
-            _searchPattern = searchPattern;
+            // If the pattern has a dot in it, then when we search the compilations, we actually
+            // want to only filter by the last name portion of hte pattern (as the compilers 
+            // only support returning the basic name of a symbol when searching and filtering 
+            // them).  Then, once we have all the results the compiler returned, we check and
+            // verify they match against the full dotted pattern.
+            if (searchPattern.IndexOf('.') >= 0)
+            {
+                var patternParts = searchPattern.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+                _lastPatternPart = patternParts.LastOrDefault();
+            }
+
+            _entireSearchPattern = searchPattern;
+            _lastPatternPart = _lastPatternPart ?? searchPattern;
         }
 
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
@@ -39,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 using (cacheService.EnableCaching(project.Id))
                 {
-                    var results = await FindNavigableSourceSymbolsAsync(project, _searchPattern, cancellationToken).ConfigureAwait(false);
+                    var results = await FindNavigableSourceSymbolsAsync(project, cancellationToken).ConfigureAwait(false);
 
                     foreach (var result in results)
                     {
@@ -102,14 +118,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return memberNode;
         }
 
-        internal static async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
-            Project project, string pattern, CancellationToken cancellationToken)
+        internal async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
+            Project project, CancellationToken cancellationToken)
         {
             var results = new List<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>();
 
             var patternMatcher = new PatternMatcher();
             var symbols = await SymbolFinder.FindSourceDeclarationsAsync(
-                project, k => patternMatcher.MatchPattern(k, pattern) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+                project, k => patternMatcher.MatchPattern(k, _lastPatternPart) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
 
             symbols = symbols.Where(s =>
                 !s.IsConstructor()
@@ -121,7 +137,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var matches = patternMatcher.MatchPattern(GetSearchName(symbol), pattern);
+                // If the search query included a dotted pattern, then verify that this symbol, and 
+                // it's container, matches the dotted pattern.
+                var matches = _lastPatternPart == null
+                    ? patternMatcher.MatchPattern(GetSearchName(symbol), _entireSearchPattern)
+                    : patternMatcher.MatchPattern(GetSearchName(symbol), GetContainer(symbol), _entireSearchPattern);
+
+                if (matches == null)
+                {
+                    continue;
+                }
+
                 results.Add(ValueTuple.Create(symbol, matches));
 
                 // also report matching constructors (using same match result as type)
@@ -147,6 +173,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             return results;
+        }
+
+        public static readonly SymbolDisplayFormat DottedNameFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameOnly,
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly);
+
+        private static string GetContainer(ISymbol symbol)
+        {
+            var container = symbol.ContainingSymbol;
+            if (container == null)
+            {
+                return null;
+            }
+
+            return container.ToDisplayString(DottedNameFormat);
         }
 
         private static string GetSearchName(ISymbol symbol)
