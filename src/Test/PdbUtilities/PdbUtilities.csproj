@@ -81,9 +81,14 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\MetadataReaderPdbExtensions.cs">
+      <Link>Shared\MetadataReaderPdbExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
+      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
+    </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
-    <Compile Include="Metadata\MetadataReaderPdbExtensions.cs" />
     <Compile Include="Metadata\MetadataVisualizer.cs" />
     <Compile Include="Metadata\MethodILExtensions.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
