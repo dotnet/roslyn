@@ -171,11 +171,11 @@ The LocalScope table has the following columns:
     * the last row of the _LocalConstant_ table
 	* the next run of _LocalConstants_, found by inspecting the _ConstantList_ of the next row in this LocalScope table.
 
-* _StartOffset_ (integer [0..2^31^), encoding: uint32, the most significant bit shall be 0)
+* _StartOffset_ (integer [0..2^31), encoding: uint32, the most significant bit shall be 0)
 
 	Starting IL offset of the scope.
 
-* _Length_ (integer [0..2^31^) , encoding: uint32, the most significant bit shall be 0)
+* _Length_ (integer [0..2^31) , encoding: uint32, the most significant bit shall be 0)
 
     The scope length in bytes. The scope spans all bytes in range [_StartOffset_, _StartOffset_ + _Length_).
 
@@ -188,7 +188,7 @@ TODO: Nesting requirements.
 The LocalVariable table has the following columns:
 
 * _Attributes_ ([_LocalVariableAttributes_](#LocalVariableAttributes) value, encoding: uint16)
-* _Index_ (integer [0..2^16^), encoding: uint16)
+* _Index_ (integer [0..2^16), encoding: uint16)
 
 	Slot index in the local signature of the containing MethodDef.
 * _Name_ (String heap index)
@@ -260,7 +260,7 @@ The AsyncMethod table has the following columns:
 
 * _KickoffMethod_ (MethodDef row id)
 
-* _CatchHandlerOffset_ (integer [0..2^31^ + 1), encoding: uint32)
+* _CatchHandlerOffset_ (integer [0..2^31 + 1), encoding: uint32)
 
 	0 if the handler is not present, otherwise IL offset + 1.
 
