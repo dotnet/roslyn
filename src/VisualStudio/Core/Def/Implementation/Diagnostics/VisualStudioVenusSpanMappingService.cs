@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,6 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             sourceSpan = location.SourceSpan;
             originalLineInfo = location.GetLineSpan();
             mappedLineInfo = location.GetMappedLineSpan();
+
+            // check quick bail out case.
+            if (location == Location.None)
+            {
+                return;
+            }
 
             // Update the original source span, if required.
             LinePositionSpan originalSpan;
@@ -73,9 +80,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 endLineColumn = new MappedSpan(originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, mappedLineInfo.EndLinePosition.Line, mappedLineInfo.EndLinePosition.Character);
             }
 
-            originalSpan = new LinePositionSpan(startLineColumn.OriginalLinePosition, Max(startLineColumn.OriginalLinePosition, endLineColumn.OriginalLinePosition));
-            mappedSpan = new LinePositionSpan(startLineColumn.MappedLinePosition, Max(startLineColumn.MappedLinePosition, endLineColumn.MappedLinePosition));
+            // start and end position can be swapped when mapped between primary and secondary buffer if start position is within visible span (at the edge)
+            // but end position is outside of visible span. in that case, swap start and end position.
+            originalSpan = GetLinePositionSpan(startLineColumn.OriginalLinePosition, endLineColumn.OriginalLinePosition);
+            mappedSpan = GetLinePositionSpan(startLineColumn.MappedLinePosition, endLineColumn.MappedLinePosition);
+
             return startChanged || endChanged;
+        }
+
+        private LinePositionSpan GetLinePositionSpan(LinePosition position1, LinePosition position2)
+        {
+            if (position1 <= position2)
+            {
+                return new LinePositionSpan(position1, position2);
+            }
+
+            return new LinePositionSpan(position2, position1);
         }
 
         private static LinePosition Max(LinePosition position1, LinePosition position2)
