@@ -171,11 +171,11 @@ The LocalScope table has the following columns:
     * the last row of the _LocalConstant_ table
 	* the next run of _LocalConstants_, found by inspecting the _ConstantList_ of the next row in this LocalScope table.
 
-* _StartOffset_ (integer [0..231), encoding: uint32)
+* _StartOffset_ (integer [0..2^31^), encoding: uint32, the most significant bit shall be 0)
 
 	Starting IL offset of the scope.
 
-* _Length_ (integer [0..231) , encoding: uint32)
+* _Length_ (integer [0..2^31^) , encoding: uint32, the most significant bit shall be 0)
 
     The scope length in bytes. The scope spans all bytes in range [_StartOffset_, _StartOffset_ + _Length_).
 
@@ -188,7 +188,7 @@ TODO: Nesting requirements.
 The LocalVariable table has the following columns:
 
 * _Attributes_ ([_LocalVariableAttributes_](#LocalVariableAttributes) value, encoding: uint16)
-* _Index_ (integer [0..216), encoding: uint16)
+* _Index_ (integer [0..2^16^), encoding: uint16)
 
 	Slot index in the local signature of the containing MethodDef.
 * _Name_ (String heap index)
@@ -221,10 +221,6 @@ The ImportScope table has the following columns:
 
 * Parent (ImportScope row id or nil)
 * Imports (Blob index, encoding: [Imports blob](#ImportsBlob))
-
-ImportScope table is required to be sorted by _Parent_ column.
-
-There shall be no duplicate rows in the ImportScope table, based upon _Parent_.
 
 ####<a name="ImportsBlob"></a>Imports Blob
 Imports blob represents all imports declared by an import scope.
@@ -264,7 +260,7 @@ The AsyncMethod table has the following columns:
 
 * _KickoffMethod_ (MethodDef row id)
 
-* _CatchHandlerOffset_ (integer [0..231 + 1), encoding: uint32)
+* _CatchHandlerOffset_ (integer [0..2^31^ + 1), encoding: uint32)
 
 	0 if the handler is not present, otherwise IL offset + 1.
 
@@ -340,7 +336,7 @@ Scopes of local variables hoisted to state machine fields.
 
 Structure:
 
-    Blob ::= Scope{hoisted-variable-count}
+    Blob ::= Scope {hoisted-variable-count}
     Scope::= start-offset end-offset
 
 | terminal | encoding | description|
@@ -355,21 +351,25 @@ _start-offset_ shall point to the starting byte of an instruction of the MoveNex
 _end-offset_ shall point to the starting byte of an instruction or be equal to the size of the IL block of the MoveNext method of the state machine type.
 
 ##### Dynamic Local Variables (C# compiler)
-Parent: LocalVariable or LocalConstant
+Parent: MethodDef
 
 Kind: {83C563C4-B4F3-47D5-B824-BA5441477EA8}
 
-A sequence of bits for a local variable or constant whose type contains _dynamic_ type (e.g. dynamic, dynamic[], List<dynamic> etc.) that describes which System.Object types encoded in the metadata signature of the local type were specified as _dynamic_ in source code.
-
-TODO: The meaning of the bits in the vector.
-
 Structure:
 
-    Blob ::= bit-sequence
+    Blob ::= (slot-index | 0 constant-name) bit-count bit{bit-count} padding
 
-Bits of the sequence are grouped by 8. If the sequence length is not a multiple of 8 it is padded by 0 bit to the closest multiple of 8. Each group of 8 bits is encoded as a byte whose least significant bit is the first bit of the group and the highest significant bit is the 8th bit of the group. The sequence is encoded as a sequence of bytes representing these groups. Thrailing zero bytes may be omitted.
+| terminal | encoding | description|
+|:---------|:---------|:-----------|
+| _slot-index_    | Compressed unsigned integer  | 1-based local signature slot index|
+| _constant-name_ | NUL-terminated UTF8 string   | Constant name|
+| _bit-count_     | Compressed unsigned integer  | Number of bits|
+| _bit_	          | 1 bit                        | 0 or 1|
+| _padding_       | n zero bits                  | Padding bits to align to byte boundary.|
 
-##### Default Namespace (VB compiler)
+TODO: Bit ordering.
+
+##### Root Namespace (VB compiler)
 Parent: Module
 
 Kind: {58b2eab6-209f-4e4e-a22c-b2d0f910c782}
@@ -380,7 +380,7 @@ Structure:
 
 | terminal | encoding | description|
 |:---------|:---------|:-----------|
-| _namespace_    | UTF8 string | The default namespace for the module/project. |
+| _namespace_    | UTF8 string | The root namespace. |
 
 ##### Edit and Continue Local Slot Map (C# & VB compilers)
 Parent: MethodDef
