@@ -30,6 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             originalLineInfo = location.GetLineSpan();
             mappedLineInfo = location.GetMappedLineSpan();
 
+            // check quick bail out case.
+            if (location == Location.None)
+            {
+                return;
+            }
+
             // Update the original source span, if required.
             LinePositionSpan originalSpan;
             LinePositionSpan mappedSpan;
