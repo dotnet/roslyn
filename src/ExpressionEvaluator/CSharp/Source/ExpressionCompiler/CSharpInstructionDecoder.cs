@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class CSharpInstructionDecoder : InstructionDecoder<CSharpCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol, ParameterSymbol>
+    internal sealed class CSharpInstructionDecoder : InstructionDecoder<CSharpCompilation, MethodSymbol, PEModuleSymbol, TypeSymbol, TypeParameterSymbol>
     {
         // This string was not localized in the old EE.  We'll keep it that way
         // so as not to break consumers who may have been parsing frame names...

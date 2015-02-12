@@ -20,17 +20,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// always used C# syntax (but with language-specific "special names").  Since these names are exposed through public
     /// APIs, we will remain consistent with the old behavior (for consumers who may be parsing the frame names).
     /// </remarks>
-    internal abstract class FrameDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> : IDkmLanguageFrameDecoder
+    internal abstract class FrameDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> : IDkmLanguageFrameDecoder
         where TCompilation : Compilation
         where TMethodSymbol : class, IMethodSymbol
         where TModuleSymbol : class, IModuleSymbol
         where TTypeSymbol : class, ITypeSymbol
         where TTypeParameterSymbol : class, ITypeParameterSymbol
-        where TParameterSymbol : class, IParameterSymbol
     {
-        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> _instructionDecoder;
+        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
 
-        internal FrameDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> instructionDecoder)
+        internal FrameDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> instructionDecoder)
         {
             _instructionDecoder = instructionDecoder;
         }

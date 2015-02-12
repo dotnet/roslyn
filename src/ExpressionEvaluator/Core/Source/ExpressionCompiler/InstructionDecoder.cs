@@ -8,13 +8,12 @@ using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol>
+    internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>
         where TCompilation : Compilation
         where TMethodSymbol : class, IMethodSymbol
         where TModuleSymbol : class, IModuleSymbol
         where TTypeSymbol : class, ITypeSymbol
         where TTypeParameterSymbol : class, ITypeParameterSymbol
-        where TParameterSymbol : class, IParameterSymbol
     {
         internal static readonly SymbolDisplayFormat DisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,

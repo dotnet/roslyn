@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         where TTypeParameterSymbol : class, ITypeParameterSymbol
         where TParameterSymbol : class, IParameterSymbol
     {
-        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> _instructionDecoder;
+        private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
 
-        internal LanguageInstructionDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol, TParameterSymbol> instructionDecoder)
+        internal LanguageInstructionDecoder(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> instructionDecoder)
         {
             _instructionDecoder = instructionDecoder;
         }
