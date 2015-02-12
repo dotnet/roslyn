@@ -26,18 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             syntax As VisualBasicSyntaxNode,
             isLValue As Boolean) As BoundExpression
 
-            Dim method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetReturnValueMethodName,
-                Function(c, n, s)
-                    Dim parameterType = compilation.GetSpecialType(SpecialType.System_Int32)
-                    Dim returnType = compilation.GetSpecialType(SpecialType.System_Object)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(m, parameterType, ordinal:=0, isByRef:=False)))
-                End Function)
+            Dim method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName)
             Dim argument As New BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var moduleInstance = instructionAddress.ModuleInstance;
             var appDomain = moduleInstance.AppDomain;
             var previous = appDomain.GetDataItem<CSharpMetadataContext>();
-            var metadataBlocks = instructionAddress.Process.GetMetadataBlocks(appDomain);
+            var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
 
             CSharpCompilation compilation;
             if (metadataBlocks.HaveNotChanged(previous))

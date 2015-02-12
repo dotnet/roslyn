@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             references = builder.ToImmutableAndFree();
 
             return CreateRuntimeInstance(
-                Guid.NewGuid().ToString("D"),
+                ExpressionCompilerUtilities.GenerateUniqueName(),
                 references,
                 exeBytes,
                 includeSymbols ? new SymReader(pdbBytes) : null);

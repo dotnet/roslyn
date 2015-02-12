@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     /// <summary>
-    /// Synthesized method that represents an intrinsic debugger method.
+    /// Represents an intrinsic debugger method with byref return type.
     /// </summary>
     internal sealed class PlaceholderMethodSymbol : MethodSymbol, Cci.ISignature
     {
@@ -18,57 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal delegate TypeSymbol GetReturnType(PlaceholderMethodSymbol method);
 
         private readonly NamedTypeSymbol _container;
-        private readonly CSharpSyntaxNode _syntax;
         private readonly string _name;
-        private readonly ImmutableArray<Location> _locations;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
-        private readonly bool _returnValueIsByRef;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal PlaceholderMethodSymbol(
             NamedTypeSymbol container,
-            CSharpSyntaxNode syntax,
-            string name,
-            TypeSymbol returnType,
-            GetParameters getParameters) :
-            this(container, syntax, name)
-        {
-            Debug.Assert(
-                (returnType.SpecialType == SpecialType.System_Void) ||
-                (returnType.SpecialType == SpecialType.System_Object) ||
-                (returnType.Name == "Exception"));
-
-            _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            _returnType = returnType;
-            _parameters = getParameters(this);
-        }
-
-        internal PlaceholderMethodSymbol(
-            NamedTypeSymbol container,
-            CSharpSyntaxNode syntax,
             string name,
             GetTypeParameters getTypeParameters,
             GetReturnType getReturnType,
-            GetParameters getParameters,
-            bool returnValueIsByRef) :
-            this(container, syntax, name)
+            GetParameters getParameters)
         {
+            _container = container;
+            _name = name;
             _typeParameters = getTypeParameters(this);
             _returnType = getReturnType(this);
             _parameters = getParameters(this);
-            _returnValueIsByRef = returnValueIsByRef;
-        }
-
-        private PlaceholderMethodSymbol(
-            NamedTypeSymbol container,
-            CSharpSyntaxNode syntax,
-            string name)
-        {
-            _container = container;
-            _syntax = syntax;
-            _name = name;
-            _locations = ImmutableArray.Create(syntax.Location);
         }
 
         public override int Arity
@@ -153,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<Location> Locations
         {
-            get { return _locations; }
+            get { return ImmutableArray<Location>.Empty; }
         }
 
         public override MethodKind MethodKind
@@ -173,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override bool ReturnsVoid
         {
-            get { return _returnType.SpecialType == SpecialType.System_Void; }
+            get { return false; }
         }
 
         public override TypeSymbol ReturnType
@@ -183,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         bool Cci.ISignature.ReturnValueIsByRef
         {
-            get { return _returnValueIsByRef; }
+            get { return true; }
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
@@ -276,16 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
-        }
-
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
-        {
-            var factory = new SyntheticBoundNodeFactory(this, _syntax, compilationState, diagnostics);
-            factory.CurrentMethod = this;
-            // The method body is "throw null;" although the body
-            // is arbitrary since the method will not be invoked.
-            var body = factory.Block(factory.ThrowNull());
-            factory.CloseMethod(body);
         }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)

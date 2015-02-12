@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
@@ -82,6 +83,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 expr,
                 conversionKind,
                 type).MakeCompilerGenerated()
+        End Function
+
+        Friend Shared Function GetIntrinsicMethod(compilation As VisualBasicCompilation, methodName As String) As MethodSymbol
+            Dim type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName)
+            Dim members = type.GetMembers(methodName)
+            Debug.Assert(members.Length = 1)
+            Return DirectCast(members(0), MethodSymbol)
         End Function
 
     End Class

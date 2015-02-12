@@ -6,8 +6,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class ExceptionLocalSymbol
         Inherits PlaceholderLocalSymbol
 
-        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol)
+        Private ReadOnly _getExceptionMethodName As String
+
+        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol, getExceptionMethodName As String)
             MyBase.New(method, name, type)
+            _getExceptionMethodName = getExceptionMethodName
         End Sub
 
         Friend Overrides ReadOnly Property IsReadOnly As Boolean
@@ -22,18 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             syntax As VisualBasicSyntaxNode,
             isLValue As Boolean) As BoundExpression
 
-            ' The intrinsic accessor method has the same name as the pseudo-variable (normalized to lowercase).
-            Dim method = container.GetOrAddSynthesizedMethod(
-                Name.ToLowerInvariant(),
-                Function(c, n, s)
-                    Dim returnType = compilation.GetWellKnownType(WellKnownType.System_Exception)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray(Of ParameterSymbol).Empty)
-                End Function)
+            Dim method = GetIntrinsicMethod(compilation, _getExceptionMethodName)
             Dim [call] As New BoundCall(
                 syntax,
                 method,

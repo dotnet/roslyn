@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -53,17 +54,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal override BoundExpression GetValue(BoundPseudoVariable variable)
             {
-                var getValueMethod = GetIntrinsicMethod(this._compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
+                var method = GetIntrinsicMethod(this._compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
                 var local = variable.LocalSymbol;
-                var expr = InvokeGetMethod(getValueMethod, variable.Syntax, local.Name);
+                var expr = InvokeGetMethod(method, variable.Syntax, local.Name);
                 return ConvertToLocalType(_compilation, expr, local.Type);
             }
 
             internal override BoundExpression GetAddress(BoundPseudoVariable variable)
             {
-                var getAddressMethod = GetIntrinsicMethod(this._compilation, ExpressionCompilerConstants.GetVariableAddressMethodName);
+                var method = GetIntrinsicMethod(this._compilation, ExpressionCompilerConstants.GetVariableAddressMethodName);
+                // Currently the MetadataDecoder does not support byref return types
+                // so the return type of GetVariableAddress(Of T)(name As String)
+                // is an error type. Since the method is only used for emit, an
+                // updated placeholder method is used instead.
+                Debug.Assert(method.ReturnType.TypeKind == TypeKind.Error); // If byref return types are supported in the future, use method as is.
+                method = new PlaceholderMethodSymbol(
+                    method.ContainingType,
+                    method.Name,
+                    m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
+                    m => m.TypeParameters[0], // return type is <>T&
+                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)new SynthesizedParameterSymbol(m, p.Type, p.Ordinal, p.RefKind, p.Name, p.CustomModifiers)));
                 var local = variable.LocalSymbol;
-                return InvokeGetMethod(getAddressMethod.Construct(local.Type), variable.Syntax, local.Name);
+                return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name);
             }
 
             private static BoundExpression InvokeGetMethod(MethodSymbol method, CSharpSyntaxNode syntax, string name)

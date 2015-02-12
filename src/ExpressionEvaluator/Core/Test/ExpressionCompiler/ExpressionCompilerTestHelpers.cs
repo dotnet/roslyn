@@ -368,12 +368,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     ldnull
     throw
   }
-  .method public static object GetObjectByAlias(string name)
+  .method public static object GetVariableValue(string name)
   {
     ldnull
     throw
   }
-  .method public static !!T&  GetVariableAddress<T>(string name)
+  .method public static !!T& GetVariableAddress<T>(string name)
   {
     ldnull
     throw

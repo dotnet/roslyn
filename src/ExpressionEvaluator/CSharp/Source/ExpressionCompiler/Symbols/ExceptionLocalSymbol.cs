@@ -6,12 +6,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class ExceptionLocalSymbol : PlaceholderLocalSymbol
     {
-        private readonly string getExceptionMethodName;
+        private readonly string _getExceptionMethodName;
 
         internal ExceptionLocalSymbol(MethodSymbol method, string name, TypeSymbol type, string getExceptionMethodName) :
             base(method, name, type)
         {
-            this.getExceptionMethodName = getExceptionMethodName;
+            _getExceptionMethodName = getExceptionMethodName;
         }
 
         internal override bool IsWritable
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
         {
-            var method = GetIntrinsicMethod(compilation, this.getExceptionMethodName);
+            var method = GetIntrinsicMethod(compilation, _getExceptionMethodName);
             var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method);
             return ConvertToLocalType(compilation, call, this.Type);
         }

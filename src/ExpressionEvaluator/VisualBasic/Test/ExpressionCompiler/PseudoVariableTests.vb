@@ -55,7 +55,7 @@ End Class
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$exception", GetType(System.IO.IOException)).Add("$stowedexception", GetType(System.InvalidOperationException)),
                 "If($Exception, If($exception, $stowedexception))",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -66,41 +66,25 @@ End Class
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Empty(missingAssemblyIdentities)
-            Assert.Equal(testData.Methods.Count, 4)
+            Assert.Equal(testData.Methods.Count, 2)
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       39 (0x27)
   .maxstack  2
-  IL_0000:  call       ""Function <>x.$exception() As System.Exception""
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0026
   IL_000d:  pop
-  IL_000e:  call       ""Function <>x.$exception() As System.Exception""
+  IL_000e:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
   IL_0013:  castclass  ""System.IO.IOException""
   IL_0018:  dup
   IL_0019:  brtrue.s   IL_0026
   IL_001b:  pop
-  IL_001c:  call       ""Function <>x.$stowedexception() As System.Exception""
+  IL_001c:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetStowedException() As System.Exception""
   IL_0021:  castclass  ""System.InvalidOperationException""
   IL_0026:  ret
-}")
-
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            assembly.VerifyIL("<>x.$exception",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-            assembly.VerifyIL("<>x.$stowedexception",
-"{
-  // Code size        2 (0x2)
-            .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
 }")
         End Sub
 
@@ -114,7 +98,7 @@ End Class
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$ReturnValue", GetType(Object)).Add("$ReturnValue2", GetType(String)),
                 "If($ReturnValue, $ReturnValue2)",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -130,28 +114,19 @@ End Class
   // Code size       22 (0x16)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0015
   IL_0009:  pop
   IL_000a:  ldc.i4.2
-  IL_000b:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_000b:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0010:  castclass  ""String""
   IL_0015:  ret
 }")
 
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            assembly.VerifyIL("<>x.<>GetReturnValue",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-
             ' Value type $ReturnValue.
             testData = New CompilationTestData()
-            result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("$ReturnValue", GetType(Nullable(Of Integer))),
                 "DirectCast($ReturnValue, Integer?).HasValue",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -168,7 +143,7 @@ End Class
   .maxstack  1
   .locals init (Integer? V_0)
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""Function <>x.<>GetReturnValue(Integer) As Object""
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  unbox.any  ""Integer?""
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0

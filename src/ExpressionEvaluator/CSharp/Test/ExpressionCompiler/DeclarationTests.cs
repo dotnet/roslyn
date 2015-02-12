@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_000a:  ldstr      ""z""
   IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""z""
-  IL_0019:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0019:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_001e:  ldc.i4.1
   IL_001f:  stind.i4
   IL_0020:  ldtoken    ""int""
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_002a:  ldstr      ""F""
   IL_002f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0034:  ldstr      ""F""
-  IL_0039:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0039:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_003e:  ldc.i4.2
   IL_003f:  stind.i4
   IL_0040:  ret
@@ -194,28 +194,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       65 (0x41)
-  .maxstack  2
-  .locals init (object V_0, //y
-                bool V_1,
-                object V_2)
-  IL_0000:  ldtoken    ""int""
-  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ldstr      ""z""
-  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
-  IL_0014:  ldstr      ""z""
-  IL_0019:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_001e:  ldc.i4.1
-  IL_001f:  stind.i4
-  IL_0020:  ldtoken    ""int""
-  IL_0025:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_002a:  ldstr      ""F""
-  IL_002f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
-  IL_0034:  ldstr      ""F""
-  IL_0039:  call       ""Int32 Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_003e:  ldc.i4.2
-  IL_003f:  stind.i4
-  IL_0040:  ret
+  // Code size       18 (0x12)
+  .maxstack  3
+  .locals init (char V_0)
+  IL_0000:  ldstr      ""c""
+  IL_0005:  call       "" Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<char>(string)""
+  IL_000a:  conv.u
+  IL_000b:  ldc.i4.s   65
+  IL_000d:  dup
+  IL_000e:  stloc.0
+  IL_000f:  stind.i2
+  IL_0010:  ldloc.0
+  IL_0011:  ret
 }");
         }
 

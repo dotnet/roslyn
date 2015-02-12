@@ -40,6 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim pdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             compilation.EmitAndGetReferences(exeBytes, pdbBytes, references)
+
+            Dim builder = ArrayBuilder(Of MetadataReference).GetInstance()
+            builder.AddRange(references)
+            builder.Add(ExpressionCompilerTestHelpers.InstrinsicAssembly)
+            references = builder.ToImmutableAndFree()
+
             Return CreateRuntimeInstance(
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references,

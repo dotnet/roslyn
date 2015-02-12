@@ -32,9 +32,9 @@ End Class"
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("c", GetType(Char)),
-                "c = ""B""c",
+            context.CompileExpression(
+                InspectionContextFactory.Empty.Add("3", GetType(Integer)),
+                "z = $3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
                 resultProperties,
@@ -54,45 +54,16 @@ End Class"
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""z""
-  IL_000f:  call       ""Sub <>x.<>CreateVariable(System.Type, String)""
+  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
   IL_0014:  ldstr      ""z""
-  IL_0019:  call       ""Function <>x.<>GetVariableAddress(Of Object)(String) As Object""
+  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_001e:  ldstr      ""3""
-  IL_0023:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableValue(String) As Object""
   IL_0028:  unbox.any  ""Integer""
   IL_002d:  box        ""Integer""
   IL_0032:  stind.ref
   IL_0033:  ret
 }")
-            Dim assembly = ImmutableArray.CreateRange(result.Assembly)
-            assembly.VerifyIL("<>x.<>CreateVariable",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-            assembly.VerifyIL("<>x.<>GetVariableAddress",
-"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}")
-            ' Verify <>CreateVariable is not generic and <>GetVariableAddress is.
-            Using metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly))
-                Dim reader = metadata.MetadataReader
-                Dim typeDef = reader.GetTypeDef("<>x")
-                reader.CheckTypeParameters(typeDef.GetGenericParameters())
-                Dim methodDef = reader.GetMethodDef(typeDef, "<>CreateVariable")
-                reader.CheckTypeParameters(methodDef.GetGenericParameters())
-                Dim method = DirectCast(testData.GetMethodData("<>x.<>CreateVariable").Method, MethodSymbol)
-                Assert.Equal(method.CallingConvention, Cci.CallingConvention.Default)
-                methodDef = reader.GetMethodDef(typeDef, "<>GetVariableAddress")
-                reader.CheckTypeParameters(methodDef.GetGenericParameters(), "<>T")
-                method = DirectCast(testData.GetMethodData("<>x.<>GetVariableAddress(Of <>T)").Method, MethodSymbol)
-                Assert.Equal(method.CallingConvention, Cci.CallingConvention.Generic)
-            End Using
         End Sub
 
         <Fact>
@@ -356,11 +327,11 @@ End Class"
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""Me""
-  IL_000f:  call       ""Sub <>x.<>CreateVariable(System.Type, String)""
+  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
   IL_0014:  ldstr      ""Me""
-  IL_0019:  call       ""Function <>x.<>GetVariableAddress(Of Object)(String) As Object""
+  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_001e:  ldstr      ""Class""
-  IL_0023:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableValue(String) As Object""
   IL_0028:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_002d:  stind.ref
   IL_002e:  ret
