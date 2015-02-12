@@ -70,6 +70,7 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.FxCop.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\System.Runtime.Analyzers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.CSharp.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.UnitTests.dll" />
