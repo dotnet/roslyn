@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
 
+        internal virtual void AppendParameterTypeName(StringBuilder builder, IParameterSymbol parameter)
+        {
+            builder.Append(parameter.Type.ToDisplayString(DisplayFormat));
+        }
+
         /// <summary>
         /// Constructs a method and any of its generic containing types using the specified <paramref name="typeArguments"/>.
         /// </summary>
@@ -61,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     if (includeParameterTypes)
                     {
-                        builder.Append(parameter.Type.ToDisplayString(DisplayFormat));
+                        AppendParameterTypeName(builder, parameter);
                     }
 
                     if (includeParameterNames)

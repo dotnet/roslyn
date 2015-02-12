@@ -138,6 +138,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
+                // TODO: remove this once prototype is done
+                //       it is here just because it was convenient to add per workspace option change monitoring 
+                //       for incremental analyzer
+                if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
+                {
+                    _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
+                }
+
                 ReanalyzeOnOptionChange(sender, e);
             }
 

@@ -2,11 +2,10 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Win32;
 using Roslyn.Utilities;

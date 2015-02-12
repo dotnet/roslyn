@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,9 +17,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
-    internal partial class DiagnosticAnalyzerDriver
+    internal class DiagnosticAnalyzerDriver
     {
         private readonly Document _document;
 
@@ -601,13 +602,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return true;
         }
-    }
-
-    internal static class AnalyzerDriverResources
-    {
-        internal static string AnalyzerFailure => FeaturesResources.UserDiagnosticAnalyzerFailure;
-        internal static string AnalyzerThrows => FeaturesResources.UserDiagnosticAnalyzerThrows;
-        internal static string ArgumentElementCannotBeNull => FeaturesResources.ArgumentElementCannotBeNull;
-        internal static string ArgumentCannotBeEmpty => FeaturesResources.ArgumentCannotBeEmpty;
     }
 }
