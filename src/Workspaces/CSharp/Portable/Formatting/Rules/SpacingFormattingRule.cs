@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentKind == SyntaxKind.CloseParenToken &&
                 (currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
                 currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement || currentParentKind == SyntaxKind.DoStatement ||
-                previousParentKind == SyntaxKind.CatchDeclaration || currentParentKind == SyntaxKind.UsingStatement))
+                currentParentKind == SyntaxKind.UsingStatement || previousParentKind == SyntaxKind.CatchDeclaration))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }
