@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
     internal static class DiagnosticLogger
     {

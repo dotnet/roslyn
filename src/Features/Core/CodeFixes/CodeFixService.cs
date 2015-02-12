@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             using (var diagnostics = SharedPools.Default<List<DiagnosticData>>().GetPooledObject())
             {
-                var fullResult = await _diagnosticService.TryGetDiagnosticsForSpanAsync(document, range, diagnostics.Object, cancellationToken).ConfigureAwait(false);
+                var fullResult = await _diagnosticService.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics.Object, cancellationToken).ConfigureAwait(false);
                 foreach (var diagnostic in diagnostics.Object)
                 {
                     cancellationToken.ThrowIfCancellationRequested();

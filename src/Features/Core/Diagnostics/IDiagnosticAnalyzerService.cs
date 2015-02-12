@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// it will return true if it was able to return all up-to-date diagnostics.
         ///  otherwise, false indicating there are some missing diagnostics in the diagnostic list
         /// </summary>
-        Task<bool> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
+        Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// return up to date diagnostics for the given span for the document

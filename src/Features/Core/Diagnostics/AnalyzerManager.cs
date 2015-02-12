@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
