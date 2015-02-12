@@ -205,12 +205,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     //    Note: We only have a substring match if the lowercase part is prefix match of some
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
-                    var candidateParts = GetWordSpans(candidate);
-                    foreach (var part in candidateParts)
+                    var wordSpans = GetWordSpans(candidate);
+                    foreach (var span in wordSpans)
                     {
-                        if (PartStartsWith(candidate, part, pattern, CompareOptions.IgnoreCase))
+                        if (PartStartsWith(candidate, span, pattern, CompareOptions.IgnoreCase))
                         {
-                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: PartStartsWith(candidate, part, pattern, CompareOptions.None));
+                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: PartStartsWith(candidate, span, pattern, CompareOptions.None));
                         }
                     }
                 }
@@ -229,17 +229,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (!isLowercase)
             {
                 // e) If the part was not entirely lowercase, then attempt a camel cased match as well.
-                var patternParts = GetCharacterSpans(pattern);
-                if (patternParts.Count > 0)
+                var characterSpans = GetCharacterSpans(pattern);
+                if (characterSpans.Count > 0)
                 {
                     var candidateParts = GetWordSpans(candidate);
-                    var camelCaseWeight = TryCamelCaseMatch(candidate, candidateParts, pattern, patternParts, CompareOptions.None);
+                    var camelCaseWeight = TryCamelCaseMatch(candidate, candidateParts, pattern, characterSpans, CompareOptions.None);
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: true, camelCaseWeight: camelCaseWeight);
                     }
 
-                    camelCaseWeight = TryCamelCaseMatch(candidate, candidateParts, pattern, patternParts, CompareOptions.IgnoreCase);
+                    camelCaseWeight = TryCamelCaseMatch(candidate, candidateParts, pattern, characterSpans, CompareOptions.IgnoreCase);
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight);
