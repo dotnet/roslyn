@@ -9,7 +9,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
 
         <Extension>
         Friend Function VerifyDiagnostics(c As VisualBasicCompilation, ParamArray expected As DiagnosticDescription()) As VisualBasicCompilation
-            Dim diagnostics = c.GetDiagnostics(CompilationStage.Emit)
+            Dim diagnostics = c.GetDiagnostics(CompilationStage.Compile)
             diagnostics.Verify(expected)
             Return c
         End Function

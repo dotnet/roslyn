@@ -734,18 +734,18 @@ Friend Module CompilationUtils
         If errs Is Nothing Then
             errs = <errors/>
         End If
-        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
     <Extension()>
     Public Sub AssertTheseDiagnostics(compilation As Compilation, errs As XCData, Optional suppressInfos As Boolean = True)
-        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
     ' Check that a compilation has these declaration or compilation errors.
     <Extension()>
     Public Sub AssertTheseDiagnostics(compilation As Compilation, errs As String, Optional suppressInfos As Boolean = True)
-        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Emit), errs, suppressInfos)
+        AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
     ''' <param name="errors"></param>

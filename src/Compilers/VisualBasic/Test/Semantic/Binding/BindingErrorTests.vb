@@ -626,8 +626,7 @@ End structure
         ]]>
     </file>
 </compilation>)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected><![CDATA[
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
         Dim x1$ = 33 & 2.34 'No inference here
@@ -732,7 +731,6 @@ BC30039: Loop control variable cannot be a property or a late-bound indexed arra
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
-Imports System
 Class Program
     Shared Sub Main()
         Dim Result As Object
@@ -742,8 +740,7 @@ Class Program
 End Class
     </file>
 </compilation>)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForLoopInitObj' is not defined.
         For Result = 1 To 2
@@ -787,8 +784,7 @@ Class Program
 End Class
     </file>
 </compilation>)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateSet' is not defined.
         obj.P1 = 42                         ' assignment    (Set)
@@ -2962,7 +2958,7 @@ BC30547: 'T' cannot be indexed because it has no default property.
     End Class
     </file>
 </compilation>)
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "P").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger"))
         End Sub
 
@@ -16810,8 +16806,7 @@ BC36594: Definition of method 'y' is not accessible in this context.
         End Module
     </file>
     </compilation>)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defines a variable that is used in a lambda or query expression.
                 GoTo Label1
@@ -17377,7 +17372,7 @@ BC36639: 'ByRef' parameter 'x' cannot be used in a lambda expression.
         End Module
     </file>
     </compilation>)
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_CannotLiftRestrictedTypeLambda, "x").WithArguments("System.ArgIterator"))
         End Sub
 
@@ -19615,7 +19610,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb">
 Class C
@@ -19633,7 +19628,8 @@ Class C
 End Class
         </file>
     </compilation>)
-            Dim expectedErrors1 = <errors>
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
         For Each x As String In "abc"
                                 ~~~~~
@@ -19646,8 +19642,7 @@ BC35000: Requested operation is not available because the runtime library functi
 BC42104: Variable 'S' is used before it has been assigned a value. A null reference exception could result at runtime.
         System.Console.WriteLine(S)
                                  ~
-</errors>
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+</errors>)
         End Sub
 
         <WorkItem(542080, "DevDiv")>
