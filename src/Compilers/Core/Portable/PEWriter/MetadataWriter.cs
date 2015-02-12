@@ -16,7 +16,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -5268,6 +5270,45 @@ namespace Microsoft.Cci
 
             result += type.AsNamespaceTypeReference.GenericParameterCount;
             return result;
+        }
+
+        internal static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(IMethodBody methodBody)
+        {
+            ImmutableArray<LocalSlotDebugInfo> encLocalSlots;
+
+            // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
+            // so we use its EnC method debug info to store information about locals hoisted to the state machine.
+            var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
+            if (encSlotInfo.IsDefault)
+            {
+                encLocalSlots = GetLocalSlotDebugInfos(methodBody.LocalVariables);
+            }
+            else
+            {
+                encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
+            }
+
+            return new EditAndContinueMethodDebugInformation(methodBody.MethodOrdinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+        }
+
+        internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
+        {
+            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            {
+                return ImmutableArray<LocalSlotDebugInfo>.Empty;
+            }
+
+            return locals.SelectAsArray(variable => variable.SlotInfo);
+        }
+
+        internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<EncHoistedLocalInfo> locals)
+        {
+            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            {
+                return ImmutableArray<LocalSlotDebugInfo>.Empty;
+            }
+
+            return locals.SelectAsArray(variable => variable.SlotInfo);
         }
 
         protected static uint RowOnly(uint token)
