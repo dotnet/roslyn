@@ -11,7 +11,7 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class AbstractTextViewFilterTests
         <Fact, WorkItem(617826), Trait(Traits.Feature, Traits.Features.Venus), Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub MapPointsInProjection()
+        Public Sub MapPointsInProjectionCSharp()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceNavigatesToOuterPositionOfMatchingBrace()
+        Public Sub GotoBraceNavigatesToOuterPositionOfMatchingBraceCSharp()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBraces()
+        Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBracesCSharp()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -108,7 +108,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceExtFindsTheInnerPositionOfCloseBraceAndOuterPositionOfOpenBrace()
+        Public Sub GotoBraceExtFindsTheInnerPositionOfCloseBraceAndOuterPositionOfOpenBraceCSharp()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -138,7 +138,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBraces()
+        Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesCSharp()
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -163,11 +163,77 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
-                ' Test from left and right of Open parentheses
+                ' Test from left and right of Open parenthesis
                 TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
                 TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
 
-                ' Test from left and right of Close parentheses
+                ' Test from left and right of Close parenthesis
+                TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBracesBasic()
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
+                        <Document>
+                        Imports System
+
+                        Module Program
+                            Sub Main(args As String())
+                                Console.WriteLine(Increment[|$$(5)|])
+                            End Sub
+
+                            Private Function Increment(v As Integer) As Integer
+                                Return v + 1
+                            End Function
+                        End Module
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim doc = workspace.Documents.Single()
+                Dim span = doc.SelectedSpans.Single()
+                TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.End, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.Start + 1, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                TestSpan(workspace, doc, span.End - 1, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesBasic()
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
+                        <Document>
+                        Imports System
+
+                        Module Program
+                            Sub Main(args As String())
+                                Console.WriteLine(Increment[|$$(5)|])
+                            End Sub
+
+                            Private Function Increment(v As Integer) As Integer
+                                Return v + 1
+                            End Function
+                        End Module
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim doc = workspace.Documents.Single()
+                Dim span = doc.SelectedSpans.Single()
+
+                ' Test from left and right of Open parenthesis
+                TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+
+                ' Test from left and right of Close parenthesis
                 TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
                 TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
             End Using
@@ -186,7 +252,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                          initialLineNumber,
                          initialIndex,
                          spans,
-                         commandId,
+                         commandId = CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT),
                          CancellationToken.None))
 
             ' Note - we only set either the start OR the end to the result, the other gets set to the source.
@@ -208,7 +274,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                          initialLineNumber,
                          initialIndex,
                          spans,
-                         commandId,
+                         commandId = CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT),
                          CancellationToken.None))
             'In extending selection (GotoBraceExt) scenarios we set both start AND end to the result.
             Dim startIndex = startPosition - initialLine.Start.Position

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -24,7 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly System.IServiceProvider _serviceProvider;
 
-        protected uint CommandID { get; private set; }
+        /// <summary>
+        /// This is set only during Exec. Currently, this is required to disambiguate the editor calls to
+        /// <see cref="IVsTextViewFilter.GetPairExtents(int, int, TextSpan[])"/> between GotoBrace and GotoBraceExt commands.
+        /// </summary>
+        protected uint CurrentlyExecutingCommand { get; private set; }
 
         public AbstractOleCommandTarget(
             IWpfTextView wpfTextView,

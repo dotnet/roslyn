@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         // Internal for testing purposes
-        internal static int GetPairExtentsWorker(ITextView textView, Workspace workspace, IBraceMatchingService braceMatcher, int iLine, int iIndex, TextSpan[] pSpan, uint? commandId, CancellationToken cancellationToken)
+        internal static int GetPairExtentsWorker(ITextView textView, Workspace workspace, IBraceMatchingService braceMatcher, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
         {
             pSpan[0].iStartLine = pSpan[0].iEndLine = iLine;
             pSpan[0].iStartIndex = pSpan[0].iEndIndex = iIndex;
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             {
                                 var vsTextSpan = resultsInView[0].ToVsTextSpan();
 
-                                // caret is at close parentheses
+                                // caret is at close parenthesis
                                 if (matchingSpan.Value.Start < position)
                                 {
                                     pSpan[0].iStartLine = vsTextSpan.iStartLine;
@@ -78,14 +78,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                     // Notice a couple of things: it arbitrarily increments EndIndex by 1 and does nothing similar for StartIndex.
                                     // So, if we're extending selection: 
-                                    //    case a: set EndIndex to left of closing parentheses -- ^}
-                                    //            this adjustment is for any of the four cases where caret could be. left or right of open or close parentheses -- ^{^ ^}^
-                                    //    case b: set StartIndex to left of opening parentheses -- ^{
-                                    //            this adjustment is for cases where caret was originally to the right of the open parentheses -- {^ }
+                                    //    case a: set EndIndex to left of closing parenthesis -- ^}
+                                    //            this adjustment is for any of the four cases where caret could be. left or right of open or close parenthesis -- ^{^ ^}^
+                                    //    case b: set StartIndex to left of opening parenthesis -- ^{
+                                    //            this adjustment is for cases where caret was originally to the right of the open parenthesis -- {^ }
 
                                     // if selecting, adjust end position by using the matching opening span that we just computed.
-                                    if (commandId.HasValue &&
-                                        VSConstants.VSStd2KCmdID.GOTOBRACE_EXT == (VSConstants.VSStd2KCmdID)commandId.Value)
+                                    if (extendSelection)
                                     {
                                         // case a.
                                         var closingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -93,14 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         pSpan[0].iEndIndex = vsClosingSpans.iStartIndex; 
                                     }
                                 }
-                                else if (matchingSpan.Value.End > position) // caret is at open parentheses
+                                else if (matchingSpan.Value.End > position) // caret is at open parenthesis
                                 {
                                     pSpan[0].iEndLine = vsTextSpan.iEndLine;
                                     pSpan[0].iEndIndex = vsTextSpan.iEndIndex;
 
                                     // if selecting, adjust start position by using the matching closing span that we computed
-                                    if (commandId.HasValue &&
-                                        VSConstants.VSStd2KCmdID.GOTOBRACE_EXT == (VSConstants.VSStd2KCmdID)commandId.Value)
+                                    if (extendSelection)
                                     {
                                         // case a.
                                         pSpan[0].iEndIndex = vsTextSpan.iStartIndex;
