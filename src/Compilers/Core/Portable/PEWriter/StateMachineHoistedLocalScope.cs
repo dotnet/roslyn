@@ -4,7 +4,14 @@ namespace Microsoft.Cci
 {
     internal struct StateMachineHoistedLocalScope
     {
+        /// <summary>
+        /// Start IL offset of the scope (inclusive).
+        /// </summary>
         public readonly uint StartOffset;
+
+        /// <summary>
+        /// End IL offset of the scope (exlusive).
+        /// </summary>
         public readonly uint EndOffset;
 
         public StateMachineHoistedLocalScope(uint startOffset, uint endOffset)
