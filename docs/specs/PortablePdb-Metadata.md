@@ -359,19 +359,23 @@ Parent: MethodDef
 
 Kind: {83C563C4-B4F3-47D5-B824-BA5441477EA8}
 
+Stores a bit vector for each local variable or local constant whose type contains _dynamic_ type (e.g. dynamic, dynamic[], List<dynamic> etc.). 
+
+TODO: The meaning of the bits in the vector.
+
 Structure:
 
-    Blob ::= (slot-index | 0 constant-name) bit-count bit{bit-count} padding
+    Blob ::= DynamicLocal+
+    DynamicLocal ::= (slot-index | 0 constant-name) bit-count bit-mask
 
 | terminal | encoding | description|
 |:---------|:---------|:-----------|
 | _slot-index_    | Compressed unsigned integer  | 1-based local signature slot index|
 | _constant-name_ | NUL-terminated UTF8 string   | Constant name|
-| _bit-count_     | Compressed unsigned integer  | Number of bits|
-| _bit_	          | 1 bit                        | 0 or 1|
-| _padding_       | n zero bits                  | Padding bits to align to byte boundary.|
+| _bit-count_     | Compressed unsigned integer  | Number of bits in bit vector|
+| _bit-vector_    | Bit vector encoding | Bit vector |
 
-TODO: Bit ordering.
+Bits of the bitvector are grouped by 8. If the vector length is not a multiple of 8 it is padded by 0 bit to the closest multiple of 8. Each group of 8 bits is encoded as a byte whose least significant bit is the first bit of the group and the highest significant bit is the 8th bit of the group. The vector is encoded as a sequence of bytes representing these groups.
 
 ##### Default Namespace (VB compiler)
 Parent: Module
