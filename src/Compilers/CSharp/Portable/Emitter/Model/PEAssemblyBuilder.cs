@@ -223,9 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper = null,
-            ImmutableArray<NamedTypeSymbol> additionalTypes = default(ImmutableArray<NamedTypeSymbol>))
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
+            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper = null)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, ImmutableArray<NamedTypeSymbol>.Empty)
         {
         }
 

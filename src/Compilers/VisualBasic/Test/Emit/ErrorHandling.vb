@@ -478,7 +478,7 @@ End Module
         End Sub]]>
 
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Unstructured exception handling").WithLocation(2, 9))
+            compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Unstructured exception handling").WithLocation(2, 9))
         End Sub
 
         <Fact()>
@@ -508,7 +508,7 @@ End Class
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 13),
+            compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 13),
                                           Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a & ""test""").WithArguments("Late binding").WithLocation(8, 13)
                                           )
 
@@ -535,7 +535,7 @@ End Module
 
             Dim ExpectedOutput = <![CDATA["F" Like "F"]]>
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Like operator").WithLocation(5, 21))
+            compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Like operator").WithLocation(5, 21))
         End Sub
 
         <Fact()>
@@ -556,7 +556,7 @@ End Module
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "Error 1").WithArguments("Unstructured exception handling").WithLocation(4, 18))
+            compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "Error 1").WithArguments("Unstructured exception handling").WithLocation(4, 18))
         End Sub
 
         <Fact()>
@@ -581,7 +581,7 @@ End Module
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 40))
+            compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 40))
         End Sub
 
 

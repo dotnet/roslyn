@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -667,6 +669,39 @@ Example app.config:
                 {
                     references.Add(referencedCompilation.EmitToImageReference());
                 }
+            }
+        }
+
+        /// <summary>
+        /// Creates a reference to a single-module assembly or a standalone module stored in memory
+        /// from a hex-encoded byte stream representing a gzipped assembly image.
+        /// </summary>
+        /// <param name="image">
+        /// A string containing a hex-encoded byte stream representing a gzipped assembly image. 
+        /// Hex digits are case-insensitive and can be separated by spaces or newlines.
+        /// Cannot be null.
+        /// </param>
+        /// <param name="properties">Reference properties (extern aliases, type embedding, <see cref="MetadataImageKind"/>).</param>
+        /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
+        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
+        protected internal PortableExecutableReference CreateMetadataReferenceFromHexGZipImage(
+            string image,
+            MetadataReferenceProperties properties = default(MetadataReferenceProperties),
+            DocumentationProvider documentation = null,
+            string filePath = null)
+        {
+            if(image == null)
+            {
+                throw new ArgumentNullException(nameof(image));
+            }
+
+            using (var compressed = new MemoryStream(SoapHexBinary.Parse(image).Value))
+            using (var gzipStream = new GZipStream(compressed, CompressionMode.Decompress))
+            using (var uncompressed = new MemoryStream())
+            {
+                gzipStream.CopyTo(uncompressed);
+                uncompressed.Position = 0;
+                return MetadataReference.CreateFromStream(uncompressed, properties, documentation, filePath);
             }
         }
 
