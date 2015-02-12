@@ -340,7 +340,7 @@ Scopes of local variables hoisted to state machine fields.
 
 Structure:
 
-    Blob ::= Scope {hoisted-variable-count}
+    Blob ::= Scope{hoisted-variable-count}
     Scope::= start-offset end-offset
 
 | terminal | encoding | description|
@@ -355,25 +355,21 @@ _start-offset_ shall point to the starting byte of an instruction of the MoveNex
 _end-offset_ shall point to the starting byte of an instruction or be equal to the size of the IL block of the MoveNext method of the state machine type.
 
 ##### Dynamic Local Variables (C# compiler)
-Parent: MethodDef
+Parent: LocalVariable or LocalConstant
 
 Kind: {83C563C4-B4F3-47D5-B824-BA5441477EA8}
 
+A sequence of bits for a local variable or constant whose type contains _dynamic_ type (e.g. dynamic, dynamic[], List<dynamic> etc.) that describes which System.Object types encoded in the metadata signature of the local type were specified as _dynamic_ in source code.
+
+TODO: The meaning of the bits in the vector.
+
 Structure:
 
-    Blob ::= (slot-index | 0 constant-name) bit-count bit{bit-count} padding
+    Blob ::= bit-sequence
 
-| terminal | encoding | description|
-|:---------|:---------|:-----------|
-| _slot-index_    | Compressed unsigned integer  | 1-based local signature slot index|
-| _constant-name_ | NUL-terminated UTF8 string   | Constant name|
-| _bit-count_     | Compressed unsigned integer  | Number of bits|
-| _bit_	          | 1 bit                        | 0 or 1|
-| _padding_       | n zero bits                  | Padding bits to align to byte boundary.|
+Bits of the sequence are grouped by 8. If the sequence length is not a multiple of 8 it is padded by 0 bit to the closest multiple of 8. Each group of 8 bits is encoded as a byte whose least significant bit is the first bit of the group and the highest significant bit is the 8th bit of the group. The sequence is encoded as a sequence of bytes representing these groups. Thrailing zero bytes may be omitted.
 
-TODO: Bit ordering.
-
-##### Root Namespace (VB compiler)
+##### Default Namespace (VB compiler)
 Parent: Module
 
 Kind: {58b2eab6-209f-4e4e-a22c-b2d0f910c782}
@@ -384,7 +380,7 @@ Structure:
 
 | terminal | encoding | description|
 |:---------|:---------|:-----------|
-| _namespace_    | UTF8 string | The root namespace. |
+| _namespace_    | UTF8 string | The default namespace for the module/project. |
 
 ##### Edit and Continue Local Slot Map (C# & VB compilers)
 Parent: MethodDef
