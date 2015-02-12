@@ -177,11 +177,17 @@ The LocalScope table has the following columns:
 
 * _Length_ (integer [0..0x80000000) , encoding: uint32)
 
-    The scope length in bytes. The scope spans all bytes in range [_StartOffset_, _StartOffset_ + _Length_).
+    The scope length in bytes. 
 
 The table is required to be sorted first by _Method_ and then by _StartOffset_.
 
-TODO: Nesting requirements.
+Each scope spans IL instructions in range [_StartOffset_, _StartOffset_ + _Length_).
+
+_StartOffset_ shall point to the starting byte of an instruction of the _Method_.
+
+_StartOffset_ + _Length_ shall point to the starting byte of an instruction of the _Method_ or be equal to the size of the IL stream of the _Method_.
+
+Local scopes form a hierarchy (a tree). Two scopes that belong to the _Mathod_ are either disjoit
 
 ### <a name="LocalVariableTable"></a>LocalVariable Table: 0x33
 
