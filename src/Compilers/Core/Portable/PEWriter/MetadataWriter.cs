@@ -4469,10 +4469,10 @@ namespace Microsoft.Cci
             else
             {
                 writer.WriteUshort(0);
-                writer.WriteUint(region.TryStartOffset);
-                writer.WriteUint(region.TryEndOffset - region.TryStartOffset);
-                writer.WriteUint(region.HandlerStartOffset);
-                writer.WriteUint(region.HandlerEndOffset - region.HandlerStartOffset);
+                writer.WriteUint((uint)region.TryStartOffset);
+                writer.WriteUint((uint)(region.TryEndOffset - region.TryStartOffset));
+                writer.WriteUint((uint)region.HandlerStartOffset);
+                writer.WriteUint((uint)(region.HandlerEndOffset - region.HandlerStartOffset));
             }
 
             if (region.HandlerKind == ExceptionRegionKind.Catch)
@@ -4481,7 +4481,7 @@ namespace Microsoft.Cci
             }
             else
             {
-                writer.WriteUint(region.FilterDecisionStartOffset);
+                writer.WriteUint((uint)region.FilterDecisionStartOffset);
             }
         }
 
