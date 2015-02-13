@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal interface ISyntaxNodeAnalyzerService : ILanguageService
     {

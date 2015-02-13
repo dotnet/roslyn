@@ -104,7 +104,7 @@ Public Class NoDisposeMethod
         newFile = New FileStream("""", FileMode.Append)
     End Sub
 
-    Sub Dispose() Implements IDisposable.Dispose
+    Public Sub Dispose() Implements IDisposable.Dispose
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -211,7 +211,7 @@ Public Class NoDisposeMethod
 
     Dim newFile As FileStream
 
-    Sub Dispose() Implements IDisposable.Dispose
+    Public Sub Dispose() Implements IDisposable.Dispose
     End Sub
 End Class
 ");
@@ -246,7 +246,7 @@ Public Class NoDisposeMethod
     Sub Dispose(x As Integer)
     End Sub
 
-    Sub Dispose() Implements IDisposable.Dispose
+    Public Sub Dispose() Implements IDisposable.Dispose
         Throw New NotImplementedException()
     End Sub
 End Class

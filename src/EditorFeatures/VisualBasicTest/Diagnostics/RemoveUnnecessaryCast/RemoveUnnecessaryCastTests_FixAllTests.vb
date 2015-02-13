@@ -31,6 +31,10 @@ Class Program
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
         Dim s3 = If(z, DirectCast(s1, Object), DirectCast(s2, Object))
+
+        Dim prog = New Program
+        Dim x = ((DirectCast(Prog, Program)).F)
+        Dim x2 = ((DirectCast(Prog, Program)).F)
     End Sub
 End Class]]>
                                 </Document>
@@ -50,6 +54,10 @@ Class Program2
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
         Dim s3 = If(z, DirectCast(s1, Object), DirectCast(s2, Object))
+
+        Dim prog = New Program
+        Dim x = ((DirectCast(Prog, Program)).F)
+        Dim x2 = ((DirectCast(Prog, Program)).F)
     End Sub
 End Class]]>
                                 </Document>
@@ -72,6 +80,10 @@ Class Program3
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
         Dim s3 = If(z, DirectCast(s1, Object), DirectCast(s2, Object))
+
+        Dim prog = New Program
+        Dim x = ((DirectCast(Prog, Program)).F)
+        Dim x2 = ((DirectCast(Prog, Program)).F)
     End Sub
 End Class]]>
                                 </Document>
@@ -95,7 +107,11 @@ Class Program
 
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
-        Dim s3 = If(z, s1, DirectCast(s2, Object))
+        Dim s3 = CObj(If(z, s1, s2))
+
+        Dim prog = New Program
+        Dim x = ((Prog).F)
+        Dim x2 = ((Prog).F)
     End Sub
 End Class]]>
                                    </Document>
@@ -115,6 +131,10 @@ Class Program2
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
         Dim s3 = If(z, DirectCast(s1, Object), DirectCast(s2, Object))
+
+        Dim prog = New Program
+        Dim x = ((DirectCast(Prog, Program)).F)
+        Dim x2 = ((DirectCast(Prog, Program)).F)
     End Sub
 End Class]]>
                                    </Document>
@@ -137,6 +157,10 @@ Class Program3
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
         Dim s3 = If(z, DirectCast(s1, Object), DirectCast(s2, Object))
+
+        Dim prog = New Program
+        Dim x = ((DirectCast(Prog, Program)).F)
+        Dim x2 = ((DirectCast(Prog, Program)).F)
     End Sub
 End Class]]>
                                    </Document>
@@ -232,7 +256,7 @@ Class Program
 
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
-        Dim s3 = If(z, s1, DirectCast(s2, Object))
+        Dim s3 = CObj(If(z, s1, s2))
     End Sub
 End Class]]>
                                    </Document>
@@ -251,7 +275,7 @@ Class Program2
 
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
-        Dim s3 = If(z, s1, DirectCast(s2, Object))
+        Dim s3 = CObj(If(z, s1, s2))
     End Sub
 End Class]]>
                                    </Document>
@@ -369,7 +393,7 @@ Class Program
 
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
-        Dim s3 = If(z, s1, DirectCast(s2, Object))
+        Dim s3 = CObj(If(z, s1, s2))
     End Sub
 End Class]]>
                                    </Document>
@@ -388,7 +412,7 @@ Class Program2
 
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
-        Dim s3 = If(z, s1, DirectCast(s2, Object))
+        Dim s3 = CObj(If(z, s1, s2))
     End Sub
 End Class]]>
                                    </Document>
@@ -410,7 +434,7 @@ Class Program3
 
         ' required cast after cast removal in same statement
         Dim s1 As String = Nothing, s2 As String = Nothing
-        Dim s3 = If(z, s1, DirectCast(s2, Object))
+        Dim s3 = CObj(If(z, s1, s2))
     End Sub
 End Class]]>
                                    </Document>

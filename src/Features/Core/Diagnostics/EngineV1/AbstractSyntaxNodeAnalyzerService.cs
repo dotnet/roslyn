@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal abstract class AbstractSyntaxNodeAnalyzerService<TLanguageKindEnum> : ISyntaxNodeAnalyzerService where TLanguageKindEnum : struct
     {

@@ -13,6 +13,8 @@
     <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
     <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <ArgumentTest64></ArgumentTest64>
+    <ArgumentTest64 Condition="'$(Test64)' == 'true'">-test64</ArgumentTest64>
   </PropertyGroup>
 
   <Target Name="RestorePackages">
@@ -70,13 +72,14 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.FxCop.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\System.Runtime.Analyzers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.CSharp.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.VisualBasic.UnitTests.dll" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.console.x86.exe @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(ArgumentTest64) @(TestAssemblies, ' ')" />
 
   </Target>
 
