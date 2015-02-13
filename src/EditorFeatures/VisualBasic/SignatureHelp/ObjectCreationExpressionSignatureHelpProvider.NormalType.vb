@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 constructor.IsParams(),
-                constructor.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(), GetNormalTypePostambleParts(constructor), constructor.Parameters.[Select](Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
             Return item
         End Function

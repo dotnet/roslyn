@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Return New SignatureHelpParameter(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 parameter.ToMinimalDisplayParts(semanticModel, position))
         End Function
 

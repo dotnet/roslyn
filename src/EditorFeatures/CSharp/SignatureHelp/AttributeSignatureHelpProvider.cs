@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic,
-                constructor.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormatter),
+                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 yield return new SignatureHelpParameter(
                     namedParameter.Name,
                     isOptional: true,
-                    documentationFactory: namedParameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormatter),
+                    documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                     displayParts: displayParts,
                     prefixDisplayParts: GetParameterPrefixDisplayParts(i));
             }

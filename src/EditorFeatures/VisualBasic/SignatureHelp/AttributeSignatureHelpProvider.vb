@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic,
-                constructor.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 result.Add(New SignatureHelpParameter(
                     namedParameter.Name,
                     isOptional:=True,
-                    documentationFactory:=namedParameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                    documentationFactory:=namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     displayParts:=displayParts,
                     prefixDisplayParts:=GetParameterPrefixDisplayParts(i)))
             Next

@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             var item = CreateItem(indexer, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 indexer.IsParams(),
-                indexer.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
                 GetSeparatorParts(),
                 GetPostambleParts(indexer),

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 yield return new SignatureHelpParameter(
                     parameter.Name,
                     parameter.IsOptional,
-                    parameter.GetDocumentationPartsGetter(semanticModel, position, formattingService),
+                    parameter.GetDocumentationPartsFactory(semanticModel, position, formattingService),
                     parameter.ToMinimalDisplayParts(semanticModel, position));
             }
         }

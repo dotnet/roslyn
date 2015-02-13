@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     false,
-                    symbol.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                    symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(namedType),
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             return new SignatureHelpParameter(
                 parameter.Name,
                 isOptional: false,
-                documentationFactory: parameter.GetDocumentationPartsGetter(semanticModel, position, formatter),
+                documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 displayParts: parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat),
                 selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken));
         }

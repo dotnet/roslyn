@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
         }
 
-        public static Func<CancellationToken, IEnumerable<SymbolDisplayPart>> GetDocumentationPartsGetter(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
+        public static Func<CancellationToken, IEnumerable<SymbolDisplayPart>> GetDocumentationPartsFactory(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
         {
             return c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
         }
