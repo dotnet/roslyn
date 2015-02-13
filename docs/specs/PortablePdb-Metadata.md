@@ -244,15 +244,15 @@ Imports blob has the following structure:
 
 | _kind_ | description |
 |:-------|:------------|
-| 1      | Imports members of target-namespace. |
-| 2      | Imports members of target-namespace defined in assembly target-assembly.|
-| 3      | Imports members of target-type.|
-| 4      | Imports members of XML namespace target-namespace with prefix alias.|
-| 5      | Imports assembly reference alias defined in an ancestor scope.|
-| 6      | Defines an alias for assembly target-assembly.|
-| 7      | Defines an alias for the target-namespace.|
-| 8      | Defines an alias for the part of target-namespace defined in assembly target-assembly.|
-| 9      | Defines an alias for the target-type.|
+| 1      | Imports members of _target-namespace_. |
+| 2      | Imports members of _target-namespace_ defined in assembly _target-assembly_.|
+| 3      | Imports members of _target-type_.|
+| 4      | Imports members of XML namespace _target-namespace_ with prefix _alias_.|
+| 5      | Imports assembly reference _alias_ defined in an ancestor scope.|
+| 6      | Defines an alias for assembly _target-assembly_.|
+| 7      | Defines an alias for the _target-namespace_.|
+| 8      | Defines an alias for the part of _target-namespace_ defined in assembly _target-assembly_.|
+| 9      | Defines an alias for the _target-type_.|
 
 The exact import semantics are language specific.
 
