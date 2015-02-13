@@ -194,10 +194,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public void UpdatePreview(DocumentId documentId, SpanChange spanSource)
         {
             var updatedSolution = _topLevelChange.GetUpdatedSolution(applyingChanges: false);
-            var document = updatedSolution.GetDocument(documentId);
+            var document = updatedSolution.GetDocument(documentId) ?? updatedSolution.GetAdditionalDocument(documentId);
             if (document != null)
             {
-                _updater.UpdateView(document, spanSource);
+                _updater.UpdateView(document, spanSource, isAdditionalDocument: !(document is Document));
             }
         }
 

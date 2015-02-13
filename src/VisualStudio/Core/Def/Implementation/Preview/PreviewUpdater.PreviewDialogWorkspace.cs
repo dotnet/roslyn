@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -29,9 +25,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 OnDocumentClosed(id, new PreviewTextLoader(text));
             }
 
+            public void CloseAdditionalDocument(DocumentId id, SourceText text)
+            {
+                OnAdditionalDocumentClosed(id, new PreviewTextLoader(text));
+            }
+
             protected override void ApplyDocumentTextChanged(DocumentId id, SourceText text)
             {
                 OnDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
+            }
+
+            protected override void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
+            {
+                OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
             }
 
             private class PreviewTextLoader : TextLoader
