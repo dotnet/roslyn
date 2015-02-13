@@ -165,7 +165,7 @@ End Module
             For i = 0 To 100
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
 
-                Dim tasks(innerCount) As Task
+                Dim tasks(innerCount - 1) As Task
                 For jj = 0 To innerCount - 1
                     Dim j = jj
                     tasks(j) = Task.Run(Sub()
