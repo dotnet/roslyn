@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetEndPointFunc(codeElement As CodeParameter2) As Func(Of vsCMPart, TextPoint)
-            Throw New NotImplementedException()
+            Return Function(part) codeElement.GetEndPoint(part)
         End Function
 
         Protected Overrides Function GetFullName(codeElement As CodeParameter2) As String
@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetName(codeElement As CodeParameter2) As String
-            Throw New NotImplementedException()
+            Return codeElement.Name
         End Function
 
         Protected Overrides Function GetNameSetter(codeElement As CodeParameter2) As Action(Of String)
@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetStartPointFunc(codeElement As CodeParameter2) As Func(Of vsCMPart, TextPoint)
-            Throw New NotImplementedException()
+            Return Function(part) codeElement.GetStartPoint(part)
         End Function
 
         Protected Overrides Function GetTypeProp(codeElement As CodeParameter2) As CodeTypeRef

@@ -2123,6 +2123,37 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return type.UpdateModifiers(flags);
         }
 
+        public override EnvDTE.vsCMFunction GetFunctionKind(IMethodSymbol symbol)
+        {
+            switch (symbol.MethodKind)
+            {
+                case MethodKind.Ordinary:
+                case MethodKind.ExplicitInterfaceImplementation:
+                    return EnvDTE.vsCMFunction.vsCMFunctionFunction;
+
+                case MethodKind.Constructor:
+                case MethodKind.StaticConstructor:
+                    return EnvDTE.vsCMFunction.vsCMFunctionConstructor;
+
+                case MethodKind.Destructor:
+                    return EnvDTE.vsCMFunction.vsCMFunctionDestructor;
+
+                case MethodKind.UserDefinedOperator:
+                    return EnvDTE.vsCMFunction.vsCMFunctionOperator;
+
+                case MethodKind.PropertyGet:
+                case MethodKind.EventRemove:
+                    return EnvDTE.vsCMFunction.vsCMFunctionPropertyGet;
+
+                case MethodKind.PropertySet:
+                case MethodKind.EventAdd:
+                    return EnvDTE.vsCMFunction.vsCMFunctionPropertySet;
+
+                default:
+                    throw Exceptions.ThrowEUnexpected();
+            }
+        }
+
         public override EnvDTE80.vsCMInheritanceKind GetInheritanceKind(SyntaxNode typeNode, INamedTypeSymbol typeSymbol)
         {
             Debug.Assert(typeNode is ClassDeclarationSyntax);

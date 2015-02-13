@@ -110,21 +110,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                var symbol = (IMethodSymbol)LookupSymbol();
-                switch (symbol.MethodKind)
+                var symbol = LookupSymbol() as IMethodSymbol;
+                if (symbol == null)
                 {
-                    case MethodKind.Ordinary:
-                        return EnvDTE.vsCMFunction.vsCMFunctionFunction;
-                    case MethodKind.Constructor:
-                    case MethodKind.StaticConstructor:
-                        return EnvDTE.vsCMFunction.vsCMFunctionConstructor;
-                    case MethodKind.Destructor:
-                        return EnvDTE.vsCMFunction.vsCMFunctionDestructor;
-                    case MethodKind.UserDefinedOperator:
-                        return EnvDTE.vsCMFunction.vsCMFunctionOperator;
-                    default:
-                        throw Exceptions.ThrowEUnexpected();
+                    throw Exceptions.ThrowEUnexpected();
                 }
+
+                return CodeModelService.GetFunctionKind(symbol);
             }
         }
 
