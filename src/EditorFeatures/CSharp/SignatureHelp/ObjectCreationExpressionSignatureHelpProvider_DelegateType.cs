@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDispalyService,
                 isVariadic: false,
-                documentation: SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>(),
+                documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
                 suffixParts: GetDelegateTypePostambleParts(invokeMethod),
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             yield return new SignatureHelpParameter(
                 TargetName,
                 isOptional: false,
-                documentation: SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>(),
+                documentationFactory: null,
                 displayParts: parts);
         }
 

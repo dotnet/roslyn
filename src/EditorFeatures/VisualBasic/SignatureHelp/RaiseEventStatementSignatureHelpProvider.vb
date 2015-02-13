@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 eventSymbol, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 False,
-                eventSymbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                eventSymbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(eventSymbol, semanticModel, position),
