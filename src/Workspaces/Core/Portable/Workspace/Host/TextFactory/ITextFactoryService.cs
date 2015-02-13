@@ -28,5 +28,15 @@ namespace Microsoft.CodeAnalysis.Host
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken));
+
+
+        /// <summary>
+        /// Creates <see cref="SourceText"/> from a reader.
+        /// </summary>
+        /// <param name="reader">The <see cref="TextReader"/> to read the text from.</param>
+        /// <param name="encoding">Specifies an encoding for the <see cref="SourceText"/>SourceText. it could be even null</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken));
     }
 }
+

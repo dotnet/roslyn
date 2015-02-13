@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
             {
-
                 // Write text into it
                 temporaryStorage.WriteTextAsync(text).Wait();
 
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, Encoding.Unicode);
+                Assert.Equal(text2.Encoding, null);
             }
         }
 
