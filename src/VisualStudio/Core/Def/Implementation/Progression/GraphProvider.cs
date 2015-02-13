@@ -47,10 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _initialized = true;
         }
 
-        public void BeginGetGraphData(IGraphContext context)
+        internal static List<IGraphQuery> GetGraphQueries(IGraphContext context)
         {
-            EnsureInitialized();
-
             var graphQueries = new List<IGraphQuery>();
 
             if (context.Direction == GraphContextDirection.Self && context.RequestedProperties.Contains(DgmlNodeProperties.ContainsChildren))
@@ -58,7 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 graphQueries.Add(new ContainsChildrenGraphQuery());
             }
 
-            if (context.Direction == GraphContextDirection.Contains)
+            if (context.Direction == GraphContextDirection.Contains ||
+                (context.Direction == GraphContextDirection.Target && context.LinkCategories.Contains(CodeLinkCategories.Contains)))
             {
                 graphQueries.Add(new ContainsGraphQuery());
             }
@@ -128,6 +127,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString));
                 }
             }
+
+            return graphQueries;
+        }
+
+        public void BeginGetGraphData(IGraphContext context)
+        {
+            EnsureInitialized();
+
+            var graphQueries = GetGraphQueries(context);
 
             if (graphQueries.Count > 0)
             {

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // TODO:
             return new EditAndContinueMethodDebugInformation(
                 0,
-                Cci.CustomDebugInfoWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
+                Cci.MetadataWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
                 closures: ImmutableArray<ClosureDebugInfo>.Empty,
                 lambdas: ImmutableArray<LambdaDebugInfo>.Empty);
         }
