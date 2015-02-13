@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     Partial Friend Class VisualBasicCompletionService
-        Private Class VisualBasicCompletionRules
+        Private NotInheritable Class VisualBasicCompletionRules
             Inherits CompletionRules
 
             Public Sub New(service As AbstractCompletionService)
