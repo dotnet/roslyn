@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var analyzers = _analyzerManager.GetDiagnosticAnalyzers(project);
+            var analyzers = _analyzerManager.CreateDiagnosticAnalyzers(project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
