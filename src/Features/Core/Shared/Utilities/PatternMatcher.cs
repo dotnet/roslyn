@@ -587,15 +587,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // We'll have 3 pattern parts Si/U/I against two candidate parts Simple/UI.  However, U
             // and I will both match in UI. 
 
-            int candidateCurrent = 0;
-            int chunkCharacterSpansCurrent = 0;
+            int currentCandidate = 0;
+            int currentChunkSpan = 0;
             int? firstMatch = null;
             bool? contiguous = null;
 
             while (true)
             {
                 // Let's consider our termination cases
-                if (chunkCharacterSpansCurrent == chunkCharacterSpans.Count)
+                if (currentChunkSpan == chunkCharacterSpans.Count)
                 {
                     Contract.Requires(firstMatch.HasValue);
                     Contract.Requires(contiguous.HasValue);
@@ -617,30 +617,30 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     return weight;
                 }
-                else if (candidateCurrent == candidateParts.Count)
+                else if (currentCandidate == candidateParts.Count)
                 {
                     // No match, since we still have more of the pattern to hit
                     return null;
                 }
 
-                var candidatePart = candidateParts[candidateCurrent];
+                var candidatePart = candidateParts[currentCandidate];
                 bool gotOneMatchThisCandidate = false;
 
                 // Consider the case of matching SiUI against SimpleUIElement. The candidate parts
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
                 // against 'Simple' first.  Then we'll match 'U' against 'UI'. However, we want to
                 // still keep matching pattern parts against that candidate part. 
-                for (; chunkCharacterSpansCurrent < chunkCharacterSpans.Count; chunkCharacterSpansCurrent++)
+                for (; currentChunkSpan < chunkCharacterSpans.Count; currentChunkSpan++)
                 {
-                    var chunkCharacterSpan = chunkCharacterSpans[chunkCharacterSpansCurrent];
+                    var chunkCharacterSpan = chunkCharacterSpans[currentChunkSpan];
 
                     if (gotOneMatchThisCandidate)
                     {
                         // We've already gotten one pattern part match in this candidate.  We will
                         // only continue trying to consumer pattern parts if the last part and this
                         // part are both upper case.  
-                        if (!char.IsUpper(chunk.Text[chunkCharacterSpans[chunkCharacterSpansCurrent - 1].Start]) ||
-                            !char.IsUpper(chunk.Text[chunkCharacterSpans[chunkCharacterSpansCurrent].Start]))
+                        if (!char.IsUpper(chunk.Text[chunkCharacterSpans[currentChunkSpan - 1].Start]) ||
+                            !char.IsUpper(chunk.Text[chunkCharacterSpans[currentChunkSpan].Start]))
                         {
                             break;
                         }
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     gotOneMatchThisCandidate = true;
 
-                    firstMatch = firstMatch ?? candidateCurrent;
+                    firstMatch = firstMatch ?? currentCandidate;
 
                     // If we were contiguous, then keep that value.  If we weren't, then keep that
                     // value.  If we don't know, then set the value to 'true' as an initial match is
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 // Move onto the next candidate.
-                candidateCurrent++;
+                currentCandidate++;
             }
         }
     }
