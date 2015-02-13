@@ -37,7 +37,7 @@ namespace RunTests
             _xunitConsolePath = xunitConsolePath;
         }
 
-        internal async Task<bool> RunAll(IEnumerable<string> assemblyList)
+        internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
         {
             var max = Environment.ProcessorCount;
             var allPassed = true;
@@ -47,6 +47,8 @@ namespace RunTests
 
             do
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var i = 0;
                 while (i < running.Count)
                 {
@@ -70,7 +72,7 @@ namespace RunTests
 
                 while (running.Count < max && waiting.Count > 0)
                 {
-                    var task = RunTest(waiting.Pop());
+                    var task = RunTest(waiting.Pop(), cancellationToken);
                     running.Add(task);
                 }
 
@@ -102,7 +104,7 @@ namespace RunTests
             Console.WriteLine("================");
         }
 
-        private async Task<TestResult> RunTest(string assemblyPath)
+        private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             var assemblyName = Path.GetFileName(assemblyPath);
             var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, ".html"));
@@ -121,7 +123,7 @@ namespace RunTests
                 lowPriority: false, 
                 displayWindow: false, 
                 captureOutput: true, 
-                cancellationToken: CancellationToken.None).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
             var span = DateTime.UtcNow - start;
 
             if (processOutput.ExitCode != 0)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RunTests
@@ -39,10 +40,17 @@ namespace RunTests
                 ? Path.Combine(xunitPath, "xunit.console.exe")
                 : Path.Combine(xunitPath, "xunit.console.x86.exe");
 
+            // Setup cancellation for ctrl-c key presses
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += delegate
+            {
+                cts.Cancel();
+            };
+
             var testRunner = new TestRunner(xunit);
             var start = DateTime.Now;
             Console.WriteLine("Running {0} tests", list.Count);
-            var result = testRunner.RunAll(list).Result;
+            var result = testRunner.RunAllAsync(list, cts.Token).Result;
             var span = DateTime.Now - start;
             if (!result)
             {
