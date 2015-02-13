@@ -13,7 +13,6 @@
     <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
     <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <ArgumentTest64></ArgumentTest64>
     <ArgumentTest64 Condition="'$(Test64)' == 'true'">-test64</ArgumentTest64>
   </PropertyGroup>
