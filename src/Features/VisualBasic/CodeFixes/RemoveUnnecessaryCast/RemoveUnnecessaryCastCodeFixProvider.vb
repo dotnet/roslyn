@@ -91,7 +91,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
                 updatedDocument = Await updatedDocument.ReplaceNodeAsync(nextStatement, explicitNextStatement, cancellationToken).ConfigureAwait(False)
             End If
 
-            Return Await RewriteCoreAsync(updatedDocument, expression, cancellationToken).ConfigureAwait(False)
+            updatedDocument = Await RewriteCoreAsync(updatedDocument, expression, cancellationToken).ConfigureAwait(False)
+
+            ' Remove added _expressionAnnotation and _statementAnnotation.
+            updatedDocument = Await RemoveNodesAndTokensWithAnnotationAsync(_expressionAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
+            updatedDocument = Await RemoveNodesAndTokensWithAnnotationAsync(_statementAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
+
+            Return updatedDocument
+        End Function
+
+        Private Shared Async Function RemoveNodesAndTokensWithAnnotationAsync(annotation As SyntaxAnnotation, document As Document, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim nodesWithAnnotation = Await FindNodesWithAnnotationAsync(annotation, document, cancellationToken).ConfigureAwait(False)
+            root = root.ReplaceSyntax(
+                nodesWithAnnotation.Where(Function(n) n.IsNode).Select(Function(n) n.AsNode),
+                Function(o, n) o.WithoutAnnotations(annotation),
+                nodesWithAnnotation.Where(Function(n) n.IsToken).Select(Function(n) n.AsToken),
+                Function(o, n) o.WithoutAnnotations(annotation),
+                SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia),
+                Nothing)
+            Return document.WithSyntaxRoot(root)
         End Function
 
         Private Shared Async Function RewriteCoreAsync(document As Document, originalExpr As ExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)

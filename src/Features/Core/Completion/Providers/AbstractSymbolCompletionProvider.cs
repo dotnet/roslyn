@@ -19,6 +19,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractSymbolCompletionProvider : AbstractCompletionProvider
     {
+        // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
+        // compute identical contexts. This actually shows up on the 2-core typing test.
+        // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
+        private static Dictionary<Document, Task<AbstractSyntaxContext>> s_cachedDocuments = new  Dictionary<Document, Task<AbstractSyntaxContext>>();
+        private static int s_cachedPosition;
+        private static readonly object s_cacheGate = new object();
+
         protected AbstractSymbolCompletionProvider()
         {
         }
@@ -170,11 +177,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, bool preselect, CancellationToken cancellationToken)
         {
-            var context = await CreateContext(document, position, cancellationToken).ConfigureAwait(false);
-            var options = GetOptions(document, triggerInfo, context);
-            var relatedDocuments = document.GetLinkedDocumentIds();
+            var relatedDocumentIds = document.GetLinkedDocumentIds();
+            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
+            lock (s_cacheGate)
+            {
+                // Invalidate the cache if it's for a different position or a different set of Documents.
+                // It's fairly likely that we'll only have to check the first document, unless someone
+                // specially constructed a Solution with mismatched linked files.
+                if (s_cachedPosition != position ||
+                    !relatedDocuments.All(s_cachedDocuments.ContainsKey))
+                {
+                    s_cachedPosition = position;
+                    s_cachedDocuments.Clear();
+                    foreach (var related in relatedDocuments)
+                    {
+                        s_cachedDocuments.Add(related, null);
+                    }
+                }
+            }
 
-            if (!relatedDocuments.Any())
+            var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
+            var options = GetOptions(document, triggerInfo, context);
+
+            if (!relatedDocumentIds.Any())
             {
                 IEnumerable<ISymbol> itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
 
@@ -182,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return await CreateItemsAsync(position, itemsForCurrentDocument, context, null, null, preselect, cancellationToken).ConfigureAwait(false);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, relatedDocuments.Concat(document.Id), preselect, cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, relatedDocumentIds.Concat(document.Id), preselect, cancellationToken).ConfigureAwait(false);
 
             Dictionary<ISymbol, AbstractSyntaxContext> orignatingContextMap = null;
             var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out orignatingContextMap);
@@ -236,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
-                var context = await CreateContext(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                var context = await GetOrCreateContext(relatedDocument, position, cancellationToken).ConfigureAwait(false);
 
                 if (IsCandidateProject(context, cancellationToken))
                 {
@@ -267,6 +292,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected abstract Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);
+
+        private Task<AbstractSyntaxContext> GetOrCreateContext(Document document, int position, CancellationToken cancellationToken)
+        {
+            lock (s_cacheGate)
+            {
+                if (s_cachedDocuments[document] != null)
+                {
+                    return s_cachedDocuments[document];
+                }
+            }
+
+            var context = CreateContext(document, position, cancellationToken);
+            lock (s_cacheGate)
+            {
+                s_cachedDocuments[document] = context;
+                return context;
+            }
+        }
 
         /// <summary>
         /// Given a list of symbols, determine which are not recommended at the same position in linked documents.

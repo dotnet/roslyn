@@ -4789,6 +4789,9 @@ class Program
         { }
         catch (System.Exception e)
         { }
+
+        using(somevar)
+        { }
     }
 }";
             var expected = @"
@@ -4820,9 +4823,87 @@ class Program
         { }
         catch ( System.Exception e )
         { }
+
+        using ( somevar )
+        { }
     }
 }";
             var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceWithinOtherParentheses, true } };
+            AssertFormat(expected, code, changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void TestSpacingOptionAfterControlFlowKeyword()
+        {
+            var code = @"
+class Program
+{
+    public void foo()
+    {
+        int i;
+        for (i=0; i<10; i++)
+        {}
+
+        foreach (i in new[] {1,2,3})
+        {}
+
+        if (i==10)
+        {}
+
+        while (i==10)
+        {}
+
+        switch (i)
+        {
+            default: break;
+        }
+
+        do {} while (true);
+
+        try
+        { }
+        catch (System.Exception e)
+        { }
+
+        using (somevar)
+        { }
+    }
+}";
+            var expected = @"
+class Program
+{
+    public void foo()
+    {
+        int i;
+        for(i = 0; i < 10; i++)
+        { }
+
+        foreach(i in new[] { 1, 2, 3 })
+        { }
+
+        if(i == 10)
+        { }
+
+        while(i == 10)
+        { }
+
+        switch(i)
+        {
+            default: break;
+        }
+
+        do { } while(true);
+
+        try
+        { }
+        catch(System.Exception e)
+        { }
+
+        using(somevar)
+        { }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, false } };
             AssertFormat(expected, code, changedOptionSet: optionSet);
         }
 
@@ -5790,6 +5871,47 @@ class Program
         return $""{a} (index: 0x{ b}, size: { c}): ""
     }
 }");
+        }
+
+        [WorkItem(62)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceAfterWhenInExceptionFilter()
+        {
+            const string expected = @"class C
+{
+    void M()
+    {
+        try
+        {
+            if (x)
+            {
+                G();
+            }
+        }
+        catch (Exception e) when (H(e))
+        {
+
+        }
+    }
+}";
+
+            const string code = @"class C
+{
+    void M()
+    {
+        try
+        {
+            if(x){
+                G();
+            }
+        }
+        catch(Exception e) when (H(e))
+        {
+
+        }
+    }
+}";
+            AssertFormat(expected, code);
         }
     }
 }

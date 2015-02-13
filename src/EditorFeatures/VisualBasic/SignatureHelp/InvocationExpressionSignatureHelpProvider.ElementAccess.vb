@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 indexer, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 indexer.IsParams(),
-                indexer.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetIndexerPreambleParts(indexer, semanticModel, position),
                 GetSeparatorParts(),
                 GetIndexerPostambleParts(indexer, semanticModel, position),

@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For Spacing b/n control flow keyword and paren. Parent check not needed.
             if (currentKind == SyntaxKind.OpenParenToken &&
                 (previousKind == SyntaxKind.IfKeyword || previousKind == SyntaxKind.WhileKeyword || previousKind == SyntaxKind.SwitchKeyword ||
-                previousKind == SyntaxKind.ForKeyword || previousKind == SyntaxKind.ForEachKeyword))
+                previousKind == SyntaxKind.ForKeyword || previousKind == SyntaxKind.ForEachKeyword || previousKind == SyntaxKind.CatchKeyword ||
+                previousKind == SyntaxKind.UsingKeyword))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword);
             }
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousKind == SyntaxKind.OpenParenToken &&
                 (previousParentKind == SyntaxKind.IfStatement || previousParentKind == SyntaxKind.WhileStatement || previousParentKind == SyntaxKind.SwitchStatement ||
                 previousParentKind == SyntaxKind.ForStatement || previousParentKind == SyntaxKind.ForEachStatement || previousParentKind == SyntaxKind.DoStatement ||
-                previousParentKind == SyntaxKind.CatchDeclaration))
+                previousParentKind == SyntaxKind.CatchDeclaration || previousParentKind == SyntaxKind.UsingStatement))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentKind == SyntaxKind.CloseParenToken &&
                 (currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
                 currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement || currentParentKind == SyntaxKind.DoStatement ||
-                previousParentKind == SyntaxKind.CatchDeclaration))
+                currentParentKind == SyntaxKind.UsingStatement || previousParentKind == SyntaxKind.CatchDeclaration))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }

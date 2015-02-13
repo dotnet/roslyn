@@ -154,20 +154,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                // TODO: What does VB do here? Handle EventRaise...
-                switch (_kind)
+                var methodSymbol = LookupSymbol() as IMethodSymbol;
+                if (methodSymbol == null)
                 {
-                    case MethodKind.PropertyGet:
-                    case MethodKind.EventRemove:
-                        return EnvDTE.vsCMFunction.vsCMFunctionPropertyGet;
-
-                    case MethodKind.PropertySet:
-                    case MethodKind.EventAdd:
-                        return EnvDTE.vsCMFunction.vsCMFunctionPropertySet;
-
-                    default:
-                        throw Exceptions.ThrowEUnexpected();
+                    throw Exceptions.ThrowEUnexpected();
                 }
+
+                return CodeModelService.GetFunctionKind(methodSymbol);
             }
         }
 

@@ -2,6 +2,7 @@
 
 Imports System.ComponentModel.Composition.Hosting
 Imports System.ComponentModel.Composition.Primitives
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -388,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If documentation IsNot Nothing Then
-                Assert.Equal(documentation, Me.CurrentSignatureHelpPresenterSession.SelectedItem.Documentation.GetFullText())
+                Assert.Equal(documentation, Me.CurrentSignatureHelpPresenterSession.SelectedItem.DocumenationFactory(CancellationToken.None).GetFullText())
             End If
 
             If selectedParameter IsNot Nothing Then

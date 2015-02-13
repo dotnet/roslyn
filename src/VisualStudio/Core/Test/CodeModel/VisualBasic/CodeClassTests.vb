@@ -2982,6 +2982,43 @@ End Class
                 End Sub)
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Sub ClassIncludedDeclareMethods()
+            Dim code =
+<Code>
+Public Class $$C1
+   Private Sub MethodA()
+   End Sub
+   Private Declare Sub MethodB Lib "MyDll.dll" ()
+   Private Declare Function MethodC Lib "MyDll.dll" () As Integer
+   Private Sub MethodD()
+   End Sub
+End Class
+</Code>
+
+            TestElement(code,
+                Sub(codeClass)
+                    Dim members = codeClass.Members
+                    Assert.Equal(4, members.Count)
+
+                    Dim member1 = TryCast(members.Item(1), EnvDTE.CodeFunction)
+                    Assert.NotNull(member1)
+                    Assert.Equal("MethodA", member1.Name)
+
+                    Dim member2 = TryCast(members.Item(2), EnvDTE.CodeFunction)
+                    Assert.NotNull(member2)
+                    Assert.Equal("MethodB", member2.Name)
+
+                    Dim member3 = TryCast(members.Item(3), EnvDTE.CodeFunction)
+                    Assert.NotNull(member3)
+                    Assert.Equal("MethodC", member3.Name)
+
+                    Dim member4 = TryCast(members.Item(4), EnvDTE.CodeFunction)
+                    Assert.NotNull(member4)
+                    Assert.Equal("MethodD", member4.Name)
+                End Sub)
+        End Sub
+
         Private Function GetGenericExtender(codeElement As EnvDTE80.CodeClass2) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
