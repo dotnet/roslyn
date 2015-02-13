@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -336,6 +337,138 @@ namespace Roslyn.Utilities
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        /// <summary>
+        /// Wraps a task with one that will complete as cancelled based on a cancellation token, 
+        /// allowing someone to await a task but be able to break out early by cancelling the token.
+        /// </summary>
+        /// <typeparam name="T">The type of value returned by the task.</typeparam>
+        /// <param name="task">The task to wrap.</param>
+        /// <param name="cancellationToken">The token that can be canceled to break out of the await.</param>
+        /// <returns>The wrapping task.</returns>
+        public static Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
+        {
+            if (task == null)
+            {
+                throw new ArgumentNullException(nameof(task));
+            }
+
+            if (!cancellationToken.CanBeCanceled || task.IsCompleted)
+            {
+                return task;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return SingletonTask<T>.CanceledTask;
+            }
+
+            return WithCancellationSlow(task, cancellationToken);
+        }
+
+        /// <summary>
+        /// Wraps a task with one that will complete as cancelled based on a cancellation token, 
+        /// allowing someone to await a task but be able to break out early by cancelling the token.
+        /// </summary>
+        /// <param name="task">The task to wrap.</param>
+        /// <param name="cancellationToken">The token that can be canceled to break out of the await.</param>
+        /// <returns>The wrapping task.</returns>
+        public static Task WithCancellation(this Task task, CancellationToken cancellationToken)
+        {
+            if (task == null)
+            {
+                throw new ArgumentNullException(nameof(task));
+            }
+
+            if (!cancellationToken.CanBeCanceled || task.IsCompleted)
+            {
+                return task;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return SingletonTask<int>.CanceledTask;
+            }
+
+            return WithCancellationSlow(task, cancellationToken);
+        }
+
+        /// <summary>
+        /// Wraps a task with one that will complete as cancelled based on a cancellation token, 
+        /// allowing someone to await a task but be able to break out early by cancelling the token.
+        /// </summary>
+        /// <typeparam name="T">The type of value returned by the task.</typeparam>
+        /// <param name="task">The task to wrap.</param>
+        /// <param name="cancellationToken">The token that can be canceled to break out of the await.</param>
+        /// <returns>The wrapping task.</returns>
+        private static async Task<T> WithCancellationSlow<T>(Task<T> task, CancellationToken cancellationToken)
+        {
+            Debug.Assert(task != null);
+            Debug.Assert(cancellationToken.CanBeCanceled);
+
+            var tcs = new TaskCompletionSource<bool>();
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+            {
+                if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+
+            // Rethrow any fault/cancellation exception, even if we awaited above.
+            // But if we skipped the above if branch, this will actually yield
+            // on an incompleted task.
+            return await task.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Wraps a task with one that will complete as cancelled based on a cancellation token, 
+        /// allowing someone to await a task but be able to break out early by cancelling the token.
+        /// </summary>
+        /// <param name="task">The task to wrap.</param>
+        /// <param name="cancellationToken">The token that can be canceled to break out of the await.</param>
+        /// <returns>The wrapping task.</returns>
+        private static async Task WithCancellationSlow(this Task task, CancellationToken cancellationToken)
+        {
+            Debug.Assert(task != null);
+            Debug.Assert(cancellationToken.CanBeCanceled);
+
+            var tcs = new TaskCompletionSource<bool>();
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+            {
+                if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+
+            // Rethrow any fault/cancellation exception, even if we awaited above.
+            // But if we skipped the above if branch, this will actually yield
+            // on an incompleted task.
+            await task.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Wraps a Task{T} that has already been canceled.
+        /// </summary>
+        /// <typeparam name="T">The type of value that might have been returned by the task except for its cancellation.</typeparam>
+        private static class SingletonTask<T>
+        {
+            /// <summary>
+            /// A task that is already canceled.
+            /// </summary>
+            internal static readonly Task<T> CanceledTask = CreateCanceledTask();
+
+            /// <summary>
+            /// Creates a canceled task.
+            /// </summary>
+            private static Task<T> CreateCanceledTask()
+            {
+                var tcs = new TaskCompletionSource<T>();
+                tcs.SetCanceled();
+                return tcs.Task;
+            }
         }
     }
 }
