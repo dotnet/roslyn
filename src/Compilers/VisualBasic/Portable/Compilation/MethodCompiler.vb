@@ -1536,7 +1536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 'Error:
                 '    return hr;
                 '}
-                Dim localScopes = builder.GetAllScopes(edgeInclusive:=True)
+                Dim localScopes = builder.GetAllScopes()
 
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,

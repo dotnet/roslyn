@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RunTests
@@ -19,12 +20,34 @@ namespace RunTests
                 return 1;
             }
 
-            var xunit = args[0];
-            var list = new List<string>(args.Skip(1));
-            var testRunner = new TestRunner(xunit);
+            var xunitPath = args[0];
+            var index = 1;
+            var test64 = false;
+            var useHtml = false;
+            ParseArgs(args, ref index, ref test64, ref useHtml);
+
+            var list = new List<string>(args.Skip(index));
+            if (list.Count == 0)
+            {
+                PrintUsage();
+                return 1;
+            }
+
+            var xunit = test64
+                ? Path.Combine(xunitPath, "xunit.console.exe")
+                : Path.Combine(xunitPath, "xunit.console.x86.exe");
+
+            // Setup cancellation for ctrl-c key presses
+            var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += delegate
+            {
+                cts.Cancel();
+            };
+
+            var testRunner = new TestRunner(xunit, useHtml);
             var start = DateTime.Now;
             Console.WriteLine("Running {0} tests", list.Count);
-            var result = testRunner.RunAll(list).Result;
+            var result = testRunner.RunAllAsync(list, cts.Token).Result;
             var span = DateTime.Now - start;
             if (!result)
             {
@@ -39,6 +62,29 @@ namespace RunTests
         private static void PrintUsage()
         {
             Console.WriteLine("runtests [xunit-console-runner] [assembly1] [assembly2] [...]");
+        }
+
+        private static void ParseArgs(string[] args, ref int index, ref bool test64, ref bool useHtml)
+        {
+            var comp = StringComparer.OrdinalIgnoreCase;
+            while (index < args.Length)
+            {
+                var current = args[index];
+                if (comp.Equals(current, "-test64"))
+                {
+                    test64 = true;
+                    index++;
+                }
+                else if (comp.Equals(current, "-xml"))
+                {
+                    useHtml = false;
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
     }
 }

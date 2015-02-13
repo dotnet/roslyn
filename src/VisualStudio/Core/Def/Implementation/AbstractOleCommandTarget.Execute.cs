@@ -20,52 +20,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public virtual int Exec(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
         {
-            var subjectBuffer = GetSubjectBufferContainingCaret();
+            try
+            {
+                var subjectBuffer = GetSubjectBufferContainingCaret();
+                this.CurrentlyExecutingCommand = commandId;
 
-            // If we didn't get a subject buffer, then that means we're outside our code and we should ignore it
-            // Also, ignore the command if executeInformation indicates isn't meant to be executed. From env\msenv\core\cmdwin.cpp:
-            //      To query the parameter type list of a command, we call Exec with 
-            //      the LOWORD of nCmdexecopt set to OLECMDEXECOPT_SHOWHELP (instead of
-            //      the more usual OLECMDEXECOPT_DODEFAULT), the HIWORD of nCmdexecopt
-            //      set to VSCmdOptQueryParameterList, pvaIn set to NULL, and pvaOut 
-            //      pointing to a VARIANT ready to receive the result BSTR.
-            var shouldSkipCommand = executeInformation == (((uint)VsMenus.VSCmdOptQueryParameterList << 16) | (uint)OLECMDEXECOPT.OLECMDEXECOPT_SHOWHELP);
-            if (subjectBuffer == null || shouldSkipCommand)
-            {
-                return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
+                // If we didn't get a subject buffer, then that means we're outside our code and we should ignore it
+                // Also, ignore the command if executeInformation indicates isn't meant to be executed. From env\msenv\core\cmdwin.cpp:
+                //      To query the parameter type list of a command, we call Exec with 
+                //      the LOWORD of nCmdexecopt set to OLECMDEXECOPT_SHOWHELP (instead of
+                //      the more usual OLECMDEXECOPT_DODEFAULT), the HIWORD of nCmdexecopt
+                //      set to VSCmdOptQueryParameterList, pvaIn set to NULL, and pvaOut 
+                //      pointing to a VARIANT ready to receive the result BSTR.
+                var shouldSkipCommand = executeInformation == (((uint)VsMenus.VSCmdOptQueryParameterList << 16) | (uint)OLECMDEXECOPT.OLECMDEXECOPT_SHOWHELP);
+                if (subjectBuffer == null || shouldSkipCommand)
+                {
+                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+                }
 
-            var contentType = subjectBuffer.ContentType;
+                var contentType = subjectBuffer.ContentType;
 
-            if (pguidCmdGroup == VSConstants.VSStd2K)
-            {
-                return ExecuteVisualStudio2000(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
-            }
-            else if (pguidCmdGroup == Guids.CSharpGroupId)
-            {
-                return ExecuteCSharpGroup(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
-            }
-            else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
-            {
-                return ExecuteVisualStudio97(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
-            }
+                if (pguidCmdGroup == VSConstants.VSStd2K)
+                {
+                    return ExecuteVisualStudio2000(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
+                else if (pguidCmdGroup == Guids.CSharpGroupId)
+                {
+                    return ExecuteCSharpGroup(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
+                else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
+                {
+                    return ExecuteVisualStudio97(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
 #if INTERACTIVE
             else if (pguidCmdGroup == InteractiveGuids.InteractiveCommandSetId)
             {
                 return ExecuteInteractiveCommands(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
             }
 #endif
-            else if (pguidCmdGroup == VSConstants.VsStd14)
-            {
-                return ExecuteVisualStudio2014(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                else if (pguidCmdGroup == VSConstants.VsStd14)
+                {
+                    return ExecuteVisualStudio2014(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
+                else if (pguidCmdGroup == VSConstants.GUID_AppCommand)
+                {
+                    return ExecuteAppCommand(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
+                else
+                {
+                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+                }
             }
-            else if (pguidCmdGroup == VSConstants.GUID_AppCommand)
+            finally
             {
-                return ExecuteAppCommand(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
-            }
-            else
-            {
-                return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+                this.CurrentlyExecutingCommand = default(uint);
             }
         }
 
