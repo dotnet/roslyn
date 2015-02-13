@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex)
         {
-            if (selectedParameterIndex < -1 || selectedParameterIndex >= _signatureHelpItem.Parameters.Length)
+            if (selectedParameterIndex < -1 || selectedParameterIndex >= signatureHelpItem.Parameters.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(selectedParameterIndex));
             }

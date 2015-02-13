@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
         {
-            public SymbolKey SymbolKey { get; private set; }
+            public SymbolKey SymbolKey { get; }
 
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public SignatureHelpParameter(
             string name,
             bool isOptional,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>>  documentationFactory,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
             IEnumerable<SymbolDisplayPart> displayParts,
             IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
             IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,

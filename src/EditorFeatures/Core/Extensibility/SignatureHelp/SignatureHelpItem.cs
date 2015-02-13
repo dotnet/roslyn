@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor
         // arbitrary separators between parameters.
         public ImmutableArray<SymbolDisplayPart> SeparatorDisplayParts { get; }
 
-        public ImmutableArray<SignatureHelpParameter> Parameters { get;  }
+        public ImmutableArray<SignatureHelpParameter> Parameters { get; }
 
         public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
 
