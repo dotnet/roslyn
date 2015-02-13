@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var document = snapshotSpans.Single().Document;
             if (document == null)
             {
-                SpecializedTasks.EmptyEnumerable<ITagSpan<TTag>>();
+                return SpecializedTasks.EmptyEnumerable<ITagSpan<TTag>>();
             }
 
             return ProduceTagsAsync(document, snapshotSpan, GetCaretPosition(caretPosition, snapshotSpan), cancellationToken);
