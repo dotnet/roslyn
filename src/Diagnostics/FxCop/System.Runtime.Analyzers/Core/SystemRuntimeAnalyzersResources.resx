@@ -147,4 +147,10 @@
   <data name="TypeOwnsDisposableFieldButIsNotDisposable" xml:space="preserve">
     <value>Type '{0}' owns disposable fields but is not disposable</value>
   </data>
+  <data name="CustomAttrShouldHaveAttributeUsage" xml:space="preserve">
+    <value>Custom attributes should have AttributeUsage attribute defined.</value>
+  </data>
+  <data name="MarkAttributesWithAttributeUsage" xml:space="preserve">
+    <value>Specify AttributeUsage attribute on '{0}' attribute class.</value>
+  </data>
 </root>

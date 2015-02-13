@@ -125,11 +125,29 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Custom attributes should have AttributeUsage attribute defined..
+        /// </summary>
+        internal static string CustomAttrShouldHaveAttributeUsage {
+            get {
+                return ResourceManager.GetString("CustomAttrShouldHaveAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement IDisposable Interface.
         /// </summary>
         internal static string ImplementIDisposableInterface {
             get {
                 return ResourceManager.GetString("ImplementIDisposableInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify AttributeUsage attribute on &apos;{0}&apos; attribute class..
+        /// </summary>
+        internal static string MarkAttributesWithAttributeUsage {
+            get {
+                return ResourceManager.GetString("MarkAttributesWithAttributeUsage", resourceCulture);
             }
         }
         

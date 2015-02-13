@@ -170,5 +170,10 @@ namespace System.Runtime.Analyzers
         {
             return compilation.GetTypeByMetadataName("System.NotImplementedException");
         }
+
+        public static INamedTypeSymbol Attribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Attribute");
+        }
     }
 }
