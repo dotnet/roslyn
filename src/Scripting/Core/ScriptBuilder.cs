@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         /// <summary>
         /// Lockable object only instance is knowledgeable about.
-        /// <summary>
+        /// </summary>
         private readonly object _gate = new object();
 
         #region Testing and Debugging
