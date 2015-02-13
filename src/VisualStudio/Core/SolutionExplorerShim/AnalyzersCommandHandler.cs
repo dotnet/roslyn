@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -48,6 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private MenuCommand _setSeverityHiddenMenuItem;
         private MenuCommand _setSeverityNoneMenuItem;
 
+        private MenuCommand _openHelpLinkMenuItem;
+
         private Workspace _workspace;
 
         private ImmutableArray<DiagnosticItem> _selectedDiagnosticItems = ImmutableArray<DiagnosticItem>.Empty;
@@ -73,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _setSeverityInfoMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityInfo, SetSeverityHandler);
                 _setSeverityHiddenMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityHidden, SetSeverityHandler);
                 _setSeverityNoneMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityNone, SetSeverityHandler);
+
+                _openHelpLinkMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenDiagnosticHelpLink, OpenDiagnosticHelpLinkHandler);
 
                 UpdateMenuItemVisibility();
                 UpdateMenuItemsChecked();
@@ -141,6 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _projectAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
             _referencesContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
+
+            _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
+                                            !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
         }
 
         private void UpdateMenuItemsChecked()
@@ -300,6 +308,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     SendUnableToUpdateRuleSetNotification(workspace, e.Message);
                 }
+            }
+        }
+
+        private void OpenDiagnosticHelpLinkHandler(object sender, EventArgs e)
+        {
+            if (_tracker.SelectedDiagnosticItems.Length != 1 ||
+                string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri))
+            {
+                return;
+            }
+
+            string link = _tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri;
+
+            Uri uri;
+            if (BrowserHelper.TryGetUri(link, out uri))
+            {
+                BrowserHelper.StartBrowser(_serviceProvider, uri);
             }
         }
 
