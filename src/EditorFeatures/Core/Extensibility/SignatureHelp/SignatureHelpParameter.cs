@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -19,10 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Documentation for this parameter.  This should normally be presented to the user when
         /// this parameter is selected.
         /// </summary>
-        /// <remarks>
-        /// Note that this is an IEnumerable, not an IList because we want lazy evaluation.
-        /// </remarks>
-        public IEnumerable<SymbolDisplayPart> Documentation { get; }
+        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationGetter { get; }
 
         /// <summary>
         /// Display parts to show before the normal display parts for the parameter.
@@ -52,10 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public IList<SymbolDisplayPart> SelectedDisplayParts { get; }
 
+        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationGetter = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+
         public SignatureHelpParameter(
             string name,
             bool isOptional,
-            IEnumerable<SymbolDisplayPart> documentation,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>>  documentationGetter,
             IEnumerable<SymbolDisplayPart> displayParts,
             IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
             IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             this.Name = name ?? string.Empty;
             this.IsOptional = isOptional;
-            this.Documentation = documentation;
+            this.DocumentationGetter = documentationGetter ?? s_emptyDocumentationGetter;
             this.DisplayParts = displayParts.ToImmutableArrayOrEmpty();
             this.PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
             this.SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();

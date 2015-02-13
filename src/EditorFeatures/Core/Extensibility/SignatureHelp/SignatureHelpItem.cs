@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -30,12 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
 
-        // Note: IEnumerable instead of ImmutableArray because we want lazy evaluation.
-        public IEnumerable<SymbolDisplayPart> Documentation { get; }
+        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationGetter { get; }
+
+        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationGetter = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
 
         public SignatureHelpItem(
             bool isVariadic,
-            IEnumerable<SymbolDisplayPart> documentation,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationGetter,
             IEnumerable<SymbolDisplayPart> prefixParts,
             IEnumerable<SymbolDisplayPart> separatorParts,
             IEnumerable<SymbolDisplayPart> suffixParts,
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             this.IsVariadic = isVariadic;
-            this.Documentation = documentation ?? SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+            this.DocumentationGetter = documentationGetter ?? s_emptyDocumentationGetter;
             this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
             this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
             this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();

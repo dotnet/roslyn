@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            IEnumerable<SymbolDisplayPart> documentation,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationGetter,
             IEnumerable<SymbolDisplayPart> prefixParts,
             IEnumerable<SymbolDisplayPart> separatorParts,
             IEnumerable<SymbolDisplayPart> suffixParts,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IEnumerable<SymbolDisplayPart> descriptionParts = null)
         {
             var item = new SymbolKeySignatureHelpItem(
-                orderSymbol, isVariadic, documentation, prefixParts, separatorParts,
+                orderSymbol, isVariadic, documentationGetter, prefixParts, separatorParts,
                 suffixParts, parameters, descriptionParts);
 
             return FixAnonymousTypeParts(orderSymbol, item, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             ISymbol orderSymbol, SignatureHelpItem item, SemanticModel semanticModel, int position, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService)
         {
             var currentItem = new SymbolKeySignatureHelpItem(
-                orderSymbol, item.IsVariadic, item.Documentation,
+                orderSymbol, item.IsVariadic, item.DocumentationGetter,
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.PrefixDisplayParts, semanticModel, position, symbolDisplayService),
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.SeparatorDisplayParts, semanticModel, position, symbolDisplayService),
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.SuffixDisplayParts, semanticModel, position, symbolDisplayService),
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 currentItem = new SymbolKeySignatureHelpItem(
                     orderSymbol,
                     currentItem.IsVariadic,
-                    currentItem.Documentation,
+                    currentItem.DocumentationGetter,
                     info.ReplaceAnonymousTypes(currentItem.PrefixDisplayParts),
                     info.ReplaceAnonymousTypes(currentItem.SeparatorDisplayParts),
                     info.ReplaceAnonymousTypes(currentItem.SuffixDisplayParts),
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return new SignatureHelpParameter(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.Documentation,
+                parameter.DocumentationGetter,
                 info.ReplaceAnonymousTypes(parameter.DisplayParts),
                 info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
         }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return new SignatureHelpParameter(
                 parameter.Name,
                 parameter.IsOptional,
-                parameter.Documentation,
+                parameter.DocumentationGetter,
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position, symbolDisplayService),
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position, symbolDisplayService),
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position, symbolDisplayService),

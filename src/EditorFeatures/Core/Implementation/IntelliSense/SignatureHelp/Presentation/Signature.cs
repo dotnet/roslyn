@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
@@ -192,9 +193,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
 
-            // Note: This is where we realize the lazy Documentation. Be careful not to do so more than once.
-            var documentation = _signatureHelpItem.Documentation.ToArray();
-            if (documentation.Length > 0)
+            var documentation = _signatureHelpItem.DocumentationGetter(CancellationToken.None).ToList();
+            if (documentation.Count > 0)
             {
                 AddRange(new[] { newLinePart }, parts, prettyPrintedParts);
                 Append(newLineContent, content, prettyPrintedContent);
