@@ -5872,5 +5872,46 @@ class Program
     }
 }");
         }
+
+        [WorkItem(62)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceAfterWhenInExceptionFilter()
+        {
+            const string expected = @"class C
+{
+    void M()
+    {
+        try
+        {
+            if (x)
+            {
+                G();
+            }
+        }
+        catch (Exception e) when (H(e))
+        {
+
+        }
+    }
+}";
+
+            const string code = @"class C
+{
+    void M()
+    {
+        try
+        {
+            if(x){
+                G();
+            }
+        }
+        catch(Exception e) when (H(e))
+        {
+
+        }
+    }
+}";
+            AssertFormat(expected, code);
+        }
     }
 }
