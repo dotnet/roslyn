@@ -3276,7 +3276,7 @@ End Class
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(x86))>
         Public Sub AnonymousTypes()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
