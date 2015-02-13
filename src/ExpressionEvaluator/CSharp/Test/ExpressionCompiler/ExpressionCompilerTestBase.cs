@@ -43,15 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             byte[] pdbBytes;
             ImmutableArray<MetadataReference> references;
             compilation.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
-
-            var builder = ArrayBuilder<MetadataReference>.GetInstance();
-            builder.AddRange(references);
-            builder.Add(ExpressionCompilerTestHelpers.InstrinsicAssembly);
-            references = builder.ToImmutableAndFree();
-
             return CreateRuntimeInstance(
                 ExpressionCompilerUtilities.GenerateUniqueName(),
-                references,
+                references.AddIntrinsicAssembly(),
                 exeBytes,
                 includeSymbols ? new SymReader(pdbBytes) : null);
         }

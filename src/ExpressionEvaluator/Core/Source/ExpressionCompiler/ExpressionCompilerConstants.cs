@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal const string GetObjectAtAddressMethodName = "GetObjectAtAddress";
         internal const string GetReturnValueMethodName = "GetReturnValue";
         internal const string CreateVariableMethodName = "CreateVariable";
-        internal const string GetVariableValueMethodName = "GetVariableValue";
+        internal const string GetVariableValueMethodName = "GetObjectByAlias";
         internal const string GetVariableAddressMethodName = "GetVariableAddress";
     }
 }

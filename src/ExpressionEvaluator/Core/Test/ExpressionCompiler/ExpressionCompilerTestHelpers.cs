@@ -335,9 +335,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal static readonly MetadataReference InstrinsicAssembly = GetIntrinsicAssembly();
+        internal static readonly MetadataReference IntrinsicAssemblyReference = GetIntrinsicAssemblyReference();
 
-        private static MetadataReference GetIntrinsicAssembly()
+        internal static ImmutableArray<MetadataReference> AddIntrinsicAssembly(this ImmutableArray<MetadataReference> references)
+        {
+            var builder = ArrayBuilder<MetadataReference>.GetInstance();
+            builder.AddRange(references);
+            builder.Add(IntrinsicAssemblyReference);
+            return builder.ToImmutableAndFree();
+        }
+
+        private static MetadataReference GetIntrinsicAssemblyReference()
         {
             var source =
 @".assembly extern mscorlib { }
@@ -368,7 +376,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     ldnull
     throw
   }
-  .method public static object GetVariableValue(string name)
+  .method public static object GetObjectByAlias(string name)
   {
     ldnull
     throw
@@ -379,7 +387,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     throw
   }
 }";
-            return CommonTestBase.CompileIL(source, appendDefaultHeader: true);
+            return CommonTestBase.CompileIL(source);
         }
 
         /// <summary>

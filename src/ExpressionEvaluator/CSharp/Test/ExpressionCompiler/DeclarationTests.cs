@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(testData.Methods.Count, 3);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
@@ -137,19 +137,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0007:  brtrue.s   IL_004d
   IL_0009:  pop
   IL_000a:  ldstr      ""T""
-  IL_000f:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_000f:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0014:  dup
   IL_0015:  brtrue.s   IL_004d
   IL_0017:  pop
   IL_0018:  ldstr      ""F""
-  IL_001d:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_001d:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0022:  unbox.any  ""int""
   IL_0027:  box        ""int""
   IL_002c:  dup
   IL_002d:  brtrue.s   IL_004d
   IL_002f:  pop
   IL_0030:  ldstr      ""D""
-  IL_0035:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0035:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_003a:  castclass  ""C""
   IL_003f:  ldfld      ""object C.F""
   IL_0044:  dup
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   .maxstack  3
   .locals init (char V_0)
   IL_0000:  ldstr      ""c""
-  IL_0005:  call       "" Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<char>(string)""
+  IL_0005:  call       ""char Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<char>(string)""
   IL_000a:  conv.u
   IL_000b:  ldc.i4.s   65
   IL_000d:  dup
@@ -340,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""System.ValueType""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""C""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""C""
-  IL_0019:  call       ""System.ValueType <>x.<>GetVariableAddress<System.ValueType>(string)""
+  IL_0019:  call       ""System.ValueType Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<System.ValueType>(string)""
   IL_001e:  ldstr      ""3""
-  IL_0023:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0028:  unbox.any  ""int""
   IL_002d:  box        ""int""
   IL_0032:  stind.ref
@@ -393,9 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""int <>x.<>GetVariableAddress<int>(string)""
+  IL_0019:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_001e:  ldc.i4.1
   IL_001f:  stind.i4
   IL_0020:  ret
@@ -587,9 +587,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""T""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""T <>x.<>GetVariableAddress<T>(string)""
+  IL_0019:  call       ""T Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<T>(string)""
   IL_001e:  ldloca.s   V_0
   IL_0020:  initobj    ""T""
   IL_0026:  ldloc.0
@@ -597,11 +597,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_002c:  ldtoken    ""T""
   IL_0031:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_0036:  ldstr      ""y""
-  IL_003b:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_003b:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0040:  ldstr      ""y""
-  IL_0045:  call       ""T <>x.<>GetVariableAddress<T>(string)""
+  IL_0045:  call       ""T Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<T>(string)""
   IL_004a:  ldstr      ""x""
-  IL_004f:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_004f:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0054:  unbox.any  ""T""
   IL_0059:  stobj      ""T""
   IL_005e:  ret
@@ -654,11 +654,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""o""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""o""
-  IL_0019:  call       ""object <>x.<>GetVariableAddress<object>(string)""
+  IL_0019:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
   IL_001e:  ldstr      ""o""
-  IL_0023:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0028:  dup
   IL_0029:  brtrue.s   IL_002d
   IL_002b:  pop
@@ -685,11 +685,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""string""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""s""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""s""
-  IL_0019:  call       ""string <>x.<>GetVariableAddress<string>(string)""
+  IL_0019:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
   IL_001e:  ldstr      ""s""
-  IL_0023:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0028:  castclass  ""string""
   IL_002d:  ldc.i4.0
   IL_002e:  callvirt   ""string string.Substring(int)""
@@ -923,15 +923,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""class""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldtoken    ""object""
   IL_0019:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_001e:  ldstr      ""this""
-  IL_0023:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_0023:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0028:  ldstr      ""this""
-  IL_002d:  call       ""object <>x.<>GetVariableAddress<object>(string)""
+  IL_002d:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
   IL_0032:  ldstr      ""class""
-  IL_0037:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0037:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_003c:  stind.ref
   IL_003d:  ret
 }");
@@ -979,9 +979,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""int <>x.<>GetVariableAddress<int>(string)""
+  IL_0019:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_001e:  ldc.i4.1
   IL_001f:  stind.i4
   IL_0020:  ret
@@ -1028,9 +1028,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""T""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""y""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""y""
-  IL_0019:  call       ""T <>x.<>GetVariableAddress<T>(string)""
+  IL_0019:  call       ""T Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<T>(string)""
   IL_001e:  ldarg.0
   IL_001f:  stobj      ""T""
   IL_0024:  ret
@@ -1168,9 +1168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0000:  ldtoken    ""System.Action""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""b""
-  IL_000f:  call       ""void <>x.<>CreateVariable(System.Type, string)""
+  IL_000f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string)""
   IL_0014:  ldstr      ""b""
-  IL_0019:  call       ""System.Action <>x.<>GetVariableAddress<System.Action>(string)""
+  IL_0019:  call       ""System.Action Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<System.Action>(string)""
   IL_001e:  ldsfld     ""System.Action <>x.<>c.<>9__0_0""
   IL_0023:  dup
   IL_0024:  brtrue.s   IL_003d
