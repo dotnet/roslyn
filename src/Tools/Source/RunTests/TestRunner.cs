@@ -31,10 +31,12 @@ namespace RunTests
         }
 
         private readonly string _xunitConsolePath;
+        private readonly bool _useHtml;
 
-        internal TestRunner(string xunitConsolePath)
+        internal TestRunner(string xunitConsolePath, bool useHtml)
         {
             _xunitConsolePath = xunitConsolePath;
+            _useHtml = useHtml;
         }
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
@@ -107,12 +109,13 @@ namespace RunTests
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             var assemblyName = Path.GetFileName(assemblyPath);
-            var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, ".html"));
+            var extension = _useHtml ? ".TestResults.html" : ".TestResults.xml";
+            var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, extension));
             DeleteFile(resultsPath);
 
             var builder = new StringBuilder();
             builder.AppendFormat(@"""{0}""", assemblyPath);
-            builder.AppendFormat(@" -html ""{0}""", resultsPath);
+            builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
             builder.Append(" -noshadow");
 
             var errorOutput = string.Empty;
