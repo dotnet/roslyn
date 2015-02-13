@@ -2404,8 +2404,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Select Case symbol.MethodKind
-                Case MethodKind.Ordinary
-                    Return EnvDTE.vsCMFunction.vsCMFunctionFunction
+                Case MethodKind.Ordinary,
+                     MethodKind.DeclareMethod
+                    Return If(symbol.ReturnsVoid, EnvDTE.vsCMFunction.vsCMFunctionSub, EnvDTE.vsCMFunction.vsCMFunctionFunction)
 
                 Case MethodKind.Constructor
                 Case MethodKind.StaticConstructor
