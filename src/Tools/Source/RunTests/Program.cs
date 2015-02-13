@@ -21,15 +21,12 @@ namespace RunTests
             }
 
             var xunitPath = args[0];
-            var skipCount = 1;
+            var index = 1;
             var test64 = false;
-            if (StringComparer.OrdinalIgnoreCase.Equals(args[1], "-test64"))
-            {
-                skipCount = 2;
-                test64 = true;
-            }
+            var useHtml = false;
+            ParseArgs(args, ref index, ref test64, ref useHtml);
 
-            var list = new List<string>(args.Skip(skipCount));
+            var list = new List<string>(args.Skip(index));
             if (list.Count == 0)
             {
                 PrintUsage();
@@ -47,7 +44,7 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            var testRunner = new TestRunner(xunit);
+            var testRunner = new TestRunner(xunit, useHtml);
             var start = DateTime.Now;
             Console.WriteLine("Running {0} tests", list.Count);
             var result = testRunner.RunAllAsync(list, cts.Token).Result;
@@ -65,6 +62,29 @@ namespace RunTests
         private static void PrintUsage()
         {
             Console.WriteLine("runtests [xunit-console-runner] [assembly1] [assembly2] [...]");
+        }
+
+        private static void ParseArgs(string[] args, ref int index, ref bool test64, ref bool useHtml)
+        {
+            var comp = StringComparer.OrdinalIgnoreCase;
+            while (index < args.Length)
+            {
+                var current = args[index];
+                if (comp.Equals(current, "-test64"))
+                {
+                    test64 = true;
+                    index++;
+                }
+                else if (comp.Equals(current, "-xml"))
+                {
+                    useHtml = false;
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
     }
 }

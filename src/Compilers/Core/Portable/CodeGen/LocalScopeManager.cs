@@ -119,23 +119,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Gets all scopes that contain variables.
             /// </summary>
-            /// <param name="edgeInclusive">Specifies whether scope spans should be reported as edge inclusive
-            /// (position at "start + length" is IN the scope). VB EE expects that.</param>
-            /// <returns></returns>
-            /// <remarks>
-            /// NOTE that edgeInclusive affects only how results are _reported_. 
-            /// All internal representation is EDGE EXCLUSIVE.
-            /// </remarks>
-            internal ImmutableArray<Cci.LocalScope> GetAllScopesWithLocals(bool edgeInclusive = false)
+            internal ImmutableArray<Cci.LocalScope> GetAllScopesWithLocals()
             {
                 var result = ArrayBuilder<Cci.LocalScope>.GetInstance();
-                ScopeBounds rootBounds = _rootScope.GetLocalScopes(result, edgeInclusive);
+                ScopeBounds rootBounds = _rootScope.GetLocalScopes(result);
 
-                uint expectedRootScopeLength = rootBounds.End - rootBounds.Begin;
-                if (edgeInclusive)
-                {
-                    expectedRootScopeLength--;
-                }
+                int expectedRootScopeLength = rootBounds.End - rootBounds.Begin;
 
                 // Add root scope if it was not already added.
                 // we add it even if it does not contain any locals
@@ -148,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         ImmutableArray<Cci.ILocalDefinition>.Empty));
                 }
 
-                //scopes should be sorted by position and size
+                // scopes should be sorted by position and size
                 result.Sort(ScopeComparer.Instance);
 
                 return result.ToImmutableAndFree();
@@ -166,10 +155,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return result.ToImmutableAndFree();
             }
 
-            internal ImmutableArray<Cci.StateMachineHoistedLocalScope> GetHoistedLocalScopes(bool edgeInclusive)
+            internal ImmutableArray<Cci.StateMachineHoistedLocalScope> GetHoistedLocalScopes()
             {
                 var result = ArrayBuilder<Cci.StateMachineHoistedLocalScope>.GetInstance();
-                _rootScope.GetHoistedLocalScopes(result, edgeInclusive);
+                _rootScope.GetHoistedLocalScopes(result);
                 return result.ToImmutableAndFree();
             }
 
@@ -266,19 +255,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// Recursively calculates the start and end of the given scope.
             /// Only scopes with locals are actually dumped to the list.
             /// </summary>
-            internal abstract ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> result, bool edgeInclusive);
+            internal abstract ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> result);
 
-            protected static ScopeBounds GetLocalScopes<TScopeInfo>(ArrayBuilder<Cci.LocalScope> result, ImmutableArray<TScopeInfo>.Builder scopes, bool edgeInclusive)
+            protected static ScopeBounds GetLocalScopes<TScopeInfo>(ArrayBuilder<Cci.LocalScope> result, ImmutableArray<TScopeInfo>.Builder scopes)
                 where TScopeInfo : ScopeInfo
             {
                 Debug.Assert(scopes.Count > 0);
 
-                uint begin = uint.MaxValue;
-                uint end = 0;
+                int begin = int.MaxValue;
+                int end = 0;
 
                 foreach (var scope in scopes)
                 {
-                    ScopeBounds bounds = scope.GetLocalScopes(result, edgeInclusive);
+                    ScopeBounds bounds = scope.GetLocalScopes(result);
                     begin = Math.Min(begin, bounds.Begin);
                     end = Math.Max(end, bounds.End);
                 }
@@ -290,19 +279,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// Recursively calculates the start and end of the given scope.
             /// Only scopes with locals are actually dumped to the list.
             /// </summary>
-            internal abstract ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result, bool edgeInclusive);
+            internal abstract ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result);
 
-            protected static ScopeBounds GetHoistedLocalScopes<TScopeInfo>(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result, ImmutableArray<TScopeInfo>.Builder scopes, bool edgeInclusive)
+            protected static ScopeBounds GetHoistedLocalScopes<TScopeInfo>(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result, ImmutableArray<TScopeInfo>.Builder scopes)
                 where TScopeInfo : ScopeInfo
             {
                 Debug.Assert(scopes.Count > 0);
 
-                uint begin = uint.MaxValue;
-                uint end = 0;
+                int begin = int.MaxValue;
+                int end = 0;
 
                 foreach (var scope in scopes)
                 {
-                    ScopeBounds bounds = scope.GetHoistedLocalScopes(result, edgeInclusive);
+                    ScopeBounds bounds = scope.GetHoistedLocalScopes(result);
                     begin = Math.Min(begin, bounds.Begin);
                     end = Math.Max(end, bounds.End);
                 }
@@ -442,10 +431,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal override ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> result, bool edgeInclusive)
+            internal override ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> result)
             {
-                uint begin = uint.MaxValue;
-                uint end = 0;
+                int begin = int.MaxValue;
+                int end = 0;
 
                 // It may seem overkill to scan all blocks, 
                 // but blocks may be reordered so we cannot be sure which ones are first/last.
@@ -457,8 +446,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (block.Reachability != Reachability.NotReachable)
                         {
-                            begin = Math.Min(begin, (uint)block.Start);
-                            end = Math.Max(end, (uint)(block.Start + block.TotalSize));
+                            begin = Math.Min(begin, block.Start);
+                            end = Math.Max(end, block.Start + block.TotalSize);
                         }
                     }
                 }
@@ -467,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // also may need to adjust current scope bounds.
                 if (_nestedScopes != null)
                 {
-                    ScopeBounds nestedBounds = GetLocalScopes(result, _nestedScopes, edgeInclusive);
+                    ScopeBounds nestedBounds = GetLocalScopes(result, _nestedScopes);
                     begin = Math.Min(begin, nestedBounds.Begin);
                     end = Math.Max(end, nestedBounds.End);
                 }
@@ -475,11 +464,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // we are not interested in scopes with no variables or no code in them.
                 if ((_localVariables != null || _localConstants != null) && end > begin)
                 {
-                    uint endAdjusted = edgeInclusive ? end - 1 : end;
-
                     var newScope = new Cci.LocalScope(
                         begin,
-                        endAdjusted - begin,
+                        end,
                         _localConstants.AsImmutableOrEmpty<Cci.ILocalDefinition>(),
                         _localVariables.AsImmutableOrEmpty<Cci.ILocalDefinition>());
 
@@ -489,10 +476,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return new ScopeBounds(begin, end);
             }
 
-            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result, bool edgeInclusive)
+            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result)
             {
-                uint begin = uint.MaxValue;
-                uint end = 0;
+                int begin = int.MaxValue;
+                int end = 0;
 
                 // It may seem overkill to scan all blocks, 
                 // but blocks may be reordered so we cannot be sure which ones are first/last.
@@ -504,8 +491,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (block.Reachability != Reachability.NotReachable)
                         {
-                            begin = Math.Min(begin, (uint)block.Start);
-                            end = Math.Max(end, (uint)(block.Start + block.TotalSize));
+                            begin = Math.Min(begin, block.Start);
+                            end = Math.Max(end, block.Start + block.TotalSize);
                         }
                     }
                 }
@@ -514,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // also may need to adjust current scope bounds.
                 if (_nestedScopes != null)
                 {
-                    ScopeBounds nestedBounds = GetHoistedLocalScopes(result, _nestedScopes, edgeInclusive);
+                    ScopeBounds nestedBounds = GetHoistedLocalScopes(result, _nestedScopes);
                     begin = Math.Min(begin, nestedBounds.Begin);
                     end = Math.Max(end, nestedBounds.End);
                 }
@@ -522,9 +509,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // we are not interested in scopes with no variables or no code in them.
                 if (_stateMachineUserHoistedLocalSlotIndices != null && end > begin)
                 {
-                    uint endAdjusted = edgeInclusive ? end - 1 : end;
-
-                    var newScope = new Cci.StateMachineHoistedLocalScope(begin, endAdjusted);
+                    var newScope = new Cci.StateMachineHoistedLocalScope(begin, end);
 
                     foreach (var slotIndex in _stateMachineUserHoistedLocalSlotIndices)
                     {
@@ -630,11 +615,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _blockedByFinallyDestination = null;
             }
 
-            public uint FilterHandlerStart
+            public int FilterHandlerStart
             {
                 get
                 {
-                    return (uint)(_lastFilterConditionBlock.Start + _lastFilterConditionBlock.TotalSize);
+                    return _lastFilterConditionBlock.Start + _lastFilterConditionBlock.TotalSize;
                 }
             }
 
@@ -867,20 +852,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal override ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> scopesWithVariables, bool edgeInclusive)
+            internal override ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> scopesWithVariables)
             {
-                return GetLocalScopes(scopesWithVariables, _handlers, edgeInclusive);
+                return GetLocalScopes(scopesWithVariables, _handlers);
             }
 
-            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result, bool edgeInclusive)
+            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result)
             {
-                return GetHoistedLocalScopes(result, _handlers, edgeInclusive);
+                return GetHoistedLocalScopes(result, _handlers);
             }
 
             private static ScopeBounds GetBounds(ExceptionHandlerScope scope)
             {
                 var scopes = ArrayBuilder<Cci.LocalScope>.GetInstance();
-                var result = scope.GetLocalScopes(scopes, edgeInclusive: false);
+                var result = scope.GetLocalScopes(scopes);
                 scopes.Free();
                 return result;
             }
@@ -919,11 +904,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal struct ScopeBounds
         {
-            internal readonly uint Begin;
-            internal readonly uint End;
+            internal readonly int Begin; // inclusive
+            internal readonly int End;   // exclusive
 
-            internal ScopeBounds(uint begin, uint end)
+            internal ScopeBounds(int begin, int end)
             {
+                Debug.Assert(begin >= 0 && end >= 0);
                 this.Begin = begin;
                 this.End = end;
             }
@@ -940,13 +926,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public int Compare(Cci.LocalScope x, Cci.LocalScope y)
             {
-                var res = x.Offset.CompareTo(y.Offset);
-                if (res == 0)
-                {
-                    res = y.Length.CompareTo(x.Length);
-                }
-
-                return res;
+                var result = x.StartOffset.CompareTo(y.StartOffset);
+                return (result == 0) ? y.EndOffset.CompareTo(x.EndOffset) : result;
             }
         }
     }

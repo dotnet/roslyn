@@ -189,8 +189,17 @@ namespace Microsoft.Cci
             cmw.WriteUint(numberOfScopes);
             foreach (var scope in scopes)
             {
-                cmw.WriteUint(scope.StartOffset);
-                cmw.WriteUint(scope.EndOffset);
+                if (scope.IsDefault)
+                {
+                    cmw.WriteUint(0);
+                    cmw.WriteUint(0);
+                }
+                else
+                {
+                    // Dev12 C# emits end-inclusive range
+                    cmw.WriteUint((uint)scope.StartOffset);
+                    cmw.WriteUint((uint)scope.EndOffset - 1);
+                }
             }
 
             customDebugInfo.Add(customMetadata);
@@ -200,7 +209,7 @@ namespace Microsoft.Cci
         {
             if (!methodBody.HasDynamicLocalVariables)
             {
-                return;
+                return; //There are no dynamic locals
             }
 
             var dynamicLocals = ArrayBuilder<ILocalDefinition>.GetInstance();
@@ -361,7 +370,7 @@ namespace Microsoft.Cci
 
         private bool ShouldForwardToPreviousMethodWithUsingInfo(EmitContext context, IMethodBody methodBody)
         {
-            if (_previousMethodBodyWithUsingInfo == null || 
+            if (_previousMethodBodyWithUsingInfo == null ||
                 ReferenceEquals(_previousMethodBodyWithUsingInfo, methodBody))
             {
                 return false;
