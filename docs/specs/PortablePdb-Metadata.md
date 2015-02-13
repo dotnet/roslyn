@@ -175,9 +175,9 @@ The LocalScope table has the following columns:
 
 	Starting IL offset of the scope.
 
-* _Length_ (integer [0..0x80000000) , encoding: uint32)
+* _Length_ (integer [0..0x80000000), encoding: uint32)
 
-    The scope length in bytes. 
+        The scope length in bytes. 
 
 The table is required to be sorted first by _Method_ and then by _StartOffset_.
 
@@ -186,8 +186,6 @@ Each scope spans IL instructions in range [_StartOffset_, _StartOffset_ + _Lengt
 _StartOffset_ shall point to the starting byte of an instruction of the _Method_.
 
 _StartOffset_ + _Length_ shall point to the starting byte of an instruction of the _Method_ or be equal to the size of the IL stream of the _Method_.
-
-Local scopes form a hierarchy (a tree). Two scopes that belong to the _Mathod_ are either disjoit
 
 ### <a name="LocalVariableTable"></a>LocalVariable Table: 0x33
 
@@ -343,18 +341,18 @@ Scopes of local variables hoisted to state machine fields.
 Structure:
 
     Blob ::= Scope {hoisted-variable-count}
-    Scope::= start-offset end-offset
+    Scope::= start-offset length
 
-| terminal | encoding | description|
-|:---------|:---------|:-----------|
-| _start-offset_ | Compressed unsigned integer | Start IL offset of the scope (inclusive)|
-| _end-offset_   | Compressed unsigned integer | End IL offset of the scope (exlusive)|
+| terminal       | encoding | description|
+|:---------------|:---------|:-----------|
+| _start-offset_ | uint32   | Start IL offset of the scope, a value in range (0..0x80000000].|
+| _length_       | uint32   | Length of the scope span, a value in range (0..0x80000000].    |
 
-Each scope spans IL instructions in range [_start-offset_, _end-offset_).
+Each scope spans IL instructions in range [_start-offset_, _start-offset_ + _length_).
 
 _start-offset_ shall point to the starting byte of an instruction of the MoveNext method of the state machine type.
 
-_end-offset_ shall point to the starting byte of an instruction or be equal to the size of the IL block of the MoveNext method of the state machine type.
+_start-offset_ + _length_ shall point to the starting byte of an instruction or be equal to the size of the IL stream of the MoveNext method of the state machine type.
 
 ##### Dynamic Local Variables (C# compiler)
 Parent: MethodDef
