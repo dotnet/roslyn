@@ -169,25 +169,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
-		Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE.vsCMFunction)
-			Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-				Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeFunction2)()
-				Assert.NotNull(codeElement)
+        Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE.vsCMFunction)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeFunction2)()
+                Assert.NotNull(codeElement)
 
-				Assert.Equal(expected, codeElement.FunctionKind)
-			End Using
-		End Sub
+                Assert.Equal(expected, codeElement.FunctionKind)
+            End Using
+        End Sub
 
-		Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE80.vsCMFunction2)
-			Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-				Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeFunction2)()
-				Assert.NotNull(codeElement)
+        Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE80.vsCMFunction2)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeFunction2)()
+                Assert.NotNull(codeElement)
 
-				Assert.Equal(expected, CType(codeElement.FunctionKind, EnvDTE80.vsCMFunction2))
-			End Using
-		End Sub
+                Assert.Equal(expected, CType(codeElement.FunctionKind, EnvDTE80.vsCMFunction2))
+            End Using
+        End Sub
 
-		Protected Sub TestExtensionMethodExtender_IsExtension(code As XElement, expected As Boolean)
+        Protected Sub TestExtensionMethodExtender_IsExtension(code As XElement, expected As Boolean)
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeFunction2)()
                 Assert.NotNull(codeElement)

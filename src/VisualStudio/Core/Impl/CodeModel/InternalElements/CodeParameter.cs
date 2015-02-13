@@ -64,12 +64,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         protected override string GetName()
         {
-            return this._name;
+            return _name;
         }
 
         protected override string GetFullName()
         {
             var node = LookupNode();
+            if (node == null)
+            {
+                return string.Empty;
+            }
+
             return CodeModelService.GetParameterFullName(node);
         }
 
