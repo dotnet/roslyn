@@ -122,8 +122,8 @@ namespace Microsoft.Cci
                         ImportScope = (uint)importScopeRid,
                         VariableList = (uint)_localVariableTable.Count,
                         ConstantList = (uint)_localConstantTable.Count,
-                        StartOffset = scope.Offset,
-                        Length = scope.Length
+                        StartOffset = (uint)scope.StartOffset,
+                        Length = (uint)scope.Length
                     });
 
                     foreach (ILocalDefinition local in scope.Variables)
@@ -465,8 +465,8 @@ namespace Microsoft.Cci
 
             foreach (var scope in scopes)
             {
-                writer.WriteCompressedUInt(scope.StartOffset);
-                writer.WriteCompressedUInt(scope.EndOffset);
+                writer.WriteUint((uint)scope.StartOffset);
+                writer.WriteUint((uint)scope.Length);
             }
 
             _customDebugInformationTable.Add(new CustomDebugInformationRow
