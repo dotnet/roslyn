@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex)
         {
+            if (selectedParameterIndex < -1 || selectedParameterIndex >= _signatureHelpItem.Parameters.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(selectedParameterIndex));
+            }
+
             this.ApplicableToSpan = applicableToSpan;
             _signatureHelpItem = signatureHelpItem;
             _parameterIndex = selectedParameterIndex;
@@ -36,29 +41,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private IList<SymbolDisplayPart> _displayParts;
-        internal IList<SymbolDisplayPart> DisplayParts
+        private Signature InitializedThis
         {
             get
             {
                 EnsureInitialized();
-                return _displayParts;
+                return this;
             }
         }
 
-        private IList<SymbolDisplayPart> _prettyPrintedDisplayParts;
+        private IList<SymbolDisplayPart> _displayParts;
+        internal IList<SymbolDisplayPart> DisplayParts => InitializedThis._displayParts;
 
         public ITrackingSpan ApplicableToSpan { get; }
 
         private string _content;
-        public string Content
-        {
-            get
-            {
-                EnsureInitialized();
-                return _content;
-            }
-        }
+        public string Content => InitializedThis._content;
 
         private int _parameterIndex = -1;
         public IParameter CurrentParameter
@@ -70,33 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        public string Documentation
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public string Documentation => null;
 
         private ReadOnlyCollection<IParameter> _parameters;
-        public ReadOnlyCollection<IParameter> Parameters
-        {
-            get
-            {
-                EnsureInitialized();
-                return _parameters;
-            }
-        }
+        public ReadOnlyCollection<IParameter> Parameters => InitializedThis._parameters;
 
         private string _prettyPrintedContent;
-        public string PrettyPrintedContent
-        {
-            get
-            {
-                EnsureInitialized();
-                return _prettyPrintedContent;
-            }
-        }
+        public string PrettyPrintedContent => InitializedThis._prettyPrintedContent;
 
         // This event is required by the ISignature interface but it's not actually used
         // (once created the CurrentParameter property cannot change)
@@ -107,6 +85,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
             remove
             {
+            }
+        }
+
+        private IList<SymbolDisplayPart> _prettyPrintedDisplayParts;
+        internal IList<SymbolDisplayPart> PrettyPrintedDisplayParts
+        {
+            get
+            {
+                return InitializedThis._prettyPrintedDisplayParts;
+            }
+
+            set
+            {
+                _prettyPrintedDisplayParts = value;
             }
         }
 
@@ -234,19 +226,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             return list;
-        }
-
-        internal IList<SymbolDisplayPart> PrettyPrintedDisplayParts
-        {
-            get
-            {
-                return _prettyPrintedDisplayParts;
-            }
-
-            set
-            {
-                _prettyPrintedDisplayParts = value;
-            }
         }
     }
 }
