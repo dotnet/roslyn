@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
 
                 // Put the new document into the current preview solution.
-                var updatedSolution = _previewWorkspace.CurrentSolution.WithTextDocumentText(document.id, document.GetTextAsync().Result);
+                var updatedSolution = _previewWorkspace.CurrentSolution.WithTextDocumentText(document.Id, document.GetTextAsync().Result);
                 var updatedDocument = updatedSolution.GetTextDocument(document.Id);
 
                 ApplyDocumentToBuffer(updatedDocument, spanSource, out container, out documentBackedByTextBuffer);
