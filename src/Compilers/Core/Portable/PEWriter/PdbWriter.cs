@@ -172,7 +172,7 @@ namespace Microsoft.Cci
             }
 
             // TODO: it's not clear why we are closing a scope here with IL length:
-            CloseScope((uint)methodBody.IL.Length);
+            CloseScope(methodBody.IL.Length);
 
             CloseMethod();
         }
@@ -483,6 +483,9 @@ namespace Microsoft.Cci
 
         private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, uint localSignatureToken)
         {
+            // VB scope ranges are end-inclusive
+            bool endInclusive = this.Module.GenerateVisualBasicStylePdb;
+            
             // The order of OpenScope and CloseScope calls must follow the scope nesting.
             var scopeStack = ArrayBuilder<LocalScope>.GetInstance();
 
@@ -494,18 +497,18 @@ namespace Microsoft.Cci
                 while (scopeStack.Count > 0)
                 {
                     LocalScope topScope = scopeStack.Last();
-                    if (currentScope.Offset < topScope.Offset + topScope.Length)
+                    if (currentScope.StartOffset < topScope.StartOffset + topScope.Length)
                     {
                         break;
                     }
 
                     scopeStack.RemoveLast();
-                    CloseScope(topScope.Offset + topScope.Length);
+                    CloseScope(endInclusive ? topScope.EndOffset - 1 : topScope.EndOffset);
                 }
 
                 // Open this scope.
                 scopeStack.Add(currentScope);
-                OpenScope(currentScope.Offset);
+                OpenScope(currentScope.StartOffset);
                 this.DefineScopeLocals(currentScope, localSignatureToken);
             }
 
@@ -513,7 +516,7 @@ namespace Microsoft.Cci
             for (int i = scopeStack.Count - 1; i >= 0; i--)
             {
                 LocalScope scope = scopeStack[i];
-                CloseScope(scope.Offset + scope.Length);
+                CloseScope(endInclusive ? scope.EndOffset - 1 : scope.EndOffset);
             }
 
             scopeStack.Free();
@@ -695,11 +698,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void OpenScope(uint offset)
+        private void OpenScope(int offset)
         {
             try
             {
-                _symWriter.OpenScope(offset);
+                _symWriter.OpenScope((uint)offset);
             }
             catch (Exception ex)
             {
@@ -707,11 +710,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void CloseScope(uint offset)
+        private void CloseScope(int offset)
         {
             try
             {
-                _symWriter.CloseScope(offset);
+                _symWriter.CloseScope((uint)offset);
             }
             catch (Exception ex)
             {
