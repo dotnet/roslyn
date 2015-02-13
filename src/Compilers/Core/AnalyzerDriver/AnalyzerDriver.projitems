@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerAction.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticStartAnalysisScope.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>

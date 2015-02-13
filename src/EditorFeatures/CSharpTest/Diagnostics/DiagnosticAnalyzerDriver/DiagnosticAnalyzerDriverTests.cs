@@ -93,7 +93,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), donotCatchAnalyzerExceptions: false), AnalyzerDriverHelper.DiagnosticId);
+                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), donotCatchAnalyzerExceptions: false));
             }
         }
 

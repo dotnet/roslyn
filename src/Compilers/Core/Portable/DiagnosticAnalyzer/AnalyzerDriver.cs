@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _addDiagnostic;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CancellationTokenRegistration _queueRegistration;
+        private readonly AnalyzerManager _analyzerManager;
         protected readonly AnalyzerOptions analyzerOptions;
         internal readonly Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException;
 
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Finally, it initializes and starts the <see cref="_primaryTask"/> for the driver.
         /// </summary>
         /// <remarks>
-        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, out Compilation, CancellationToken)"/>.
+        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, out Compilation, CancellationToken)"/>.
         /// </remarks>
         private void Initialize(Compilation comp, CancellationToken cancellationToken)
         {
@@ -76,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _compilation = comp;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var sessionAnalysisScope = GetSessionAnalysisScope(_analyzers, comp.Options, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
-                this.compilationAnalysisScope = GetCompilationAnalysisScope(sessionAnalysisScope, comp, analyzerOptions, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                var sessionAnalysisScope = GetSessionAnalysisScope(_analyzers, _analyzerManager, comp.Options, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                this.compilationAnalysisScope = GetCompilationAnalysisScope(_analyzers, _analyzerManager, sessionAnalysisScope, comp, analyzerOptions, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
                 _symbolActionsByKind = MakeSymbolActionsByKind();
                 _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
                 _compilationEndActionsMap = MakeCompilationEndActionsByAnalyzer();
@@ -142,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilation">The compilation to which the new driver should be attached.</param>
         /// <param name="analyzers">The set of analyzers to include in the analysis.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
+        /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         /// <returns>A newly created analyzer driver</returns>
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Note that since a compilation is immutable, the act of creating a driver and attaching it produces
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
-        public static AnalyzerDriver Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, out Compilation newCompilation, CancellationToken cancellationToken)
+        public static AnalyzerDriver Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, AnalyzerManager analyzerManager, out Compilation newCompilation, CancellationToken cancellationToken)
         {
             if (compilation == null)
             {
@@ -166,14 +168,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            return Create(compilation, analyzers, options, out newCompilation, continueOnAnalyzerException: null, cancellationToken: cancellationToken);
+            return Create(compilation, analyzers, options, analyzerManager, out newCompilation, continueOnAnalyzerException: null, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
-        internal static AnalyzerDriver Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, out Compilation newCompilation, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
+        internal static AnalyzerDriver Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, AnalyzerManager analyzerManager, out Compilation newCompilation, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
         {
             options = options ?? AnalyzerOptions.Empty;
-            AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, options, continueOnAnalyzerException, cancellationToken);
+            AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, options, analyzerManager, continueOnAnalyzerException, cancellationToken);
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
             analyzerDriver.Initialize(newCompilation, cancellationToken);
             return analyzerDriver;
@@ -184,16 +186,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="options">Options that are passed to analyzers</param>
+        /// <param name="analyzerManager">AnalyzerManager to manage analyzers for analyzer host's lifetime.</param>
         /// <param name="cancellationToken">a cancellation token that can be used to abort analysis</param>
         /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
         /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
         /// Otherwise if it returns false, then the exception is not handled by the driver.
         /// If null, then the driver always handles the exception.
         /// </param>
-        protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, AnalyzerManager analyzerManager, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             _analyzers = analyzers;
             this.analyzerOptions = options;
+            _analyzerManager = analyzerManager;
 
             this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
             this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
@@ -549,8 +553,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static HostSessionStartAnalysisScope GetSessionAnalysisScope(
             IEnumerable<DiagnosticAnalyzer> analyzers,
+            AnalyzerManager analyzerManager,
             CompilationOptions compilationOptions,
-            Func<DiagnosticAnalyzer, CompilationOptions, Action<Diagnostic>, Func<Exception, DiagnosticAnalyzer, bool>, CancellationToken, bool> isAnalyzerSuppressed,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
@@ -560,22 +564,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (DiagnosticAnalyzer analyzer in analyzers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!isAnalyzerSuppressed(analyzer, compilationOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken))
+                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerManager, compilationOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken))
                 {
-                    AnalyzerDriverHelper.ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () =>
-                    {
-                        // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
-                        analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope));
-                    }, cancellationToken);
+                    var analyzerSessionScope = analyzerManager.GetSessionAnalysisScope(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                    sessionScope.RegisterAnalyzerActions(analyzer, analyzerSessionScope.GetAnalyzerActions(analyzer));
                 }
             }
 
             return sessionScope;
-        }
-
-        private static HostSessionStartAnalysisScope GetSessionAnalysisScope(IEnumerable<DiagnosticAnalyzer> analyzers, CompilationOptions compilationOptions, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
-        {
-            return GetSessionAnalysisScope(analyzers, compilationOptions, IsDiagnosticAnalyzerSuppressed, addDiagnostic, continueOnAnalyzerException, cancellationToken);
         }
 
         private static void VerifyArguments(
@@ -721,17 +717,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static HostCompilationStartAnalysisScope GetCompilationAnalysisScope(HostSessionStartAnalysisScope session, Compilation compilation, AnalyzerOptions analyzerOptions, Action<Diagnostic> addDiagnostic, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken)
+        private static HostCompilationStartAnalysisScope GetCompilationAnalysisScope(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerManager analyzerManager,
+            HostSessionStartAnalysisScope session, 
+            Compilation compilation,
+            AnalyzerOptions analyzerOptions,
+            Action<Diagnostic> addDiagnostic, 
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
+            CancellationToken cancellationToken)
         {
             HostCompilationStartAnalysisScope compilationScope = new HostCompilationStartAnalysisScope(session);
-
-            foreach (CompilationStartAnalyzerAction startAction in session.CompilationStartActions)
+            foreach (var analyzer in analyzers)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                AnalyzerDriverHelper.ExecuteAndCatchIfThrows(startAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
-                {
-                    startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, compilation, analyzerOptions, cancellationToken));
-                }, cancellationToken);
+                var analyzerCompilationScope = analyzerManager.GetCompilationAnalysisScope(analyzer, session, compilation,
+                    addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken);
+                compilationScope.RegisterAnalyzerActions(analyzer, analyzerCompilationScope.GetAnalyzerActions(analyzer));
             }
 
             return compilationScope;
@@ -742,6 +743,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
+            AnalyzerManager analyzerManager,
             CompilationOptions options,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
@@ -753,11 +755,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
-
-            // Catch Exception from analyzer.SupportedDiagnostics
-            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; }, cancellationToken);
-
+            var supportedDiagnostics = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
             foreach (var diag in supportedDiagnostics)
@@ -815,13 +813,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="getKind">A delegate that returns the language-specific kind for a given syntax node</param>
         /// <param name="options">Options that are passed to analyzers</param>
+        /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
         /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
         /// Otherwise if it returns false, then the exception is not handled by the driver.
         /// If null, then the driver always handles the exception.
         /// </param>
         /// <param name="cancellationToken">a cancellation token that can be used to abort analysis</param>
-        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerOptions options, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken) : base(analyzers, options, cancellationToken, continueOnAnalyzerException)
+        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, AnalyzerOptions options, AnalyzerManager analyzerManager, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken) : base(analyzers, options, analyzerManager, cancellationToken, continueOnAnalyzerException)
         {
             _getKind = getKind;
         }

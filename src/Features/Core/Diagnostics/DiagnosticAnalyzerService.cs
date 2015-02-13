@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly AnalyzerManager _analyzerManager;
+        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
         [ImportingConstructor]
         public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null)
@@ -27,28 +27,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies) : this()
         {
-            _analyzerManager = new AnalyzerManager(workspaceAnalyzerAssemblies);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies);
         }
 
         // internal for testing purposes.
         internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers) : this()
         {
-            _analyzerManager = new AnalyzerManager(workspaceAnalyzers);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers);
         }
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)
         {
             if (projectOpt == null)
             {
-                return _analyzerManager.GetHostDiagnosticDescriptorsPerReference();
+                return _workspaceAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
             }
 
-            return _analyzerManager.GetDiagnosticDescriptorsPerReference(projectOpt);
+            return _workspaceAnalyzerManager.GetDiagnosticDescriptorsPerReference(projectOpt);
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            return _analyzerManager.GetDiagnosticDescriptors(analyzer);
+            return _workspaceAnalyzerManager.GetDiagnosticDescriptors(analyzer);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)

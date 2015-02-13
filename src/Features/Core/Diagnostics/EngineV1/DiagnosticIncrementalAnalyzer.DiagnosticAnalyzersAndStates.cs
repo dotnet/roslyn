@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             public readonly Workspace Workspace;
 
-            public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, AnalyzerManager analyzerManager)
+            public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
             {
                 _owner = owner;
-                _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(analyzerManager);
+                _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(workspaceAnalyzerManager);
                 _projectAnalyzersAndStatesMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates>();
 
                 this.Workspace = workspace;

@@ -26,23 +26,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     private readonly int _analyzerCount;
                     private readonly DiagnosticState[,] _diagnosticStateMaps;
 
-                    public PerLanguageAnalyzersAndStates(AnalyzerManager analyzerManager, string language)
+                    public PerLanguageAnalyzersAndStates(WorkspaceAnalyzerManager workspaceAnalyzerManager, string language)
                     {
                         _language = language;
 
                         // TODO: dynamically re-order providers so that cheap one runs first and slower runs later.
-                        _diagnosticAnalyzerIdMap = CreateAnalyzerIdMap(analyzerManager, language);
+                        _diagnosticAnalyzerIdMap = CreateAnalyzerIdMap(workspaceAnalyzerManager, language);
                         _analyzerCount = _diagnosticAnalyzerIdMap.Values.Flatten().Count();
                         _diagnosticStateMaps = new DiagnosticState[s_stateTypeCount, _analyzerCount];
                     }
 
                     private static ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> CreateAnalyzerIdMap(
-                        AnalyzerManager analyzerManager, string language)
+                        WorkspaceAnalyzerManager workspaceAnalyzerManager, string language)
                     {
                         var index = 0;
                         var map = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>>();
 
-                        foreach (var kv in analyzerManager.GetHostDiagnosticAnalyzersPerReference(language))
+                        foreach (var kv in workspaceAnalyzerManager.GetHostDiagnosticAnalyzersPerReference(language))
                         {
                             var perAnalyzerMap = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ProviderId>();
 
