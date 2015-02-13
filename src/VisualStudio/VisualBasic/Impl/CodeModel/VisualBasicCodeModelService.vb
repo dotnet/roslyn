@@ -78,6 +78,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.Attribute,
                      SyntaxKind.ClassBlock,
                      SyntaxKind.ConstructorBlock,
+                     SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement,
                      SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement,
                      SyntaxKind.EnumBlock,
@@ -121,6 +123,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.SubStatement,
                      SyntaxKind.FunctionStatement
                     Return node.FirstAncestorOrSelf(Of MethodBlockSyntax)() Is Nothing
+
 
                 Case Else
                     Return False
@@ -177,7 +180,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.SetAccessorBlock,
                      SyntaxKind.AddHandlerAccessorBlock,
                      SyntaxKind.RemoveHandlerAccessorBlock,
-                     SyntaxKind.RaiseEventAccessorBlock
+                     SyntaxKind.RaiseEventAccessorBlock,
+                     SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
                     If scope = EnvDTE.vsCMElement.vsCMElementFunction Then
                         Return True
                     End If
@@ -550,7 +555,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
                     Return CType(CodeFunctionWithEventHandler.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)
                 Case SyntaxKind.PropertyBlock,
                      SyntaxKind.PropertyStatement
@@ -587,7 +594,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
                     Return CType(CodeFunctionWithEventHandler.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
                 Case SyntaxKind.PropertyBlock,
                      SyntaxKind.PropertyStatement
@@ -838,6 +847,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.SubStatement,
                      SyntaxKind.FunctionStatement
                     Return DirectCast(node, MethodStatementSyntax).Identifier.ToString()
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    Return DirectCast(node, DeclareStatementSyntax).Identifier.ToString()
                 Case SyntaxKind.ConstructorBlock
                     Dim methodBlock = DirectCast(node, ConstructorBlockSyntax)
                     Return methodBlock.SubNewStatement.NewKeyword.ToString()
@@ -909,6 +921,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.FunctionStatement,
                      SyntaxKind.SubNewStatement
                     Return DirectCast(node, MethodStatementSyntax).WithIdentifier(identifier)
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareFunctionStatement
+                    Return DirectCast(node, DeclareStatementSyntax).WithIdentifier(identifier)
                 Case SyntaxKind.PropertyStatement
                     Return DirectCast(node, PropertyStatementSyntax).WithIdentifier(identifier)
                 Case SyntaxKind.EventStatement
@@ -965,7 +980,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                     Return If(simpleArgument.IsNamed, simpleArgument.NameColonEquals.Name, node)
                 Case SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
                     Return node
                 Case SyntaxKind.EventStatement
                     Return node
@@ -3454,6 +3471,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Select Case CType(node.Kind, SyntaxKind)
                 Case SyntaxKind.ClassBlock,
                      SyntaxKind.ConstructorBlock,
+                     SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement,
                      SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement,
                      SyntaxKind.EnumBlock,
