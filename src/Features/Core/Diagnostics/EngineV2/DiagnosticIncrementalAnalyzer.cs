@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override void RemoveDocument(DocumentId documentId)
         {
             _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), null, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), _workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
             _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), null, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), _workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
 
@@ -155,11 +155,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO: this should move to _analyzerManager
-            var analyzers = _analyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language)
-                                            .SelectMany(kv => kv.Value)
-                                            .Concat(project.AnalyzerReferences.SelectMany(r => r.GetAnalyzers(project.Language)));
+            var analyzers = _analyzerManager.GetDiagnosticAnalyzers(project);
 
-            var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers.ToImmutableArray(), project.AnalyzerOptions, cancellationToken);
+            var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
             // REVIEW: this API is a bit strange. 
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
