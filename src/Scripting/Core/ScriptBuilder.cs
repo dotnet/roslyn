@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         private readonly UncollectibleCodeManager _uncollectibleCodeManager;
         private readonly CollectibleCodeManager _collectibleCodeManager;
 
+        /// <summary>
+        /// Lockable object only instance is knowledgeable about.
+        /// <summary>
+        private readonly object _gate = new object();
+
         #region Testing and Debugging
 
         private const string CollectibleModuleFileName = "CollectibleModule.dll";
@@ -243,7 +248,14 @@ namespace Microsoft.CodeAnalysis.Scripting
             internal readonly AssemblyLoader assemblyLoader;
             private readonly AssemblyIdentity _dynamicAssemblyName;
 
-            // lock(this) on access
+            /// <summary>
+            /// lock(_gate) on access.
+            /// <summary>
+            private readonly object _gate = new object();
+
+            /// <summary>
+            // lock(_gate) on access.
+            /// <summary>
             internal ModuleBuilder dynamicModule;
 
             public CollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)
@@ -258,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (dynamicModule == null)
                 {
-                    lock (this)
+                    lock (_gate)
                     {
                         if (dynamicModule == null)
                         {
@@ -289,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     return null;
                 }
 
-                lock (this)
+                lock (_gate)
                 {
                     return (dynamicModule != null) ? dynamicModule.Assembly : null;
                 }
@@ -316,10 +328,15 @@ namespace Microsoft.CodeAnalysis.Scripting
             private readonly string _assemblyNamePrefix;
             internal readonly AssemblyIdentity dynamicAssemblyName;
 
-            // lock(this) on access
+            // lock(_gate) on access
             private ModuleBuilder _dynamicModule;      // primary uncollectible assembly
             private HashSet<Assembly> _fallBackAssemblies; // additional uncollectible assemblies created due to a Ref.Emit falling back to CCI
             private Dictionary<string, Assembly> _mapping; // { simple name -> fall-back assembly }
+
+            /// <summary>
+            /// Lockable object only instance is knowledgeable about.
+            /// <summary>
+            private readonly object _gate = new object();
 
             internal UncollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)
             {
@@ -334,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (_dynamicModule == null)
                 {
-                    lock (this)
+                    lock (_gate)
                     {
                         if (_dynamicModule == null)
                         {
@@ -360,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             internal void AddFallBackAssembly(Assembly assembly)
             {
-                lock (this)
+                lock (_gate)
                 {
                     if (_fallBackAssemblies == null)
                     {
@@ -381,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     return false;
                 }
 
-                lock (this)
+                lock (_gate)
                 {
                     return _mapping.ContainsKey(simpleName);
                 }
@@ -394,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     return null;
                 }
 
-                lock (this)
+                lock (_gate)
                 {
                     if (args.Name == dynamicAssemblyName.GetDisplayName())
                     {
@@ -414,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             private Assembly Resolve(string simpleName)
             {
-                lock (this)
+                lock (_gate)
                 {
                     return ResolveNoLock(simpleName);
                 }
