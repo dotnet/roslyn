@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
@@ -20,14 +21,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
             }
 
-            public void CloseDocument(DocumentId id, SourceText text)
+            public void CloseDocument(TextDocument document, SourceText text)
             {
-                OnDocumentClosed(id, new PreviewTextLoader(text));
+                if (document is Document)
+                {
+                    OnDocumentClosed(document.Id, new PreviewTextLoader(text));
+                }
+                else
+                {
+                    OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
+                }
             }
 
-            public void CloseAdditionalDocument(DocumentId id, SourceText text)
+            public void OpenDocument(TextDocument document)
             {
-                OnAdditionalDocumentClosed(id, new PreviewTextLoader(text));
+                if (document is Document)
+                {
+                    OpenDocument(document.Id);
+                }
+                else
+                {
+                    OpenAdditionalDocument(document.Id);
+                }
             }
 
             protected override void ApplyDocumentTextChanged(DocumentId id, SourceText text)

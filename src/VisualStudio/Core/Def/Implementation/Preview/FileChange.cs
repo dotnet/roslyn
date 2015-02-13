@@ -30,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private readonly ITextBuffer _buffer;
         private readonly Encoding _encoding;
         private readonly IVsImageService2 _imageService;
-        private readonly bool _isAddionalDocument;
-
+        
         public FileChange(TextDocument left,
             TextDocument right,
             IComponentModel componentModel,
@@ -45,8 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _left = left;
             _right = right;
             _imageService = imageService;
-            _isAddionalDocument = !((left ?? right) is Document);
-
+            
             _componentModel = componentModel;
             var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
             var bufferText = left != null ?
@@ -206,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return _right.WithText(UpdateBufferText());
         }
 
-        public bool IsAdditionalDocumentChange { get { return _isAddionalDocument; } }
+        public bool IsAdditionalDocumentChange => !((_left ?? _right) is Document);
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
         {

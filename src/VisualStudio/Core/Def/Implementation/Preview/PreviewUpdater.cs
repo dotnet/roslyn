@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private PreviewDialogWorkspace _previewWorkspace;
         public static ITextView TextView;
         private DocumentId _currentDocument;
-        private bool _isCurrentAdditionalDocument;
         internal static Span SpanToShow;
         internal static PreviewTagger Tagger;
 
@@ -33,14 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
         }
 
-        public void UpdateView(TextDocument document, SpanChange spanSource, bool isAdditionalDocument)
+        public void UpdateView(TextDocument document, SpanChange spanSource)
         {
             var documentText = document.GetTextAsync().Result.ToString();
             if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
             {
                 SourceTextContainer container;
                 TextDocument documentBackedByTextBuffer;
-                UpdateBuffer(document, spanSource, isAdditionalDocument, out container, out documentBackedByTextBuffer);
+                UpdateBuffer(document, spanSource, out container, out documentBackedByTextBuffer);
             }
 
             // Picking a different span: no text change; update span anyway.
@@ -50,65 +49,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Tagger.OnTextBufferChanged();
         }
 
-        private void UpdateBuffer(TextDocument document, SpanChange spanSource, bool isAdditionalDocument, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
+        private void UpdateBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
             if (_previewWorkspace != null)
             {
-                // Close the current document in preview solution.
-                if (_isCurrentAdditionalDocument)
-                {
-                    _previewWorkspace.CloseAdditionalDocument(_currentDocument, _previewWorkspace.CurrentSolution.GetAdditionalDocument(_currentDocument).GetTextAsync().Result);
-                }
-                else
-                {
-                    _previewWorkspace.CloseDocument(_currentDocument, _previewWorkspace.CurrentSolution.GetDocument(_currentDocument).GetTextAsync().Result);
-                }
+                var currentDocument = _previewWorkspace.CurrentSolution.GetTextDocument(_currentDocument);
+                var currentDocumentText = currentDocument.GetTextAsync().Result;
+                _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
 
                 // Put the new document into the current preview solution.
-                TextDocument updatedDocument;
-                if (isAdditionalDocument)
-                {
-                    var updatedSolution = _previewWorkspace.CurrentSolution.WithAdditionalDocumentText(document.Id, document.GetTextAsync().Result);
-                    updatedDocument = updatedSolution.GetAdditionalDocument(document.Id);
-                }
-                else
-                {
-                    var updatedSolution = _previewWorkspace.CurrentSolution.WithDocumentText(document.Id, document.GetTextAsync().Result);
-                    updatedDocument = updatedSolution.GetDocument(document.Id);
-                }
+                var updatedSolution = _previewWorkspace.CurrentSolution.WithTextDocumentText(document.id, document.GetTextAsync().Result);
+                var updatedDocument = updatedSolution.GetTextDocument(document.Id);
 
-                ApplyDocumentToBuffer(updatedDocument, spanSource, isAdditionalDocument, out container, out documentBackedByTextBuffer);
+                ApplyDocumentToBuffer(updatedDocument, spanSource, out container, out documentBackedByTextBuffer);
 
                 _previewWorkspace.TryApplyChanges(documentBackedByTextBuffer.Project.Solution);
-                OpenDocument(document.Id, isAdditionalDocument);
+                _previewWorkspace.OpenDocument(document.Id);
                 _currentDocument = document.Id;
             }
             else
             {
                 _currentDocument = document.Id;
 
-                ApplyDocumentToBuffer(document, spanSource, isAdditionalDocument, out container, out documentBackedByTextBuffer);
-
+                ApplyDocumentToBuffer(document, spanSource, out container, out documentBackedByTextBuffer);
                 _previewWorkspace = new PreviewDialogWorkspace(documentBackedByTextBuffer.Project.Solution);
-                OpenDocument(document.Id, isAdditionalDocument);
-            }
-
-            _isCurrentAdditionalDocument = isAdditionalDocument;
-        }
-
-        private void OpenDocument(DocumentId documentId, bool isAdditionalDocument)
-        {
-            if (isAdditionalDocument)
-            {
-                _previewWorkspace.OpenAdditionalDocument(documentId);
-            }
-            else
-            {
-                _previewWorkspace.OpenDocument(documentId);
+                _previewWorkspace.OpenDocument(document.Id);
             }
         }
 
-        private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, bool isAdditionalDocument, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
+        private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
             var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
@@ -125,9 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             container = TextView.TextBuffer.AsTextContainer();
-            documentBackedByTextBuffer = isAdditionalDocument ?
-                document.WithAdditionalDocumentText(container.CurrentText) :
-                document.WithText(container.CurrentText);
+            documentBackedByTextBuffer = document.WithText(container.CurrentText);
         }
     }
 }
