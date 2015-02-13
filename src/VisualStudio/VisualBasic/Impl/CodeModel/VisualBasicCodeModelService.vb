@@ -352,10 +352,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return GetAttributeNodes(DirectCast(node, TypeBlockSyntax).BlockStatement.AttributeLists)
             ElseIf TypeOf node Is EnumBlockSyntax Then
                 Return GetAttributeNodes(DirectCast(node, EnumBlockSyntax).EnumStatement.AttributeLists)
+            ElseIf TypeOf node Is DelegateStatementSyntax Then
+                Return GetAttributeNodes(DirectCast(node, DelegateStatementSyntax).AttributeLists)
             ElseIf TypeOf node Is MethodBlockBaseSyntax Then
                 Return GetAttributeNodes(DirectCast(node, MethodBlockBaseSyntax).BlockStatement.AttributeLists)
             ElseIf TypeOf node Is PropertyBlockSyntax Then
                 Return GetAttributeNodes(DirectCast(node, PropertyBlockSyntax).PropertyStatement.AttributeLists)
+            ElseIf TypeOf node Is PropertyStatementSyntax Then
+                Return GetAttributeNodes(DirectCast(node, PropertyStatementSyntax).AttributeLists)
+            ElseIf TypeOf node Is EventBlockSyntax Then
+                Return GetAttributeNodes(DirectCast(node, EventBlockSyntax).EventStatement.AttributeLists)
+            ElseIf TypeOf node Is EventStatementSyntax Then
+                Return GetAttributeNodes(DirectCast(node, EventStatementSyntax).AttributeLists)
             ElseIf TypeOf node Is FieldDeclarationSyntax Then
                 Return GetAttributeNodes(DirectCast(node, FieldDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ParameterSyntax Then
