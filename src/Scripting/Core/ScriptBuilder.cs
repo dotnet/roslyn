@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         /// <summary>
         /// Lockable object only instance is knowledgeable about.
-        /// <summary>
+        /// </summary>
         private readonly object _gate = new object();
 
         #region Testing and Debugging
@@ -250,12 +250,12 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             /// <summary>
             /// lock(_gate) on access.
-            /// <summary>
+            /// </summary>
             private readonly object _gate = new object();
 
             /// <summary>
-            // lock(_gate) on access.
-            /// <summary>
+            /// lock(_gate) on access.
+            /// </summary>
             internal ModuleBuilder dynamicModule;
 
             public CollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             /// <summary>
             /// Lockable object only instance is knowledgeable about.
-            /// <summary>
+            /// </summary>
             private readonly object _gate = new object();
 
             internal UncollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)
