@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private readonly int _index;
         private readonly int _prettyPrintedIndex;
 
-        public string Documentation => _documentation ?? (_documentation = _parameter.DocumentationGetter(CancellationToken.None).GetFullText());
+        public string Documentation => _documentation ?? (_documentation = _parameter.DocumentationFactory(CancellationToken.None).GetFullText());
         public string Name => _parameter.Name;
         public Span Locus => new Span(_index, _contentLength);
         public Span PrettyPrintedLocus => new Span(_prettyPrintedIndex, _contentLength);

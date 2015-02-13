@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 yield return new SignatureHelpParameter(
                     namedParameter.Name,
                     isOptional: true,
-                    documentationGetter: namedParameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormatter),
+                    documentationFactory: namedParameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormatter),
                     displayParts: displayParts,
                     prefixDisplayParts: GetParameterPrefixDisplayParts(i));
             }

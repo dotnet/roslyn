@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic: invokeMethod.IsParams(),
-                documentationGetter: null,
+                documentationFactory: null,
                 prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
                 suffixParts: GetDelegateInvokePostambleParts(),

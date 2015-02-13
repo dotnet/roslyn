@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
 
-            var documentation = _signatureHelpItem.DocumentationGetter(CancellationToken.None).ToList();
+            var documentation = _signatureHelpItem.DocumenationFactory(CancellationToken.None).ToList();
             if (documentation.Count > 0)
             {
                 AddRange(new[] { newLinePart }, parts, prettyPrintedParts);

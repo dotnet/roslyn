@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=invokeMethod.IsParams(),
-                documentationGetter:=Nothing,
+                documentationFactory:=Nothing,
                 prefixParts:=GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=GetDelegateInvokePostambleParts(invokeMethod, semanticModel, position),
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 parameters.Add(New SignatureHelpParameter(
                     parameter.Name,
                     isOptional:=False,
-                    documentationGetter:=parameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentoFormattingService),
+                    documentationFactory:=parameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentoFormattingService),
                     displayParts:=parameter.ToMinimalDisplayParts(semanticModel, position)))
             Next
 

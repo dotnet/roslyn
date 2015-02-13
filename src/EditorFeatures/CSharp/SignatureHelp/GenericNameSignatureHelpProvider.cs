@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             return new SignatureHelpParameter(
                 parameter.Name,
                 isOptional: false,
-                documentationGetter: parameter.GetDocumentationPartsGetter(semanticModel, position, formatter),
+                documentationFactory: parameter.GetDocumentationPartsGetter(semanticModel, position, formatter),
                 displayParts: parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat),
                 selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken));
         }

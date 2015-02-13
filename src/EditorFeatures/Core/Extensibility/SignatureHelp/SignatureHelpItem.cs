@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
 
-        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationGetter { get; }
+        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumenationFactory { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationGetter = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationFactory = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
 
         public SignatureHelpItem(
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationGetter,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
             IEnumerable<SymbolDisplayPart> prefixParts,
             IEnumerable<SymbolDisplayPart> separatorParts,
             IEnumerable<SymbolDisplayPart> suffixParts,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             this.IsVariadic = isVariadic;
-            this.DocumentationGetter = documentationGetter ?? s_emptyDocumentationGetter;
+            this.DocumenationFactory = documentationFactory ?? s_emptyDocumentationFactory;
             this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
             this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
             this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();

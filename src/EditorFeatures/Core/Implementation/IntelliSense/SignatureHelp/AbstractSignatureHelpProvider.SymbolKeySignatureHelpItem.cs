@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,
                 bool isVariadic,
-                Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationGetter,
+                Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
                 IEnumerable<SymbolDisplayPart> prefixParts,
                 IEnumerable<SymbolDisplayPart> separatorParts,
                 IEnumerable<SymbolDisplayPart> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentationGetter, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
+                IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
                 this.SymbolKey = symbol == null ? null : symbol.GetSymbolKey();
             }

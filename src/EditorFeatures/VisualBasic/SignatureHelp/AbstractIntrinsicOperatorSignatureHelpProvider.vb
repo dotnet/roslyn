@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                     New SignatureHelpParameter(
                         name:=documentation.GetParameterName(i),
                         isOptional:=False,
-                        documentationGetter:=Function(c As CancellationToken) documentation.GetParameterDocumentation(capturedIndex).ToSymbolDisplayParts(),
+                        documentationFactory:=Function(c As CancellationToken) documentation.GetParameterDocumentation(capturedIndex).ToSymbolDisplayParts(),
                         displayParts:=documentation.GetParameterDisplayParts(i)))
             Next
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 Nothing, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=False,
-                documentationGetter:=Function(c As CancellationToken) SpecializedCollections.SingletonEnumerable(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, documentation.DocumentationText)),
+                documentationFactory:=Function(c As CancellationToken) SpecializedCollections.SingletonEnumerable(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, documentation.DocumentationText)),
                 prefixParts:=documentation.PrefixParts,
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=suffixParts,

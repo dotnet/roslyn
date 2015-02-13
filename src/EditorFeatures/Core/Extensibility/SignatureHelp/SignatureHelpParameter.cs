@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Documentation for this parameter.  This should normally be presented to the user when
         /// this parameter is selected.
         /// </summary>
-        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationGetter { get; }
+        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationFactory { get; }
 
         /// <summary>
         /// Display parts to show before the normal display parts for the parameter.
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public IList<SymbolDisplayPart> SelectedDisplayParts { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationGetter = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationFactory = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
 
         public SignatureHelpParameter(
             string name,
             bool isOptional,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>>  documentationGetter,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>>  documentationFactory,
             IEnumerable<SymbolDisplayPart> displayParts,
             IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
             IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             this.Name = name ?? string.Empty;
             this.IsOptional = isOptional;
-            this.DocumentationGetter = documentationGetter ?? s_emptyDocumentationGetter;
+            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
             this.DisplayParts = displayParts.ToImmutableArrayOrEmpty();
             this.PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
             this.SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();

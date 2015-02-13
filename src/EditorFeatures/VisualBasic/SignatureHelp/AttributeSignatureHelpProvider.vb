@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 result.Add(New SignatureHelpParameter(
                     namedParameter.Name,
                     isOptional:=True,
-                    documentationGetter:=namedParameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
+                    documentationFactory:=namedParameter.GetDocumentationPartsGetter(semanticModel, position, documentationCommentFormattingService),
                     displayParts:=displayParts,
                     prefixDisplayParts:=GetParameterPrefixDisplayParts(i)))
             Next
