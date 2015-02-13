@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             var diagnostics = await GetDiagnosticsAsync(project.Solution, project.Id, null, cancellationToken).ConfigureAwait(false);
 
-            RaiseEvetns(project, diagnostics);
+            RaiseEvents(project, diagnostics);
         }
 
         public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // TODO: this should move to _analyzerManager
             var analyzers = _analyzerManager.GetDiagnosticAnalyzers(project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private void RaiseEvetns(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        private void RaiseEvents(Project project, ImmutableArray<DiagnosticData> diagnostics)
         {
             var groups = diagnostics.GroupBy(d => d.DocumentId);
 
