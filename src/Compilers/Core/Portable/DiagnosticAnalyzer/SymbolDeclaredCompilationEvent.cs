@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Lockable object only instance is knowledgeable about.
-        /// <summary>
+        /// </summary>
         private readonly object _gate = new object();
 
         public SemanticModel SemanticModel(SyntaxReference reference)
