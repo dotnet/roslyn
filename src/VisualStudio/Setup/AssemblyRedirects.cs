@@ -162,6 +162,38 @@ using Microsoft.VisualStudio.Shell;
     PublicKeyToken = Constants.PublicKeyToken,
     GenerateCodeBase = false)]
 
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.LanguageServices.Implementation",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.LanguageServices.VisualBasic",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.LanguageServices.CSharp",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.LanguageServices.SolutionExplorer",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
 internal class Constants
 {
 #if OFFICIAL_BUILD
