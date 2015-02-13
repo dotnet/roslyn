@@ -159,7 +159,7 @@ End Module
             Dim innerCount = 10
             Dim streamList = new List(Of MemoryStream)()
             For i = 0 To innerCount - 1
-                streamList(i) = new MemoryStream()
+                streamList.Add(new MemoryStream())
             Next
 
             For i = 0 To 100
