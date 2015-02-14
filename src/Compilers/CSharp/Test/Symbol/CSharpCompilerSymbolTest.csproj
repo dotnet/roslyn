@@ -162,9 +162,6 @@
     <Compile Include="Symbols\Metadata\PE\TypeAccessibility.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeForwarders.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeKindTests.cs" />
-    <Compile Include="Symbols\Metadata\WinMdDumpTest.cs" />
-    <Compile Include="Symbols\Metadata\WinMdEventTests.cs" />
-    <Compile Include="Symbols\Metadata\WinMdMetadataTests.cs" />
     <Compile Include="Symbols\MethodEqualityTests.cs" />
     <Compile Include="Symbols\MissingSpecialMember.cs" />
     <Compile Include="Symbols\MockAssemblySymbol.cs" />

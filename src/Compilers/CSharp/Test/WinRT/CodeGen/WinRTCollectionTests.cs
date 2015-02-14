@@ -13,23 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class WinRTCollectionTests : CSharpTestBase
     {
-        private MetadataReference[] _legacyRefs = null;
-
-        public MetadataReference[] LegacyRefs
+        public static MetadataReference[] LegacyRefs { get; } =
         {
-            get
-            {
-                if (_legacyRefs == null)
-                {
-                    var list = new List<MetadataReference>(WinRtRefs.Length + 2);
-                    list.AddRange(WinRtRefs);
-                    list.Add(AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"));
-                    list.Add(AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore"));
-                    _legacyRefs = list.ToArray();
-                }
-                return _legacyRefs;
-            }
-        }
+            AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"),
+            AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore")
+        };
+        
 
         [Fact, WorkItem(762316, "DevDiv")]
         public void InheritFromTypeWithProjections()
@@ -96,7 +85,6 @@ b
 
             var verifier = CompileAndVerifyOnWin8Only(source,
                 expectedOutput: expectedOutput,
-                additionalRefs: WinRtRefs,
                 emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("Class1.Main",
@@ -198,7 +186,6 @@ public class Class1
             var verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput: expectedOut,
-                additionalRefs: WinRtRefs,
                 emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("Class1.Main",
@@ -265,7 +252,6 @@ testKey2testValue3
             var verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput: expectedOut,
-                additionalRefs: WinRtRefs,
                 emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("Class1.Main",
@@ -441,7 +427,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -1472,7 +1458,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, references: LegacyRefs);
+            var comp = CreateWinRtCompilation(source, additionalRefs: LegacyRefs);
             comp.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -1839,7 +1825,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 //FIXME: Can't verify because the metadata adapter isn't implemented yet
@@ -3201,7 +3187,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
                 verify: false);
@@ -4445,7 +4431,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -4812,7 +4798,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -4999,7 +4985,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -5197,7 +5183,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -5418,7 +5404,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -5556,7 +5542,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -5705,23 +5691,25 @@ namespace Test
         }
     }
 }";
-            var comp = CreateCompilation(source, references: LegacyRefs);
+            var comp = CreateWinRtCompilation(source, additionalRefs: LegacyRefs);
             comp.VerifyDiagnostics(
-                // (30,36): error CS0539: 'Test.R.this[int]' in explicit interface declaration is not a member of interface
-                //         int IObservableVector<int>.this[int index]
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("Test.R.this[int]"),
-                // (13,53): warning CS0067: The event 'Test.R.VectorChanged' is never used
-                //         public event VectorChangedEventHandler<int> VectorChanged;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "VectorChanged").WithArguments("Test.R.VectorChanged"),
-                // (2,1): info CS8019: Unnecessary using directive.
-                // using System.Reflection;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;"),
-                // (3,1): info CS8019: Unnecessary using directive.
-                // using System.Runtime.InteropServices;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.InteropServices;"),
-                // (4,1): info CS8019: Unnecessary using directive.
-                // using System.Threading;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"));
+    // (30,36): error CS0539: 'R.this[int]' in explicit interface declaration is not a member of interface
+    //         int IObservableVector<int>.this[int index]
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "this").WithArguments("Test.R.this[int]").WithLocation(30, 36),
+    // (13,53): warning CS0067: The event 'R.VectorChanged' is never used
+    //         public event VectorChangedEventHandler<int> VectorChanged;
+    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "VectorChanged").WithArguments("Test.R.VectorChanged").WithLocation(13, 53),
+    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+    // (2,1): hidden CS8019: Unnecessary using directive.
+    // using System.Reflection;
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Reflection;").WithLocation(2, 1),
+    // (4,1): hidden CS8019: Unnecessary using directive.
+    // using System.Threading;
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;").WithLocation(4, 1),
+    // (3,1): hidden CS8019: Unnecessary using directive.
+    // using System.Runtime.InteropServices;
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.InteropServices;").WithLocation(3, 1));
         }
 
         [Fact]
@@ -5825,7 +5813,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -6053,7 +6041,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -6253,7 +6241,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -6613,7 +6601,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
@@ -6774,7 +6762,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(
+            var verifier = CompileAndVerifyWinRt(
                 source,
                 additionalRefs: LegacyRefs,
                 emitOptions: TestEmitters.RefEmitBug,
@@ -7047,7 +7035,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(
+            var verifier = CompileAndVerifyWinRt(
                 source,
                 emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
@@ -7175,7 +7163,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(
+            var verifier = CompileAndVerifyWinRt(
                 source,
                 emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
@@ -7297,7 +7285,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerify(
+            var verifier = CompileAndVerifyWinRt(
                 source,
                 emitOptions: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
@@ -7377,10 +7365,9 @@ namespace Test
         }   
     }
 }";
-            var verifier = CompileAndVerify(source,
+            var verifier = CompileAndVerifyWinRt(source,
                 options: TestOptions.ReleaseWinMD,
-                emitOptions: TestEmitters.RefEmitBug,
-                additionalRefs: WinRtRefs);
+                emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.C.GetEnumerator()",
@@ -7392,8 +7379,6 @@ namespace Test
 }");
 
             var compRef = verifier.Compilation.ToMetadataReference();
-            var allRefs = new List<MetadataReference>(WinRtRefs);
-            allRefs.Add(compRef);
             source =
 @"using System;
 using Test;
@@ -7409,9 +7394,9 @@ namespace Test2
         }
     }
 }";
-            verifier = CompileAndVerify(source,
+            verifier = CompileAndVerifyWinRt(source,
                 emitOptions: TestEmitters.RefEmitBug,
-                additionalRefs: allRefs.ToArray());
+                additionalRefs: new[] { compRef });
             verifier.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System;

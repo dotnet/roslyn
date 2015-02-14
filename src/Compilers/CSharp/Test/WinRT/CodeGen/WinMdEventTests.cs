@@ -173,7 +173,7 @@ class C
     event System.Action E;
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -209,7 +209,7 @@ class C
     static event System.Action<int> E;
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -273,7 +273,7 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -366,7 +366,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -455,7 +455,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug, additionalRefs: WinRtRefs);
+            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD, emitOptions: TestEmitters.RefEmitBug);
 
             verifier.VerifyIL("C.InstanceInvoke", @"
 {
