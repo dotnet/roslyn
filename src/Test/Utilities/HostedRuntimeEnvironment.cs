@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private RuntimeAssemblyManager assemblyManager;
         private ImmutableArray<Diagnostic> lazyDiagnostics;
         private ModuleData mainModule;
+        private ImmutableArray<byte> mainModulePdb;
         private List<ModuleData> allModuleData;
         private readonly CompilationTestData testData = new CompilationTestData();
         private readonly IEnumerable<ModuleData> additionalDependencies;
@@ -97,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // Determines if any of the given dependencies has the same name as already loaded assembly with different content.
         private static string DetectNameCollision(IEnumerable<ModuleData> modules)
         {
-            modules = modules.Where(m => !m.FullName.Contains("mscorlib"));
             lock (allModuleNames)
             {
                 foreach (var module in modules)
@@ -122,12 +122,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return null;
         }
 
-        private static void EmitDependentCompilation(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics)
+        private static void EmitDependentCompilation(Compilation compilation,
+                                                     List<ModuleData> dependencies,
+                                                     DiagnosticBag diagnostics,
+                                                     bool usePdbForDebugging = false)
         {
             ImmutableArray<byte> assembly, pdb;
             if (EmitCompilation(compilation, null, dependencies, diagnostics, null, out assembly, out pdb))
             {
-                dependencies.Add(new ModuleData(compilation.Assembly.Identity, OutputKind.DynamicallyLinkedLibrary, assembly, pdb, inMemoryModule: true));
+                dependencies.Add(new ModuleData(compilation.Assembly.Identity,
+                                                OutputKind.DynamicallyLinkedLibrary,
+                                                assembly,
+                                                pdb: usePdbForDebugging ? pdb : default(ImmutableArray<byte>),
+                                                inMemoryModule: true));
             }
         }
 
@@ -156,11 +163,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
                         if (isManifestModule)
                         {
-                            dependencies.Add(new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity, OutputKind.DynamicallyLinkedLibrary, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: true));
+                            dependencies.Add(new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity,
+                                                            OutputKind.DynamicallyLinkedLibrary,
+                                                            bytes,
+                                                            pdb: default(ImmutableArray<byte>),
+                                                            inMemoryModule: true));
                         }
                         else
                         {
-                            dependencies.Add(new ModuleData(module.Name, bytes, pdb: default(ImmutableArray<byte>), inMemoryModule: true));
+                            dependencies.Add(new ModuleData(module.Name,
+                                                            bytes,
+                                                            pdb: default(ImmutableArray<byte>),
+                                                            inMemoryModule: true));
                         }
 
                         isManifestModule = false;
@@ -226,7 +240,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources)
+        public void Emit(
+            Compilation mainCompilation,
+            IEnumerable<ResourceDescription> manifestResources,
+            bool usePdbForDebugging = false)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
@@ -240,7 +257,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (succeeded)
             {
-                this.mainModule = new ModuleData(mainCompilation.Assembly.Identity, mainCompilation.Options.OutputKind, mainImage, mainPdb, inMemoryModule: true);
+                this.mainModule = new ModuleData(mainCompilation.Assembly.Identity,
+                                                 mainCompilation.Options.OutputKind,
+                                                 mainImage,
+                                                 pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
+                                                 inMemoryModule: true);
+                this.mainModulePdb = mainPdb;
                 this.allModuleData = dependencies;
                 this.allModuleData.Insert(0, mainModule);
                 CreateAssemblyManager(dependencies, mainModule);
@@ -314,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 throw new InvalidOperationException("You must call Emit before calling GetMainPdb.");
             }
 
-            return mainModule.Pdb;
+            return mainModulePdb;
         }
 
         internal IList<ModuleData> GetAllModuleData()
