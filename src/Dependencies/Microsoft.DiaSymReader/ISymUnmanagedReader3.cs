@@ -7,7 +7,7 @@ using System.Runtime.InteropServices.ComTypes;
 namespace Microsoft.DiaSymReader
 {
     [ComImport]
-    [Guid("A09E53B2-2A57-4cca-8F63-B84F7C35D4AA")]
+    [Guid("6151CAD9-E1EE-437A-A808-F64838C0D046")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(false)]
     public interface ISymUnmanagedReader3 : ISymUnmanagedReader2
@@ -147,7 +147,7 @@ namespace Microsoft.DiaSymReader
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             int bufferLength,
             out int count,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] customDebugInformation);
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] customDebugInformation);
 
         /// <summary>
         /// Gets a custom debug information based upon its name and an EnC 1-based version number. 
@@ -159,7 +159,7 @@ namespace Microsoft.DiaSymReader
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             int bufferLength,
             out int count,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] buffer);
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] buffer);
 
         #endregion  
     }
