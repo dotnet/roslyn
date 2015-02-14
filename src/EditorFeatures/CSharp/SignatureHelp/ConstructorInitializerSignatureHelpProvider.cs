@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 constructor.IsParams(),
-                constructor.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),

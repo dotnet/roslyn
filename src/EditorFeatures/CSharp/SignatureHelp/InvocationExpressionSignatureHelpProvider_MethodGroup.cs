@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 method.IsParams(),
-                method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken).Concat(GetAwaitableUsage(method, semanticModel, position)),
+                c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(method),

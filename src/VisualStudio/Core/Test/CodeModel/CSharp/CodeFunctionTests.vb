@@ -215,6 +215,26 @@ class C
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_ExplicitInterfaceImplementation()
+            Dim code =
+<Code>
+public interface I1
+{
+   void f1();
+}
+
+public class C1: I1
+{
+   void I1.f1$$()
+   {
+   }
+}
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
+        End Sub
+
 #End Region
 
 #Region "MustImplement tests"

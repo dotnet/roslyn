@@ -1,12 +1,439 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
     Public Class CodeParameterTests
         Inherits AbstractCodeParameterTests
+
+#Region "GetStartPoint() tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_NoModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S1($$p1 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=31)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ByValModifier()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S2(ByVal $$p2 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=24, absoluteOffset:=41, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ByRefModifier()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S3(ByRef $$p3 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=24, absoluteOffset:=41, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=37)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_OptionalByValModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S4(Optional ByVal $$p4 As Integer = 0)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=33, absoluteOffset:=50, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ByValParamArrayModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S5(ByVal ParamArray $$p5() As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=35, absoluteOffset:=52, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=50)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_TypeCharacter()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S6($$p6%)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=18, absoluteOffset:=35, lineLength:=21)))
+        End Sub
+
+#End Region
+
+#Region "GetEndPoint() tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_NoModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S1($$p1 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=20, absoluteOffset:=37, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=31, absoluteOffset:=48, lineLength:=31)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ByValModifier()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S2(ByVal $$p2 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=26, absoluteOffset:=43, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ByRefModifier()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S3(ByRef $$p3 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=26, absoluteOffset:=43, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=37, absoluteOffset:=54, lineLength:=37)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_OptionalByValModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S4(Optional ByVal $$p4 As Integer = 0)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=35, absoluteOffset:=52, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ByValParamArrayModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S5(ByVal ParamArray $$p5() As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=39, absoluteOffset:=56, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=50, absoluteOffset:=67, lineLength:=50)))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_TypeCharacter()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S6($$p6%)
+   End Sub
+
+End Class
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartAttributes,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
+                     NullTextPoint),
+                Part(EnvDTE.vsCMPart.vsCMPartBody,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeader,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartName,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartNavigate,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartWhole,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)),
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=3, lineOffset:=21, absoluteOffset:=38, lineLength:=21)))
+        End Sub
+
+#End Region
 
 #Region "AddAttribute tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -53,7 +480,7 @@ End Class
 #Region "FullName tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName()
+        Public Sub FullName_NoModifiers()
             Dim code =
 <Code>
 Class C
@@ -63,6 +490,126 @@ End Class
 </Code>
 
             TestFullName(code, "s")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_Array()
+            Dim code =
+<Code>
+Class C
+    Sub Foo($$s() As String)
+    End Sub
+End Class
+</Code>
+
+            TestFullName(code, "s()")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_TypeCharacter()
+            Dim code =
+<Code>
+Class C
+    Sub Foo($$s% As String)
+    End Sub
+End Class
+</Code>
+
+            TestFullName(code, "s%")
+        End Sub
+
+#End Region
+
+#Region "Name tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_NoModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S1($$p1 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestName(code, "p1")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ByValModifier()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S2(ByVal $$p2 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestName(code, "p2")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ByRefModifier()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S3(ByRef $$p3 As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestName(code, "p3")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_OptionalByValModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S4(Optional ByVal $$p4 As Integer = 0)
+   End Sub
+
+End Class
+</Code>
+
+            TestName(code, "p4")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ByValParamArrayModifiers()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S5(ByVal ParamArray $$p5() As Integer)
+   End Sub
+
+End Class
+</Code>
+
+            TestName(code, "p5")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_TypeCharacter()
+            Dim code =
+<Code>
+Public Class C1
+
+   Public Sub S6($$p6%)
+   End Sub
+
+End Class
+</Code>
+
+            TestName(code, "p6")
         End Sub
 
 #End Region

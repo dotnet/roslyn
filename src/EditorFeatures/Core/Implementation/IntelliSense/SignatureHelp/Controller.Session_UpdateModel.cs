@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // If we don't have an item that can take that number of parameters, then just pick
                     // the last item.  Or stick with the current item if the last item isn't any better.
                     var lastItem = filteredItems.Last();
-                    if (currentItem.IsVariadic || currentItem.Parameters.Count == lastItem.Parameters.Count)
+                    if (currentItem.IsVariadic || currentItem.Parameters.Length == lastItem.Parameters.Length)
                     {
                         return currentItem;
                     }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // parameter index.  i.e. if it has 2 parameters and we're at index 0 or 1 then it's
                     // applicable.  However, if it has 2 parameters and we're at index 2, then it's not
                     // applicable.  
-                    if (item.Parameters.Count >= argumentCount)
+                    if (item.Parameters.Length >= argumentCount)
                     {
                         return true;
                     }

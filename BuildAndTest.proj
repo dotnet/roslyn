@@ -13,8 +13,11 @@
     <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
     <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <ArgumentTest64></ArgumentTest64>
-    <ArgumentTest64 Condition="'$(Test64)' == 'true'">-test64</ArgumentTest64>
+    <RunTestArgs></RunTestArgs>
+    <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
+
+    <!-- Emit XML in a CIBuild in order to get structured test results -->
+    <RunTestArgs Condition="'$(CIBuild)' == 'true'">$(RunTestArgs) -xml</RunTestArgs>
   </PropertyGroup>
 
   <Target Name="RestorePackages">
@@ -79,7 +82,7 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Services.VisualBasic.UnitTests.dll" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(ArgumentTest64) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 

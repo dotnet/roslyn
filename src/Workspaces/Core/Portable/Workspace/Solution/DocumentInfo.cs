@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis
             this.SourceCodeKind = sourceCodeKind;
             this.TextLoader = loader;
             this.FilePath = filePath;
+            this.IsGenerated = isGenerated;
         }
 
         public static DocumentInfo Create(

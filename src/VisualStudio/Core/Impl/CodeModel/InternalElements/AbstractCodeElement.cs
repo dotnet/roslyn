@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.GetFullName(node, semanticModel);
         }
 
-        public virtual string FullName
+        public string FullName
         {
             get { return GetFullName(); }
         }
