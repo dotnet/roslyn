@@ -4622,4 +4622,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ContantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="ERR_InternalImplementationOnly" xml:space="preserve">
+    <value>The type '{1}' may not be used in the base clause of '{0}' because it has the InternalImplementationOnly attribute.</value>
+  </data>
 </root>

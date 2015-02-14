@@ -138,6 +138,12 @@ Class MockNamedTypeSymbol
         End Get
     End Property
 
+    Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Friend Overrides ReadOnly Property IsSerializable As Boolean
         Get
             Return False
@@ -776,7 +782,7 @@ Class MockAssemblySymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
+    Friend Overrides Function HasInternalAccessTo(potentialGiverOfAccess As AssemblySymbol) As Boolean
         Throw New NotImplementedException()
     End Function
 

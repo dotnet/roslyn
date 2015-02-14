@@ -331,6 +331,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return False

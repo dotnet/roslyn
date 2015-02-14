@@ -248,6 +248,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+            Get
+                Return m_UnderlyingType.HasInteralImplementationOnlyAttribute
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return m_UnderlyingType.IsSerializable

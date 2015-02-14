@@ -191,6 +191,7 @@
     <Compile Include="Symbols\Source\ExternAliasTests.cs" />
     <Compile Include="Symbols\Source\FieldTests.cs" />
     <Compile Include="Symbols\Source\IndexedTypeParameterTests.cs" />
+    <Compile Include="Symbols\Source\InternalImplementationOnlyTests.cs" />
     <Compile Include="Symbols\Source\LocationTests.cs" />
     <Compile Include="Symbols\Source\MethodTests.cs" />
     <Compile Include="Symbols\Source\ModifierTests.cs" />

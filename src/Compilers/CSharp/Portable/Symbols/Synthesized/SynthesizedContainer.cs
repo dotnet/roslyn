@@ -306,5 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        internal override bool HasInternalImplementationOnlyAttribute => false;
     }
 }

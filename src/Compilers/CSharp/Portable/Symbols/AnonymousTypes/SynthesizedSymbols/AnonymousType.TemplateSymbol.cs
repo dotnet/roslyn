@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal override bool HasInternalImplementationOnlyAttribute => false;
+
             internal override bool MangleName
             {
                 get { return this.Arity > 0; }

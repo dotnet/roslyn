@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks></remarks>
         Friend MustOverride Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
 
-        Friend MustOverride Function AreInternalsVisibleToThisAssembly(other As AssemblySymbol) As Boolean
+        Friend MustOverride Function HasInternalAccessTo(potentialGiverOfAccess As AssemblySymbol) As Boolean
 
         ''' <summary>
         ''' Get symbol for predefined type from Cor Library used by this assembly.

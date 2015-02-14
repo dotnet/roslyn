@@ -962,6 +962,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasSpecialName { get; }
 
         /// <summary>
+        /// True if this symbol has the attribute System.Runtime.CompilerServices.InternalImplementationOnlyAttribute
+        /// </summary>
+        internal abstract bool HasInternalImplementationOnlyAttribute { get; }
+
+        /// <summary>
         /// Returns a flag indicating whether this symbol is ComImport.
         /// </summary>
         /// <remarks>

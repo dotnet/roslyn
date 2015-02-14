@@ -135,6 +135,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     @interface.CheckAllConstraints(conversions, location, diagnostics);
                 }
+
+                // we check direct base interfaces that have the InternalImplementationOnly attribute,
+                // giving an error when such an attributed interface appears in the interface list.
+                foreach (var baseInterface in this.InterfacesNoUseSiteDiagnostics(null))
+                {
+                    EnsureExtensible(baseInterface, location, diagnostics);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Produce an error if the given base interface may not be extended by this type due to the
+        /// presence of the attribute System.Runtime.CompilerServices.InternalImplementationOnlyAttribute
+        /// </summary>
+        private void EnsureExtensible(NamedTypeSymbol baseInterface, SourceLocation location, DiagnosticBag diagnostics)
+        {
+            if (this.ContainingAssembly != baseInterface.ContainingAssembly &&
+                baseInterface.HasInternalImplementationOnlyAttribute &&
+                !this.ContainingAssembly.HasInternalAccessTo(baseInterface.ContainingAssembly))
+            {
+                diagnostics.Add(ErrorCode.ERR_InternalImplementationOnly, location, this, baseInterface);
             }
         }
 

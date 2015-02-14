@@ -905,6 +905,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+                    Get
+                        Return False
+                    End Get
+                End Property
+
                 Friend Overrides ReadOnly Property IsSerializable As Boolean
                     Get
                         Return False
@@ -929,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property TypeKind As TYPEKIND
+                Public Overrides ReadOnly Property TypeKind As TypeKind
                     Get
                         Return TypeKind.Interface
                     End Get
@@ -957,7 +963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of VisualBasicAttributeData).Empty
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     Dim compilation As VisualBasicCompilation = m_ComClass.DeclaringCompilation
@@ -1290,7 +1296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return attributes.ToImmutableAndFree()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If m_SynthesizedDispId = ReservedDispId.None Then
@@ -1572,7 +1578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return m_ClonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If IsComEventParameter Then
@@ -1780,7 +1786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return m_ClonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If m_SynthesizedDispId = ReservedDispId.None Then

@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Assembly.Modules(0).HasGuidAttribute(Assembly.Handle, guidString)
         End Function
 
-        Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
+        Friend Overrides Function HasInternalAccessTo(potentialGiverOfAccess As AssemblySymbol) As Boolean
             Return MakeFinalIVTDetermination(potentialGiverOfAccess) = IVTConclusion.Match
         End Function
 

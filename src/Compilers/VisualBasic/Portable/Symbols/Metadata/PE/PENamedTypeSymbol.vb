@@ -223,6 +223,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+            Get
+                Return Me.ContainingPEModule.Module.HasInternalImplementationOnlyAttribute(m_Handle)
+            End Get
+        End Property
+
         Friend ReadOnly Property MetadataArity As Integer
             Get
                 Return m_GenericParameterHandles.Count

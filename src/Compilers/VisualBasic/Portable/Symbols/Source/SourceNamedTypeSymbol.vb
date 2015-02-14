@@ -1671,8 +1671,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If singleDeclaration IsNot Nothing Then
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = DiagnosticBag.GetInstance()
-                    For Each [interface] In localInterfaces
-                        [interface].CheckAllConstraints(location, diagnostics)
+                    For Each baseInterface In localInterfaces
+                        baseInterface.CheckAllConstraints(location, diagnostics)
+                        EnsureExtensible(baseInterface, location, diagnostics)
                     Next
                 End If
             End If
@@ -1687,6 +1688,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If diagnostics IsNot Nothing Then
                 diagnostics.Free()
+            End If
+        End Sub
+
+        Private Sub EnsureExtensible(baseInterface As NamedTypeSymbol, location As Location, diagnostics As DiagnosticBag)
+            If baseInterface.ContainingAssembly <> Me.ContainingAssembly AndAlso
+                 baseInterface.HasInteralImplementationOnlyAttribute AndAlso
+                 Not Me.ContainingAssembly.HasInternalAccessTo(baseInterface.ContainingAssembly) Then
+                diagnostics.Add(ERRID.ERR_InternalImplementationOnly, location, Me, baseInterface)
             End If
         End Sub
 
@@ -2330,6 +2339,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+            Get
+                For Each att In Me.GetAttributes
+                    If att.IsTargetAttribute("System.Runtime.CompilerServices", "InternalImplementationOnlyAttribute") Then
+                        Return True
+                    End If
+                Next
+
+                Return False
+            End Get
+        End Property
+
         Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
@@ -2383,7 +2404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Dim compilation = Me.DeclaringCompilation

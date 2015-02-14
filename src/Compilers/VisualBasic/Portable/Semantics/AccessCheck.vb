@@ -474,27 +474,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        ' Does "fromAssembly" have friend accessibility to "toAssembly"?
+        ' Does "assemblyWantingAccess" have friend accessibility to "potentialGiverOfAccess"?
         ' I.e., either 
         '   1. They are the same assembly
-        '   2. toAssembly has an InternalsVisibleTo attribute that names fromAssembly
+        '   2. potentialGiverOfAccess has an InternalsVisibleTo attribute that names fromAssembly
         '   3. They are both interactive assemblies.
-        Public Shared Function HasFriendAccessTo(fromAssembly As AssemblySymbol, toAssembly As AssemblySymbol) As Boolean
+        Public Shared Function HasFriendAccessTo(assemblyWantingAccess As AssemblySymbol, potentialGiverOfAccess As AssemblySymbol) As Boolean
             ' TODO: Implement by checking attributes, and also that interactive assemblys have access to each other.
             Return _
-                IsSameAssembly(fromAssembly, toAssembly) OrElse
-                InternalsAccessibleTo(toAssembly, fromAssembly)
+                IsSameAssembly(assemblyWantingAccess, potentialGiverOfAccess) OrElse
+                InternalsAccessibleTo(potentialGiverOfAccess, assemblyWantingAccess)
         End Function
 
-        ' Does "toAssembly" give access to assemblyWantingAccess via InternalVisibleTo?
-        Private Shared Function InternalsAccessibleTo(toAssembly As AssemblySymbol, assemblyWantingAccess As AssemblySymbol) As Boolean
+        ' Does "potentialGiverOfAccess" give access to assemblyWantingAccess via InternalVisibleTo?
+        Private Shared Function InternalsAccessibleTo(potentialGiverOfAccess As AssemblySymbol, assemblyWantingAccess As AssemblySymbol) As Boolean
             ' checks if fromAssembly has friend assembly access to the internals in toAssembly
-            If assemblyWantingAccess.AreInternalsVisibleToThisAssembly(toAssembly) Then
+            If assemblyWantingAccess.HasInternalAccessTo(potentialGiverOfAccess) Then
                 Return True
             End If
 
             ' all interactive assemblies are friends of each other:
-            If assemblyWantingAccess.IsInteractive AndAlso toAssembly.IsInteractive Then
+            If assemblyWantingAccess.IsInteractive AndAlso potentialGiverOfAccess.IsInteractive Then
                 Return True
             End If
 

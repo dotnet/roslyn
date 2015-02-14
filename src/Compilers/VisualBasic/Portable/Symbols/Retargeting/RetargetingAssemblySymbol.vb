@@ -214,8 +214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return m_UnderlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
-        Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
-            Return m_UnderlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
+        Friend Overrides Function HasInternalAccessTo(potentialGiverOfAccess As AssemblySymbol) As Boolean
+            Return m_UnderlyingAssembly.HasInternalAccessTo(potentialGiverOfAccess)
         End Function
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean

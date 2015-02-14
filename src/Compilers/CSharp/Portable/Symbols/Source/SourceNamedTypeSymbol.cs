@@ -821,6 +821,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasInternalImplementationOnlyAttribute
+        {
+            get
+            {
+                foreach (var att in this.GetAttributes())
+                {
+                    if (att.IsTargetAttribute("System.Runtime.CompilerServices", "InternalImplementationOnlyAttribute"))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         internal sealed override bool ShouldAddWinRTMembers
         {
             get { return false; }
