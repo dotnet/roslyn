@@ -24,12 +24,6 @@
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
       <Link>Shared\CustomDebugInfoReader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\ISymUnmanagedAsyncMethod.cs">
-      <Link>Shared\ISymUnmanagedAsyncMethod.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\ISymENCUnmanagedMethod.cs">
-      <Link>Shared\ISymENCUnmanagedMethod.cs</Link>
-    </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
@@ -73,6 +67,7 @@
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.1-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">

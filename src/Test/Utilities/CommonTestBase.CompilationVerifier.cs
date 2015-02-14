@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Roslyn.Test.PdbUtilities;
-using PDB::Microsoft.VisualStudio.SymReaderInterop;
 using Roslyn.Test.Utilities;
 using Xunit;
 
