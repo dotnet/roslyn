@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }, cancellationToken);
             }
 
-            return Task.WhenAll(simplifyTasks).WithCancellation(cancellationToken);
+            return Task.WhenAll(simplifyTasks);
         }
     }
 
