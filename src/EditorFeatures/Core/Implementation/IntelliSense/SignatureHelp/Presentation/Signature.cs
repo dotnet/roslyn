@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
@@ -16,26 +18,91 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private const int MaxParamColumnCount = 100;
 
         private readonly SignatureHelpItem _signatureHelpItem;
-        private IParameter _currentParameter;
-        internal IList<SymbolDisplayPart> DisplayParts { get; private set; }
-        private IList<SymbolDisplayPart> _prettyPrintedDisplayParts;
 
-        public ITrackingSpan ApplicableToSpan { get; internal set; }
-        public string Content { get; private set; }
-        public string PrettyPrintedContent { get; private set; }
-        public ReadOnlyCollection<IParameter> Parameters { get; private set; }
-        public string Documentation { get; private set; }
-
-        public event EventHandler<CurrentParameterChangedEventArgs> CurrentParameterChanged;
-
-        public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem)
+        public Signature(ITrackingSpan applicableToSpan, SignatureHelpItem signatureHelpItem, int selectedParameterIndex)
         {
+            if (selectedParameterIndex < -1 || selectedParameterIndex >= signatureHelpItem.Parameters.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(selectedParameterIndex));
+            }
+
             this.ApplicableToSpan = applicableToSpan;
             _signatureHelpItem = signatureHelpItem;
-            this.Initialize(setParameters: true);
+            _parameterIndex = selectedParameterIndex;
         }
 
-        private void Initialize(bool setParameters)
+        private bool _isInitialized;
+        private void EnsureInitialized()
+        {
+            if (!_isInitialized)
+            {
+                _isInitialized = true;
+                Initialize();
+            }
+        }
+
+        private Signature InitializedThis
+        {
+            get
+            {
+                EnsureInitialized();
+                return this;
+            }
+        }
+
+        private IList<SymbolDisplayPart> _displayParts;
+        internal IList<SymbolDisplayPart> DisplayParts => InitializedThis._displayParts;
+
+        public ITrackingSpan ApplicableToSpan { get; }
+
+        private string _content;
+        public string Content => InitializedThis._content;
+
+        private int _parameterIndex = -1;
+        public IParameter CurrentParameter
+        {
+            get
+            {
+                EnsureInitialized();
+                return _parameterIndex >= 0 && _parameters != null ? _parameters[_parameterIndex] : null;
+            }
+        }
+
+        public string Documentation => null;
+
+        private ReadOnlyCollection<IParameter> _parameters;
+        public ReadOnlyCollection<IParameter> Parameters => InitializedThis._parameters;
+
+        private string _prettyPrintedContent;
+        public string PrettyPrintedContent => InitializedThis._prettyPrintedContent;
+
+        // This event is required by the ISignature interface but it's not actually used
+        // (once created the CurrentParameter property cannot change)
+        public event EventHandler<CurrentParameterChangedEventArgs> CurrentParameterChanged
+        {
+            add
+            {
+            }
+            remove
+            {
+            }
+        }
+
+        private IList<SymbolDisplayPart> _prettyPrintedDisplayParts;
+        internal IList<SymbolDisplayPart> PrettyPrintedDisplayParts
+        {
+            get
+            {
+                return InitializedThis._prettyPrintedDisplayParts;
+            }
+
+            set
+            {
+                _prettyPrintedDisplayParts = value;
+            }
+        }
+
+        private void Initialize()
         {
             var content = new StringBuilder();
             var prettyPrintedContent = new StringBuilder();
@@ -61,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             var paramColumnCount = 0;
 
-            for (int i = 0; i < _signatureHelpItem.Parameters.Count; i++)
+            for (int i = 0; i < _signatureHelpItem.Parameters.Length; i++)
             {
                 var sigHelpParameter = _signatureHelpItem.Parameters[i];
 
@@ -107,9 +174,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AddRange(_signatureHelpItem.SuffixDisplayParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.SuffixDisplayParts.GetFullText(), content, prettyPrintedContent);
 
-            if (_currentParameter != null)
+            if (_parameterIndex >= 0)
             {
-                var sigHelpParameter = _signatureHelpItem.Parameters[this.Parameters.IndexOf(_currentParameter)];
+                var sigHelpParameter = _signatureHelpItem.Parameters[_parameterIndex];
 
                 AddRange(sigHelpParameter.SelectedDisplayParts, parts, prettyPrintedParts);
                 Append(sigHelpParameter.SelectedDisplayParts.GetFullText(), content, prettyPrintedContent);
@@ -118,24 +185,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AddRange(_signatureHelpItem.DescriptionParts, parts, prettyPrintedParts);
             Append(_signatureHelpItem.DescriptionParts.GetFullText(), content, prettyPrintedContent);
 
-            if (_signatureHelpItem.Documentation.Count > 0)
+            var documentation = _signatureHelpItem.DocumenationFactory(CancellationToken.None).ToList();
+            if (documentation.Count > 0)
             {
                 AddRange(new[] { newLinePart }, parts, prettyPrintedParts);
                 Append(newLineContent, content, prettyPrintedContent);
 
-                AddRange(_signatureHelpItem.Documentation, parts, prettyPrintedParts);
-                Append(_signatureHelpItem.Documentation.GetFullText(), content, prettyPrintedContent);
+                AddRange(documentation, parts, prettyPrintedParts);
+                Append(documentation.GetFullText(), content, prettyPrintedContent);
             }
 
-            this.Content = content.ToString();
-            this.PrettyPrintedContent = prettyPrintedContent.ToString();
-            this.DisplayParts = parts.ToImmutableArrayOrEmpty();
-            this.PrettyPrintedDisplayParts = prettyPrintedParts.ToImmutableArrayOrEmpty();
-
-            if (setParameters)
-            {
-                this.Parameters = parameters.ToReadOnlyCollection();
-            }
+            _content = content.ToString();
+            _prettyPrintedContent = prettyPrintedContent.ToString();
+            _displayParts = parts.ToImmutableArrayOrEmpty();
+            _prettyPrintedDisplayParts = prettyPrintedParts.ToImmutableArrayOrEmpty();
+            _parameters = parameters.ToReadOnlyCollection();
         }
 
         private void AddRange(IList<SymbolDisplayPart> values, List<SymbolDisplayPart> parts, List<SymbolDisplayPart> prettyPrintedParts)
@@ -162,46 +226,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             return list;
-        }
-
-        public IParameter CurrentParameter
-        {
-            get
-            {
-                return _currentParameter;
-            }
-
-            set
-            {
-                if (value == _currentParameter)
-                {
-                    return;
-                }
-
-                var oldValue = _currentParameter;
-                _currentParameter = value;
-
-                Initialize(setParameters: false);
-
-                var currentParameterChanged = this.CurrentParameterChanged;
-                if (currentParameterChanged != null)
-                {
-                    currentParameterChanged(this, new CurrentParameterChangedEventArgs(oldValue, value));
-                }
-            }
-        }
-
-        internal IList<SymbolDisplayPart> PrettyPrintedDisplayParts
-        {
-            get
-            {
-                return _prettyPrintedDisplayParts;
-            }
-
-            set
-            {
-                _prettyPrintedDisplayParts = value;
-            }
         }
     }
 }
