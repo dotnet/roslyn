@@ -28,7 +28,7 @@ namespace Microsoft.DiaSymReader
         int GetLanguageVendor(ref Guid vendor);
 
         [PreserveSig]
-        int GetCheckSumAlgorithmId(ref Guid algorithm);
+        int GetChecksumAlgorithmId(ref Guid algorithm);
 
         [PreserveSig]
         int GetChecksum(
