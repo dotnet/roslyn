@@ -86,7 +86,7 @@ namespace ImplementNotifyPropertyChangedCS
         private static string GenerateFieldName(PropertyDeclarationSyntax property, SemanticModel semanticModel)
         {
             var baseName = property.Identifier.ValueText;
-            baseName = char.ToLower(baseName[0]) + baseName.Substring(1);
+            baseName = char.ToLower(baseName[0]).ToString() + baseName.Substring(1);
 
             var propertySymbol = semanticModel.GetDeclaredSymbol(property);
             if (propertySymbol == null ||
@@ -99,7 +99,7 @@ namespace ImplementNotifyPropertyChangedCS
             var name = baseName;
             while (propertySymbol.ContainingType.MemberNames.Contains(name))
             {
-                name = baseName + ++index;
+                name = baseName + (++index).ToString();
             }
 
             return name;
