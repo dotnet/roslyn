@@ -35,6 +35,7 @@
     <Compile Include="ISymUnmanagedNamespace.cs" />
     <Compile Include="ISymUnmanagedReader.cs" />
     <Compile Include="ISymUnmanagedReader2.cs" />
+    <Compile Include="ISymUnmanagedReader3.cs" />
     <Compile Include="ISymUnmanagedScope.cs" />
     <Compile Include="ISymUnmanagedScope2.cs" />
     <Compile Include="ISymUnmanagedVariable.cs" />
