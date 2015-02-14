@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
         {
+            // this API is for a case where user wants us to figure out encoding from the given stream.
+            // if defaultEncoding is given, we will use it if we couldn't figure out encoding used in the stream ourselves.
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanSeek);
             Debug.Assert(stream.CanRead);
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
         {
+            // this API is for a case where user just wants to create a source text with explicit encoding.
             var buffer = CreateTextBuffer(reader, cancellationToken);
 
             // use the given encoding as it is.
