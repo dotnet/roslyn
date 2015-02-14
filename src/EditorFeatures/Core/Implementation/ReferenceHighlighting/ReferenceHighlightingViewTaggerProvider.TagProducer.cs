@@ -56,6 +56,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 }
 
                 var document = snapshotSpans.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
+                if (document == null)
+                {
+                    return SpecializedTasks.EmptyEnumerable<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>();
+                }
 
                 return ProduceTagsAsync(snapshotSpans, position, workspace, document, cancellationToken);
             }

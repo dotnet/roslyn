@@ -38,13 +38,13 @@
   .ver 14:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Metadata.dll
-// MVID: {AC9B7DDB-CC42-493D-ACBB-CA5974E92DDA}
+// MVID: {17762184-24A2-49AA-BA4A-E530F297ED20}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x014E0000
+// Image base: 0x008F0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -2531,6 +2531,111 @@
   } // end of property Assembly::ManifestModule
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.Assembly
 
+.class public auto ansi System.Reflection.Adds.MetadataFile
+       extends [mscorlib]System.Object
+       implements [mscorlib]System.IDisposable
+{
+  .permissionset demand
+             = {class 'System.Security.Permissions.SecurityPermissionAttribute, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' = {property bool 'UnmanagedCode' = bool(true)}}
+  .method family hidebysig virtual instance void 
+          Finalize() cil managed
+  {
+    .override [mscorlib]System.Object::Finalize
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::Finalize
+
+  .method public hidebysig newslot virtual final 
+          instance void  Dispose() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::Dispose
+
+  .method family hidebysig newslot virtual 
+          instance void  Dispose(bool disposing) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::Dispose
+
+  .method public hidebysig newslot specialname virtual 
+          instance string  get_FilePath() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::get_FilePath
+
+  .method public hidebysig newslot virtual 
+          instance uint8[]  ReadRva(int64 rva,
+                                    int32 countBytes) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::ReadRva
+
+  .method public hidebysig newslot virtual 
+          instance uint8[]  ReadResource(int64 offset) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::ReadResource
+
+  .method public hidebysig instance uint8[] 
+          ReadEmbeddedBlob(valuetype System.Reflection.Adds.EmbeddedBlobPointer pointer,
+                           int32 countBytes) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::ReadEmbeddedBlob
+
+  .method family hidebysig newslot virtual 
+          instance void  ValidateRange(native int ptr,
+                                       int32 countBytes) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::ValidateRange
+
+  .method public hidebysig newslot virtual 
+          instance valuetype System.Reflection.Adds.Token 
+          ReadEntryPointToken() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::ReadEntryPointToken
+
+  .method public hidebysig newslot virtual 
+          instance !!T  ReadRvaStruct<.ctor T>(int64 rva) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::ReadRvaStruct
+
+  .method family hidebysig instance void 
+          EnsureNotDispose() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method MetadataFile::EnsureNotDispose
+
+  .property instance string FilePath()
+  {
+    .get instance string System.Reflection.Adds.MetadataFile::get_FilePath()
+  } // end of property MetadataFile::FilePath
+} // end of class System.Reflection.Adds.MetadataFile
+
 .class public sequential ansi sealed Microsoft.MetadataReader.AssemblyMetaData
        extends [mscorlib]System.ValueType
        implements [mscorlib]System.IDisposable
@@ -2896,8 +3001,8 @@
 
   .property instance string CodeBase()
   {
-    .get instance string Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_CodeBase()
     .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_CodeBase(string)
+    .get instance string Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_CodeBase()
   } // end of property AssemblyName::CodeBase
   .property instance valuetype Microsoft.VisualStudio.Debugger.Metadata.AssemblyContentType
           ContentType()
@@ -2918,8 +3023,8 @@
   .property instance valuetype [mscorlib]System.Reflection.AssemblyNameFlags
           Flags()
   {
-    .get instance valuetype [mscorlib]System.Reflection.AssemblyNameFlags Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Flags()
     .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Flags(valuetype [mscorlib]System.Reflection.AssemblyNameFlags)
+    .get instance valuetype [mscorlib]System.Reflection.AssemblyNameFlags Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Flags()
   } // end of property AssemblyName::Flags
   .property instance string FullName()
   {
@@ -2938,8 +3043,8 @@
   } // end of property AssemblyName::KeyPair
   .property instance string Name()
   {
-    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Name(string)
     .get instance string Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_Name()
+    .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_Name(string)
   } // end of property AssemblyName::Name
   .property instance valuetype Microsoft.VisualStudio.Debugger.Metadata.ProcessorArchitecture
           ProcessorArchitecture()
@@ -2956,8 +3061,8 @@
   .property instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility
           VersionCompatibility()
   {
-    .get instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_VersionCompatibility()
     .set instance void Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::set_VersionCompatibility(valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility)
+    .get instance valuetype [mscorlib]System.Configuration.Assemblies.AssemblyVersionCompatibility Microsoft.VisualStudio.Debugger.Metadata.AssemblyName::get_VersionCompatibility()
   } // end of property AssemblyName::VersionCompatibility
 } // end of class Microsoft.VisualStudio.Debugger.Metadata.AssemblyName
 

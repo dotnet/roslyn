@@ -59,11 +59,11 @@ namespace Roslyn.Test.MetadataUtilities
         {
             public readonly HandlerKind Kind;
             public readonly object ExceptionType;
-            public readonly uint StartOffset;
-            public readonly uint FilterHandlerStart;
-            public readonly uint EndOffset;
+            public readonly int StartOffset;
+            public readonly int FilterHandlerStart;
+            public readonly int EndOffset;
 
-            public HandlerSpan(HandlerKind kind, object exceptionType, uint startOffset, uint endOffset, uint filterHandlerStart = 0)
+            public HandlerSpan(HandlerKind kind, object exceptionType, int startOffset, int endOffset, int filterHandlerStart = 0)
             {
                 this.Kind = kind;
                 this.ExceptionType = exceptionType;
@@ -74,11 +74,11 @@ namespace Roslyn.Test.MetadataUtilities
 
             public int CompareTo(HandlerSpan other)
             {
-                int result = (int)this.StartOffset - (int)other.StartOffset;
+                int result = this.StartOffset - other.StartOffset;
                 if (result == 0)
                 {
                     // Both blocks have same start. Order larger (outer) before smaller (inner).
-                    result = (int)other.EndOffset - (int)this.EndOffset;
+                    result = other.EndOffset - this.EndOffset;
                 }
 
                 return result;
@@ -500,7 +500,7 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 int tryStartOffset = entry.TryOffset;
                 int tryEndOffset = entry.TryOffset + entry.TryLength;
-                var span = new HandlerSpan(HandlerKind.Try, null, (uint)tryStartOffset, (uint)tryEndOffset);
+                var span = new HandlerSpan(HandlerKind.Try, null, tryStartOffset, tryEndOffset);
 
                 if (result.Count == 0 || span.CompareTo(result[result.Count - 1]) != 0)
                 {
@@ -517,19 +517,19 @@ namespace Roslyn.Test.MetadataUtilities
                 switch (entry.Kind)
                 {
                     case ExceptionRegionKind.Catch:
-                        span = new HandlerSpan(HandlerKind.Catch, MetadataTokens.GetToken(entry.CatchType), (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        span = new HandlerSpan(HandlerKind.Catch, MetadataTokens.GetToken(entry.CatchType), handlerStartOffset, handlerEndOffset);
                         break;
 
                     case ExceptionRegionKind.Fault:
-                        span = new HandlerSpan(HandlerKind.Fault, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        span = new HandlerSpan(HandlerKind.Fault, null, handlerStartOffset, handlerEndOffset);
                         break;
 
                     case ExceptionRegionKind.Filter:
-                        span = new HandlerSpan(HandlerKind.Filter, null, (uint)handlerStartOffset, (uint)handlerEndOffset, (uint)entry.FilterOffset);
+                        span = new HandlerSpan(HandlerKind.Filter, null, handlerStartOffset, handlerEndOffset, entry.FilterOffset);
                         break;
 
                     case ExceptionRegionKind.Finally:
-                        span = new HandlerSpan(HandlerKind.Finally, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        span = new HandlerSpan(HandlerKind.Finally, null, handlerStartOffset, handlerEndOffset);
                         break;
 
                     default:

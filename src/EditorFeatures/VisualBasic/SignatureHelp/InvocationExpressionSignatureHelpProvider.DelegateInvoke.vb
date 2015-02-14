@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=invokeMethod.IsParams(),
-                documentation:=SpecializedCollections.EmptyEnumerable(Of SymbolDisplayPart)(),
+                documentationFactory:=Nothing,
                 prefixParts:=GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=GetDelegateInvokePostambleParts(invokeMethod, semanticModel, position),
@@ -52,10 +52,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
         Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentoFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpParameter)
             Dim parameters = New List(Of SignatureHelpParameter)
             For Each parameter In invokeMethod.Parameters
+                cancellationToken.ThrowIfCancellationRequested()
                 parameters.Add(New SignatureHelpParameter(
                     parameter.Name,
                     isOptional:=False,
-                    documentation:=parameter.GetDocumentationParts(semanticModel, position, documentationCommentoFormattingService, cancellationToken),
+                    documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentoFormattingService),
                     displayParts:=parameter.ToMinimalDisplayParts(semanticModel, position)))
             Next
 

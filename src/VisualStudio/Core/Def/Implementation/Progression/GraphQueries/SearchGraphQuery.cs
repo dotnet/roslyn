@@ -16,26 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal sealed class SearchGraphQuery : IGraphQuery
     {
-        private static readonly char[] DotCharacterArray = new[] { '.' };
-
-        private readonly string _lastPatternPart;
-        private readonly string _entireSearchPattern;
+        private readonly string _searchPattern;
 
         public SearchGraphQuery(string searchPattern)
         {
-            // If the pattern has a dot in it, then when we search the compilations, we actually
-            // want to only filter by the last name portion of hte pattern (as the compilers 
-            // only support returning the basic name of a symbol when searching and filtering 
-            // them).  Then, once we have all the results the compiler returned, we check and
-            // verify they match against the full dotted pattern.
-            if (searchPattern.IndexOf('.') >= 0)
-            {
-                var patternParts = searchPattern.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
-                _lastPatternPart = patternParts.LastOrDefault();
-            }
-
-            _entireSearchPattern = searchPattern;
-            _lastPatternPart = _lastPatternPart ?? searchPattern;
+            _searchPattern = searchPattern;
         }
 
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
@@ -123,9 +108,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             var results = new List<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>();
 
-            var patternMatcher = new PatternMatcher();
+            // The compiler API only supports a predicate which is given a symbol's name.  Because
+            // we only have the name, and nothing else, we need to check it against the last segment
+            // of the pattern.  i.e. if the pattern is 'Console.WL' and we are given 'WriteLine', then
+            // we don't want to check the whole pattern against it (as it will clearly fail), instead
+            // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
+            // we'll check if the full name matches the full pattern.
+            var patternMatcher = new PatternMatcher(_searchPattern);
             var symbols = await SymbolFinder.FindSourceDeclarationsAsync(
-                project, k => patternMatcher.MatchPattern(k, _lastPatternPart) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+                project, k => patternMatcher.GetMatchesForLastSegmentOfPattern(k) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
 
             symbols = symbols.Where(s =>
                 !s.IsConstructor()
@@ -137,11 +128,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // If the search query included a dotted pattern, then verify that this symbol, and 
-                // it's container, matches the dotted pattern.
-                var matches = _lastPatternPart == null
-                    ? patternMatcher.MatchPattern(GetSearchName(symbol), _entireSearchPattern)
-                    : patternMatcher.MatchPattern(GetSearchName(symbol), GetContainer(symbol), _entireSearchPattern);
+                // As an optimization, don't bother getting the container for this symbol if this
+                // isn't a dotted pattern.  Getting the container could cause lots of string 
+                // allocations that we don't if we're never going to check it.
+                var matches = !patternMatcher.IsDottedPattern
+                    ? patternMatcher.GetMatches(GetSearchName(symbol))
+                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
 
                 if (matches == null)
                 {

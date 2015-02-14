@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -170,8 +169,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<SymbolDisplayPart> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            var globalNamespace = semanticModel.Compilation.GlobalNamespace;
-
             var documentation = symbol.TypeSwitch(
                     (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name),
                     (ITypeParameterSymbol typeParam) => typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
@@ -179,12 +176,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     (IAliasSymbol alias) => alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText,
                     _ => symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText);
 
-            if (documentation != null)
-            {
-                return formatter.Format(documentation, semanticModel, position, CrefFormat);
-            }
+            return documentation != null
+                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
+                : SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+        }
 
-            return SpecializedCollections.EmptyList<SymbolDisplayPart>();
+        public static Func<CancellationToken, IEnumerable<SymbolDisplayPart>> GetDocumentationPartsFactory(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
+        {
+            return c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
         }
 
         public static readonly SymbolDisplayFormat CrefFormat =

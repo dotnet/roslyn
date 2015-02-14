@@ -229,7 +229,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpVisualStudioTest", "V
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ServicesVisualStudioTest", "VisualStudio\Core\Test\ServicesVisualStudioTest.vbproj", "{A1455D30-55FC-45EF-8759-3AEBDB13D940}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioComponents", "VisualStudio\Components\VisualStudioComponents.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup", "VisualStudio\Setup\VisualStudioSetup.csproj", "{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveComponents", "VisualStudio\VisualStudioInteractiveComponents\VisualStudioInteractiveComponents.csproj", "{2169F526-8A88-435D-8732-486ACA095A6A}"
 EndProject

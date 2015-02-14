@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _workspaceAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
             }
 
-            return _workspaceAnalyzerManager.GetDiagnosticDescriptorsPerReference(projectOpt);
+            return _workspaceAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         internal static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(Project project, string pattern, CancellationToken cancellationToken)
         {
-            var patternMatcher = new PatternMatcher();
+            var patternMatcher = new PatternMatcher(pattern);
 
             var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
             foreach (var document in project.Documents)
@@ -28,10 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 foreach (var declaredSymbolInfo in declaredSymbolInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var patternMatches = patternMatcher.MatchPattern(
+                    var patternMatches = patternMatcher.GetMatches(
                         GetSearchName(declaredSymbolInfo),
-                        declaredSymbolInfo.FullyQualifiedContainerName,
-                        pattern);
+                        declaredSymbolInfo.FullyQualifiedContainerName);
 
                     if (patternMatches != null)
                     {
