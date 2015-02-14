@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     // </configuration>
     public sealed class TraceListener : System.Diagnostics.TraceListener
     {
-        private readonly bool continueOnFailure;
+        private readonly bool _continueOnFailure;
 
         public TraceListener()
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         public TraceListener(bool continueOnFailure)
         {
-            this.continueOnFailure = continueOnFailure;
+            _continueOnFailure = continueOnFailure;
         }
 
         public override void Fail(string message, string detailMessage)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             // Tools currently depend on the prefix appearing as an exception.
             WriteLine(new AssertFailureException(string.Format("{0}\r\n{1}", message, detailMessage)));
             WriteLine(new StackTrace(fNeedFileInfo: true));
-            if (!this.continueOnFailure)
+            if (!_continueOnFailure)
             {
                 Environment.Exit(-1);
             }

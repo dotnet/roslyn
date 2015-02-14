@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// Compare two XElements.  Assumed to be non-null.
         /// </summary>
         public static void AssertEqual(
-            XElement expectedRoot, 
+            XElement expectedRoot,
             XElement actualRoot,
             string expectedValueSourcePath,
             int expectedValueSourceLine,
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// Helpful diff output message.  Can be printed as either an XML literal (VB) or a string literal (C#).
         /// </summary>
         private static string GetAssertText(
-            string expected, 
+            string expected,
             string actual,
-            XElement expectedRoot, 
-            Tuple<XElement, XElement> firstMismatch, 
+            XElement expectedRoot,
+            Tuple<XElement, XElement> firstMismatch,
             string expectedValueSourcePath,
             int expectedValueSourceLine,
             bool expectedIsXmlLiteral)
