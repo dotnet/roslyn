@@ -1,4 +1,34 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <!-- ====================================================================================
+  
+         Support for in-place modification of the compiled binary.
+         Since there may be more than one post compile modification, we must take care not
+         to break incremental builds. A timestemp file is written out when all modification
+         targets have completed.
+         Note that the targets participating in post compile modification must list the
+         sentinel file as one of their outputs, but they should not modify it.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
+  </PropertyGroup>
+
+  <Target Name="PostCompileBinaryModification"
+          AfterTargets="CoreCompile"
+          DependsOnTargets="ApplyOptimizations;FakeSign"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+
+    <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
+    <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
+
+    <ItemGroup>
+      <FileWrites Include="$(PostCompileBinaryModificationSentinelFile)" />
+    </ItemGroup>
+  </Target>
+
   <!-- ====================================================================================
   
          Support for rolling optimization data into assemblies.
@@ -13,24 +43,43 @@
 
   <Target Name="ApplyOptimizations"
           Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
-          DependsOnTargets="CoreCompile"
           Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);@(IntermediateAssembly->'%(RootDir)%(Directory)%(Filename).ibcmerge.timestamp')">
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
     <Message Text="Adding optimization data to @(IntermediateAssembly)"/>
     <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
 
     <Message Text="Re-signing after merging optimization data" Condition="'$(DelaySign)' != 'true' AND '$(SignAssembly)' == 'true'" />
     <Exec Command="&quot;$(SnToolPath)&quot; -q -R &quot;@(IntermediateAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" Condition="'$(DelaySign)' != 'true' AND '$(SignAssembly)' == 'true'" />
-
-    <!-- Write out a sentinel timestamp file. Since the rewrite happens in-place, this extra output enables incremental build to work. -->
-    <Touch AlwaysCreate="true" Files="@(IntermediateAssembly->'%(RootDir)%(Directory)%(Filename).ibcmerge.timestamp')" />
-
+  
   </Target>
 
-  <Target Name="CleanApplyOptimizations">
-    <Delete Files="@(IntermediateAssembly->'%(RootDir)%(Directory)%(Filename).ibcmerge.timestamp')" />
+  <!-- ====================================================================================
+  
+         Support for signing files that are in VSIXes.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <RunningInMicroBuild Condition="Exists('$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll')">true</RunningInMicroBuild>
+    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR ('$(RunningInMicroBuild)' == 'true' AND '$(SignType)' == 'real')">true</ShouldSignBuild>
+  </PropertyGroup>
+
+  <Target Name="FakeSign"
+          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+    
+    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;@(IntermediateAssembly)&quot;" />
+    
   </Target>
+
+  <!-- ====================================================================================
+  
+         Support for signing phone assemblies.
+
+       ==================================================================================== -->
+  <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
 
   <Target Name="CreateAndSignPhoneCopy" 
           Condition="'$(NeedsPhoneCopy)' == 'true'"
@@ -63,40 +112,21 @@
   </Target>
 
   <PropertyGroup>
-    <CompileDependsOn>$(CompileDependsOn);ApplyOptimizations</CompileDependsOn>
-    <CleanDependsOn>$(CleanDependsOn);CleanApplyOptimizations;CleanPhoneCopy</CleanDependsOn>
+    <CleanDependsOn>$(CleanDependsOn);CleanPhoneCopy</CleanDependsOn>
   </PropertyGroup>
 
   <!-- ====================================================================================
   
-         Support for signing files that are in VSIXes, and also signing the resulting package
+         Support for signing VSIXes
 
        ==================================================================================== -->
 
-  <PropertyGroup>
-    <RunningInMicroBuild Condition="Exists('$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll')">true</RunningInMicroBuild>
-    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR ('$(RunningInMicroBuild)' == 'true' AND '$(SignType)' == 'real')">true</ShouldSignBuild>
-    <CompileDependsOn>$(CompileDependsOn);FakeSignAssembly</CompileDependsOn>
-    <FakeSignSentinelFile>$(IntermediateOutputPath)$(TargetFileName).fakesign</FakeSignSentinelFile>
-  </PropertyGroup>
-
-  <Target Name="FakeSignAssembly"
-          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
-          DependsOnTargets="CoreCompile"
-          Inputs="$(IntermediateOutputPath)$(TargetFileName)"
-          Outputs="$(FakeSignSentinelFile)">
-    <Exec Command="$(VSLOutDir)\FakeSign.exe &quot;$(IntermediateOutputPath)$(TargetFileName)&quot;" />
-    <Touch Files="$(FakeSignSentinelFile)" AlwaysCreate="true" />
-  </Target>
-  
-  <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
-  
   <PropertyGroup>
     <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);SignVsixInputs</CreateVsixContainerDependsOn>
     <PrepareForRunDependsOn>$(PrepareForRunDependsOn);SignVsix</PrepareForRunDependsOn>
     <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
   </PropertyGroup>
-  
+
   <!-- GetTargetPath returns the path under $(OutDir) for each project.
        This target adds the $(AuthenticodeCertificateName) as metadata. -->
   <Target Name="GetTargetPathWithAuthenticodeCertificateName" DependsOnTargets="GetTargetPath" Returns="@(TargetPathWithAuthenticodeCertificateName)">

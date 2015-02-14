@@ -1,4 +1,6 @@
-﻿Imports System
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -173,13 +175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return moduleBuilder
         End Function
 
-        Private Shared Function GetAllTypeParameters(method As MethodSymbol) As ImmutableArray(Of TypeParameterSymbol)
-            Dim builder = ArrayBuilder(Of TypeParameterSymbol).GetInstance()
-            method.ContainingType.GetAllTypeParameters(builder)
-            builder.AddRange(method.TypeParameters)
-            Return builder.ToImmutableAndFree()
-        End Function
-
         Private Shared Function GetNextMethodName(builder As ArrayBuilder(Of MethodSymbol)) As String
             ' NOTE: These names are consumed by Concord, so there's no native precedent.
             Return String.Format("<>m{0}", builder.Count)
@@ -242,39 +237,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' Hoisted method parameters (represented as locals in the EE).
-                    Dim ordinal As Integer = 0
                     If Not _hoistedParameterNames.IsEmpty Then
+                        Dim localIndex As Integer = 0
+
                         For Each local In _localsForBinding
                             ' Since we are showing hoisted method parameters first, the parameters may appear out of order
                             ' in the Locals window if only some of the parameters are hoisted.  This is consistent with the
                             ' behavior of the old EE.
                             Dim localName = local.Name
                             If _hoistedParameterNames.Contains(local.Name) Then
-                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, AddressOf Me.GetLocalMethod, container, ordinal, GetLocalResultFlags(local))
+                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, AddressOf Me.GetLocalMethod, container, localIndex, GetLocalResultFlags(local))
                             End If
-                            ordinal += 1
+
+                            localIndex += 1
                         Next
                     End If
 
                     ' Method parameters (except those that have been hoisted).
-                    ordinal = If(m.IsShared, 0, 1)
+                    Dim parameterIndex = If(m.IsShared, 0, 1)
                     For Each parameter In m.Parameters
                         Dim parameterName = parameter.Name
                         If Not _hoistedParameterNames.Contains(parameterName) Then
-                            AppendLocalAndMethod(localBuilder, methodBuilder, parameterName, AddressOf Me.GetParameterMethod, container, ordinal, DkmClrCompilationResultFlags.None)
+                            AppendLocalAndMethod(localBuilder, methodBuilder, parameterName, AddressOf Me.GetParameterMethod, container, parameterIndex, DkmClrCompilationResultFlags.None)
                         End If
-                        ordinal += 1
+
+                        parameterIndex += 1
                     Next
 
                     If Not argumentsOnly Then
                         ' Locals.
-                        ordinal = 0
+                        Dim localIndex As Integer = 0
                         For Each local In _localsForBinding
                             Dim localName = local.Name
                             If Not _hoistedParameterNames.Contains(localName) Then
-                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, AddressOf Me.GetLocalMethod, container, ordinal, GetLocalResultFlags(local))
+                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, AddressOf Me.GetLocalMethod, container, localIndex, GetLocalResultFlags(local))
                             End If
-                            ordinal += 1
+
+                            localIndex += 1
                         Next
 
                         ' "Type variables".
@@ -319,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             name As String,
             getMethod As Func(Of EENamedTypeSymbol, String, String, Integer, MethodSymbol),
             container As EENamedTypeSymbol,
-            ordinal As Integer,
+            localOrParameterIndex As Integer,
             resultFlags As DkmClrCompilationResultFlags)
 
             ' Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
@@ -327,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' which it can't do correctly without semantic information.
             name = SyntaxHelpers.EscapeKeywordIdentifiers(name)
             Dim methodName = GetNextMethodName(methodBuilder)
-            Dim method = getMethod(container, methodName, name, ordinal)
+            Dim method = getMethod(container, methodName, name, localOrParameterIndex)
             localBuilder.Add(New LocalAndMethod(name, methodName, resultFlags))
             methodBuilder.Add(method)
         End Sub
@@ -365,27 +364,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 generateMethodBody)
         End Function
 
-        Private Function GetLocalMethod(container As EENamedTypeSymbol, methodName As String, localName As String, index As Integer) As EEMethodSymbol
+        Private Function GetLocalMethod(container As EENamedTypeSymbol, methodName As String, localName As String, localIndex As Integer) As EEMethodSymbol
             Dim syntax = SyntaxFactory.IdentifierName(localName)
             Return Me.CreateMethod(
                 container,
                 methodName,
                 syntax,
                 Function(method, diagnostics)
-                    Dim local = method.LocalsForBinding(index)
+                    Dim local = method.LocalsForBinding(localIndex)
                     Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type).MakeCompilerGenerated()
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
 
-        Private Function GetParameterMethod(container As EENamedTypeSymbol, methodName As String, parameterName As String, index As Integer) As EEMethodSymbol
+        Private Function GetParameterMethod(container As EENamedTypeSymbol, methodName As String, parameterName As String, parameterIndex As Integer) As EEMethodSymbol
             Dim syntax = SyntaxFactory.IdentifierName(parameterName)
             Return Me.CreateMethod(
                 container,
                 methodName,
                 syntax,
                 Function(method, diagnostics)
-                    Dim parameter = method.Parameters(index)
+                    Dim parameter = method.Parameters(parameterIndex)
                     Dim expression = New BoundParameter(syntax, parameter, isLValue:=False, type:=parameter.Type).MakeCompilerGenerated()
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -16,25 +18,26 @@ namespace Microsoft.CodeAnalysis.Editor
         /// selected parameter index strictly goes past the number of defined parameters for this
         /// item.
         /// </summary>
-        public bool IsVariadic { get; private set; }
+        public bool IsVariadic { get; }
 
-        public IList<SymbolDisplayPart> PrefixDisplayParts { get; private set; }
-        public IList<SymbolDisplayPart> SuffixDisplayParts { get; private set; }
+        public ImmutableArray<SymbolDisplayPart> PrefixDisplayParts { get; }
+        public ImmutableArray<SymbolDisplayPart> SuffixDisplayParts { get; }
 
-        // TODO(cyrusn): This probably won't be sufficient for VB query signature help.  It has
+        // TODO: This probably won't be sufficient for VB query signature help.  It has
         // arbitrary separators between parameters.
-        public IList<SymbolDisplayPart> SeparatorDisplayParts { get; private set; }
+        public ImmutableArray<SymbolDisplayPart> SeparatorDisplayParts { get; }
 
-        public IList<SignatureHelpParameter> Parameters { get; private set; }
+        public ImmutableArray<SignatureHelpParameter> Parameters { get; }
 
-        public IList<SymbolDisplayPart> DescriptionParts { get; internal set; }
+        public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
 
-        // TODO(cyrusn): This may be unnecessary.  How would a user ever see this.
-        public IList<SymbolDisplayPart> Documentation { get; set; }
+        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumenationFactory { get; }
+
+        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationFactory = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
 
         public SignatureHelpItem(
             bool isVariadic,
-            IEnumerable<SymbolDisplayPart> documentation,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
             IEnumerable<SymbolDisplayPart> prefixParts,
             IEnumerable<SymbolDisplayPart> separatorParts,
             IEnumerable<SymbolDisplayPart> suffixParts,
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             this.IsVariadic = isVariadic;
-            this.Documentation = documentation.ToImmutableArrayOrEmpty();
+            this.DocumenationFactory = documentationFactory ?? s_emptyDocumentationFactory;
             this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
             this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
             this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();

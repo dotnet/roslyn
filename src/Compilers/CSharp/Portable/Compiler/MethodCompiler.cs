@@ -603,8 +603,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AsyncStateMachine stateMachineType;
 
-                // In case of async lambdas, the method has already been uniquely named, so there is no need to
-                // produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
+                // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
+                // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
+                // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                 const int methodOrdinal = -1;
                 BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
 
@@ -1305,8 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stateMachineHoistedLocalScopes = default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
                 if (isStateMachineMoveNextMethod)
                 {
-                    // In C#, hoisted local scopes are edge-inclusive.
-                    stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes(edgeInclusive: true);
+                    stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();
                 }
 
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic: invokeMethod.IsParams(),
-                documentation: SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>(),
+                documentationFactory: null,
                 prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
                 suffixParts: GetDelegateInvokePostambleParts(),
@@ -62,10 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
         {
             foreach (var parameter in invokeMethod.Parameters)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 yield return new SignatureHelpParameter(
                     parameter.Name,
                     parameter.IsOptional,
-                    parameter.GetDocumentationParts(semanticModel, position, formattingService, cancellationToken),
+                    parameter.GetDocumentationPartsFactory(semanticModel, position, formattingService),
                     parameter.ToMinimalDisplayParts(semanticModel, position));
             }
         }

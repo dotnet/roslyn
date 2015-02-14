@@ -229,16 +229,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim proxy = LambdaCapturedVariable.Create(frame, captured, synthesizedFieldNameIdDispenser)
                 Proxies.Add(captured, proxy)
-                If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                    frame.m_captured_locals.Add(proxy)
-                End If
+                frame.m_captured_locals.Add(proxy)
             Next
 
-            If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                For Each frame In frames.Values
-                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
-                Next
-            End If
+            For Each frame In frames.Values
+                CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, Diagnostics))
+            Next
         End Sub
 
         Private Function GetFrameForScope(copyConstructor As Boolean,
@@ -278,11 +274,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 frames(node) = frame
 
-                If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
-                    ' NOTE: we will add this ctor to compilation state after we know all captured locals
-                    '       we need them to generate copy constructor, if needed
-                End If
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
+                ' NOTE: we will add this ctor to compilation state after we know all captured locals
+                '       we need them to generate copy constructor, if needed
             End If
 
             Return frame
@@ -307,27 +301,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         CompilationState.staticLambdaFrame = Me.lazyStaticLambdaFrame
                     End If
 
-                    If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                        Dim frame = Me.lazyStaticLambdaFrame
+                    Dim frame = Me.lazyStaticLambdaFrame
 
-                        ' add frame type
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
+                    ' add frame type
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
 
-                        ' add its ctor
-                        Dim syntax = lambda.Syntax
-                        CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics))
+                    ' add its ctor
+                    Dim syntax = lambda.Syntax
+                    CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics))
 
-                        ' add cctor
-                        ' Frame.inst = New Frame()
-                        Dim F = New SyntheticBoundNodeFactory(frame.SharedConstructor, frame.SharedConstructor, syntax, CompilationState, diagnostics)
-                        Dim body = F.Block(
-                                F.Assignment(
-                                    F.Field(Nothing, frame.SingletonCache, isLValue:=True),
-                                    F.[New](frame.Constructor)),
-                                F.Return())
+                    ' add cctor
+                    ' Frame.inst = New Frame()
+                    Dim F = New SyntheticBoundNodeFactory(frame.SharedConstructor, frame.SharedConstructor, syntax, CompilationState, diagnostics)
+                    Dim body = F.Block(
+                            F.Assignment(
+                                F.Field(Nothing, frame.SingletonCache, isLValue:=True),
+                                F.[New](frame.Constructor)),
+                            F.Return())
 
-                        CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body)
-                    End If
+                    CompilationState.AddSynthesizedMethod(frame.SharedConstructor, body)
                 End If
             End If
 
@@ -534,9 +526,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         prologue.Add(assignment)
                     End If
 
-                    If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame)
-                    End If
+
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame)
 
                     Proxies(innermostFramePointer) = capturedFrame
                 End If
@@ -963,9 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Move the body of the lambda to a freshly generated synthetic method on its container.
             Dim synthesizedMethod = New SynthesizedLambdaMethod(SlotAllocatorOpt, CompilationState, translatedLambdaContainer, closureKind, _topLevelMethod, _topLevelMethodOrdinal, node, lambdaOrdinal, Me.Diagnostics)
 
-            If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod)
-            End If
+            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod)
 
             For Each parameter In node.LambdaSymbol.Parameters
                 ParameterMap.Add(parameter, synthesizedMethod.Parameters(parameter.Ordinal))
@@ -1069,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' no need to include the top-level method ordinal in the field name.
                 Dim cacheFieldName As String = GeneratedNames.MakeLambdaCacheFieldName(
                     If(closureKind = ClosureKind.General, -1, _topLevelMethodOrdinal),
-                    If(CompilationState.ModuleBuilderOpt?.CurrentGenerationOrdinal, 0), ' Note: module builder is not available only when testing emit diagnostics
+                    CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal,
                     lambdaOrdinal,
                     node.LambdaSymbol.SynthesizedKind)
 
@@ -1080,9 +1069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                            accessibility:=Accessibility.Public,
                                                                            isShared:=(closureKind = ClosureKind.Static))
 
-                If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
-                End If
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
 
                 Dim F = New SyntheticBoundNodeFactory(Me._topLevelMethod, Me._currentMethod, node.Syntax, CompilationState, Diagnostics)
                 Dim fieldToAccess As FieldSymbol = cacheField.AsMember(constructedFrame)

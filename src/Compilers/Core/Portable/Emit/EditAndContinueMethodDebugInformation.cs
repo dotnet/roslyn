@@ -38,40 +38,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EditAndContinueMethodDebugInformation(methodOrdinal, UncompressSlotMap(compressedSlotMap), closures, lambdas);
         }
 
-        internal void SerializeCustomDebugInformation(ArrayBuilder<Cci.MemoryStream> customDebugInfo)
-        {
-            if (!this.LocalSlots.IsDefaultOrEmpty)
-            {
-                customDebugInfo.Add(SerializeRecord(Cci.CustomDebugInfoConstants.CdiKindEditAndContinueLocalSlotMap, SerializeLocalSlots));
-            }
-
-            if (!this.Lambdas.IsDefaultOrEmpty)
-            {
-                customDebugInfo.Add(SerializeRecord(Cci.CustomDebugInfoConstants.CdiKindEditAndContinueLambdaMap, SerializeLambdaMap));
-            }
-        }
-
-        private Cci.MemoryStream SerializeRecord(byte kind, Action<Cci.BinaryWriter> data)
-        {
-            Cci.MemoryStream customMetadata = new Cci.MemoryStream();
-            Cci.BinaryWriter cmw = new Cci.BinaryWriter(customMetadata);
-            cmw.WriteByte(Cci.CustomDebugInfoConstants.CdiVersion);
-            cmw.WriteByte(kind); 
-            cmw.Align(4);
-
-            // length (will be patched)
-            uint lengthPosition = cmw.BaseStream.Position;
-            cmw.WriteUint(0);
-
-            data(cmw);
-
-            uint length = customMetadata.Position;
-            cmw.BaseStream.Position = lengthPosition;
-            cmw.WriteUint(length);
-            cmw.BaseStream.Position = length;
-            return customMetadata;
-        }
-
         #region Local Slots
 
         private const byte SyntaxOffsetBaseline = 0xff;
@@ -132,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return mapBuilder.ToImmutableAndFree();
         }
 
-        // internal for testing
         internal void SerializeLocalSlots(Cci.BinaryWriter writer)
         {
             int syntaxOffsetBaseline = -1;
@@ -276,7 +241,6 @@ namespace Microsoft.CodeAnalysis.Emit
             lambdas = lambdasBuilder.ToImmutableAndFree();
         }
 
-        // internal for testing
         internal void SerializeLambdaMap(Cci.BinaryWriter writer)
         {
             Debug.Assert(this.MethodOrdinal >= -1);

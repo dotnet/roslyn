@@ -34,13 +34,18 @@ namespace Microsoft.CodeAnalysis
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
                 {
-                    throw new ArgumentException("warningLevel");
+                    throw new ArgumentException(nameof(warningLevel));
+                }
+
+                if(descriptor == null)
+                {
+                    throw new ArgumentNullException(nameof(descriptor));
                 }
 
                 _descriptor = descriptor;
                 _severity = severity;
                 _warningLevel = warningLevel;
-                _location = location;
+                _location = location ?? Location.None;
                 _additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
                 _messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
             }
@@ -131,10 +136,9 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode()
             {
                 return Hash.Combine(_descriptor,
-                        Hash.Combine(_messageArgs.GetHashCode(),
-                         Hash.Combine(_location.GetHashCode(),
-                          Hash.Combine(_severity.GetHashCode(), _warningLevel)
-                        )));
+                    Hash.CombineValues(_messageArgs,
+                    Hash.Combine(_warningLevel,
+                    Hash.Combine(_location, (int)_severity))));
             }
 
             internal override Diagnostic WithLocation(Location location)

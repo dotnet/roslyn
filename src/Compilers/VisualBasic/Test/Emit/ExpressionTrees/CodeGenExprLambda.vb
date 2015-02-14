@@ -7493,7 +7493,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -7544,7 +7544,7 @@ Class C
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
     Shared E As Expression(Of D) = Function() New C()
@@ -7555,7 +7555,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -7618,7 +7618,7 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.FieldInfo.GetFieldFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() F
@@ -7632,7 +7632,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "DevDiv")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
-            Dim comp = CreateCompilationWithoutReferences(
+            Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -7722,7 +7722,7 @@ Class B(Of T)
 End Class
 ]]></file>
 </compilation>)
-            comp.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()

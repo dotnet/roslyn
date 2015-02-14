@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private static ImmutableArray<IIncrementalAnalyzer> OrderAnalyzers(IEnumerable<IIncrementalAnalyzer> analyzers)
                 {
-                    return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a.GetType() == typeof(DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer)))
-                                                                              .Concat(analyzers.Where(a => a.GetType() != typeof(DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer)))
-                                                                              .WhereNotNull().ToImmutableArray();
+                    return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer))
+                                                                               .Concat(analyzers.Where(a => !(a is BaseDiagnosticIncrementalAnalyzer)))
+                                                                               .WhereNotNull().ToImmutableArray();
                 }
 
                 public void Enqueue(WorkItem item)
@@ -99,6 +99,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor.Shutdown();
                     _normalPriorityProcessor.Shutdown();
                     _lowPriorityProcessor.Shutdown();
+                }
+
+                // TODO: delete this once prototyping is done
+                public void ChangeDiagnosticsEngine(bool useV2Engine)
+                {
+                    var diagnosticAnalyzer = Analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer) as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
+                    if (diagnosticAnalyzer == null)
+                    {
+                        return;
+                    }
+
+                    diagnosticAnalyzer.TurnOff(useV2Engine);
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers
@@ -204,11 +216,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                    }
+                }
 
                 private static async Task<TResult> GetOrDefaultAsync<TData, TResult>(TData value, Func<TData, CancellationToken, Task<TResult>> funcAsync, CancellationToken cancellationToken)
                 {
@@ -220,16 +232,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return default(TResult);
                     }
-                    catch (AggregateException e) when(CrashUnlessCanceled(e))
+                    catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
                         return default(TResult);
                     }
-                    catch (Exception e) when(FatalError.Report(e))
+                    catch (Exception e) when (FatalError.Report(e))
                     {
                         // TODO: manage bad workers like what code actions does now
                         throw ExceptionUtilities.Unreachable;
                     }
-                    }
+                }
 
                 private static SyntaxNode GetMemberNode(ISyntaxFactsService service, SyntaxNode root, SyntaxPath memberPath)
                 {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
@@ -36,6 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var snapshotSpan = snapshotSpans.Single().SnapshotSpan;
             var document = snapshotSpans.Single().Document;
+            if (document == null)
+            {
+                return SpecializedTasks.EmptyEnumerable<ITagSpan<TTag>>();
+            }
 
             return ProduceTagsAsync(document, snapshotSpan, GetCaretPosition(caretPosition, snapshotSpan), cancellationToken);
         }

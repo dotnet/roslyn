@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
@@ -12,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
         {
-            public SymbolKey SymbolKey { get; private set; }
+            public SymbolKey SymbolKey { get; }
 
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,
                 bool isVariadic,
-                IEnumerable<SymbolDisplayPart> documentation,
+                Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
                 IEnumerable<SymbolDisplayPart> prefixParts,
                 IEnumerable<SymbolDisplayPart> separatorParts,
                 IEnumerable<SymbolDisplayPart> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentation, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
+                IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
                 this.SymbolKey = symbol == null ? null : symbol.GetSymbolKey();
             }

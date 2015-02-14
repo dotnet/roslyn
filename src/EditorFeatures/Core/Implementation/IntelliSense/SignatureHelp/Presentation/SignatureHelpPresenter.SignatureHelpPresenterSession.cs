@@ -116,45 +116,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 foreach (var item in _signatureHelpItems)
                 {
-                    _signatureMap = _signatureMap.Add(item, new Signature(triggerSpan, item));
-                }
-
-                this.SetCurrentParameterForAllItems(selectedParameter);
-            }
-
-            private void SetCurrentParameterForAllItems(int? selectedParameter)
-            {
-                foreach (var item in _signatureHelpItems)
-                {
-                    this.SetCurrentParameter(item, selectedParameter);
+                    _signatureMap = _signatureMap.Add(item, new Signature(triggerSpan, item, GetParameterIndexForItem(item, selectedParameter)));
                 }
             }
 
-            private void SetCurrentParameter(SignatureHelpItem item, int? selectedParameter)
+            private static int GetParameterIndexForItem(SignatureHelpItem item, int? selectedParameter)
             {
-                Contract.ThrowIfFalse(_signatureMap.ContainsKey(item));
-                var signature = _signatureMap.GetValueOrDefault(item);
-
                 if (selectedParameter.HasValue)
                 {
-                    if (selectedParameter.Value < item.Parameters.Count)
+                    if (selectedParameter.Value < item.Parameters.Length)
                     {
                         // If the selected parameter is within the range of parameters of this item then set
                         // that as the current parameter.
-                        signature.CurrentParameter = signature.Parameters[selectedParameter.Value];
-                        return;
+                        return selectedParameter.Value;
                     }
                     else if (item.IsVariadic)
                     {
-                        // It wasn't in range, but the item takes an unlmiited number of parameters.  So
+                        // It wasn't in range, but the item takes an unlimited number of parameters.  So
                         // just set current parameter to the last parameter (the variadic one).
-                        signature.CurrentParameter = signature.Parameters.Last();
-                        return;
+                        return item.Parameters.Length - 1;
                     }
                 }
 
                 // It was out of bounds, there is no current parameter now.
-                signature.CurrentParameter = null;
+                return -1;
             }
 
             private void OnEditorSessionDismissed()

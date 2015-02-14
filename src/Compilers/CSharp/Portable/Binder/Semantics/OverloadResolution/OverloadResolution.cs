@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 if (_strict.HasValue) return _strict.Value;
-                bool value = _binder.Compilation.Feature("strict") != null;
+                bool value = _binder.Compilation.FeatureStrictEnabled;
                 _strict = value;
                 return value;
             }

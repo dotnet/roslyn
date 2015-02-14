@@ -11,20 +11,24 @@ namespace Microsoft.Cci
     /// </summary>
     internal abstract class ExceptionHandlerRegion
     {
-        private readonly uint _tryStartOffset;
-        private readonly uint _tryEndOffset;
-        private readonly uint _handlerStartOffset;
-        private readonly uint _handlerEndOffset;
+        private readonly int _tryStartOffset;
+        private readonly int _tryEndOffset;
+        private readonly int _handlerStartOffset;
+        private readonly int _handlerEndOffset;
 
         public ExceptionHandlerRegion(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset)
         {
             Debug.Assert(tryStartOffset < tryEndOffset);
             Debug.Assert(tryEndOffset <= handlerStartOffset);
             Debug.Assert(handlerStartOffset < handlerEndOffset);
+            Debug.Assert(tryStartOffset >= 0);
+            Debug.Assert(tryEndOffset >= 0);
+            Debug.Assert(handlerStartOffset >= 0);
+            Debug.Assert(handlerEndOffset >= 0);
 
             _tryStartOffset = tryStartOffset;
             _tryEndOffset = tryEndOffset;
@@ -52,7 +56,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the start of filter decision block
         /// </summary>
-        public virtual uint FilterDecisionStartOffset
+        public virtual int FilterDecisionStartOffset
         {
             get { return 0; }
         }
@@ -60,7 +64,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the start of try block
         /// </summary>
-        public uint TryStartOffset
+        public int TryStartOffset
         {
             get { return _tryStartOffset; }
         }
@@ -68,7 +72,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the end of try block
         /// </summary>
-        public uint TryEndOffset
+        public int TryEndOffset
         {
             get { return _tryEndOffset; }
         }
@@ -76,7 +80,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the start of handler block
         /// </summary>
-        public uint HandlerStartOffset
+        public int HandlerStartOffset
         {
             get { return _handlerStartOffset; }
         }
@@ -84,7 +88,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the end of handler block
         /// </summary>
-        public uint HandlerEndOffset
+        public int HandlerEndOffset
         {
             get { return _handlerEndOffset; }
         }
@@ -93,10 +97,10 @@ namespace Microsoft.Cci
     internal sealed class ExceptionHandlerRegionFinally : ExceptionHandlerRegion
     {
         public ExceptionHandlerRegionFinally(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
         }
@@ -110,10 +114,10 @@ namespace Microsoft.Cci
     internal sealed class ExceptionHandlerRegionFault : ExceptionHandlerRegion
     {
         public ExceptionHandlerRegionFault(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
         }
@@ -129,10 +133,10 @@ namespace Microsoft.Cci
         private readonly ITypeReference _exceptionType;
 
         public ExceptionHandlerRegionCatch(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset,
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset,
             ITypeReference exceptionType)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
@@ -152,16 +156,18 @@ namespace Microsoft.Cci
 
     internal sealed class ExceptionHandlerRegionFilter : ExceptionHandlerRegion
     {
-        private readonly uint _filterDecisionStartOffset;
+        private readonly int _filterDecisionStartOffset;
 
         public ExceptionHandlerRegionFilter(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset,
-            uint filterDecisionStartOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset,
+            int filterDecisionStartOffset)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
+            Debug.Assert(filterDecisionStartOffset >= 0);
+
             _filterDecisionStartOffset = filterDecisionStartOffset;
         }
 
@@ -170,7 +176,7 @@ namespace Microsoft.Cci
             get { return ExceptionRegionKind.Filter; }
         }
 
-        public override uint FilterDecisionStartOffset
+        public override int FilterDecisionStartOffset
         {
             get { return _filterDecisionStartOffset; }
         }

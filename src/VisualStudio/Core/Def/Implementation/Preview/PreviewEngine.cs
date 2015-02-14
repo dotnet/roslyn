@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -152,8 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     continue;
                 }
 
-                var left = _oldSolution.GetDocument(documentId) ?? _oldSolution.GetAdditionalDocument(documentId);
-                var right = _newSolution.GetDocument(documentId) ?? _newSolution.GetAdditionalDocument(documentId);
+                var left = _oldSolution.GetTextDocument(documentId);
+                var right = _newSolution.GetTextDocument(documentId);
 
                 var leftDocument = left as Document;
                 var rightDocument = right as Document;
@@ -194,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public void UpdatePreview(DocumentId documentId, SpanChange spanSource)
         {
             var updatedSolution = _topLevelChange.GetUpdatedSolution(applyingChanges: false);
-            var document = updatedSolution.GetDocument(documentId);
+            var document = updatedSolution.GetTextDocument(documentId);
             if (document != null)
             {
                 _updater.UpdateView(document, spanSource);
