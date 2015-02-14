@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nameofArgument = nameofArgument;
         }
 
-        protected override bool IsNameofArgument(SyntaxNode possibleNameofArgument)
-        {
-            return possibleNameofArgument == _nameofArgument;
-        }
+        protected override SyntaxNode EnclosingNameofArgument => _nameofArgument;
     }
 }
