@@ -54,11 +54,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
-        private static IntPtr GetIntrinsicAssemblyMetaDataBytesPtr(this DkmClrRuntimeInstance runtime, out uint size)
-        {
-            throw new NotImplementedException();
-        }
-
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
             ArrayBuilder<MetadataBlock> builder = null;
