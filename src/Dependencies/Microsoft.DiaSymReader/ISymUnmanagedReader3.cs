@@ -7,10 +7,10 @@ using System.Runtime.InteropServices.ComTypes;
 namespace Microsoft.DiaSymReader
 {
     [ComImport]
-    [Guid("A09E53B2-2A57-4cca-8F63-B84F7C35D4AA")]
+    [Guid("6151CAD9-E1EE-437A-A808-F64838C0D046")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(false)]
-    public interface ISymUnmanagedReader2 : ISymUnmanagedReader
+    public interface ISymUnmanagedReader3 : ISymUnmanagedReader2
     {
         #region ISymUnmanagedReader methods
 
@@ -113,13 +113,13 @@ namespace Microsoft.DiaSymReader
         #region ISymUnmanagedReader2 methods
 
         [PreserveSig]
-        int GetMethodByVersionPreRemap(
+        new int GetMethodByVersionPreRemap(
             int methodToken,
             int version,
             [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod method);
 
         [PreserveSig]
-        int GetSymAttributePreRemap(
+        new int GetSymAttributePreRemap(
             int methodToken,
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             int bufferLength,
@@ -127,12 +127,41 @@ namespace Microsoft.DiaSymReader
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] customDebugInformation);
 
         [PreserveSig]
-        int GetMethodsInDocument(
+        new int GetMethodsInDocument(
             ISymUnmanagedDocument document,
             int bufferLength,
             out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] ISymUnmanagedMethod[] methods);
 
         #endregion
+
+        #region ISymUnmanagedReader3 methods
+
+        /// <summary>
+        /// Gets a custom debug information based upon its name and an EnC 1-based version number. 
+        /// </summary>
+        [PreserveSig]
+        int GetSymAttributeByVersion(
+            int methodToken,
+            int version,
+            [MarshalAs(UnmanagedType.LPWStr)] string name,
+            int bufferLength,
+            out int count,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] customDebugInformation);
+
+        /// <summary>
+        /// Gets a custom debug information based upon its name and an EnC 1-based version number. 
+        /// </summary>
+        [PreserveSig]
+        int GetSymAttributeByVersionPreRemap(
+            int methodToken,
+            int version,
+            [MarshalAs(UnmanagedType.LPWStr)] string name,
+            int bufferLength,
+            out int count,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] customDebugInformation);
+
+        #endregion  
     }
+
 }
