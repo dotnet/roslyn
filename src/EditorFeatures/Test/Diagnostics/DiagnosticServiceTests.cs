@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             return new DiagnosticData(
                                 "test1", "Test", "test1 message", "test1 messsage format",
-                                DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1, ImmutableArray<string>.Empty,
+                                DiagnosticSeverity.Info, false, 1,
                                 workspace, projectId, documentId,
-                                null, "mappedFile1", 10, 10, 20, 20, "originalFile1", 10, 10, 20, 20);
+                                null, "originalFile1", 10, 10, 20, 20);
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
