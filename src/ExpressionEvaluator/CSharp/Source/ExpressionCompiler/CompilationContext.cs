@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;

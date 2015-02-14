@@ -3,7 +3,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
-Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Microsoft.DiaSymReader
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
