@@ -8,7 +8,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace System.Reflection.Metadata
 {
-    internal enum ImportScopeKind
+    internal enum ImportDefinitionKind
     {
         ImportNamespace = 1,
         ImportAssemblyNamespace = 2,
@@ -23,13 +23,13 @@ namespace System.Reflection.Metadata
 
     internal struct ImportDefinition
     {
-        private readonly ImportScopeKind _kind;
+        private readonly ImportDefinitionKind _kind;
         private readonly BlobHandle _alias;
         private readonly AssemblyReferenceHandle _assembly;
         private readonly Handle _typeOrNamespace;
 
         internal ImportDefinition(
-            ImportScopeKind kind,
+            ImportDefinitionKind kind,
             BlobHandle alias = default(BlobHandle),
             AssemblyReferenceHandle assembly = default(AssemblyReferenceHandle),
             Handle typeOrNamespace = default(Handle))
@@ -47,7 +47,7 @@ namespace System.Reflection.Metadata
             _typeOrNamespace = typeOrNamespace;
         }
 
-        public ImportScopeKind Kind => _kind;
+        public ImportDefinitionKind Kind => _kind;
         public BlobHandle Alias => _alias;
         public AssemblyReferenceHandle TargetAssembly => _assembly;
         public BlobHandle TargetNamespace => (BlobHandle)_typeOrNamespace;
@@ -63,25 +63,25 @@ namespace System.Reflection.Metadata
 
             while (blobReader.RemainingBytes > 0)
             {
-                var kind = (ImportScopeKind)blobReader.ReadByte();
+                var kind = (ImportDefinitionKind)blobReader.ReadByte();
 
                 switch (kind)
                 {
-                    case ImportScopeKind.ImportType:
+                    case ImportDefinitionKind.ImportType:
                         yield return new ImportDefinition(
                             kind,
                             typeOrNamespace: blobReader.ReadTypeHandle());
 
                         break;
 
-                    case ImportScopeKind.ImportNamespace:
+                    case ImportDefinitionKind.ImportNamespace:
                         yield return new ImportDefinition(
                             kind,
                             typeOrNamespace: MetadataTokens.BlobHandle(blobReader.ReadCompressedInteger()));
 
                         break;
 
-                    case ImportScopeKind.ImportAssemblyNamespace:
+                    case ImportDefinitionKind.ImportAssemblyNamespace:
                         yield return new ImportDefinition(
                             kind,
                             assembly: MetadataTokens.AssemblyReferenceHandle(blobReader.ReadCompressedInteger()),
@@ -89,14 +89,14 @@ namespace System.Reflection.Metadata
 
                         break;
 
-                    case ImportScopeKind.ImportAssemblyReferenceAlias:
+                    case ImportDefinitionKind.ImportAssemblyReferenceAlias:
                         yield return new ImportDefinition(
                             kind,
                             alias: MetadataTokens.BlobHandle(blobReader.ReadCompressedInteger()));
 
                         break;
 
-                    case ImportScopeKind.AliasAssemblyReference:
+                    case ImportDefinitionKind.AliasAssemblyReference:
                         yield return new ImportDefinition(
                             kind,
                             alias: MetadataTokens.BlobHandle(blobReader.ReadCompressedInteger()),
@@ -104,7 +104,7 @@ namespace System.Reflection.Metadata
 
                         break;
 
-                    case ImportScopeKind.AliasType:
+                    case ImportDefinitionKind.AliasType:
                         yield return new ImportDefinition(
                             kind,
                             alias: MetadataTokens.BlobHandle(blobReader.ReadCompressedInteger()),
@@ -112,8 +112,8 @@ namespace System.Reflection.Metadata
 
                         break;
 
-                    case ImportScopeKind.ImportXmlNamespace:
-                    case ImportScopeKind.AliasNamespace:
+                    case ImportDefinitionKind.ImportXmlNamespace:
+                    case ImportDefinitionKind.AliasNamespace:
                         yield return new ImportDefinition(
                             kind,
                             alias: MetadataTokens.BlobHandle(blobReader.ReadCompressedInteger()),
@@ -121,7 +121,7 @@ namespace System.Reflection.Metadata
 
                         break;
 
-                    case ImportScopeKind.AliasAssemblyNamespace:
+                    case ImportDefinitionKind.AliasAssemblyNamespace:
                         yield return new ImportDefinition(
                             kind,
                             alias: MetadataTokens.BlobHandle(blobReader.ReadCompressedInteger()),

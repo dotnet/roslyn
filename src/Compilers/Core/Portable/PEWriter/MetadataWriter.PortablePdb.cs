@@ -200,7 +200,7 @@ namespace Microsoft.Cci
         private void SerializeImport(BinaryWriter writer, AssemblyReferenceAlias alias)
         {
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
-            writer.WriteByte((byte)ImportScopeKind.AliasAssemblyReference);
+            writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
             writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(alias.Name));
             writer.WriteCompressedUInt(GetAssemblyRefIndex(alias.Assembly)); // TODO: index in release build            
         }
@@ -214,7 +214,7 @@ namespace Microsoft.Cci
                 Debug.Assert(import.TargetTypeOpt == null);
 
                 // <import> ::= ImportXmlNamespace <alias> <target-namespace>
-                writer.WriteByte((byte)ImportScopeKind.ImportXmlNamespace);
+                writer.WriteByte((byte)ImportDefinitionKind.ImportXmlNamespace);
                 writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                 writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.TargetXmlNamespaceOpt));
             }
@@ -226,13 +226,13 @@ namespace Microsoft.Cci
                 if (import.AliasOpt != null)
                 {
                     // <import> ::= AliasType <alias> <target-type>
-                    writer.WriteByte((byte)ImportScopeKind.AliasType);
+                    writer.WriteByte((byte)ImportDefinitionKind.AliasType);
                     writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                 }
                 else
                 {
                     // <import> ::= ImportType <target-type>
-                    writer.WriteByte((byte)ImportScopeKind.ImportType);
+                    writer.WriteByte((byte)ImportDefinitionKind.ImportType);
                 }
 
                 writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(import.TargetTypeOpt, treatRefAsPotentialTypeSpec: true)); // TODO: index in release build         
@@ -244,13 +244,13 @@ namespace Microsoft.Cci
                     if (import.AliasOpt != null)
                     {
                         // <import> ::= AliasAssemblyNamespace <alias> <target-assembly> <target-namespace>
-                        writer.WriteByte((byte)ImportScopeKind.AliasAssemblyNamespace);
+                        writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyNamespace);
                         writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                     }
                     else
                     {
                         // <import> ::= ImportAssemblyNamespace <target-assembly> <target-namespace>
-                        writer.WriteByte((byte)ImportScopeKind.ImportAssemblyNamespace);
+                        writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyNamespace);
                     }
 
                     writer.WriteCompressedUInt(GetAssemblyRefIndex(import.TargetAssemblyOpt));
@@ -260,13 +260,13 @@ namespace Microsoft.Cci
                     if (import.AliasOpt != null)
                     {
                         // <import> ::= AliasNamespace <alias> <target-namespace>
-                        writer.WriteByte((byte)ImportScopeKind.AliasNamespace);
+                        writer.WriteByte((byte)ImportDefinitionKind.AliasNamespace);
                         writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                     }
                     else
                     {
                         // <import> ::= ImportNamespace <target-namespace>
-                        writer.WriteByte((byte)ImportScopeKind.ImportNamespace);
+                        writer.WriteByte((byte)ImportDefinitionKind.ImportNamespace);
                     }
                 }
 
@@ -280,7 +280,7 @@ namespace Microsoft.Cci
                 Debug.Assert(import.AliasOpt != null);
                 Debug.Assert(import.TargetAssemblyOpt == null);
 
-                writer.WriteByte((byte)ImportScopeKind.ImportAssemblyReferenceAlias);
+                writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyReferenceAlias);
                 writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
             }
         }
