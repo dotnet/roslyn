@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Contract.ThrowIfFalse(_project.SupportsCompilation);
 
             var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-            var analyzerActions = AnalyzerManager.Default.GetAnalyzerActions(analyzer, compilation, addDiagnostic, _analyzerOptions, CatchAnalyzerException, _cancellationToken);
+            var analyzerActions = await AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, compilation, addDiagnostic, _analyzerOptions, CatchAnalyzerException, _cancellationToken).ConfigureAwait(false);
             DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, analyzerActions, (DiagnosticLogAggregator)_logAggregator);
             return analyzerActions;
         }

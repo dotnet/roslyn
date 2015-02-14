@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -25,13 +26,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // to be able to operate on a limited span of the document. In practical terms, no analyzer
                 // can have both SemanticDocumentAnalysis and SemanticSpanAnalysis as categories.
                 bool cantSupportSemanticSpanAnalysis = false;
-                var analyzerActions = AnalyzerManager.Default.GetAnalyzerActions(analyzer, 
+                var analyzerActions = AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, 
                     null,
                     _ => { },
                     null,
                     driver.CatchAnalyzerExceptionHandler,
-                    driver.CancellationToken);
-
+                    driver.CancellationToken).WaitAndGetResult(driver.CancellationToken);
                 if (analyzerActions != null)
                 {
                     if (analyzerActions.SyntaxTreeActionsCount > 0)

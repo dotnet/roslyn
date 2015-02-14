@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // Lazy fields initialized in Initialize() API
         private Compilation _compilation;
-        internal HostCompilationStartAnalysisScope compilationAnalysisScope;
+        internal AnalyzerActions analyzerActions;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> _symbolActionsByKind;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>> _semanticModelActionsMap;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationEndAnalyzerAction>> _compilationEndActionsMap;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Initializes the compilation for the analyzer driver.
-        /// It also computes and initializes <see cref="compilationAnalysisScope"/> and <see cref="_symbolActionsByKind"/>.
+        /// It also computes and initializes <see cref="analyzerActions"/> and <see cref="_symbolActionsByKind"/>.
         /// Finally, it initializes and starts the <see cref="_primaryTask"/> for the driver.
         /// </summary>
         /// <remarks>
@@ -77,16 +77,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _compilation = comp;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var sessionAnalysisScope = GetSessionAnalysisScope(_analyzers, _analyzerManager, comp.Options, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
-                this.compilationAnalysisScope = GetCompilationAnalysisScope(_analyzers, _analyzerManager, sessionAnalysisScope, comp, analyzerOptions, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
-                _symbolActionsByKind = MakeSymbolActionsByKind();
-                _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
-                _compilationEndActionsMap = MakeCompilationEndActionsByAnalyzer();
+                var analyzerActionsTask = GetAnalyzerActionsAsync(_analyzers, _analyzerManager, comp, analyzerOptions, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                var initializeTask = analyzerActionsTask.ContinueWith(t =>
+                {
+                    this.analyzerActions = t.Result;
+                    _symbolActionsByKind = MakeSymbolActionsByKind();
+                    _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
+                    _compilationEndActionsMap = MakeCompilationEndActionsByAnalyzer();
+                }, cancellationToken);
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
                 _primaryTask = Task.Run(async () =>
                     {
+                        await initializeTask.ConfigureAwait(false);
                         await ProcessCompilationEventsAsync(cancellationToken).ConfigureAwait(false);
                         await ExecuteSyntaxTreeActions(cancellationToken).ConfigureAwait(false);
                     }, cancellationToken)
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var tasks = ArrayBuilder<Task>.GetInstance();
             foreach (var tree in _compilation.SyntaxTrees)
             {
-                var actionsByAnalyzers = this.compilationAnalysisScope.SyntaxTreeActions.GroupBy(action => action.Analyzer);
+                var actionsByAnalyzers = this.analyzerActions.SyntaxTreeActions.GroupBy(action => action.Analyzer);
                 foreach (var analyzerAndActions in actionsByAnalyzers)
                 {
                     var task = Task.Run(() =>
@@ -248,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> MakeSymbolActionsByKind()
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>>();
-            var actionsByAnalyzers = this.compilationAnalysisScope.SymbolActions.GroupBy(action => action.Analyzer);
+            var actionsByAnalyzers = this.analyzerActions.SymbolActions.GroupBy(action => action.Analyzer);
             foreach (var analyzerAndActions in actionsByAnalyzers)
             {
                 var actionsByKindBuilder = new List<ArrayBuilder<SymbolAnalyzerAction>>();
@@ -277,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>> MakeSemanticModelActionsByAnalyzer()
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>>();
-            var actionsByAnalyzers = this.compilationAnalysisScope.SemanticModelActions.GroupBy(action => action.Analyzer);
+            var actionsByAnalyzers = this.analyzerActions.SemanticModelActions.GroupBy(action => action.Analyzer);
             foreach (var analyzerAndActions in actionsByAnalyzers)
             {
                 builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArray());
@@ -289,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationEndAnalyzerAction>> MakeCompilationEndActionsByAnalyzer()
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CompilationEndAnalyzerAction>>();
-            var actionsByAnalyzers = this.compilationAnalysisScope.CompilationEndActions.GroupBy(action => action.Analyzer);
+            var actionsByAnalyzers = this.analyzerActions.CompilationEndActions.GroupBy(action => action.Analyzer);
             foreach (var analyzerAndActions in actionsByAnalyzers)
             {
                 builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArray());
@@ -551,29 +555,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        private static HostSessionStartAnalysisScope GetSessionAnalysisScope(
-            IEnumerable<DiagnosticAnalyzer> analyzers,
-            AnalyzerManager analyzerManager,
-            CompilationOptions compilationOptions,
-            Action<Diagnostic> addDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
-        {
-            HostSessionStartAnalysisScope sessionScope = new HostSessionStartAnalysisScope();
-
-            foreach (DiagnosticAnalyzer analyzer in analyzers)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerManager, compilationOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken))
-                {
-                    var analyzerSessionScope = analyzerManager.GetSessionAnalysisScope(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-                    sessionScope.RegisterAnalyzerActions(analyzer, analyzerSessionScope.GetAnalyzerActions(analyzer));
-                }
-            }
-
-            return sessionScope;
-        }
-
         private static void VerifyArguments(
             IEnumerable<ISymbol> symbols,
             Compilation compilation,
@@ -717,25 +698,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static HostCompilationStartAnalysisScope GetCompilationAnalysisScope(
+        private static Task<AnalyzerActions> GetAnalyzerActionsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
-            HostSessionStartAnalysisScope session, 
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
-            Action<Diagnostic> addDiagnostic, 
+            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
             CancellationToken cancellationToken)
         {
-            HostCompilationStartAnalysisScope compilationScope = new HostCompilationStartAnalysisScope(session);
-            foreach (var analyzer in analyzers)
+            return Task.Run(async () =>
             {
-                var analyzerCompilationScope = analyzerManager.GetCompilationAnalysisScope(analyzer, session, compilation,
-                    addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken);
-                compilationScope.RegisterAnalyzerActions(analyzer, analyzerCompilationScope.GetAnalyzerActions(analyzer));
-            }
+                AnalyzerActions allAnalyzerActions = new AnalyzerActions();
+                foreach (var analyzer in analyzers)
+                {
+                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerManager, compilation.Options, addDiagnostic, continueOnAnalyzerException, cancellationToken))
+                    {
+                        var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer,
+                            compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                    }
+                }
 
-            return compilationScope;
+                return allAnalyzerActions;
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -831,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyNodeActionsByKind == null)
                 {
-                    var nodeActions = this.compilationAnalysisScope.GetSyntaxNodeActions<TLanguageKindEnum>();
+                    var nodeActions = this.analyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>();
                     ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> analyzerActionsByKind;
                     if (nodeActions.Any())
                     {
@@ -874,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_lazyCodeBlockStartActionsByAnalyzer == null)
                 {
                     ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> codeBlockStartActionsByAnalyzer;
-                    var codeBlockStartActions = this.compilationAnalysisScope.GetCodeBlockStartActions<TLanguageKindEnum>();
+                    var codeBlockStartActions = this.analyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>();
                     if (codeBlockStartActions.Any())
                     {
                         var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>>();
@@ -905,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_lazyCodeBlockEndActionsByAnalyzer == null)
                 {
                     ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>> codeBlockEndActionsByAnalyzer;
-                    var codeBlockEndActions = this.compilationAnalysisScope.CodeBlockEndActions;
+                    var codeBlockEndActions = this.analyzerActions.CodeBlockEndActions;
                     if (codeBlockEndActions.Any())
                     {
                         var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>>();

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -24,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // Session wide analyzer actions map that stores HostSessionStartAnalysisScope registered by running the Initialize method on every DiagnosticAnalyzer.
         // These are run only once per every analyzer.
-        private ImmutableDictionary<DiagnosticAnalyzer, HostSessionStartAnalysisScope> _sessionScopeMap =
-            ImmutableDictionary<DiagnosticAnalyzer, HostSessionStartAnalysisScope>.Empty;
+        private ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
+            ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>.Empty;
 
         // This map stores the per-compilation HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
         // Compilation start actions will get executed once per-each compilation as user might want to return different set of custom actions for each compilation.
-        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, HostCompilationStartAnalysisScope>> _compilationScopeMap =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, HostCompilationStartAnalysisScope>>();
+        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>>();
 
         /// <summary>
         /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache =
             new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
 
-        internal HostCompilationStartAnalysisScope GetCompilationAnalysisScope(
+        private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             Compilation compilation,
@@ -49,46 +50,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            var sessionActions = sessionScope.GetAnalyzerActions(analyzer);
-            Debug.Assert(sessionActions.CompilationStartActionsCount > 0);
-
             var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(compilation);
-            HostCompilationStartAnalysisScope result;
-            if (compilationActionsMap.TryGetValue(analyzer, out result))
-            {
-                return result;
-            }
-
-            result = new HostCompilationStartAnalysisScope(sessionScope);
-            AnalyzerDriverHelper.ExecuteCompilationStartActions(sessionActions.CompilationStartActions, result, compilation,
-                analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-
-            if (!compilationActionsMap.TryAdd(analyzer, result))
-            {
-                return compilationActionsMap[analyzer];
-            }
-
-            return result;
+            return compilationActionsMap.GetOrAdd(analyzer,
+                Task.Run(() =>
+                {
+                    var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
+                    AnalyzerDriverHelper.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope, compilation,
+                        analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                    return compilationAnalysisScope;
+                }, cancellationToken));
         }
 
-        internal HostSessionStartAnalysisScope GetSessionAnalysisScope(
+        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            return ImmutableInterlocked.GetOrAdd(ref _sessionScopeMap, analyzer, _ =>
+            Func<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> getTask = a =>
             {
-                var sessionScope = new HostSessionStartAnalysisScope();
-                AnalyzerDriverHelper.ExecuteInitializeMethod(analyzer, sessionScope, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-                return sessionScope;
-            });
+                return Task.Run(() =>
+                {
+                    var sessionScope = new HostSessionStartAnalysisScope();
+                    AnalyzerDriverHelper.ExecuteInitializeMethod(a, sessionScope, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                    return sessionScope;
+                }, cancellationToken);
+            };
+
+            var task = ImmutableInterlocked.GetOrAdd(ref _sessionScopeMap, analyzer, getTask);
+
+            // Retry cancelled task.
+            if (task.Status == TaskStatus.Canceled)
+            {
+                ImmutableInterlocked.TryUpdate(ref _sessionScopeMap, analyzer, getTask(analyzer), task);
+                return _sessionScopeMap[analyzer];
+            }
+
+            return task;
         }
 
         /// <summary>
         /// Get all the analyzer actions to execute for the given analyzer against a given compilation.
         /// </summary>
-        public AnalyzerActions GetAnalyzerActions(
+        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             DiagnosticAnalyzer analyzer,
             Compilation compilation,
             Action<Diagnostic> addDiagnostic,
@@ -96,21 +100,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            var sessionScope = GetSessionAnalysisScope(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-            var sessionActions = sessionScope.GetAnalyzerActions(analyzer);
-            if (sessionActions != null && sessionActions.CompilationStartActionsCount > 0 && compilation != null)
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+            if (sessionScope.CompilationStartActions.Length > 0 && compilation != null)
             {
-                var compilationScope = GetCompilationAnalysisScope(analyzer, sessionScope, 
-                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken);
-                var compilationActions = compilationScope.GetAnalyzerActions(analyzer);
-
-                if (compilationActions != null)
-                {
-                    return sessionActions.Append(compilationActions);
-                }
+                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope,
+                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                return compilationScope.GetAnalyzerActions(analyzer);
             }
 
-            return sessionActions;
+            return sessionScope.GetAnalyzerActions(analyzer);
         }
 
         /// <summary>
