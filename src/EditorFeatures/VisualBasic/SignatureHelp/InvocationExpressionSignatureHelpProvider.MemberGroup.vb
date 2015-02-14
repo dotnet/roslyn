@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 member, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 member.IsParams(),
-                member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken).Concat(GetAwaitableDescription(member, semanticModel, position)),
+                Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableDescription(member, semanticModel, position)),
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),

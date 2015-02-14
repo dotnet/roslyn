@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -395,7 +393,48 @@ End Class
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-#End Region 
+#End Region
+
+#Region "Attributes"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attributes_SimpleEvent()
+            Dim code =
+<Code>
+Imports System
+
+Class C1
+    &lt;CLSCompliant(False)&gt;
+    Public Event $$E1()
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attributes_CustomEvent()
+            Dim code =
+<Code>
+Imports System
+
+Class C1
+    &lt;CLSCompliant(False)&gt;
+    Public Custom Event $$E2 As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+
+#End Region
 
 #Region "IsPropertyStyleEvent tests"
 
@@ -537,7 +576,7 @@ End Class
 
             TestName(code, "Foo")
         End Sub
-#End Region 
+#End Region
 
 #Region "Type tests"
 

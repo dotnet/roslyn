@@ -74,13 +74,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return EmptyCollection.Create(this.State, this); }
         }
 
-        public override string FullName
+        protected override string GetFullName()
         {
-            get
-            {
-                // TODO: VB throws E_NOTIMPL
-                throw Exceptions.ThrowEFail();
-            }
+            // TODO: VB throws E_NOTIMPL
+            throw Exceptions.ThrowEFail();
         }
 
         public string Value

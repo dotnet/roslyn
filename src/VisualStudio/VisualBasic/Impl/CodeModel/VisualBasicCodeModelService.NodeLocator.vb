@@ -455,6 +455,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                                 startPosition = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax).Identifier.SpanStart
                             Case SyntaxKind.OperatorStatement
                                 startPosition = DirectCast(methodBlock.BlockStatement, OperatorStatementSyntax).OperatorToken.SpanStart
+                            Case SyntaxKind.GetAccessorStatement,
+                                 SyntaxKind.SetAccessorStatement
+                                ' For properties accessors, use the name of property block
+                                Dim propertyBlock = methodBlock.FirstAncestorOrSelf(Of PropertyBlockSyntax)()
+                                If propertyBlock Is Nothing Then
+                                    Throw Exceptions.ThrowEFail()
+                                End If
+
+                                Return GetPropertyBlockStartPoint(text, propertyBlock, part)
+                            Case SyntaxKind.AddHandlerAccessorStatement,
+                                 SyntaxKind.RemoveHandlerAccessorStatement,
+                                 SyntaxKind.RaiseEventAccessorStatement
+                                ' For event accessors, use the name of event block
+                                Dim eventBlock = methodBlock.FirstAncestorOrSelf(Of EventBlockSyntax)()
+                                If eventBlock Is Nothing Then
+                                    Throw Exceptions.ThrowEFail()
+                                End If
+
+                                Return GetEventBlockStartPoint(text, eventBlock, part)
                             Case Else
                                 Throw Exceptions.ThrowEFail()
                         End Select
@@ -531,6 +550,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                                 startPosition = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax).Identifier.Span.End
                             Case SyntaxKind.OperatorStatement
                                 startPosition = DirectCast(methodBlock.BlockStatement, OperatorStatementSyntax).OperatorToken.Span.End
+                            Case SyntaxKind.GetAccessorStatement,
+                                 SyntaxKind.SetAccessorStatement
+                                ' For properties accessors, use the name of property block
+                                Dim propertyBlock = methodBlock.FirstAncestorOrSelf(Of PropertyBlockSyntax)()
+                                If propertyBlock Is Nothing Then
+                                    Throw Exceptions.ThrowEFail()
+                                End If
+
+                                Return GetPropertyBlockEndPoint(text, propertyBlock, part)
+                            Case SyntaxKind.AddHandlerAccessorStatement,
+                                 SyntaxKind.RemoveHandlerAccessorStatement,
+                                 SyntaxKind.RaiseEventAccessorStatement
+                                ' For event accessors, use the name of event block
+                                Dim eventBlock = methodBlock.FirstAncestorOrSelf(Of EventBlockSyntax)()
+                                If eventBlock Is Nothing Then
+                                    Throw Exceptions.ThrowEFail()
+                                End If
+
+                                Return GetEventBlockEndPoint(text, eventBlock, part)
                             Case Else
                                 Throw Exceptions.ThrowEFail()
                         End Select
