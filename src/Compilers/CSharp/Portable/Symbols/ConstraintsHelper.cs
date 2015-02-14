@@ -656,8 +656,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArgument.IsStatic)
             {
-                // Caller should have already reported ERR_GenericArgIsStaticClass.
-                // (For consistency, consider moving that error reporting here.)
+                // "'{0}': static types cannot be used as type arguments"
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_GenericArgIsStaticClass, typeArgument)));
                 return false;
             }
 

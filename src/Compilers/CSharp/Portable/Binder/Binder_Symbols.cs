@@ -840,11 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arg = typeArgument.Kind() == SyntaxKind.OmittedTypeArgument
                 ? UnboundArgumentErrorTypeSymbol.Instance
                 : binder.BindType(typeArgument, diagnostics, basesBeingResolved);
-            if (arg.IsStatic)
-            {
-                // '{0}': static types cannot be used as type arguments
-                diagnostics.Add(ErrorCode.ERR_GenericArgIsStaticClass, typeArgument.Location, arg);
-            }
 
             return arg;
         }
