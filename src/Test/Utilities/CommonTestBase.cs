@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var configFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config";
             var configFilePath = Path.Combine(Environment.CurrentDirectory, configFileName);
-            
+
             if (File.Exists(configFilePath))
             {
                 var assemblyConfig = XDocument.Load(configFilePath);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             throw new Exception("Unable to load any emitter");
                         }
 
-                        emitters = builder.ToImmutableArray();
+                        s_emitters = builder.ToImmutableArray();
                     }
                 }
             }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
 
         #region Emit
-        
+
         protected abstract Compilation GetCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool collectEmittedAssembly,
             bool verify);
 
-        private static readonly ImmutableArray<Emitter> emitters;
+        private static readonly ImmutableArray<Emitter> s_emitters;
 
         internal CompilationVerifier CompileAndVerify(
             string source,
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.NotNull(compilation);
 
-            Assert.True(expectedOutput == null || 
+            Assert.True(expectedOutput == null ||
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sourceSymbolValidator(module, emitOptions);
             }
 
-            if (emitters.IsDefaultOrEmpty)
+            if (s_emitters.IsDefaultOrEmpty)
             {
                 throw new InvalidOperationException(
                     @"You must specify at least one Emitter.
@@ -217,7 +217,7 @@ Example app.config:
 
             CompilationVerifier result = null;
 
-            foreach (var emit in emitters)
+            foreach (var emit in s_emitters)
             {
                 var verifier = emit(this,
                                     compilation,
@@ -260,16 +260,16 @@ Example app.config:
                 return null;
             }
         }
-        
+
         internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true, TestEmitters emitOptions = TestEmitters.All)
         {
             return CompileAndVerifyFieldMarshal(
-                source, 
-                (s, _omitted1, _omitted2) => 
-                { 
+                source,
+                (s, _omitted1, _omitted2) =>
+                {
                     Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
-                    return expectedBlobs[s]; 
-                }, 
+                    return expectedBlobs[s];
+                },
                 isField,
                 emitOptions);
         }
@@ -482,7 +482,7 @@ Example app.config:
             {
                 assemblyName = GetUniqueName();
             }
-            
+
             if (parseOptions == null)
             {
                 parseOptions = CSharp.CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
@@ -537,7 +537,7 @@ Example app.config:
             {
                 assemblyName = GetUniqueName();
             }
-                        
+
             if (parseOptions == null)
             {
                 parseOptions = VisualBasic.VisualBasicParseOptions.Default;
@@ -599,7 +599,7 @@ Example app.config:
             DocumentationProvider documentation = null,
             string filePath = null)
         {
-            if(image == null)
+            if (image == null)
             {
                 throw new ArgumentNullException(nameof(image));
             }

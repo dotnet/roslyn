@@ -32,7 +32,7 @@ namespace Roslyn.Test.Utilities
         {
             var list = new List<string>();
             var dllList = GetWellKnownDllsWithVersion().ToList();
-            foreach (var tuple in dllList) 
+            foreach (var tuple in dllList)
             {
                 if (tuple.Item3 == DllVersion.RC)
                 {
