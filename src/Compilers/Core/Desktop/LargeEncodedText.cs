@@ -196,5 +196,159 @@ namespace Microsoft.CodeAnalysis.Text
                 chunkIndex++;
             }
         }
+
+        /// <summary>
+        /// Called from <see cref="SourceText.Lines"/> to initialize the <see cref="TextLineCollection"/>. Thereafter,
+        /// the collection is cached.
+        /// </summary>
+        /// <returns>A new <see cref="TextLineCollection"/> representing the individual text lines.</returns>
+        protected override TextLineCollection GetLinesCore()
+        {
+            return base.GetLinesCore();
+        }
+
+        private sealed class LineInfo : TextLineCollection
+        {
+            private readonly SourceText _text;
+            private readonly int[] _lineStarts;
+            private int _lastLineNumber = 0;
+
+            public LineInfo(SourceText text, int[] lineStarts)
+            {
+                _text = text;
+                _lineStarts = lineStarts;
+            }
+
+            public override int Count
+            {
+                get { return _lineStarts.Length; }
+            }
+
+            public override TextLine this[int index]
+            {
+                get
+                {
+                    if (index < 0 || index >= _lineStarts.Length)
+                    {
+                        throw new ArgumentOutOfRangeException("index");
+                    }
+
+                    int start = _lineStarts[index];
+                    if (index == _lineStarts.Length - 1)
+                    {
+                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, _text.Length));
+                    }
+                    else
+                    {
+                        int end = _lineStarts[index + 1];
+                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, end));
+                    }
+                }
+            }
+
+            public override int IndexOf(int position)
+            {
+                if (position < 0 || position > _text.Length)
+                {
+                    throw new ArgumentOutOfRangeException("position");
+                }
+
+                int lineNumber;
+
+                // it is common to ask about position on the same line 
+                // as before or on the next couple lines
+                var lastLineNumber = _lastLineNumber;
+                if (position >= _lineStarts[lastLineNumber])
+                {
+                    var limit = Math.Min(_lineStarts.Length, lastLineNumber + 4);
+                    for (int i = lastLineNumber; i < limit; i++)
+                    {
+                        if (position < _lineStarts[i])
+                        {
+                            lineNumber = i - 1;
+                            _lastLineNumber = lineNumber;
+                            return lineNumber;
+                        }
+                    }
+                }
+
+                // Binary search to find the right line
+                // if no lines start exactly at position, round to the left
+                // EoF position will map to the last line.
+                lineNumber = _lineStarts.BinarySearch(position);
+                if (lineNumber < 0)
+                {
+                    lineNumber = (~lineNumber) - 1;
+                }
+
+                _lastLineNumber = lineNumber;
+                return lineNumber;
+            }
+
+            public override TextLine GetLineFromPosition(int position)
+            {
+                return this[IndexOf(position)];
+            }
+        }
+
+        private int[] ParseLineStarts()
+        {
+            int length = this.Length;
+
+            // Corner case check
+            if (0 == this.Length)
+            {
+                return new int[] { 0 };
+            }
+
+            var position = 0;
+            var index = 0;
+            var lastCr = -1;
+            var arrayBuilder = ArrayBuilder<int>.GetInstance();
+
+            // The following loop goes through every character in the text. It is highly
+            // performance critical, and thus inlines knowledge about common line breaks
+            // and non-line breaks.
+            foreach (var chunk in _chunks)
+            {
+                foreach (var c in chunk)
+                {
+                    index++;
+
+                    // Common case - ASCII & not a line break
+                    const uint bias = '\r' + 1;
+                    if (unchecked(c - bias) <= (127 - bias))
+                    {
+                        continue;
+                    }
+
+                    if (c == '\r')
+                    {
+                        lastCr = index;
+                    }
+                    else if (c == '\n')
+                    {
+                        // Assumes that the only 2-char line break sequence is CR+LF
+                        if (lastCr == (index - 1))
+                        {
+                            position++;
+                            continue;
+                        }
+                    }
+                    else if (!TextUtilities.IsAnyLineBreakCharacter(c))
+                    {
+                        continue;
+                    }
+
+                    arrayBuilder.Add(position);
+                    position = index;
+                }
+            }
+
+            // Create a start for the final line.  
+            arrayBuilder.Add(position);
+
+            return arrayBuilder.ToArrayAndFree();
+        }
     }
 }

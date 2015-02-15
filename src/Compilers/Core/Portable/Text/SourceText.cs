@@ -488,6 +488,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        /// <summary>
+        /// Called from <see cref="Lines"/> to initialize the <see cref="TextLineCollection"/>. Thereafter,
+        /// the collection is cached.
+        /// </summary>
+        /// <returns>A new <see cref="TextLineCollection"/> representing the individual text lines.</returns>
         protected virtual TextLineCollection GetLinesCore()
         {
             return new LineInfo(this, ParseLineStarts());
