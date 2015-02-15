@@ -348,10 +348,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 new[] { body }.ToList());
         }
 
+        private static readonly char[] s_underscoreCharArray = new[] { '_' };
+
         protected string GeneratePropertyName(string fieldName)
         {
             // Trim leading underscores
-            var baseName = fieldName.TrimStart('_');
+            var baseName = fieldName.TrimStart(s_underscoreCharArray);
 
             // Trim leading "m_"
             if (baseName.Length >= 2 && baseName[0] == 'm' && baseName[1] == '_')
@@ -366,7 +368,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             }
 
             // Make uppercase the first letter
-            return char.ToUpper(baseName[0]) + baseName.Substring(1);
+            return char.ToUpper(baseName[0]).ToString() + baseName.Substring(1);
         }
 
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
