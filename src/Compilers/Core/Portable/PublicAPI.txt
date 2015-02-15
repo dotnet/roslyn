@@ -1327,6 +1327,7 @@ Microsoft.CodeAnalysis.Text.SourceText
 Microsoft.CodeAnalysis.Text.SourceText.ChecksumAlgorithm.get
 Microsoft.CodeAnalysis.Text.SourceText.ContentEquals(Microsoft.CodeAnalysis.Text.SourceText other)
 Microsoft.CodeAnalysis.Text.SourceText.GetSubText(int start)
+Microsoft.CodeAnalysis.Text.SourceText.Lines.get
 Microsoft.CodeAnalysis.Text.SourceText.Replace(Microsoft.CodeAnalysis.Text.TextSpan span, string newText)
 Microsoft.CodeAnalysis.Text.SourceText.Replace(int start, int length, string newText)
 Microsoft.CodeAnalysis.Text.SourceText.SourceText(System.Collections.Immutable.ImmutableArray<byte> checksum = default(System.Collections.Immutable.ImmutableArray<byte>), Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, Microsoft.CodeAnalysis.Text.SourceTextContainer container = null)
@@ -2106,9 +2107,9 @@ virtual Microsoft.CodeAnalysis.SyntaxWalker.VisitTrivia(Microsoft.CodeAnalysis.S
 virtual Microsoft.CodeAnalysis.Text.SourceText.Container.get
 virtual Microsoft.CodeAnalysis.Text.SourceText.ContentEqualsImpl(Microsoft.CodeAnalysis.Text.SourceText other)
 virtual Microsoft.CodeAnalysis.Text.SourceText.GetChangeRanges(Microsoft.CodeAnalysis.Text.SourceText oldText)
+virtual Microsoft.CodeAnalysis.Text.SourceText.GetLinesCore()
 virtual Microsoft.CodeAnalysis.Text.SourceText.GetSubText(Microsoft.CodeAnalysis.Text.TextSpan span)
 virtual Microsoft.CodeAnalysis.Text.SourceText.GetTextChanges(Microsoft.CodeAnalysis.Text.SourceText oldText)
-virtual Microsoft.CodeAnalysis.Text.SourceText.Lines.get
 virtual Microsoft.CodeAnalysis.Text.SourceText.ToString(Microsoft.CodeAnalysis.Text.TextSpan span)
 virtual Microsoft.CodeAnalysis.Text.SourceText.WithChanges(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextChange> changes)
 virtual Microsoft.CodeAnalysis.Text.SourceText.Write(System.IO.TextWriter writer, Microsoft.CodeAnalysis.Text.TextSpan span, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))

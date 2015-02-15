@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer _lazyContainer;
-        private LineInfo _lazyLineInfo;
+        private TextLineCollection _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
 
         protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
@@ -479,18 +479,18 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// The collection of individual text lines.
         /// </summary>
-        public virtual TextLineCollection Lines
+        public TextLineCollection Lines
         {
             get
             {
-                if (_lazyLineInfo == null)
-                {
-                    var info = new LineInfo(this, this.ParseLineStarts());
-                    Interlocked.CompareExchange(ref _lazyLineInfo, info, null);
-                }
-
-                return _lazyLineInfo;
+                var info = _lazyLineInfo;
+                return info ?? Interlocked.CompareExchange(ref _lazyLineInfo, info = GetLinesCore(), null) ?? info;
             }
+        }
+
+        protected virtual TextLineCollection GetLinesCore()
+        {
+            return new LineInfo(this, ParseLineStarts());
         }
 
         private class LineInfo : TextLineCollection
