@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public void EntireRangeWithTransformation_RemoveClass()
         {
             var expectedResult = default(IEnumerable<TextSpan>);
@@ -122,7 +121,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public void EntireRangeWithTransformation_AddMember()
         {
             var expectedResult = default(IEnumerable<TextSpan>);
@@ -142,7 +140,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public void RangeWithTransformation_AddMember()
         {
             var expectedResult = default(IEnumerable<TextSpan>);
@@ -162,7 +159,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public void RangeWithTransformation_RemoveMember()
         {
             var expectedResult = default(IEnumerable<TextSpan>);
@@ -279,7 +275,6 @@ End Module";
         }
 
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public void RangeWithTransformation_OutsideOfRange()
         {
             var expectedResult = default(IEnumerable<TextSpan>);

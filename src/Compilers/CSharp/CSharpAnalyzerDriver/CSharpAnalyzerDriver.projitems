@@ -9,8 +9,6 @@
     <Import_RootNamespace>CSharpAnalyzerDriver</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpDeclarationComputer.cs">
-    	<ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)CSharpDeclarationComputer.cs" />
   </ItemGroup>
 </Project>
