@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using System.Linq;
-using System.Reflection;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -720,12 +719,15 @@ class C : A<B>
                         DkmEvaluationResultCategory.Method));
                 var moreChildren = GetChildren(children[1]);
                 Verify(moreChildren,
+                    // The legacy EE treats the Items elements as readonly, but since
+                    // Items is a T[], we treat the elements as read/write. However, Items
+                    // is not updated when modifying elements so this is harmless.
                     EvalResult(
                         "[0]",
                         "{B}",
                         "B",
                         "new System.Linq.SystemCore_EnumerableDebugView<B>(o).Items[0]",
-                        DkmEvaluationResultFlags.Expandable /*TODO | DkmEvaluationResultFlags.ReadOnly*/));
+                        DkmEvaluationResultFlags.Expandable));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
                     EvalResult("F", "null", "object", "new System.Linq.SystemCore_EnumerableDebugView<B>(o).Items[0].F"));

@@ -2335,9 +2335,9 @@ class C
         }
 
         /// <summary>
-        /// Flow analysis should be run on the generated method.
+        /// Flow analysis is not run on the generated method.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void FlowAnalysis()
         {
             var source =
@@ -2362,7 +2362,25 @@ class C
 }))()",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0165: Use of unassigned local variable 'o'");
+            // Compiler would report error CS0165: Use of unassigned local variable 'o'.
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (object V_0) //o
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldarg.0
+  IL_0007:  stfld      ""bool <>x.<>c__DisplayClass0_0.b""
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  stfld      ""object <>x.<>c__DisplayClass0_0.o""
+  IL_0013:  ldftn      ""object <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0019:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""object System.Func<object>.Invoke()""
+  IL_0023:  ret
+}");
         }
 
         /// <summary>
@@ -2600,7 +2618,6 @@ class C<T>
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "((System.Func<object, object, object>)((a, b) => a ?? b))(x, y)");
-
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       39 (0x27)
