@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     internal partial class PreviewPane : UserControl, IDisposable
     {
-        private static readonly string s_dummyThreeLineTitle = 'A' + Environment.NewLine + 'A' + Environment.NewLine + 'A';
+        private static readonly string s_dummyThreeLineTitle = "A" + Environment.NewLine + "A" + Environment.NewLine + "A";
         private static readonly Size s_infiniteSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
 
         private readonly string _errorId;

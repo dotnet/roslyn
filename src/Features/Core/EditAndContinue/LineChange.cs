@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public override string ToString()
         {
-            return OldLine + " -> " + NewLine;
+            return OldLine.ToString() + " -> " + NewLine.ToString();
         }
     }
 }

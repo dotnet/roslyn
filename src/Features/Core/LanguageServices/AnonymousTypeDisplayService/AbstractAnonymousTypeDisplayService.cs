@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             char c = (char)('a' + current);
             if (c >= 'a' && c <= 'z')
             {
-                return "'" + c;
+                return "'" + c.ToString();
             }
 
-            return "'" + current;
+            return "'" + current.ToString();
         }
 
         private IList<INamedTypeSymbol> OrderAnonymousTypes(

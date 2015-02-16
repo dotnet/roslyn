@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RefEmitUnsupported_646014 = RefEmitUnsupported, // FieldBuilder.SetConstant fails on a field whose type is a type builder instantiatiation
         RefEmitUnsupported_646021 = RefEmitUnsupported, // TypeBuilder.CreateType fails if the type contains a static method marked with PreserveSig flag.
         RefEmitUnsupported_646023 = RefEmitUnsupported, // Custom modifiers not supported on element type of array type
-        RefEmitBug_646048         = RefEmitBug,         // ParameterBuilder.SetConstant throws if the type of the value doesn't match the type of the parameter
+        RefEmitBug_646048 = RefEmitBug,         // ParameterBuilder.SetConstant throws if the type of the value doesn't match the type of the parameter
         RefEmitUnsupported_646042 = RefEmitUnsupported, // Types with certain dependencies are not possible to emit
     }
 }

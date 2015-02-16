@@ -8,37 +8,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ConsoleOutput
     {
-        private static readonly object ConsoleGuard = new object();
+        private static readonly object s_consoleGuard = new object();
 
         private sealed class CappedStringWriter : StringWriter
         {
-            private readonly int expectedLength;
-            private int remaining;
+            private readonly int _expectedLength;
+            private int _remaining;
 
             public CappedStringWriter(int expectedLength)
                 : base(System.Globalization.CultureInfo.InvariantCulture)
             {
                 if (expectedLength < 0)
                 {
-                    this.expectedLength = this.remaining = 1024 * 1024;
+                    _expectedLength = _remaining = 1024 * 1024;
                 }
                 else
                 {
-                    this.expectedLength = expectedLength;
-                    this.remaining = Math.Max(256, expectedLength * 4);
+                    _expectedLength = expectedLength;
+                    _remaining = Math.Max(256, expectedLength * 4);
                 }
             }
 
             private void CapReached()
             {
-                Assert.True(false, "Test produced more output than expected (" + expectedLength + " characters). Is it in an infinite loop? Output so far:\r\n" + GetStringBuilder());
+                Assert.True(false, "Test produced more output than expected (" + _expectedLength + " characters). Is it in an infinite loop? Output so far:\r\n" + GetStringBuilder());
             }
 
             public override void Write(char value)
             {
-                if (1 <= remaining)
+                if (1 <= _remaining)
                 {
-                    remaining--;
+                    _remaining--;
                     base.Write(value);
                 }
                 else
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public override void Write(char[] buffer, int index, int count)
             {
-                if (count <= remaining)
+                if (count <= _remaining)
                 {
-                    remaining -= count;
+                    _remaining -= count;
                     base.Write(buffer, index, count);
                 }
                 else
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public override void Write(string value)
             {
-                if (value.Length <= remaining)
+                if (value.Length <= _remaining)
                 {
-                    remaining -= value.Length;
+                    _remaining -= value.Length;
                     base.Write(value);
                 }
                 else
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             TextWriter errorOutputWriter = new CappedStringWriter(expectedLength);
             TextWriter outputWriter = new CappedStringWriter(expectedLength);
 
-            lock (ConsoleGuard)
+            lock (s_consoleGuard)
             {
                 TextWriter originalOut = Console.Out;
                 TextWriter originalError = Console.Error;

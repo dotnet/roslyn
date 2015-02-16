@@ -38,13 +38,13 @@
   .ver 14:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Metadata.dll
-// MVID: {17762184-24A2-49AA-BA4A-E530F297ED20}
+// MVID: {784B4937-3996-4C86-A270-B07A99202EF9}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x008F0000
+// Image base: 0x02DA0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================

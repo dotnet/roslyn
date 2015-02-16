@@ -68,9 +68,13 @@ namespace Roslyn.Utilities
 
             // add backup notation for remaining base path levels beyond the index
             var remainingParts = basePathParts.Length - index;
-            for (int i = 0; i < remainingParts; i++)
+            if (remainingParts > 0)
             {
-                relativePath += relativePath + ".." + Path.DirectorySeparatorChar;
+                string directorySeparator = Path.DirectorySeparatorChar.ToString();
+                for (int i = 0; i < remainingParts; i++)
+                {
+                    relativePath += relativePath + ".." + directorySeparator;
+                }
             }
 
             // add the rest of the full path parts

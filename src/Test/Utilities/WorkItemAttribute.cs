@@ -11,17 +11,17 @@ namespace Roslyn.Test.Utilities
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public sealed class WorkItemAttribute : Attribute
     {
-        private readonly int id;
-        private readonly string description;
+        private readonly int _id;
+        private readonly string _description;
 
         public int Id
         {
-            get { return id; }
+            get { return _id; }
         }
 
         public string Description
         {
-            get { return description; }
+            get { return _description; }
         }
 
         public WorkItemAttribute(int id)
@@ -31,8 +31,8 @@ namespace Roslyn.Test.Utilities
 
         public WorkItemAttribute(int id, string description)
         {
-            this.id = id;
-            this.description = description;
+            _id = id;
+            _description = description;
         }
     }
 }
