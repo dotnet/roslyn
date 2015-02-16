@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 assemblyLoader = new InteractiveAssemblyLoader();
             }
 
-            _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser);
+            _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
             _collectibleCodeManager = new CollectibleCodeManager(assemblyLoader, _assemblyNamePrefix);
             _uncollectibleCodeManager = new UncollectibleCodeManager(assemblyLoader, _assemblyNamePrefix);
         }
@@ -111,8 +111,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
         {
             int id = Interlocked.Increment(ref _submissionIdDispenser);
-            assemblyName = _assemblyNamePrefix + id;
-            typeName = "Submission#" + id;
+            string idAsString = id.ToString();
+            assemblyName = _assemblyNamePrefix + idAsString;
+            typeName = "Submission#" + idAsString;
             return id;
         }
 

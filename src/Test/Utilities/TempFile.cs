@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public class TempFile
     {
-        private readonly string path;
+        private readonly string _path;
 
         internal TempFile(string path)
         {
             Debug.Assert(PathUtilities.IsAbsolute(path));
-            this.path = path;
+            _path = path;
         }
 
         internal TempFile(string prefix, string extension, string directory, string callerSourcePath, int callerLineNumber)
@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     prefix = System.IO.Path.GetFileName(callerSourcePath) + "_" + callerLineNumber.ToString() + "_";
                 }
 
-                path = System.IO.Path.Combine(directory ?? TempRoot.Root, prefix + Guid.NewGuid() + (extension ?? ".tmp"));
+                _path = System.IO.Path.Combine(directory ?? TempRoot.Root, prefix + Guid.NewGuid() + (extension ?? ".tmp"));
 
                 try
                 {
-                    TempRoot.CreateStream(path);
+                    TempRoot.CreateStream(_path);
                     break;
                 }
                 catch (PathTooLongException)
@@ -55,29 +55,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public FileStream Open(FileAccess access = FileAccess.ReadWrite)
         {
-            return new FileStream(path, FileMode.Open, access);
+            return new FileStream(_path, FileMode.Open, access);
         }
 
         public string Path
         {
-            get { return path; }
+            get { return _path; }
         }
 
         public TempFile WriteAllText(string content, Encoding encoding)
         {
-            File.WriteAllText(path, content, encoding);
+            File.WriteAllText(_path, content, encoding);
             return this;
         }
 
         public TempFile WriteAllText(string content)
         {
-            File.WriteAllText(path, content);
+            File.WriteAllText(_path, content);
             return this;
         }
 
         public async Task<TempFile> WriteAllTextAsync(string content, Encoding encoding)
         {
-            using (var sw = new StreamWriter(File.Create(path), encoding))
+            using (var sw = new StreamWriter(File.Create(_path), encoding))
             {
                 await sw.WriteAsync(content).ConfigureAwait(false);
             }
@@ -92,19 +92,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public TempFile WriteAllBytes(byte[] content)
         {
-            File.WriteAllBytes(path, content);
+            File.WriteAllBytes(_path, content);
             return this;
         }
 
         public TempFile WriteAllBytes(ImmutableArray<byte> content)
         {
-            content.WriteToFile(path);
+            content.WriteToFile(_path);
             return this;
         }
 
         public string ReadAllText()
         {
-            return File.ReadAllText(path);
+            return File.ReadAllText(_path);
         }
 
         public TempFile CopyContentFrom(string path)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override string ToString()
         {
-            return path;
+            return _path;
         }
     }
 }
