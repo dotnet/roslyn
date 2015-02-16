@@ -1364,7 +1364,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
-        [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public Solution RemoveDocument(DocumentId documentId)
         {
             CheckContainsDocument(documentId);

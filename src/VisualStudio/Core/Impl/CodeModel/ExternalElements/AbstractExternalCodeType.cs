@@ -106,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get { return ExternalCodeNamespace.Create(this.State, this.ProjectId, this.TypeSymbol.ContainingNamespace); }
         }
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public bool get_IsDerivedFrom(string fullName)
         {
             var currentType = TypeSymbol;

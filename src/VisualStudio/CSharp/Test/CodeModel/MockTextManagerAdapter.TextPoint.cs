@@ -115,7 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 throw new NotImplementedException();
             }
 
-            [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
             public EnvDTE.CodeElement get_CodeElement(EnvDTE.vsCMElement scope)
             {
                 throw new NotImplementedException();
