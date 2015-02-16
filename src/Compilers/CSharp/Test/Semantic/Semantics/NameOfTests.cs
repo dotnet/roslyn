@@ -1138,5 +1138,22 @@ public class Program
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
         }
+
+        [Fact, WorkItem(40, "github.com/dotnet/roslyn")]
+        public void ConstInitializerUsingSelf()
+        {
+            var source =
+@"public class X
+{
+    const string N1 = nameof(N1);
+    public static void Main()
+    {
+        const string N2 = nameof(N2);
+        System.Console.WriteLine(N1 + N2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var comp = CompileAndVerify(source, expectedOutput: @"N1N2");
+        }
     }
 }

@@ -1052,7 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var localSymbol = (LocalSymbol)symbol;
-                        var constantValueOpt = localSymbol.IsConst ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
+                        var constantValueOpt = localSymbol.IsConst && this.EnclosingNameofArgument == null
+                            ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
                         TypeSymbol type;
 
                         Location localSymbolLocation = localSymbol.Locations[0];
@@ -1277,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 bool hasErrors = false;
-                if (!IsNameofArgument(node))
+                if (EnclosingNameofArgument != node)
                 {
                     if (InFieldInitializer && !currentType.IsScriptClass)
                     {
@@ -4594,7 +4595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
                                 return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
                             }
-                            else if (this.IsNameofArgument(node))
+                            else if (this.EnclosingNameofArgument == node)
                             {
                                 // Support selecing an extension method from a type name in nameof(.)
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
@@ -5244,7 +5245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstantValue constantValueOpt = null;
 
-            if (fieldSymbol.IsConst)
+            if (fieldSymbol.IsConst && this.EnclosingNameofArgument == null)
             {
                 constantValueOpt = fieldSymbol.GetConstantValue(this.ConstantFieldsInProgress, this.IsEarlyAttributeBinder);
                 if (constantValueOpt == ConstantValue.Unset)
@@ -5386,7 +5387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (instanceReceiver == false && !IsNameofArgument(node))
+                if (instanceReceiver == false && EnclosingNameofArgument != node)
                 {
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, symbol);
                     resultKind = LookupResultKind.StaticInstanceMismatch;
