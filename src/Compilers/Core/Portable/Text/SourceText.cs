@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Text
         private TextLineCollection _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
 
+        private static readonly Encoding Utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
+
         protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
-            encoding = encoding ?? Encoding.UTF8;
+            encoding = encoding ?? Utf8EncodingWithNoBOM;
 
             // If the resulting string would end up on the large object heap, then use LargeEncodedText.
             if (encoding.GetMaxCharCount((int)stream.Length) >= LargeObjectHeapLimitInChars)
@@ -126,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new InvalidDataException();
             }
 
-            return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
+            var checksum = CalculateChecksum(stream, checksumAlgorithm);
+            return new StringText(text, encoding, checksum, checksumAlgorithm);
         }
 
         /// <summary>
@@ -156,14 +159,14 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(buffer));
             }
 
-            if (length < 0 || length >= buffer.Length)
+            if (length < 0 || length > buffer.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
-            string text = Decode(buffer, length, encoding ?? Encoding.UTF8, out encoding);
+            string text = Decode(buffer, length, encoding ?? Utf8EncodingWithNoBOM, out encoding);
             if (throwIfBinaryDetected && IsBinary(text))
             {
                 throw new InvalidDataException();

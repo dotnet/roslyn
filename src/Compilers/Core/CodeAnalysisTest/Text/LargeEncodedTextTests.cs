@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
 
-                var text = CreateSourceText(stream);
+                var text = SourceText.From(stream);
+                Assert.IsType(typeof(LargeEncodedText), text);
 
                 char[] buffer = new char[HelloWorld.Length];
                 for (int start = 0; start < text.Length; start += HelloWorld.Length)
