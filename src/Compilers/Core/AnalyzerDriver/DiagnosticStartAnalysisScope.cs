@@ -408,11 +408,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return actions;
         }
-
-        public void RegisterAnalyzerActions(DiagnosticAnalyzer analyzer, AnalyzerActions actions)
-        {
-            _analyzerActions[analyzer] = actions;
-        }
     }
 
     /// <summary>

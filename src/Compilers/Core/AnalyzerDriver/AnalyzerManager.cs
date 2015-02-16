@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Manages analyzers for analyzer host's lifetime.
+    /// Manages properties of analyzers (such as registered actions, supported diagnostics) for analyzer host's lifetime.
     /// 
     /// It ensures the following for the lifetime of analyzer host:
     /// 1) <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> is invoked only once per-analyzer.
@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly AnalyzerManager Default = new AnalyzerManager();
 
-        // Session wide analyzer actions map that stores HostSessionStartAnalysisScope registered by running the Initialize method on every DiagnosticAnalyzer.
+        // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
         // These are run only once per every analyzer.
         private ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
             ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>.Empty;
 
-        // This map stores the per-compilation HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
+        // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
         // Compilation start actions will get executed once per-each compilation as user might want to return different set of custom actions for each compilation.
         private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>>();
@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Get all the analyzer actions to execute for the given analyzer against a given compilation.
+        /// The returned actions include the actions registered during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> method as well as
+        /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             DiagnosticAnalyzer analyzer,

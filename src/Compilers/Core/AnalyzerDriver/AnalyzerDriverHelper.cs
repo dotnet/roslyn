@@ -13,10 +13,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class AnalyzerDriverHelper
     {
-        private const string DiagnosticId = "AD0001";        
+        private const string DiagnosticId = "AD0001";
         private const string DiagnosticCategory = "Compiler";
 
-        internal static void ExecuteInitializeMethod(
+        /// <summary>
+        /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
+        /// </summary>
+        /// <param name="analyzer">Analyzer to get session wide analyzer actions.</param>
+        /// <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
+        /// <param name="addDiagnostic">Delegate to add diagnostics.</param>
+        /// <param name="continueOnAnalyzerException">Predicate to decide if exceptions from the action should be handled or not.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <remarks>
+        /// Note that this API doesn't execute any <see cref="CompilationStartAnalyzerAction"/> registered by the Initialize invocation.
+        /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope, Compilation, AnalyzerOptions, Action{Diagnostic}, Func{Exception, DiagnosticAnalyzer, bool}, CancellationToken)"/> API
+        /// to get execute these actions to get the per-compilation analyzer actions.
+        /// </remarks>
+        public static void ExecuteInitializeMethod(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             Action<Diagnostic> addDiagnostic,
@@ -31,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Executes the compilation start actions and returns the per-compilation analyzer actions added by these actions.
+        /// Executes the compilation start actions.
         /// </summary>
         /// <param name="actions"><see cref="AnalyzerActions"/> whose compilation start actions are to be executed.</param>
-        /// <param name="compilationScope">HostCompilationStartAnalysisScope to be used.</param>
+        /// <param name="compilationScope">Compilation scope to store the analyzer actions.</param>
         /// <param name="compilation">Compilation to be used in the analysis.</param>
         /// <param name="analyzerOptions">Analyzer options.</param>
         /// <param name="addDiagnostic">Delegate to add diagnostics.</param>
