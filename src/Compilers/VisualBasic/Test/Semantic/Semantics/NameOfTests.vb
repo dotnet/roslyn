@@ -3499,5 +3499,27 @@ MTest
             Assert.Equal("Property Module1.MTest As System.String", group.Single.ToTestDisplayString())
         End Sub
 
+        <Fact, WorkItem(543, "https://github.com/dotnet/roslyn")>
+        Public Sub NameOfConstantInInitializer()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class Module1
+    Const N1 As String = NameOf(N1)
+    Shared Sub Main()
+        Const N2 As String = NameOf(N2)
+        System.Console.WriteLine(N1 &amp; N2)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+N1N2
+]]>).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace
