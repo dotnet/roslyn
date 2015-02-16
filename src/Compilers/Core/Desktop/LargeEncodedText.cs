@@ -322,26 +322,30 @@ namespace Microsoft.CodeAnalysis.Text
                         continue;
                     }
 
-                    if (c == '\r')
+                    switch(c)
                     {
-                        lastCr = index;
-                    }
-                    else if (c == '\n')
-                    {
-                        // Assumes that the only 2-char line break sequence is CR+LF
-                        if (lastCr == (index - 1))
-                        {
-                            position++;
-                            continue;
-                        }
-                    }
-                    else if (!TextUtilities.IsAnyLineBreakCharacter(c))
-                    {
-                        continue;
-                    }
+                        case '\r':
+                            lastCr = index;
+                            goto line_break;
 
-                    arrayBuilder.Add(position);
-                    position = index;
+                        case '\n':
+                            // Assumes that the only 2-char line break sequence is CR+LF
+                            if (lastCr == (index - 1))
+                            {
+                                position = index;
+                                break;
+                            }
+
+                            goto line_break;
+
+                        case '\u0085':
+                        case '\u2028':
+                        case '\u2029':
+                        line_break:
+                            arrayBuilder.Add(position);
+                            position = index;
+                            break;
+                    }
                 }
             }
 
