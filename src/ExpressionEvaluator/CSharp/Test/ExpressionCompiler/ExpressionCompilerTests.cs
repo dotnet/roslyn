@@ -2335,6 +2335,38 @@ class C
         }
 
         /// <summary>
+        /// Flow analysis should catch definite assignment errors
+        /// for variables declared within the expression.
+        /// </summary>
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
+        public void FlowAnalysis()
+        {
+            var source =
+@"class C
+{
+    static void M(bool b)
+    {
+    }
+}";
+            ResultProperties resultProperties;
+            string error;
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr:
+@"((System.Func<object>)(() =>
+{
+    object o;
+    if (b) o = 1;
+    return o;
+}))()",
+                resultProperties: out resultProperties,
+                error: out error);
+            Assert.Equal(error, "error CS0165: Use of unassigned local variable 'o'");
+        }
+
+        /// <summary>
         /// Should be possible to evaluate an expression
         /// of a type that the compiler does not normally
         /// support as a return value.
