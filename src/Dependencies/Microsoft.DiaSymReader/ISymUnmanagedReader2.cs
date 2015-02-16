@@ -124,7 +124,7 @@ namespace Microsoft.DiaSymReader
             [MarshalAs(UnmanagedType.LPWStr)] string name,
             int bufferLength,
             out int count,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] buffer);
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] customDebugInformation);
 
         [PreserveSig]
         int GetMethodsInDocument(
