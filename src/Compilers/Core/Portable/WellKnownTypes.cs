@@ -500,9 +500,29 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = s_metadataNames[i];
                 var typeId = (WellKnownType)(i + WellKnownType.First);
+
+#if DEBUG
+                // Ensure the WellKnownType enumeration and s_metadataNames field stay in sync
+
+                string typeIdName;
+                if (typeId == WellKnownType.First)
+                {
+                    typeIdName = "System.Math";
+                }
+                else if (typeId == WellKnownType.Last) 
+                {
+                    typeIdName = "System.IFormatProvider";
+                }
+                else
+                {
+                    typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
+                }
+
                 Debug.Assert(name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
                           || name.IndexOf('`') > 0 // a generic type
-                          || name == (typeId.ToString() == "First" ? "System.Math" : typeId.ToString().Replace("__", "+").Replace('_', '.')));
+                          || name == typeIdName);
+#endif
+
                 s_nameToTypeIdMap.Add(name, typeId);
             }
         }
