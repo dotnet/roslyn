@@ -19119,8 +19119,46 @@ public class Test
             comp4.GetDiagnostics().Verify(expected);
         }
 
+        [Fact, WorkItem(345, "https://github.com/dotnet/roslyn")]
         public void InferredStaticTypeArgument()
         {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        M(default(C));
+    }
+    public static void M<T>(T t)
+    {
+    }
+}
+
+static class C
+{
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,9): error CS0718: 'C': static types cannot be used as type arguments
+                //         M(default(C));
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "M").WithArguments("C").WithLocation(5, 9)
+                );
+        }
+
+        [Fact, WorkItem(511, "https://github.com/dotnet/roslyn")]
+        public void StaticTypeArgumentOfDynamicInvocation()
+        {
+            var source =
+@"static class S {}
+class C
+{
+    static void M()
+    {
+        dynamic d1 = 123;
+        d1.N<S>(); // The dev11 compiler does not diagnose this
+    }
+    static void Main() {}
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
     }
 }
