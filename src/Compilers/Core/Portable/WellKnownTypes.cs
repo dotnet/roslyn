@@ -496,13 +496,23 @@ namespace Microsoft.CodeAnalysis
 
         static WellKnownTypes()
         {
+            AssertEnumAndTableInSync();
+
             for (int i = 0; i < s_metadataNames.Length; i++)
             {
                 var name = s_metadataNames[i];
                 var typeId = (WellKnownType)(i + WellKnownType.First);
+                s_nameToTypeIdMap.Add(name, typeId);
+            }
+        }
 
-#if DEBUG
-                // Ensure the WellKnownType enumeration and s_metadataNames field stay in sync
+        [Conditional("DEBUG")]
+        private static void AssertEnumAndTableInSync()
+        {
+            for (int i = 0; i < s_metadataNames.Length; i++)
+            {
+                var name = s_metadataNames[i];
+                var typeId = (WellKnownType)(i + WellKnownType.First);
 
                 string typeIdName;
                 if (typeId == WellKnownType.First)
@@ -521,9 +531,6 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(name == "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl"
                           || name.IndexOf('`') > 0 // a generic type
                           || name == typeIdName);
-#endif
-
-                s_nameToTypeIdMap.Add(name, typeId);
             }
         }
 
