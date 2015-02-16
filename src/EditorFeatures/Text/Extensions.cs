@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Text
             var textBuffer = TryGetTextBuffer(textContainer);
             if (textBuffer == null)
             {
-                throw new ArgumentException(TextEditorResources.TextContainerNotFromTextBuffer, "textContainer");
+                throw new ArgumentException(TextEditorResources.TextContainerNotFromTextBuffer, nameof(textBuffer));
             }
 
             return textBuffer;
