@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Text
             return new LineInfo(this, ParseLineStarts());
         }
 
-        private sealed class LineInfo : TextLineCollection
+        internal sealed class LineInfo : TextLineCollection
         {
             private readonly SourceText _text;
             private readonly int[] _lineStarts;
