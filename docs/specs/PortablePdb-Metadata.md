@@ -17,6 +17,11 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
 * [ImportScope](#ImportScopeTable)
 * [AsyncMethod](#AsyncMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
+    * [StateMachineHoistedLocalScopes](#StateMachineHoistedLocalScopes)
+    * [DynamicLocalVariables](#DynamicLocalVariables)
+    * [RootNamespace](#RootNamespace)
+    * [EditAndContinueLocalSlotMap](#EditAndContinueLocalSlotMap)
+    * [EditAndContinueLambdaAndClosureMap](#EditAndContinueLambdaAndClosureMap)
 
 These tables refer to data in #Guid, #String and #Blob heaps whose structure hasn’t changed.
 
@@ -175,7 +180,7 @@ The LocalScope table has the following columns:
 
 	Starting IL offset of the scope.
 
-* _Length_ (integer [0..0x80000000), encoding: uint32)
+* _Length_ (integer (0..0x80000000), encoding: uint32)
 
         The scope length in bytes. 
 
@@ -331,7 +336,7 @@ Kind is an id defined by the tool producing the information.
 
 The following _Custom Debug Information_ records are currently produced by C#, VB and F# compilers. In future the compilers and other tools may define new records. Once specified they may not change. If a change is needed the owner has to define a new record with a new kind (GUID).
 
-##### State Machine Hoisted Local Scopes (C# & VB compilers)
+##### <a name="StateMachineHoistedLocalScopes"></a>State Machine Hoisted Local Scopes (C# & VB compilers)
 Parent: MethodDef
 
 Kind: {6DA9A61E-F8C7-4874-BE62-68BC5630DF71}
@@ -340,13 +345,13 @@ Scopes of local variables hoisted to state machine fields.
 
 Structure:
 
-    Blob ::= Scope {hoisted-variable-count}
+    Blob ::= Scope{hoisted-variable-count}
     Scope::= start-offset length
 
 | terminal       | encoding | description|
 |:---------------|:---------|:-----------|
-| _start-offset_ | uint32   | Start IL offset of the scope, a value in range (0..0x80000000].|
-| _length_       | uint32   | Length of the scope span, a value in range (0..0x80000000].    |
+| _start-offset_ | uint32   | Start IL offset of the scope, a value in range [0..0x80000000).|
+| _length_       | uint32   | Length of the scope span, a value in range (0..0x80000000).    |
 
 Each scope spans IL instructions in range [_start-offset_, _start-offset_ + _length_).
 
@@ -354,7 +359,7 @@ _start-offset_ shall point to the starting byte of an instruction of the MoveNex
 
 _start-offset_ + _length_ shall point to the starting byte of an instruction or be equal to the size of the IL stream of the MoveNext method of the state machine type.
 
-##### Dynamic Local Variables (C# compiler)
+##### <a name="DynamicLocalVariables"></a>Dynamic Local Variables (C# compiler)
 Parent: MethodDef
 
 Kind: {83C563C4-B4F3-47D5-B824-BA5441477EA8}
@@ -373,7 +378,7 @@ Structure:
 
 TODO: Bit ordering.
 
-##### Root Namespace (VB compiler)
+##### <a name="RootNamespace"></a>Root Namespace (VB compiler)
 Parent: Module
 
 Kind: {58b2eab6-209f-4e4e-a22c-b2d0f910c782}
@@ -386,7 +391,7 @@ Structure:
 |:---------|:---------|:-----------|
 | _namespace_    | UTF8 string | The root namespace. |
 
-##### Edit and Continue Local Slot Map (C# & VB compilers)
+##### <a name="EditAndContinueLocalSlotMap"></a>Edit and Continue Local Slot Map (C# & VB compilers)
 Parent: MethodDef
 
 Kind: {755F52A8-91C5-45BE-B4B8-209571E552BD}
@@ -411,7 +416,7 @@ The blob has the following structure:
 
 The exact algorithm used to calculate syntax offsets and the algorithm that maps slots to syntax nodes is language and implementation specific and may change in future versions of the compiler.
 
-##### Edit and Continue Lambda and Closure Map (C# & VB compilers)
+##### <a name="EditAndContinueLambdaAndClosureMap"></a>Edit and Continue Lambda and Closure Map (C# & VB compilers)
 Parent: MethodDef
 
 Kind: {A643004C-0240-496F-A783-30D64F4979DE}
