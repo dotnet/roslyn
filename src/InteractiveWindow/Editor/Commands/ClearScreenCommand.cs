@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Composition;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -20,9 +21,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return "Clears the contents of the REPL editor window, leaving history and execution context intact."; }
         }
 
-        public override string Name
+        public override IEnumerable<string> Names
         {
-            get { return "cls"; }
+            get { yield return "cls"; }
         }
     }
 }

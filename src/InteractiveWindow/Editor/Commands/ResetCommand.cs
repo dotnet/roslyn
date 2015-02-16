@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return "Reset the execution environment to the initial state, keep REPL history."; }
         }
 
-        public override string Name
+        public override IEnumerable<string> Names
         {
-            get { return CommandName; }
+            get { yield return CommandName; }
         }
 
         public override string CommandLine

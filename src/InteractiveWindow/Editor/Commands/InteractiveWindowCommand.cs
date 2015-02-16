@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return null; }
         }
 
-        public virtual string Name
+        public virtual IEnumerable<string> Names
         {
             get { return null; }
         }

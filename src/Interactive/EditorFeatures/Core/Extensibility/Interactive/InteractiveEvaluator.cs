@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
+        public IContentType ContentType 
+        {
+            get 
+            {
+                return _contentType;
+            }
+        }
+
         public IInteractiveWindow CurrentWindow
         {
             get
@@ -118,11 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 return _interactiveCommands;
             }
-        }
-
-        public IContentType ContentType
-        {
-            get { return _contentType; }
         }
 
         protected abstract string LanguageName { get; }
@@ -413,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region IInteractiveEngine
 
-        public virtual bool CanExecuteText(string text)
+        public virtual bool CanExecuteCode(string text)
         {
             if (_interactiveCommands != null && _interactiveCommands.InCommand)
             {
@@ -424,9 +427,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public Task<ExecutionResult> ResetAsync(bool initialize = true)
         {
-            GetInteractiveWindow().AddLogicalInput(_interactiveCommands.CommandPrefix + "reset");
+            GetInteractiveWindow().AddInput(_interactiveCommands.CommandPrefix + "reset");
             GetInteractiveWindow().WriteLine("Resetting execution engine.");
-            GetInteractiveWindow().Flush();
+            GetInteractiveWindow().FlushOutput();
 
             return ResetAsyncWorker(initialize);
         }
@@ -454,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
             }
 
-        public async Task<ExecutionResult> ExecuteTextAsync(string text)
+        public async Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
             try
             {
@@ -525,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             UpdateLocalPaths(result.NewReferencePaths, result.NewSourcePaths, result.NewWorkingDirectory);
         }
 
-        public void AbortCommand()
+        public void AbortExecution()
         {
             // TODO: abort execution
         }

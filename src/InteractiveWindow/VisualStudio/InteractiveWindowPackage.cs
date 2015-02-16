@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     [ProvideKeyBindingTable(Guids.InteractiveToolWindowIdString, 200)] // Resource ID: "Interactive Window"
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(Guids.InteractiveWindowPackageIdString)]
+    [ProvideBindingPath]
     internal sealed class InteractiveWindowPackage : Package
     {
     }

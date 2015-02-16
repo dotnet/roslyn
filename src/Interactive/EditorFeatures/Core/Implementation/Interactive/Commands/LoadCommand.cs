@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             get { return "Executes the specified file within the current interactive session."; }
         }
 
-        public override string Name
+        public override IEnumerable<string> Names
         {
-            get { return CommandName; }
+            get { yield return CommandName; }
         }
 
         public override string CommandLine

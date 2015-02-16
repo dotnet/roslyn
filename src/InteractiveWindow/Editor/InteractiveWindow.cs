@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private bool adornmentToMinimize = false;
 
         // true iff code is being executed:
-        private bool isRunning;            // TODO: remove in favor of currentTask
+        private bool isRunning;
         private bool isResetting;
 
         private Task<ExecutionResult> currentTask;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly InteractiveOperations interactiveOperations;
         private readonly History history;
         private readonly TaskScheduler uiScheduler;
-        
+
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
         ////
@@ -68,7 +68,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         // the language engine and content type of the active submission:
         private bool engineInitialized;
         private IInteractiveEvaluator engine;
-        private IContentType languageContentType;
 
         private IIntellisenseSessionStack sessionStack; // TODO: remove
 
@@ -98,7 +97,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         ////
 
         // Pending submissions to be processed whenever the REPL is ready to accept submissions.
-        private Queue<string> pendingSubmissions;
+        private Queue<PendingSubmission> pendingSubmissions;
 
         ////
         //// Standard input.
@@ -209,7 +208,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
             }
 
-            engineInitialized = true;
             isResetting = true;
 
             ExecutionResult result;
@@ -222,6 +220,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 isResetting = false;
             }
+            engineInitialized = true;
 
             Debug.Assert(Dispatcher.CheckAccess());
 
@@ -315,7 +314,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region IInteractiveWindow
 
         public event Action ReadyForInput;
-       
+
         public IWpfTextView TextView
         {
             get
@@ -360,7 +359,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     value.CurrentWindow = this;
 
                     this.engine = value;
-                    this.languageContentType = engine.ContentType;
                     this.engineInitialized = false;
                 }
             }
@@ -462,11 +460,40 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public void Submit(IEnumerable<string> inputs)
+        public Task SubmitAsync(IEnumerable<string> inputs)
+        {
+            var task = new TaskCompletionSource<object>();
+            var submissions = inputs.ToArray();
+            PendingSubmission[] pendingSubmissions = new PendingSubmission[submissions.Length];
+            if (submissions.Length == 0)
+            {
+                task.SetResult(null);
+            }
+            else
+            {
+                for (int i = 0; i < submissions.Length; i++)
+                {
+                    if (i == submissions.Length - 1)
+                    {
+                        pendingSubmissions[i] = new PendingSubmission(submissions[i], task);
+                    }
+                    else
+                    {
+                        pendingSubmissions[i] = new PendingSubmission(submissions[i], null);
+                    }
+                }
+            }
+
+            Submit(pendingSubmissions);
+            return task.Task;
+
+        }
+
+        private void Submit(PendingSubmission[] pendingSubmissions)
         {
             if (!CheckAccess())
             {
-                Dispatcher.BeginInvoke(new Action(() => Submit(inputs)));
+                Dispatcher.BeginInvoke(new Action(() => Submit(pendingSubmissions)));
                 return;
             }
 
@@ -475,21 +502,33 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 if (!isRunning && currentLanguageBuffer != null)
                 {
                     StoreUncommittedInput();
-                    PendSubmissions(inputs);
+                    PendSubmissions(pendingSubmissions);
                     ProcessPendingSubmissions();
                 }
                 else
                 {
-                    PendSubmissions(inputs);
+                    PendSubmissions(pendingSubmissions);
                 }
             }
         }
 
-        private void PendSubmissions(IEnumerable<string> inputs)
+        class PendingSubmission
+        {
+            public readonly string Input;
+            public readonly TaskCompletionSource<object> Task;
+
+            public PendingSubmission(string input, TaskCompletionSource<object> task)
+            {
+                Input = input;
+                Task = task;
+            }
+        }
+
+        private void PendSubmissions(IEnumerable<PendingSubmission> inputs)
         {
             if (pendingSubmissions == null)
             {
-                pendingSubmissions = new Queue<string>();
+                pendingSubmissions = new Queue<PendingSubmission>();
             }
 
             foreach (var input in inputs)
@@ -498,7 +537,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public void AddLogicalInput(string command)
+        public void AddInput(string command)
         {
             if (isRunning || currentLanguageBuffer == null)
             {
@@ -540,33 +579,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return currentTask;
         }
 
-        public void Flush()
+        public void FlushOutput()
         {
             buffer.Flush();
-        }
-
-        public void AbortCommand()
-        {
-            if (isRunning)
-            {
-                engine.AbortCommand();
-            }
-            else
-            {
-                UIThread(() =>
-                {
-                    // finish line of the current std input buffer or language buffer:
-                    if (InStandardInputRegion(new SnapshotPoint(CurrentSnapshot, CurrentSnapshot.Length)))
-                    {
-                        CancelStandardInput();
-                    }
-                    else if (currentLanguageBuffer != null)
-                    {
-                        AppendLineNoPromptInjection(currentLanguageBuffer);
-                        PrepareForInput();
-                    }
-                });
-            }
         }
 
         #endregion
@@ -1190,6 +1205,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
+        public bool IsInitializing
+        {
+            get
+            {
+                return !engineInitialized && isResetting;
+            }
+        }
+
         public IInteractiveWindowOperations Operations
         {
             get
@@ -1766,13 +1789,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return;
             }
 
-            string submission = pendingSubmissions.Dequeue();
+            var submission = pendingSubmissions.Dequeue();
 
             // queue new work item:
             Dispatcher.Invoke(new Action(() =>
             {
-                SetActiveCode(submission);
+                SetActiveCode(submission.Input);
                 Submit();
+                if (submission.Task != null)
+                {
+                    if (currentTask != null)
+                    {
+                        currentTask.ContinueWith(x => submission.Task.SetResult(null));
+                    }
+                    else
+                    {
+                        // last input was an empty string...
+                        submission.Task.SetResult(null);
+                    }
+                }
             }));
         }
 
@@ -1809,7 +1844,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 StartCursorTimer();
 
-                currentTask = engine.ExecuteTextAsync(snapshotSpan.GetText()) ?? ExecutionResult.Failed;
+                currentTask = engine.ExecuteCodeAsync(snapshotSpan.GetText()) ?? ExecutionResult.Failed;
                 currentTask.ContinueWith(FinishExecute, uiScheduler);
             }
         }
@@ -1870,7 +1905,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public string ReadStandardInput()
+        public TextReader ReadStandardInput()
         {
             // shouldn't be called on the UI thread because we'll hang
             Debug.Assert(!CheckAccess());
@@ -1935,7 +1970,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             if (inputValue.HasValue)
             {
                 history.Add(inputValue.Value);
-                return inputValue.Value.GetText();
+                return new StringReader(inputValue.Value.GetText());
             }
             else
             {
@@ -1985,9 +2020,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Output
 
-        public int Write(string text)
+        public Span Write(string text)
         {
-            return buffer.Write(text);
+            int result = buffer.Write(text);
+            return new Span(result, (text != null ? text.Length : 0));
         }
 
         public Span WriteLine(string text = null)
@@ -2200,7 +2236,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return false;
             }
 
-            return engine.CanExecuteText(input);
+            return engine.CanExecuteCode(input);
         }
 
         private void FinishExecute(Task<ExecutionResult> result)
@@ -2398,8 +2434,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             var promptSpanIndex = GetProjectionSpanIndexFromEditableBufferPosition(projectionBuffer.CurrentSnapshot, projectionSpans.Count, startLine) - 1;
             Debug.Assert(projectionSpans[promptSpanIndex].Kind.IsPrompt());
 
-                var promptSpan = projectionSpans[promptSpanIndex];
-                minPromptLength = maxPromptLength = promptSpan.Length;
+            var promptSpan = projectionSpans[promptSpanIndex];
+            minPromptLength = maxPromptLength = promptSpan.Length;
         }
 
         /// <summary>
@@ -2428,7 +2464,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private void AddLanguageBuffer()
         {
-            ITextBuffer buffer = host.CreateAndActivateBuffer(this, languageContentType);
+            ITextBuffer buffer = host.CreateAndActivateBuffer(this);
 
             buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), engine);
             buffer.Properties.AddProperty(typeof(InteractiveWindow), this);

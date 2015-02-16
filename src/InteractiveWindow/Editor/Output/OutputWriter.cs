@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return;
             }
 
-            int offset = window.Write(value);
+            int offset = window.Write(value).Start;
             if (spans != null)
             {
                 spans.Add(new Span(offset, value.Length));

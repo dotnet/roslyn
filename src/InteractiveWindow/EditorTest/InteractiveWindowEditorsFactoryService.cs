@@ -13,9 +13,10 @@ namespace Roslyn.InteractiveWindow.UnitTests
     {
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
+        private readonly IContentTypeRegistryService _contentTypeRegistry;
 
         [ImportingConstructor]
-        public InteractiveWindowEditorsFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService)
+        public InteractiveWindowEditorsFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentType)
         {
             _textBufferFactoryService = textBufferFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
@@ -27,8 +28,14 @@ namespace Roslyn.InteractiveWindow.UnitTests
             return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;
         }
 
-        ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window, IContentType contentType)
+        ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
         {
+            IContentType contentType;
+            if (!window.Properties.TryGetProperty(typeof(IContentType), out contentType))
+            {
+                contentType = _contentTypeRegistry.GetContentType("text");
+            }
+
             return _textBufferFactoryService.CreateTextBuffer(contentType);
         }
     }
