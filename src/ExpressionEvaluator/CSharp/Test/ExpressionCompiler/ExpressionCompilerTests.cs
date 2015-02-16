@@ -2335,9 +2335,10 @@ class C
         }
 
         /// <summary>
-        /// Flow analysis should be run on the generated method.
+        /// Flow analysis should catch definite assignment errors
+        /// for variables declared within the expression.
         /// </summary>
-        [Fact(Skip = "TODO")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
         public void FlowAnalysis()
         {
             var source =
@@ -2345,7 +2346,6 @@ class C
 {
     static void M(bool b)
     {
-        object o;
     }
 }";
             ResultProperties resultProperties;
@@ -2357,6 +2357,7 @@ class C
                 expr:
 @"((System.Func<object>)(() =>
 {
+    object o;
     if (b) o = 1;
     return o;
 }))()",
@@ -2368,7 +2369,7 @@ class C
         /// <summary>
         /// Should be possible to evaluate an expression
         /// of a type that the compiler does not normally
-        /// supported as a return value.
+        /// support as a return value.
         /// </summary>
         [Fact]
         public void EvaluateRestrictedTypeExpression()
@@ -2600,7 +2601,6 @@ class C<T>
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "((System.Func<object, object, object>)((a, b) => a ?? b))(x, y)");
-
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       39 (0x27)

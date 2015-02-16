@@ -9,18 +9,10 @@
     <Import_RootNamespace>SharedCollections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.Enumerator.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPool`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)PooledHashSet.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledHashSet.cs" />
   </ItemGroup>
 </Project>

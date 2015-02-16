@@ -239,7 +239,6 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             if (hr < 0)
             {
                 // method has no symbol info
-                Debug.WriteLine(string.Format("Invalid method token '0x{0:x8}' or version '{1}' (hresult = 0x{2:x8})", methodToken, methodVersion, hr));
                 return null;
             }
 
