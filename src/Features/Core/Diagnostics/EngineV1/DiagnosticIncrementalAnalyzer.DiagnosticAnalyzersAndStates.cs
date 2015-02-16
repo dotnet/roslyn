@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var providerType = provider.GetType();
                 var location = providerType.Assembly.Location;
 
-                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type + "_" + providerType.AssemblyQualifiedName, GetProviderVersion(location));
+                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + providerType.AssemblyQualifiedName, GetProviderVersion(location));
             }
 
             private static VersionStamp GetProviderVersion(string path)

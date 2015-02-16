@@ -2351,14 +2351,16 @@ public partial class A : I
         return d.d1 == null;
     }
 }";
-            var verifier = CompileAndVerifyOnWin8Only(
+            var verifier = CompileAndVerify(
                 new[] { src, DynamicCommonSrc },
                 additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     _eventLibRef,
                 },
-                emitOptions: TestEmitters.RefEmitBug);
+                emitOptions: TestEmitters.RefEmitBug,
+                verify: OSVersion.IsWin8);
+
             verifier.VerifyDiagnostics(
     // (6,42): warning CS0067: The event 'A.d2' is never used
     //     public event genericDelegate<object> d2;
@@ -2485,8 +2487,7 @@ public class abcdef{
     }
 } ";
 
-            CSharpCompilation comp = CreateWinRtCompilation(text);
-            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: TestEmitters.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(text, emitOptions: TestEmitters.RefEmitBug);
 
             cv.VerifyIL("abcdef.foo()", @"
 {
@@ -2546,8 +2547,7 @@ public class abcdef{
                                 }
                             } ";
 
-            CSharpCompilation comp = CreateWinRtCompilation(text);
-            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: TestEmitters.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(text, emitOptions: TestEmitters.RefEmitBug);
 
             var ExpectedIl =
 @"
@@ -2611,10 +2611,7 @@ public class abcdef{
     }
 }";
 
-            CSharpCompilation comp = CreateWinRtCompilation(text);
-            var cv = CompileAndVerifyOnWin8Only(comp, emitOptions: TestEmitters.RefEmitBug);
-
-            CSharpCompilation a = CreateWinRtCompilation(text);
+            var cv = CompileAndVerifyOnWin8Only(text, emitOptions: TestEmitters.RefEmitBug);
 
             cv.VerifyIL("abcdef.foo()", @"
 {
@@ -2660,7 +2657,7 @@ public class abcdef{
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
 
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
             var ns1 = comp.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");

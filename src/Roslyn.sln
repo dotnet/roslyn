@@ -319,6 +319,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AnalyzerDriver", "Compilers
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedCollections", "Compilers\Core\SharedCollections\SharedCollections.shproj", "{C1930979-C824-496B-A630-70F5369A636F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpWinRTTest", "Compilers\CSharp\Test\WinRT\CSharpWinRTTest.csproj", "{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{edc68a0e-c68d-4a74-91b7-bf38ec909888}*SharedItemsImports = 4
@@ -1836,6 +1838,16 @@ Global
 		{0FAE8CB3-4D2F-4A11-B1E6-F47EFF0FB863}.Release|ARM.Build.0 = Release|Any CPU
 		{0FAE8CB3-4D2F-4A11-B1E6-F47EFF0FB863}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{0FAE8CB3-4D2F-4A11-B1E6-F47EFF0FB863}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|ARM.ActiveCfg = Release|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1983,5 +1995,6 @@ Global
 		{998CAFE8-06E4-4683-A151-0F6AA4BFF6C6} = {235A3418-A3B0-4844-BCEB-F1CF45069232}
 		{D0BC9BE7-24F6-40CA-8DC6-FCB93BD44B34} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{C1930979-C824-496B-A630-70F5369A636F} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 	EndGlobalSection
 EndGlobal

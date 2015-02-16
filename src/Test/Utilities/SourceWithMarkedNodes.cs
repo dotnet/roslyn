@@ -28,7 +28,7 @@ namespace Roslyn.Test.Utilities
 
         private static IEnumerable<ValueTuple<TextSpan, int>> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
         {
-            foreach (var match in MarkerPattern.Matches(markedSource).ToEnumerable())
+            foreach (var match in s_markerPattern.Matches(markedSource).ToEnumerable())
             {
                 var markedSyntax = match.Groups["MarkedSyntax"];
                 var syntaxKindOpt = match.Groups["SyntaxKind"].Value;
@@ -42,18 +42,18 @@ namespace Roslyn.Test.Utilities
                     yield return nestedSpan;
                 }
             }
-        } 
+        }
 
         internal static string ClearTags(string source)
         {
-            return Tags.Replace(source, m => new string(' ', m.Length));
+            return s_tags.Replace(source, m => new string(' ', m.Length));
         }
 
-        private static readonly Regex Tags = new Regex(
+        private static readonly Regex s_tags = new Regex(
             @"[<][/]?N[:][:A-Za-z0-9]+[>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
-        private static readonly Regex MarkerPattern = new Regex(
+        private static readonly Regex s_markerPattern = new Regex(
             @"[<]N[:] (?<Id>[0-9]+) ([:](?<SyntaxKind>[A-Za-z]+))? [>]
               (?<MarkedSyntax>.*)
               [<][/]N[:](\k<Id>) [>]",

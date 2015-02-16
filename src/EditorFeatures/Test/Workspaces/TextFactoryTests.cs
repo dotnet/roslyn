@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
             {
-
                 // Write text into it
                 temporaryStorage.WriteTextAsync(text).Wait();
 
@@ -73,7 +72,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, Encoding.Unicode);
+                Assert.Equal(text2.Encoding, null);
+            }
+        }
+
+        [Fact]
+        public void TestCreateFromTemporaryStorageWithEncoding()
+        {
+            var textFactory = CreateMockTextFactoryService();
+            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+
+            var text = Text.SourceText.From("Hello, World!", Encoding.ASCII);
+
+            // Create a temporary storage location
+            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
+            {
+                // Write text into it
+                temporaryStorage.WriteTextAsync(text).Wait();
+
+                // Read text back from it
+                var text2 = temporaryStorage.ReadTextAsync().Result;
+
+                Assert.NotSame(text, text2);
+                Assert.Equal(text.ToString(), text2.ToString());
+                Assert.Equal(text2.Encoding, Encoding.ASCII);
             }
         }
 
