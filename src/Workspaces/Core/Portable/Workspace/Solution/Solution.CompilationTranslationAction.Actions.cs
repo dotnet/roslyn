@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis
 
             private class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
             {
-                [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
                 private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
                     async (o, d, c) => o.RemoveSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
 

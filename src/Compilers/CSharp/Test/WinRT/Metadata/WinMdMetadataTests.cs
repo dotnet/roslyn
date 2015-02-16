@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
 
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
 
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
 
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateWinRtCompilation(text);
 
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
             var wns2 = wns1.GetMember<NamespaceSymbol>("UI");
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateWinRtCompilation(text);
 
-            var winmdlib = comp.ExternalReferences[1];
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
             var wns2 = wns1.GetMember<NamespaceSymbol>("Globalization");
@@ -203,7 +203,6 @@ public class C
 }";
             var verifier = CompileAndVerifyOnWin8Only(source,
                 emitOptions: TestEmitters.RefEmitBug,
-                additionalRefs: WinRtRefs,
                 expectedOutput: "10\r\n0");
             verifier.VerifyDiagnostics();
         }

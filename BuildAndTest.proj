@@ -66,6 +66,7 @@
 
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.WinRT.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Semantic.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Syntax.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll" />

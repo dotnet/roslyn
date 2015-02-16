@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
-
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Emit;
@@ -8,7 +7,7 @@ using PDB::Microsoft.VisualStudio.SymReaderInterop;
 
 namespace Roslyn.Test.Utilities
 {
-    static class PdbTestUtilities
+    internal static class PdbTestUtilities
     {
         public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader symReader, MethodDefinitionHandle handle)
         {

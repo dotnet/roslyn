@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Check if we need to escape this contextual keyword
             needsEscaping = needsEscaping || (isQueryContext && SyntaxFacts.IsQueryContextualKeyword(SyntaxFacts.GetContextualKeywordKind(identifier)));
 
-            return needsEscaping ? '@' + identifier : identifier;
+            return needsEscaping ? "@" + identifier : identifier;
         }
 
         public static SyntaxToken ToIdentifierToken(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : identifier;
 
             var token = SyntaxFactory.Identifier(
-                default(SyntaxTriviaList), SyntaxKind.None, '@' + unescaped, unescaped, default(SyntaxTriviaList));
+                default(SyntaxTriviaList), SyntaxKind.None, "@" + unescaped, unescaped, default(SyntaxTriviaList));
 
             if (!identifier.StartsWith("@"))
             {
