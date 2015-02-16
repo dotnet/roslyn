@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
-            bool strict = compilation.Feature("strict") != null; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
+            bool strict = compilation.FeatureStrictEnabled; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
             _emptyStructTypeCache = new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = requireOutParamsAssigned;
             this.topLevelMethod = member as MethodSymbol;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = null;
-            bool strict = compilation.Feature("strict") != null; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
+            bool strict = compilation.FeatureStrictEnabled; // Compiler flag /features:strict removes the relaxed DA checking we have for backward compatibility
             _emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;

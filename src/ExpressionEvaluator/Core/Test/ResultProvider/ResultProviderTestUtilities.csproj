@@ -120,6 +120,9 @@
     <Compile Include="..\..\Source\ResultProvider\Helpers\EvalResultDataItem.cs">
       <Link>ResultProvider\Helpers\EvalResultDataItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\Source\ResultProvider\Helpers\EnumContextDataItem.cs">
+      <Link>ResultProvider\Helpers\EnumContextDataItem.cs</Link>
+    </Compile>
     <Compile Include="..\..\Source\ResultProvider\Helpers\GeneratedMetadataNames.cs">
       <Link>ResultProvider\Helpers\GeneratedMetadataNames.cs</Link>
     </Compile>
@@ -174,6 +177,7 @@
     <Compile Include="Debugger\Engine\DkmEvaluationResultFlags.cs" />
     <Compile Include="Debugger\Engine\DkmFailedEvaluationResult.cs" />
     <Compile Include="Debugger\Engine\DkmInspectionContext.cs" />
+    <Compile Include="Debugger\Engine\DkmDataItem.cs" />
     <Compile Include="Debugger\Engine\DkmMisc.cs" />
     <Compile Include="Debugger\Engine\DkmModule.cs" />
     <Compile Include="Debugger\Engine\DkmModuleInstance.cs" />
@@ -221,3 +225,4 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
+

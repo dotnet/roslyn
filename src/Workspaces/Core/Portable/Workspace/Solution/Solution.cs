@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis
             return CreateLinkedFilesMapWithAddedDocuments(projectState, projectState.DocumentIds);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithAddedDocuments(ProjectState projectState, IReadOnlyList<DocumentId> documentIds)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithAddedDocuments(ProjectState projectState, IEnumerable<DocumentId> documentIds)
         {
             var builder = _linkedFilesMap.ToBuilder();
 
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedDocuments(
             ProjectState projectState,
-            IReadOnlyList<DocumentId> documentIds)
+            IEnumerable<DocumentId> documentIds)
         {
             var builder = _linkedFilesMap.ToBuilder();
 
@@ -1129,7 +1129,10 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(state.Id.ProjectId);
             var newProject = oldProject.AddDocument(state);
 
-            return this.ForkProject(newProject, CompilationTranslationAction.AddDocument(state), withDocumentListChange: true);
+            return this.ForkProject(
+                newProject, 
+                CompilationTranslationAction.AddDocument(state), 
+                newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProject, SpecializedCollections.SingletonEnumerable(state.Id)));
         }
 
         /// <summary>
@@ -1361,7 +1364,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
-        [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         public Solution RemoveDocument(DocumentId documentId)
         {
             CheckContainsDocument(documentId);
@@ -1370,7 +1372,10 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newProject = oldProject.RemoveDocument(documentId);
 
-            return this.ForkProject(newProject, CompilationTranslationAction.RemoveDocument(oldDocument), withDocumentListChange: true);
+            return this.ForkProject(
+                newProject, 
+                CompilationTranslationAction.RemoveDocument(oldDocument),
+                newLinkedFilesMap: CreateLinkedFilesMapWithRemovedDocuments(oldProject, SpecializedCollections.SingletonEnumerable(documentId)));
         }
 
         /// <summary>
@@ -1732,7 +1737,7 @@ namespace Microsoft.CodeAnalysis
             ProjectState newProjectState,
             CompilationTranslationAction translate = null,
             bool withProjectReferenceChange = false,
-            bool withDocumentListChange = false)
+            ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null)
         {
             // make sure we are getting only known translate actions
             CompilationTranslationAction.CheckKnownActions(translate);
@@ -1742,9 +1747,6 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
             var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(_projectIds, newStateMap) : _dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newLinkedFilesMap = withDocumentListChange
-                ? CreateLinkedFilesMapWithChangedProject(_projectIdToProjectStateMap[projectId], newProjectState)
-                : _linkedFilesMap;
 
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
@@ -1761,23 +1763,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
-                linkedFilesMap: newLinkedFilesMap,
+                linkedFilesMap: newLinkedFilesMap ?? _linkedFilesMap,
                 lazyLatestProjectVersion: newLatestProjectVersion);
-        }
-
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithChangedProject(ProjectState oldProjectState, ProjectState newProjectState)
-        {
-            var oldDocumentIds = oldProjectState.DocumentIds;
-            var newDocumentIds = newProjectState.DocumentIds;
-            var addedDocumentIds = newDocumentIds.ToImmutableArray().RemoveRange(oldDocumentIds);
-            var removedDocumentIds = oldDocumentIds.ToImmutableArray().RemoveRange(newDocumentIds);
-
-            Debug.Assert(addedDocumentIds.Any() || removedDocumentIds.Any(), "The solution's linkedFilesMap should only be recalculated if its files changed.");
-
-            var linkedFilesMap = _linkedFilesMap;
-            linkedFilesMap = addedDocumentIds.Any() ? CreateLinkedFilesMapWithAddedDocuments(newProjectState, addedDocumentIds) : linkedFilesMap;
-            linkedFilesMap = removedDocumentIds.Any() ? CreateLinkedFilesMapWithRemovedDocuments(oldProjectState, removedDocumentIds) : linkedFilesMap;
-            return linkedFilesMap;
         }
 
         /// <summary>

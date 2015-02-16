@@ -15,18 +15,18 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public sealed class EqualityUtil<T>
     {
-        private readonly ReadOnlyCollection<EqualityUnit<T>> equalityUnits;
-        private readonly Func<T, T, bool> compareWithEqualityOperator;
-        private readonly Func<T, T, bool> compareWithInequalityOperator;
+        private readonly ReadOnlyCollection<EqualityUnit<T>> _equalityUnits;
+        private readonly Func<T, T, bool> _compareWithEqualityOperator;
+        private readonly Func<T, T, bool> _compareWithInequalityOperator;
 
         public EqualityUtil(
             IEnumerable<EqualityUnit<T>> equalityUnits,
             Func<T, T, bool> compEquality,
             Func<T, T, bool> compInequality)
         {
-            this.equalityUnits = equalityUnits.ToList().AsReadOnly();
-            this.compareWithEqualityOperator = compEquality;
-            this.compareWithInequalityOperator = compInequality;
+            _equalityUnits = equalityUnits.ToList().AsReadOnly();
+            _compareWithEqualityOperator = compEquality;
+            _compareWithInequalityOperator = compInequality;
         }
 
         public void RunAll()
@@ -40,18 +40,18 @@ namespace Roslyn.Test.Utilities
 
         private void EqualityOperator1()
         {
-            foreach (var unit in equalityUnits)
+            foreach (var unit in _equalityUnits)
             {
                 foreach (var value in unit.EqualValues)
                 {
-                    Assert.True(compareWithEqualityOperator(unit.Value, value));
-                    Assert.True(compareWithEqualityOperator(value, unit.Value));
+                    Assert.True(_compareWithEqualityOperator(unit.Value, value));
+                    Assert.True(_compareWithEqualityOperator(value, unit.Value));
                 }
 
                 foreach (var value in unit.NotEqualValues)
                 {
-                    Assert.False(compareWithEqualityOperator(unit.Value, value));
-                    Assert.False(compareWithEqualityOperator(value, unit.Value));
+                    Assert.False(_compareWithEqualityOperator(unit.Value, value));
+                    Assert.False(_compareWithEqualityOperator(value, unit.Value));
                 }
             }
         }
@@ -63,27 +63,27 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            foreach (var value in equalityUnits.SelectMany(x => x.AllValues))
+            foreach (var value in _equalityUnits.SelectMany(x => x.AllValues))
             {
-                Assert.False(compareWithEqualityOperator(default(T), value));
-                Assert.False(compareWithEqualityOperator(value, default(T)));
+                Assert.False(_compareWithEqualityOperator(default(T), value));
+                Assert.False(_compareWithEqualityOperator(value, default(T)));
             }
         }
 
         private void InEqualityOperator1()
         {
-            foreach (var unit in equalityUnits)
+            foreach (var unit in _equalityUnits)
             {
                 foreach (var value in unit.EqualValues)
                 {
-                    Assert.False(compareWithInequalityOperator(unit.Value, value));
-                    Assert.False(compareWithInequalityOperator(value, unit.Value));
+                    Assert.False(_compareWithInequalityOperator(unit.Value, value));
+                    Assert.False(_compareWithInequalityOperator(value, unit.Value));
                 }
 
                 foreach (var value in unit.NotEqualValues)
                 {
-                    Assert.True(compareWithInequalityOperator(unit.Value, value));
-                    Assert.True(compareWithInequalityOperator(value, unit.Value));
+                    Assert.True(_compareWithInequalityOperator(unit.Value, value));
+                    Assert.True(_compareWithInequalityOperator(value, unit.Value));
                 }
             }
         }
@@ -95,10 +95,10 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            foreach (var value in equalityUnits.SelectMany(x => x.AllValues))
+            foreach (var value in _equalityUnits.SelectMany(x => x.AllValues))
             {
-                Assert.True(compareWithInequalityOperator(default(T), value));
-                Assert.True(compareWithInequalityOperator(value, default(T)));
+                Assert.True(_compareWithInequalityOperator(default(T), value));
+                Assert.True(_compareWithInequalityOperator(value, default(T)));
             }
         }
 
@@ -111,7 +111,7 @@ namespace Roslyn.Test.Utilities
 
         private void ObjectEquals1()
         {
-            foreach (var unit in equalityUnits)
+            foreach (var unit in _equalityUnits)
             {
                 var unitValue = unit.Value;
                 foreach (var value in unit.EqualValues)
@@ -132,7 +132,7 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            var allValues = equalityUnits.SelectMany(x => x.AllValues);
+            var allValues = _equalityUnits.SelectMany(x => x.AllValues);
             foreach (var value in allValues)
             {
                 Assert.NotNull(value);
@@ -144,7 +144,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         private void ObjectEquals3()
         {
-            var allValues = equalityUnits.SelectMany(x => x.AllValues);
+            var allValues = _equalityUnits.SelectMany(x => x.AllValues);
             foreach (var value in allValues)
             {
                 Assert.NotEqual((object)42, value);
@@ -153,7 +153,7 @@ namespace Roslyn.Test.Utilities
 
         private void GetHashCode1()
         {
-            foreach (var unit in equalityUnits)
+            foreach (var unit in _equalityUnits)
             {
                 foreach (var value in unit.EqualValues)
                 {
@@ -164,7 +164,7 @@ namespace Roslyn.Test.Utilities
 
         private void EquatableEquals1()
         {
-            foreach (var unit in equalityUnits)
+            foreach (var unit in _equalityUnits)
             {
                 var equatableUnit = (IEquatable<T>)unit.Value;
                 foreach (var value in unit.EqualValues)
@@ -193,7 +193,7 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            foreach (var cur in equalityUnits.SelectMany(x => x.AllValues))
+            foreach (var cur in _equalityUnits.SelectMany(x => x.AllValues))
             {
                 var value = (IEquatable<T>)cur;
                 Assert.NotNull(value);

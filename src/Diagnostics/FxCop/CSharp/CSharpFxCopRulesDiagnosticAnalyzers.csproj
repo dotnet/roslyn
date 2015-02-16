@@ -73,7 +73,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Design\CodeFixes\CA1001CSharpCodeFixProvider.cs" />
     <Compile Include="Design\CodeFixes\CA1008CSharpCodeFixProvider.cs" />
     <Compile Include="Design\CodeFixes\CA1052CSharpCodeFixProvider.cs" />
     <Compile Include="Design\CodeFixes\EnumWithFlagsCSharpCodeFixProvider.cs" />

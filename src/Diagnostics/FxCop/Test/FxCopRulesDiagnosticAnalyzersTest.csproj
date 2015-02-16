@@ -80,7 +80,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Design\CA1001Tests.cs" />
     <Compile Include="Design\CA1003Tests.cs" />
     <Compile Include="Design\CA1008Tests.cs" />
     <Compile Include="Design\CA1012Tests.cs" />
@@ -93,7 +92,6 @@
     <Compile Include="Design\CA1052Tests.cs" />
     <Compile Include="Design\CA1053Tests.cs" />
     <Compile Include="Design\CA1060Tests.cs" />
-    <Compile Include="Design\CodeFixes\CA1001FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1008FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1012FixerTests.cs" />
     <Compile Include="Design\CodeFixes\EnumWithFlagsAttributesRulesFixerTests.cs" />

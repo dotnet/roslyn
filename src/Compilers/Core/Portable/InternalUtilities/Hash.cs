@@ -66,6 +66,30 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
+        internal static int CombineValues<T>(T[] values, int maxItemsToHash = int.MaxValue)
+        {
+            if (values == null)
+            {
+                return 0;
+            }
+
+            var maxSize = Math.Min(maxItemsToHash, values.Length);
+            var hashCode = 0;
+
+            for (int i = 0; i < maxSize; i++)
+            {
+                T value = values[i];
+
+                // Should end up with a constrained virtual call to object.GetHashCode (i.e. avoid boxing where possible).
+                if (value != null)
+                {
+                    hashCode = Hash.Combine(value.GetHashCode(), hashCode);
+                }
+            }
+
+            return hashCode;
+        }
+
         internal static int CombineValues<T>(ImmutableArray<T> values, int maxItemsToHash = int.MaxValue)
         {
             if (values.IsDefaultOrEmpty)

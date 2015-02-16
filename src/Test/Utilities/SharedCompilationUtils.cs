@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         internal static void VerifyIL(
-            this CompilationTestData.MethodData method, 
+            this CompilationTestData.MethodData method,
             string expectedIL,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // TODO:
             return new EditAndContinueMethodDebugInformation(
                 0,
-                Cci.CustomDebugInfoWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
+                Cci.MetadataWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
                 closures: ImmutableArray<ClosureDebugInfo>.Empty,
                 lambdas: ImmutableArray<LambdaDebugInfo>.Empty);
         }
@@ -276,11 +276,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         // Swallow any exceptions as the cleanup should not necessarily block the test
                     }
-
                 }
             }
-
         }
     }
-
 }

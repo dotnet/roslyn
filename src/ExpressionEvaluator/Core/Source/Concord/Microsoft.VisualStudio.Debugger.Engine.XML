@@ -6865,25 +6865,6 @@
              canceled). This will never fire if appending the work item fails.
              </param>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext.GetClrArgumentValue(Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame,System.Int32)">
-             <summary>
-             Provides the value of the argument at the index requested.
-            
-             Location constraint: API must be called from a Monitor component (component level
-             &lt; 100,000).
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-             <param name="StackFrame">
-             [In] Stack frame of the function containing the desired argument.
-             </param>
-             <param name="Index">
-             [In] Index of the desired argument.
-             </param>
-             <returns>
-             [Out,Optional] The argument's value.
-             </returns>
-        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext.GetClrLocalVariableQuery(Microsoft.VisualStudio.Debugger.Clr.DkmClrInstructionAddress,System.Boolean)">
              <summary>
              Get a DkmCompiledClrLocalsQuery to allow viewing of local variables.
@@ -17311,6 +17292,64 @@
             infrastructure.
             </summary>
         </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.DkmReadOnlyByteCollection">
+            <summary>
+            An implementation of ReadOnlyCollection that can provide a pointer to the underlying native
+            memory.  Currently this class is only used for ReadOnlyCollections storing bytes when the
+            value is passed through a Concord API call.
+            </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DkmReadOnlyByteCollection.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initializes a new instance of the DkmReadOnlyByteCollection from serialized data
+            </summary>
+            <param name="info">[Required] Serialization info</param>
+            <param name="context">Not used</param>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.DkmReadOnlyByteCollection.ItemsPtr">
+            <summary>
+            Gets a pointer to the native items buffer.
+            The marshalling code assumes the collection is read only.  Modifications to the buffer will
+            have unpredictable effects.
+            The pointer will not be available if this object has been serialized.
+            
+            The buffer may be released when this object is garbage collected.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.DkmReadOnlyByteCollection.NativeCollection">
+            <summary>
+            Gets a pointer to the native DkmReadOnlyCollection.  The pointer will be IntPtr.Zero if this collection
+            has been serialized.
+            </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DkmReadOnlyByteCollection.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            ISerializable implementation.  Serialization requires copying the collection into the managed heap
+            </summary>
+            <param name="info">[Required] Serialization info</param>
+            <param name="context">Not used</param>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.XapiNativeCollectionWrapper">
+            <summary>
+            An IList&lt;byte&gt; implementation that wraps a native DkmReadOnlyCollection&lt;byte&gt;
+            allowing it to be used from managed code.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.XapiNativeCollectionWrapper.NativeCollection">
+            <summary>
+            Gets a pointer to the native DkmReadOnlyCollection
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.XapiNativeCollectionWrapper.ItemsPtr">
+            <summary>
+            Gets a pointer to the native items buffer.
+            </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.XapiNativeCollectionWrapper.XapiNativeCollectionEnumerator">
+            <summary>
+            Enumerator for XapiNativeCollectionWrapper
+            </summary>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ErrorReportConsent">
             <summary>
             The kind of consent already obtained from the user.
@@ -19973,6 +20012,24 @@
              alias was not found.
              </returns>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance.GetIntrinsicAssemblyMetaDataBytesPtr(System.UInt32@)">
+             <summary>
+             Get metadata for the "Intrinsic Methods Assembly". Intrinsic methods are special
+             methods the debug engine understands when executing a CLR inspection query.
+             Example: When evaluating "$exception" in the C# expression evaluator, the C#
+             expression compiler will emit a call to GetException in the intrinsic methods
+             assembly.  Instead of executing the call normally, the debugger will instead
+             simulate the method call and return the exception on the current thread.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="Size">
+             [Out] The size of the metadata buffer.
+             </param>
+             <returns>
+             [Out] A pointer to the metadata buffer.
+             </returns>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance.GetCorFrame(Microsoft.VisualStudio.Debugger.DkmThread,System.UInt64,System.Guid)">
              <summary>
              GetCorFrame is used to obtain a ICorDebugFrame which a component can use to
@@ -21739,6 +21796,16 @@
              [Out] Size of the struct/class in bytes.
              </param>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.GetGenericDictionaryInfo">
+             <summary>
+             Returns the image bytes for the ManagedNativeGenericInfo PDB stream.
+            
+             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             </summary>
+             <returns>
+             [Out] Generic dictionary symbols stream bytes.
+             </returns>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.CreateInstructionAddressFromRva(Microsoft.VisualStudio.Debugger.DkmWorkList,System.UInt32,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmCreateInstructionAddressFromRvaAsyncResult})">
              <summary>
              Creates a DkmClrNcInstructionAddress from an RVA into the module.
@@ -22330,6 +22397,15 @@
             <summary>
             Provides the DkmExcepionCode for this exception
             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ReadOnlyCollectionMarshaller.RawToManagedOfByte(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            [Optional] Marshal a native DkmReadOnlyCollection&lt;byte&gt; to a managed ReadOnlyCollection&lt;byte&gt;.
+            Using this marshaller is more efficient than using RawToManaged for byte collections.
+            This method returns null when the pointer to the native collection is IntPtr.Zero.
+            </summary>
+            <param name="call">[Optional] Outgoing call if applicable</param>
+            <param name="pvCollection">[Optional] Pointer to native collection</param>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ReadOnlyCollectionMarshaller.ToManaged``1(XapiOutgoingCall,System.IntPtr,System.Type,XapiNativeToManagedRoutine{``0})">
             <summary>
@@ -30589,36 +30665,6 @@
             debugged.
             </param>
         </member>
-        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrArgumentValueProvider">
-             <summary>
-             This interface allows a language extension to provide the value of arguments to a
-             function. It is used by IDkmLanguageFrameDecoder to display function names with
-             argument values in the call stack window.
-            
-             Implementations of this interface may restrict when they are called using a filter
-             defined in their component configuration. The following properties may be used:
-             BaseDebugMonitorId, CompilerVendorId, EngineId, LanguageId, RuntimeId.
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-        </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrArgumentValueProvider.GetClrArgumentValue(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame,System.Int32)">
-            <summary>
-            Provides the value of the argument at the index requested.
-            </summary>
-            <param name="inspectionContext">
-            [In] Options and target context to use while performing the inspection operation.
-            </param>
-            <param name="stackFrame">
-            [In] Stack frame of the function containing the desired argument.
-            </param>
-            <param name="index">
-            [In] Index of the desired argument.
-            </param>
-            <returns>
-            [Out,Optional] The argument's value.
-            </returns>
-        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrDebugMonitorExceptionCaughtNotification">
              <summary>
              IDkmClrDebugMonitorExceptionCaughtNotification is implemented by components that want
@@ -30834,6 +30880,36 @@
             <returns>
             [Out,Optional] The assembly qualified name of the exception type or null if there
             is no stowed exception.
+            </returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrIntrinsicAssemblyProvider">
+             <summary>
+             Contains method to load the intrinsic methods assembly.
+            
+             Implementations of this interface may restrict when they are called using a filter
+             defined in their component configuration. The following properties may be used:
+             BaseDebugMonitorId, EngineId, RuntimeId, TransportKind.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrIntrinsicAssemblyProvider.GetIntrinsicAssemblyMetaDataBytesPtr(Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance,System.UInt32@)">
+            <summary>
+            Get metadata for the "Intrinsic Methods Assembly". Intrinsic methods are special
+            methods the debug engine understands when executing a CLR inspection query.
+            Example: When evaluating "$exception" in the C# expression evaluator, the C#
+            expression compiler will emit a call to GetException in the intrinsic methods
+            assembly.  Instead of executing the call normally, the debugger will instead
+            simulate the method call and return the exception on the current thread.
+            </summary>
+            <param name="clrRuntimeInstance">
+            [In] Represents a CLR instance running in a target process.
+            </param>
+            <param name="size">
+            [Out] The size of the metadata buffer.
+            </param>
+            <returns>
+            [Out] A pointer to the metadata buffer.
             </returns>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrMetaDataLoader">
@@ -56804,17 +56880,17 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_SERVER_CLOSED">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor has been closed on the remote machine.
+            The Visual Studio Remote Debugger has been closed on the remote machine.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CLR_NOT_SUPPORTED">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor on the remote computer does not support debugging code running in the Common Language Runtime.
+            The Visual Studio Remote Debugger on the remote computer does not support debugging code running in the Common Language Runtime.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_64BIT_CLR_NOT_SUPPORTED">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor on the remote computer does not support debugging code running in the Common Language Runtime on a 64-bit computer.
+            The Visual Studio Remote Debugger on the remote computer does not support debugging code running in the Common Language Runtime on a 64-bit computer.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CANNOT_MIX_MINDUMP_DEBUGGING">
@@ -56834,12 +56910,12 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_SERVER_DOES_NOT_EXIST">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor (MSVSMON.EXE) does not appear to be running on the remote computer. This may be because a firewall is preventing communication to the remote computer. Please see Help for assistance on configuring remote debugging.
+            The Visual Studio $(var.VSGeneralBrandVersion) Remote Debugger (MSVSMON.EXE) does not appear to be running on the remote computer. This may be because a firewall is preventing communication to the remote computer. Please see Help for assistance on configuring remote debugging.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_SERVER_ACCESS_DENIED">
             <summary>
-            Access is denied. Can not connect to Microsoft Visual Studio Remote Debugging Monitor on the remote computer.
+            Access is denied. Can not connect to Visual Studio Remote Debugger on the remote computer.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_SERVER_MACHINE_DOES_NOT_EXIST">
@@ -56864,12 +56940,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_AUTO_LAUNCH_EXEC_FAILURE">
             <summary>
-            Microsoft Visual Studio Debugging Monitor (MSVSMON.EXE) failed to start. If this problem persists, please repair your Visual Studio installation via 'Add or Remove Programs' in Control Panel.
-            </summary>
-        </member>
-        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_COMPONENTS_NOT_REGISTERED">
-            <summary>
-            Microsoft Visual Studio Remote Debugging Monitor (MSVSMON.EXE) is not running under your user account and MSVSMON could not be automatically started. MSVSMON must be manually started, or the Visual Studio remote debugging components must be installed on the remote computer. Please see Help for assistance.
+            Visual Studio Remote Debugger (MSVSMON.EXE) failed to start. If this problem persists, please repair your Visual Studio installation via 'Add or Remove Programs' in Control Panel.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_DCOM_ACCESS_DENIED">
@@ -56889,7 +56960,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_WINAUTH_CONNECT_NOT_SUPPORTED">
             <summary>
-            Windows authentication is disabled in the Microsoft Visual Studio Remote Debugging Monitor (MSVSMON). To connect, choose one of the following options. 1. Enable Windows authentication in MSVSMON 2. Reconfigure your project to disable Windows authentication 3. Use the 'Remote (native with no authentication)' transport in the 'Attach to Process' dialog
+            Windows authentication is disabled in the Visual Studio Remote Debugger (MSVSMON). To connect, choose one of the following options. 1. Enable Windows authentication in MSVSMON 2. Reconfigure your project to disable Windows authentication 3. Use the 'Remote (native with no authentication)' transport in the 'Attach to Process' dialog
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_EVALUATE_BUSY_WITH_EVALUATION">
@@ -57129,7 +57200,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_NOMSVCMON">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor is either not running on the remote machine or is running in Windows authentication mode.
+            The Visual Studio Remote Debugger is either not running on the remote machine or is running in Windows authentication mode.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_BADIPADDRESS">
@@ -57199,7 +57270,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_BADVERSION">
             <summary>
-            The remote debugger is not an acceptable version.
+            This error code is not generally displayed to the user anymore. In most cases it is now transformed into E_REMOTE_MSVSMON_TOO_OLD.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CRASHDUMP_UNSUPPORTED">
@@ -57224,7 +57295,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_NOUSERMSVCMON">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor on the remote computer is running as a different user.
+            The Visual Studio Remote Debugger on the remote computer is running as a different user.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_STEP_WIN9xSYSCODE">
@@ -57234,22 +57305,17 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CANNOT_DEBUG_WIN32">
             <summary>
-            The 64-bit version of the Visual Studio Remote Debugging Monitor (MSVSMON.EXE) cannot be used to debug 32-bit processes or 32-bit dumps. Please use the 32-bit version instead.
+            The 64-bit version of the Visual Studio Remote Debugger (MSVSMON.EXE) cannot be used to debug 32-bit processes or 32-bit dumps. Please use the 32-bit version instead.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CANNOT_DEBUG_WIN64">
             <summary>
-            The 32-bit version of the Visual Studio Remote Debugging Monitor (MSVSMON.EXE) cannot be used to debug 64-bit processes or 64-bit dumps. Please use the 64-bit version instead.
+            The 32-bit version of the Visual Studio Remote Debugger (MSVSMON.EXE) cannot be used to debug 64-bit processes or 64-bit dumps. Please use the 64-bit version instead.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_MINIDUMP_READ_WIN9X">
             <summary>
             Mini-Dumps cannot be read on this system. Please use a Windows NT based system
-            </summary>
-        </member>
-        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CROSS_TSSESSION_ATTACH">
-            <summary>
-            Attaching to a process in a different terminal server session is not supported on this computer. Try remote debugging to the machine and running the Microsoft Visual Studio Remote Debugging Monitor in the process's session.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_STEP_BP_SET_FAILED">
@@ -57349,7 +57415,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_UNKNOWN_AUTHN_SERVICE_ON_CALLBACK">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor on the remote computer could not connect to this computer because there was no available authentication service. It may be possible to avoid this error by changing your settings to debug only native code or only managed code.
+            The Visual Studio Remote Debugger on the remote computer could not connect to this computer because there was no available authentication service. It may be possible to avoid this error by changing your settings to debug only native code or only managed code.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_SCRIPT_CLR_EE_DISABLED">
@@ -57439,7 +57505,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_UNMARSHAL_CALLBACK_FAILED">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor on the remote computer cannot connect to the local computer. Unable to initiate DCOM communication. Please see Help for assistance.
+            The Visual Studio Remote Debugger on the remote computer cannot connect to the local computer. Unable to initiate DCOM communication. Please see Help for assistance.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_RPC_REQUIRES_AUTHENTICATION">
@@ -57449,7 +57515,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_LOGON_FAILURE_ON_CALLBACK">
             <summary>
-            The Microsoft Visual Studio Remote Debugging Monitor cannot logon to the local computer: unknown user name or bad password. It may be possible to avoid this error by changing your settings to debug only native code or only managed code.
+            The Visual Studio Remote Debugger cannot logon to the local computer: unknown user name or bad password. It may be possible to avoid this error by changing your settings to debug only native code or only managed code.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_SERVER_UNAVAILABLE">
@@ -57514,7 +57580,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_NO_CONNECTION">
             <summary>
-            IDebugCoreServer* implementation does not have a connection to the remote computer. This can occur in T-SQL debugging when there is no remote debugging monitor.
+            IDebugCoreServer* implementation does not have a connection to the remote computer. This can occur in T-SQL debugging when there is no Remote Debugger connected.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_INVALID_PROXY_SERVER_NAME">
@@ -57764,7 +57830,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_VERSION">
             <summary>
-            This version of the Visual Studio Remote Debugger does not support this operation. Please upgrade to the latest version. http://go.microsoft.com/fwlink/p/?LinkId=219549
+            This version of the Visual Studio $(var.VSGeneralBrandVersion) Remote Debugger does not support this operation. Please install the $(var.RemoteToolsBrandNameVersion) or newer from microsoft.com.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_SYMBOL_LOCATOR_INSTALL_ERROR">
@@ -57815,6 +57881,16 @@
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_MSENC_INSTALL_ERROR">
             <summary>
             Unable to load a Visual Studio component (MSEnc.resources.dll). If the problem persists, repair your installation via 'Add or Remove Programs' in Control Panel.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_MSVSMON_TOO_OLD">
+            <summary>
+            The remote debugger is older than this version of Visual Studio $(var.VSGeneralBrandVersionRelease), and Visual Studio is no longer compatible with it. Please upgrade your remote debugger to match Visual Studio.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_IDE_TOO_OLD">
+            <summary>
+            The remote debugger is newer than your version of Visual Studio $(var.VSGeneralBrandVersionRelease), and the remote debugger is no longer compatible with it. Either upgrade Visual Studio to match your remote debugger, or downgrade the remote debugger.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_SYMBOLS_NOT_LOADED">
@@ -58054,12 +58130,12 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CANNOT_DEBUG_APP_PACKAGE_IN_RDBSERVICE">
             <summary>
-            Windows Store app debugging is not possible when the remote debugger is running as a service. Run the Remote Debugger Configuration Wizard on the target computer, and uncheck the option to start the remote debugger service. Then start the Visual Studio Remote Debugging Monitor application.
+            Windows Store app debugging is not possible when the remote debugger is running as a service. Run the Remote Debugger Configuration Wizard on the target computer, and uncheck the option to start the remote debugger service. Then start the Visual Studio Remote Debugger application.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CANNOT_LAUNCH_IN_RDBSERVICE">
             <summary>
-            Applications cannot be launched under the debugger when the remote debugger is running as a service. Run the Remote Debugger Configuration Wizard on the target computer, and uncheck the option to start the remote debugger service. Then start the Visual Studio Remote Debugging Monitor application.
+            Applications cannot be launched under the debugger when the remote debugger is running as a service. Run the Remote Debugger Configuration Wizard on the target computer, and uncheck the option to start the remote debugger service. Then start the Visual Studio Remote Debugger application.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_CAUSALITY_BRIDGE_ALREADY_INITIALIZED">
@@ -58180,6 +58256,11 @@
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_DBGSHIM_INIT_ERROR">
             <summary>
             The Microsoft .NET Core CLR Debugging Services Loader (dbgshim.dll) could not be loaded or initialized.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_BP_IN_RUNTIME_MODULE_BLOCKED">
+            <summary>
+            Breakpoints cannot be set in modules that contain the implementation of the underlying runtime, such as clr.dll.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_XAPI_COMPONENT_LOAD_FAILURE">

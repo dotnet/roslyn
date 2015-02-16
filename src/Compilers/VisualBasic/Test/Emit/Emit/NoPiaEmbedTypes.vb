@@ -4097,7 +4097,7 @@ End Class
                 options:=TestOptions.DebugDll,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
 
-            compilation1.AssertTheseDiagnostics(
+            AssertTheseEmitDiagnostics(compilation1,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.ComAwareEventInfo..ctor' is not defined.
         AddHandler x.E, Sub() System.Console.WriteLine()

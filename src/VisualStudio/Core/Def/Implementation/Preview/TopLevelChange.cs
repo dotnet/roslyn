@@ -78,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
                 var oldDocument = fileChange.GetOldDocument();
                 var updatedDocument = fileChange.GetUpdatedDocument();
+                bool isAdditionalDoc = fileChange.IsAdditionalDocumentChange;
 
                 if (oldDocument == null)
                 {
@@ -85,7 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     // If unchecked, then remove this added document from new solution.
                     if (applyingChanges && fileChange.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
-                        solution = solution.RemoveDocument(updatedDocument.Id);
+                        solution = isAdditionalDoc ?
+                            solution.RemoveAdditionalDocument(updatedDocument.Id) :
+                            solution.RemoveDocument(updatedDocument.Id);
                     }
                 }
                 else if (updatedDocument == null)
@@ -95,13 +98,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     if (applyingChanges && fileChange.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
                         var oldText = oldDocument.GetTextAsync().Result.ToString();
-                        solution = solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+                        solution = isAdditionalDoc ?
+                            solution.AddAdditionalDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath) :
+                            solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
                     }
                 }
                 else
                 {
                     // Changed document.
-                    solution = solution.WithDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result);
+                    solution = isAdditionalDoc ?
+                        solution.WithAdditionalDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result) :
+                        solution.WithDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result);
                 }
             }
 

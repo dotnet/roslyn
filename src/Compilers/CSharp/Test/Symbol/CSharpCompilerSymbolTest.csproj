@@ -61,9 +61,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.0.7.4091001-beta\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc1-20150208-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
@@ -162,9 +162,6 @@
     <Compile Include="Symbols\Metadata\PE\TypeAccessibility.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeForwarders.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeKindTests.cs" />
-    <Compile Include="Symbols\Metadata\WinMdDumpTest.cs" />
-    <Compile Include="Symbols\Metadata\WinMdEventTests.cs" />
-    <Compile Include="Symbols\Metadata\WinMdMetadataTests.cs" />
     <Compile Include="Symbols\MethodEqualityTests.cs" />
     <Compile Include="Symbols\MissingSpecialMember.cs" />
     <Compile Include="Symbols\MockAssemblySymbol.cs" />

@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.None);
 
-        internal static readonly SymbolDisplayFormat PublicApiFormat =
+        private static readonly SymbolDisplayFormat PublicApiFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -110,7 +110,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         return;
                     }
 
-                    var publicApiName = symbol.ToDisplayString(PublicApiFormat);
+                    string publicApiName = GetPublicApiName(symbol);
 
                     lock (lockObj)
                     {
@@ -158,6 +158,36 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                     }
                 });
             });
+        }
+
+        internal static string GetPublicApiName(ISymbol symbol)
+        {
+            var publicApiName = symbol.ToDisplayString(PublicApiFormat);
+
+            ITypeSymbol memberType = null;
+            if (symbol is IMethodSymbol)
+            {
+                memberType = ((IMethodSymbol)symbol).ReturnType;
+            }
+            else if (symbol is IPropertySymbol)
+            {
+                memberType = ((IPropertySymbol)symbol).Type;
+            }
+            else if (symbol is IEventSymbol)
+            {
+                memberType = ((IEventSymbol)symbol).Type;
+            }
+            else if (symbol is IFieldSymbol)
+            {
+                memberType = ((IFieldSymbol)symbol).Type;
+            }
+
+            if (memberType != null)
+            {
+                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(PublicApiFormat);
+            }
+
+            return publicApiName;
         }
 
         private TextSpan? FindString(SourceText sourceText, string symbol)

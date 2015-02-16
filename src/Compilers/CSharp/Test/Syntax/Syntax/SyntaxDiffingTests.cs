@@ -251,5 +251,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new TextSpan(14, 5), changes[0].Span);
             Assert.Equal("struct", changes[0].NewText);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/320")]
+        public void TestQualifyWithThis()
+        {
+            var original =  @"
+class C
+{
+    int Sign;
+    void F()
+    {
+        string x = @""namespace Namespace
+    {
+        class Type
+        {
+            void Foo()
+            {
+                int x = 1 "" + Sign + @"" "" + Sign + @""3;
+            }
+        }
+    }
+"";
+    }
+}";
+            var oldTree = SyntaxFactory.ParseSyntaxTree(original);
+            var root = oldTree.GetRoot();
+            
+            var indexText = "Sign +";
+
+            // Expected behavior: Qualifying identifier 'Sign' with 'this.' and doing a diff between trees 
+            // should return a single text change with 'this.' as added text.
+
+            // Works as expected for last index
+            var index = original.LastIndexOf(indexText);
+            TestQualifyWithThisCore(root, index);
+
+            // Doesn't work as expected for first index.
+            // It returns 2 changes with add followed by delete, 
+            // causing the 2 isolated edits of adding "this." to seem conflicting edits, even though they are not.
+            // See https://github.com/dotnet/roslyn/issues/320 for details.
+            index = original.IndexOf(indexText);
+            TestQualifyWithThisCore(root, index);
+        }
+
+        private void TestQualifyWithThisCore(SyntaxNode root, int index)
+        {
+            var oldTree = root.SyntaxTree;
+
+            var span = new TextSpan(index, 4);
+            var node = root.FindNode(span, getInnermostNodeForTie: true) as SimpleNameSyntax;
+            Assert.NotNull(node);
+            Assert.Equal("Sign", node.Identifier.ValueText);
+
+            var leadingTrivia = node.GetLeadingTrivia();
+            var newNode = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.ThisExpression(),
+                node.WithoutLeadingTrivia())
+                .WithLeadingTrivia(leadingTrivia);
+
+            var newRoot = root.ReplaceNode(node, newNode);
+            var newTree = newRoot.SyntaxTree;
+
+            var changes = newTree.GetChanges(oldTree);
+            Assert.NotNull(changes);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal("this.", changes[0].NewText);
+        }
     }
 }

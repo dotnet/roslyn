@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         private async Task DetermineAllSymbolsCoreAsync(ISymbol symbol, ConcurrentSet<ISymbol> result)
         {
             _cancellationToken.ThrowIfCancellationRequested();

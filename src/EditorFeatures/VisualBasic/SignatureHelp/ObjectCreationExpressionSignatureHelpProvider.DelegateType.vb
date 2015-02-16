@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 invokeMethod, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=False,
-                documentation:=invokeMethod.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                documentationFactory:=invokeMethod.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 prefixParts:=GetDelegateTypePreambleParts(invokeMethod, semanticModel, position), separatorParts:=GetSeparatorParts(), suffixParts:=GetDelegateTypePostambleParts(invokeMethod), parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken))
             Return SpecializedCollections.SingletonEnumerable(item)
         End Function
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Return {New SignatureHelpParameter(
                 TargetName,
                 isOptional:=False,
-                documentation:=String.Empty.ToSymbolDisplayParts(),
+                documentationFactory:=Nothing,
                 displayParts:=parts)}
         End Function
 

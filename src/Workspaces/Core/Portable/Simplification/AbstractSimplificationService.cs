@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 bool originalDocHasErrors = await document.HasAnyErrors(cancellationToken).ConfigureAwait(false);
 #endif
 
-                root = this.Reduce(document, root, semanticModel, spans, optionSet, reducers, cancellationToken);
+                root = await this.ReduceAsync(document, root, semanticModel, spans, optionSet, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (originalRoot != root)
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
         }
 
-        private SyntaxNode Reduce(
+        private async Task<SyntaxNode> ReduceAsync(
             Document document,
             SyntaxNode root,
             SemanticModel semanticModel,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Reduce all the nodesAndTokensToReduce using the given reducers/rewriters and
                 // store the reduced nodes and/or tokens in the reduced nodes/tokens maps.
                 // Note that this method doesn't update the original syntax tree.
-                this.Reduce(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken);
+                await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
 
                 if (reducedNodesMap.Any() || reducedTokensMap.Any())
                 {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return root;
         }
 
-        private void Reduce(
+        private Task ReduceAsync(
             Document document,
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }, cancellationToken);
             }
 
-            Task.WaitAll(simplifyTasks, cancellationToken);
+            return Task.WhenAll(simplifyTasks);
         }
     }
 

@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return CodeModelService.GetFullName(node, semanticModel);
         }
 
-        public virtual string FullName
+        public string FullName
         {
             get { return GetFullName(); }
         }
@@ -229,7 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             throw Exceptions.ThrowENotImpl();
         }
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public object get_Extender(string extenderName)
         {
             return GetExtender(extenderName);
