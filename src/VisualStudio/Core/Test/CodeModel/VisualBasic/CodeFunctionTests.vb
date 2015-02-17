@@ -423,6 +423,36 @@ End Clas
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind__Operator()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Shared Operator $$+(x As C, y As C) As C
+    End Operator
+End Class
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Conversion()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Shared Operator Widening $$CType(x As Integer) As C
+    End Operator
+End Class
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
+        End Sub
+
 #End Region
 
 #Region "MustImplement tests"
