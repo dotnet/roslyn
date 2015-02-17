@@ -481,6 +481,364 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideSingleLineRegularComment_1()
+        {
+            var code = @"class Program
+{
+                              //        {$$
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              //        {
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideSingleLineRegularComment_2()
+        {
+            var code = @"class Program
+{
+                              //        {$$   
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              //        {   
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideMultiLineRegularComment_1()
+        {
+            var code = @"class Program
+{
+    static void Main(int          a/*         {$$       */, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(int          a/*         {       */, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideMultiLineRegularComment_2()
+        {
+            var code = @"class Program
+{
+    static void Main(int          a/*         {$$
+        */, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(int          a/*         {
+        */, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideMultiLineRegularComment_3()
+        {
+            var code = @"class Program
+{
+    static void Main(int          a/*         {$$    
+        */, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(int          a/*         {    
+        */, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideSingleLineDocComment_1()
+        {
+            var code = @"class Program
+{
+                              ///        {$$
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              ///        {
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideSingleLineDocComment_2()
+        {
+            var code = @"class Program
+{
+                              ///        {$$   
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              ///        {   
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideMultiLineDocComment_1()
+        {
+            var code = @"class Program
+{
+                              /**        {$$   **/
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              /**        {   **/
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideMultiLineDocComment_2()
+        {
+            var code = @"class Program
+{
+                              /**        {$$   
+                **/
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              /**        {   
+                **/
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideMultiLineDocComment_3()
+        {
+            var code = @"class Program
+{
+                              /**        {$$
+                **/
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                              /**        {
+                **/
+                       static void Main(int a, int b)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideInactiveCode()
+        {
+            var code = @"class Program
+{
+                                        #if false
+                    {$$
+            #endif
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+
+            var expected = @"class Program
+{
+                                        #if false
+                    {
+            #endif
+
+    static void Main(string[] args)
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideStringLiteral()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var asdas =     ""{$$""        ;
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var asdas =     ""{""        ;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideCharLiteral()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var asdas =     '{$$'        ;
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var asdas =     '{'        ;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(449)]
+        [WorkItem(1077103)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoFormattingInsideCommentsOfPreprocessorDirectves()
+        {
+            var code = @"class Program
+{
+       #region
+        #endregion // a/*{$$*/    
+        static void Main(string[] args)
+    {
+        
+    }
+}";
+
+            var expected = @"class Program
+{
+       #region
+        #endregion // a/*{*/    
+        static void Main(string[] args)
+    {
+        
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
         private static void AssertFormatAfterTypeChar(string code, string expected)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
