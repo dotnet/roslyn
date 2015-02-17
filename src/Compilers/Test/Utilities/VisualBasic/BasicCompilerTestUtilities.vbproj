@@ -63,14 +63,14 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <DebugType>full</DebugType>
-    <DefineConstants>ARM</DefineConstants>
+    <DefineConstants>$(DefineConstants);ARM</DefineConstants>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <Optimize>true</Optimize>
     <DefineTrace>true</DefineTrace>
     <DebugType>pdbonly</DebugType>
-    <DefineConstants>ARM</DefineConstants>
+    <DefineConstants>$(DefineConstants);ARM</DefineConstants>
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
