@@ -44,7 +44,7 @@ public sealed class BehaviorCollection : DependencyObjectCollection
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(OSVersionWin8))]
         public void IVectorProjectionTests()
         {
             var source =
@@ -167,7 +167,7 @@ b
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(OSVersionWin8))]
         public void IVectorViewProjectionTests()
         {
             var source =
@@ -211,7 +211,7 @@ public class Class1
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(OSVersionWin8))]
         public void IMapProjectionTests()
         {
             var source =
