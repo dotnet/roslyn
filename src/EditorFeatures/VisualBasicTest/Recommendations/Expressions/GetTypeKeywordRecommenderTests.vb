@@ -1,17 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class GetTypeKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GetTypeHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "GetType",
-                                                  <Text><![CDATA[
-GetType function
-Returns a System.Type object for the specified type name.
-GetType(<typeName>) As Type]]></Text>)
+$"{VBFeaturesResources.GettypeFunction}
+{ReturnsSystemTypeObject}
+GetType({VBWorkspaceResources.Typename}) As Type")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
@@ -24,9 +23,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "CBool(<expression>) As Boolean",
-                                     "Converts an expression to the Boolean data type.",
-                                     "The expression to be evaluated and converted.",
+                                     $"CBool({Expression1}) As Boolean",
+                                     String.Format(ConvertsToDataType, "Boolean"),
+                                     ExpressionToConvert,
                                      currentParameterIndex:=0))
             Test(markup, expectedOrderedItems)
         End Sub

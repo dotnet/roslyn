@@ -31,7 +31,7 @@ End Class</File>
         Dim a = new [|Fooa|].ToString()
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'Fooa' to 'Foo'.", "Change 'Fooa' to 'Boolean'.", "Change 'Fooa' to 'Global'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Fooa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Fooa", "Boolean"), String.Format(VBFeaturesResources.ChangeTo, "Fooa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -41,7 +41,7 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'Foa' to 'Foo'.", "Change 'Foa' to 'Global'.", "Change 'Foa' to 'Char'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -51,7 +51,7 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'Foa' to 'Foo'.", "Change 'Foa' to 'Global'.", "Change 'Foa' to 'Char'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -60,7 +60,7 @@ End Class</File>
     Sub Bar(a as Func(Of [|Foa|]))
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'Foa' to 'Foo'.", "Change 'Foa' to 'Global'.", "Change 'Foa' to 'Char'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -71,7 +71,7 @@ End Class</File>
         Dim y = 2 + [|zza|]
     End Sub
 End Module</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'zza' to 'zzz'.", "Change 'zza' to 'Char'.", "Change 'zza' to 'Await'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "zza", "zzz"), String.Format(VBFeaturesResources.ChangeTo, "zza", "Char"), String.Format(VBFeaturesResources.ChangeTo, "zza", "Await")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -84,7 +84,7 @@ Public Class Class1
         End If
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'blah' to 'Boolean'.", "Change 'blah' to 'Lazy'.", "Change 'blah' to 'Math'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "blah", "Boolean"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Lazy"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Math")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -97,7 +97,7 @@ Public Class Class1
         End If
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {"Change 'blah' to 'Boolean'.", "Change 'blah' to 'Lazy'.", "Change 'blah' to 'Math'."})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "blah", "Boolean"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Lazy"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Math")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
