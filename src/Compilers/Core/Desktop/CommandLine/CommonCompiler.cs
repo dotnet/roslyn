@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool TryGetCompilerDiagnosticCode(string diagnosticId, string expectedPrefix, out uint code)
         {
             code = 0;
-            return diagnosticId.StartsWith(expectedPrefix) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
+            return diagnosticId.StartsWith(expectedPrefix, StringComparison.Ordinal) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
         }
 
         /// <summary>

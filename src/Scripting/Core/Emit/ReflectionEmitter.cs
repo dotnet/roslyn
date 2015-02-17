@@ -1494,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
             {
                 // TODO (tomat, Dev12): Do not emit types of mapped fields as Ref.Emit defines its own.
                 // We should remove this when Ref.Emit is fixed.
-                if (nestedType.Name.StartsWith("__StaticArrayInitTypeSize="))
+                if (nestedType.Name.StartsWith("__StaticArrayInitTypeSize=", StringComparison.Ordinal))
                 {
                     continue;
                 }

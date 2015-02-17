@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var snippets = service.GetSnippetsIfAvailable();
             if (isPreProcessorContext)
             {
-                snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#"));
+                snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);

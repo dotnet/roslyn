@@ -1309,7 +1309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             for (int i = 1; i < lines.Length; i++)
             {
                 var line = lines[i].TrimStart();
-                if (line.StartsWith("///"))
+                if (line.StartsWith("///", StringComparison.Ordinal))
                 {
                     line = line.Substring(3);
                 }
