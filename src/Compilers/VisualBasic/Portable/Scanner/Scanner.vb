@@ -842,23 +842,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case """"c : Return ScanStringLiteral(precedingTrivia)
 
-                Case "A"c
-                    If ArePeek(2, "s ") Then AdvanceChar(2) : Return MakeKeyword(SyntaxKind.AsKeyword, "As", precedingTrivia) ' TODO: do we allow widechars in keywords?
-                    Return ScanIdentifierOrKeyword(precedingTrivia)
 
-                Case "E"c
-                    If ArePeek(3, "nd ") Then
+                Case "A"c
+                    If CanGetCharAtOffset(2) AndAlso
+                       Peek(1) = "s"c AndAlso
+                       Peek(2) = " "c Then
+
                         ' TODO: do we allow widechars in keywords?
-                        AdvanceChar(3)
-                        Return MakeKeyword(SyntaxKind.EndKeyword, "End", precedingTrivia)
+                        Dim spelling = "As"
+                        AdvanceChar(2)
+                        Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
-                Case "I"c
-                    If ArePeek(2, "f ") Then
+                Case "E"c
+                    If CanGetCharAtOffset(3) AndAlso
+                        Peek(1) = "n"c AndAlso
+                        Peek(2) = "d"c AndAlso
+                        Peek(3) = " "c Then
+
                         ' TODO: do we allow widechars in keywords?
-                        Const spelling = "If"
+                        Dim spelling = "End"
+                        AdvanceChar(3)
+                        Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
+                    Else
+                        Return ScanIdentifierOrKeyword(precedingTrivia)
+                    End If
+
+
+                Case "I"c
+                    If CanGetCharAtOffset(2) AndAlso
+                                           Peek(1) = "f"c AndAlso
+                                           Peek(2) = " "c Then
+
+                        ' TODO: do we allow widechars in keywords?
+                        Dim spelling = "If"
                         AdvanceChar(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
                     Else
@@ -898,6 +917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If IsFullWidth(ch) Then ch = MakeHalfWidth(ch) : Return ScanTokenFullWidth(precedingTrivia, ch)
             Return Nothing
         End Function
+
         ' REVIEW: Is there a better way to reuse this logic? 
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
          Const lengthWithMaybeEquals = 1
@@ -953,13 +973,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanNumericLiteral(precedingTrivia)
                 Case """"c : Return ScanStringLiteral(precedingTrivia)
                 Case "A"c
-                    If ArePeek(2,"s ") Then Return MakeKeyword(SyntaxKind.AsKeyword,  GetText(2), precedingTrivia)
-                    Return ScanIdentifierOrKeyword(precedingTrivia)
+                    If CanGetCharAtOffset(2) AndAlso
+                       Peek(1) = "s"c AndAlso
+                       Peek(2) = " "c Then
+
+                        Dim spelling = GetText(2)
+                        Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
+                    Else
+                        Return ScanIdentifierOrKeyword(precedingTrivia)
+                    End If
+
                 Case "E"c
-                    If ArePeek(3, "nd ") Then Return MakeKeyword(SyntaxKind.EndKeyword,  GetText(3), precedingTrivia)
-                    Return ScanIdentifierOrKeyword(precedingTrivia)
+                    If CanGetCharAtOffset(3) AndAlso
+                        Peek(1) = "n"c AndAlso
+                        Peek(2) = "d"c AndAlso
+                        Peek(3) = " "c Then
+
+                        Dim spelling = GetText(3)
+                        Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
+                    Else
+                        Return ScanIdentifierOrKeyword(precedingTrivia)
+                    End If
+
                 Case "I"c
-                    If ArePeek(2, "f ") Then
+                    If CanGetCharAtOffset(2) AndAlso
+                                           Peek(1) = "f"c AndAlso
+                                           Peek(2) = " "c Then
+
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = GetText(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
@@ -969,6 +1009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "a"c To "z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
+
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
                       "R"c, "S"c, "T"c, "U"c, "V"c, "W"c, "X"c, "Y"c, "Z"c
@@ -1050,9 +1091,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         If CanGetCharAtOffset(x + 2) Then
                             Select Case (Peek(x + 1))
                                 Case "-"c
-                                    If CanGetCharAtOffset(x + 3) AndAlso Peek(x + 2) = "-"c Then Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
+                                    If CanGetCharAtOffset(x + 3) AndAlso Peek(x + 2) = "-"c Then
+                                        Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
+                                    End If
                                 Case "["c
-                                    If ArePeek(x,8,2,"CDATA[") Then Return XmlMakeBeginCDataToken(precedingTrivia, scanTrailingTrivia)
+                                    If CanGetCharAtOffset(x + 8) AndAlso
+                                        Peek(x + 2) = "C"c AndAlso
+                                        Peek(x + 3) = "D"c AndAlso
+                                        Peek(x + 4) = "A"c AndAlso
+                                        Peek(x + 5) = "T"c AndAlso
+                                        Peek(x + 6) = "A"c AndAlso
+                                        Peek(x + 7) = "["c Then
+
+                                        Return XmlMakeBeginCDataToken(precedingTrivia, scanTrailingTrivia)
+                                    End If
                             End Select
                         End If
                     Case "?"c : Return XmlMakeBeginProcessingInstructionToken(precedingTrivia, scanTrailingTrivia)
