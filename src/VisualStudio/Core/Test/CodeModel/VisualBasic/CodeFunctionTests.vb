@@ -854,6 +854,227 @@ End Class
 
 #End Region
 
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Sub()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Sub $$M()
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Sub M()
+    End Sub
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Function()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Function $$M() As integer
+    End Function
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Function M() As integer
+    End Function
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Sub_MustOverride()
+            Dim code =
+<Code>
+Imports System
+
+MustInherit Class C
+    MustOverride Sub $$M()
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+MustInherit Class C
+    &lt;Serializable()&gt;
+    MustOverride Sub M()
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Function_MustOverride()
+            Dim code =
+<Code>
+Imports System
+
+MustInherit Class C
+    MustOverride Function $$M() As integer
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+MustInherit Class C
+    &lt;Serializable()&gt;
+    MustOverride Function M() As integer
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_DeclareSub()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Declare Sub $$M() Lib "MyDll.dll"
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Declare Sub M() Lib "MyDll.dll"
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_DeclareFunction()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Declare Function $$M() Lib "MyDll.dll" As Integer
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Declare Function M() Lib "MyDll.dll" As Integer
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Constructor()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Sub $$New()
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Sub New()
+    End Sub
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Operator()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Shared Operator $$+(x As C, y As C) As C
+    End Operator
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Public Shared Operator +(x As C, y As C) As C
+    End Operator
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Conversion()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Shared Operator Widening $$CType(x As Integer) As C
+    End Operator
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Public Shared Operator Widening CType(x As Integer) As C
+    End Operator
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+#End Region
+
 #Region "AddParameter tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
