@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Private Function PeekAheadChar(skip As Integer) As Char
+        Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGetCharAtOffset(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Friend Function PeekChar() As Char
+        Friend Function Peek() As Char
             Dim page = _curPage
             Dim position = _lineBufferOffset
             Dim ch = page._arr(position And PAGE_MASK)
@@ -134,8 +134,83 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ch
         End Function
 
+        Friend Function TryPeek(ByRef c As Char) As Boolean
+            If _lineBufferOffset >= _bufferLen Then Return False
+            Dim page = _curPage
+            Dim pos = _lineBufferOffset
+            Dim ch = page._arr(pos And PAGE_MASK)
+            Dim start = page._pageStart
+            Dim expectedStart = pos And NOT_PAGE_MASK
+            If start <> expectedStart Then
+                page = GetPage(pos)
+                ch = page._arr(pos And PAGE_MASK)
+            End If
+            c = ch
+            Return True
+        End Function
+
+        Friend Function TryGet(ByRef c As String) As Boolean
+            If _lineBufferOffset >= _bufferLen Then Return False
+            Dim page = _curPage
+            Dim pos = _lineBufferOffset
+            Dim ch = page._arr(pos And PAGE_MASK)
+            Dim start = page._pageStart
+            Dim expectedStart = pos And NOT_PAGE_MASK
+
+            If start <> expectedStart Then
+                page = GetPage(pos)
+                ch = page._arr(pos And PAGE_MASK)
+            End If
+            c = Intern(ch)
+            Return True
+        End Function
+
+        ' PERF CRITICAL
+        Private Function TryPeek(skip As Integer, ByRef c As Char) As Boolean
+            ' CanGetCharAtOffset( )
+            If _lineBufferOffset + skip >= _bufferLen Then Return False
+            If skip < -MaxCharsLookBehind Then Return False
+            Dim pos = _lineBufferOffset
+            Dim page = _curPage
+            pos += skip
+            Dim ch = page._arr(pos And PAGE_MASK)
+            Dim start = page._pageStart
+            Dim expectedStart = pos And NOT_PAGE_MASK
+            If start <> expectedStart Then
+                page = GetPage(pos)
+                ch = page._arr(pos And PAGE_MASK)
+            End If
+            c = ch
+            Return True
+        End Function
+
+        Private Function IsPeek(at As Integer, isChar As Char) As Boolean
+            Dim c As Char
+            Return TryPeek(at, c) AndAlso (c = isChar)
+        End Function
+
+        'Private Function ArePeek(at As Integer, s As String) As Boolean
+        '    If Not CanGetCharAtOffset(at) Then Return False
+        '    If s Is Nothing Then Return False
+        '    For i = 1 To s.Length - 1
+        '        If Peek(i) <> s(i-1) Then Return False
+        '    Next
+        '    Return True
+        'End Function
+        'Private Function ArePeek(at    As Integer,
+        '                         size  As Integer,
+        '                         skip  As Integer,
+        '                         chars As String) As Boolean
+        '    If chars Is Nothing Then Return False
+        '    If Not CanGetCharAtOffset(at) Then Return False
+        '    For i = skip To chars.Length - 1
+        '        If Peek(at+i) <> chars(i-1) Then Return False
+        '    Next
+        '    Return True
+        'End Function
+
         Friend Function GetChar() As String
-            Return Intern(PeekChar())
+            Return Intern(Peek())
         End Function
 
         Friend Function GetText(start As Integer, length As Integer) As String
