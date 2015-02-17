@@ -775,7 +775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' the beginning of a token        
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim ch, ch2 As Char
-            If Not TryPeek(ch) Then Return MakeEofToken(precedingTrivia) #
+            If Not TryPeek(ch) Then Return MakeEofToken(precedingTrivia)
             Const lengthWithMaybeEquals = 1
 
             Select Case ch
