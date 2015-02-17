@@ -134,7 +134,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         /// <returns>True if the current type inherits from or equals the type described by the
         /// given full name.</returns>
         /// <remarks>Equality is included in the check as per Dev10 Bug #725630</remarks>
-        [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public bool get_IsDerivedFrom(string fullName)
         {
             var currentType = LookupTypeSymbol();

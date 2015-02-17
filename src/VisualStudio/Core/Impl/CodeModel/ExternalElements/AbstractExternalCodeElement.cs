@@ -256,7 +256,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             throw Exceptions.ThrowENotImpl();
         }
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public object get_Extender(string extenderName)
         {
             return GetExtender(extenderName);

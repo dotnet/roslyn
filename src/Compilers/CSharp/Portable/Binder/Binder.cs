@@ -65,11 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Is the given node being bound as a nameof(...) operator?
-        protected virtual bool IsNameofArgument(SyntaxNode node)
-        {
-            return false;
-        }
+        // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
+        protected virtual SyntaxNode EnclosingNameofArgument => null;
 
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
