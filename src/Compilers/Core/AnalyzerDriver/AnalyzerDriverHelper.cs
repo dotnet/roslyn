@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -254,6 +255,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () => syntaxNodeAction(syntaxNodeContext), cancellationToken);
         }
 
+        internal static void ExecuteOperationAction(
+            Action<OperationAnalysisContext> operationAction,
+            IOperation operation,
+            DiagnosticAnalyzer analyzer,
+            AnalyzerOptions analyzerOptions,
+            Action<Diagnostic> addDiagnostic,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            CancellationToken cancellationToken)
+        {
+            var operationContext = new OperationAnalysisContext(operation, analyzerOptions, addDiagnostic, cancellationToken);
+
+            // Catch Exception from action.
+            ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () => operationAction(operationContext), cancellationToken);
+        }
+
         /// <summary>
         /// Executes the given code block actions on all the executable code blocks for each declaration info in <paramref name="declarationsInNode"/>.
         /// </summary>
@@ -410,6 +426,57 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (var action in actionsForKind)
                     {
                         ExecuteSyntaxNodeAction(action.Action, child, action.Analyzer, model, analyzerOptions, addDiagnostic, continueOnException, cancellationToken);
+                    }
+                }
+            }
+        }
+
+		internal static ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(
+			IEnumerable<OperationAnalyzerAction> operationActions,
+			Action<Diagnostic> addDiagnostic)
+		{
+			Debug.Assert(operationActions != null && operationActions.Any());
+
+			var operationActionsByKind = PooledDictionary<OperationKind, ArrayBuilder<OperationAnalyzerAction>>.GetInstance();
+			foreach (var operationAction in operationActions)
+			{
+				foreach (var kind in operationAction.Kinds)
+				{
+					ArrayBuilder<OperationAnalyzerAction> actionsForKind;
+					if (!operationActionsByKind.TryGetValue(kind, out actionsForKind))
+					{
+						operationActionsByKind.Add(kind, actionsForKind = ArrayBuilder<OperationAnalyzerAction>.GetInstance());
+					}
+
+					actionsForKind.Add(operationAction);
+				}
+			}
+
+			var tuples = operationActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+			var map = ImmutableDictionary.CreateRange(tuples);
+			operationActionsByKind.Free();
+			return map;
+		}
+
+		internal static void ExecuteOperationActions(
+            IEnumerable<IOperation> operationsToAnalyze,
+            ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            AnalyzerOptions analyzerOptions,
+            Action<Diagnostic> addDiagnostic,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnException,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(operationActionsByKind != null);
+            Debug.Assert(operationActionsByKind.Any());
+
+            foreach (IOperation operation in operationsToAnalyze)
+            {
+                ImmutableArray<OperationAnalyzerAction> actionsForKind;
+                if (operationActionsByKind.TryGetValue(operation.Kind, out actionsForKind))
+                {
+                    foreach (OperationAnalyzerAction action in actionsForKind)
+                    {
+                        ExecuteOperationAction(action.Action, operation, action.Analyzer, analyzerOptions, addDiagnostic, continueOnException, cancellationToken);
                     }
                 }
             }
