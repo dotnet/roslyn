@@ -6,34 +6,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    //internal partial class SyntaxVisitor<TArgument, TResult>
-    //{
-    //    public virtual TResult Visit(CSharpSyntaxNode node, TArgument argument)
-    //    {
-    //        if (node == null)
-    //        {
-    //            return default(TResult);
-    //        }
-
-    //        return node.Accept(this, argument);
-    //    }
-
-    //    public virtual TResult VisitToken(SyntaxToken token, TArgument argument)
-    //    {
-    //        return this.DefaultVisit(token, argument);
-    //    }
-
-    //    public virtual TResult VisitTrivia(SyntaxTrivia trivia, TArgument argument)
-    //    {
-    //        return this.DefaultVisit(trivia, argument);
-    //    }
-
-    //    protected virtual TResult DefaultVisit(CSharpSyntaxNode node, TArgument argument)
-    //    {
-    //        return default(TResult);
-    //    }
-    //}
-
     internal abstract partial class CSharpSyntaxVisitor<TResult>
     {
         public virtual TResult Visit(CSharpSyntaxNode node)

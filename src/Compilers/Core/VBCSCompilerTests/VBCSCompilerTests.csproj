@@ -18,9 +18,9 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\CSharp\csc2\csc2.vcxproj">
+    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.vcxproj">
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
-      <Name>csc2</Name>
+      <Name>vbc2</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
@@ -50,9 +50,9 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>CompilerTestUtilities2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.vcxproj">
+    <ProjectReference Include="..\..\CSharp\csc2\csc2.vcxproj">
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
-      <Name>vbc2</Name>
+      <Name>csc2</Name>
     </ProjectReference>
     <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>

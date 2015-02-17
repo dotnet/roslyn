@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerDriverHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationComputer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalysisContextHelpers.cs" />

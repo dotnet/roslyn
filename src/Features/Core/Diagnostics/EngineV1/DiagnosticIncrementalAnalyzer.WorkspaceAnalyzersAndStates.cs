@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             /// </summary>
             private partial class WorkspaceAnalyzersAndStates
             {
-                private readonly AnalyzerManager _analyzerManager;
+                private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
                 private ImmutableDictionary<string, PerLanguageAnalyzersAndStates> _perLanguageAnalyzersAndStatesMap;
 
-                public WorkspaceAnalyzersAndStates(AnalyzerManager analyzerManager)
+                public WorkspaceAnalyzersAndStates(WorkspaceAnalyzerManager workspaceAnalyzerManager)
                 {
-                    _analyzerManager = analyzerManager;
+                    _workspaceAnalyzerManager = workspaceAnalyzerManager;
                     _perLanguageAnalyzersAndStatesMap = ImmutableDictionary<string, PerLanguageAnalyzersAndStates>.Empty;
                 }
 
                 private static PerLanguageAnalyzersAndStates CreatePerLanguageAnalyzersAndStates(string language, WorkspaceAnalyzersAndStates @this)
                 {
-                    return new PerLanguageAnalyzersAndStates(@this._analyzerManager, language);
+                    return new PerLanguageAnalyzersAndStates(@this._workspaceAnalyzerManager, language);
                 }
 
                 private PerLanguageAnalyzersAndStates GetOrCreatePerLanguageAnalyzersAndStates(string language)

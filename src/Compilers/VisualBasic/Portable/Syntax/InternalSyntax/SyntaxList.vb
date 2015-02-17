@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ''' </remarks>
             Public Overrides Function FindSlotIndexContainingOffset(offset As Integer) As Integer
                 Debug.Assert(offset >= 0 AndAlso offset < FullWidth)
-                Dim idx = Array.BinarySearch(_childOffsets, offset)
+                Dim idx = _childOffsets.BinarySearch(offset)
                 Return If(idx >= 0, idx, (Not idx) - 1)
             End Function
 

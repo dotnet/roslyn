@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             continueOnAnalyzerException = continueOnAnalyzerException ?? DonotCatchAnalyzerExceptions;
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzers.ToImmutableArray(), options, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzers.ToImmutableArray(), options, AnalyzerManager.Default, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result;
             return (TCompilation)newCompilation; // note this is a new compilation
