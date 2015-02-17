@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Text
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanRead && stream.CanSeek);
 
-            // TODO: Detect and special case MemoryStream and FileStream
-
             bool detectEncoding = defaultEncoding == null;
             if (detectEncoding)
             {
