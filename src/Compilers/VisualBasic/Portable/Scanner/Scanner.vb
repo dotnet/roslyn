@@ -775,7 +775,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' the beginning of a token        
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim ch, ch2 As Char
-            If Not TryPeek(ch) Then Return MakeEofToken(precedingTrivia)
+            If Not TryPeek(ch) Then Return MakeEofToken(precedingTrivia) #
+            Const lengthWithMaybeEquals = 1
+
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED, NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
@@ -796,7 +798,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "&"c
                     If TryPeek(1, ch2) AndAlso BeginsBaseLiteral(ch2) Then Return ScanNumericLiteral(precedingTrivia)
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeAmpersandEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakeAmpersandToken(precedingTrivia, False)
 
@@ -804,37 +805,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case "<"c : Return ScanLeftAngleBracket(precedingTrivia, False, _scanSingleLineTriviaFunc)
                 Case ">"c : Return ScanRightAngleBracket(precedingTrivia, False)
                 Case ":"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeColonEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return ScanColonAsStatementTerminator(precedingTrivia, False)
 
                 Case "+"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakePlusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakePlusToken(precedingTrivia, False)
 
                 Case "-"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeMinusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakeMinusToken(precedingTrivia, False)
 
                 Case "*"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeAsteriskEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakeAsteriskToken(precedingTrivia, False)
 
                 Case "/"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakeSlashToken(precedingTrivia, False)
 
                 Case "\"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeBackSlashEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakeBackslashToken(precedingTrivia, False)
 
                 Case "^"c
-                    Dim lengthWithMaybeEquals = 1
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then Return MakeCaretEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Return MakeCaretToken(precedingTrivia, False)
 
