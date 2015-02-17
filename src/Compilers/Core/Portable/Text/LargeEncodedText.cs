@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text;
@@ -123,21 +125,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding
-        {
-            get
-            {
-                return _encoding;
-            }
-        }
+        public override Encoding Encoding => _encoding;
 
-        public override int Length
-        {
-            get
-            {
-                return _length;
-            }
-        }
+        public override int Length => _length;
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {

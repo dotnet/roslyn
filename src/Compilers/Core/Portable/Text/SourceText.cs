@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
@@ -264,10 +263,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
         /// </summary>
-        public SourceHashAlgorithm ChecksumAlgorithm
-        {
-            get { return _checksumAlgorithm; }
-        }
+        public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
 
         /// <summary>
         /// Encoding of the file that the text was read from or is going to be saved to.
@@ -649,10 +645,7 @@ namespace Microsoft.CodeAnalysis.Text
                 _lineStarts = lineStarts;
             }
 
-            public override int Count
-            {
-                get { return _lineStarts.Length; }
-            }
+            public override int Count => _lineStarts.Length;
 
             public override TextLine this[int index]
             {
@@ -903,10 +896,7 @@ namespace Microsoft.CodeAnalysis.Text
                 _text = text;
             }
 
-            public override SourceText CurrentText
-            {
-                get { return _text; }
-            }
+            public override SourceText CurrentText => _text;
 
             public override event EventHandler<TextChangeEventArgs> TextChanged
             {
