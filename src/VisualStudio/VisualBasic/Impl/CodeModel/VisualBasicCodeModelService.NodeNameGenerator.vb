@@ -3,7 +3,6 @@
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
@@ -183,6 +182,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             AppendArity(builder, methodStatement.TypeParameterList.Parameters.Count)
                         End If
                         AppendParameterList(builder, methodStatement.ParameterList)
+
+                    Case SyntaxKind.DeclareFunctionStatement,
+                         SyntaxKind.DeclareSubStatement
+
+                        Dim declareStatement = DirectCast(node, DeclareStatementSyntax)
+                        builder.Append(declareStatement.Identifier.ValueText)
+                        AppendParameterList(builder, declareStatement.ParameterList)
 
                     Case SyntaxKind.OperatorBlock
 

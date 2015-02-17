@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public class TempDirectory
     {
-        private readonly string path;
-        private readonly TempRoot root;
+        private readonly string _path;
+        private readonly TempRoot _root;
 
-        protected TempDirectory(TempRoot root) 
+        protected TempDirectory(TempRoot root)
             : this(CreateUniqueDirectory(TempRoot.Root), root)
         {
         }
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Debug.Assert(path != null);
             Debug.Assert(root != null);
 
-            this.path = path;
-            this.root = root;
+            _path = path;
+            _root = root;
         }
 
         private static string CreateUniqueDirectory(string basePath)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string Path
         {
-            get { return path; }
+            get { return _path; }
         }
 
         /// <summary>
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="name">File name.</param>
         public TempFile CreateFile(string name)
         {
-            string filePath = System.IO.Path.Combine(path, name);
+            string filePath = System.IO.Path.Combine(_path, name);
             TempRoot.CreateStream(filePath);
-            return root.AddFile(new DisposableFile(filePath));
+            return _root.AddFile(new DisposableFile(filePath));
         }
 
         /// <summary>
@@ -64,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="name">Directory name or unrooted directory path.</param>
         public TempDirectory CreateDirectory(string name)
         {
-            string dirPath = System.IO.Path.Combine(path, name);
+            string dirPath = System.IO.Path.Combine(_path, name);
             Directory.CreateDirectory(dirPath);
-            return new TempDirectory(dirPath, root);
+            return new TempDirectory(dirPath, _root);
         }
 
         public override string ToString()
         {
-            return path;
+            return _path;
         }
     }
 }

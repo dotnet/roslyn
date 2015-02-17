@@ -5,6 +5,7 @@ Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -425,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                                                         CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.Equal(AnalyzerDriverHelper.DiagnosticId, diagnostic.Id)
+                Assert.True(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(diagnostic.Id, diagnostic.CustomTags))
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
             End Using
         End Sub
@@ -648,7 +649,7 @@ class AnonymousFunctions
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                Dim incrementalAnalyzer = DirectCast(diagnosticService.CreateIncrementalAnalyzer(workspace), DiagnosticAnalyzerService.DiagnosticIncrementalAnalyzer)
+                Dim incrementalAnalyzer = DirectCast(DirectCast(diagnosticService.CreateIncrementalAnalyzer(workspace), DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee).Analyzer, DiagnosticIncrementalAnalyzer)
 
                 ' Verify that for an analyzer which has a registered compilation start action such that the start action registered an end action,
                 ' we go and force complete all document diagnostics for entire project and then invoke and report end action diagnostics.

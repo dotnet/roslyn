@@ -19,7 +19,7 @@ namespace Roslyn.Test.Utilities
         internal static string KeyPairFile2 = @"R:\__Test__\KeyPair2_" + Guid.NewGuid() + ".snk";
         internal static string PublicKeyFile2 = @"R:\__Test__\PublicKey2_" + Guid.NewGuid() + ".snk";
 
-        private static bool keyInstalled;
+        private static bool s_keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
 
         internal static readonly ImmutableArray<byte> PublicKey = new DesktopStrongNameProvider().GetPublicKey(TestResources.SymbolsTests.General.snKey);
@@ -27,10 +27,10 @@ namespace Roslyn.Test.Utilities
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
         {
-            if (!keyInstalled)
+            if (!s_keyInstalled)
             {
                 InstallKey(TestResources.SymbolsTests.General.snKey, TestContainerName);
-                keyInstalled = true;
+                s_keyInstalled = true;
             }
         }
 
@@ -63,7 +63,7 @@ namespace Roslyn.Test.Utilities
             private static bool PathEquals(string left, string right)
             {
                 return string.Equals(FileUtilities.NormalizeAbsolutePath(left), FileUtilities.NormalizeAbsolutePath(right), StringComparison.OrdinalIgnoreCase);
-            } 
+            }
 
             internal override bool FileExists(string fullPath)
             {

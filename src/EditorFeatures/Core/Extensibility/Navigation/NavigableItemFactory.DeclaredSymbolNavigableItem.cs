@@ -2,10 +2,12 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Navigation
 {
@@ -23,32 +25,41 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Lazy<string> _lazyDisplayName;
             private readonly Lazy<ISymbol> _lazySymbol;
 
-            public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
+            public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo)
             {
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
 
-                _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult());
+                // Cancellation isn't supported when computing the various properties that depend on the symbol, hence
+                // CancellationToken.None.
+                _lazySymbol = new Lazy<ISymbol>(() => declaredSymbolInfo.GetSymbolAsync(document, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult());
                 _lazyDisplayName = new Lazy<string>(() =>
                 {
-                    if (Symbol == null)
+                    try
                     {
-                        return null;
+                        if (Symbol == null)
+                        {
+                            return null;
+                        }
+
+                        var symbolDisplayService = Document.GetLanguageService<ISymbolDisplayService>();
+                        switch (Symbol.Kind)
+                        {
+                            case SymbolKind.NamedType:
+                                return symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers);
+
+                            case SymbolKind.Method:
+                                return Symbol.IsStaticConstructor()
+                                    ? symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers)
+                                    : symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+
+                            default:
+                                return symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+                        }
                     }
-
-                    var symbolDisplayService = Document.GetLanguageService<ISymbolDisplayService>();
-                    switch (Symbol.Kind)
+                    catch (Exception e) when (FatalError.Report(e))
                     {
-                        case SymbolKind.NamedType:
-                            return symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers);
-
-                        case SymbolKind.Method:
-                            return Symbol.IsStaticConstructor()
-                                ? symbolDisplayService.ToDisplayString(Symbol, s_shortFormatWithModifiers)
-                                : symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
-
-                        default:
-                            return symbolDisplayService.ToDisplayString(Symbol, s_shortFormat);
+                        throw ExceptionUtilities.Unreachable;
                     }
                 });
             }

@@ -245,14 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return module;
         }
 
-        private static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(MethodSymbol method)
-        {
-            var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            method.ContainingType.GetAllTypeParameters(builder);
-            builder.AddRange(method.TypeParameters);
-            return builder.ToImmutableAndFree();
-        }
-
         private static string GetNextMethodName(ArrayBuilder<MethodSymbol> builder)
         {
             return string.Format("<>m{0}", builder.Count);
@@ -270,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             DiagnosticBag diagnostics)
         {
             var objectType = this.Compilation.GetSpecialType(SpecialType.System_Object);
-            var allTypeParameters = GetAllTypeParameters(_currentFrame);
+            var allTypeParameters = _currentFrame.GetAllTypeParameters();
             var additionalTypes = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             EENamedTypeSymbol typeVariablesType = null;
@@ -315,10 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     // Hoisted method parameters (represented as locals in the EE).
-                    int ordinal = 0;
                     if (!_hoistedParameterNames.IsEmpty)
                     {
-                        foreach (var local in _localsForBinding)
+                        int localIndex = 0;
+                        foreach(var local in _localsForBinding)
                         {
                             // Since we are showing hoisted method parameters first, the parameters may appear out of order
                             // in the Locals window if only some of the parameters are hoisted.  This is consistent with the
@@ -326,36 +318,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             var localName = local.Name;
                             if (_hoistedParameterNames.Contains(local.Name))
                             {
-                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, this.GetLocalMethod, container, ordinal, GetLocalResultFlags(local));
+                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, this.GetLocalMethod, container, localIndex, GetLocalResultFlags(local));
                             }
-                            ordinal++;
+
+                            localIndex++;
                         }
                     }
 
                     // Method parameters (except those that have been hoisted).
-                    ordinal = m.IsStatic ? 0 : 1;
+                    int parameterIndex = m.IsStatic ? 0 : 1;
                     foreach (var parameter in m.Parameters)
                     {
                         var parameterName = parameter.Name;
                         if (!_hoistedParameterNames.Contains(parameterName))
                         {
-                            AppendLocalAndMethod(localBuilder, methodBuilder, parameterName, this.GetParameterMethod, container, ordinal, DkmClrCompilationResultFlags.None);
+                            AppendLocalAndMethod(localBuilder, methodBuilder, parameterName, this.GetParameterMethod, container, parameterIndex, DkmClrCompilationResultFlags.None);
                         }
-                        ordinal++;
+
+                        parameterIndex++;
                     }
 
                     if (!argumentsOnly)
                     {
                         // Locals.
-                        ordinal = 0;
+                        int localIndex = 0;
                         foreach (var local in _localsForBinding)
                         {
                             var localName = local.Name;
                             if (!_hoistedParameterNames.Contains(localName))
                             {
-                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, this.GetLocalMethod, container, ordinal, GetLocalResultFlags(local));
+                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, this.GetLocalMethod, container, localIndex, GetLocalResultFlags(local));
                             }
-                            ordinal++;
+
+                            localIndex++;
                         }
 
                         // "Type variables".
@@ -401,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string name,
             Func<EENamedTypeSymbol, string, string, int, MethodSymbol> getMethod,
             EENamedTypeSymbol container,
-            int ordinal,
+            int localOrParameterIndex,
             DkmClrCompilationResultFlags resultFlags)
         {
             // Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
@@ -409,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // which it can't do correctly without semantic information.
             name = SyntaxHelpers.EscapeKeywordIdentifiers(name);
             var methodName = GetNextMethodName(methodBuilder);
-            var method = getMethod(container, methodName, name, ordinal);
+            var method = getMethod(container, methodName, name, localOrParameterIndex);
             localBuilder.Add(new LocalAndMethod(name, methodName, resultFlags));
             methodBuilder.Add(method);
         }
@@ -446,23 +441,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 generateMethodBody);
         }
 
-        private EEMethodSymbol GetLocalMethod(EENamedTypeSymbol container, string methodName, string localName, int index)
+        private EEMethodSymbol GetLocalMethod(EENamedTypeSymbol container, string methodName, string localName, int localIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(localName);
             return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
             {
-                var local = method.LocalsForBinding[index];
+                var local = method.LocalsForBinding[localIndex];
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type) { WasCompilerGenerated = true };
                 return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
             });
         }
 
-        private EEMethodSymbol GetParameterMethod(EENamedTypeSymbol container, string methodName, string parameterName, int ordinal)
+        private EEMethodSymbol GetParameterMethod(EENamedTypeSymbol container, string methodName, string parameterName, int parameterIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(parameterName);
             return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
             {
-                var parameter = method.Parameters[ordinal];
+                var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter) { WasCompilerGenerated = true };
                 return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
             });

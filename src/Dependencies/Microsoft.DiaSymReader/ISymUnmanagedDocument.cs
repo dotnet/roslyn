@@ -13,7 +13,7 @@ namespace Microsoft.DiaSymReader
     public interface ISymUnmanagedDocument
     {
         [PreserveSig]
-        int GetURL(
+        int GetUrl(
             int bufferLength,
             out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] url);
@@ -28,7 +28,7 @@ namespace Microsoft.DiaSymReader
         int GetLanguageVendor(ref Guid vendor);
 
         [PreserveSig]
-        int GetCheckSumAlgorithmId(ref Guid algorithm);
+        int GetChecksumAlgorithmId(ref Guid algorithm);
 
         [PreserveSig]
         int GetChecksum(

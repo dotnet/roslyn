@@ -347,6 +347,84 @@ End Class
 
 #End Region
 
+#Region "FunctionKind tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Destructor()
+            Dim code =
+<Code>
+Public Class C1
+
+   Protected Overrides Sub $$Finalize()
+      MyBase.Finalize()
+   End Sub
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Sub()
+            Dim code =
+<Code>
+Public Class C1
+
+   Private Sub $$M()
+   End Sub
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_Function()
+            Dim code =
+<Code>
+Public Class C1
+
+   Private Function $$M() As Integer
+   End Sub
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_DeclareSub()
+            Dim code =
+<Code>
+Public Class C1
+
+   Private Declare Sub $$MethodB Lib "MyDll.dll" ()
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FunctionKind_DeclareFunction()
+            Dim code =
+<Code>
+Public Class C1
+
+   Private Declare Function $$MethodC Lib "MyDll.dll" () As Integer
+
+End Clas
+</Code>
+
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
+        End Sub
+
+#End Region
+
 #Region "MustImplement tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

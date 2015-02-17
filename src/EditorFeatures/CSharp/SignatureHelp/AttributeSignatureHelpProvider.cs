@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 constructor, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic,
-                constructor.GetDocumentationParts(semanticModel, position, documentationCommentFormatter, cancellationToken),
+                constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
 
             for (int i = 0; i < namedParameters.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var namedParameter = namedParameters[i];
 
                 var type = namedParameter is IFieldSymbol ? ((IFieldSymbol)namedParameter).Type : ((IPropertySymbol)namedParameter).Type;
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 yield return new SignatureHelpParameter(
                     namedParameter.Name,
                     isOptional: true,
-                    documentation: namedParameter.GetDocumentationParts(semanticModel, position, documentationCommentFormatter, cancellationToken),
+                    documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                     displayParts: displayParts,
                     prefixDisplayParts: GetParameterPrefixDisplayParts(i));
             }

@@ -217,8 +217,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(compilationDef, options:=TestOptions.ReleaseExe)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.IncompleteInitialization..ctor' is not defined.
         Static x(9) As Integer

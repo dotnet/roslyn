@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly AnalyzerManager _analyzerManager;
+        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
         [ImportingConstructor]
         public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null)
@@ -27,33 +27,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies) : this()
         {
-            _analyzerManager = new AnalyzerManager(workspaceAnalyzerAssemblies);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies);
         }
 
         // internal for testing purposes.
         internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers) : this()
         {
-            _analyzerManager = new AnalyzerManager(workspaceAnalyzers);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers);
         }
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)
         {
             if (projectOpt == null)
             {
-                return _analyzerManager.GetHostDiagnosticDescriptorsPerReference();
+                return _workspaceAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
             }
 
-            return _analyzerManager.GetDiagnosticDescriptorsPerReference(projectOpt);
+            return _workspaceAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            return _analyzerManager.GetDiagnosticDescriptors(analyzer);
+            return _workspaceAnalyzerManager.GetDiagnosticDescriptors(analyzer);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
 
             var service = workspace.Services.GetService<ISolutionCrawlerService>();
             if (service != null && _map.TryGetValue(workspace, out analyzer))
@@ -62,13 +62,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task<bool> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(document.Project.Solution.Workspace, out analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(async () => await analyzer.TryGetDiagnosticAsync(document, range, diagnostics, cancellationToken).ConfigureAwait(false), cancellationToken);
+                return Task.Run(async () => await analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, cancellationToken).ConfigureAwait(false), cancellationToken);
             }
 
             return SpecializedTasks.False;
@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(document.Project.Solution.Workspace, out analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(async () => await analyzer.GetDiagnosticsAsync(document, range, cancellationToken).ConfigureAwait(false), cancellationToken);
+                return Task.Run(async () => await analyzer.GetDiagnosticsForSpanAsync(document, range, cancellationToken).ConfigureAwait(false), cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<DiagnosticData>();
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(workspace, out analyzer))
             {
                 return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, cancellationToken);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, object id, CancellationToken cancellationToken)
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(workspace, out analyzer))
             {
                 return analyzer.GetSpecificCachedDiagnosticsAsync(workspace.CurrentSolution, id, cancellationToken);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(solution.Workspace, out analyzer))
             {
                 return analyzer.GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(solution.Workspace, out analyzer))
             {
                 return analyzer.GetSpecificDiagnosticsAsync(solution, id, cancellationToken);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
             Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(solution.Workspace, out analyzer))
             {
                 return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, cancellationToken);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
             Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            DiagnosticIncrementalAnalyzer analyzer;
+            BaseDiagnosticIncrementalAnalyzer analyzer;
             if (_map.TryGetValue(solution.Workspace, out analyzer))
             {
                 return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, cancellationToken);

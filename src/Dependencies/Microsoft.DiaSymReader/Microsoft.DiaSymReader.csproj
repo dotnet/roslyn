@@ -2,6 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
+    <Import Project="Version.targets" />
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
@@ -34,6 +35,7 @@
     <Compile Include="ISymUnmanagedNamespace.cs" />
     <Compile Include="ISymUnmanagedReader.cs" />
     <Compile Include="ISymUnmanagedReader2.cs" />
+    <Compile Include="ISymUnmanagedReader3.cs" />
     <Compile Include="ISymUnmanagedScope.cs" />
     <Compile Include="ISymUnmanagedScope2.cs" />
     <Compile Include="ISymUnmanagedVariable.cs" />

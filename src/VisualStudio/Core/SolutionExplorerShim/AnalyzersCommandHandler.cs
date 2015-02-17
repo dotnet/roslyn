@@ -13,8 +13,10 @@ using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.VisualStudio.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -47,6 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private MenuCommand _setSeverityHiddenMenuItem;
         private MenuCommand _setSeverityNoneMenuItem;
 
+        private MenuCommand _openHelpLinkMenuItem;
+
         private Workspace _workspace;
 
         private ImmutableArray<DiagnosticItem> _selectedDiagnosticItems = ImmutableArray<DiagnosticItem>.Empty;
@@ -72,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _setSeverityInfoMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityInfo, SetSeverityHandler);
                 _setSeverityHiddenMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityHidden, SetSeverityHandler);
                 _setSeverityNoneMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityNone, SetSeverityHandler);
+
+                _openHelpLinkMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenDiagnosticHelpLink, OpenDiagnosticHelpLinkHandler);
 
                 UpdateMenuItemVisibility();
                 UpdateMenuItemsChecked();
@@ -140,6 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _projectAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
             _referencesContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
+
+            _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
+                                            !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
         }
 
         private void UpdateMenuItemsChecked()
@@ -266,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     EnvDTE.Project envDteProject;
                     project.Hierarchy.TryGetProject(out envDteProject);
 
-                    if (IsBuiltInRuleSet(pathToRuleSet))
+                    if (SdkUiUtilities.IsBuiltInRuleSet(pathToRuleSet, _serviceProvider))
                     {
                         pathToRuleSet = CreateCopyOfRuleSetForProject(pathToRuleSet, envDteProject);
                         if (pathToRuleSet == null)
@@ -299,6 +308,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     SendUnableToUpdateRuleSetNotification(workspace, e.Message);
                 }
+            }
+        }
+
+        private void OpenDiagnosticHelpLinkHandler(object sender, EventArgs e)
+        {
+            if (_tracker.SelectedDiagnosticItems.Length != 1 ||
+                string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri))
+            {
+                return;
+            }
+
+            string link = _tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri;
+
+            Uri uri;
+            if (BrowserHelper.TryGetUri(link, out uri))
+            {
+                BrowserHelper.StartBrowser(_serviceProvider, uri);
             }
         }
 
@@ -488,45 +514,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             return _workspace;
-        }
-
-        private bool IsBuiltInRuleSet(string pathToRuleSet)
-        {
-            if (string.IsNullOrEmpty(pathToRuleSet))
-            {
-                return false;
-            }
-
-            // Canonicalize and compare
-            string ruleSetInBuiltInDirectory = Path.Combine(GetBuiltInRuleSetDirectory(_serviceProvider), Path.GetFileName(pathToRuleSet));
-            if (ruleSetInBuiltInDirectory.Equals(Path.GetFullPath(pathToRuleSet), StringComparison.OrdinalIgnoreCase))
-            {
-                FileInfo ruleSetFile = new FileInfo(pathToRuleSet);
-                if ((ruleSetFile.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private string GetBuiltInRuleSetDirectory(IServiceProvider serviceProvider)
-        {
-            return Path.Combine(GetStaticAnalysisToolsDirectory(serviceProvider), "Rule Sets");
-        }
-
-        private string GetStaticAnalysisToolsDirectory(IServiceProvider serviceProvider)
-        {
-            string installDirectory = null;
-
-            // Get the VS install directory
-            IVsShell shell = (IVsShell)serviceProvider.GetService(typeof(IVsShell));
-            object value;
-            Marshal.ThrowExceptionForHR(shell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out value));
-            installDirectory = (string)value;
-
-            return Path.Combine(installDirectory, "Team Tools", "Static Analysis Tools");
         }
     }
 }

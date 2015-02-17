@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public readonly ImmutableArray<MethodDefinitionHandle> UpdatedMethods;
 
         public CompilationDifference(
-            ImmutableArray<byte> metadata, 
-            ImmutableArray<byte> il, 
-            Stream pdbStream, 
+            ImmutableArray<byte> metadata,
+            ImmutableArray<byte> il,
+            Stream pdbStream,
             CompilationTestData testData,
             EmitDifferenceResult result,
             ImmutableArray<MethodDefinitionHandle> methodHandles)
@@ -64,11 +63,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public void VerifyIL(
-            string qualifiedMethodName, 
-            string expectedIL, 
-            Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null, 
+            string qualifiedMethodName,
+            string expectedIL,
+            Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
             MethodDefinitionHandle methodToken = default(MethodDefinitionHandle),
-            [CallerFilePath]string callerPath = null, 
+            [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0)
         {
             var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;

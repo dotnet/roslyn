@@ -2,7 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {

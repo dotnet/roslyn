@@ -47,8 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// only need one wrapper to call it non-virtually.
         /// </summary>
         private Dictionary<MethodSymbol, MethodSymbol> _wrappers;
-        
-        private readonly NamedTypeSymbol _type;
+
+        /// <summary>
+        /// Type symbol being compiled, or null if we compile a synthesized type that doesn't have a symbol (e.g. PrivateImplementationDetails).
+        /// </summary>
+        private readonly NamedTypeSymbol _typeOpt;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
@@ -65,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LambdaFrame staticLambdaFrame;
 
-        public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
+        public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
             this.Compilation = compilation;
-            _type = type;
+            _typeOpt = typeOpt;
             this.ModuleBuilderOpt = moduleBuilderOpt;
         }
 
@@ -80,9 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // NOTE: currently it can be null if only private implementation type methods are compiled
-                // TODO: is it used? if yes, make sure it is not accessed when type is not available; 
-                Debug.Assert((object)_type != null);
-                return _type;
+                Debug.Assert((object)_typeOpt != null);
+                return _typeOpt;
             }
         }
 

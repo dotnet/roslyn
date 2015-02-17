@@ -22,7 +22,7 @@
     <NuGetPackagesPath Condition="'$(NuGetPackagesPath)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\packages</NuGetPackagesPath>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
-    <RoslynSemanticVersion>1.0.0</RoslynSemanticVersion>
+    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.0.0</RoslynSemanticVersion>
   </PropertyGroup>
 
   <Choose>
@@ -74,8 +74,6 @@
     <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <StyleCopOverrideSettingsFile Condition="'$(StyleCopOverrideSettingsFile)' == ''">$(VSLToolsPath)\StyleCop\Settings.StyleCop</StyleCopOverrideSettingsFile>
-    <StyleCopTreatErrorsAsWarnings>false</StyleCopTreatErrorsAsWarnings>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>

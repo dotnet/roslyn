@@ -647,5 +647,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     throw new InvalidOperationException();
             }
         }
+
+		public void Close()
+		{
+		}
     }
 }

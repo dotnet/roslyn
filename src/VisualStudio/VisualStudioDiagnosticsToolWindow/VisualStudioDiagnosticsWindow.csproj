@@ -34,6 +34,10 @@
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

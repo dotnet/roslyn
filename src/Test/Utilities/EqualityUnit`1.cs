@@ -8,7 +8,7 @@ namespace Roslyn.Test.Utilities
 {
     public class EqualityUnit<T>
     {
-        private static readonly ReadOnlyCollection<T> EmptyCollection = new ReadOnlyCollection<T>(new T[] { });
+        private static readonly ReadOnlyCollection<T> s_emptyCollection = new ReadOnlyCollection<T>(new T[] { });
 
         public readonly T Value;
         public readonly ReadOnlyCollection<T> EqualValues;
@@ -21,8 +21,8 @@ namespace Roslyn.Test.Utilities
         public EqualityUnit(T value)
         {
             Value = value;
-            EqualValues = EmptyCollection;
-            NotEqualValues = EmptyCollection;
+            EqualValues = s_emptyCollection;
+            NotEqualValues = s_emptyCollection;
         }
 
         public EqualityUnit(

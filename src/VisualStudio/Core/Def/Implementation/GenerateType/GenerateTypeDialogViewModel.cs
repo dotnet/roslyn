@@ -280,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 trimmedFileName = trimmedFileName.StartsWith("\\") ? trimmedFileName.Substring(1) : trimmedFileName;
 
                 // Construct the full path of the file to be created
-                this.FullFilePath = implicitFilePath + '\\' + trimmedFileName;
+                this.FullFilePath = implicitFilePath + "\\" + trimmedFileName;
 
                 try
                 {

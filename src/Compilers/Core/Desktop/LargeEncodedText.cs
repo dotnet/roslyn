@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Text
         private int GetIndexFromPosition(int position)
         {
             // Binary search to find the chunk that contains the given position.
-            int idx = Array.BinarySearch(_chunkStartOffsets, position);
+            int idx = _chunkStartOffsets.BinarySearch(position);
             return idx >= 0 ? idx : (~idx - 1);
         }
 

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
 
         private string GenerateFieldName(IFieldSymbol field, string correspondingPropertyName)
         {
-            return char.ToLower(correspondingPropertyName[0]) + correspondingPropertyName.Substring(1);
+            return char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
         }
 
         protected string MakeUnique(string baseName, INamedTypeSymbol containingType, bool considerBaseMembers = true)

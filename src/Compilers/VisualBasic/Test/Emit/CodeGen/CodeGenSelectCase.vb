@@ -4531,7 +4531,7 @@ Class C
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
         End Sub
 
         <WorkItem(529047, "DevDiv")>

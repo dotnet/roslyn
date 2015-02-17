@@ -709,12 +709,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static PatternMatch? TryMatchSingleWordPattern(string candidate, string pattern)
         {
-            return new PatternMatcher().MatchSingleWordPattern_ForTestingOnly(candidate, pattern);
+            return new PatternMatcher(pattern).MatchSingleWordPattern_ForTestingOnly(candidate);
         }
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            return new PatternMatcher().MatchPattern(candidate, pattern);
+            return new PatternMatcher(pattern).GetMatches(candidate);
         }
     }
 }
