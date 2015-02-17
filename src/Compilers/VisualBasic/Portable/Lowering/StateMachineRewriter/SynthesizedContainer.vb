@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+        Friend NotOverridable Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
             Get
                 Return False
             End Get

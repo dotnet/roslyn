@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.HasSpecialName; }
         }
 
-        internal override bool HasInternalImplementationOnlyAttribute
+        internal sealed override bool HasInternalImplementationOnlyAttribute
             => _originalDefinition.HasInternalImplementationOnlyAttribute;
 
         public sealed override int Arity

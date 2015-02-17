@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+        Friend NotOverridable Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
             Get
                 Return Me.ContainingPEModule.Module.HasInternalImplementationOnlyAttribute(m_Handle)
             End Get

@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+        Friend NotOverridable Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
             Get
                 Return OriginalDefinition.HasInteralImplementationOnlyAttribute
             End Get

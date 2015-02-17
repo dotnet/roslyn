@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal override bool HasInternalImplementationOnlyAttribute => false;
+            internal sealed override bool HasInternalImplementationOnlyAttribute => false;
 
             public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {

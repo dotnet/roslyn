@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -41,6 +42,12 @@ public class B2 : IA2 {} // ok: IA2 not attributed";
                 options: TestOptions.ReleaseDll,
                 references: new[] { new CSharpCompilationReference(compa), MetadataReference.CreateFromAssembly(typeof(System.Runtime.CompilerServices.InternalsVisibleToAttribute).Assembly) });
             compb.VerifyDiagnostics();
+            CreateCompilation(
+                assemblyName: "B",
+                sources: new[] { bSource },
+                options: TestOptions.ReleaseDll,
+                references: new[] { compa.EmitToImageReference(), MetadataReference.CreateFromAssembly(typeof(System.Runtime.CompilerServices.InternalsVisibleToAttribute).Assembly) })
+                .VerifyDiagnostics();
 
             const string cSource =
     @"public interface IC1 : IA1 {} // ** error: do not have internal access
@@ -57,6 +64,19 @@ public class C2 : B2 {} // ok: B2 not attributed";
                 options: TestOptions.ReleaseDll,
                 references: new[] { new CSharpCompilationReference(compa), new CSharpCompilationReference(compb), MetadataReference.CreateFromAssembly(typeof(System.Runtime.CompilerServices.InternalsVisibleToAttribute).Assembly) });
             compc.VerifyDiagnostics(
+                    // (5,18): error CS8096: The type 'IA1' may not be used in the base clause of 'IC5' because it has the InternalImplementationOnly attribute.
+                    // public interface IC5 : IB1, IA1 {} // ** error: do not have internal access
+                    Diagnostic(ErrorCode.ERR_InternalImplementationOnly, "IC5").WithArguments("IC5", "IA1").WithLocation(5, 18),
+                    // (1,18): error CS8096: The type 'IA1' may not be used in the base clause of 'IC1' because it has the InternalImplementationOnly attribute.
+                    // public interface IC1 : IA1 {} // ** error: do not have internal access
+                    Diagnostic(ErrorCode.ERR_InternalImplementationOnly, "IC1").WithArguments("IC1", "IA1").WithLocation(1, 18)
+                );
+            CreateCompilation(
+                assemblyName: "C",
+                sources: new[] { cSource },
+                options: TestOptions.ReleaseDll,
+                references: new[] { compa.EmitToImageReference(), compb.EmitToImageReference(), MetadataReference.CreateFromAssembly(typeof(System.Runtime.CompilerServices.InternalsVisibleToAttribute).Assembly) })
+                .VerifyDiagnostics(
                     // (5,18): error CS8096: The type 'IA1' may not be used in the base clause of 'IC5' because it has the InternalImplementationOnly attribute.
                     // public interface IC5 : IB1, IA1 {} // ** error: do not have internal access
                     Diagnostic(ErrorCode.ERR_InternalImplementationOnly, "IC5").WithArguments("IC5", "IA1").WithLocation(5, 18),

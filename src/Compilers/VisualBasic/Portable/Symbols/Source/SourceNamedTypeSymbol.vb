@@ -2339,10 +2339,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+        Friend NotOverridable Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
             Get
+                ' We compute this on demand because we expect this to be faster, and take less
+                ' space, than if it were computed per type and cached.
                 For Each att In Me.GetAttributes
-                    If att.IsTargetAttribute("System.Runtime.CompilerServices", "InternalImplementationOnlyAttribute") Then
+                    If att.IsTargetAttribute(Me, AttributeDescription.InternalImplementationOnlyAttribute) Then
                         Return True
                     End If
                 Next

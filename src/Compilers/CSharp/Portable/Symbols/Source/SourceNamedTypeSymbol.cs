@@ -821,13 +821,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasInternalImplementationOnlyAttribute
+        internal sealed override bool HasInternalImplementationOnlyAttribute
         {
             get
             {
+                // We compute this on demand because we expect this to be faster, and take less
+                // space, than if it were computed per type and cached.
                 foreach (var att in this.GetAttributes())
                 {
-                    if (att.IsTargetAttribute("System.Runtime.CompilerServices", "InternalImplementationOnlyAttribute"))
+                    if (att.IsTargetAttribute(this, AttributeDescription.InternalImplementationOnlyAttribute))
                     {
                         return true;
                     }

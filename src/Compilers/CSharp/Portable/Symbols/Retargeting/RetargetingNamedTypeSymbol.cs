@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override bool HasInternalImplementationOnlyAttribute
+        internal sealed override bool HasInternalImplementationOnlyAttribute
             => _underlyingType.HasInternalImplementationOnlyAttribute;
 
         internal override bool MangleName
