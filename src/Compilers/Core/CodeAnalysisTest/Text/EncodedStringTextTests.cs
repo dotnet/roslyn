@@ -94,43 +94,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TryReadByteOrderMark()
-        {
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[0])));
-
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef })));
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xbb })));
-            Assert.Equal(Encoding.UTF8, SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xBB, 0xBF })));
-
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff })));
-            Assert.Equal(Encoding.Unicode, SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff, 0xfe })));
-
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe })));
-            Assert.Equal(Encoding.BigEndianUnicode, SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe, 0xff })));
-        }
-
-        [Fact]
-        public void IsBinary()
-        {
-            Assert.False(SourceText.IsBinary(""));
-
-            Assert.False(SourceText.IsBinary("\0abc"));
-            Assert.False(SourceText.IsBinary("a\0bc"));
-            Assert.False(SourceText.IsBinary("abc\0"));
-            Assert.False(SourceText.IsBinary("a\0b\0c"));
-
-            Assert.True(SourceText.IsBinary("\0\0abc"));
-            Assert.True(SourceText.IsBinary("a\0\0bc"));
-            Assert.True(SourceText.IsBinary("abc\0\0"));
-
-            var encoding = Encoding.GetEncoding(1252);
-            Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
-            // Unicode string: äëïöüû
-            Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
-            Assert.True(SourceText.IsBinary(encoding.GetString(ProprietaryTestResources.NetFX.v4_0_30319.System)));
-        }
-
-        [Fact]
         public void Decode_NonUtf8()
         {
             var utf8 = new UTF8Encoding(false, true);
