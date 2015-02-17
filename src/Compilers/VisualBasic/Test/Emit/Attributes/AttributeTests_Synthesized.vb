@@ -1404,8 +1404,8 @@ End Class
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-1")
-            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-1")
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
 
             Dim asyncMethodAttributes = asyncMethod.GetAttributes()
             AssertEx.SetEqual({"AsyncStateMachineAttribute"}, GetAttributeNames(asyncMethodAttributes))
@@ -1518,8 +1518,8 @@ End Class
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-1")
-            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-1")
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
 
             Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
             AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))

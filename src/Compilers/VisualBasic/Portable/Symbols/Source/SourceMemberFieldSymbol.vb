@@ -579,9 +579,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     ' Array declaration with implicit initializer.
                                     Dim initializer = New FieldOrPropertyInitializer(fieldSymbol, modifiedIdentifierRef)
                                     If fieldSymbol.IsShared Then
-                                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer)
+                                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer, members.StaticSyntaxLength)
                                     Else
-                                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer)
+                                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
                                     End If
                                 Else
                                     ' Array declaration with implicit and explicit initializers.
@@ -618,9 +618,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If symbolsAreShared Then
                         ' const fields are implicitly shared and get into this list.
-                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer)
+                        SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer, members.StaticSyntaxLength)
                     Else
-                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer)
+                        SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
                     End If
                 End If
             Next

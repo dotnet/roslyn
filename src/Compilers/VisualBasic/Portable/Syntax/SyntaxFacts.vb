@@ -1170,5 +1170,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        ' "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values.
+        ' TODO: Avoid generating lambdas. Instead generate a method on the anonymous type, or use KeyValuePair instead.
+        Friend Shared Function IsQueryPairLambda(syntax As SyntaxNode) As Boolean
+            Return syntax.IsKind(SyntaxKind.GroupByClause) OrElse syntax.IsKind(SyntaxKind.GroupJoinClause) OrElse syntax.IsKind(SyntaxKind.FromClause) OrElse syntax.IsKind(SyntaxKind.SimpleJoinClause)
+        End Function
+
     End Class
 End Namespace

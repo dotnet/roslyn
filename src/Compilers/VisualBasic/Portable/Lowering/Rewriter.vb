@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
             diagnostics As DiagnosticBag,
-            ByRef lambdaOrdinalDispenser As Integer,
-            ByRef scopeOrdinalDispenser As Integer,
+            lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
+            closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
             ByRef delegateRelaxationIdDispenser As Integer,
             <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol,
             <Out> ByRef variableSlotAllocatorOpt As VariableSlotAllocator,
@@ -54,14 +54,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 #End If
 
+            If compilationState.ModuleBuilderOpt IsNot Nothing Then
+                variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
+            End If
+
             ' Lowers lambda expressions into expressions that construct delegates.    
             Dim bodyWithoutLambdas = loweredBody
             If sawLambdas Then
                 bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody,
                                                             method,
                                                             methodOrdinal,
-                                                            lambdaOrdinalDispenser,
-                                                            scopeOrdinalDispenser,
+                                                            lambdaDebugInfoBuilder,
+                                                            closureDebugInfoBuilder,
                                                             delegateRelaxationIdDispenser,
                                                             variableSlotAllocatorOpt,
                                                             compilationState,
@@ -72,10 +76,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If bodyWithoutLambdas.HasErrors Then
                 Return bodyWithoutLambdas
-            End If
-
-            If compilationState.ModuleBuilderOpt IsNot Nothing Then
-                variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
             End If
 
             Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, variableSlotAllocatorOpt, stateMachineTypeOpt)

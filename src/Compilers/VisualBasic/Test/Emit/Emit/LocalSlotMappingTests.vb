@@ -540,7 +540,7 @@ End Class
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
-            v0.VerifyIL("C._Lambda$__2-1()", "
+            v0.VerifyIL("C._Lambda$__2-0()", "
 {
   // Code size       32 (0x20)
   .maxstack  2
@@ -576,13 +576,13 @@ End Class
   IL_001f:  ret
 }
 ")
-            v0.VerifyPdb("C._Lambda$__2-1", "
+            v0.VerifyPdb("C._Lambda$__2-0", "
 <symbols>
   <files>
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""CB, 10, 23, 23, 67, CE, AD, BE, 85, D1, 57, F2, D2, CB, 12, A0,  4, 4F, 66, C7, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""_Lambda$__2-1"">
+    <method containingType=""C"" name=""_Lambda$__2-0"">
       <customDebugInfo>
         <encLocalSlotMap>
           <slot kind=""21"" offset=""-1"" />

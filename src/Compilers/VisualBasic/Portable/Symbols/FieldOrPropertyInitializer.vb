@@ -24,6 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Syntax As SyntaxReference
 
         ''' <summary>
+        ''' A sum of widths of full spans of all preceding initializers 
+        ''' </summary>
+        Friend PrecedingInitializersLength As Integer
+
+        ''' <summary>
         ''' Initializer for an executable statement in script code.
         ''' </summary>
         ''' <param name="syntax">The initializer syntax for the statement.</param>

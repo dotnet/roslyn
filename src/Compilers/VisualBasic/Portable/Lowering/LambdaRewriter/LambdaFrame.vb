@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly m_topLevelMethod As MethodSymbol
         Private ReadOnly m_sharedConstructor As MethodSymbol
         Private ReadOnly m_singletonCache As FieldSymbol
+        Friend ReadOnly ClosureOrdinal As Integer
 
         'NOTE: this does not include captured parent frame references 
         Friend ReadOnly m_captured_locals As New ArrayBuilder(Of LambdaCapturedVariable)
@@ -38,21 +39,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         GeneratedNames.MakeDisplayClassGenericParameterName(typeParameter.Ordinal),
                                                                                         TypeSubstitutionFactory)
         Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
-                       compilationState As TypeCompilationState,
                        topLevelMethod As MethodSymbol,
-                       methodOrdinal As Integer,
-                       scopeSyntax As VisualBasicSyntaxNode,
-                       scopeOrdinal As Integer,
+                       methodId As MethodDebugId,
+                       scopeSyntaxOpt As VisualBasicSyntaxNode,
+                       closureOrdinal As Integer,
                        copyConstructor As Boolean,
                        isStatic As Boolean,
                        isDelegateRelaxationFrame As Boolean)
 
-            MyBase.New(topLevelMethod, MakeName(slotAllocatorOpt, compilationState, methodOrdinal, scopeOrdinal, isStatic, isDelegateRelaxationFrame), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(topLevelMethod, MakeName(slotAllocatorOpt, scopeSyntaxOpt, methodId, closureOrdinal, isStatic, isDelegateRelaxationFrame), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
 
             If copyConstructor Then
-                Me.m_constructor = New SynthesizedLambdaCopyConstructor(scopeSyntax, Me)
+                Me.m_constructor = New SynthesizedLambdaCopyConstructor(scopeSyntaxOpt, Me)
             Else
-                Me.m_constructor = New SynthesizedLambdaConstructor(scopeSyntax, Me)
+                Me.m_constructor = New SynthesizedLambdaConstructor(scopeSyntaxOpt, Me)
             End If
 
             ' static lambdas technically have the class scope so the scope syntax is Nothing 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.m_singletonCache = New SynthesizedFieldSymbol(Me, Me, Me, cacheVariableName, Accessibility.Public, isReadOnly:=True, isShared:=True)
                 m_scopeSyntaxOpt = Nothing
             Else
-                m_scopeSyntaxOpt = scopeSyntax
+                m_scopeSyntaxOpt = scopeSyntaxOpt
             End If
 
             AssertIsLambdaScopeSyntax(m_scopeSyntaxOpt)
@@ -73,22 +73,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function MakeName(slotAllocatorOpt As VariableSlotAllocator,
-                                         compilationState As TypeCompilationState,
-                                         methodOrdinal As Integer,
-                                         scopeOrdinal As Integer,
+                                         scopeSyntaxOpt As SyntaxNode,
+                                         methodId As MethodDebugId,
+                                         closureOrdinal As Integer,
                                          isStatic As Boolean,
                                          isDelegateRelaxation As Boolean) As String
 
-            ' Note: module builder is not available only when testing emit diagnostics
-            Dim generation = If(compilationState.ModuleBuilderOpt?.CurrentGenerationOrdinal, 0)
-
             If isStatic Then
-                Debug.Assert(methodOrdinal >= -1)
-                Return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal, generation)
+                ' Display class is shared among static non-generic lambdas across generations, method ordinal is -1 in that case.
+                ' A new display class of a static generic lambda is created for each method and each generation.
+                Return GeneratedNames.MakeStaticLambdaDisplayClassName(methodId.Ordinal, methodId.Generation)
             End If
 
-            Debug.Assert(methodOrdinal >= 0)
-            Return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, generation, scopeOrdinal, isDelegateRelaxation)
+            Dim previousClosureOrdinal As Integer
+            If slotAllocatorOpt IsNot Nothing AndAlso slotAllocatorOpt.TryGetPreviousClosure(scopeSyntaxOpt, previousClosureOrdinal) Then
+                methodId = slotAllocatorOpt.PreviousMethodId
+                closureOrdinal = previousClosureOrdinal
+            End If
+
+            ' If we haven't found existing closure in the previous generation, use the current generation method ordinal.
+            ' That is, don't try to reuse previous generation method ordinal as that might create name conflict.
+            ' E.g.
+            '     Gen0                    Gen1
+            '                             F() { new closure } // ordinal 0
+            '     G() { } // ordinal 0    G() { new closure } // ordinal 1
+            '
+            ' In the example above G is updated and F is added. 
+            ' G's ordinal in Gen0 is 0. If we used that ordinal for updated G's new closure it would conflict with F's ordinal.
+            Debug.Assert(methodId.Ordinal >= 0)
+            Return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureOrdinal, isDelegateRelaxation)
         End Function
 
         <Conditional("DEBUG")>

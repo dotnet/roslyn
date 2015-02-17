@@ -205,8 +205,8 @@ Module Module1
 End Module"
 
             Assert.Equal(
-                "Module1.<closure>.<lambda0-1>()",
-                GetName(source, "Module1._Closure$__._Lambda$__0-1", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types))
+                "Module1.<closure>.<lambda0-0>()",
+                GetName(source, "Module1._Closure$__._Lambda$__0-0", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types))
         End Sub
 
         <Fact>
@@ -220,8 +220,8 @@ Class Class1(Of T)
 End Class"
 
             Assert.Equal(
-                "Class1(Of System.Exception).<closure>.<lambda1-1>(System.ArgumentException u2)",
-                GetName(source, "Class1._Closure$__1._Lambda$__1-1", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types, typeArguments:={GetType(Exception), GetType(ArgumentException)}))
+                "Class1(Of System.Exception).<closure>.<lambda1-0>(System.ArgumentException u2)",
+                GetName(source, "Class1._Closure$__1._Lambda$__1-0", DkmVariableInfoFlags.Names Or DkmVariableInfoFlags.Types, typeArguments:={GetType(Exception), GetType(ArgumentException)}))
         End Sub
 
         <Fact>

@@ -558,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            Throw ExceptionUtilities.Unreachable
+            Return localPosition
         End Function
     End Class
 End Namespace
