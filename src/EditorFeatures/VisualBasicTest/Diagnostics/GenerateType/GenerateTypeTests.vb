@@ -461,7 +461,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{"Generate class for 'Foo' in 'Global Namespace' (in new file)", "Generate class for 'Foo' in 'Program'", "Generate new type..."})
+{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -480,7 +480,7 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{"Generate class for 'Foo' in 'Global Namespace' (in new file)", "Generate class for 'Foo' in 'Global Namespace'", "Generate class for 'Foo' in 'Program'", "Generate new type..."})
+{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
