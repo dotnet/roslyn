@@ -191,6 +191,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
     </Compile>
+    <Content Include="BindingPath.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="CSharpPackageRegistration.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
