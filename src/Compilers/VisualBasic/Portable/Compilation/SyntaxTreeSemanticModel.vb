@@ -8,6 +8,7 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Instrumentation
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -340,6 +341,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If model IsNot Nothing Then
                 Return model.GetExpressionConstantValue(node, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+
+            If model IsNot Nothing Then
+                Return model.GetOperationWorker(node, options, cancellationToken)
             Else
                 Return Nothing
             End If
