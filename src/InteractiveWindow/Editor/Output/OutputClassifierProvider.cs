@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             return new Classifier(
                 textBuffer,
-                classificationRegistry.GetClassificationType(FormatDefinitions.Output.Name),
                 classificationRegistry.GetClassificationType(FormatDefinitions.ErrorOutput.Name));
         }
 
@@ -49,12 +48,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private sealed class Classifier : IClassifier
         {
             private readonly ITextBuffer buffer;
-            private readonly IClassificationType outputType;
             private readonly IClassificationType errorOutputType;
 
-            public Classifier(ITextBuffer buffer, IClassificationType outputType, IClassificationType errorOutputType)
+            public Classifier(ITextBuffer buffer, IClassificationType errorOutputType)
             {
-                this.outputType = outputType;
                 this.errorOutputType = errorOutputType;
                 this.buffer = buffer;
             }
@@ -68,14 +65,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 List<ClassificationSpan> classifications = new List<ClassificationSpan>();
-                classifications.Add(new ClassificationSpan(span, outputType));
 
                 foreach (var overlap in errorSpans.GetOverlap(span.Span))
                 {
                     classifications.Add(new ClassificationSpan(new SnapshotSpan(span.Snapshot, overlap), errorOutputType));
                 }
 
-                return classifications ?? (IList<ClassificationSpan>)SpecializedCollections.EmptyList<ClassificationSpan>();
+                return classifications;
             }
 
             public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged
@@ -92,29 +88,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             [Name(Name)]
             [DisplayName(Name)]
             [UserVisible(true)]
-            internal sealed class Output : ClassificationFormatDefinition
-            {
-                public const string Name = "Roslyn - Interactive Window Output";
-
-                [Export]
-                [Name(Name)]
-                [BaseDefinition(PredefinedClassificationTypeNames.NaturalLanguage)]
-                internal static readonly ClassificationTypeDefinition Definition = null;
-
-                public Output()
-                {
-                    this.ForegroundColor = Color.FromRgb(0, 0, 0);
-                }
-            }
-
-            [Export(typeof(EditorFormatDefinition))]
-            [ClassificationType(ClassificationTypeNames = Name)]
-            [Name(Name)]
-            [DisplayName(Name)]
-            [UserVisible(true)]
             internal sealed class ErrorOutput : ClassificationFormatDefinition
             {
-                public const string Name = "Roslyn - Interactive Window Error Output";
+                public const string Name = "Interactive Window Error Output";
 
                 [Export]
                 [Name(Name)]
