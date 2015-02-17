@@ -334,7 +334,8 @@ namespace Microsoft.CodeAnalysis
             AnalyzerDriver analyzerDriver = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
-                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, out compilation, cancellationToken);
+                var analyzerManager = new AnalyzerManager();
+                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
             }
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.

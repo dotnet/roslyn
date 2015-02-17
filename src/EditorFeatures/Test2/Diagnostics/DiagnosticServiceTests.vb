@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                                                         CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.Equal(AnalyzerDriverHelper.DiagnosticId, diagnostic.Id)
+                Assert.True(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(diagnostic.Id, diagnostic.CustomTags))
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
             End Using
         End Sub

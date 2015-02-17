@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// this should be alway thread-safe.
     /// </summary>
-    internal sealed class AnalyzerManager
+    internal sealed class WorkspaceAnalyzerManager
     {
         /// <summary>
         /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
@@ -39,13 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _hostDiagnosticAnalyzersPerLanguageMap;
 
         /// <summary>
-        /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
-        /// a property rather than metadata. We expect it to be cheap and immutable, but We can't force them to be so, we cache them
-        /// and ask only once.
-        /// </summary>
-        private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache;
-
-        /// <summary>
         /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
         /// 
         /// Value is set of <see cref="DiagnosticAnalyzer"/> that belong to the <see cref="AnalyzerReference"/>.
@@ -54,18 +48,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
 
-        public AnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
+        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
             this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies))
         {
         }
 
-        public AnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
+        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
         {
             _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<string, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
-
-            _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
-            _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
-
+            _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);            
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
@@ -84,21 +75,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            var descriptors = _descriptorCache.GetValue(analyzer, key =>
-            {
-                try
-                {
-                    return analyzer.SupportedDiagnostics;
-                }
-                catch when (!AnalyzerHelper.IsBuiltInAnalyzer(analyzer))
-                {
-                    // TODO: here, we should report the issue to host update service
-                    // If the SupportedDiagnostics throws an exception, then we don't want to run the analyzer.
-                    return ImmutableArray<DiagnosticDescriptor>.Empty;
-                }
-            });
+            // TODO: report diagnostics from exceptions thrown in DiagnosticAnalyzer.SupportedDiagnostics
+            Action<Diagnostic> dummyAddDiagnostic = _ => { };
 
-            return (ImmutableArray<DiagnosticDescriptor>)descriptors;
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => !AnalyzerHelper.IsBuiltInAnalyzer(analyzer);
+            return AnalyzerManager.Default.GetSupportedDiagnosticDescriptors(analyzer, dummyAddDiagnostic, continueOnAnalyzerException, CancellationToken.None);
         }
 
         /// <summary>

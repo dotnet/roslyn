@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, out _compilation, _cancellationToken);
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Default, out _compilation, _cancellationToken);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Action<Diagnostic> dummy = _ => { };
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, dummy, continueOnAnalyzerException, CancellationToken.None);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, AnalyzerManager.Default, options, dummy, continueOnAnalyzerException, CancellationToken.None);
         }
     }
 }

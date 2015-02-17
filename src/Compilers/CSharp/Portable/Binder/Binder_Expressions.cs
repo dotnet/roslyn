@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustBeInvocableIfMember;
             }
 
-            if (!IsInMethodBody)
+            if (!IsInMethodBody && this.EnclosingNameofArgument == null)
             {
                 Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
