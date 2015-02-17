@@ -894,50 +894,6 @@ namespace Microsoft.CodeAnalysis.Text
             return null;
         }
 
-        [ThreadStatic]
-        private static byte[] t_bomBytes;
-
-        /// <summary>
-        /// Detect an encoding by looking for byte order marks at the beginning of the stream.
-        /// </summary>
-        /// <param name="data">The stream containing encoded text.</param>
-        /// <returns>The detected encoding or null if no recognized byte order mark was present.</returns>
-        /// <remarks>
-        /// On exit, the stream's position is set to the first position after any decoded byte order
-        /// mark or rewound to the start if no byte order mark was detected.
-        /// </remarks>
-        internal static Encoding TryReadByteOrderMark(Stream data)
-        {
-            Debug.Assert(data != null);
-            data.Seek(0, SeekOrigin.Begin);
-
-            if (data.Length < 2)
-            {
-                // Not long enough for any valid BOM prefix
-                return null;
-            }
-
-            // PERF: Avoid repeated calls to Stream.ReadByte since that method allocates a 1-byte array on each call.
-            // Instead, using a thread local byte array.
-            if (t_bomBytes == null)
-            {
-                t_bomBytes = new byte[3];
-            }
-
-            int validLength = Math.Min((int)data.Length, t_bomBytes.Length);
-            data.Read(t_bomBytes, 0, validLength);
-
-            int preambleLength;
-            Encoding detectedEncoding = SourceText.TryReadByteOrderMark(t_bomBytes, validLength, out preambleLength);
-
-            if (preambleLength != validLength)
-            {
-                data.Seek(preambleLength, SeekOrigin.Begin);
-            }
-
-            return detectedEncoding;
-        }
-
         private class StaticContainer : SourceTextContainer
         {
             private readonly SourceText _text;

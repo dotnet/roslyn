@@ -125,20 +125,41 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Throws<InvalidDataException>(() => SourceText.From(stream, throwIfBinaryDetected: true));
         }
 
+        private static void TestTryReadByteOrderMark(Encoding expectedEncoding, int expectedPreambleLength, byte[] data)
+        {
+            TestTryReadByteOrderMark(expectedEncoding, expectedPreambleLength, data, data == null ? 0 : data.Length);
+        }
+
+        private static void TestTryReadByteOrderMark(Encoding expectedEncoding, int expectedPreambleLength, byte[] data, int validLength)
+        {
+            int actualPreambleLength;
+            Encoding actualEncoding = SourceText.TryReadByteOrderMark(data, validLength, out actualPreambleLength);
+            if (expectedEncoding == null)
+            {
+                Assert.Null(actualEncoding);
+            }
+            else
+            {
+                Assert.Equal(expectedEncoding, actualEncoding);
+            }
+
+            Assert.Equal(expectedPreambleLength, actualPreambleLength);
+        }
+
         [Fact]
         public void TryReadByteOrderMark()
         {
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[0])));
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[0]);
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xef });
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xef, 0xbb });
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xef, 0xBB, 0xBF }, validLength: 2);
+            TestTryReadByteOrderMark(expectedEncoding: Encoding.UTF8, expectedPreambleLength: 3, data: new byte[] { 0xef, 0xBB, 0xBF });
 
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef })));
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xbb })));
-            Assert.Equal(Encoding.UTF8, SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xBB, 0xBF })));
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xff });
+            TestTryReadByteOrderMark(expectedEncoding: Encoding.Unicode, expectedPreambleLength: 2, data: new byte[] { 0xff, 0xfe });
 
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff })));
-            Assert.Equal(Encoding.Unicode, SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff, 0xfe })));
-
-            Assert.Null(SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe })));
-            Assert.Equal(Encoding.BigEndianUnicode, SourceText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe, 0xff })));
+            TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xfe });
+            TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: new byte[] { 0xfe, 0xff });
         }
     }
 }
