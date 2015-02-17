@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("struct", changes[0].NewText);
         }
 
-        [Fact] //(Skip = "https://github.com/dotnet/roslyn/issues/320")]
+        [Fact]
         public void TestQualifyWithThis()
         {
             var original =  @"
@@ -283,14 +283,14 @@ class C
             // should return a single text change with 'this.' as added text.
 
             // Works as expected for last index
-            // var index = original.LastIndexOf(indexText);
-            // TestQualifyWithThisCore(root, index);
+            var index = original.LastIndexOf(indexText);
+            TestQualifyWithThisCore(root, index);
 
             // Doesn't work as expected for first index.
             // It returns 2 changes with add followed by delete, 
             // causing the 2 isolated edits of adding "this." to seem conflicting edits, even though they are not.
             // See https://github.com/dotnet/roslyn/issues/320 for details.
-            var index = original.IndexOf(indexText);
+            index = original.IndexOf(indexText);
             TestQualifyWithThisCore(root, index);
         }
 
