@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
         internal virtual IReadOnlyList<string> CustomTags { get { return (IReadOnlyList<string>)this.Descriptor.CustomTags; } }
 
         /// <summary>
-        /// Gets property bag for the diagnostic.
+        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> if there is no entry.
         /// </summary>
         public virtual ImmutableDictionary<string, string> Properties { get { return ImmutableDictionary<string, string>.Empty; } }
 
