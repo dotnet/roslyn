@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Instrumentation;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -463,6 +464,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion Helpers for speculative binding
+
+        protected override IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var csnode = (CSharpSyntaxNode)node;
+            CheckSyntaxNode(csnode);
+            return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
+        }
+
+        internal enum GetOperationOptions
+        {
+            Highest,
+            Lowest,
+            Parent
+        }
+
+        internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            return null;
+        }
 
         #region GetSymbolInfo
 

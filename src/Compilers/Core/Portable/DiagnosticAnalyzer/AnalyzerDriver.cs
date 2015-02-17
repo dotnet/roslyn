@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -790,7 +791,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private Func<SyntaxNode, TLanguageKindEnum> _getKind;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> _lazyNodeActionsByKind = null;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> _lazyCodeBlockStartActionsByAnalyzer = null;
+		private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>> _lazyOperationActionsByKind = null;
+		private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> _lazyCodeBlockStartActionsByAnalyzer = null;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer = null;
 
         /// <summary>
@@ -853,7 +855,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> CodeBlockStartActionsByAnalyer
+		private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>> OperationActionsByKind
+		{
+			get
+			{
+				if (_lazyOperationActionsByKind == null)
+				{
+					var operationActions = this.analyzerActions.OperationActions;
+					ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>> analyzerActionsByKind;
+					if (operationActions.Any())
+					{
+						var addDiagnostic = GetDiagnosticSinkWithSuppression();
+						var operationActionsByAnalyzers = operationActions.GroupBy(a => a.Analyzer);
+						var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>>();
+						foreach (var analzerAndActions in operationActionsByAnalyzers)
+						{
+							ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> actionsByKind;
+							if (analzerAndActions.Any())
+							{
+								actionsByKind = AnalyzerDriverHelper.GetOperationActionsByKind(analzerAndActions, addDiagnostic);
+							}
+							else
+							{
+								actionsByKind = ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
+							}
+
+							builder.Add(analzerAndActions.Key, actionsByKind);
+						}
+
+						analyzerActionsByKind = builder.ToImmutable();
+					}
+					else
+					{
+						analyzerActionsByKind = ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>>.Empty;
+					}
+
+					Interlocked.CompareExchange(ref _lazyOperationActionsByKind, analyzerActionsByKind, null);
+				}
+
+				return _lazyOperationActionsByKind;
+			}
+		}
+
+		private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> CodeBlockStartActionsByAnalyer
         {
             get
             {
@@ -923,14 +967,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var symbol = symbolEvent.Symbol;
             var executeSyntaxNodeActions = this.NodeActionsByKind.Any();
+			var executeOperationActions = this.OperationActionsByKind.Any();
             var executeCodeBlockActions = AnalyzerDriverHelper.CanHaveExecutableCodeBlock(symbol) && (this.CodeBlockStartActionsByAnalyer.Any() || this.CodeBlockEndActionsByAnalyer.Any());
 
-            if (executeSyntaxNodeActions || executeCodeBlockActions)
+            if (executeSyntaxNodeActions || executeOperationActions || executeCodeBlockActions)
             {
                 foreach (var decl in symbol.DeclaringSyntaxReferences)
                 {
                     AddTasksForExecutingDeclaringReferenceActions(decl, symbolEvent, taskMap, reportDiagnostic,
-                        executeSyntaxNodeActions, executeCodeBlockActions, cancellationToken);
+                        executeSyntaxNodeActions, executeOperationActions, executeCodeBlockActions, cancellationToken);
                 }
             }
         }
@@ -941,10 +986,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IDictionary<DiagnosticAnalyzer, Task> taskMap,
             Action<Diagnostic> reportDiagnostic,
             bool shouldExecuteSyntaxNodeActions,
+			bool shouldExecuteOperationActions,
             bool shouldExecuteCodeBlockActions,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteCodeBlockActions);
+            Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteOperationActions || shouldExecuteCodeBlockActions);
 
             var symbol = symbolEvent.Symbol;
             SemanticModel semanticModel = symbolEvent.SemanticModel(decl);
@@ -969,60 +1015,76 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            // Execute code block actions.
-            if (shouldExecuteCodeBlockActions)
-            {
-                // Compute the executable code blocks of interest.
-                var executableCodeBlocks = ImmutableArray<SyntaxNode>.Empty;
-                foreach (var declInNode in declarationsInNode)
-                {
-                    if (declInNode.DeclaredNode == syntax || declInNode.DeclaredNode == declaringReferenceSyntax)
-                    {
-                        executableCodeBlocks = declInNode.ExecutableCodeBlocks;
-                        break;
-                    }
-                }
+			// Execute code block actions.
+			if (shouldExecuteCodeBlockActions || shouldExecuteOperationActions)
+			{
+				// Compute the executable code blocks of interest.
+				var executableCodeBlocks = ImmutableArray<SyntaxNode>.Empty;
+				foreach (var declInNode in declarationsInNode)
+				{
+					if (declInNode.DeclaredNode == syntax || declInNode.DeclaredNode == declaringReferenceSyntax)
+					{
+						executableCodeBlocks = declInNode.ExecutableCodeBlocks;
+						break;
+					}
+				}
 
-                if (executableCodeBlocks.Any())
-                {
-                    foreach (var analyzerAndActions in this.CodeBlockStartActionsByAnalyer)
-                    {
-                        Action executeCodeBlockActions = () =>
-                        {
-                            var codeBlockStartActions = analyzerAndActions.Value;
-                            var codeBlockEndActions = this.CodeBlockEndActionsByAnalyer.ContainsKey(analyzerAndActions.Key) ?
-                                this.CodeBlockEndActionsByAnalyer[analyzerAndActions.Key] :
-                                ImmutableArray<CodeBlockEndAnalyzerAction>.Empty;
+				if (executableCodeBlocks.Any())
+				{
+					// Execute stateless operation actions.
+					if (shouldExecuteOperationActions)
+					{
+						foreach (var analyzerAndActions in this.OperationActionsByKind)
+						{
+							Action executeStatelessOperationActions = () =>
+								ExecuteStatelessOperationActions(analyzerAndActions.Value, syntax, executableCodeBlocks, symbol, declarationsInNode, semanticModel,
+								reportDiagnostic, this.continueOnAnalyzerException, this.analyzerOptions, _getKind, cancellationToken);
 
-                            AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
-                                syntax, symbol, executableCodeBlocks, analyzerOptions,
-                                semanticModel, reportDiagnostic, this.continueOnAnalyzerException, _getKind, cancellationToken);
-                        };
+							AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeStatelessOperationActions, cancellationToken);
+						}
+					}
+					
+					if (shouldExecuteCodeBlockActions)
+					{
+						foreach (var analyzerAndActions in this.CodeBlockStartActionsByAnalyer)
+						{
+							Action executeCodeBlockActions = () =>
+							{
+								var codeBlockStartActions = analyzerAndActions.Value;
+								var codeBlockEndActions = this.CodeBlockEndActionsByAnalyer.ContainsKey(analyzerAndActions.Key) ?
+									this.CodeBlockEndActionsByAnalyer[analyzerAndActions.Key] :
+									ImmutableArray<CodeBlockEndAnalyzerAction>.Empty;
 
-                        AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeCodeBlockActions, cancellationToken);
-                    }
+								AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+									syntax, symbol, executableCodeBlocks, analyzerOptions,
+									semanticModel, reportDiagnostic, this.continueOnAnalyzerException, _getKind, cancellationToken);
+							};
 
-                    // Execute code block end actions for analyzers which don't have corresponding code block start actions.
-                    foreach (var analyzerAndActions in this.CodeBlockEndActionsByAnalyer)
-                    {
-                        // skip analyzers executed above.
-                        if (!CodeBlockStartActionsByAnalyer.ContainsKey(analyzerAndActions.Key))
-                        {
-                            Action executeCodeBlockActions = () =>
-                            {
-                                var codeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty;
-                                var codeBlockEndActions = analyzerAndActions.Value;
+							AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeCodeBlockActions, cancellationToken);
+						}
 
-                                AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
-                                    syntax, symbol, executableCodeBlocks, analyzerOptions,
-                            semanticModel, reportDiagnostic, this.continueOnAnalyzerException, _getKind, cancellationToken);
-                            };
+						// Execute code block end actions for analyzers which don't have corresponding code block start actions.
+						foreach (var analyzerAndActions in this.CodeBlockEndActionsByAnalyer)
+						{
+							// skip analyzers executed above.
+							if (!CodeBlockStartActionsByAnalyer.ContainsKey(analyzerAndActions.Key))
+							{
+								Action executeCodeBlockActions = () =>
+								{
+									var codeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty;
+									var codeBlockEndActions = analyzerAndActions.Value;
 
-                            AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeCodeBlockActions, cancellationToken);
-                        }
-                    }
-                }
-            }
+									AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+										syntax, symbol, executableCodeBlocks, analyzerOptions,
+								semanticModel, reportDiagnostic, this.continueOnAnalyzerException, _getKind, cancellationToken);
+								};
+
+								AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeCodeBlockActions, cancellationToken);
+							}
+						}
+					}
+				}
+			}
         }
 
         private static void ExecuteStatelessNodeActions(
@@ -1036,6 +1098,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions analyzerOptions,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             CancellationToken cancellationToken)
+        {
+            // Eliminate syntax nodes for descendant member declarations within declarations.
+            // There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
+            HashSet<SyntaxNode> descendantDeclsToSkip = GetDescendentDeclsToSkip(declaredNode, declaredSymbol, declarationsInNode, semanticModel, cancellationToken);
+
+            var nodesToAnalyze = descendantDeclsToSkip == null ?
+                declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
+                declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true).Except(descendantDeclsToSkip);
+
+            AnalyzerDriverHelper.ExecuteSyntaxNodeActions(nodesToAnalyze, actionsByKind, semanticModel,
+                analyzerOptions, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken);
+        }
+
+        private static HashSet<SyntaxNode> GetDescendentDeclsToSkip(SyntaxNode declaredNode, ISymbol declaredSymbol, IEnumerable<DeclarationInfo> declarationsInNode, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // Eliminate syntax nodes for descendant member declarations within declarations.
             // There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
@@ -1072,12 +1148,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 first = false;
             }
 
-            var nodesToAnalyze = descendantDeclsToSkip == null ?
-                declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
-                declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true).Except(descendantDeclsToSkip);
+            return descendantDeclsToSkip;
+        }
 
-            AnalyzerDriverHelper.ExecuteSyntaxNodeActions(nodesToAnalyze, actionsByKind, semanticModel,
-                analyzerOptions, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken);
+        private static void ExecuteStatelessOperationActions(
+            ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> actionsByKind,
+            SyntaxNode declaredNode,
+            ImmutableArray<SyntaxNode> executableBlocks,
+            ISymbol declaredSymbol,
+            IEnumerable<DeclarationInfo> declarationsInNode,
+            SemanticModel semanticModel,
+            Action<Diagnostic> addDiagnostic,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            AnalyzerOptions analyzerOptions,
+            Func<SyntaxNode, TLanguageKindEnum> getKind,
+            CancellationToken cancellationToken)
+        {
+			// Eliminate syntax nodes for descendant member declarations within declarations.
+			// There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
+			HashSet<SyntaxNode> descendantDeclsToSkip = GetDescendentDeclsToSkip(declaredNode, declaredSymbol, declarationsInNode, semanticModel, cancellationToken);
+
+            if (descendantDeclsToSkip != null && descendantDeclsToSkip.Contains(declaredNode))
+            {
+                return;
+            }
+
+            foreach (SyntaxNode executableBlock in executableBlocks)
+            {
+                IOperation operation = semanticModel.GetOperation(executableBlock, cancellationToken);
+                if (operation != null)
+                {
+                    IEnumerable<IOperation> operations = operation.DescendantsAndSelf();
+
+                    AnalyzerDriverHelper.ExecuteOperationActions(operations, actionsByKind,
+                        analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                }
+            }
         }
 
         private static void VerifyArguments(

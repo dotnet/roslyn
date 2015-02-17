@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -761,6 +762,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _root.SyntaxTree;
+            }
+        }
+
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            CSharpSyntaxNode bindableNode;
+
+            BoundNode lowestBoundNode;
+            BoundNode highestBoundNode;
+            BoundNode boundParent;
+
+            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+
+            switch (options)
+            {
+                case GetOperationOptions.Parent:
+                    return boundParent as IOperation;
+                case GetOperationOptions.Highest:
+                    return highestBoundNode as IOperation;
+                case GetOperationOptions.Lowest:
+                default:
+                    return lowestBoundNode as IOperation;
             }
         }
 
