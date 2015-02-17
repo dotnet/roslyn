@@ -7,6 +7,8 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Instrumentation
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -345,6 +347,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If model IsNot Nothing Then
                 Return model.GetExpressionConstantValue(node, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+
+            If model IsNot Nothing Then
+                Return model.GetOperationWorker(node, options, cancellationToken)
             Else
                 Return Nothing
             End If
@@ -758,12 +770,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim diagbag = DiagnosticBag.GetInstance()
                     methodSym.BindSingleHandlesClause(handlesClause,
-                                                      binder,
-                                                      diagbag,
-                                                      eventSymbolBuilder,
-                                                      containerSymbolBuilder,
-                                                      propertySymbolBuilder,
-                                                      resultKind)
+                                                                        binder,
+                                                                        diagbag,
+                                                                        eventSymbolBuilder,
+                                                                        containerSymbolBuilder,
+                                                                        propertySymbolBuilder,
+                                                                        resultKind)
 
                     diagbag.Free()
                 End If
@@ -955,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Delegate declarations are a subclass of MethodBaseSyntax syntax-wise, but they are
             ' more like a type declaration, so we need to special case here.
             If declarationSyntax.Kind = SyntaxKind.DelegateFunctionStatement OrElse
-                    declarationSyntax.Kind = SyntaxKind.DelegateSubStatement Then
+                declarationSyntax.Kind = SyntaxKind.DelegateSubStatement Then
                 Return GetDeclaredSymbol(DirectCast(declarationSyntax, DelegateStatementSyntax), cancellationToken)
             End If
 
@@ -1014,10 +1026,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' We are asserting what we know so far. If this assert fails, this is not a bug, we either need to remove this assert or relax the assert. 
                         Debug.Assert(statementSyntax.Kind = SyntaxKind.NamespaceBlock AndAlso
-                                         (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is PropertyStatementSyntax))
+                                     (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is PropertyStatementSyntax))
 
                         Return Nothing
                 End Select
@@ -1059,7 +1071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.NamedType
                                 '  check for being delegate 
                                 Dim typeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                                Debug.Assert(typeSymbol.TypeKind = TypeKind.Delegate)
+                                Debug.Assert(typeSymbol.TypeKind = TYPEKIND.Delegate)
                                 If typeSymbol.DelegateInvokeMethod IsNot Nothing Then
                                     Return GetParameterSymbol(typeSymbol.DelegateInvokeMethod.Parameters, parameter)
                                 End If
