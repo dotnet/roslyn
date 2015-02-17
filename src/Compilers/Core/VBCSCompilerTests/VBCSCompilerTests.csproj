@@ -18,9 +18,9 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\CSharp\csc2\csc2.vcxproj">
+    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.vcxproj">
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
-      <Name>csc2</Name>
+      <Name>vbc2</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
