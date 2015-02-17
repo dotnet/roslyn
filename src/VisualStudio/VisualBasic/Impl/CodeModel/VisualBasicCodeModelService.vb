@@ -3715,6 +3715,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim propertyBlock = DirectCast(container, PropertyBlockSyntax)
                 Dim attributeLists = propertyBlock.PropertyStatement.AttributeLists.Insert(index, attributeList)
                 Return propertyBlock.WithPropertyStatement(propertyBlock.PropertyStatement.WithAttributeLists(attributeLists))
+            ElseIf TypeOf container Is EventStatementSyntax Then
+                Dim eventStatement = DirectCast(container, EventStatementSyntax)
+                Dim attributeLists = eventStatement.AttributeLists.Insert(index, attributeList)
+                Return eventStatement.WithAttributeLists(attributeLists)
             ElseIf TypeOf container Is EventBlockSyntax
                 Dim eventBlock = DirectCast(container, EventBlockSyntax)
                 Dim attributeLists = eventBlock.EventStatement.AttributeLists.Insert(index, attributeList)

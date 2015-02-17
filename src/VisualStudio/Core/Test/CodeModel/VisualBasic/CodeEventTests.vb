@@ -648,7 +648,7 @@ End Class
 #Region "AddAttribute tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribut_SimpleEvent()
+        Public Sub AddAttribute_SimpleEvent()
             Dim code =
 <Code>
 Imports System
