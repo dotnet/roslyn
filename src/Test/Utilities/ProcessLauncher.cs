@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (fileName == null) throw new ArgumentNullException("fileName");
 
             var startInfo = new ProcessStartInfo
-                                       {
-                                           FileName = fileName,
-                                           Arguments = arguments,
-                                           UseShellExecute = false,
-                                           CreateNoWindow = true,
-                                           RedirectStandardOutput = true,
-                                           RedirectStandardError = true,
-                                           WorkingDirectory = workingDirectory
-                                       };
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = workingDirectory
+            };
 
             if (additionalEnvironmentVars != null)
             {
@@ -39,15 +39,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 StringBuilder outputBuilder = new StringBuilder();
                 StringBuilder errorBuilder = new StringBuilder();
-                process.OutputDataReceived += (sender, args) => 
-                { 
+                process.OutputDataReceived += (sender, args) =>
+                {
                     if (args.Data != null)
-                        outputBuilder.AppendLine(args.Data); 
+                        outputBuilder.AppendLine(args.Data);
                 };
-                process.ErrorDataReceived += (sender, args) => 
-                { 
+                process.ErrorDataReceived += (sender, args) =>
+                {
                     if (args.Data != null)
-                        errorBuilder.AppendLine(args.Data); 
+                        errorBuilder.AppendLine(args.Data);
                 };
 
                 process.Start();

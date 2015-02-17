@@ -67,24 +67,18 @@ namespace Roslyn.Test.Utilities
             return returnList.Select(s => s.Replace("{UP}", "{ESC}{UP}").Replace("{DOWN}", "{ESC}{DOWN}")).ToList();
         }
 
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore")]
         private const int WM_USER = 0x400;
 
         // The following constants and functions wait for VS to signal that input processing is complete.
         // See src\env\msenv\core\propbar.cpp FnwpPropBar(): Case WM_TIMER on how this works.
         // These turn __SendKeys into a blocking call.
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore")]
         private const string INPUT_PROCESSED_EVENT = "VSInputProcessed";
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:FieldNamesMustNotContainUnderscore")]
         private const int INPUT_PROCESSED_MSG = WM_USER + 0xC92;
 
         [DllImport("user32", CharSet = CharSet.Unicode)]
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1305:FieldNamesMustNotUseHungarianNotation")]
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1306:FieldNamesMustBeginWithLowerCaseLetter")]
         private static extern int SendNotifyMessageW(IntPtr HWnd, int msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32")]
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1305:FieldNamesMustNotUseHungarianNotation")]
         public static extern int SetForegroundWindow(IntPtr hWnd);
 
         private static WaitHandle s_inputProcessedEvent;

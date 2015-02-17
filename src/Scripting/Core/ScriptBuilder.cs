@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         /// <summary>
         /// Lockable object only instance is knowledgeable about.
-        /// <summary>
+        /// </summary>
         private readonly object _gate = new object();
 
         #region Testing and Debugging
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 assemblyLoader = new InteractiveAssemblyLoader();
             }
 
-            _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser);
+            _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
             _collectibleCodeManager = new CollectibleCodeManager(assemblyLoader, _assemblyNamePrefix);
             _uncollectibleCodeManager = new UncollectibleCodeManager(assemblyLoader, _assemblyNamePrefix);
         }
@@ -111,8 +111,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
         {
             int id = Interlocked.Increment(ref _submissionIdDispenser);
-            assemblyName = _assemblyNamePrefix + id;
-            typeName = "Submission#" + id;
+            string idAsString = id.ToString();
+            assemblyName = _assemblyNamePrefix + idAsString;
+            typeName = "Submission#" + idAsString;
             return id;
         }
 
@@ -250,12 +251,12 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             /// <summary>
             /// lock(_gate) on access.
-            /// <summary>
+            /// </summary>
             private readonly object _gate = new object();
 
             /// <summary>
-            // lock(_gate) on access.
-            /// <summary>
+            /// lock(_gate) on access.
+            /// </summary>
             internal ModuleBuilder dynamicModule;
 
             public CollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             /// <summary>
             /// Lockable object only instance is knowledgeable about.
-            /// <summary>
+            /// </summary>
             private readonly object _gate = new object();
 
             internal UncollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)

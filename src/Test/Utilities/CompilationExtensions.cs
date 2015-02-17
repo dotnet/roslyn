@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class CompilationExtensions
     {
         internal static ImmutableArray<byte> EmitToArray(
-            this Compilation compilation, 
+            this Compilation compilation,
             EmitOptions options = null,
-            CompilationTestData testData = null, 
+            CompilationTestData testData = null,
             DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static MetadataReference EmitToImageReference(
-            this Compilation comp, 
+            this Compilation comp,
             EmitOptions options = null,
             bool embedInteropTypes = false,
-            ImmutableArray<string> aliases = default(ImmutableArray<string>), 
+            ImmutableArray<string> aliases = default(ImmutableArray<string>),
             DiagnosticDescription[] expectedWarnings = null)
         {
             var image = comp.EmitToArray(options, expectedWarnings: expectedWarnings);

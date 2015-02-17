@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     False,
-                    symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                    symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position), GetSeparatorParts(), GetPostambleParts(namedType), namedType.TypeParameters.[Select](Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
             Else
                 Dim method = DirectCast(symbol, IMethodSymbol)
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     False,
-                    symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                    symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(method, semanticModel, position), GetSeparatorParts(), GetPostambleParts(method, semanticModel, position), method.TypeParameters.[Select](Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
             End If
 
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Return New SignatureHelpParameter(
                 parameter.Name,
                 isOptional:=False,
-                documentation:=parameter.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 displayParts:=parts)
         End Function
 

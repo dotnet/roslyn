@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function CreateItems(count As Integer) As IList(Of SignatureHelpItem)
-            Return Enumerable.Range(0, count).Select(Function(i) New SignatureHelpItem(isVariadic:=False, documentation:={}, prefixParts:={}, separatorParts:={}, suffixParts:={}, parameters:={}, descriptionParts:={})).ToList()
+            Return Enumerable.Range(0, count).Select(Function(i) New SignatureHelpItem(isVariadic:=False, documentationFactory:=Nothing, prefixParts:={}, separatorParts:={}, suffixParts:={}, parameters:={}, descriptionParts:={})).ToList()
         End Function
 
         Friend Class MockSignatureHelpProvider

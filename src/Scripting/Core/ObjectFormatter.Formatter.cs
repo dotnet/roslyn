@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 public string GetDisplayName()
                 {
-                    return Name ?? "[" + Index + "]";
+                    return Name ?? "[" + Index.ToString() + "]";
                 }
 
                 public bool HasKeyName()

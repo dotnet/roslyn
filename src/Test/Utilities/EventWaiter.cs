@@ -14,8 +14,8 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public sealed class EventWaiter : IDisposable
     {
-        private ManualResetEvent eventSignal = new ManualResetEvent(false);
-        private Exception capturedException;
+        private ManualResetEvent _eventSignal = new ManualResetEvent(false);
+        private Exception _capturedException;
 
         /// <summary>
         /// Returns the lambda given with method calls to this class inserted of the form:
@@ -42,11 +42,11 @@ namespace Roslyn.Test.Utilities
                 }
                 catch (Exception ex)
                 {
-                    this.capturedException = ex;
+                    _capturedException = ex;
                 }
                 finally
                 {
-                    eventSignal.Set();
+                    _eventSignal.Set();
                 }
             };
         }
@@ -58,8 +58,8 @@ namespace Roslyn.Test.Utilities
         /// <returns></returns>
         public bool WaitForEventToFire(TimeSpan timeout)
         {
-            var result =  eventSignal.WaitOne(timeout);
-            eventSignal.Reset();
+            var result = _eventSignal.WaitOne(timeout);
+            _eventSignal.Reset();
             return result;
         }
 
@@ -70,8 +70,8 @@ namespace Roslyn.Test.Utilities
         /// <returns></returns>
         public void WaitForEventToFire()
         {
-            eventSignal.WaitOne();
-            eventSignal.Reset();
+            _eventSignal.WaitOne();
+            _eventSignal.Reset();
             return;
         }
 
@@ -80,10 +80,10 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         public void Dispose()
         {
-            eventSignal.Dispose();
-            if (this.capturedException != null)
+            _eventSignal.Dispose();
+            if (_capturedException != null)
             {
-                throw this.capturedException;
+                throw _capturedException;
             }
         }
     }

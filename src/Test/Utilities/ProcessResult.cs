@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ExitCode = exitCode;
             Output = output;
             Errors = errors;
-
-
         }
 
         public override string ToString()

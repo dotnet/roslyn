@@ -9,21 +9,21 @@ namespace Roslyn.Test.Utilities
 {
     public class TestMetadataReference : PortableExecutableReference
     {
-        private readonly Metadata metadata;
-        private readonly string display;
+        private readonly Metadata _metadata;
+        private readonly string _display;
 
         public TestMetadataReference(Metadata metadata = null, string fullPath = null, string display = null)
             : base(MetadataReferenceProperties.Assembly, fullPath)
         {
-            this.metadata = metadata;
-            this.display = display;
+            _metadata = metadata;
+            _display = display;
         }
 
         public override string Display
         {
             get
             {
-                return display;
+                return _display;
             }
         }
 
@@ -34,12 +34,12 @@ namespace Roslyn.Test.Utilities
 
         protected override Metadata GetMetadataImpl()
         {
-            if (metadata == null)
+            if (_metadata == null)
             {
                 throw new FileNotFoundException();
             }
 
-            return metadata;
+            return _metadata;
         }
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
@@ -50,8 +50,8 @@ namespace Roslyn.Test.Utilities
 
     public class TestImageReference : PortableExecutableReference
     {
-        private readonly ImmutableArray<byte> metadataBytes;
-        private readonly string display;
+        private readonly ImmutableArray<byte> _metadataBytes;
+        private readonly string _display;
 
         public TestImageReference(byte[] metadataBytes, string display)
             : this(ImmutableArray.Create(metadataBytes), display)
@@ -61,15 +61,15 @@ namespace Roslyn.Test.Utilities
         public TestImageReference(ImmutableArray<byte> metadataBytes, string display)
             : base(MetadataReferenceProperties.Assembly)
         {
-            this.metadataBytes = metadataBytes;
-            this.display = display;
+            _metadataBytes = metadataBytes;
+            _display = display;
         }
 
         public override string Display
         {
             get
             {
-                return display;
+                return _display;
             }
         }
 
@@ -80,7 +80,7 @@ namespace Roslyn.Test.Utilities
 
         protected override Metadata GetMetadataImpl()
         {
-            return AssemblyMetadata.CreateFromImage(metadataBytes);
+            return AssemblyMetadata.CreateFromImage(_metadataBytes);
         }
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
