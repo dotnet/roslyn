@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> if there is no entry.
+        /// This can be used to put diagnostic specific information you want to pass around. for example, to corresponding fixer.
         /// </summary>
         public virtual ImmutableDictionary<string, string> Properties { get { return ImmutableDictionary<string, string>.Empty; } }
 
