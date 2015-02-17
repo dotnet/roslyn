@@ -1841,7 +1841,8 @@ baddate:
 
         Friend Shared Function TryIdentifierAsContextualKeyword(id As IdentifierTokenSyntax, ByRef k As SyntaxKind) As Boolean
             Debug.Assert(id IsNot Nothing)
-            If id.PossibleKeywordKind = SyntaxKind.IdentifierToken Then Return True
+
+            If id.PossibleKeywordKind = SyntaxKind.IdentifierToken Then Return False
             k = id.PossibleKeywordKind
             Return True
         End Function
