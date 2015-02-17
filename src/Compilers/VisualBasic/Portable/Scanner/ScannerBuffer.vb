@@ -189,25 +189,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return TryPeek(at, c) AndAlso (c = isChar)
         End Function
 
-        'Private Function ArePeek(at As Integer, s As String) As Boolean
-        '    If Not CanGetCharAtOffset(at) Then Return False
-        '    If s Is Nothing Then Return False
-        '    For i = 1 To s.Length - 1
-        '        If Peek(i) <> s(i-1) Then Return False
-        '    Next
-        '    Return True
-        'End Function
-        'Private Function ArePeek(at    As Integer,
-        '                         size  As Integer,
-        '                         skip  As Integer,
-        '                         chars As String) As Boolean
-        '    If chars Is Nothing Then Return False
-        '    If Not CanGetCharAtOffset(at) Then Return False
-        '    For i = skip To chars.Length - 1
-        '        If Peek(at+i) <> chars(i-1) Then Return False
-        '    Next
-        '    Return True
-        'End Function
+        Private Function ArePeek(at As Integer,chars As String) As Boolean
+            Return ArePeek(_lineBufferOffset,chars.Length,1,chars)
+        End Function
+        Private Function ArePeek(at As Integer,
+                                 size As Integer,
+                                 skip As Integer,
+                                 chars As String) As Boolean
+            If chars Is Nothing Then Return False
+            If Not CanGetCharAtOffset(at+size) Then Return False
+            For i =skip To (size - 1)
+                If Peek(at + i) <> chars(i - skip) Then Return False
+            Next
+            Return True
+        End Function
 
         Friend Function GetChar() As String
             Return Intern(Peek())
