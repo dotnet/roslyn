@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
         }
 
+        protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
+        {
+            return expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>() != null;
+        }
+
         protected override bool IsInAttributeArgumentInitializer(ExpressionSyntax expression)
         {
             // Don't call the base here.  We want to let the user extract a constant if they've

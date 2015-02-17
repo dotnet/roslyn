@@ -1790,5 +1790,52 @@ class B
 
             Test(code, expected, index: 0, compareTokens: false);
         }
+
+        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestInExpressionBodiedMethodLikeMember()
+        {
+            var code =
+    @"using System;
+class T
+{
+    int m;
+    int M1() => [|1|] + 2 + 3 + m;
+}";
+
+            var expected =
+    @"using System;
+class T
+{
+    private const int {|Rename:V|} = 1;
+    int m;
+    int M1() => V + 2 + 3 + m;
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestInExpressionBodiedPropertyLikeMember()
+        {
+            var code =
+    @"using System;
+class T
+{
+    int M1 => [|1|] + 2;
+}";
+
+            var expected =
+    @"using System;
+class T
+{
+    private const int {|Rename:V|} = 1;
+
+    int M1 => V + 2;
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
     }
 }

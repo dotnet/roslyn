@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public bool InFieldContext { get; private set; }
             public bool InParameterContext { get; private set; }
             public bool InQueryContext { get; private set; }
+            public bool InExpressionBodiedMemberContext { get; private set; }
 
             public bool IsConstant { get; private set; }
 
@@ -122,6 +123,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     if (IsInBlockContext(cancellationToken))
                     {
                         this.InBlockContext = true;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (_service.IsInExpressionBodiedMember(this.Expression))
+                {
+                    if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
+                    {
+                        this.InExpressionBodiedMemberContext = true;
                         return true;
                     }
 
