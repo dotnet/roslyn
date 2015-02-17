@@ -977,7 +977,7 @@ namespace BoundTreeGenerator
 
         private string StripBound(string name)
         {
-            if (name.StartsWith("Bound"))
+            if (name.StartsWith("Bound", StringComparison.Ordinal))
             {
                 name = name.Substring(5);
             }
@@ -1438,7 +1438,7 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    return typeName.StartsWith("ImmutableArray<");
+                    return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
                 case TargetLanguage.VB:
                     return typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
                 default:

@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                 if (name[i] == DotDelimiter)
                 {
                     int len = i - start;
-                    if (len == 6 && start == 0 && name.StartsWith(SystemString))
+                    if (len == 6 && start == 0 && name.StartsWith(SystemString, StringComparison.Ordinal))
                     {
                         result.Add(SystemString);
                     }
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis
                 return pstrName;
             }
 
-            if (delimiter == 6 && pstrName.StartsWith(SystemString))
+            if (delimiter == 6 && pstrName.StartsWith(SystemString, StringComparison.Ordinal))
             {
                 qualifier = SystemString;
             }
