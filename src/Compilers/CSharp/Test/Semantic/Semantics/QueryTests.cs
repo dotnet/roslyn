@@ -1371,12 +1371,12 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
-                // (9,36): error CS0718: 'System.GC': static types cannot be used as type arguments
+                // (9,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(9, 36),
-                // (10,23): error CS0718: 'System.GC': static types cannot be used as type arguments
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
+                // (10,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = from GC x in string.Empty select x;
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 18)
                 );
         }
 
