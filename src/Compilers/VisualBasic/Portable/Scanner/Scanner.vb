@@ -835,7 +835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "E"c
-                    If ArePeek(2, "nd ") Then Return MakeKeyword(SyntaxKind.EndKeyword, GetText(3), precedingTrivia)
+                    If ArePeek(3, "nd ") Then Return MakeKeyword(SyntaxKind.EndKeyword, GetText(3), precedingTrivia)
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "I"c
@@ -869,11 +869,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
 
             If IsIdentifierStartCharacter(ch) Then Return ScanIdentifierOrKeyword(precedingTrivia)
+            Debug.Assert(Not IsNewLine(ch))
             If wide Then
-                Debug.Assert(Not IsNewLine(ch))
                 Debug.Assert(Not IsDoubleQuote(ch))
             Else
-                Debug.Assert(Not IsNewLine(ch))
                 If IsDoubleQuote(ch) Then Return ScanStringLiteral(precedingTrivia)
                 If IsFullWidth(ch) Then ch = MakeHalfWidth(ch) : Return ScanTokenFullWidth(precedingTrivia, ch)
             End If
