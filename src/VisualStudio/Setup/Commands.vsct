@@ -53,6 +53,9 @@
       <Group guid="guidRoslynGrpId" id="grpDiagnosticProperties" priority="0x002">
         <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
+    
+      <Group guid="guidRoslynGrpId" id="grpSetActiveRuleSet">
+      </Group>
     </Groups>
 
     <Buttons>
@@ -242,7 +245,7 @@
           <CommandName>SetSeverityNone</CommandName>
         </Strings>
       </Button>
-      <!-- Buttons to open the diagnostic help link -->
+      <!-- Button to open the diagnostic help link -->
       <Button guid="guidRoslynGrpId" id="cmdidOpenDiagnosticHelpLink" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticProperties" />
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -252,6 +255,18 @@
           <CanonicalName>ViewHelp</CanonicalName>
           <LocCanonicalName>ViewHelp</LocCanonicalName>
           <CommandName>ViewHelp</CommandName>
+        </Strings>
+      </Button>
+      <!-- Button to set the active rule set -->
+      <Button guid="guidRoslynGrpId" id="cmdidSetActiveRuleSet" priority="100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpSetActiveRuleSet" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Set as Active Rule Set</ButtonText>
+          <CanonicalName>SetAsActiveRuleSet</CanonicalName>
+          <LocCanonicalName>SetAsActiveRuleSet</LocCanonicalName>
+          <CommandName>SetAsActiveRuleSet</CommandName>
         </Strings>
       </Button>
     </Buttons>
@@ -323,6 +338,15 @@
     <CommandPlacement guid="guidVSStd97" id="cmdidPropSheetOrProperties" priority="200">
       <Parent guid="guidRoslynGrpId" id="grpDiagnosticProperties" />
     </CommandPlacement>
+  
+    <!-- "Set as Active Rule Set" entries -->
+    <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
+    </CommandPlacement>
+    
+    <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <UsedCommands>
@@ -372,6 +396,8 @@
       <IDSymbol name="cmdidSetSeverityNone"           value="0x0114" />
       <IDSymbol name="grpDiagnosticProperties"        value="0x0115" />
       <IDSymbol name="cmdidOpenDiagnosticHelpLink"    value="0x0116" />
+      <IDSymbol name="grpSetActiveRuleSet"            value="0x0117" />
+      <IDSymbol name="cmdidSetActiveRuleSet"          value="0x0118" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
