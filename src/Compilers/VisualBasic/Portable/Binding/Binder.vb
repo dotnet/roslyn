@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return m_containingBinder.BinderSpecificLookupOptions(options)
         End Function
 
-        Protected ReadOnly Property IgnoresAccessibility As Boolean
+        Friend ReadOnly Property IgnoresAccessibility As Boolean
             Get
                 Return (BinderSpecificLookupOptions(Nothing) And LookupOptions.IgnoreAccessibility) =
                     LookupOptions.IgnoreAccessibility

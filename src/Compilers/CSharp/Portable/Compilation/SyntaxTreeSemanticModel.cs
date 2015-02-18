@@ -26,13 +26,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
+        private readonly bool _hasAccessChecksSuppressed;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree)
+        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool suppressAccessChecks = false)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
+            _hasAccessChecksSuppressed = suppressAccessChecks;
+
             if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
             {
                 throw new ArgumentOutOfRangeException("tree", CSharpResources.TreeNotPartOfCompilation);
@@ -79,6 +82,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _syntaxTree;
             }
+        }
+
+        /// <summary>
+        /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
+        /// </summary>
+        public override bool HasAccessChecksSuppressed
+        {
+            get { return _hasAccessChecksSuppressed; }
         }
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
@@ -143,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the binder for the compilation unit.
             if (position == 0 && position != token.SpanStart)
             {
-                return _binderFactory.GetBinder(this.Root, position).WithAdditionalFlags(BinderFlags.SemanticModel);
+                return _binderFactory.GetBinder(this.Root, position).WithAdditionalFlags(GetSemanticModelBinderFlags());
             }
 
             MemberSemanticModel memberModel = GetMemberModel(position);
@@ -152,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return memberModel.GetEnclosingBinder(position);
             }
 
-            return _binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(BinderFlags.SemanticModel);
+            return _binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -891,6 +902,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberSemanticModel CreateMemberModel(CSharpSyntaxNode node)
         {
             var outer = _binderFactory.GetBinder(node);
+
+            if (this.HasAccessChecksSuppressed)
+            {
+                outer = outer.WithAdditionalFlags(BinderFlags.SuppressAccessChecks);
+            }
+
             switch (node.Kind())
             {
                 case SyntaxKind.Block:
