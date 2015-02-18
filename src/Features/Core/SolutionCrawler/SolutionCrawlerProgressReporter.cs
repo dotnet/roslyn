@@ -59,20 +59,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public void Start()
+            public Task Start()
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
-                    RaiseStarted();
+                    return RaiseStarted();
                 }
+
+                return SpecializedTasks.EmptyTask;
             }
 
-            public void Stop()
+            public Task Stop()
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
-                    RaiseStopped();
+                    return RaiseStopped();
                 }
+
+                return SpecializedTasks.EmptyTask;
             }
 
             private Task RaiseStarted()

@@ -688,6 +688,38 @@ End Class";
             }
         }
 
+        [Fact]
+        public void ProgressReporterTest()
+        {
+            var solution = GetInitialSolutionInfoWithP2P();
+
+            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            {
+                WaitWaiter(workspace.ExportProvider);
+
+                var service = workspace.Services.GetService<ISolutionCrawlerService>();
+                var reporter = service.GetProgressReporter(workspace);
+                Assert.False(reporter.InProgress);
+
+                bool started = false;
+                reporter.Started += (o, a) => { started = true; };
+
+                bool stopped = false;
+                reporter.Stopped += (o, a) => { stopped = true; };
+
+                var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                registrationService.Register(workspace);
+
+                workspace.OnSolutionAdded(solution);
+
+                Wait((SolutionCrawlerRegistrationService)registrationService, workspace);
+                registrationService.Unregister(workspace);
+
+                Assert.True(started);
+                Assert.True(stopped);
+            }
+        }
+
         private void InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
