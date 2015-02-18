@@ -42,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private MenuCommand _referencesContextAddMenuItem;
         private MenuCommand _removeMenuItem;
         private MenuCommand _openRuleSetMenuItem;
+        private MenuCommand _setActiveRuleSetMenuItem;
 
         private MenuCommand _setSeverityErrorMenuItem;
         private MenuCommand _setSeverityWarningMenuItem;
@@ -70,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _removeMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.RemoveAnalyzer, RemoveAnalyzerHandler);
 
                 _openRuleSetMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
+                _setActiveRuleSetMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetActiveRuleSet, SetActiveRuleSetHandler);
 
                 _setSeverityErrorMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityError, SetSeverityHandler);
                 _setSeverityWarningMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityWarning, SetSeverityHandler);
@@ -141,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateMenuItemVisibility()
         {
-            bool selectedProjectSupportsAnalyzers = SelectedProjectSupportAnalyzers();
+            bool selectedProjectSupportsAnalyzers = SelectedProjectSupportsAnalyzers();
             _addMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
@@ -149,6 +151,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
                                             !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
+
+
+            string itemName;
+            _setActiveRuleSetMenuItem.Visible = selectedProjectSupportsAnalyzers &&
+                                                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out itemName) &&
+                                                Path.GetExtension(itemName).Equals(".ruleset", StringComparison.OrdinalIgnoreCase);
         }
 
         private void UpdateMenuItemsChecked()
@@ -165,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return _selectedDiagnosticItems.Any(item => item.EffectiveSeverity == severity);
         }
 
-        private bool SelectedProjectSupportAnalyzers()
+        private bool SelectedProjectSupportsAnalyzers()
         {
             EnvDTE.Project project;
             return _tracker != null &&
@@ -325,6 +333,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (BrowserHelper.TryGetUri(link, out uri))
             {
                 BrowserHelper.StartBrowser(_serviceProvider, uri);
+            }
+        }
+
+        private void SetActiveRuleSetHandler(object sender, EventArgs e)
+        {
+            EnvDTE.Project project;
+            string fileName;
+            if (_tracker.SelectedHierarchy.TryGetProject(out project) &&
+                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out fileName))
+            {
+                UpdateProjectConfigurationsToUseRuleSetFile(project, fileName);
             }
         }
 
