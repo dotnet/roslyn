@@ -29,11 +29,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _gate = new object();
-            _progressReporter = new SolutionCrawlerProgressReporter();
 
             _analyzerProviders = analyzerProviders.ToImmutableArray();
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
+
+            _progressReporter = new SolutionCrawlerProgressReporter(_listener);
         }
 
         public void Register(Workspace workspace)

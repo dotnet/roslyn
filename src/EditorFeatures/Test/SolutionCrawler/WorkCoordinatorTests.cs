@@ -701,6 +701,7 @@ End Class";
                 var reporter = service.GetProgressReporter(workspace);
                 Assert.False(reporter.InProgress);
 
+                // set up events
                 bool started = false;
                 reporter.Started += (o, a) => { started = true; };
 
@@ -710,13 +711,27 @@ End Class";
                 var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);
 
+                // first mutation
                 workspace.OnSolutionAdded(solution);
 
                 Wait((SolutionCrawlerRegistrationService)registrationService, workspace);
-                registrationService.Unregister(workspace);
 
                 Assert.True(started);
                 Assert.True(stopped);
+
+                // reset
+                started = false;
+                stopped = false;
+
+                // second mutation
+                workspace.OnDocumentAdded(DocumentInfo.Create(DocumentId.CreateNewId(solution.Projects[0].Id), "D6"));
+
+                Wait((SolutionCrawlerRegistrationService)registrationService, workspace);
+
+                Assert.True(started);
+                Assert.True(stopped);
+
+                registrationService.Unregister(workspace);
             }
         }
 

@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Assert.True(arg.Spans.First().Span.Contains(new Span(0, 1)));
                 };
 
-                var solutionWorkCoordinator = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+                var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                 var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
 
                 // test first update
-                solutionWorkCoordinator.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
                 diagnosticWaiter.CreateWaitTask().PumpingWait();
                 squiggleWaiter.CreateWaitTask().PumpingWait();
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var text = document.GetTextAsync().Result;
                 workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
-                solutionWorkCoordinator.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
+                service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
                 diagnosticWaiter.CreateWaitTask().PumpingWait();
                 squiggleWaiter.CreateWaitTask().PumpingWait();
