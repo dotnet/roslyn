@@ -299,12 +299,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private bool OnDisabledTextTrivia(SyntaxTrivia trivia, int index)
             {
-                if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                if (trivia.IsKind(SyntaxKind.DisabledTextTrivia) &&
+                    SyntaxFacts.IsNewLine(trivia.ToString().Last()))
                 {
-                    if (SyntaxFacts.IsNewLine(trivia.ToString().Last()))
-                    {
-                        ResetStateAfterNewLine(index);
-                    }
+                    ResetStateAfterNewLine(index);
                 }
 
                 return false;
