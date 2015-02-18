@@ -10,12 +10,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal interface ISolutionCrawlerProgressReporter
     {
         /// <summary>
-        /// Raised when there is pending work in solution crawler
+        /// Return true if solution crawler is in progress.
+        /// </summary>
+        bool InProgress { get; }
+
+        /// <summary>
+        /// Raised when there is pending work in solution crawler.
         /// </summary>
         event EventHandler Started;
 
         /// <summary>
-        /// Raised when there is no more pending work in solutino crawler
+        /// Raised when there is no more pending work in solutino crawler.
         /// </summary>
         event EventHandler Stopped;
     }
