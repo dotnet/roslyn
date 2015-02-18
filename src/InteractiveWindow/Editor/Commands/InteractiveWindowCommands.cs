@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     internal sealed class Commands : IInteractiveWindowCommands
     {
-        private static readonly char[] CommandNameSeparators = new[] { '\r', '\n', ' ', '\t' };
+        private const string CommandSeparator = ",";
 
         private readonly Dictionary<string, IInteractiveWindowCommand> commands;
         private readonly int maxCommandNameLength;
@@ -45,15 +45,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 {
                     if (commandsDict.ContainsKey(name))
                     {
-                        throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, command.Names));
+                        throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, string.Join(", ", command.Names)));
                     }
                     if (length != 0)
                     {
-                        length++;
+                        length += CommandSeparator.Length;
                     }
                     length += name.Length;
 
                     commandsDict[name] = command;
+                }
+                if (length == 0) {
+                    throw new InvalidOperationException(string.Format(InteractiveWindowResources.MissingCommandName, command.GetType().Name));
                 }
                 this.maxCommandNameLength = Math.Max(this.maxCommandNameLength, length);
             }
@@ -263,16 +266,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             writer.WriteLine("Usage:");
             writer.Write(HelpIndent);
             writer.Write(CommandPrefix);
-            bool wrote = false;
-            foreach (var name in command.Names)
-            {
-                if (wrote)
-                {
-                    writer.Write(",");
-                }
-                writer.Write(command.Names);
-                wrote = true;
-            }
+            writer.Write(string.Join(CommandSeparator, command.Names));
 
             string commandLine = command.CommandLine;
             if (commandLine != null)

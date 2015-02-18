@@ -162,10 +162,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         
         /// <summary>
         /// True if there is currently an input being executed.
+        /// </summary>
         /// 
+        /// <remarks>
         /// This value can only be reliably queried on the UI thread, otherwise the value
         /// is transient.
-        /// </summary>
+        /// </remarks>
         bool IsRunning
         {
             get;
@@ -173,10 +175,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         /// <summary>
         /// True if the interactive evaluator is currently resetting.
+        /// </summary>
         /// 
+        /// <remarks>
         /// This value can only be reliably queried on the UI thread, otherwise the value
         /// is transient.
-        /// </summary>
+        /// </remarks>
         bool IsResetting
         {
             get;
@@ -184,10 +188,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         /// <summary>
         /// True if the interactive evaluator is currently resetting.
+        /// </summary>
         /// 
+        /// <remarks>
         /// This value can only be reliably queried on the UI thread, otherwise the value
         /// is transient.
-        /// </summary>
+        /// </remarks>
         bool IsInitializing
         {
             get;

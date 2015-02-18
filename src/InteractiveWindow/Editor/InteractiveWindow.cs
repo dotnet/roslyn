@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         // true iff code is being executed:
         private bool isRunning;
-        private bool isResetting;
+        private bool isInitializing;
 
         private Task<ExecutionResult> currentTask;
 
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
             }
 
-            isResetting = true;
+            isInitializing = true;
 
             ExecutionResult result;
             try
@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
             finally
             {
-                isResetting = false;
+                isInitializing = false;
             }
             engineInitialized = true;
 
@@ -462,12 +462,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public Task SubmitAsync(IEnumerable<string> inputs)
         {
-            var task = new TaskCompletionSource<object>();
+            var completion = new TaskCompletionSource<object>();
             var submissions = inputs.ToArray();
             PendingSubmission[] pendingSubmissions = new PendingSubmission[submissions.Length];
             if (submissions.Length == 0)
             {
-                task.SetResult(null);
+                completion.SetResult(null);
             }
             else
             {
@@ -475,7 +475,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     if (i == submissions.Length - 1)
                     {
-                        pendingSubmissions[i] = new PendingSubmission(submissions[i], task);
+                        pendingSubmissions[i] = new PendingSubmission(submissions[i], completion);
                     }
                     else
                     {
@@ -485,7 +485,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             Submit(pendingSubmissions);
-            return task.Task;
+            return completion.Task;
 
         }
 
@@ -512,15 +512,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        class PendingSubmission
+        private class PendingSubmission
         {
             public readonly string Input;
-            public readonly TaskCompletionSource<object> Task;
+            public readonly TaskCompletionSource<object> Completion; // only set on the last submission to 
+                                                                       // inform caller about completion of batch
 
-            public PendingSubmission(string input, TaskCompletionSource<object> task)
+            public PendingSubmission(string input, TaskCompletionSource<object> completion)
             {
                 Input = input;
-                Task = task;
+                Completion = completion;
             }
         }
 
@@ -572,7 +573,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             // replace the task being interrupted by a "reset" task:
             isRunning = true;
-            isResetting = true;
+            isInitializing = true;
             currentTask = engine.ResetAsync(initialize);
             currentTask.ContinueWith(FinishExecute, uiScheduler);
 
@@ -1201,7 +1202,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             get
             {
-                return isResetting;
+                return engineInitialized && isInitializing;
             }
         }
 
@@ -1209,7 +1210,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             get
             {
-                return !engineInitialized && isResetting;
+                return !engineInitialized && isInitializing;
             }
         }
 
@@ -1795,23 +1796,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Dispatcher.Invoke(new Action(() =>
             {
                 SetActiveCode(submission.Input);
-                Submit();
-                if (submission.Task != null)
+                var taskDone = Submit();
+                if (submission.Completion != null)
                 {
-                    if (currentTask != null)
-                    {
-                        currentTask.ContinueWith(x => submission.Task.SetResult(null));
-                    }
-                    else
-                    {
-                        // last input was an empty string...
-                        submission.Task.SetResult(null);
-                    }
+                    taskDone.ContinueWith(x => submission.Completion.SetResult(null));
                 }
             }));
         }
 
-        private void Submit()
+        private Task Submit()
         {
             Debug.Assert(CheckAccess());
             RequiresLanguageBuffer();
@@ -1822,7 +1815,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // the code in this method will need to be bullet-proofed
             if (isRunning)
             {
-                return;
+                return Task.FromResult<object>(null);
             }
 
             FinishCurrentSubmissionInput();
@@ -1836,6 +1829,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 // TODO: reuse the current language buffer
                 PrepareForInput();
+                return Task.FromResult<object>(null);
             }
             else
             {
@@ -1845,7 +1839,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 StartCursorTimer();
 
                 currentTask = engine.ExecuteCodeAsync(snapshotSpan.GetText()) ?? ExecutionResult.Failed;
-                currentTask.ContinueWith(FinishExecute, uiScheduler);
+                return currentTask.ContinueWith(FinishExecute, uiScheduler);
             }
         }
 
@@ -2251,7 +2245,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             isRunning = false;
-            isResetting = false;
+            isInitializing = false;
             currentTask = null;
             ResetCursor();
 

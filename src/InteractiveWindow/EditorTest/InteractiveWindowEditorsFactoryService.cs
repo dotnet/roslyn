@@ -16,10 +16,11 @@ namespace Roslyn.InteractiveWindow.UnitTests
         private readonly IContentTypeRegistryService _contentTypeRegistry;
 
         [ImportingConstructor]
-        public InteractiveWindowEditorsFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentType)
+        public InteractiveWindowEditorsFactoryService(ITextBufferFactoryService textBufferFactoryService, ITextEditorFactoryService textEditorFactoryService, IContentTypeRegistryService contentTypeRegistry)
         {
             _textBufferFactoryService = textBufferFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
+            _contentTypeRegistry = contentTypeRegistry;
         }
 
         IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)

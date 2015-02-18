@@ -8,6 +8,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
     public interface IVsInteractiveWindowFactory
     {
-        IVsInteractiveWindow Create(Guid providerId, int instanceId, string title, IInteractiveEvaluator evaluator, __VSCREATETOOLWIN creationFlags);
+        IVsInteractiveWindow Create(Guid providerId, int instanceId, string title, IInteractiveEvaluator evaluator, __VSCREATETOOLWIN creationFlags = 0);
     }
 }
