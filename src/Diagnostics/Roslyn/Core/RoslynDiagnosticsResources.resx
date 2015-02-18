@@ -267,4 +267,10 @@
   <data name="SymbolDeclaredEventRuleDescription" xml:space="preserve">
     <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it's base types must generate a symbol declared event.</value>
   </data>
+  <data name="BoxingDescription" xml:space="preserve">
+    <value>Boxing operations are expensive.</value>
+  </data>
+  <data name="BoxingMessage" xml:space="preserve">
+    <value>Expression produces a boxing operation.</value>
+  </data>
 </root>

@@ -73,10 +73,12 @@
     <Compile Include="Documentation\DoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="DocumentChangedAction.cs" />
     <Compile Include="ISymbolExtensions.cs" />
+    <Compile Include="Performance\BoxingOperationAnalyzer.cs" />
     <Compile Include="Performance\CodeActionCreateAnalyzer.cs" />
     <Compile Include="Maintainability\UnusedDeclarationsAnalyzer.cs" />
     <Compile Include="Maintainability\UnusedDeclarationsCodeFixer.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzer.cs" />
+    <Compile Include="Performance\EmptyArrayOperationAnalyzer.cs" />
     <Compile Include="Performance\EquatableAnalyzer.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

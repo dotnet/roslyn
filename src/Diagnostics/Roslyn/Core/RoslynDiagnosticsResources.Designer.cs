@@ -61,6 +61,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Boxing operations are expensive..
+        /// </summary>
+        internal static string BoxingDescription {
+            get {
+                return ResourceManager.GetString("BoxingDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression produces a boxing operation..
+        /// </summary>
+        internal static string BoxingMessage {
+            get {
+                return ResourceManager.GetString("BoxingMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CancellationToken parameters must come last.
         /// </summary>
         internal static string CancellationTokenMustBeLastDescription {

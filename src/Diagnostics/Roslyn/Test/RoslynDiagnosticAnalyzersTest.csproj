@@ -85,7 +85,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiDesign\CancellationTokenMustBeLastTests.cs" />
+    <Compile Include="Performance\BoxingOperationAnalyzerTests.cs" />
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzerTests.cs" />
+    <Compile Include="Performance\EmptyArrayOperationAnalyzerTests.cs" />
     <Compile Include="Performance\LinqAnalyzerTests.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzerTests.cs" />
     <Compile Include="Reliability\ImmutableCollectionAnalyzerTests.cs" />
