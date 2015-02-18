@@ -30,7 +30,7 @@ namespace FakeSign
          + sizeof(Int16)  // minor version
          + sizeof(Int64); // metadata directory
 
-        private static bool ExecuteCore(string assemblyPath, bool unSign = false)
+        private static bool ExecuteCore(string assemblyPath, bool unSign = false, bool force = false)
         {
             if (Directory.Exists(assemblyPath))
             {
@@ -48,14 +48,25 @@ namespace FakeSign
             using (var reader = new PEReader(stream))
             using (var writer = new BinaryWriter(stream))
             {
-                if (!Validate(reader, unSign))
+                if (!force && !Validate(reader, unSign))
                 {
-                    Console.Error.WriteLine($"Unable to {(unSign ? "un-sign" : "sign")} {assemblyPath}");
+                    Console.Error.WriteLine($"Use the -f (force) option to {(unSign ? "un-sign" : "sign")} {assemblyPath} anyway.");
                     return false;
                 }
 
                 stream.Position = reader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags;
-                writer.Write((UInt32)(reader.PEHeaders.CorHeader.Flags ^ CorFlags.StrongNameSigned));
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                if (unSign)
+                {
+                    flags &= ~CorFlags.StrongNameSigned;
+                }
+                else
+                {
+                    flags |= CorFlags.StrongNameSigned;
+                }
+
+                writer.Write((UInt32)flags);
             }
 
             return true;
@@ -126,6 +137,7 @@ namespace FakeSign
         {
             string file = null;
             bool unSign = false;
+            bool force = false;
 
             foreach (string arg in args)
             {
@@ -139,6 +151,12 @@ namespace FakeSign
                         case 'u':
                         case 'U':
                             unSign = true;
+                            break;
+
+
+                        case 'f':
+                        case 'F':
+                            force = true;
                             break;
 
                         default:
@@ -157,17 +175,12 @@ namespace FakeSign
                 }
             }
 
-            if (!ExecuteCore(file, unSign))
-            {
-                Console.Error.WriteLine("Could not sign assembly");
-                return 1;
-            }
-
-            return 0;
+            return ExecuteCore(file, unSign, force) ? 0 : 1;
 
         Help:
-            Console.Error.WriteLine("Usage:\nFakeSign [-u] assemblyPath");
+            Console.Error.WriteLine("Usage:\nFakeSign [-u] [-f] assemblyPath");
             Console.Error.WriteLine("    -u (unsign) Clears the strong name flag (default is to set the flag).");
+            Console.Error.WriteLine("    -f (force) Updates even if nothing would change.");
             return 1;
         }
     }
