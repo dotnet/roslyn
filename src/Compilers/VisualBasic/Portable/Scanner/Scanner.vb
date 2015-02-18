@@ -831,16 +831,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanNumericLiteral(precedingTrivia)
                 Case """"c : Return ScanStringLiteral(precedingTrivia)
                 Case "A"c
-                    If ArePeek(2, "s ") Then Return MakeKeyword(SyntaxKind.AsKeyword, GetText(2), precedingTrivia)
+                    If ArePeek("s ") Then Return MakeKeyword(SyntaxKind.AsKeyword, GetText(2), precedingTrivia)
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "E"c
-                    If ArePeek(3, "nd ") Then Return MakeKeyword(SyntaxKind.EndKeyword, GetText(3), precedingTrivia)
+                    If ArePeek("nd ") Then Return MakeKeyword(SyntaxKind.EndKeyword, GetText(3), precedingTrivia)
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "I"c
-                   If ArePeek(2,"f ") Then Return MakeKeyword(SyntaxKind.IfKeyword, GetText(2), precedingTrivia)' TODO: do we allow widechars in keywords?
-                   Return ScanIdentifierOrKeyword(precedingTrivia)
+                    If ArePeek("f ") Then Return MakeKeyword(SyntaxKind.IfKeyword, GetText(2), precedingTrivia) ' TODO: do we allow widechars in keywords?
+                    Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
                      "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c,

@@ -189,8 +189,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return TryPeek(at, c) AndAlso (c = isChar)
         End Function
 
-        Private Function ArePeek(at As Integer,chars As String) As Boolean
-            Return ArePeek(_lineBufferOffset,chars.Length,1,chars)
+        Private Function ArePeek(chars As String) As Boolean
+            Return ArePeek(_lineBufferOffset, chars.Length, 1, chars)
         End Function
         Private Function ArePeek(at As Integer,
                                  size As Integer,
