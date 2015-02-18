@@ -48,7 +48,14 @@ namespace FakeSign
             using (var reader = new PEReader(stream))
             using (var writer = new BinaryWriter(stream))
             {
-                if (!force && !Validate(reader, unSign))
+                var mdReader = ValidateManagedAssemblyAndGetMetadataReader(reader);
+                if (mdReader == null)
+                {
+                    Console.Error.WriteLine($"Cannot {(unSign ? "un-sign" : "sign")} {assemblyPath}.");
+                    return false;
+                }
+
+                if (!force && !Validate(reader, mdReader, unSign))
                 {
                     Console.Error.WriteLine($"Use the -f (force) option to {(unSign ? "un-sign" : "sign")} {assemblyPath} anyway.");
                     return false;
@@ -72,25 +79,30 @@ namespace FakeSign
             return true;
         }
 
-        /// <summary>
-        /// Returns true if the PE file meets all of the pre-conditions to be Open Source Signed.
-        /// Returns false and logs msbuild errors otherwise.
-        /// </summary>
-        private static bool Validate(PEReader peReader, bool unSign)
+        private static MetadataReader ValidateManagedAssemblyAndGetMetadataReader(PEReader peReader)
         {
             if (!peReader.HasMetadata)
             {
                 Console.Error.WriteLine("PE file is not a managed module.");
-                return false;
+                return null;
             }
 
             var mdReader = peReader.GetMetadataReader();
             if (!mdReader.IsAssembly)
             {
                 Console.Error.WriteLine("PE file is not an assembly.");
-                return false;
+                return null;
             }
 
+            return mdReader;
+        }
+
+        /// <summary>
+        /// Returns true if the PE file meets all of the pre-conditions to be Open Source Signed.
+        /// Returns false and logs msbuild errors otherwise.
+        /// </summary>
+        private static bool Validate(PEReader peReader, MetadataReader mdReader, bool unSign)
+        {
             CorHeader header = peReader.PEHeaders.CorHeader;
             var expectedStrongNameFlag = unSign ? CorFlags.StrongNameSigned : 0;
             var actualStrongNameFlag = header.Flags & CorFlags.StrongNameSigned;
@@ -175,14 +187,25 @@ namespace FakeSign
                 }
             }
 
+            if (file == null)
+            {
+                Console.Error.WriteLine("Missing assemblyPath.");
+                goto Help;
+            }
+
             return ExecuteCore(file, unSign, force) ? 0 : 1;
 
         Help:
-            Console.Error.WriteLine("Usage:\nFakeSign [-u] [-f] assemblyPath");
-            Console.Error.WriteLine("    -u (unsign) Clears the strong name flag (default is to set the flag).");
-            Console.Error.WriteLine("    -f (force) Updates even if nothing would change.");
+            Console.Error.Write(
+@"Sets or removes the ""strong name signed"" flag in a managed assembly. This
+creates an assembly that can be loaded in full trust without registering for
+verification skipping.
+
+FakeSign [-u] [-f] assemblyPath
+    -u (unsign) Clears the strong name flag (default is to set the flag).
+    -f (force) Updates even if nothing would change.
+");
             return 1;
         }
     }
 }
-
