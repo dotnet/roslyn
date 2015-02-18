@@ -15,7 +15,7 @@ namespace FakeSign
     /// </summary>
     /// <remarks>
     /// This code is taken largely from the Microsoft.BuildTools project and their OSS signing
-    /// process.  
+    /// process.
     ///
     /// https://github.com/dotnet/buildtools/blob/master/src/Microsoft.DotNet.Build.Tasks/OpenSourceSign.cs
     /// </remarks>
@@ -50,14 +50,7 @@ namespace FakeSign
             {
                 if (!Validate(reader, unSign))
                 {
-                    if (unSign)
-                    {
-                        Console.Error.WriteLine($"Unable to un-sign {assemblyPath}");
-                    }
-                    else
-                    {
-                        Console.Error.WriteLine($"Unable to sign {assemblyPath}");
-                    }
+                    Console.Error.WriteLine($"Unable to {(unSign ? "un-sign" : "sign")} {assemblyPath}");
                     return false;
                 }
 
@@ -88,21 +81,13 @@ namespace FakeSign
             }
 
             CorHeader header = peReader.PEHeaders.CorHeader;
-            if (unSign)
+            var expectedStrongNameFlag = unSign ? CorFlags.StrongNameSigned : 0;
+            var actualStrongNameFlag = header.Flags & CorFlags.StrongNameSigned;
+
+            if (expectedStrongNameFlag != actualStrongNameFlag)
             {
-                if ((header.Flags & CorFlags.StrongNameSigned) == 0)
-                {
-                    Console.Error.WriteLine("PE file is not strong-name signed.");
-                    return false;
-                }
-            }
-            else
-            {
-                if ((header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned)
-                {
-                    Console.Error.WriteLine("PE file is already strong-name signed.");
-                    return false;
-                }
+                Console.Error.WriteLine($"PE file is {(unSign ? "not" : "already")} strong-name signed.");
+                return false;
             }
 
             if ((header.StrongNameSignatureDirectory.Size <= 0) || mdReader.GetAssemblyDefinition().PublicKey.IsNil)
