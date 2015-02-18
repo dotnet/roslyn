@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -291,9 +292,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         OnComment(trivia, index) ||
                         OnSkippedTokensOrText(trivia) ||
                         OnRegion(trivia, index) ||
-                        OnPreprocessor(trivia, index))
+                        OnPreprocessor(trivia, index) ||
+                        OnDisabledTextTrivia(trivia, index))
                     {
                         return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private bool OnDisabledTextTrivia(SyntaxTrivia trivia, int index)
+            {
+                if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                {
+                    if (SyntaxFacts.IsNewLine(trivia.ToString().Last()))
+                    {
+                        ResetStateAfterNewLine(index);
                     }
                 }
 
