@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 bool cantSupportSemanticSpanAnalysis = false;
                 var analyzerActions = AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, 
                     null,
-                    d => driver.ReportAnalyzerExceptionDiagnostics(analyzer, ImmutableArray.Create(d), compilation: null),
                     null,
                     driver.CatchAnalyzerExceptionHandler,
                     driver.CancellationToken).WaitAndGetResult(driver.CancellationToken);

@@ -14,14 +14,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerService _owner;
-        private readonly Workspace _workspace;
         private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            : base(workspace)
         {
             _correlationId = correlationId;
             _owner = owner;
-            _workspace = workspace;
             _workspaceAnalyzerManager = workspaceAnalyzerManager;
         }
 
@@ -61,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override void RemoveDocument(DocumentId documentId)
         {
             _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), _workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
             _owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), _workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
 

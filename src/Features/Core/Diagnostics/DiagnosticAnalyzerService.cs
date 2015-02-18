@@ -18,25 +18,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
         [ImportingConstructor]
-        public DiagnosticAnalyzerService(
-            AnalyzerExceptionDiagnosticUpdateSource exceptionDiagnosticUpdateSource = null,
-            [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null)
+        public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null)
             : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
                     diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
-                    SpecializedCollections.EmptyEnumerable<string>(),
-                  exceptionDiagnosticUpdateSource: exceptionDiagnosticUpdateSource)
+                    SpecializedCollections.EmptyEnumerable<string>())
         {
         }
 
-        private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AnalyzerExceptionDiagnosticUpdateSource exceptionDiagnosticUpdateSource) : this()
+        private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies, exceptionDiagnosticUpdateSource);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies);
         }
 
         // internal for testing purposes.
-        internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AnalyzerExceptionDiagnosticUpdateSource exceptionDiagnosticUpdateSource) : this()
+        internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers, exceptionDiagnosticUpdateSource);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers);
         }
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)

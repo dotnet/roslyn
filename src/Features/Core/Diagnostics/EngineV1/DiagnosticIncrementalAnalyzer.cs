@@ -32,18 +32,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly MemberRangeMap _memberRangeMap;
         private readonly DiagnosticAnalyzersAndStates _analyzersAndState;
         private readonly AnalyzerExecutor _executor;
-        private readonly AnalyzerExceptionDiagnosticUpdateSource _exceptionDiagnosticsSource;
-
+        
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            : base(workspace)
         {
             _owner = owner;
             _correlationId = correlationId;
             _memberRangeMap = new MemberRangeMap();
             _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzerManager);
             _executor = new AnalyzerExecutor(this);
-            _exceptionDiagnosticsSource = workspaceAnalyzerManager.ExceptionDiagnosticUpdateSource;
 
             _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
         }
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
                 var options = document.Project.CompilationOptions;
                 var openedDocument = document.IsOpen();
 
@@ -190,8 +189,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var memberId = syntaxFacts.GetMethodLevelMemberId(root, member);
 
-                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
+                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, cancellationToken);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, cancellationToken);
                 var options = document.Project.CompilationOptions;
 
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
                 bool openedDocument = document.IsOpen();
                 var options = document.Project.CompilationOptions;
 
@@ -297,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, cancellationToken);
                 var options = project.CompilationOptions;
 
                 var versions = new VersionArgument(VersionStamp.Default, semanticVersion, projectVersion);
@@ -376,17 +375,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     RaiseDiagnosticsUpdated(StateType.Project, projectId, providerId, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                 }
 
-                ImmutableArray<DiagnosticAnalyzer> removedAnalyzers;
-                if (_analyzersAndState.TryRemoveProjectAnalyzersAndStates(projectId, out removedAnalyzers))
-                {
-                    if (_exceptionDiagnosticsSource != null)
-                    {
-                        foreach (var removedAnalyzer in removedAnalyzers)
-                        {
-                            _exceptionDiagnosticsSource.ClearDiagnostics(removedAnalyzer, _analyzersAndState.Workspace);
-                        }
-                    }
-                }
+                _analyzersAndState.RemoveProjectAnalyzersAndStates(projectId);
             }
         }
 
@@ -472,8 +461,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
                 // Share the diagnostic analyzer driver across all analyzers.
-                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, ReportAnalyzerExceptionDiagnostics, cancellationToken);
+                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, cancellationToken);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
                 var options = document.Project.CompilationOptions;
 
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
@@ -984,14 +973,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             if (existingData != null && existingData.Items.Length > 0)
             {
                 await RemoveCacheDataAsync(project, state, providerId, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        internal void ReportAnalyzerExceptionDiagnostics(DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics, Project project)
-        {
-            if (_exceptionDiagnosticsSource != null)
-            {
-                _exceptionDiagnosticsSource.ReportDiagnostics(analyzer, diagnostics, project);
             }
         }
 

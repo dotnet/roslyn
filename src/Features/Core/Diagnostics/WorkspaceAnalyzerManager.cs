@@ -48,21 +48,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// We populate it lazily. otherwise, we will bring in all analyzers preemptively
         /// </summary>
         private readonly Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
-
-        internal readonly AnalyzerExceptionDiagnosticUpdateSource ExceptionDiagnosticUpdateSource;
-
-        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies, AnalyzerExceptionDiagnosticUpdateSource exceptionDiagnosticUpdateSource) :
-            this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies), exceptionDiagnosticUpdateSource)
+        
+        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
+            this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies))
         {
         }
 
-        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AnalyzerExceptionDiagnosticUpdateSource exceptionDiagnosticUpdateSource)
+        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
         {
             _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<string, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);            
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
-            ExceptionDiagnosticUpdateSource = exceptionDiagnosticUpdateSource;
-
+            
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
 

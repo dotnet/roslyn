@@ -25,7 +25,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             // If no user diagnostic analyzer, then test compiler diagnostics.
             var analyzer = analyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
-            
+
+            var exceptionDiagnostics = new List<Diagnostic>();
+            EventHandler<AnalyzerExceptionDiagnosticArgs> addExceptionDiagnostic = (sender, args) =>
+            {
+                if (args.FaultedAnalyzer == analyzer)
+                {
+                    exceptionDiagnostics.Add(args.Diagnostic);
+                }
+            };
+
+            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += addExceptionDiagnostic;
+
             if (getDocumentDiagnostics)
             {
                 var tree = document.GetSyntaxTreeAsync().Result;
@@ -46,7 +57,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 var driver = new DiagnosticAnalyzerDriver(document, spanToTest, root,
                     syntaxNodeAnalyzerService: nodeInBodyAnalyzerService, 
-                    reportAnalyzerExceptionDiagnostics: reportExceptionDiagnostics,
                     cancellationToken: CancellationToken.None, 
                     testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
                 var diagnosticAnalyzerCategory = analyzer.GetDiagnosticAnalyzerCategory(driver);
@@ -80,24 +90,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             if (getProjectDiagnostics)
             {
-                var builder = new List<Diagnostic>();
-
                 var nodeInBodyAnalyzerService = project.Language == LanguageNames.CSharp ?
                     (ISyntaxNodeAnalyzerService)new CSharpSyntaxNodeAnalyzerService() :
                     new VisualBasicSyntaxNodeAnalyzerService();
-                Action<DiagnosticAnalyzer, ImmutableArray<Diagnostic>, Project> reportExceptionDiagnostics =
-                    (a, diagnostics, p) => builder.AddRange(diagnostics);
-                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, reportExceptionDiagnostics, CancellationToken.None);
+                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, CancellationToken.None);
 
                 if (analyzer.SupportsProjectDiagnosticAnalysis(driver))
                 {
-                    builder.AddRange(driver.GetProjectDiagnosticsAsync(analyzer, null).Result);
+                    projectDiagnostics = driver.GetProjectDiagnosticsAsync(analyzer, null).Result;
                 }
-
-                projectDiagnostics = builder;
             }
 
-            return documentDiagnostics.Concat(projectDiagnostics);
+            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic -= addExceptionDiagnostic;
+
+            return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }
 
         public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer providerOpt, Document document, TextSpan span, bool donotCatchAnalyzerExceptions = true)

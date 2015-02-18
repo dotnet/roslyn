@@ -196,17 +196,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return projectAnalyzersAndStates.GetDiagnosticState(stateType, providerId);
             }
 
-            public bool TryRemoveProjectAnalyzersAndStates(ProjectId projectId, out ImmutableArray<DiagnosticAnalyzer> removedAnalyzers)
+            public bool RemoveProjectAnalyzersAndStates(ProjectId projectId)
             {
                 ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                if (_projectAnalyzersAndStatesMap.TryRemove(projectId, out projectAnalyzersAndStates))
-                {
-                    removedAnalyzers = projectAnalyzersAndStates.GetAllProviderAndIds().Select(kvp => kvp.Key).ToImmutableArray();
-                    return true;
-                }
-
-                removedAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
-                return false;
+                return _projectAnalyzersAndStatesMap.TryRemove(projectId, out projectAnalyzersAndStates);
             }
 
             private async Task<ProjectAnalyzersAndStates> GetOrCreateProjectAnalyzersAndStatesAsync(Project project, CancellationToken cancellationToken)
