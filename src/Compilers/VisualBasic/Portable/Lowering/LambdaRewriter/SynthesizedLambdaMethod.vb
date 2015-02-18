@@ -13,12 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend NotInheritable Class SynthesizedLambdaMethod
         Inherits SynthesizedMethod
+        Implements ISynthesizedMethodBodyImplementationSymbol
 
         Private ReadOnly m_lambda As LambdaSymbol
         Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
         Private ReadOnly m_locations As ImmutableArray(Of Location)
         Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly m_typeMap As TypeSubstitution
+        Private ReadOnly m_topLevelMethod As MethodSymbol
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
@@ -79,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Me.m_parameters = params.ToImmutableAndFree
+            Me.m_topLevelMethod = topLevelMethod
         End Sub
 
         Private Shared Function MakeName(topLevelMethodId As MethodDebugId,
@@ -219,5 +222,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(localPosition >= bodyStart)
             Return localPosition - bodyStart
         End Function
+
+        ' The lambda method body needs to be updated when the containing top-level method body is updated.
+        Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+            Get
+                Return m_topLevelMethod
+            End Get
+        End Property
+
     End Class
 End Namespace
