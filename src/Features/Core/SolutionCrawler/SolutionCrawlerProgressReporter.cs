@@ -25,6 +25,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private int _count = 0;
 
+            public bool InProgress
+            {
+                get
+                {
+                    return _count > 0;
+                }
+            }
+
             public event EventHandler Started
             {
                 add
@@ -102,6 +110,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private class NullReporter : ISolutionCrawlerProgressReporter
         {
             public static readonly NullReporter Instance = new NullReporter();
+
+            public bool InProgress
+            {
+                get
+                {
+                    return false;
+                }
+            }
 
             public event EventHandler Started
             {

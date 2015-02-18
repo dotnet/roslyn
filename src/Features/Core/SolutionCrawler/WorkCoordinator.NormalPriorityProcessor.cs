@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = SpecializedTasks.EmptyTask;
-                        _workItemQueue = new AsyncDocumentWorkItemQueue();
+                        _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, bool>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = default(ProjectId);

@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
 
+                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter) :
+                    base(progressReporter)
+                {
+                }
+
                 protected override int WorkItemCount_NoLock
                 {
                     get
