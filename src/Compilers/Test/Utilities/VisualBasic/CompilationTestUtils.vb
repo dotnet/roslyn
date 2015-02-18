@@ -396,7 +396,7 @@ Friend Module CompilationUtils
         Dim token As SyntaxToken = tree.GetRoot().FindToken(bindPoint)
         Dim node = token.Parent
 
-        While (node IsNot Nothing AndAlso node.ToString.StartsWith(bindText) AndAlso Not (TypeOf node Is TNode))
+        While (node IsNot Nothing AndAlso node.ToString.StartsWith(bindText, StringComparison.Ordinal) AndAlso Not (TypeOf node Is TNode))
             node = node.Parent
         End While
 
@@ -772,7 +772,7 @@ Friend Module CompilationUtils
             Dim messages As New StringBuilder
             messages.AppendLine()
 
-            If actualText.StartsWith(expectedText) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
+            If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
                 messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
                 messages.AppendLine(actualText.Substring(expectedText.Length))
 

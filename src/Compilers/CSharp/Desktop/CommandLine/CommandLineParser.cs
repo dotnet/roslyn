@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (string arg in flattenedArgs)
                 {
-                    Debug.Assert(!arg.StartsWith("@"));
+                    Debug.Assert(!arg.StartsWith("@", StringComparison.Ordinal));
 
                     string name, value;
                     if (!TryParseOption(arg, out name, out value))

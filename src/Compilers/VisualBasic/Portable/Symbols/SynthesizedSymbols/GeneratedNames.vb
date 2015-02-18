@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' All names should start with "$VB$Local_"
-            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix) Then
+            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             index = 0
 
             ' All names should start with "$VB$ResumableLocal_"
-            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix) Then
+            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 

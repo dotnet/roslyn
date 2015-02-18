@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 string exprFullText = node.ToFullString();
                 exprFullText = exprFullText.Trim();
 
-                if (exprFullText.StartsWith(startString))
+                if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(endString))
-                        if (exprFullText.EndsWith(endString))
+                        if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
                             return node;
                         else
                             continue;
@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return node;
                 }
 
-                if (exprFullText.EndsWith(endString))
+                if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(startString))
-                        if (exprFullText.StartsWith(startString))
+                        if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
                             return node;
                         else
                             continue;
@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 string exprFullText = exprSyntax.ToFullString();
                 exprFullText = exprFullText.Trim();
 
-                if (exprFullText.StartsWith(startComment))
+                if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(endComment))
-                        if (exprFullText.EndsWith(endComment))
+                        if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
                             return exprSyntax;
                         else
                             continue;
@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return exprSyntax;
                 }
 
-                if (exprFullText.EndsWith(endComment))
+                if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(startComment))
-                        if (exprFullText.StartsWith(startComment))
+                        if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
                             return exprSyntax;
                         else
                             continue;

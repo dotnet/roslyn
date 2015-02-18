@@ -1494,7 +1494,7 @@ class Class3
                     symbolValidator: module =>
                     {
                         var types = module.GlobalNamespace.GetTypeMembers()
-                                        .Where(t => t.Name.StartsWith("<>"))
+                                        .Where(t => t.Name.StartsWith("<>", StringComparison.Ordinal))
                                         .Select(t => t.ToDisplayString())
                                         .OrderBy(t => t)
                                         .ToArray();
