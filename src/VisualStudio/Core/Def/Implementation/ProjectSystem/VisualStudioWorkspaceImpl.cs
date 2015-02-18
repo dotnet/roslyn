@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private VisualStudioProjectTracker _projectTracker;
 
         // document worker coordinator
-        private IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private ISolutionCrawlerRegistrationService _workCoordinatorService;
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -919,7 +919,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     if (_workCoordinatorService == null)
                     {
-                        _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
+                        _workCoordinatorService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
                         _workCoordinatorService.Register(this);
                     }
                 }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default))
             {
-                var registrationService = workspace.Services.GetService<IWorkCoordinatorRegistrationService>();
+                var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);
 
                 var diagnosticWaiter = new DiagnosticServiceWaiter();
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Assert.True(arg.Spans.First().Span.Contains(new Span(0, 1)));
                 };
 
-                var solutionWorkCoordinator = workspace.Services.GetService<IWorkCoordinatorRegistrationService>() as WorkCoordinatorRegistrationService;
+                var solutionWorkCoordinator = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                 var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
 
                 // test first update

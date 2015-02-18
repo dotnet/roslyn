@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {

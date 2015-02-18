@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     {
         protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(TestWorkspace workspace)
         {
-            var registrationService = workspace.Services.GetService<IWorkCoordinatorRegistrationService>();
+            var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             registrationService.Register(workspace);
 
             var diagnosticWaiter = new DiagnosticServiceWaiter();
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var foregroundService = new TestForegroundNotificationService();
             var taggerSource = new DiagnosticsSquiggleTaggerProvider.TagSource(buffer, foregroundService, diagnosticService, optionsService, squiggleWaiter);
 
-            var solutionWorkCoordinator = workspace.Services.GetService<IWorkCoordinatorRegistrationService>() as WorkCoordinatorRegistrationService;
+            var solutionWorkCoordinator = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             solutionWorkCoordinator.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
 
             diagnosticWaiter.CreateWaitTask().PumpingWait();

@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private uint _runningDocumentTableEventsCookie;
 
         // document worker coordinator
-        private IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private ISolutionCrawlerRegistrationService _workCoordinatorService;
 
         [ImportingConstructor]
         public MiscellaneousFilesWorkspace(
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     if (_workCoordinatorService == null)
                     {
-                        _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
+                        _workCoordinatorService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
                         _workCoordinatorService.Register(this);
                     }
                 }

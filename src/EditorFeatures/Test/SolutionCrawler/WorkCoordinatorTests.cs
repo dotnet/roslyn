@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
             {
-                var registrationService = new WorkCoordinatorRegistrationService(
+                var registrationService = new SolutionCrawlerRegistrationService(
                     SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
                     AggregateAsynchronousOperationListener.EmptyListeners);
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                 var worker = new Analyzer();
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
-                var service = new WorkCoordinatorRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
 
                 service.Register(workspace);
 
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                 var analyzer = new Analyzer(waitForCancellation: true);
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new WorkCoordinatorRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
 
                 service.Register(workspace);
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                 var analyzer = new Analyzer(waitForCancellation: true);
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new WorkCoordinatorRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
 
                 service.Register(workspace);
 
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                 var analyzer = new Analyzer(blockedRun: true);
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new WorkCoordinatorRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
 
                 service.Register(workspace);
 
@@ -695,7 +695,7 @@ End Class";
             {
                 var analyzer = new Analyzer();
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new WorkCoordinatorRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
 
                 service.Register(workspace);
 
@@ -723,7 +723,7 @@ End Class";
         {
             var worker = new Analyzer();
             var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
-            var service = new WorkCoordinatorRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
 
             service.Register(workspace);
 
@@ -752,7 +752,7 @@ End Class";
             }
         }
 
-        private void Wait(WorkCoordinatorRegistrationService service, TestWorkspace workspace)
+        private void Wait(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
         {
             WaitWaiter(workspace.ExportProvider);
 

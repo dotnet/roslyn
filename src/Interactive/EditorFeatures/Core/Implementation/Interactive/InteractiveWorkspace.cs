@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal class InteractiveWorkspace : Workspace
     {
-        private readonly IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private readonly ISolutionCrawlerRegistrationService _workCoordinatorService;
 
         internal InteractiveEvaluator Engine { get; private set; }
         private SourceTextContainer _openTextContainer;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             this.Engine = engine;
 
             // register work coordinator for this workspace
-            _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
+            _workCoordinatorService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
             _workCoordinatorService.Register(this);
         }
 
