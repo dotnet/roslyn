@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         event EventHandler Started;
 
         /// <summary>
-        /// Raised when there is no more pending work in solutino crawler.
+        /// Raised when there is no more pending work in solution crawler.
         /// </summary>
         event EventHandler Stopped;
     }

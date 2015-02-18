@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
@@ -18,12 +19,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
+            private IAsynchronousOperationListener _listener;
+
             // use event map and event queue so that we can guarantee snapshot and sequencial ordering of events from
             // multiple consumer from possibly multiple threads
-            private readonly SimpleTaskQueue _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
-            private readonly EventMap _eventMap = new EventMap();
+            private readonly SimpleTaskQueue _eventQueue;
+            private readonly EventMap _eventMap;
 
-            private int _count = 0;
+            private int _count;
+
+            public SolutionCrawlerProgressReporter(IAsynchronousOperationListener listener)
+            {
+                _listener = listener;
+                _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+                _eventMap = new EventMap();
+
+                _count = 0;
+            }
 
             public bool InProgress
             {
@@ -63,7 +75,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
-                    return RaiseStarted();
+                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
+                    return RaiseStarted().CompletesAsyncOperation(asyncToken);
                 }
 
                 return SpecializedTasks.EmptyTask;
@@ -73,7 +86,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
-                    return RaiseStopped();
+                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
+                    return RaiseStopped().CompletesAsyncOperation(asyncToken);
                 }
 
                 return SpecializedTasks.EmptyTask;
