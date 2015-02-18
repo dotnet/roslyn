@@ -1529,7 +1529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me.StaticInitializers = staticInitializers
                 Me.InstanceInitializers = instanceInitializers
 
-                Debug.Assert(staticInitializersSyntaxLength = If(staticInitializers.IsDefaultOrEmpty, 0, staticInitializers.Sum(Function(s) s.Sum(Function(i) i.Syntax.Span.Length))))
+                Debug.Assert(staticInitializersSyntaxLength = If(staticInitializers.IsDefaultOrEmpty, 0, staticInitializers.Sum(Function(s) s.Sum(Function(i) If(Not i.IsMetadataConstant, i.Syntax.Span.Length, 0)))))
                 Debug.Assert(instanceInitializersSyntaxLength = If(instanceInitializers.IsDefaultOrEmpty, 0, instanceInitializers.Sum(Function(s) s.Sum(Function(i) i.Syntax.Span.Length))))
                 Me.StaticInitializersSyntaxLength = staticInitializersSyntaxLength
                 Me.InstanceInitializersSyntaxLength = instanceInitializersSyntaxLength
@@ -1583,8 +1583,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             initializer.PrecedingInitializersLength = aggregateSyntaxLength
             initializers.Add(initializer)
 
-            ' ignore leading and trailing trivia of the node
-            aggregateSyntaxLength += initializer.Syntax.Span.Length
+            ' A constant field of type decimal needs a field initializer, so
+            ' check if it is a metadata constant, not just a constant to exclude
+            ' decimals. Other constants do not need field initializers.
+            If Not initializer.IsMetadataConstant Then
+                ' ignore leading and trailing trivia of the node
+                aggregateSyntaxLength += initializer.Syntax.Span.Length
+            End If
         End Sub
 
         ''' <summary>

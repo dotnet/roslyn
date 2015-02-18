@@ -24,9 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Syntax As SyntaxReference
 
         ''' <summary>
-        ''' A sum of widths of full spans of all preceding initializers 
+        ''' A sum of widths of spans of all preceding initializers
+        ''' (instance and static initializers are summed separately, and trivias are not counted).
         ''' </summary>
         Friend PrecedingInitializersLength As Integer
+
+        Friend ReadOnly IsMetadataConstant As Boolean
 
         ''' <summary>
         ''' Initializer for an executable statement in script code.
@@ -35,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(syntax As SyntaxReference)
             Debug.Assert(TypeOf syntax.GetSyntax() Is StatementSyntax)
             Me.Syntax = syntax
+            Me.IsMetadataConstant = False
         End Sub
 
         ''' <summary>
@@ -50,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)(field)
             Me.Syntax = syntax
+            Me.IsMetadataConstant = field.IsMetadataConstant
         End Sub
 
         ''' <summary>
@@ -58,9 +63,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(fieldsOrProperties As ImmutableArray(Of Symbol), syntax As SyntaxReference)
             Debug.Assert(Not fieldsOrProperties.IsEmpty)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
-
             Me.FieldsOrProperty = fieldsOrProperties
             Me.Syntax = syntax
+            Me.IsMetadataConstant = False
         End Sub
 
         ''' <summary>
@@ -75,6 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)([property])
             Me.Syntax = syntax
+            Me.IsMetadataConstant = False
         End Sub
     End Structure
 End Namespace

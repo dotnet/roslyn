@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
             diagnostics As DiagnosticBag,
+            ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
             lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
             closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
             ByRef delegateRelaxationIdDispenser As Integer,
             <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol,
-            <Out> ByRef variableSlotAllocatorOpt As VariableSlotAllocator,
             allowOmissionOfConditionalCalls As Boolean,
             isBodySynthesized As Boolean) As BoundBlock
 
@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 #End If
 
-            If compilationState.ModuleBuilderOpt IsNot Nothing Then
-                variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
+            If lazyVariableSlotAllocator Is Nothing Then
+                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
             End If
 
             ' Lowers lambda expressions into expressions that construct delegates.    
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             lambdaDebugInfoBuilder,
                                                             closureDebugInfoBuilder,
                                                             delegateRelaxationIdDispenser,
-                                                            variableSlotAllocatorOpt,
+                                                            lazyVariableSlotAllocator,
                                                             compilationState,
                                                             If(symbolsCapturedWithoutCopyCtor, SpecializedCollections.EmptySet(Of Symbol)),
                                                             diagnostics,
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return bodyWithoutLambdas
             End If
 
-            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, variableSlotAllocatorOpt, stateMachineTypeOpt)
+            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, lazyVariableSlotAllocator, stateMachineTypeOpt)
         End Function
 
         Friend Shared Function RewriteIteratorAndAsync(bodyWithoutLambdas As BoundBlock,

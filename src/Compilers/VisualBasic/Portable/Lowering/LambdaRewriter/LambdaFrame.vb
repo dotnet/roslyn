@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -105,8 +106,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Shared Sub AssertIsLambdaScopeSyntax(syntax As VisualBasicSyntaxNode)
-            ' TODO:
+        Private Shared Sub AssertIsLambdaScopeSyntax(syntaxOpt As VisualBasicSyntaxNode)
+            'TODO: Add checks for possible syntax
         End Sub
 
         Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode

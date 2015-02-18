@@ -296,9 +296,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Me.lazyStaticLambdaFrame Is Nothing Then
                     Dim methodId As MethodDebugId
-                    ' Test Begin
-                    'Debug.Assert(CompilationState.ModuleBuilderOpt IsNot Nothing)
-                    ' Test End
                     If isNonGeneric Then
                         methodId = New MethodDebugId(MethodDebugId.UndefinedOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
                     Else
@@ -317,8 +314,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' add frame type
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
 
-                    ' add its ctor
+                    ' associate the frame with the the first lambda that caused it to exist. 
+                    ' we need to associate this with somme syntax.
+                    ' unfortunately either containing method or containing class could be synthetic
+                    ' therefore could have no syntax.
                     Dim syntax = lambda.Syntax
+
+                    ' add its ctor
                     CompilationState.AddSynthesizedMethod(frame.Constructor, MakeFrameCtor(frame, diagnostics))
 
                     ' add cctor
@@ -978,7 +980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim translatedLambdaContainer As InstanceTypeSymbol
             Dim lambdaScope As BoundNode = Nothing
-            Dim closureOrdinal As Integer = -1
+            Dim closureOrdinal As Integer
             Dim closureKind As ClosureKind
 
             If _analysis.lambdaScopes.TryGetValue(node.LambdaSymbol, lambdaScope) Then
@@ -988,9 +990,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf _analysis.capturedVariablesByLambda(node.LambdaSymbol).Count = 0
                 translatedLambdaContainer = GetStaticFrame(node, Diagnostics)
                 closureKind = ClosureKind.Static
+                closureOrdinal = -1
             Else
                 translatedLambdaContainer = DirectCast(_topLevelMethod.ContainingType, InstanceTypeSymbol)
                 closureKind = ClosureKind.ThisOnly
+                closureOrdinal = -1
             End If
 
             Dim lambdaOrdinal As Integer
