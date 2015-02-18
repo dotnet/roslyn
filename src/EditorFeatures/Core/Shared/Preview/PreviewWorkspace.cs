@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
     internal class PreviewWorkspace : Workspace
     {
-        private IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private ISolutionCrawlerRegistrationService _workCoordinatorService;
 
         public PreviewWorkspace()
         : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public void EnableDiagnostic()
         {
-            _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
+            _workCoordinatorService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
             if (_workCoordinatorService != null)
             {
                 _workCoordinatorService.Register(this);
