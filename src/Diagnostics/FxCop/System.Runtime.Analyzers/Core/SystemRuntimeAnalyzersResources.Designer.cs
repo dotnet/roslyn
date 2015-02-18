@@ -134,6 +134,42 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Define accessors for attribute arguments..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArguments {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a public read-only property accessor for positional argument &apos;{0}&apos; of attribute &apos;{1}&apos;..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArgumentsDefault {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArgumentsDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If &apos;{0}&apos; is the property accessor for positional argument &apos;{1}&apos;, ensure that property getter is public..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArgumentsIncreaseVisibility {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArgumentsIncreaseVisibility", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove the property setter from &apos;{0}&apos; or reduce its accessibility because it corresponds to positional argument &apos;{1}&apos;..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArgumentsRemoveSetter {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArgumentsRemoveSetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement IDisposable Interface.
         /// </summary>
         internal static string ImplementIDisposableInterface {

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.Analyzers
 {
     /// <summary>
     /// CA1019: Define accessors for attribute arguments
@@ -16,19 +16,19 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// Cause:
     /// In its constructor, an attribute defines arguments that do not have corresponding properties.
     /// </summary>
-    public abstract class CA1019DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
+    public abstract class DefineAccessorsForAttributeArgumentsAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1019";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DefineAccessorsForAttributeArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,
                                                                          "{0}",
-                                                                         FxCopDiagnosticCategory.Design,
+                                                                         DiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182136.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -38,9 +38,18 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             }
         }
 
-        protected override void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            if (symbol != null && symbol.IsAttribute() && symbol.DeclaredAccessibility != Accessibility.Private)
+            analysisContext.RegisterSymbolAction(context =>
+            {
+                AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
+            },
+            SymbolKind.NamedType);
+        }
+
+        private void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        {
+            if (symbol != null && symbol.GetBaseTypesAndThis().Contains(WellKnownTypes.Attribute(compilation)) && symbol.DeclaredAccessibility != Accessibility.Private)
             {
                 IEnumerable<IParameterSymbol> parametersToCheck = GetAllPublicConstructorParameters(symbol);
                 if (parametersToCheck.Any())
@@ -98,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         {
             foreach (var parameter in parameters)
             {
-                if (!parameter.Type.IsErrorType())
+                if (parameter.Type.Kind != SymbolKind.ErrorType)
                 {
                     IPropertySymbol property;
                     if (!propertiesMap.TryGetValue(parameter.Name, out property) ||
@@ -148,21 +157,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         private static Diagnostic GetDefaultDiagnostic(IParameterSymbol parameter, INamedTypeSymbol attributeType)
         {
             // Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsDefault, parameter.Name, attributeType.Name);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsDefault, parameter.Name, attributeType.Name);
             return parameter.CreateDiagnostic(Rule, message);
         }
 
         private static Diagnostic GetIncreaseVisibilityDiagnostic(IParameterSymbol parameter, IPropertySymbol property)
         {
             // If '{0}' is the property accessor for positional argument '{1}', make it public.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, property.Name, parameter.Name);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, property.Name, parameter.Name);
             return property.GetMethod.CreateDiagnostic(Rule, message);
         }
 
         private static Diagnostic GetRemoveSetterDiagnostic(IParameterSymbol parameter, IPropertySymbol property)
         {
             // Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsRemoveSetter, property.Name, parameter.Name);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsRemoveSetter, property.Name, parameter.Name);
             return property.SetMethod.CreateDiagnostic(Rule, message);
         }
     }

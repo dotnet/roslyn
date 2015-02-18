@@ -86,7 +86,6 @@
     <Compile Include="Design\CA1014Tests.cs" />
     <Compile Include="Design\CA1016Tests.cs" />
     <Compile Include="Design\CA1017Tests.cs" />
-    <Compile Include="Design\CA1019Tests.cs" />
     <Compile Include="Design\CA1024Tests.cs" />
     <Compile Include="Design\CA1052Tests.cs" />
     <Compile Include="Design\CA1053Tests.cs" />

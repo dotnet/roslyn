@@ -153,4 +153,16 @@
   <data name="MarkAttributesWithAttributeUsage" xml:space="preserve">
     <value>Specify AttributeUsage attribute on '{0}' attribute class.</value>
   </data>
+  <data name="DefineAccessorsForAttributeArguments" xml:space="preserve">
+    <value>Define accessors for attribute arguments.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArgumentsDefault" xml:space="preserve">
+    <value>Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArgumentsIncreaseVisibility" xml:space="preserve">
+    <value>If '{0}' is the property accessor for positional argument '{1}', ensure that property getter is public.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArgumentsRemoveSetter" xml:space="preserve">
+    <value>Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.</value>
+  </data>
 </root>

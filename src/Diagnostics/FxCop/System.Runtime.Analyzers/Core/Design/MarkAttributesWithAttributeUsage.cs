@@ -53,7 +53,7 @@ namespace System.Runtime.Analyzers
                 return;
             }
 
-            if (symbol.IsAbstract || !symbol.GetBaseTypes().Contains(WellKnownTypes.Attribute(compilation)))
+            if (symbol.IsAbstract || !symbol.GetBaseTypesAndThis().Contains(WellKnownTypes.Attribute(compilation)))
             {
                 return;
             }

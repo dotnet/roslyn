@@ -107,7 +107,6 @@
     <Compile Include="Design\CA1008DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1012DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1017DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CA1019DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1024DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1060DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CodeFixes\CA1008CodeFixProviderBase.cs" />
