@@ -137,6 +137,7 @@ namespace FakeSign
                             goto Help;
 
                         case 'u':
+                        case 'U':
                             unSign = true;
                             break;
 
@@ -166,6 +167,7 @@ namespace FakeSign
 
         Help:
             Console.Error.WriteLine("Usage:\nFakeSign [-u] assemblyPath");
+            Console.Error.WriteLine("    -u (unsign) Clears the strong name flag (default is to set the flag).");
             return 1;
         }
     }
