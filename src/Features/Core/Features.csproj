@@ -182,6 +182,7 @@
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
+    <Compile Include="Diagnostics\AnalyzerExceptionDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />

@@ -471,11 +471,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
         }
 
-        internal static bool IsAnalyzerExceptionDiagnostic(string diagnosticId, IEnumerable<string> customTags)
+        internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnosticId == DiagnosticId)
+            if (diagnostic.Id == DiagnosticId)
             {
-                foreach (var tag in customTags)
+                foreach (var tag in diagnostic.Descriptor.CustomTags)
                 {
                     if (tag == WellKnownDiagnosticTags.AnalyzerException)
                     {

@@ -171,21 +171,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 Contract.ThrowIfNull(provider);
 
                 // Get the unique ID for given diagnostic analyzer.
-                // note that we also put version stamp so that we can detect changed provider
-                var providerType = provider.GetType();
-                var location = providerType.Assembly.Location;
-
-                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + providerType.AssemblyQualifiedName, GetProviderVersion(location));
-            }
-
-            private static VersionStamp GetProviderVersion(string path)
-            {
-                if (path == null || !File.Exists(path))
-                {
-                    return VersionStamp.Default;
-                }
-
-                return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
+                // note that we also put version stamp so that we can detect changed analyzer.
+                var tuple = WorkspaceAnalyzerManager.GetUniqueIdForAnalyzer(provider);
+                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + tuple.Item1, tuple.Item2);
             }
 
             public DiagnosticState GetDiagnosticState(StateType stateType, ProviderId providerId, ProjectId projectId, string language)
@@ -208,10 +196,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return projectAnalyzersAndStates.GetDiagnosticState(stateType, providerId);
             }
 
-            public bool RemoveProjectAnalyzersAndStates(ProjectId projectId)
+            public bool TryRemoveProjectAnalyzersAndStates(ProjectId projectId, out ImmutableArray<DiagnosticAnalyzer> removedAnalyzers)
             {
                 ProjectAnalyzersAndStates projectAnalyzersAndStates;
-                return _projectAnalyzersAndStatesMap.TryRemove(projectId, out projectAnalyzersAndStates);
+                if (_projectAnalyzersAndStatesMap.TryRemove(projectId, out projectAnalyzersAndStates))
+                {
+                    removedAnalyzers = projectAnalyzersAndStates.GetAllProviderAndIds().Select(kvp => kvp.Key).ToImmutableArray();
+                    return true;
+                }
+
+                removedAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+                return false;
             }
 
             private async Task<ProjectAnalyzersAndStates> GetOrCreateProjectAnalyzersAndStatesAsync(Project project, CancellationToken cancellationToken)

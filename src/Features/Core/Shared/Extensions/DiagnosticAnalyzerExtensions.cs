@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Roslyn.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 bool cantSupportSemanticSpanAnalysis = false;
                 var analyzerActions = AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, 
                     null,
-                    _ => { },
+                    d => driver.ReportAnalyzerExceptionDiagnostics(analyzer, ImmutableArray.Create(d), compilation: null),
                     null,
                     driver.CatchAnalyzerExceptionHandler,
                     driver.CancellationToken).WaitAndGetResult(driver.CancellationToken);
