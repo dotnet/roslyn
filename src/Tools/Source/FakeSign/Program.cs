@@ -30,7 +30,7 @@ namespace FakeSign
          + sizeof(Int16)  // minor version
          + sizeof(Int64); // metadata directory
 
-        private static bool ExecuteCore(string assemblyPath)
+        private static bool ExecuteCore(string assemblyPath, bool unSign = false)
         {
             if (Directory.Exists(assemblyPath))
             {
@@ -48,14 +48,21 @@ namespace FakeSign
             using (var reader = new PEReader(stream))
             using (var writer = new BinaryWriter(stream))
             {
-                if (!Validate(reader))
+                if (!Validate(reader, unSign))
                 {
-                    Console.Error.WriteLine($"Unable to sign {assemblyPath}");
+                    if (unSign)
+                    {
+                        Console.Error.WriteLine($"Unable to un-sign {assemblyPath}");
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine($"Unable to sign {assemblyPath}");
+                    }
                     return false;
                 }
 
                 stream.Position = reader.PEHeaders.CorHeaderStartOffset + OffsetFromStartOfCorHeaderToFlags;
-                writer.Write((UInt32)(reader.PEHeaders.CorHeader.Flags | CorFlags.StrongNameSigned));
+                writer.Write((UInt32)(reader.PEHeaders.CorHeader.Flags ^ CorFlags.StrongNameSigned));
             }
 
             return true;
@@ -65,7 +72,7 @@ namespace FakeSign
         /// Returns true if the PE file meets all of the pre-conditions to be Open Source Signed.
         /// Returns false and logs msbuild errors otherwise.
         /// </summary>
-        private static bool Validate(PEReader peReader)
+        private static bool Validate(PEReader peReader, bool unSign)
         {
             if (!peReader.HasMetadata)
             {
@@ -81,10 +88,21 @@ namespace FakeSign
             }
 
             CorHeader header = peReader.PEHeaders.CorHeader;
-            if ((header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned)
+            if (unSign)
             {
-                Console.Error.WriteLine("PE file is already strong-name signed.");
-                return false;
+                if ((header.Flags & CorFlags.StrongNameSigned) == 0)
+                {
+                    Console.Error.WriteLine("PE file is not strong-name signed.");
+                    return false;
+                }
+            }
+            else
+            {
+                if ((header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned)
+                {
+                    Console.Error.WriteLine("PE file is already strong-name signed.");
+                    return false;
+                }
             }
 
             if ((header.StrongNameSignatureDirectory.Size <= 0) || mdReader.GetAssemblyDefinition().PublicKey.IsNil)
@@ -121,20 +139,49 @@ namespace FakeSign
 
         internal static int Main(string[] args)
         {
-            // Create a byte array to hold the information.
-            if (args.Length == 0)
+            string file = null;
+            bool unSign = false;
+
+            foreach (string arg in args)
             {
-                Console.Error.WriteLine("No file passed");
-                return 1;
+                if (arg.Length >= 2 && (arg[0] == '-' || arg[0] == '/'))
+                {
+                    switch (arg[1])
+                    {
+                        case '?':
+                            goto Help;
+
+                        case 'u':
+                            unSign = true;
+                            break;
+
+                        default:
+                            Console.Error.WriteLine($"Unrecognized switch {arg}");
+                            goto Help;
+                    }
+                }
+                else if (file != null)
+                {
+                    Console.Error.WriteLine("Too many arguments.");
+                    goto Help;
+                }
+                else
+                {
+                    file = arg;
+                }
             }
 
-            if (!ExecuteCore(args[0]))
+            if (!ExecuteCore(file, unSign))
             {
                 Console.Error.WriteLine("Could not sign assembly");
                 return 1;
             }
 
             return 0;
+
+        Help:
+            Console.Error.WriteLine("Usage:\nFakeSign [-u] assemblyPath");
+            return 1;
         }
     }
 }
