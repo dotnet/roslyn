@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
         // These are run only once per every analyzer.
-        private ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
-            ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>.Empty;
+        private ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
+            new ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>();
 
         // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
         // Compilation start actions will get executed once per-each compilation as user might want to return different set of custom actions for each compilation.
@@ -75,16 +75,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }, cancellationToken);
             };
 
-            var task = ImmutableInterlocked.GetOrAdd(ref _sessionScopeMap, analyzer, getTask);
-
-            // Retry cancelled task.
-            if (task.Status == TaskStatus.Canceled)
-            {
-                ImmutableInterlocked.TryUpdate(ref _sessionScopeMap, analyzer, getTask(analyzer), task);
-                return _sessionScopeMap[analyzer];
-            }
-
-            return task;
+            var callback = new ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>.CreateValueCallback(getTask);
+            return _sessionScopeMap.GetValue(analyzer, callback);
         }
 
         /// <summary>
@@ -115,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
             DiagnosticAnalyzer analyzer,
-            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {

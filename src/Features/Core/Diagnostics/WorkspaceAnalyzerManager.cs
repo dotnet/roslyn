@@ -77,10 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
             // TODO: report diagnostics from exceptions thrown in DiagnosticAnalyzer.SupportedDiagnostics
-            Action<Diagnostic> dummyAddDiagnostic = _ => { };
 
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => !AnalyzerHelper.IsBuiltInAnalyzer(analyzer);
-            return AnalyzerManager.Default.GetSupportedDiagnosticDescriptors(analyzer, dummyAddDiagnostic, continueOnAnalyzerException, CancellationToken.None);
+            return AnalyzerManager.Default.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, CancellationToken.None);
         }
 
         /// <summary>

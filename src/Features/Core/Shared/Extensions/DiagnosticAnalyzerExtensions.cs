@@ -27,11 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // to be able to operate on a limited span of the document. In practical terms, no analyzer
                 // can have both SemanticDocumentAnalysis and SemanticSpanAnalysis as categories.
                 bool cantSupportSemanticSpanAnalysis = false;
-                var analyzerActions = AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, 
-                    null,
-                    null,
-                    driver.CatchAnalyzerExceptionHandler,
-                    driver.CancellationToken).WaitAndGetResult(driver.CancellationToken);
+                var analyzerActions = driver.GetAnalyzerActionsAsync(analyzer).WaitAndGetResult(driver.CancellationToken);
                 if (analyzerActions != null)
                 {
                     if (analyzerActions.SyntaxTreeActionsCount > 0)

@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Properties,
                 workspace,
                 projectId: null,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),

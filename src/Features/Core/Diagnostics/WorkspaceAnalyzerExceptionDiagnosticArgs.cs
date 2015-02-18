@@ -9,17 +9,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly Diagnostic Diagnostic;
         public readonly DiagnosticAnalyzer FaultedAnalyzer;
         public readonly Workspace Workspace;
+        public readonly Project Project;
 
-        public WorkspaceAnalyzerExceptionDiagnosticArgs(AnalyzerExceptionDiagnosticArgs args, Workspace workspace)
-            : this(args.FaultedAnalyzer, args.Diagnostic, workspace)
+        public WorkspaceAnalyzerExceptionDiagnosticArgs(AnalyzerExceptionDiagnosticArgs args, Workspace workspace, Project project)
+            : this(args.FaultedAnalyzer, args.Diagnostic, workspace, project)
         {            
         }
 
-        public WorkspaceAnalyzerExceptionDiagnosticArgs(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace)
+        public WorkspaceAnalyzerExceptionDiagnosticArgs(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, Project project)
         {
             this.FaultedAnalyzer = analyzer;
             this.Diagnostic = diagnostic;
             this.Workspace = workspace;
+            this.Project = project;
         }
     }
 }

@@ -125,6 +125,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
+
+                _hostDiagnosticUpdateSource.ClearAnalyzerSpecificDiagnostics((AnalyzerFileReference)_analyzerReference, _language);
             }
 
             _analyzerLoadErrors = null;

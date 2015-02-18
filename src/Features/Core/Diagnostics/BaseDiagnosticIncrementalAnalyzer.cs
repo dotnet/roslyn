@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected BaseDiagnosticIncrementalAnalyzer(Workspace workspace)
         {
             this.Workspace = workspace;
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
-        }
-
-        ~BaseDiagnosticIncrementalAnalyzer()
-        {
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
         }
 
         #region IIncrementalAnalyzer
@@ -55,19 +49,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public virtual void LogAnalyzerCountSummary()
         {
-        }
-
-        internal static event EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
-
-        private void OnAnalyzerExceptionDiagnostic(object sender, AnalyzerExceptionDiagnosticArgs args)
-        {
-            var workspaceArgs = new WorkspaceAnalyzerExceptionDiagnosticArgs(args, Workspace);
-            AnalyzerExceptionDiagnostic?.Invoke(this, workspaceArgs);
-        }
-
-        internal static void OnAnalyzerExceptionDiagnostic(object sender, WorkspaceAnalyzerExceptionDiagnosticArgs args)
-        {
-            AnalyzerExceptionDiagnostic?.Invoke(sender, args);
         }
     }
 }

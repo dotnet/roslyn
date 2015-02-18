@@ -17,14 +17,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     internal sealed class HostDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly AnalyzerDiagnosticUpdateSource _analyzerDiagnosticsSource;
 
         private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
 
         [ImportingConstructor]
         public HostDiagnosticUpdateSource(
-            VisualStudioWorkspaceImpl workspace)
+            VisualStudioWorkspaceImpl workspace,
+            AnalyzerDiagnosticUpdateSource analyzerDiagnosticsSource)
         {
             _workspace = workspace;
+            _analyzerDiagnosticsSource = analyzerDiagnosticsSource;
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
@@ -77,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
                 }
-            }
+            }            
         }
 
         public void ClearDiagnosticsForProject(ProjectId projectId, object key)
@@ -92,6 +95,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
                 }
+            }
+        }
+
+        public void ClearAnalyzerSpecificDiagnostics(AnalyzerFileReference analyzerReference, string language)
+        {
+            foreach (var analyzer in analyzerReference.GetAnalyzers(language))
+            {
+                _analyzerDiagnosticsSource.ClearDiagnostics(analyzer, _workspace);
             }
         }
     }

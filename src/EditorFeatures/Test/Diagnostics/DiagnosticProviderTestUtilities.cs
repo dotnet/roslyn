@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzer = analyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
 
             var exceptionDiagnostics = new List<Diagnostic>();
-            EventHandler<AnalyzerExceptionDiagnosticArgs> addExceptionDiagnostic = (sender, args) =>
+            EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> addExceptionDiagnostic = (sender, args) =>
             {
                 if (args.FaultedAnalyzer == analyzer)
                 {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             };
 
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += addExceptionDiagnostic;
+            DiagnosticAnalyzerDriver.AnalyzerExceptionDiagnostic += addExceptionDiagnostic;
 
             if (getDocumentDiagnostics)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic -= addExceptionDiagnostic;
+            DiagnosticAnalyzerDriver.AnalyzerExceptionDiagnostic -= addExceptionDiagnostic;
 
             return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }
