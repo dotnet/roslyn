@@ -771,6 +771,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.CustomTags,
+                diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
                 diagnostic.DocumentId,
