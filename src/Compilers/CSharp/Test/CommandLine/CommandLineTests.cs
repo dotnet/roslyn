@@ -1622,7 +1622,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantReadRulesetFile, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal(file.Path, (string)err.Arguments[0]);
-            if (Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en") || Thread.CurrentThread.CurrentUICulture.Name == "")
+            if (Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en", StringComparison.Ordinal) || Thread.CurrentThread.CurrentUICulture.Name == "")
             {
                 Assert.Equal("Data at the root level is invalid. Line 1, position 1.", (string)err.Arguments[1]);
             }
@@ -2673,7 +2673,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", "/out:" + subFolder.ToString(), src.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.True(outWriter.ToString().Trim().StartsWith("error CS2012: Cannot open '" + subFolder.ToString() + "' for writing -- '")); // Cannot create a file when that file already exists.
+            Assert.True(outWriter.ToString().Trim().StartsWith("error CS2012: Cannot open '" + subFolder.ToString() + "' for writing -- '", StringComparison.Ordinal)); // Cannot create a file when that file already exists.
 
             CleanupAllGeneratedFiles(src.Path);
         }
@@ -5697,7 +5697,7 @@ class Program
             MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/debug", "/preferreduilang:en", sourcePath);
             csc.FileMove = (source, dest) =>
             {
-                if (dest.EndsWith(".pdb"))
+                if (dest.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new IOException();
                 }
@@ -6228,7 +6228,7 @@ using System*
 ";
             syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
             text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
-            Assert.True(text.StartsWith(".>"));
+            Assert.True(text.StartsWith(".>", StringComparison.Ordinal));
 
             sampleProgram = @"
 #line 10 ""http://foo.bar/baz.aspx"" //URI
@@ -6236,7 +6236,7 @@ using System*
 ";
             syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "filename.cs");
             text = comp.DiagnosticFormatter.Format(syntaxTree.GetDiagnostics().First());
-            Assert.True(text.StartsWith("http://foo.bar/baz.aspx"));
+            Assert.True(text.StartsWith("http://foo.bar/baz.aspx", StringComparison.Ordinal));
         }
 
         [WorkItem(1119609, "DevDiv")]
@@ -6524,11 +6524,11 @@ using System.Diagnostics; // Unused.
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
-            var index = source.IndexOf(word);
+            var index = source.IndexOf(word, StringComparison.Ordinal);
             while (index >= 0)
             {
                 ++n;
-                index = source.IndexOf(word, index + word.Length);
+                index = source.IndexOf(word, index + word.Length, StringComparison.Ordinal);
             }
             return n;
         }

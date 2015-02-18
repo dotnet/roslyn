@@ -141,12 +141,12 @@ class X
             {
                 ErrorCode errorCode = (ErrorCode)i;
                 string errorCodeName = errorCode.ToString();
-                if (errorCodeName.StartsWith("WRN"))
+                if (errorCodeName.StartsWith("WRN", StringComparison.Ordinal))
                 {
                     Assert.True(ErrorFacts.IsWarning(errorCode));
                     Assert.NotEqual(0, ErrorFacts.GetWarningLevel(errorCode));
                 }
-                else if (errorCodeName.StartsWith("ERR"))
+                else if (errorCodeName.StartsWith("ERR", StringComparison.Ordinal))
                 {
                     Assert.False(ErrorFacts.IsWarning(errorCode));
                     Assert.Equal(0, ErrorFacts.GetWarningLevel(errorCode));
@@ -176,7 +176,7 @@ class X
             {
                 ErrorCode errorCode = (ErrorCode)i;
                 string errorCodeName = errorCode.ToString();
-                if (errorCodeName.StartsWith("WRN"))
+                if (errorCodeName.StartsWith("WRN", StringComparison.Ordinal))
                 {
                     Assert.True(ErrorFacts.IsWarning(errorCode));
                     switch (errorCode)
@@ -2013,7 +2013,7 @@ class Program
         private TextSpan GetSpanIn(SyntaxTree syntaxTree, string textToFind)
         {
             string s = syntaxTree.GetText().ToString();
-            int index = s.IndexOf(textToFind);
+            int index = s.IndexOf(textToFind, StringComparison.Ordinal);
             Assert.True(index >= 0, "textToFind not found in the tree");
             return new TextSpan(index, textToFind.Length);
         }

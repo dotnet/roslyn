@@ -3704,7 +3704,7 @@ public class C {
 }
 ");
                 var tree = compilation.SyntaxTrees.First();
-                var index = tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Class)");
+                var index = tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Class)", StringComparison.Ordinal);
                 var tok = tree.GetCompilationUnitRoot().FindToken(index);
                 var node = tok.Parent as StatementSyntax;
                 Assert.Null(node);
@@ -4852,7 +4852,7 @@ class C
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o"));
+            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o", StringComparison.Ordinal));
             var analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(analysis.VariablesDeclared));
@@ -4887,7 +4887,7 @@ class C
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o"));
+            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("S<object> o", StringComparison.Ordinal));
             var analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(analysis.VariablesDeclared));
@@ -4922,7 +4922,7 @@ class Program
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("switch"));
+            var statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("switch", StringComparison.Ordinal));
             Assert.Equal("switch (args[0]) {}", statement.ToFullString());
             var analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
@@ -4949,7 +4949,7 @@ class Program
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("EditorOperations"));
+            var statement = GetLastNode<StatementSyntax>(tree, root.ToFullString().IndexOf("EditorOperations", StringComparison.Ordinal));
             Assert.Equal("this.EditorOperations = 1;", statement.ToString());
             var analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
@@ -5015,7 +5015,7 @@ public class ExportedSymbol
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("P = new object()"));
+            var statement = GetFirstNode<StatementSyntax>(tree, root.ToFullString().IndexOf("P = new object()", StringComparison.Ordinal));
             var analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
         }
@@ -5042,7 +5042,7 @@ public class ExportedSymbol
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot();
-            var expression = GetLastNode<ExpressionSyntax>(tree, root.ToFullString().IndexOf("value "));
+            var expression = GetLastNode<ExpressionSyntax>(tree, root.ToFullString().IndexOf("value ", StringComparison.Ordinal));
             var analysis = model.AnalyzeDataFlow(expression);
             Assert.True(analysis.Succeeded);
             Assert.Equal(null, GetSymbolNamesSortedAndJoined(analysis.DataFlowsOut));

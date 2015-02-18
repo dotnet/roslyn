@@ -1593,13 +1593,13 @@ lNothing :
         Private Sub TestConversion_TypeMatrix_Specific(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
             Select Case type2
                 Case "Boolean"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CBool({0})", list)
 
                 Case "Byte"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CByte({0})", list)
@@ -1614,25 +1614,25 @@ lNothing :
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CDate({0})", list)
 
                 Case "Double"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CDbl({0})", list)
 
                 Case "Decimal"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CDec({0})", list)
 
                 Case "Integer"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CInt({0})", list)
 
                 Case "Long"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CLng({0})", list)
@@ -1641,13 +1641,13 @@ lNothing :
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CObj({0})", list)
 
                 Case "Short"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CShort({0})", list)
 
                 Case "Single"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CSng({0})", list)

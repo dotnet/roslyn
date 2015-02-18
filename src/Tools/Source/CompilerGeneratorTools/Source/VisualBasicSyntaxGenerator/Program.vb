@@ -15,9 +15,9 @@ Module Program
 
         Try
 
-            Dim paths = From arg In args Where Not arg.StartsWith("/")
+            Dim paths = From arg In args Where Not arg.StartsWith("/", StringComparison.Ordinal)
 
-            Dim switches = From arg In args Where arg.StartsWith("/")
+            Dim switches = From arg In args Where arg.StartsWith("/", StringComparison.Ordinal)
 
             ' Write usage.
             If switches.Contains("/?") OrElse paths.Count <> 2 OrElse switches.Count > 1 Then

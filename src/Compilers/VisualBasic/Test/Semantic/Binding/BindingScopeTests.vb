@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim tree As SyntaxTree = CompilationUtils.GetTree(comp, treeName)
             Dim treeText As String = tree.GetText().ToString()
             Dim expectedScopeText As String = expectedScope.Value.Replace(vbLf, vbCrLf)
-            Dim expectedStart As Integer = treeText.IndexOf(expectedScopeText)
+            Dim expectedStart As Integer = treeText.IndexOf(expectedScopeText, StringComparison.Ordinal)
             Assert.True(expectedStart >= 0, "did not found expectedScope")
             Dim expectedEnd As Integer = expectedStart + expectedScopeText.Length
 

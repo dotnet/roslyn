@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expected = string.Join("\n", source
                 .Split(new[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Contains("//-"))
-                .Select(x => x.Substring(x.IndexOf("//-") + 3))
+                .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3))
                 .ToArray());
 
             AssertEx.Equal(expected, results);

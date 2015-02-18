@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             // In VB, the final newline is likely a statement terminator in the parent - just add
             // one on so that things don't get messed.
-            if (!newMemberText.EndsWith(Environment.NewLine))
+            if (!newMemberText.EndsWith(Environment.NewLine, StringComparison.Ordinal))
             {
                 newMemberText += Environment.NewLine;
             }

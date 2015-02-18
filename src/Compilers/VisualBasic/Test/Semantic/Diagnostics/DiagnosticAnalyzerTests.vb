@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim id = CType(context.Node, IdentifierNameSyntax)
-                If id.Identifier.ValueText.StartsWith("x") Then
+                If id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal) Then
                     context.ReportDiagnostic(New TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.GetLocation(), "Use of variable whose name starts with 'x': '{0}'", False, id.Identifier.ValueText))
                 End If
             End Sub

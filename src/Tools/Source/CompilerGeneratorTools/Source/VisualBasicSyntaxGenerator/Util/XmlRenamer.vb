@@ -53,10 +53,10 @@ Public Class XmlRenamer
 
     Private Function Cleanup(s As String) As String
         s = s.Trim()
-        If s.StartsWith("[") AndAlso s.EndsWith("]") Then
+        If s.StartsWith("[", StringComparison.Ordinal) AndAlso s.EndsWith("]", StringComparison.Ordinal) Then
             s = s.Substring(1, s.Length - 2)
         End If
-        If s.StartsWith("Optional") Then
+        If s.StartsWith("Optional", StringComparison.Ordinal) Then
             s = s.Substring("Optional".Length)
         End If
 
@@ -121,7 +121,7 @@ Public Class XmlRenamer
             Return -1
         End If
 
-        Dim index As Integer = attrValue.IndexOf(kind)
+        Dim index As Integer = attrValue.IndexOf(kind, StringComparison.Ordinal)
 
         If (index > 0 AndAlso attrValue(index - 1) <> "|"c) Then
             Return -1    ' must be preceded by vert bar or nothing.

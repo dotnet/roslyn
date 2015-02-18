@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 '
                 ' We replicate the same behavior below
 
-                Dim exponentIndex As Integer = valueText.IndexOf("E")
+                Dim exponentIndex As Integer = valueText.IndexOf("E"c)
                 If exponentIndex > 0 Then
                     Dim exponent = Integer.Parse(valueText.Substring(exponentIndex + 1), CultureInfo.InvariantCulture)
                     If exponent < 0 Then

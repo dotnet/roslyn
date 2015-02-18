@@ -1484,7 +1484,7 @@ class C
 }";
             // Make sure the source contains an array with too many dimensions.
             var tooManyCommas = new string(',', 256);
-            Assert.True(source.IndexOf(tooManyCommas) > 0);
+            Assert.True(source.IndexOf(tooManyCommas, StringComparison.Ordinal) > 0);
 
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
