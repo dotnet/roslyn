@@ -94,6 +94,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Type = value
         End Function
 
+        Protected Overrides Function AddAttribute(codeElement As EnvDTE80.CodeFunction2, data As AttributeData) As EnvDTE.CodeAttribute
+            Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
+        End Function
+
         Protected Overrides Function AddParameter(codeElement As EnvDTE80.CodeFunction2, data As ParameterData) As EnvDTE.CodeParameter
             Return codeElement.AddParameter(data.Name, data.Type, data.Position)
         End Function
