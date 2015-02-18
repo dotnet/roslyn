@@ -55,11 +55,8 @@
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <Compile Include="CSharpFormatter.cs" />
     <Compile Include="CSharpResultProvider.cs" />

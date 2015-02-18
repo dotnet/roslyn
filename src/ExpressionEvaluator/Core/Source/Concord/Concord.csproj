@@ -33,11 +33,8 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata" />
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine" />

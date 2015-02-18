@@ -54,7 +54,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutDir>..\..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
@@ -65,7 +64,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>..\..\..\..\..\Binaries\Release\amd64</OutDir>
-    <DefineConstants>TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>

@@ -47,11 +47,8 @@
       <Name>ExpressionCompiler</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

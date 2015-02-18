@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly bool IsEnabledByDefault;
         public readonly int WarningLevel;
         public readonly IReadOnlyList<string> CustomTags;
+        public readonly ImmutableDictionary<string, string> Properties;
 
         // temporary until we make diagnostic data to point back to diagnostic descriptor
         public readonly string MessageFormat;
@@ -59,10 +61,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string message,
             string messageFormat,
             DiagnosticSeverity severity,
+            bool isEnabledByDefault,
+            int warningLevel,
+            Workspace workspace,
+            ProjectId projectId,
+            DocumentId documentId = null,
+            TextSpan? span = null,
+            string originalFilePath = null,
+            int originalStartLine = 0,
+            int originalStartColumn = 0,
+            int originalEndLine = 0,
+            int originalEndColumn = 0,
+            string title = null,
+            string description = null,
+            string helpLink = null) :
+                this(
+                    id, category, message, messageFormat, 
+                    severity, severity, isEnabledByDefault, warningLevel, 
+                    ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
+                    workspace, projectId, documentId, span,
+                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn, 
+                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                    title, description, helpLink)
+        {
+        }
+
+        public DiagnosticData(
+            string id,
+            string category,
+            string message,
+            string messageFormat,
+            DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
             IReadOnlyList<string> customTags,
+            ImmutableDictionary<string, string> properties,
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId = null,
@@ -91,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.IsEnabledByDefault = isEnabledByDefault;
             this.WarningLevel = warningLevel;
             this.CustomTags = customTags;
+            this.Properties = properties;
 
             this.Workspace = workspace;
             this.ProjectId = projectId;
@@ -180,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location = tree.GetLocation(span);
             }
 
-            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags);
+            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
@@ -288,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Properties,
                 project.Solution.Workspace,
                 project.Id,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
@@ -324,6 +360,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Properties,
                 document.Project.Solution.Workspace,
                 document.Project.Id,
                 document.Id,

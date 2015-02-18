@@ -43,12 +43,8 @@
       <Name>Features</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

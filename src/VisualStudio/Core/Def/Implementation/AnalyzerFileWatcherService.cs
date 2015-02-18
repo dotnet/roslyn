@@ -80,10 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 message,
                 ServicesVSResources.WRN_AnalyzerChangedMessage,
                 severity: DiagnosticSeverity.Warning,
-                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
                 workspace: _workspace,
                 projectId: projectId);
 

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -34,7 +35,24 @@ namespace Microsoft.CodeAnalysis
             Location location,
             params object[] messageArgs)
         {
-            return Create(descriptor, location, null, messageArgs);
+            return Create(descriptor, location, null, null, messageArgs);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Diagnostic"/> instance.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic Create(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
+            return Create(descriptor, location, null, properties, messageArgs);
         }
 
         /// <summary>
@@ -55,6 +73,29 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<Location> additionalLocations,
             params object[] messageArgs)
         {
+            return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Diagnostic"/> instance.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic Create(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            IEnumerable<Location> additionalLocations,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
             if (descriptor == null)
             {
                 throw new ArgumentNullException("descriptor");
@@ -67,7 +108,8 @@ namespace Microsoft.CodeAnalysis
                 warningLevel: warningLevel,
                 location: location ?? Location.None,
                 additionalLocations: additionalLocations,
-                messageArgs: messageArgs);
+                messageArgs: messageArgs,
+                properties: properties);
         }
 
         /// <summary>
@@ -93,6 +135,7 @@ namespace Microsoft.CodeAnalysis
         /// An optional set of custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.
         /// If null, <see cref="CustomTags"/> will return an empty list.
         /// </param>
+        /// <param name="properties">An optional set of properties of the diagnostic. If null, <see cref="Properties"/> will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             string id,
@@ -107,7 +150,8 @@ namespace Microsoft.CodeAnalysis
             string helpLink = null,
             Location location = null,
             IEnumerable<Location> additionalLocations = null,
-            IEnumerable<string> customTags = null)
+            IEnumerable<string> customTags = null,
+            ImmutableDictionary<string, string> properties = null)
         {
             if (id == null)
             {
@@ -125,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return SimpleDiagnostic.Create(id, title ?? string.Empty, category, message, description ?? string.Empty, helpLink ?? string.Empty,
-                severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags);
+                severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags, properties);
         }
 
         internal static Diagnostic Create(CommonMessageProvider messageProvider, int errorCode)
@@ -222,6 +266,12 @@ namespace Microsoft.CodeAnalysis
         /// Gets custom tags for the diagnostic.
         /// </summary>
         internal virtual IReadOnlyList<string> CustomTags { get { return (IReadOnlyList<string>)this.Descriptor.CustomTags; } }
+
+        /// <summary>
+        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> if there is no entry.
+        /// This can be used to put diagnostic specific information you want to pass around. for example, to corresponding fixer.
+        /// </summary>
+        public virtual ImmutableDictionary<string, string> Properties { get { return ImmutableDictionary<string, string>.Empty; } }
 
         string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
         {
