@@ -19,6 +19,9 @@ namespace System.Runtime.Analyzers
     public abstract class DefineAccessorsForAttributeArgumentsAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1019";
+        internal const string AddAccessorCase = "AddAccessor";
+        internal const string MakePublicCase = "MakePublic";
+        internal const string RemoveSetterCase = "RemoveSetter";
         private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
@@ -158,21 +161,21 @@ namespace System.Runtime.Analyzers
         {
             // Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.
             var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsDefault, parameter.Name, attributeType.Name);
-            return parameter.CreateDiagnostic(Rule, message);
+            return parameter.Locations.CreateDiagnostic(Rule, new Dictionary<string, string> { { "case", AddAccessorCase } }.ToImmutableDictionary(), message);
         }
 
         private static Diagnostic GetIncreaseVisibilityDiagnostic(IParameterSymbol parameter, IPropertySymbol property)
         {
             // If '{0}' is the property accessor for positional argument '{1}', make it public.
             var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, property.Name, parameter.Name);
-            return property.GetMethod.CreateDiagnostic(Rule, message);
+            return property.GetMethod.Locations.CreateDiagnostic(Rule, new Dictionary<string, string> { { "case", MakePublicCase } }.ToImmutableDictionary(), message);
         }
 
         private static Diagnostic GetRemoveSetterDiagnostic(IParameterSymbol parameter, IPropertySymbol property)
         {
             // Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.
             var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsRemoveSetter, property.Name, parameter.Name);
-            return property.SetMethod.CreateDiagnostic(Rule, message);
+            return property.SetMethod.Locations.CreateDiagnostic(Rule, new Dictionary<string, string> { { "case", RemoveSetterCase } }.ToImmutableDictionary(), message);
         }
     }
 }

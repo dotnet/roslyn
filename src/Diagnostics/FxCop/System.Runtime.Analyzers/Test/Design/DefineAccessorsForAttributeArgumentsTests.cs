@@ -7,7 +7,7 @@ using Xunit;
 
 namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class DefineAccessorsForAttributeArgumentsTests : DiagnosticAnalyzerTestBase
+    public partial class DefineAccessorsForAttributeArgumentsTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {

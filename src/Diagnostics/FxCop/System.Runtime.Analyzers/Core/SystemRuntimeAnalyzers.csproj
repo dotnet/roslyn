@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
+    <Compile Include="Design\DefineAccessorsForAttributeArguments.Fixer.cs" />
     <Compile Include="Design\MarkAttributesWithAttributeUsage.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />

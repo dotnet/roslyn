@@ -97,6 +97,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.Fixer.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.cs" />
     <Compile Include="Design\MarkAttributesWithAttributeUsageTests.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.Fixer.cs" />
