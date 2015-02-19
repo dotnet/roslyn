@@ -30,17 +30,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Workspace workspace, Project project)
         {
-            EventHandler<AnalyzerExceptionDiagnosticArgs> handler = (sender, args) =>
-            {
-                if (analyzers.Contains(args.FaultedAnalyzer))
-                {
-                    var workspaceArgs = new WorkspaceAnalyzerExceptionDiagnosticArgs(args, workspace, project);
-                    AnalyzerExceptionDiagnostic?.Invoke(sender, workspaceArgs);
-                }
-            };
+            Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic = (sender, args) =>
+                ReportAnalyzerExceptionDiagnostic(sender, args, workspace, project);
 
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += handler;
-            return handler;
+            return AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, onAnalyzerExceptionDiagnostic);
         }
 
         internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Workspace workspace)
@@ -55,22 +48,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Workspace workspace, Project project)
         {
-            EventHandler<AnalyzerExceptionDiagnosticArgs> handler = (sender, args) =>
-            {
-                if (analyzer == args.FaultedAnalyzer)
-                {
-                    var workspaceArgs = new WorkspaceAnalyzerExceptionDiagnosticArgs(args, workspace, project);
-                    AnalyzerExceptionDiagnostic?.Invoke(sender, workspaceArgs);
-                }
-            };
+            Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic = (sender, args) =>
+                ReportAnalyzerExceptionDiagnostic(sender, args, workspace, project);
 
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += handler;
-            return handler;
+            return AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, onAnalyzerExceptionDiagnostic);
         }
 
         internal static void UnregisterAnalyzerExceptionDiagnosticHandler(EventHandler<AnalyzerExceptionDiagnosticArgs> handler)
         {
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic -= handler;
+            AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
         }
 
         internal static void ReportAnalyzerExceptionDiagnostic(object sender, DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace)
@@ -87,6 +73,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var args = new WorkspaceAnalyzerExceptionDiagnosticArgs(analyzer, diagnostic, workspace, project);
             AnalyzerExceptionDiagnostic?.Invoke(sender, args);
+        }
+
+        private static void ReportAnalyzerExceptionDiagnostic(object sender, AnalyzerExceptionDiagnosticArgs args, Workspace workspace, Project project)
+        {
+            var workspaceArgs = new WorkspaceAnalyzerExceptionDiagnosticArgs(args.FaultedAnalyzer, args.Diagnostic, workspace, project);
+            AnalyzerExceptionDiagnostic?.Invoke(sender, workspaceArgs);
         }
     }
 }

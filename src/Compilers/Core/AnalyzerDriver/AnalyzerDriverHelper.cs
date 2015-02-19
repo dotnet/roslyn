@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string DiagnosticId = "AD0001";
         private const string DiagnosticCategory = "Compiler";
 
-        public static event EventHandler<AnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
+        private static event EventHandler<AnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
@@ -489,6 +489,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+        }
+
+        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Action<Diagnostic> addAnalyzerExceptionDiagnostic)
+        {
+            Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic =
+                (sender, args) => addAnalyzerExceptionDiagnostic(args.Diagnostic);
+            return RegisterAnalyzerExceptionDiagnosticHandler(analyzers, onAnalyzerExceptionDiagnostic);
+        }
+
+        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Action<object, AnalyzerExceptionDiagnosticArgs> onAnayzerExceptionDiagnostic)
+        {
+            EventHandler<AnalyzerExceptionDiagnosticArgs> handler = (sender, args) =>
+            {
+                if (analyzers.Contains(args.FaultedAnalyzer))
+                {
+                    onAnayzerExceptionDiagnostic(sender, args);
+                }
+            };
+
+            AnalyzerExceptionDiagnostic += handler;
+            return handler;
+        }
+
+        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Action<Diagnostic> addAnalyzerExceptionDiagnostic)
+        {
+            Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic =
+                (sender, args) => addAnalyzerExceptionDiagnostic(args.Diagnostic);
+            return RegisterAnalyzerExceptionDiagnosticHandler(analyzer, onAnalyzerExceptionDiagnostic);
+        }
+
+        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Action<object, AnalyzerExceptionDiagnosticArgs> onAnayzerExceptionDiagnostic)
+        {
+            EventHandler<AnalyzerExceptionDiagnosticArgs> handler = (sender, args) =>
+            {
+                if (analyzer == args.FaultedAnalyzer)
+                {
+                    onAnayzerExceptionDiagnostic(sender, args);
+                }
+            };
+
+            AnalyzerExceptionDiagnostic += handler;
+            return handler;
+        }
+
+        internal static void UnregisterAnalyzerExceptionDiagnosticHandler(EventHandler<AnalyzerExceptionDiagnosticArgs> handler)
+        {
+            AnalyzerExceptionDiagnostic -= handler;
         }
     }
 }
