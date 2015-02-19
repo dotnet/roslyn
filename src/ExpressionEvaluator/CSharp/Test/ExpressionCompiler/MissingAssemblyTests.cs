@@ -345,6 +345,41 @@ class C
             Assert.Throws<Exception>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
         }
 
+        [WorkItem(1124725, "DevDiv")]
+        [Fact]
+        public void PseudoVariableType()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef);
+
+            const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
+            var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
+
+            ResultProperties resultProperties;
+            string actualError;
+            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+            var result = context.CompileExpression(
+                InspectionContextFactory.Empty.Add("$stowedexception", "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+                "$stowedexception",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out actualError,
+                out actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Equal(expectedError, actualError);
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+        }
+
         private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, params MetadataReference[] references)
         {
             byte[] exeBytes;

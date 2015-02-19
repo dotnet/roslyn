@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
         // These are run only once per every analyzer.
-        private ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
-            ImmutableDictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>.Empty;
+        private ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
+            new ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>();
 
         // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
         // Compilation start actions will get executed once per-each compilation as user might want to return different set of custom actions for each compilation.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache =
             new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
 
-        private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+        private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             Compilation compilation,
@@ -61,7 +61,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }, cancellationToken));
         }
 
-        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
+        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+            DiagnosticAnalyzer analyzer,
+            HostSessionStartAnalysisScope sessionScope,
+            Compilation compilation,
+            Action<Diagnostic> addDiagnostic,
+            AnalyzerOptions analyzerOptions,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await GetCompilationAnalysisScopeCoreAsync(analyzer, sessionScope,
+                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Task to compute the scope was cancelled.
+                // Clear the entry in scope map for analyzer, so we can attempt a retry.
+                var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(compilation);
+                Task<HostCompilationStartAnalysisScope> cancelledTask;
+                compilationActionsMap.TryRemove(analyzer, out cancelledTask);
+
+                cancellationToken.ThrowIfCancellationRequested();
+                return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope,
+                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+
+            }
+        }
+
+        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
             DiagnosticAnalyzer analyzer,
             Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
@@ -77,16 +106,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }, cancellationToken);
             };
 
-            var task = ImmutableInterlocked.GetOrAdd(ref _sessionScopeMap, analyzer, getTask);
+            var callback = new ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>.CreateValueCallback(getTask);
+            return _sessionScopeMap.GetValue(analyzer, callback);
+        }
 
-            // Retry cancelled task.
-            if (task.Status == TaskStatus.Canceled)
+        private async Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
+            DiagnosticAnalyzer analyzer,
+            Action<Diagnostic> addDiagnostic,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            CancellationToken cancellationToken)
+        {
+            try
             {
-                ImmutableInterlocked.TryUpdate(ref _sessionScopeMap, analyzer, getTask(analyzer), task);
-                return _sessionScopeMap[analyzer];
+                return await GetSessionAnalysisScopeCoreAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
+            catch (OperationCanceledException)
+            {
+                // Task to compute the scope was cancelled.
+                // Clear the entry in scope map for analyzer, so we can attempt a retry.
+                _sessionScopeMap.Remove(analyzer);
 
-            return task;
+                cancellationToken.ThrowIfCancellationRequested();
+                return await GetSessionAnalysisScopeAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

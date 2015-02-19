@@ -12,8 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
-    [ExportWorkspaceService(typeof(IWorkCoordinatorRegistrationService), WorkspaceKind.Preview), Shared]
-    internal class PreviewWorkCoordinatorRegistrationService : IWorkCoordinatorRegistrationService
+    [ExportWorkspaceService(typeof(ISolutionCrawlerRegistrationService), WorkspaceKind.Preview), Shared]
+    internal class PreviewSolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
         private static readonly ConditionalWeakTable<Workspace, CancellationTokenSource> s_cancellationTokens =
             new ConditionalWeakTable<Workspace, CancellationTokenSource>();
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         private readonly IIncrementalAnalyzerProvider _provider;
 
         [ImportingConstructor]
-        public PreviewWorkCoordinatorRegistrationService(IDiagnosticAnalyzerService diagnosticService)
+        public PreviewSolutionCrawlerRegistrationService(IDiagnosticAnalyzerService diagnosticService)
         {
             _provider = diagnosticService as IIncrementalAnalyzerProvider;
             Contract.ThrowIfNull(_provider);

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -134,19 +135,26 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TextAndVersion> newTextSource,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Workspace_Document_State_IncrementallyParseSyntaxTree, cancellationToken))
+            try
             {
-                var newTextAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var newText = newTextAndVersion.Text;
+                using (Logger.LogBlock(FunctionId.Workspace_Document_State_IncrementallyParseSyntaxTree, cancellationToken))
+                {
+                    var newTextAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = newTextAndVersion.Text;
 
-                var oldTreeAndVersion = await oldTreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var oldTree = oldTreeAndVersion.Tree;
-                var oldText = await oldTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldTreeAndVersion = await oldTreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var oldTree = oldTreeAndVersion.Tree;
+                    var oldText = await oldTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var newTree = oldTree.WithChangedText(newText);
-                Contract.ThrowIfNull(newTree);
+                    var newTree = oldTree.WithChangedText(newText);
+                    Contract.ThrowIfNull(newTree);
 
-                return MakeNewTreeAndVersion(oldTree, oldText, oldTreeAndVersion.Version, newTree, newText, newTextAndVersion.Version);
+                    return MakeNewTreeAndVersion(oldTree, oldText, oldTreeAndVersion.Version, newTree, newText, newTextAndVersion.Version);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

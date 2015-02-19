@@ -1829,8 +1829,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' which has a cache.  Therefore, one effectively clears the cache by discarding the
         ''' SemanticModel.
         '''</summary> 
-        Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree)
+        Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional suppressAccessChecks As Boolean = False) As SemanticModel
+            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, suppressAccessChecks)
         End Function
 
 #End Region
@@ -2504,8 +2504,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return Me.GetSemanticModel(syntaxTree)
+        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, suppressAccessChecks As Boolean) As SemanticModel
+            Return Me.GetSemanticModel(syntaxTree, suppressAccessChecks)
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)

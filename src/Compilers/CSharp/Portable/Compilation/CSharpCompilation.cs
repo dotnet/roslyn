@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
-        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
+        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool suppressAccessChecks)
         {
             if (syntaxTree == null)
             {
@@ -1640,7 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("tree");
             }
 
-            return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree);
+            return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, suppressAccessChecks);
         }
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
@@ -2729,9 +2729,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _previousSubmission; }
         }
 
-        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree)
+        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool suppressAccessChecks)
         {
-            return this.GetSemanticModel((SyntaxTree)syntaxTree);
+            return this.GetSemanticModel((SyntaxTree)syntaxTree, suppressAccessChecks);
         }
 
         protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
