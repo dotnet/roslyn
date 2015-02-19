@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1936,12 +1937,9 @@ namespace Microsoft.CodeAnalysis
             return new TypedConstant(type, kind, value);
         }
 
-        private readonly static object s_boxedTrue = true;
-        private readonly static object s_boxedFalse = false;
-
         private TypedConstant CreateTypedConstant(TypeSymbol type, TypedConstantKind kind, bool value)
         {
-            return CreateTypedConstant(type, kind, value ? s_boxedTrue : s_boxedFalse);
+            return CreateTypedConstant(type, kind, Boxes.Box(value));
         }
 
         /// <summary>
