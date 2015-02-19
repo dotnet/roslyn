@@ -645,6 +645,70 @@ End Class
 
 #End Region
 
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_SimpleEvent()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Event $$E()
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Public Event E()
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_CustomEvent()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Custom Event $$E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Public Custom Event E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+#End Region
+
 #Region "Set IsShared tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

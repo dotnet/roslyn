@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -396,10 +396,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             switch (GetHResult(e))
             {
                 case COR_E_BADIMAGEFORMAT:
-                    Debug.WriteLine("Module '{0}' contains corrupt metadata.", moduleName);
+                    Debug.WriteLine($"Module '{moduleName}' contains corrupt metadata.");
                     return true;
                 case CORDBG_E_MISSING_METADATA:
-                    Debug.WriteLine("Module '{0}' is missing metadata.", moduleName);
+                    Debug.WriteLine($"Module '{moduleName}' is missing metadata.");
                     return true;
                 default:
                     return false;

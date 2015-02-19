@@ -91,7 +91,7 @@
     </None>
   </ItemGroup>
   <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
-    <DefineConstants>OFFICIAL_BUILD</DefineConstants>
+    <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />

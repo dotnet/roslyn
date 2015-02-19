@@ -1155,5 +1155,18 @@ public class Program
             var compilation = CreateCompilationWithMscorlib45(source);
             var comp = CompileAndVerify(source, expectedOutput: @"N1N2");
         }
+
+        [Fact, WorkItem(42, "github.com/dotnet/roslyn")]
+        public void NameofTypeParameterInParameterInitializer()
+        {
+            var source =
+@"class Test {
+  void M<T>(
+    T t = default(T), // ok
+    string s = nameof(T) // ok
+  ) { }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
     }
 }

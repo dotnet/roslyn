@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!string.IsNullOrWhiteSpace(rootNamespace))
                 {
                     if (namespaceToGenerateInto == rootNamespace ||
-                        namespaceToGenerateInto.StartsWith(rootNamespace + "."))
+                        namespaceToGenerateInto.StartsWith(rootNamespace + ".", StringComparison.Ordinal))
                     {
                         namespaceToGenerateInto = namespaceToGenerateInto.Substring(rootNamespace.Length);
                     }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return rootNamespace.Length;
                 }
 
-                if (namespaceToGenerateInto.StartsWith(rootNamespace + "."))
+                if (namespaceToGenerateInto.StartsWith(rootNamespace + ".", StringComparison.Ordinal))
                 {
                     return rootNamespace.Length + 1;
                 }

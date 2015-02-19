@@ -28,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
             Return RewriteLocalInternal(compilation, container, syntax, Me, isLValue:=isLValue)
         End Function
@@ -71,11 +72,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 _compilation = compilation
             End Sub
 
-            Friend Overrides Function GetValue(variable As BoundPseudoVariable) As BoundExpression
+            Friend Overrides Function GetValue(variable As BoundPseudoVariable, diagnostics As DiagnosticBag) As BoundExpression
                 Dim method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName)
                 Dim local = variable.LocalSymbol
                 Dim expr = InvokeGetMethod(method, variable.Syntax, local.Name)
-                Return ConvertToLocalType(_compilation, expr, local.Type)
+                Return ConvertToLocalType(_compilation, expr, local.Type, diagnostics)
             End Function
 
             Friend Overrides Function GetAddress(variable As BoundPseudoVariable) As BoundExpression

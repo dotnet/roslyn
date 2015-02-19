@@ -373,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitPseudoVariableValue(expression As BoundPseudoVariable, used As Boolean)
-            EmitExpression(expression.EmitExpressions.GetValue(expression), used)
+            EmitExpression(expression.EmitExpressions.GetValue(expression, _diagnostics), used)
         End Sub
 
         Private Sub EmitSequenceExpression(sequence As BoundSequence, used As Boolean)

@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             allMatch = false;
                             break;
                         }
-                        Debug.Assert(pattern.StartsWith(currentLinePattern));
+                        Debug.Assert(pattern.StartsWith(currentLinePattern, StringComparison.Ordinal));
                         pattern = currentLinePattern;
                     }
 

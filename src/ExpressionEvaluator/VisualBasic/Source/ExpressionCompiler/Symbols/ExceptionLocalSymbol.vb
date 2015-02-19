@@ -25,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
             Dim method = GetIntrinsicMethod(compilation, _getExceptionMethodName)
             Dim [call] As New BoundCall(
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 constantValueOpt:=Nothing,
                 suppressObjectClone:=False, ' Doesn't matter, since no arguments.
                 type:=method.ReturnType)
-            Return ConvertToLocalType(compilation, [call], Type)
+            Return ConvertToLocalType(compilation, [call], Type, diagnostics)
         End Function
 
     End Class

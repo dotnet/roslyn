@@ -354,6 +354,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return GetAttributeNodes(DirectCast(node, EnumBlockSyntax).EnumStatement.AttributeLists)
             ElseIf TypeOf node Is DelegateStatementSyntax Then
                 Return GetAttributeNodes(DirectCast(node, DelegateStatementSyntax).AttributeLists)
+            ElseIf TypeOf node Is DeclareStatementSyntax Then
+                Return GetAttributeNodes(DirectCast(node, DeclareStatementSyntax).AttributeLists)
+            ElseIf TypeOf node Is MethodStatementSyntax Then
+                Return GetAttributeNodes(DirectCast(node, MethodStatementSyntax).AttributeLists)
             ElseIf TypeOf node Is MethodBlockBaseSyntax Then
                 Return GetAttributeNodes(DirectCast(node, MethodBlockBaseSyntax).BlockStatement.AttributeLists)
             ElseIf TypeOf node Is PropertyBlockSyntax Then
@@ -3680,6 +3684,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim member = DirectCast(container, EnumMemberDeclarationSyntax)
                 Dim attributeLists = member.AttributeLists.Insert(index, attributeList)
                 Return member.WithAttributeLists(attributeLists)
+            ElseIf TypeOf container Is DeclareStatementSyntax Then
+                Dim declareStatement = DirectCast(container, DeclareStatementSyntax)
+                Dim attributeLists = declareStatement.AttributeLists.Insert(index, attributeList)
+                Return declareStatement.WithAttributeLists(attributeLists)
+            ElseIf TypeOf container Is MethodStatementSyntax Then
+                Dim methodStatement = DirectCast(container, MethodStatementSyntax)
+                Dim attributeLists = methodStatement.AttributeLists.Insert(index, attributeList)
+                Return methodStatement.WithAttributeLists(attributeLists)
             ElseIf TypeOf container Is MethodBlockBaseSyntax Then
                 Dim method = DirectCast(container, MethodBlockBaseSyntax)
                 If TypeOf method.BlockStatement Is SubNewStatementSyntax Then
@@ -3690,11 +3702,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     Dim operatorStatement = DirectCast(method.BlockStatement, OperatorStatementSyntax)
                     Dim attributeLists = operatorStatement.AttributeLists.Insert(index, attributeList)
                     Return DirectCast(method, OperatorBlockSyntax).WithBlockStatement(operatorStatement.WithAttributeLists(attributeLists))
+                ElseIf TypeOf method.BlockStatement Is MethodStatementSyntax Then
+                    Dim methodStatement = DirectCast(method.BlockStatement, MethodStatementSyntax)
+                    Dim attributeLists = methodStatement.AttributeLists.Insert(index, attributeList)
+                    Return DirectCast(method, MethodBlockSyntax).WithBlockStatement(methodStatement.WithAttributeLists(attributeLists))
                 End If
+            ElseIf TypeOf container Is PropertyStatementSyntax Then
+                Dim propertyStatement = DirectCast(container, PropertyStatementSyntax)
+                Dim attributeLists = propertyStatement.AttributeLists.Insert(index, attributeList)
+                Return propertyStatement.WithAttributeLists(attributeLists)
             ElseIf TypeOf container Is PropertyBlockSyntax Then
                 Dim propertyBlock = DirectCast(container, PropertyBlockSyntax)
                 Dim attributeLists = propertyBlock.PropertyStatement.AttributeLists.Insert(index, attributeList)
                 Return propertyBlock.WithPropertyStatement(propertyBlock.PropertyStatement.WithAttributeLists(attributeLists))
+            ElseIf TypeOf container Is EventStatementSyntax Then
+                Dim eventStatement = DirectCast(container, EventStatementSyntax)
+                Dim attributeLists = eventStatement.AttributeLists.Insert(index, attributeList)
+                Return eventStatement.WithAttributeLists(attributeLists)
+            ElseIf TypeOf container Is EventBlockSyntax
+                Dim eventBlock = DirectCast(container, EventBlockSyntax)
+                Dim attributeLists = eventBlock.EventStatement.AttributeLists.Insert(index, attributeList)
+                Return eventBlock.WithEventStatement(eventBlock.EventStatement.WithAttributeLists(attributeLists))
             ElseIf TypeOf container Is FieldDeclarationSyntax Then
                 Dim field = DirectCast(container, FieldDeclarationSyntax)
                 Dim attributeLists = field.AttributeLists.Insert(index, attributeList)

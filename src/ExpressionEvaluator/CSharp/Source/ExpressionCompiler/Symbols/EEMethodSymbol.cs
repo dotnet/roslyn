@@ -439,7 +439,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 // Rewrite references to placeholder "locals".
-                body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body);
+                body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body, diagnostics);
+
+                if (diagnostics.HasAnyErrors())
+                {
+                    return;
+                }
             }
             finally
             {

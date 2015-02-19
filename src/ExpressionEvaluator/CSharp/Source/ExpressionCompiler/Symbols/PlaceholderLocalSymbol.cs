@@ -1,12 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -85,14 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <summary>
         /// Rewrite the local reference as a call to a synthesized method.
         /// </summary>
-        internal abstract BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax);
+        internal abstract BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics);
 
-        internal static BoundExpression ConvertToLocalType(CSharpCompilation compilation, BoundExpression expr, TypeSymbol type)
+        internal static BoundExpression ConvertToLocalType(CSharpCompilation compilation, BoundExpression expr, TypeSymbol type, DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> unusedUseSiteDiagnostics = null;
-            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref unusedUseSiteDiagnostics);
-            Debug.Assert(conversion.IsValid);
-            Debug.Assert(unusedUseSiteDiagnostics == null || unusedUseSiteDiagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
+            // NOTE: This conversion can fail if some of the types involved are from not-yet-loaded modules.
+            // For example, if System.Exception hasn't been loaded, then this call will fail for $stowedexception.
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteDiagnostics);
+            diagnostics.Add(expr.Syntax, useSiteDiagnostics);
 
             return BoundConversion.Synthesized(
                 expr.Syntax,
@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @checked: false,
                 explicitCastInCode: false,
                 constantValueOpt: null,
-                type: type);
+                type: type,
+                hasErrors: !conversion.IsValid);
         }
 
         internal static MethodSymbol GetIntrinsicMethod(CSharpCompilation compilation, string methodName)

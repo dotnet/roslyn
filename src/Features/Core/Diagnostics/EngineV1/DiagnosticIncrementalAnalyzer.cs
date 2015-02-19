@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, AnalyzerManager analyzerManager)
+        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
         {
             _owner = owner;
             _correlationId = correlationId;
             _memberRangeMap = new MemberRangeMap();
-            _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, analyzerManager);
+            _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzerManager);
             _executor = new AnalyzerExecutor(this);
 
             _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
@@ -771,6 +771,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.CustomTags,
+                diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
                 diagnostic.DocumentId,

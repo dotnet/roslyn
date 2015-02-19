@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var docs = compilerInputs.Sources
-                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_"))
+                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                        .ToImmutableArray();
 

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal static bool IsReservedAssemblyName(AssemblyIdentity identity)
         {
-            return identity.Name.StartsWith(s_globalAssemblyNamePrefix);
+            return identity.Name.StartsWith(s_globalAssemblyNamePrefix, StringComparison.Ordinal);
         }
 
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             private Assembly Resolve(object sender, ResolveEventArgs args)
             {
-                if (!args.Name.StartsWith(_assemblyNamePrefix))
+                if (!args.Name.StartsWith(_assemblyNamePrefix, StringComparison.Ordinal))
                 {
                     return null;
                 }

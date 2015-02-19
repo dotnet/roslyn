@@ -24,7 +24,7 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
-    <DefineConstants>OFFICIAL_BUILD</DefineConstants>
+    <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -191,6 +191,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
     </Compile>
+    <Content Include="BindingPath.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="CSharpPackageRegistration.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
