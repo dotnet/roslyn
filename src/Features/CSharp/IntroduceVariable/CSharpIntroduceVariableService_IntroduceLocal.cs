@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return Task.FromResult(IntroduceLocalDeclarationIntoLambda(
                     document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken));
             }
+            else if (IsInExpressionBodiedMember(expression))
+            {
+                return Task.FromResult(RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken));
+            }
             else
             {
                 return IntroduceLocalDeclarationIntoBlockAsync(
@@ -178,6 +183,71 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
 
             return Tuple.Create(newSemanticDocument, newMatches);
+        }
+
+        private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+            SemanticDocument document,
+            ExpressionSyntax expression,
+            NameSyntax newLocalName,
+            LocalDeclarationStatementSyntax declarationStatement,
+            bool allOccurrences,
+            CancellationToken cancellationToken)
+        {
+            // TODO: do i need to complexify something?
+            var oldBody = expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
+            var oldParentingNode = oldBody.Parent;
+
+            // rewritten body
+            // TODO: extract out oldBody.Expression to a local, then use InlineLocal. This crashes VS. File a bug.
+            var newStatement = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
+            var newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(newStatement))
+                                       .WithLeadingTrivia(oldBody.GetLeadingTrivia())
+                                       .WithTrailingTrivia(oldBody.GetTrailingTrivia())
+                                       .WithAdditionalAnnotations(Formatter.Annotation);
+
+            // TODO: What happens to surrounding directives - do we make if def'd out code active with this rewrite?
+            SyntaxNode newParentingNode = null;
+            if (oldParentingNode is BasePropertyDeclarationSyntax)
+            {
+                var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
+                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new AccessorDeclarationSyntax[] { getAccessor }));
+
+                newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
+                newParentingNode = newParentingNode.IsKind(SyntaxKind.PropertyDeclaration)
+                    ? ((PropertyDeclarationSyntax)newParentingNode)
+                        .WithAccessorList(accessorList)
+                        .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None))
+                    : (SyntaxNode)((IndexerDeclarationSyntax)newParentingNode)
+                        .WithAccessorList(accessorList)
+                        .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None));
+            }
+            else if (oldParentingNode is BaseMethodDeclarationSyntax)
+            {
+                newParentingNode = ((BaseMethodDeclarationSyntax)oldParentingNode)
+                    .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
+                    .WithBody(newBody);
+
+                if (newParentingNode.IsKind(SyntaxKind.MethodDeclaration))
+                {
+                    newParentingNode = ((MethodDeclarationSyntax)newParentingNode)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                }
+                else if (newParentingNode.IsKind(SyntaxKind.OperatorDeclaration))
+                {
+                    newParentingNode = ((OperatorDeclarationSyntax)newParentingNode)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                }
+                else if (newParentingNode.IsKind(SyntaxKind.ConversionOperatorDeclaration))
+                {
+                    newParentingNode = ((ConversionOperatorDeclarationSyntax)newParentingNode)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                }
+            }
+
+            // newParentingNode = newParentingNode.WithAdditionalAnnotations(Formatter.Annotation);
+
+            var newRoot = document.Root.ReplaceNode(oldParentingNode, newParentingNode);
+            return document.Document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<Document> IntroduceLocalDeclarationIntoBlockAsync(

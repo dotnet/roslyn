@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             else if (state.InExpressionBodiedMemberContext)
             {
-                // TODO: for now, from an expression bodied member, we can generate only fields.
-                // Offer generate local, and if the user chooses this, rewrite expression bodied member to a regular one.
                 await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
             }
 
             return actions;
