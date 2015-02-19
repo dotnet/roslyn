@@ -43,14 +43,11 @@ There shall be no duplicate rows in the _Document_ table, based upon _Name_.
 
 The values for which field _Language_ has a defined meaning are listed in the following tables along with the corresponding interpretation:
 
-
 | _Language_ field value               | language     |
 |:-------------------------------------|:-------------|
 | 3f5162f8-07c6-11d3-9053-00c04fa302a1 | Visual C#    |
 | 3a12d0b8-c26c-11d0-b442-00a0244a1dd2 | Visual Basic |
 | ab4f38c9-b6e6-43ba-be3b-58080b2ccce3 | Visual F#    |
-
-The values for which _HashAlgorithm_ has defined meaning are listed in the following table along with the corresponding semantics of the _Hash_ value.
 
 The values for which _HashAlgorithm_ has defined meaning are listed in the following table along with the corresponding semantics of the _Hash_ value.
 
