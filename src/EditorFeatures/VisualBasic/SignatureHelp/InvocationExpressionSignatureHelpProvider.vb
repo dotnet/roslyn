@@ -72,10 +72,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                 DirectCast(invocationExpression.Parent, ConditionalAccessExpressionSyntax).Expression,
                 invocationExpression.Expression)
 
+            ' get the regular signature help items
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
             Dim memberGroup = semanticModel.GetMemberGroup(targetExpression, cancellationToken).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                            Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart)
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+
+            ' try to bind to the actual method
+            Dim symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken)
+            Dim matchedMethodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+
+            ' if the symbol could be bound, replace that item in the symbol list
+            If matchedMethodSymbol IsNot Nothing AndAlso matchedMethodSymbol.IsGenericMethod Then
+                memberGroup = memberGroup.Select(Function(m) If(matchedMethodSymbol.OriginalDefinition Is m, matchedMethodSymbol, m))
+            End If
+
+            memberGroup = memberGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart)
 
             Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
