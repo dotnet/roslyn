@@ -80,13 +80,6 @@ namespace Roslyn.Utilities
             _cachedResult = Task.FromResult(value);
         }
 
-        /// <summary>
-        /// Important: callers of this constructor should ensure that the compute function returns
-        /// a task in a non-blocking fashion.  i.e. the function should *not* synchronously compute
-        /// a value and then return it using Task.FromResult.  Instead, it should return an actual
-        /// task that operates asynchronously.  If this function synchronously computes a value
-        /// then that will cause locks to be held in this type for excessive periods of time.
-        /// </summary>
         public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
             : this(asynchronousComputeFunction, synchronousComputeFunction: null, cacheResult: cacheResult)
         {
