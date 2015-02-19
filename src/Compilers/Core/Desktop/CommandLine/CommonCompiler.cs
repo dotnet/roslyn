@@ -337,6 +337,7 @@ namespace Microsoft.CodeAnalysis
             EventHandler<AnalyzerExceptionDiagnosticArgs> analyzerExceptionDiagnosticsHandler = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
+                analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                 analyzerExceptionDiagnosticsHandler = AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, analyzerExceptionDiagnostics.Add);
                 
                 var analyzerManager = new AnalyzerManager();
@@ -448,8 +449,8 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerDriver != null)
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                    AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(analyzerExceptionDiagnosticsHandler);
                     var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
+                    AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(analyzerExceptionDiagnosticsHandler);
 
                     if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {
