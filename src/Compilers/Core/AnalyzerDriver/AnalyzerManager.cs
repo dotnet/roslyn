@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return await GetCompilationAnalysisScopeCoreAsync(analyzer, sessionScope,
                     compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return await GetSessionAnalysisScopeCoreAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
