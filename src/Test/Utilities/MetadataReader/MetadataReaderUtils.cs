@@ -77,7 +77,7 @@ namespace Roslyn.Test.Utilities
         }
 
         public static string GetString(this MetadataReader[] readers, StringHandle handle)
-        { 
+        {
             int index = MetadataTokens.GetHeapOffset(handle);
             foreach (var reader in readers)
             {

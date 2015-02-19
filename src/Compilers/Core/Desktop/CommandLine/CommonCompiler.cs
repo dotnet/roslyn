@@ -334,7 +334,8 @@ namespace Microsoft.CodeAnalysis
             AnalyzerDriver analyzerDriver = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
-                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, out compilation, cancellationToken);
+                var analyzerManager = new AnalyzerManager();
+                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
             }
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                                 switch (options)
                                 {
                                     case ReportDiagnostic.Suppress:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Suppress warning
                                         break;
 
                                     case ReportDiagnostic.Error:
@@ -873,7 +874,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool TryGetCompilerDiagnosticCode(string diagnosticId, string expectedPrefix, out uint code)
         {
             code = 0;
-            return diagnosticId.StartsWith(expectedPrefix) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
+            return diagnosticId.StartsWith(expectedPrefix, StringComparison.Ordinal) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
         }
 
         /// <summary>

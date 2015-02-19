@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (expression.IsKind(SyntaxKind.NumericLiteralExpression))
                 {
                     var numericLiteral = (LiteralExpressionSyntax)expression;
-                    if (numericLiteral.Token.ValueText.StartsWith("-"))
+                    if (numericLiteral.Token.ValueText.StartsWith("-", StringComparison.Ordinal))
                     {
                         return true;
                     }

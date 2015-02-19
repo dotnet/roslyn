@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CommonCompletionUtilities
     {
-        private const char NonBreakingSpace = (char)0x00A0;
+        private const string NonBreakingSpaceString = "\x00A0";
 
         public static TextSpan GetTextChangeSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion
                         textContentBuilder.AddSpace();
                         textContentBuilder.AddPunctuation("(");
                         textContentBuilder.AddPunctuation("+");
-                        textContentBuilder.AddText(NonBreakingSpace + overloadCount.ToString());
+                        textContentBuilder.AddText(NonBreakingSpaceString + overloadCount.ToString());
 
                         AddOverloadPart(textContentBuilder, overloadCount, isGeneric);
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     ? FeaturesResources.Overload
                     : FeaturesResources.Overloads;
 
-            textContentBuilder.AddText(NonBreakingSpace + text);
+            textContentBuilder.AddText(NonBreakingSpaceString + text);
         }
 
         private static void AddDocumentationPart(List<SymbolDisplayPart> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)

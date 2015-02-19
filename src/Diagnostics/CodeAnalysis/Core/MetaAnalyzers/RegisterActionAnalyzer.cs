@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, SemanticModel semanticModel)
             {
                 var symbol = semanticModel.GetSymbolInfo(invocation, symbolContext.CancellationToken).Symbol;
-                if (symbol == null || symbol.Kind != SymbolKind.Method || !symbol.Name.StartsWith("Register"))
+                if (symbol == null || symbol.Kind != SymbolKind.Method || !symbol.Name.StartsWith("Register", StringComparison.Ordinal))
                 {
                     return;
                 }

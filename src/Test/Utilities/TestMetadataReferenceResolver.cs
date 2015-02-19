@@ -23,13 +23,13 @@ namespace Roslyn.Test.Utilities
 
     internal class MappingReferenceResolver : TestMetadataReferenceResolver
     {
-        private readonly Dictionary<string, string> assemblyNames;
-        private readonly Dictionary<string, string> files;
+        private readonly Dictionary<string, string> _assemblyNames;
+        private readonly Dictionary<string, string> _files;
 
         public MappingReferenceResolver(Dictionary<string, string> assemblyNames = null, Dictionary<string, string> files = null)
         {
-            this.assemblyNames = assemblyNames;
-            this.files = files;
+            _assemblyNames = assemblyNames;
+            _files = files;
         }
 
         public override string ResolveReference(string reference, string baseFilePath)
@@ -42,32 +42,32 @@ namespace Roslyn.Test.Utilities
                 }
 
                 string result;
-                return files != null && files.TryGetValue(reference, out result) ? result : null;
+                return _files != null && _files.TryGetValue(reference, out result) ? result : null;
             }
             else
             {
                 string result;
-                return assemblyNames != null && assemblyNames.TryGetValue(reference, out result) ? result : null;
+                return _assemblyNames != null && _assemblyNames.TryGetValue(reference, out result) ? result : null;
             }
         }
     }
 
     internal class VirtualizedFileReferenceResolver : MetadataFileReferenceResolver
     {
-        private readonly HashSet<string> existingFullPaths;
+        private readonly HashSet<string> _existingFullPaths;
 
         public VirtualizedFileReferenceResolver(
-            IEnumerable<string> existingFullPaths = null, 
+            IEnumerable<string> existingFullPaths = null,
             string baseDirectory = null,
             ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
             : base(searchPaths.NullToEmpty(), baseDirectory)
         {
-            this.existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
+            _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
         }
 
         protected override bool FileExists(string fullPath)
         {
-            return fullPath != null && existingFullPaths != null && existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
+            return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
         }
     }
 }

@@ -1829,8 +1829,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' which has a cache.  Therefore, one effectively clears the cache by discarding the
         ''' SemanticModel.
         '''</summary> 
-        Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree)
+        Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional suppressAccessChecks As Boolean = False) As SemanticModel
+            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, suppressAccessChecks)
         End Function
 
 #End Region
@@ -2077,9 +2077,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not hasError
         End Function
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, continueOnAnalyzerException As Func(Of Exception, DiagnosticAnalyzer, Boolean), cancellationToken As CancellationToken) As AnalyzerDriver
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, analyzerManager As AnalyzerManager, continueOnAnalyzerException As Func(Of Exception, DiagnosticAnalyzer, Boolean), cancellationToken As CancellationToken) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, continueOnAnalyzerException, cancellationToken)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, analyzerManager, continueOnAnalyzerException, cancellationToken)
         End Function
 
 #End Region
@@ -2504,8 +2504,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return Me.GetSemanticModel(syntaxTree)
+        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, suppressAccessChecks As Boolean) As SemanticModel
+            Return Me.GetSemanticModel(syntaxTree, suppressAccessChecks)
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)

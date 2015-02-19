@@ -84,13 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
             {
                 string projectDirectory = executedProject.Directory;
-                if (!projectDirectory.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.OrdinalIgnoreCase))
+                string directorySeparator = Path.DirectorySeparatorChar.ToString();
+                if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
                 {
-                    projectDirectory += Path.DirectorySeparatorChar;
+                    projectDirectory += directorySeparator;
                 }
 
                 var docs = compilerInputs.Sources
-                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_"))
+                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                        .ToImmutableArray();
 

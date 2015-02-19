@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             public readonly Workspace Workspace;
 
-            public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, AnalyzerManager analyzerManager)
+            public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
             {
                 _owner = owner;
-                _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(analyzerManager);
+                _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(workspaceAnalyzerManager);
                 _projectAnalyzersAndStatesMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzersAndStates>();
 
                 this.Workspace = workspace;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var providerType = provider.GetType();
                 var location = providerType.Assembly.Location;
 
-                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type + "_" + providerType.AssemblyQualifiedName, GetProviderVersion(location));
+                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + providerType.AssemblyQualifiedName, GetProviderVersion(location));
             }
 
             private static VersionStamp GetProviderVersion(string path)

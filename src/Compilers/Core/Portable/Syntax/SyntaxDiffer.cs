@@ -244,9 +244,16 @@ namespace Microsoft.CodeAnalysis
 
                     if (indexOfOldInNew > 0)
                     {
-                        return new DiffAction(DiffOp.InsertNew, indexOfOldInNew);
+                        // look ahead to see if the old node also appears again later in its own list
+                        var oldHasIdenticalSibling = FindExactMatch(_oldNodes, _oldNodes.Peek(), 1) >= 1;
+
+                        if (!oldHasIdenticalSibling)
+                        {
+                            return new DiffAction(DiffOp.InsertNew, indexOfOldInNew);
+                        }
                     }
-                    else if (!newIsToken)
+
+                    if (!newIsToken)
                     {
                         if (AreSimilar(_oldNodes.Peek(), _newNodes.Peek()))
                         {
@@ -324,20 +331,41 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void FindBestMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, out int index, out int similarity)
+        private int FindExactMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, int startIndex)
         {
-            index = -1;
-            similarity = -1;
-
             int i = 0;
-            foreach (var listNode in stack)
+            foreach (var stackNode in stack)
             {
                 if (i >= MaxSearchLength)
                 {
                     break;
                 }
 
-                if (AreIdentical(listNode, node))
+                if (i >= startIndex && AreIdentical(stackNode, node))
+                {
+                    return i;
+                }
+
+                i++;
+            }
+
+            return -1;
+        }
+
+        private void FindBestMatch(Stack<SyntaxNodeOrToken> stack, SyntaxNodeOrToken node, out int index, out int similarity)
+        {
+            index = -1;
+            similarity = -1;
+
+            int i = 0;
+            foreach (var stackNode in stack)
+            {
+                if (i >= MaxSearchLength)
+                {
+                    break;
+                }
+
+                if (AreIdentical(stackNode, node))
                 {
                     var sim = node.FullSpan.Length;
                     if (sim > similarity)
@@ -347,15 +375,15 @@ namespace Microsoft.CodeAnalysis
                         return;
                     }
                 }
-                else if (AreSimilar(listNode, node))
+                else if (AreSimilar(stackNode, node))
                 {
-                    var sim = GetSimilarity(listNode, node);
+                    var sim = GetSimilarity(stackNode, node);
 
                     // Are these really the same? This may be expensive so only check this if 
                     // similarity is rated equal to them being identical.
                     if (sim == node.FullSpan.Length && node.IsToken)
                     {
-                        if (listNode.ToFullString() == node.ToFullString())
+                        if (stackNode.ToFullString() == node.ToFullString())
                         {
                             index = i;
                             similarity = sim;
@@ -373,7 +401,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // check one level deep inside list node's children
                     int j = 0;
-                    foreach (var child in listNode.ChildNodesAndTokens())
+                    foreach (var child in stackNode.ChildNodesAndTokens())
                     {
                         if (j >= MaxSearchLength)
                         {
@@ -716,7 +744,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // don't double count the chars we matches at the start of the strings
+            // don't double count the chars we matched at the start of the strings
             maxChars = maxChars - commonLeadingCount;
 
             commonTrailingCount = 0;

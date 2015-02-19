@@ -238,14 +238,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 var trimmedFileName = FileName.Trim();
 
                 // Case : \\Something
-                if (trimmedFileName.StartsWith("\\\\"))
+                if (trimmedFileName.StartsWith(@"\\", StringComparison.Ordinal))
                 {
                     SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
                     return false;
                 }
 
                 // Case : something\
-                if (string.IsNullOrWhiteSpace(trimmedFileName) || trimmedFileName.EndsWith("\\"))
+                if (string.IsNullOrWhiteSpace(trimmedFileName) || trimmedFileName.EndsWith(@"\", StringComparison.Ordinal))
                 {
                     SendFailureNotification(ServicesVSResources.PathCannotHaveEmptyFileName);
                     return false;
@@ -257,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     return false;
                 }
 
-                var isRootOfTheProject = trimmedFileName.StartsWith("\\");
+                var isRootOfTheProject = trimmedFileName.StartsWith(@"\", StringComparison.Ordinal);
                 string implicitFilePath = null;
 
                 // Construct the implicit file path
@@ -277,10 +277,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
 
                 // Remove the '\' at the beginning if present
-                trimmedFileName = trimmedFileName.StartsWith("\\") ? trimmedFileName.Substring(1) : trimmedFileName;
+                trimmedFileName = trimmedFileName.StartsWith(@"\", StringComparison.Ordinal) ? trimmedFileName.Substring(1) : trimmedFileName;
 
                 // Construct the full path of the file to be created
-                this.FullFilePath = implicitFilePath + '\\' + trimmedFileName;
+                this.FullFilePath = implicitFilePath + @"\" + trimmedFileName;
 
                 try
                 {

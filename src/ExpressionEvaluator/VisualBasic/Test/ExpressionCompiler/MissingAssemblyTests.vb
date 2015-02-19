@@ -1,7 +1,10 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -187,6 +190,43 @@ End Class
                               EvaluationContextBase.SystemCoreIdentity,
                               EvaluationContextBase.SystemXmlIdentity,
                               EvaluationContextBase.SystemXmlLinqIdentity)
+        End Sub
+
+        <WorkItem(1124725, "DevDiv")>
+        <WorkItem(597, "GitHub")>
+        <Fact>
+        Public Sub PseudoVariableType()
+            Const source = "
+Public Class C
+    Public Sub M()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, {}, TestOptions.DebugDll)
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef)
+
+            Const expectedError = "(1,1): error BC30002: Type 'System.Void' is not defined."
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim actualError As String = Nothing
+            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+
+            context.CompileExpression(
+                InspectionContextFactory.Empty.Add("$stowedexception", "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a"),
+                "$stowedexception",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                actualError,
+                actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+
+            ' This behavior is reasonable, but it would be much nicer to report that comp.Assembly.CorLibrary.Identity
+            ' is missing, as in C# (GitHub #597).
+
+            Assert.Equal(expectedError, actualError)
+            Assert.Empty(actualMissingAssemblyIdentities)
         End Sub
 
         Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext

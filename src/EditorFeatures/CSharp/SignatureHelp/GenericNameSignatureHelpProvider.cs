@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     false,
-                    symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken),
+                    symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(namedType),
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     false,
-                    symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, cancellationToken).Concat(GetAwaitableUsage(method, semanticModel, position)),
+                    c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
                     GetPreambleParts(method, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(method, semanticModel, position),
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             return new SignatureHelpParameter(
                 parameter.Name,
                 isOptional: false,
-                documentation: parameter.GetDocumentationParts(semanticModel, position, formatter, cancellationToken),
+                documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 displayParts: parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat),
                 selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken));
         }

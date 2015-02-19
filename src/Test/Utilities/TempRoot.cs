@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class TempRoot : IDisposable
     {
-        private readonly List<IDisposable> temps = new List<IDisposable>();
+        private readonly List<IDisposable> _temps = new List<IDisposable>();
         public static readonly string Root;
 
         static TempRoot()
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void Dispose()
         {
-            if (temps != null)
+            if (_temps != null)
             {
-                DisposeAll(temps);
-                temps.Clear();
+                DisposeAll(_temps);
+                _temps.Clear();
             }
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TempDirectory CreateDirectory()
         {
             var dir = new DisposableDirectory(this);
-            temps.Add(dir);
+            _temps.Add(dir);
             return dir;
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public DisposableFile AddFile(DisposableFile file)
         {
-            temps.Add(file);
+            _temps.Add(file);
             return file;
         }
 

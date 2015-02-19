@@ -3,13 +3,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
@@ -35,13 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
         }
 
-        public void UpdateView(Document document, SpanChange spanSource)
+        public void UpdateView(TextDocument document, SpanChange spanSource)
         {
             var documentText = document.GetTextAsync().Result.ToString();
             if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
             {
                 SourceTextContainer container;
-                Document documentBackedByTextBuffer;
+                TextDocument documentBackedByTextBuffer;
                 UpdateBuffer(document, spanSource, out container, out documentBackedByTextBuffer);
             }
 
@@ -52,15 +49,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Tagger.OnTextBufferChanged();
         }
 
-        private void UpdateBuffer(Document document, SpanChange spanSource, out SourceTextContainer container, out Document documentBackedByTextBuffer)
+        private void UpdateBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
             if (_previewWorkspace != null)
             {
-                _previewWorkspace.CloseDocument(_currentDocument, _previewWorkspace.CurrentSolution.GetDocument(_currentDocument).GetTextAsync().Result);
+                var currentDocument = _previewWorkspace.CurrentSolution.GetTextDocument(_currentDocument);
+                var currentDocumentText = currentDocument.GetTextAsync().Result;
+                _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
 
-                // Put the new document into the current preview solution
-                var updatedSolution = _previewWorkspace.CurrentSolution.WithDocumentText(document.Id, document.GetTextAsync().Result);
-                var updatedDocument = updatedSolution.GetDocument(document.Id);
+                // Put the new document into the current preview solution.
+                var updatedSolution = _previewWorkspace.CurrentSolution.WithTextDocumentText(document.Id, document.GetTextAsync().Result);
+                var updatedDocument = updatedSolution.GetTextDocument(document.Id);
 
                 ApplyDocumentToBuffer(updatedDocument, spanSource, out container, out documentBackedByTextBuffer);
 
@@ -73,13 +72,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _currentDocument = document.Id;
 
                 ApplyDocumentToBuffer(document, spanSource, out container, out documentBackedByTextBuffer);
-
                 _previewWorkspace = new PreviewDialogWorkspace(documentBackedByTextBuffer.Project.Solution);
                 _previewWorkspace.OpenDocument(document.Id);
             }
         }
 
-        private void ApplyDocumentToBuffer(Document document, SpanChange spanSource, out SourceTextContainer container, out Document documentBackedByTextBuffer)
+        private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
             var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();

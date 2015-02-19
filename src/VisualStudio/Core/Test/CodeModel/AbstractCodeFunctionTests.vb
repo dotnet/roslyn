@@ -94,6 +94,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Type = value
         End Function
 
+        Protected Overrides Function AddAttribute(codeElement As EnvDTE80.CodeFunction2, data As AttributeData) As EnvDTE.CodeAttribute
+            Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
+        End Function
+
         Protected Overrides Function AddParameter(codeElement As EnvDTE80.CodeFunction2, data As ParameterData) As EnvDTE.CodeParameter
             Return codeElement.AddParameter(data.Name, data.Type, data.Position)
         End Function
@@ -175,6 +179,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Assert.NotNull(codeElement)
 
                 Assert.Equal(expected, codeElement.FunctionKind)
+            End Using
+        End Sub
+
+        Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE80.vsCMFunction2)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeFunction2)()
+                Assert.NotNull(codeElement)
+
+                Assert.Equal(expected, CType(codeElement.FunctionKind, EnvDTE80.vsCMFunction2))
             End Using
         End Sub
 

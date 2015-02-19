@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken);
+        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, AnalyzerManager analyzerManager, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the source language ("C#" or "Visual Basic").
@@ -159,12 +159,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
-        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
+        /// <param name="syntaxTree">The specificed syntax tree.</param>
+        /// <param name="suppressAccessChecks">
+        /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
+		/// </param>
+        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool suppressAccessChecks = false)
         {
-            return CommonGetSemanticModel(syntaxTree);
+            return CommonGetSemanticModel(syntaxTree, suppressAccessChecks);
         }
 
-        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree);
+        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool suppressAccessChecks);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity

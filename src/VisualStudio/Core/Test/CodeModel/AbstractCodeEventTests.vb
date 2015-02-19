@@ -68,6 +68,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Type = value
         End Function
 
+        Protected Overrides Function AddAttribute(codeElement As EnvDTE80.CodeEvent, data As AttributeData) As EnvDTE.CodeAttribute
+            Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
+        End Function
+
         Protected Sub TestIsPropertyStyleEvent(code As XElement, expected As Boolean)
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeEvent)()

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 {
@@ -88,6 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken)
         {
+            if (_renameService.ActiveSession != null)
+            {
+                workspace.Services.GetService<INotificationService>()?.SendNotification(
+                    EditorFeaturesResources.CannotApplyOperationWhileRenameSessionIsActive, 
+                    severity: NotificationSeverity.Error);
+                return;
+            }
+
 #if DEBUG
             var documentErrorLookup = new HashSet<DocumentId>();
             foreach (var project in workspace.CurrentSolution.Projects)

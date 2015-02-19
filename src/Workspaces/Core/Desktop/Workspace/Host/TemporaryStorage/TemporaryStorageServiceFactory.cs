@@ -2,7 +2,9 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,8 +85,10 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
                         using (var stream = _memoryMappedInfo.CreateReadableStream())
+                        using (var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length, cancellationToken))
                         {
-                            return _service._textFactory.CreateText(stream, _encoding, cancellationToken);
+                            // we pass in encoding we got from original source text even if it is null.
+                            return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
                         }
                     }
                 }
@@ -134,6 +138,69 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+                }
+
+                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
+                {
+                    char* src = (char*)accessor.GetPointer();
+
+                    // BOM: Unicode, little endian
+                    // Skip the BOM when creating the reader
+                    Debug.Assert(*src == 0xFEFF);
+
+                    return new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1);
+                }
+
+                private unsafe class DirectMemoryAccessStreamReader : TextReader
+                {
+                    private char* _position;
+                    private readonly char* _end;
+
+                    public DirectMemoryAccessStreamReader(char* src, int length)
+                    {
+                        Debug.Assert(src != null);
+                        Debug.Assert(length >= 0);
+
+                        _position = src;
+                        _end = _position + length;
+                    }
+
+                    public override int Read()
+                    {
+                        if (_position >= _end)
+                        {
+                            return -1;
+                        }
+
+                        return *_position++;
+                    }
+
+                    public override int Read(char[] buffer, int index, int count)
+                    {
+                        if (buffer == null)
+                        {
+                            throw new ArgumentNullException(nameof(buffer));
+                        }
+
+                        if (index < 0 || index >= buffer.Length)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(index));
+                        }
+
+                        if (count < 0 || (index + count) > buffer.Length)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(count));
+                        }
+
+                        count = Math.Min(count, (int)(_end - _position));
+                        if (count > 0)
+                        {
+                            Marshal.Copy((IntPtr)_position, buffer, index, count);
+                            _position += count;
+                        }
+
+                        return count;
+                    }
                 }
             }
 
@@ -244,3 +311,4 @@ namespace Microsoft.CodeAnalysis.Host
         }
     }
 }
+

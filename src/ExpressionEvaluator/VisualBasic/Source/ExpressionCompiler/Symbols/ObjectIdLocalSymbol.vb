@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -26,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
             Return RewriteLocalInternal(compilation, container, syntax, Me, isLValue:=isLValue)
         End Function
@@ -102,10 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 _getAddressMethod = getAddressMethod
             End Sub
 
-            Friend Overrides Function GetValue(variable As BoundPseudoVariable) As BoundExpression
+            Friend Overrides Function GetValue(variable As BoundPseudoVariable, diagnostics As DiagnosticBag) As BoundExpression
                 Dim local = variable.LocalSymbol
                 Dim expr = InvokeGetMethod(_getValueMethod, variable.Syntax, local.Name)
-                Return ConvertToLocalType(_compilation, expr, local.Type)
+                Return ConvertToLocalType(_compilation, expr, local.Type, diagnostics)
             End Function
 
             Friend Overrides Function GetAddress(variable As BoundPseudoVariable) As BoundExpression

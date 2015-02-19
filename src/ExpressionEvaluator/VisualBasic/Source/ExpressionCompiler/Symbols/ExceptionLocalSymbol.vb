@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -20,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
             ' The intrinsic accessor method has the same name as the pseudo-variable (normalized to lowercase).
             Dim method = container.GetOrAddSynthesizedMethod(
@@ -43,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 constantValueOpt:=Nothing,
                 suppressObjectClone:=False, ' Doesn't matter, since no arguments.
                 type:=method.ReturnType)
-            Return ConvertToLocalType(compilation, [call], Type)
+            Return ConvertToLocalType(compilation, [call], Type, diagnostics)
         End Function
 
     End Class

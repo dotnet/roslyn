@@ -12551,21 +12551,26 @@ static class S
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (10,11): error CS0718: 'S': static types cannot be used as type arguments
+                //         I<S> i = null;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(10, 11),
                 // (11,11): error CS0718: 'S': static types cannot be used as type arguments
+                //         C<S> c = null;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(11, 11),
                 // (12,11): error CS0718: 'S': static types cannot be used as type arguments
+                //         C<S>.M();
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(12, 11),
                 // (13,9): error CS0718: 'S': static types cannot be used as type arguments
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(13, 11),
+                //         M<S>();
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "M<S>").WithArguments("S").WithLocation(13, 9),
                 // (14,29): error CS0718: 'S': static types cannot be used as type arguments
+                //         object o = typeof(I<S>);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S").WithLocation(14, 29),
                 // (10,14): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         I<S> i = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(10, 14),
                 // (11,14): warning CS0219: The variable 'c' is assigned but its value is never used
                 //         C<S> c = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c")
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(11, 14)
                 );
         }
 
@@ -19112,6 +19117,48 @@ public class Test
             var comp4 = CreateCompilationWithMscorlib(source3, new[] { comp2.EmitToImageReference() }, options: TestOptions.ReleaseDll);
 
             comp4.GetDiagnostics().Verify(expected);
+        }
+
+        [Fact, WorkItem(345, "https://github.com/dotnet/roslyn")]
+        public void InferredStaticTypeArgument()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        M(default(C));
+    }
+    public static void M<T>(T t)
+    {
+    }
+}
+
+static class C
+{
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,9): error CS0718: 'C': static types cannot be used as type arguments
+                //         M(default(C));
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "M").WithArguments("C").WithLocation(5, 9)
+                );
+        }
+
+        [Fact, WorkItem(511, "https://github.com/dotnet/roslyn")]
+        public void StaticTypeArgumentOfDynamicInvocation()
+        {
+            var source =
+@"static class S {}
+class C
+{
+    static void M()
+    {
+        dynamic d1 = 123;
+        d1.N<S>(); // The dev11 compiler does not diagnose this
+    }
+    static void Main() {}
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
     }
 }

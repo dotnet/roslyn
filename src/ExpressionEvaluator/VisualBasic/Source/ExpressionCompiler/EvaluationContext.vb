@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Immutable
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Reflection
@@ -586,24 +588,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </remarks>
         Friend Shared Function GetMissingAssemblyIdentitiesHelper(code As ERRID, arguments As IReadOnlyList(Of Object)) As ImmutableArray(Of AssemblyIdentity)
 			Select Case code
-				Case ERRID.ERR_UnreferencedAssemblyEvent3, ERRID.ERR_UnreferencedAssembly3
-					For Each argument As Object In arguments
+                Case ERRID.ERR_UnreferencedAssemblyEvent3, ERRID.ERR_UnreferencedAssembly3
+                    For Each argument As Object In arguments
 						Dim identity = If(TryCast(argument, AssemblyIdentity), TryCast(argument, AssemblySymbol)?.Identity)
-						If identity IsNot Nothing Then
-							Return ImmutableArray.Create(identity)
-						End If
-					Next
-				Case ERRID.ERR_ForwardedTypeUnavailable3
-					If arguments.Count = 3 Then
-						Return ImmutableArray.Create(TryCast(arguments(2), AssemblySymbol)?.Identity)
-					End If
-				Case ERRID.ERR_XmlFeaturesNotAvailable
-					Return ImmutableArray.Create(SystemIdentity, SystemCoreIdentity, SystemXmlIdentity, SystemXmlLinqIdentity)
-			End Select
+                        If IsValidMissingAssemblyIdentity(identity) Then
+                            Return ImmutableArray.Create(identity)
+                        End If
+                    Next
+                Case ERRID.ERR_ForwardedTypeUnavailable3
+                    If arguments.Count = 3 Then
+                        Dim identity As AssemblyIdentity = TryCast(arguments(2), AssemblySymbol)?.Identity
+                        If IsValidMissingAssemblyIdentity(identity) Then
+                            Return ImmutableArray.Create(identity)
+                        End If
+                    End If
+                Case ERRID.ERR_XmlFeaturesNotAvailable
+                    Return ImmutableArray.Create(SystemIdentity, SystemCoreIdentity, SystemXmlIdentity, SystemXmlLinqIdentity)
+            End Select
 
-			Return Nothing
+            Return Nothing
         End Function
 
+        Private Shared Function IsValidMissingAssemblyIdentity(identity As AssemblyIdentity) As Boolean
+            Return identity IsNot Nothing AndAlso Not identity.Equals(MissingCorLibrarySymbol.Instance.Identity)
+        End Function
     End Class
 
 End Namespace

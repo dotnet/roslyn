@@ -375,10 +375,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Debug.Assert(node IsNot Nothing)
 
-            Dim lambdaBody As SyntaxNode = Nothing
             While node IsNot declarationBody AndAlso
                   Not StatementSyntaxComparer.HasLabel(node.Kind) AndAlso
-                  Not SyntaxUtilities.IsLambdaBodyStatement(node, lambdaBody)
+                  Not SyntaxUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
                 If partnerOpt IsNot Nothing Then
@@ -408,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             While node IsNot root
                 Dim body As SyntaxNode = Nothing
-                If SyntaxUtilities.IsLambdaBodyStatement(node, body) Then
+                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return body
                 End If
 
@@ -880,6 +879,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return model.GetDeclaredSymbol(node, cancellationToken)
         End Function
 
+        Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
+            Return declaration.DescendantNodes().Any(AddressOf SyntaxUtilities.IsLambda)
+        End Function
+
+        Friend Overrides Function IsLambda(node As SyntaxNode) As Boolean
+            Return SyntaxUtilities.IsLambda(node)
+        End Function
+
+        Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
+            Return SyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
+        End Function
 #End Region
 
 #Region "Diagnostic Info"
@@ -2720,8 +2730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return node
                 End Select
 
-                Dim lambdaBody As SyntaxNode = Nothing
-                If SyntaxUtilities.IsLambdaBodyStatement(node, lambdaBody) Then
+                If SyntaxUtilities.IsLambdaBodyStatementOrExpression(node) Then
                     Return node
                 End If
 

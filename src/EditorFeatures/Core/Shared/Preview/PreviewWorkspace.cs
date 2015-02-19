@@ -1,19 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
     internal class PreviewWorkspace : Workspace
     {
-        private IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private ISolutionCrawlerRegistrationService _registrationService;
 
         public PreviewWorkspace()
         : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
@@ -36,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public void EnableDiagnostic()
         {
-            _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
-            if (_workCoordinatorService != null)
+            _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
+            if (_registrationService != null)
             {
-                _workCoordinatorService.Register(this);
+                _registrationService.Register(this);
             }
         }
 
@@ -51,6 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
+            if (this.CurrentSolution.ContainsAdditionalDocument(documentId))
+            {
+                OpenAdditionalDocument(documentId, activate);
+                return;
+            }
+
             var document = this.CurrentSolution.GetDocument(documentId);
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
@@ -87,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             base.Dispose(finalize);
 
-            if (_workCoordinatorService != null)
+            if (_registrationService != null)
             {
-                _workCoordinatorService.Unregister(this);
-                _workCoordinatorService = null;
+                _registrationService.Unregister(this);
+                _registrationService = null;
             }
 
             this.ClearSolution();

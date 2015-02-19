@@ -297,6 +297,45 @@ End Class
 
 #End Region
 
+#Region "Attributes"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attributes_AutoProperty()
+            Dim code =
+<Code>
+Imports System
+
+Class C1
+    &lt;CLSCompliant(False)&gt;
+    Public Property $$P As String
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attributes_Property()
+            Dim code =
+<Code>
+Imports System
+
+Class C1
+    &lt;CLSCompliant(False)&gt;
+    Public Property $$P As String
+        Get
+        End Get
+        Set(value As String)
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+
+#End Region
+
 #Region "Getter tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -792,6 +831,66 @@ End Class
                              .CodeTypeFullName = "System.String",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefString
                          })
+        End Sub
+
+#End Region
+
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_NormalProperty()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Property $$P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Property P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_AutoProperty()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Property $$P As Integer
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Property P As Integer
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
 #End Region

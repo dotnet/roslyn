@@ -8,21 +8,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class PlaceholderLocalRewriter : BoundTreeRewriter
     {
-        internal static BoundNode Rewrite(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals, BoundNode node)
+        internal static BoundNode Rewrite(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals, BoundNode node, DiagnosticBag diagnostics)
         {
-            var rewriter = new PlaceholderLocalRewriter(compilation, container, declaredLocals);
+            var rewriter = new PlaceholderLocalRewriter(compilation, container, declaredLocals, diagnostics);
             return rewriter.Visit(node);
         }
 
         private readonly CSharpCompilation _compilation;
         private readonly EENamedTypeSymbol _container;
         private readonly HashSet<LocalSymbol> _declaredLocals;
+        private readonly DiagnosticBag _diagnostics;
 
-        private PlaceholderLocalRewriter(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals)
+        private PlaceholderLocalRewriter(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals, DiagnosticBag diagnostics)
         {
             _compilation = compilation;
             _container = container;
             _declaredLocals = declaredLocals;
+            _diagnostics = diagnostics;
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var placeholder = local as PlaceholderLocalSymbol;
             if ((object)placeholder != null)
             {
-                return placeholder.RewriteLocal(_compilation, _container, node.Syntax);
+                return placeholder.RewriteLocal(_compilation, _container, node.Syntax, _diagnostics);
             }
             if (_declaredLocals.Contains(local))
             {
