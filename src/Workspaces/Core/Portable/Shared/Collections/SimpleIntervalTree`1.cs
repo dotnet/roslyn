@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if (introspector == null)
             {
-                throw new ArgumentNullException("introspector");
+                throw new ArgumentNullException(nameof(introspector));
             }
 
             _introspector = introspector;
