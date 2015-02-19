@@ -134,6 +134,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ch
         End Function
 
+        Friend Function TryPeek(ByRef output As Char) As Boolean
+            If CanGetChar() Then
+                output = Peek()
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
+        Friend Function TryPeek(at As Integer,ByRef output As Char) As Boolean
+            If CanGetCharAtOffset(at) Then
+                output = Peek(at)
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
         Friend Function GetChar() As String
             Return Intern(Peek())
         End Function
