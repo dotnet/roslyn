@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static readonly object BoxedInt16Zero = (short)0;
         public static readonly object BoxedUInt16Zero = (ushort)0;
         public static readonly object BoxedInt32Zero = 0;
+        public static readonly object BoxedInt32One = 1;
         public static readonly object BoxedUInt32Zero = 0U;
         public static readonly object BoxedInt64Zero = 0L;
         public static readonly object BoxedUInt64Zero = 0UL;
@@ -42,7 +43,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static object Box(int i)
         {
-            return i == 0 ? BoxedInt32Zero : i;
+            switch(i)
+            {
+                case 0: return BoxedInt32Zero;
+                case 1: return BoxedInt32One;
+                default:
+                    return i;
+            }
         }
 
         public static object Box(uint u)
