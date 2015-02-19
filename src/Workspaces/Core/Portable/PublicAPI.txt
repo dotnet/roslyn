@@ -121,6 +121,7 @@ Microsoft.CodeAnalysis.Differencing.Match<TNode>.GetTreeEdits()
 Microsoft.CodeAnalysis.Differencing.Match<TNode>.Matches.get
 Microsoft.CodeAnalysis.Differencing.Match<TNode>.NewRoot.get
 Microsoft.CodeAnalysis.Differencing.Match<TNode>.OldRoot.get
+Microsoft.CodeAnalysis.Differencing.Match<TNode>.ReverseMatches.get
 Microsoft.CodeAnalysis.Differencing.Match<TNode>.TryGetNewNode(TNode oldNode, out TNode newNode)
 Microsoft.CodeAnalysis.Differencing.Match<TNode>.TryGetOldNode(TNode newNode, out TNode oldNode)
 Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>

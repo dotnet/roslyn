@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Notification
@@ -484,16 +485,5 @@ public class $$MyClass
                     fileExtension:=If(languageName = LanguageNames.CSharp, ".cs", ".vb"))
             End Using
         End Function
-
-        Friend Class TestNotificationService
-            Implements INotificationService
-
-            Public Sub SendNotification(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) Implements INotificationService.SendNotification
-            End Sub
-
-            Public Function ConfirmMessageBox(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) As Boolean Implements INotificationService.ConfirmMessageBox
-                Throw New NotImplementedException()
-            End Function
-        End Class
     End Class
 End Namespace

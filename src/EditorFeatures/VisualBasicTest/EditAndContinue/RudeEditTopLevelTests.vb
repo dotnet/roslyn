@@ -2001,6 +2001,30 @@ End Class
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "a += Await F(1)"))
         End Sub
 
+        <Fact(Skip:="TODO: Enable lambda edits")>
+        Public Sub MethodWithLambda_Update()
+            Dim src1 = "
+Class C
+    Shared Sub F()
+        Dim a = Function() 1
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Shared Sub F()
+        Dim a = Function() 1
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)})
+        End Sub
+
         <Fact>
         Public Sub MethodUpdate_AddAttribute()
             Dim src1 = "Class C : " & vbLf & "Sub F() : End Sub : End Class"
