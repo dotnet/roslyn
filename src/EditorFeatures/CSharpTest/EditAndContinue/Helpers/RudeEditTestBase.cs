@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var methodMatch = GetMethodMatch(src1, src2, options, stateMachine);
 
             bool hasLambda;
-            var reverseMap = Analyzer.ComputeReverseMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], null, new List<RudeEditDiagnostic>(), out hasLambda);
+            Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
+            var reverseMap = Analyzer.ComputeReverseMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>(), out hasLambda);
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in reverseMap)
