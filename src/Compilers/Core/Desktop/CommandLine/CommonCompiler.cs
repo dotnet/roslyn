@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
-            ConcurrentBag<Diagnostic> analyzerExceptionDiagnostics = null;
+            ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
             EventHandler<AnalyzerExceptionDiagnosticArgs> analyzerExceptionDiagnosticsHandler = null;
             if (!analyzers.IsDefaultOrEmpty)
             {

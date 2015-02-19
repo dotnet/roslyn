@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Action<Diagnostic> addAnalyzerExceptionDiagnostic)
+        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<Diagnostic, bool> addAnalyzerExceptionDiagnostic)
         {
             Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic =
                 (sender, args) => addAnalyzerExceptionDiagnostic(args.Diagnostic);
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return handler;
         }
 
-        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Action<Diagnostic> addAnalyzerExceptionDiagnostic)
+        internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Func<Diagnostic, bool> addAnalyzerExceptionDiagnostic)
         {
             Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic =
                 (sender, args) => addAnalyzerExceptionDiagnostic(args.Diagnostic);

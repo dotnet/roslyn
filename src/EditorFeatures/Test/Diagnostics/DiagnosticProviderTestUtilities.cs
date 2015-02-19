@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,16 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // If no user diagnostic analyzer, then test compiler diagnostics.
             var analyzer = analyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
 
-            var exceptionDiagnostics = new List<Diagnostic>();
-            EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> addExceptionDiagnostic = (sender, args) =>
-            {
-                if (args.FaultedAnalyzer == analyzer)
-                {
-                    exceptionDiagnostics.Add(args.Diagnostic);
-                }
-            };
-
-            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic += addExceptionDiagnostic;
+            var exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(project.Solution.Workspace);
 
             if (getDocumentDiagnostics)
             {
@@ -101,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic -= addExceptionDiagnostic;
+            var exceptionDiagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer).Select(d => d.ToDiagnostic(tree: null));
 
             return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }
