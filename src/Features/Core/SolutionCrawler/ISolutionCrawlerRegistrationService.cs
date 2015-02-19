@@ -4,7 +4,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal interface IWorkCoordinatorRegistrationService : IWorkspaceService
+    /// <summary>
+    /// Register a solution crawler for a particular workspace
+    /// </summary>
+    internal interface ISolutionCrawlerRegistrationService : IWorkspaceService
     {
         void Register(Workspace workspace);
         void Unregister(Workspace workspace, bool blockingShutdown = false);

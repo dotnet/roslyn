@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend MustInherit Class PseudoVariableExpressions
         Friend MustOverride Function GetAddress(variable As BoundPseudoVariable) As BoundExpression
-        Friend MustOverride Function GetValue(variable As BoundPseudoVariable) As BoundExpression
+        Friend MustOverride Function GetValue(variable As BoundPseudoVariable, diagnostics As DiagnosticBag) As BoundExpression
     End Class
 
 End Namespace

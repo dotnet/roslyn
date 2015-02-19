@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerService _owner;
         private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
-        internal static event EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
-
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
             : base(workspace)
         {
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var analyzers = _workspaceAnalyzerManager.CreateDiagnosticAnalyzers(project);
 
-            var handler = RegisterAnalyzerExceptionDiagnosticHandler(analyzers, project);
+            var handler = WorkspaceAnalyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
@@ -166,29 +164,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
             var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
 
-            UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+            WorkspaceAnalyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
 
             return dxs;
-        }
-
-        private EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Project project)
-        {
-            EventHandler<AnalyzerExceptionDiagnosticArgs> handler = (sender, args) =>
-            {
-                if (analyzers.Contains(args.FaultedAnalyzer))
-                {
-                    var workspaceArgs = new WorkspaceAnalyzerExceptionDiagnosticArgs(args, project.Solution.Workspace, project);
-                    AnalyzerExceptionDiagnostic?.Invoke(this, workspaceArgs);
-                }
-            };
-
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += handler;
-            return handler;
-        }
-
-        private void UnregisterAnalyzerExceptionDiagnosticHandler(EventHandler<AnalyzerExceptionDiagnosticArgs> handler)
-        {
-            AnalyzerDriverHelper.AnalyzerExceptionDiagnostic -= handler;
         }
 
         private IEnumerable<DiagnosticData> GetDiagnosticData(Project project, ImmutableArray<Diagnostic> diagnostics)

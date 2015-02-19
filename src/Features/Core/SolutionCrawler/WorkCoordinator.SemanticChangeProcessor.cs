@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {
@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private readonly AsyncSemaphore _gate;
 
-                private readonly int _correlationId;
-                private readonly Workspace _workspace;
+                private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
 
                 private readonly NonReentrantLock _workGate;
@@ -32,8 +31,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
-                    int correlationId,
-                    Workspace workspace,
+                    Registration registration,
                     IncrementalAnalyzerProcessor documentWorkerProcessor,
                     int backOffTimeSpanInMS,
                     int projectBackOffTimeSpanInMS,
@@ -42,10 +40,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _gate = new AsyncSemaphore(initialCount: 0);
 
-                    _correlationId = correlationId;
-                    _workspace = workspace;
+                    _registration = registration;
 
-                    _processor = new ProjectProcessor(listener, correlationId, workspace, documentWorkerProcessor, projectBackOffTimeSpanInMS, cancellationToken);
+                    _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpanInMS, cancellationToken);
 
                     _workGate = new NonReentrantLock();
                     _pendingWork = new Dictionary<DocumentId, Data>();
@@ -314,8 +311,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private readonly AsyncSemaphore _gate;
 
-                    private readonly int _correlationId;
-                    private readonly Workspace _workspace;
+                    private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
 
                     private readonly NonReentrantLock _workGate;
@@ -323,16 +319,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
-                        int correlationId,
-                        Workspace workspace,
+                        Registration registration,
                         IncrementalAnalyzerProcessor processor,
                         int backOffTimeSpanInMS,
                         CancellationToken cancellationToken) :
                         base(listener, backOffTimeSpanInMS, cancellationToken)
                     {
-                        _correlationId = correlationId;
-
-                        _workspace = workspace;
+                        _registration = registration;
                         _processor = processor;
 
                         _gate = new AsyncSemaphore(initialCount: 0);
@@ -385,7 +378,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         var data = Dequeue();
 
-                        var project = _workspace.CurrentSolution.GetProject(data.ProjectId);
+                        var project = _registration.CurrentSolution.GetProject(data.ProjectId);
                         if (project == null)
                         {
                             data.AsyncToken.Dispose();
@@ -400,7 +393,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // do dependency tracking here with current solution
-                        var solution = _workspace.CurrentSolution;
+                        var solution = _registration.CurrentSolution;
 
                         var graph = solution.GetProjectDependencyGraph();
                         foreach (var projectId in graph.GetProjectsThatTransitivelyDependOnThisProject(data.ProjectId).Concat(data.ProjectId))

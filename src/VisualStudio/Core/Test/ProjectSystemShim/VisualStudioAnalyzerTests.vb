@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AnalyzerErrorsAreUpdated()
-            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(Nothing, Nothing)
+            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(Nothing)
 
             Dim file = Path.GetTempFileName()
             Dim eventHandler = New EventHandlers(file)

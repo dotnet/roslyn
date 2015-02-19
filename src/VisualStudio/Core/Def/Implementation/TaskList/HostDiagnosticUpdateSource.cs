@@ -14,44 +14,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     [Export(typeof(IDiagnosticUpdateSource))]
     [Export(typeof(HostDiagnosticUpdateSource))]
-    internal sealed class HostDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly AnalyzerDiagnosticUpdateSource _analyzerDiagnosticsSource;
-
         private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
 
         [ImportingConstructor]
-        public HostDiagnosticUpdateSource(
-            VisualStudioWorkspaceImpl workspace,
-            AnalyzerDiagnosticUpdateSource analyzerDiagnosticsSource)
+        public HostDiagnosticUpdateSource(VisualStudioWorkspaceImpl workspace)
         {
             _workspace = workspace;
-            _analyzerDiagnosticsSource = analyzerDiagnosticsSource;
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
-
-        public bool SupportGetDiagnostics { get { return false; } }
-
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        protected override Workspace Workspace
         {
-            return ImmutableArray<DiagnosticData>.Empty;
+            get
+            {
+                return _workspace;
+            }
         }
 
         private void RaiseDiagnosticsUpdatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
         {
-            var diagnosticsUpdated = DiagnosticsUpdated;
-            if (diagnosticsUpdated != null)
-            {
-                diagnosticsUpdated(this, new DiagnosticsUpdatedArgs(
-                    id: Tuple.Create(this, projectId, key),
-                    workspace: _workspace,
-                    solution: null,
-                    projectId: projectId,
-                    documentId: null,
-                    diagnostics: items.AsImmutableOrEmpty()));
-            }
+            var args = new DiagnosticsUpdatedArgs(
+                id: Tuple.Create(this, projectId, key),
+                workspace: _workspace,
+                solution: null,
+                projectId: projectId,
+                documentId: null,
+                diagnostics: items.AsImmutableOrEmpty());
+
+            RaiseDiagnosticsUpdated(args);
         }
 
         public void UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
@@ -95,14 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
                 }
-            }
-        }
-
-        public void ClearAnalyzerSpecificDiagnostics(AnalyzerFileReference analyzerReference, string language)
-        {
-            foreach (var analyzer in analyzerReference.GetAnalyzers(language))
-            {
-                _analyzerDiagnosticsSource.ClearDiagnostics(analyzer, _workspace);
             }
         }
     }

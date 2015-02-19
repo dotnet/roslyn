@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             };
 
-            DiagnosticAnalyzerDriver.AnalyzerExceptionDiagnostic += addExceptionDiagnostic;
+            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic += addExceptionDiagnostic;
 
             if (getDocumentDiagnostics)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            DiagnosticAnalyzerDriver.AnalyzerExceptionDiagnostic -= addExceptionDiagnostic;
+            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic -= addExceptionDiagnostic;
 
             return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }

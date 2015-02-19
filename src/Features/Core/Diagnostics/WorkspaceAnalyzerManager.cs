@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// this should be alway thread-safe.
     /// </summary>
-    internal sealed class WorkspaceAnalyzerManager
+    internal sealed partial class WorkspaceAnalyzerManager
     {
         /// <summary>
         /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// We populate it lazily. otherwise, we will bring in all analyzers preemptively
         /// </summary>
         private readonly Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
-        
+
         public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
             this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies))
         {

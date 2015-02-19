@@ -2,34 +2,29 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(IDiagnosticUpdateSource))]
-    [Export(typeof(AnalyzerDiagnosticUpdateSource))]
-    [Shared]
-    internal sealed class AnalyzerDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
-        private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> _analyzerExceptionDiagnosticsMap =
+        private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> _analyzerHostDiagnosticsMap =
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.Empty;
 
-        [ImportingConstructor]
-        public AnalyzerDiagnosticUpdateSource()
+        protected AbstractHostDiagnosticUpdateSource()
         {
-            // Register for exception diagnostics from both engines.
-            EngineV1.DiagnosticAnalyzerDriver.AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
-            EngineV2.DiagnosticIncrementalAnalyzer.AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
+            // Register for exception diagnostics from workspace's analyzer manager.
+            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
         }
 
-        ~AnalyzerDiagnosticUpdateSource()
+        ~AbstractHostDiagnosticUpdateSource()
         {
-            // Unregister for exception diagnostics from both engines.
-            EngineV1.DiagnosticAnalyzerDriver.AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
-            EngineV2.DiagnosticIncrementalAnalyzer.AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
+            // Unregister for exception diagnostics from workspace's analyzer manager.
+            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
         }
+
+        protected abstract Workspace Workspace { get; }
 
         public bool SupportGetDiagnostics
         {
@@ -46,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        private void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
+        protected void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
             var updated = this.DiagnosticsUpdated;
             if (updated != null)
@@ -57,11 +52,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnAnalyzerExceptionDiagnostic(object sender, WorkspaceAnalyzerExceptionDiagnosticArgs args)
         {
+            if (this.Workspace != args.Workspace)
+            {
+                return;
+            }
+
             Contract.ThrowIfFalse(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(args.Diagnostic));
             
             var diagnosticData = DiagnosticData.Create(args.Workspace, args.Diagnostic);
             ImmutableArray<DiagnosticData> existingDiagnostics;
-            if (_analyzerExceptionDiagnosticsMap.TryGetValue(args.FaultedAnalyzer, out existingDiagnostics))
+            if (_analyzerHostDiagnosticsMap.TryGetValue(args.FaultedAnalyzer, out existingDiagnostics))
             {
                 if (existingDiagnostics.Contains(diagnosticData))
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 existingDiagnostics = ImmutableArray<DiagnosticData>.Empty;
             }
 
-            var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerExceptionDiagnosticsMap,
+            var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 args.FaultedAnalyzer,
                 ImmutableArray.Create(diagnosticData),
                 (a, existing) =>
@@ -85,36 +85,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (dxs.Length > existingDiagnostics.Length)
             {
-                RaiseDiagnosticsUpdated(MakeArgs(args.FaultedAnalyzer, dxs, args.Workspace, args.Project));
+                RaiseDiagnosticsUpdated(MakeArgs(args.FaultedAnalyzer, dxs, args.ProjectOpt));
             }
         }
 
-        public void ClearDiagnostics(DiagnosticAnalyzer analyzer, Workspace workspace)
+        public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language)
+        {
+            foreach (var analyzer in analyzerReference.GetAnalyzers(language))
+            {
+                ClearAnalyzerDiagnostics(analyzer);
+            }
+        }
+
+        private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer)
         {
             ImmutableArray<DiagnosticData> existing;
-            if (ImmutableInterlocked.TryRemove(ref _analyzerExceptionDiagnosticsMap, analyzer, out existing))
+            if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
             {
-                RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableArray<DiagnosticData>.Empty, workspace, project: null));
+                RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableArray<DiagnosticData>.Empty, project: null));
             }
         }
 
-        private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items, Workspace workspace, Project project)
+        private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items, Project project)
         {
             var id = WorkspaceAnalyzerManager.GetUniqueIdForAnalyzer(analyzer);
 
             return new DiagnosticsUpdatedArgs(
                 id: Tuple.Create(this, id),
-                workspace: workspace,
+                workspace: this.Workspace,
                 solution: project?.Solution,
                 projectId: project?.Id,
                 documentId: null,
                 diagnostics: items);
         }
 
-        internal ImmutableArray<DiagnosticData> TestOnly_GetExceptionDiagnostics(DiagnosticAnalyzer analyzer)
+        internal ImmutableArray<DiagnosticData> TestOnly_GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
             ImmutableArray<DiagnosticData> diagnostics;
-            if (!_analyzerExceptionDiagnosticsMap.TryGetValue(analyzer, out diagnostics))
+            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out diagnostics))
             {
                 diagnostics = ImmutableArray<DiagnosticData>.Empty;
             }

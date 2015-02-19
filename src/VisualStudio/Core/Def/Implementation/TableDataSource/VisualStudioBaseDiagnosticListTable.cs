@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -113,6 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 _diagnosticService = diagnosticService;
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                ConnectToSolutionCrawlerService(_workspace);
             }
 
             public override void OnProjectDependencyChanged(Solution solution)
@@ -329,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return ErrorRank.Other;
                         }
 
-                        switch(value)
+                        switch (value)
                         {
                             case nameof(ErrorRank.Lexical):
                                 return ErrorRank.Lexical;

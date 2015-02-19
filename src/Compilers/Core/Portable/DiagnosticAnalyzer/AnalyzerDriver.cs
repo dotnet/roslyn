@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+            var supportedDiagnostics = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, cancellationToken);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
             foreach (var diag in supportedDiagnostics)

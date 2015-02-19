@@ -332,8 +332,21 @@ namespace Microsoft.CodeAnalysis
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
+            DiagnosticBag analyzerExceptionDiagnostics = null;
+            EventHandler<AnalyzerExceptionDiagnosticArgs> analyzerExceptionDiagnosticsHandler = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
+                analyzerExceptionDiagnostics = DiagnosticBag.GetInstance();
+                analyzerExceptionDiagnosticsHandler = (sender, args) =>
+                {
+                    if (analyzers.Contains(args.FaultedAnalyzer))
+                    {
+                        analyzerExceptionDiagnostics.Add(args.Diagnostic);
+                    }
+                };
+
+                AnalyzerDriverHelper.AnalyzerExceptionDiagnostic += analyzerExceptionDiagnosticsHandler;
+
                 var analyzerManager = new AnalyzerManager();
                 analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
             }
@@ -443,7 +456,10 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerDriver != null)
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                    if (PrintErrors(analyzerDiagnostics, consoleOutput))
+                    AnalyzerDriverHelper.AnalyzerExceptionDiagnostic -= analyzerExceptionDiagnosticsHandler;
+                    var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics.ToReadOnlyAndFree());
+
+                    if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {
                         return Failed;
                     }
