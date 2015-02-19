@@ -83,12 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Task<HostCompilationStartAnalysisScope> cancelledTask;
                 compilationActionsMap.TryRemove(analyzer, out cancelledTask);
 
-                // Don't attempt retry if our cancellation token fired as the retry will also fail.
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return new HostCompilationStartAnalysisScope(sessionScope);
-                }
-
+                cancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope,
                     compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
@@ -131,12 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
                 _sessionScopeMap.Remove(analyzer);
 
-                // Don't attempt retry if our cancellation token fired as the retry will also fail.
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return new HostSessionStartAnalysisScope();
-                }
-
+                cancellationToken.ThrowIfCancellationRequested();
                 return await GetSessionAnalysisScopeAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
         }
