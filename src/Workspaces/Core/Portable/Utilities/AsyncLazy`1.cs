@@ -219,7 +219,7 @@ namespace Roslyn.Utilities
                 // cancelled this new computation if we were the only requestor.
                 if (newAsynchronousComputation != null)
                 {
-                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request);
+                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
                 }
 
                 return request.Task.WaitAndGetResult(cancellationToken);
@@ -253,7 +253,7 @@ namespace Roslyn.Utilities
 
                     if (newAsynchronousComputation != null)
                     {
-                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: null);
+                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: null, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
                     }
 
                     throw;
@@ -323,7 +323,7 @@ namespace Roslyn.Utilities
 
             if (newAsynchronousComputation != null)
             {
-                StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request);
+                StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
             }
 
             return request.Task;
@@ -351,7 +351,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request requestToCompleteSynchronously)
+        private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request requestToCompleteSynchronously, CancellationToken requestToCompleteSynchronouslyCancellationToken)
         {
             var cancellationToken = computationToStart.CancellationTokenSource.Token;
 
@@ -389,19 +389,22 @@ namespace Roslyn.Utilities
                         requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
-                catch (OperationCanceledException oce) when(CrashIfCanceledWithDifferentToken(oce, cancellationToken))
-                {
-                    // As long as it's the right token, this means that our thread was the first thread
-                    // to start an asynchronous computation, but the requestor cancelled as we were starting up
-                    // the computation.
-                    throw ExceptionUtilities.Unreachable;
-                }
-                }
+            }
+            catch (OperationCanceledException oce) when (CrashIfCanceledWithDifferentToken(oce, cancellationToken))
+            {
+                // The underlying computation cancelled with the correct token, but we must ourselves insure that the caller
+                // on our stack gets an OperationCanceledException thrown with the right token
+                requestToCompleteSynchronouslyCancellationToken.ThrowIfCancellationRequested();
+
+                // The cancellation must have been requested, so this is unreachable
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         private static bool CrashIfCanceledWithDifferentToken(OperationCanceledException exception, CancellationToken cancellationToken)
         {
             if (exception.CancellationToken != cancellationToken)
@@ -409,7 +412,7 @@ namespace Roslyn.Utilities
                 FatalError.Report(exception);
             }
 
-            return false;
+            return true;
         }
 
         private void CompleteWithTask(Task<T> task, CancellationToken cancellationToken)

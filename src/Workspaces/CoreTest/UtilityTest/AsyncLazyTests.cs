@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -215,6 +216,57 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var secondRequestResult = lazy.GetValue(CancellationToken.None);
 
             Assert.Same(secondRequestResult, firstRequestResult);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public void GetValueThrowsCorrectExceptionDuringCancellation()
+        {
+            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct));
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public void GetValueAsyncThrowsCorrectExceptionDuringCancellation()
+        {
+            // NOTE: since GetValueAsync inlines the call to the async computation, the GetValueAsync call will throw
+            // immediately instead of returning a task that transitions to the cancelled state
+            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct));
+        }
+
+        private static void GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation(Action<AsyncLazy<object>, CancellationToken> doGetValue)
+        {
+            // A call to GetValue/GetValueAsync with a token that is cancelled should throw an OperationCancelledException, but it's
+            // important to make sure the correct token is cancelled. It should be cancelled with the token passed
+            // to GetValue, not the cancellation that was thrown by the computation function
+
+            var computeFunctionRunning = new ManualResetEvent(initialState: false);
+
+            AsyncLazy<object> lazy;
+
+            lazy = new AsyncLazy<object>(c =>
+            {
+                computeFunctionRunning.Set();
+                while (true)
+                {
+                    c.ThrowIfCancellationRequested();
+                }
+            }, cacheResult: false);
+
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            // Create a task that will cancel the request once it's started
+            Task.Run(() => { computeFunctionRunning.WaitOne(); cancellationTokenSource.Cancel(); });
+
+            try
+            {
+                doGetValue(lazy, cancellationTokenSource.Token);
+                AssertEx.Fail(nameof(AsyncLazy<object>.GetValue) + " did not throw an exception.");
+            }
+            catch (OperationCanceledException oce)
+            {
+                Assert.Equal(cancellationTokenSource.Token, oce.CancellationToken);
+            }
         }
     }
 }
