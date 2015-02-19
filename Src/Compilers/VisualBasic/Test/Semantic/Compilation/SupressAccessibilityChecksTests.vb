@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SupressAccessibilityChecksTests
         Inherits BasicTestBase
 
-        Private Function GetSemanticModelWithSuppressAccessChecks() As SemanticModel
+        Private Function GetSemanticModelWithIgnoreAccessibility() As SemanticModel
 
 
             Dim compilationA = CreateVisualBasicCompilation(<![CDATA[
@@ -43,12 +43,12 @@ End Class
                                                             compilationOptions:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             Dim syntaxTree2 = compilationB.SyntaxTrees(0)
-            Return compilationB.GetSemanticModel(syntaxTree2, suppressAccessChecks:=True)
+            Return compilationB.GetSemanticModel(syntaxTree2, ignoreAccessibility:=True)
         End Function
 
         <Fact>
         Public Sub TestAccessPrivateMemberOfInternalType()
-            Dim semanticModel = GetSemanticModelWithSuppressAccessChecks()
+            Dim semanticModel = GetSemanticModelWithIgnoreAccessibility()
             Dim invocation = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
             Dim position = invocation.FullSpan.Start
 
@@ -61,7 +61,7 @@ End Class
 
         <Fact>
         Public Sub TestAccessChecksInSpeculativeExpression()
-            Dim semanticModel = GetSemanticModelWithSuppressAccessChecks()
+            Dim semanticModel = GetSemanticModelWithIgnoreAccessibility()
             Dim invocation = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
 
             Dim speculativeInvocation = SyntaxFactory.ParseExpression("New A().M()._num")
@@ -73,7 +73,7 @@ End Class
 
         <Fact>
         Public Sub TestAccessChecksInSpeculativeSemanticModel()
-            Dim semanticModel = GetSemanticModelWithSuppressAccessChecks()
+            Dim semanticModel = GetSemanticModelWithIgnoreAccessibility()
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim invocation = syntaxTree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
             Dim position = invocation.FullSpan.Start
@@ -110,7 +110,7 @@ End Class
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
             Dim comp = CreateCompilationWithMscorlib(tree)
-            Dim model = comp.GetSemanticModel(tree, suppressAccessChecks:=True)
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=True)
 
             Dim root = tree.GetCompilationUnitRoot()
             Dim expr = DirectCast(root.DescendantNodes().OfType(Of SingleLineLambdaExpressionSyntax)().Single().Body, ExpressionSyntax)
@@ -180,7 +180,7 @@ End Class
 ]]>.Value}, New MetadataReference() {referenceA}, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             Dim syntaxTree = compilationB.SyntaxTrees(0)
-            Dim semanticModel = compilationB.GetSemanticModel(syntaxTree, suppressAccessChecks:=True)
+            Dim semanticModel = compilationB.GetSemanticModel(syntaxTree, ignoreAccessibility:=True)
 
             Dim invocation = syntaxTree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
 
@@ -237,7 +237,7 @@ End Class
             Dim typeDecl = DirectCast(root.Members(1), ClassBlockSyntax)
             Dim propertyDecl = DirectCast(typeDecl.Members(0), PropertyBlockSyntax)
             Dim methodDecl = propertyDecl.Accessors(0)
-            Dim model = compilationA.GetSemanticModel(tree, suppressAccessChecks:=True)
+            Dim model = compilationA.GetSemanticModel(tree, ignoreAccessibility:=True)
 
             Dim speculatedMethod =
                 propertyDecl.ReplaceNode(propertyDecl.Accessors(0), blockStatement.ChildNodes().OfType(Of PropertyBlockSyntax).Single().Accessors(0))

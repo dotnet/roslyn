@@ -2751,7 +2751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BinderFlags GetSemanticModelBinderFlags()
         {
             return this.IgnoresAccessibility
-                ? BinderFlags.SemanticModel | BinderFlags.SuppressAccessChecks
+                ? BinderFlags.SemanticModel | BinderFlags.IgnoreAccessibility
                 : BinderFlags.SemanticModel;
         }
 

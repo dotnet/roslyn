@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Fields specific to speculative MemberSemanticModel
         Private ReadOnly m_parentSemanticModelOpt As SyntaxTreeSemanticModel
         Private ReadOnly m_speculatedPosition As Integer
-        Private ReadOnly m_hasAccessChecksSuppressed As Boolean
+        Private ReadOnly m_ignoresAccessibility As Boolean
 
-        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional isSupressingAccessChecks As Boolean = False)
+        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional ignoreAccessibility As Boolean = False)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
             m_Root = root
-            m_hasAccessChecksSuppressed = isSupressingAccessChecks
-            m_RootBinder = SemanticModelBinder.Mark(rootBinder, isSupressingAccessChecks)
+            m_ignoresAccessibility = ignoreAccessibility
+            m_RootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
             m_parentSemanticModelOpt = parentSemanticModelOpt
             m_speculatedPosition = speculatedPosition
         End Sub
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return Me.m_hasAccessChecksSuppressed
+                Return Me.m_ignoresAccessibility
             End Get
         End Property
 

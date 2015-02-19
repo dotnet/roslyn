@@ -25,16 +25,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _sourceModule As SourceModuleSymbol
         Private ReadOnly _syntaxTree As SyntaxTree
         Private ReadOnly _binderFactory As BinderFactory
-        Private ReadOnly _hasAccessChecksSuppressed As Boolean
+        Private ReadOnly _ignoresAccessibility As Boolean
 
         ' maps from a higher-level binder to an appropriate SemanticModel for the construct (such as a method, or initializer).
         Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Tuple(Of Binder, Boolean), MemberSemanticModel)()
 
-        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, Optional suppressAccessChecks As Boolean = False)
+        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False)
             _compilation = compilation
             _sourceModule = sourceModule
             _syntaxTree = syntaxTree
-            _hasAccessChecksSuppressed = suppressAccessChecks
+            _ignoresAccessibility = ignoreAccessibility
             _binderFactory = New BinderFactory(sourceModule, syntaxTree)
         End Sub
 
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return Me._hasAccessChecksSuppressed
+                Return Me._ignoresAccessibility
             End Get
         End Property
 
