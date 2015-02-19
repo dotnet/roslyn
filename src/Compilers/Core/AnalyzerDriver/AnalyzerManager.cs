@@ -50,15 +50,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(compilation);
-            return compilationActionsMap.GetOrAdd(analyzer,
-                Task.Run(() =>
+            Func<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>> getTask = a =>
+            {
+                return Task.Run(() =>
                 {
                     var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
                     AnalyzerDriverHelper.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope, compilation,
                         analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
                     return compilationAnalysisScope;
-                }, cancellationToken));
+                }, cancellationToken);
+            };
+
+            var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(compilation);
+            return compilationActionsMap.GetOrAdd(analyzer, getTask);
         }
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
