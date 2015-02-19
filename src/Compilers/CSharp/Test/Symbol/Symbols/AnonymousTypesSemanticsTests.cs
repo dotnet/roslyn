@@ -959,11 +959,11 @@ public class Program
 
         private static IEnumerable<int> FindAll(string source, string what)
         {
-            int index = source.IndexOf(what);
+            int index = source.IndexOf(what, StringComparison.Ordinal);
             while (index >= 0)
             {
                 yield return index;
-                index = source.IndexOf(what, index + 1);
+                index = source.IndexOf(what, index + 1, StringComparison.Ordinal);
             }
         }
 

@@ -1845,8 +1845,8 @@ public class C
 }
 ";
 
-            var keywordPos = source.IndexOf("+");
-            var parenPos = source.IndexOf("(");
+            var keywordPos = source.IndexOf('+');
+            var parenPos = source.IndexOf('(');
 
             var comp = CreateCompilationWithMscorlib(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single();
@@ -1866,8 +1866,8 @@ public class C
 }
 ";
 
-            var keywordPos = source.IndexOf("string");
-            var parenPos = source.IndexOf("(");
+            var keywordPos = source.IndexOf("string", StringComparison.Ordinal);
+            var parenPos = source.IndexOf('(');
 
             var comp = CreateCompilationWithMscorlib(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ExplicitConversionName).Single();

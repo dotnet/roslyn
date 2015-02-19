@@ -6524,11 +6524,11 @@ using System.Diagnostics; // Unused.
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
-            var index = source.IndexOf(word);
+            var index = source.IndexOf(word, StringComparison.Ordinal);
             while (index >= 0)
             {
                 ++n;
-                index = source.IndexOf(word, index + word.Length);
+                index = source.IndexOf(word, index + word.Length, StringComparison.Ordinal);
             }
             return n;
         }

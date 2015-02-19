@@ -16,7 +16,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Protected Function GetPosition(compilation As VisualBasicCompilation, treeName As String, textToFind As String) As Integer
         Dim tree = CompilationUtils.GetTree(compilation, treeName)
         Dim text As String = tree.GetText().ToString()
-        Dim position As Integer = text.IndexOf(textToFind)
+        Dim position As Integer = text.IndexOf(textToFind, StringComparison.Ordinal)
         Return position
     End Function
 
@@ -68,9 +68,9 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         End If
 
         Dim text As String = tree.GetRoot().ToFullString()
-        Dim bindCommentIndex As Integer = text.IndexOf(bindMarker) + bindMarker.Length
-        bindText = text.Substring(bindCommentIndex, text.IndexOf("""", bindCommentIndex) - bindCommentIndex)
-        Dim bindPoint = text.LastIndexOf(bindText, bindCommentIndex - bindMarker.Length)
+        Dim bindCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
+        bindText = text.Substring(bindCommentIndex, text.IndexOf("""", bindCommentIndex, StringComparison.Ordinal) - bindCommentIndex)
+        Dim bindPoint = text.LastIndexOf(bindText, bindCommentIndex - bindMarker.Length, StringComparison.Ordinal)
         Return bindPoint
     End Function
 

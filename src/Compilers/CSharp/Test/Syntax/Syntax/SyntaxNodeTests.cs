@@ -2443,7 +2443,7 @@ class Base<T>
         {
             string code = @"class c2 4";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("4"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf('4'));
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
             Assert.True(token.IsMissing);
@@ -2465,7 +2465,7 @@ public class Test1
 }
 }";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("using Lib;"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("using Lib;", StringComparison.Ordinal));
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
             Assert.True(token.IsMissing);
@@ -2484,7 +2484,7 @@ public class Test1
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(code);
-            var trivia = tree.GetCompilationUnitRoot().FindTrivia(code.IndexOf("#r")); // ReferenceDirective.
+            var trivia = tree.GetCompilationUnitRoot().FindTrivia(code.IndexOf("#r", StringComparison.Ordinal)); // ReferenceDirective.
 
             foreach (var diag in tree.GetDiagnostics(trivia))
             {

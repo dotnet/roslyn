@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Sub CheckDeclaringSyntax(Of TNode As VisualBasicSyntaxNode)(comp As VisualBasicCompilation, tree As SyntaxTree, name As String, kind As SymbolKind)
             Dim model = comp.GetSemanticModel(tree)
             Dim code As String = tree.GetText().ToString()
-            Dim position As Integer = code.IndexOf(name)
+            Dim position As Integer = code.IndexOf(name, StringComparison.Ordinal)
             Dim token = tree.GetCompilationUnitRoot().FindToken(position)
             Dim node = token.Parent.FirstAncestorOrSelf(Of TNode)()
             Dim sym As Symbol = model.GetDeclaredSymbolFromSyntaxNode(node)
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Sub CheckDeclaringSyntaxIsNoDeclaration(Of TNode As VisualBasicSyntaxNode)(comp As VisualBasicCompilation, tree As SyntaxTree, name As String)
             Dim model = comp.GetSemanticModel(tree)
             Dim code As String = tree.GetText().ToString()
-            Dim position As Integer = code.IndexOf(name)
+            Dim position As Integer = code.IndexOf(name, StringComparison.Ordinal)
             Dim token = tree.GetCompilationUnitRoot().FindToken(position)
             Dim node = token.Parent.FirstAncestorOrSelf(Of TNode)()
             Dim sym As Symbol = model.GetDeclaredSymbolFromSyntaxNode(node)
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Sub CheckLambdaDeclaringSyntax(Of TNode As ExpressionSyntax)(comp As VisualBasicCompilation, tree As SyntaxTree, textToSearchFor As String)
             Dim model = comp.GetSemanticModel(tree)
             Dim code As String = tree.GetText().ToString()
-            Dim position As Integer = code.IndexOf(textToSearchFor)
+            Dim position As Integer = code.IndexOf(textToSearchFor, StringComparison.Ordinal)
             Dim node = tree.GetCompilationUnitRoot().FindToken(position).Parent.FirstAncestorOrSelf(Of TNode)()
             Dim sym As MethodSymbol = TryCast(model.GetSymbolInfo(node).Symbol, MethodSymbol)
             Assert.NotNull(sym)
@@ -229,7 +229,7 @@ End Class
             Dim text = tree.GetText().ToString()
             Dim model = comp.GetSemanticModel(tree)
             Dim globalNS = comp.GlobalNamespace
-            Dim posA1 As Integer = text.IndexOf("a1")
+            Dim posA1 As Integer = text.IndexOf("a1", StringComparison.Ordinal)
             Dim declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type
@@ -264,7 +264,7 @@ End Class
             Dim text = tree.GetText().ToString()
             Dim model = comp.GetSemanticModel(tree)
             Dim globalNS = comp.GlobalNamespace
-            Dim posA1 As Integer = text.IndexOf("a1")
+            Dim posA1 As Integer = text.IndexOf("a1", StringComparison.Ordinal)
             Dim declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type
@@ -306,7 +306,7 @@ End Class
             Dim text = tree.GetText().ToString()
             Dim model = comp.GetSemanticModel(tree)
             Dim globalNS = comp.GlobalNamespace
-            Dim posA1 As Integer = text.IndexOf("a1")
+            Dim posA1 As Integer = text.IndexOf("a1", StringComparison.Ordinal)
             Dim declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             Dim localA1 = DirectCast(model.GetDeclaredSymbol(declaratorA1.Names(0)), LocalSymbol)
             Dim localA1Type = localA1.Type

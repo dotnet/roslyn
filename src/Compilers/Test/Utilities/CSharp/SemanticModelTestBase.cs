@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected int GetPositionForBinding(string code)
         {
-            string tag = "/*pos*/";
+            const string tag = "/*pos*/";
 
-            return code.IndexOf(tag) + tag.Length;
+            return code.IndexOf(tag, StringComparison.Ordinal) + tag.Length;
         }
 
         protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef });
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var position = testSrc.IndexOf(subStrForPreprocessNameIndex);
+            var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
             var nameSyntaxToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent as IdentifierNameSyntax;
 
             return model.GetPreprocessingSymbolInfo(nameSyntaxToBind);

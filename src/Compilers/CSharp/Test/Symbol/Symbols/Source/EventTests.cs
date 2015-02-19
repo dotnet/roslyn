@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -297,10 +298,10 @@ public class E
             compVerifier.VerifyDiagnostics(DiagnosticDescription.None);
             var semanticModel = compVerifier.Compilation.GetSemanticModel(compVerifier.Compilation.SyntaxTrees.Single());
 
-            var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/"), name: "E1").SingleOrDefault() as EventSymbol;
+            var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
             Assert.NotNull(eventSymbol1);
 
-            var eventSymbol2 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_2*/"), name: "E1").SingleOrDefault() as EventSymbol;
+            var eventSymbol2 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_2*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
             Assert.NotNull(eventSymbol2);
         }
 

@@ -354,7 +354,7 @@ Friend Module CompilationUtils
         End If
 
         Dim text As String = tree.GetRoot().ToFullString()
-        Dim startCommentIndex As Integer = text.IndexOf(bindMarker) + bindMarker.Length
+        Dim startCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
 
         Dim endCommentIndex As Integer = text.Length
         Dim endOfLineIndex = text.IndexOfAny({CChar(vbLf), CChar(vbCr)}, startCommentIndex)
@@ -363,7 +363,7 @@ Friend Module CompilationUtils
         End If
 
         ' There may be more than one 'BIND{1234...} marker per line
-        Dim nextMarkerIndex = text.IndexOf("'BIND", startCommentIndex, endCommentIndex - startCommentIndex)
+        Dim nextMarkerIndex = text.IndexOf("'BIND", startCommentIndex, endCommentIndex - startCommentIndex, StringComparison.Ordinal)
         If nextMarkerIndex > -1 Then
             endCommentIndex = nextMarkerIndex
         End If
@@ -546,7 +546,7 @@ Friend Module CompilationUtils
     ' Find a node inside a tree.
     Public Function FindTokenFromText(tree As SyntaxTree, textToFind As String) As SyntaxToken
         Dim text As String = tree.GetText().ToString()
-        Dim position As Integer = text.IndexOf(textToFind)
+        Dim position As Integer = text.IndexOf(textToFind, StringComparison.Ordinal)
         Dim node = tree.GetRoot().FindToken(position)
         Return node
     End Function
@@ -554,7 +554,7 @@ Friend Module CompilationUtils
     ' Find a position inside a tree.
     Public Function FindPositionFromText(tree As SyntaxTree, textToFind As String) As Integer
         Dim text As String = tree.GetText().ToString()
-        Dim position As Integer = text.IndexOf(textToFind)
+        Dim position As Integer = text.IndexOf(textToFind, StringComparison.Ordinal)
         Return position
     End Function
 

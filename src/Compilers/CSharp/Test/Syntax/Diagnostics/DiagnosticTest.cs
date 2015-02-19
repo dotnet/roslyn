@@ -2013,7 +2013,7 @@ class Program
         private TextSpan GetSpanIn(SyntaxTree syntaxTree, string textToFind)
         {
             string s = syntaxTree.GetText().ToString();
-            int index = s.IndexOf(textToFind);
+            int index = s.IndexOf(textToFind, StringComparison.Ordinal);
             Assert.True(index >= 0, "textToFind not found in the tree");
             return new TextSpan(index, textToFind.Length);
         }

@@ -1510,7 +1510,7 @@ class Class3
 
                 // do some speculative semantic query
                 var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
-                var position = source1.IndexOf("var d") - 1;
+                var position = source1.IndexOf("var d", StringComparison.Ordinal) - 1;
                 var expr1 = SyntaxFactory.ParseExpression("new { x = 1, y" + i.ToString() + " = \"---\" }");
                 var info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression);
                 Assert.NotNull(info1.Type);
