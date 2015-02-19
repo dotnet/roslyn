@@ -420,7 +420,7 @@ class C1
             Assert.Equal(true, documents.Contains(d => d.Name == "MainWindow.xaml.cs"));
 
             // prove no xaml files are documents
-            Assert.Equal(false, documents.Contains(d => d.Name.EndsWith(".xaml")));
+            Assert.Equal(false, documents.Contains(d => d.Name.EndsWith(".xaml", StringComparison.Ordinal)));
 
             // prove that generated source files for xaml files are included in documents list
             Assert.Equal(true, documents.Contains(d => d.Name == "App.g.cs"));
@@ -1862,7 +1862,7 @@ class C1
                     Assert.Equal(1, proj.AnalyzerReferences.Count);
                     var analyzerReference = proj.AnalyzerReferences.First() as AnalyzerFileReference;
                     Assert.NotNull(analyzerReference);
-                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll"));
+                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll", StringComparison.Ordinal));
                 }
 
                 // prove that project gets opened instead.

@@ -5697,7 +5697,7 @@ class Program
             MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/debug", "/preferreduilang:en", sourcePath);
             csc.FileMove = (source, dest) =>
             {
-                if (dest.EndsWith(".pdb"))
+                if (dest.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new IOException();
                 }

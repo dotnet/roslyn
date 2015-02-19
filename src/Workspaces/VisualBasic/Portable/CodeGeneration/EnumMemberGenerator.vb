@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     Dim lastTwoChars = numericText.Substring(numericText.Length - 2, 2)
                                     Return SyntaxFactory.NumericLiteralExpression(
                                     SyntaxFactory.IntegerLiteralToken(firstTwoChars + ushortValue.ToString("X") + lastTwoChars, LiteralBase.Hexadecimal, TypeCharacter.UShortLiteral, IntegerUtilities.ToUnsigned(ushortValue)))
-                                ElseIf (numericText.EndsWith("S") OrElse numericText.EndsWith("s")) AndAlso
+                                ElseIf numericText.EndsWith("S", StringComparison.OrdinalIgnoreCase) AndAlso
                                    value >= Short.MinValue AndAlso value <= Short.MaxValue Then
                                     Dim shortValue = CShort(value)
                                     Return SyntaxFactory.NumericLiteralExpression(

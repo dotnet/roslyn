@@ -308,8 +308,7 @@ Friend Module CompilationUtils
     Public Function FilterString(s As String) As String
         s = s.Replace(vbCrLf, vbLf) ' If there are already "0d0a", don't replace them with "0d0a0a"
         s = s.Replace(vbLf, vbCrLf)
-        Dim needToAddBackNewline = False
-        If s.EndsWith(vbCrLf) Then needToAddBackNewline = True
+        Dim needToAddBackNewline = s.EndsWith(vbCrLf, StringComparison.Ordinal)
         s = s.Trim()
         If needToAddBackNewline Then s &= vbCrLf
         Return s

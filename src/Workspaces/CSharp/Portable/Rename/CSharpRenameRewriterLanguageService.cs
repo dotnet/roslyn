@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public void TryAddPossibleNameConflicts(ISymbol symbol, string replacementText, ICollection<string> possibleNameConflicts)
         {
-            if (replacementText.EndsWith("Attribute") && replacementText.Length > 9)
+            if (replacementText.EndsWith("Attribute", StringComparison.Ordinal) && replacementText.Length > 9)
             {
                 var conflict = replacementText.Substring(0, replacementText.Length - 9);
                 if (!possibleNameConflicts.Contains(conflict))

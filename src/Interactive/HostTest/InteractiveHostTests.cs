@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 new[] { source },
                 assemblyName: assemblyName,
                 references: references.Concat(new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) }),
-                options: fileName.EndsWith(".exe") ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
+                options: fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
 
             var image = compilation.EmitToArray();
             file.WriteAllBytes(image);

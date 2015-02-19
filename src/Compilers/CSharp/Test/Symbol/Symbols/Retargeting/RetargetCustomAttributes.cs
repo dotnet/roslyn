@@ -84,11 +84,11 @@ class TestClass
                 newMsCorLib_debuggerTypeProxyAttributeType = c2MscorlibAssemblyRef.GetTypeByMetadataName("System.Diagnostics.DebuggerTypeProxyAttribute");
                 Assert.NotSame(oldMsCorLib_debuggerTypeProxyAttributeType, newMsCorLib_debuggerTypeProxyAttributeType);
 
-                oldMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)oldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Where(
-                    (m) => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == oldMsCorLib_systemType).Single();
+                oldMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)oldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Single(
+                    m => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == oldMsCorLib_systemType);
 
-                newMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)newMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Where(
-                    (m) => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == newMsCorLib_systemType).Single();
+                newMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)newMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Single(
+                    m => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == newMsCorLib_systemType);
 
                 Assert.NotSame(oldMsCorLib_debuggerTypeProxyAttributeCtor, newMsCorLib_debuggerTypeProxyAttributeCtor);
             }

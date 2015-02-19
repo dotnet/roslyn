@@ -683,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         internal void UpdateFileNameExtension()
         {
             var currentFileName = this.FileName.Trim();
-            if (!string.IsNullOrWhiteSpace(currentFileName) && !currentFileName.EndsWith("\\"))
+            if (!string.IsNullOrWhiteSpace(currentFileName) && !currentFileName.EndsWith("\\", StringComparison.Ordinal))
             {
                 if (this.SelectedProject.Language == LanguageNames.CSharp)
                 {
@@ -751,7 +751,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
             this.ProjectList = projectListing;
 
-            _typeName = generateTypeDialogOptions.IsAttribute && !typeName.EndsWith("Attribute") ? typeName + "Attribute" : typeName;
+            const string attributeSuffix = "Attribute";
+            _typeName = generateTypeDialogOptions.IsAttribute && !typeName.EndsWith(attributeSuffix, StringComparison.Ordinal) ? typeName + attributeSuffix : typeName;
             this.FileName = typeName + fileExtension;
 
             _document = document;

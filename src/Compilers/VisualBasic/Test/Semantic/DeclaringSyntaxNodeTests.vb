@@ -553,7 +553,7 @@ End Namespace
 
                 If TypeOf memb Is NamedTypeSymbol Then
                     Dim nt As NamedTypeSymbol = DirectCast(memb, NamedTypeSymbol)
-                    If nt.TypeKind = TypeKind.Delegate AndAlso nt.Name.EndsWith("EventHandler") Then
+                    If nt.TypeKind = TypeKind.Delegate AndAlso nt.Name.EndsWith("EventHandler", StringComparison.Ordinal) Then
                         expectedDeclaringNodes = 0
                     End If
                 End If
@@ -589,7 +589,7 @@ End Namespace
 
                 If TypeOf memb Is NamedTypeSymbol Then
                     Dim nt As NamedTypeSymbol = DirectCast(memb, NamedTypeSymbol)
-                    If nt.TypeKind = TypeKind.Delegate AndAlso nt.Name.EndsWith("EventHandler") Then
+                    If nt.TypeKind = TypeKind.Delegate AndAlso nt.Name.EndsWith("EventHandler", StringComparison.Ordinal) Then
                         expectedDeclaringNodes = 0
                     End If
                 End If

@@ -3604,7 +3604,7 @@ class Program
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
-            var globalStmt = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("/")).Parent.AncestorsAndSelf().Where(x => x.IsKind(SyntaxKind.GlobalStatement)).Single();
+            var globalStmt = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf('/')).Parent.AncestorsAndSelf().Single(x => x.IsKind(SyntaxKind.GlobalStatement));
 
             var symbol = model.GetDeclaredSymbol(globalStmt);
 

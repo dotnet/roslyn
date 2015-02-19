@@ -4495,7 +4495,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
 
             Dim originalSyntax = tree.GetCompilationUnitRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax).Single()
-            Assert.True(originalSyntax.ToString().EndsWith(".ToList"))
+            Assert.True(originalSyntax.ToString().EndsWith(".ToList", StringComparison.Ordinal))
 
             Dim info1 = model.GetSymbolInfo(originalSyntax)
             Dim method1 = TryCast(info1.Symbol, MethodSymbol)

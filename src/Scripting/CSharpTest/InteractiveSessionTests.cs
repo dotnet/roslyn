@@ -1388,7 +1388,7 @@ int z; z = x + y;
 System.Console.Write(new E());
 System.Console.Write(x + y);
 ");
-                Assert.True(output.ToString().Trim().EndsWith("+E2"), output.ToString());
+                Assert.True(output.ToString().Trim().EndsWith("+E2", StringComparison.Ordinal), output.ToString());
             }
         }
 

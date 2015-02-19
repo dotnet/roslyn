@@ -1850,7 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, out bool encounteredCycle)
         {
-            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity));
+            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
 
             encounteredCycle = false;
 
