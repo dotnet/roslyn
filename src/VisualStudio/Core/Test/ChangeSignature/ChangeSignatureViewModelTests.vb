@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class ReorderParametersViewModelTests
@@ -287,33 +288,5 @@ class MyClass
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())
             End Using
         End Function
-
-        Friend Class TestNotificationService
-            Implements INotificationService
-
-            Public MessageText As String
-            Public MessageTitle As String
-            Public MessageSeverity As NotificationSeverity
-
-            Public ConfirmBoxText As String
-            Public ConfirmBoxTitle As String
-            Public ConfirmBoxSeverity As NotificationSeverity
-
-            Public DesiredConfirmBoxResult As Boolean
-
-            Public Sub SendNotification(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) Implements INotificationService.SendNotification
-                MessageText = message
-                MessageTitle = title
-                MessageSeverity = severity
-            End Sub
-
-            Public Function ConfirmMessageBox(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) As Boolean Implements INotificationService.ConfirmMessageBox
-                ConfirmBoxText = message
-                ConfirmBoxTitle = title
-                ConfirmBoxSeverity = severity
-
-                Return DesiredConfirmBoxResult
-            End Function
-        End Class
     End Class
 End Namespace

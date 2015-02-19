@@ -36,15 +36,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
 
             ' Create a speculative binder for the method body.
-            Dim methodSymbol = DirectCast(Me.MemberSymbol, MethodSymbol)
+            Dim methodSymbol = DirectCast(Me.MemberSymbol, methodSymbol)
 
-            Dim containingBinder As Binder = Me.RootBinder
+            Dim containingBinder As binder = Me.RootBinder
 
             ' Get up to the NamedTypeBinder
-            Dim namedTypeBinder As NamedTypeBinder
+            Dim namedTypeBinder As namedTypeBinder
 
             Do
-                namedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
+                namedTypeBinder = TryCast(containingBinder, namedTypeBinder)
 
                 If namedTypeBinder IsNot Nothing Then
                     Exit Do

@@ -208,6 +208,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
 
         internal abstract bool IsMethod(SyntaxNode declaration);
+        internal abstract bool IsLambda(SyntaxNode node);
+        internal abstract bool ContainsLambda(SyntaxNode declaration);
+
+        /// <summary>
+        /// Returns all lambda bodies of a node representing a lambda.
+        /// </summary>
+        /// <remarks>
+        /// C# anonymous function expression and VB lambda expression both have a single body
+        /// (in VB the body is the header of the lambda expression).
+        /// 
+        /// Some lambda queries (group by, join by) have two bodies.
+        /// </remarks>
+        internal abstract bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2);
+
         internal abstract bool IsStateMachineMethod(SyntaxNode declaration);
         internal abstract SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode memberDeclaration);
 
@@ -338,7 +352,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 //    The user may fix them before they address all the semantic errors.
 
                 // [(edit ordinal, matching statements of an updated active method)]
-                var updatedActiveMethodMatches = new List<ValueTuple<int, Match<SyntaxNode>>>();
+                var updatedActiveMethodMatches = new List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>>();
 
                 var diagnostics = new List<RudeEditDiagnostic>();
 
@@ -491,7 +505,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             [Out]LinePositionSpan[] newActiveStatements,
             [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<ValueTuple<int, Match<SyntaxNode>>> updatedActiveMethodMatches,
+            [Out]List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>> updatedActiveMethodMatches,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
@@ -704,31 +718,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private struct ActiveLambda
+        // internal for testing
+        internal struct LambdaInfo
         {
             public readonly List<int> ActiveNodeIndices;
             public readonly Match<SyntaxNode> Match;
-            public readonly SyntaxNode NewLambdaBody;
-            public readonly bool MatchCalculated;
+            public readonly SyntaxNode NewBody;
 
-            public static readonly ActiveLambda NoMatch = new ActiveLambda(null, null, null, true);
-
-            public ActiveLambda(List<int> activeNodeIndices)
-                : this(activeNodeIndices, null, null, false)
+            public LambdaInfo(List<int> activeNodeIndices)
+                : this(activeNodeIndices, null, null)
             {
             }
 
-            private ActiveLambda(List<int> activeNodeIndices, Match<SyntaxNode> match, SyntaxNode newLambdaBody, bool matchCalculated)
+            private LambdaInfo(List<int> activeNodeIndices, Match<SyntaxNode> match, SyntaxNode newLambdaBody)
             {
                 this.ActiveNodeIndices = activeNodeIndices;
                 this.Match = match;
-                this.MatchCalculated = matchCalculated;
-                this.NewLambdaBody = newLambdaBody;
+                this.NewBody = newLambdaBody;
             }
 
-            public ActiveLambda WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
+            public LambdaInfo WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
             {
-                return new ActiveLambda(this.ActiveNodeIndices, match, newLambdaBody, true);
+                return new LambdaInfo(this.ActiveNodeIndices, match, newLambdaBody);
             }
         }
 
@@ -743,7 +754,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             [Out]LinePositionSpan[] newActiveStatements,
             [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<ValueTuple<int, Match<SyntaxNode>>> updatedActiveMethodMatches,
+            [Out]List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>> updatedActiveMethodMatches,
             [Out]List<KeyValuePair<ActiveStatementId, TextSpan>> updatedTrackingSpans,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
@@ -814,7 +825,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            Dictionary<SyntaxNode, ActiveLambda> lambdas = null;
+            // Populated with active lambdas and matched lambdas. 
+            // Unmatched non-active lambdas are not included.
+            Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas = null;
 
             // finds leaf nodes that correspond to the old active statements:
             Debug.Assert(end > start || !hasActiveStatement && end == start);
@@ -830,16 +843,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (oldEnclosingLambdaBody != null)
                 {
-                    if (lambdas == null)
+                    if (lazyActiveOrMatchedLambdas == null)
                     {
-                        lambdas = new Dictionary<SyntaxNode, ActiveLambda>();
+                        lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
                     }
 
-                    ActiveLambda lambda;
-                    if (!lambdas.TryGetValue(oldEnclosingLambdaBody, out lambda))
+                    LambdaInfo lambda;
+                    if (!lazyActiveOrMatchedLambdas.TryGetValue(oldEnclosingLambdaBody, out lambda))
                     {
-                        lambda = new ActiveLambda(new List<int>());
-                        lambdas.Add(oldEnclosingLambdaBody, lambda);
+                        lambda = new LambdaInfo(new List<int>());
+                        lazyActiveOrMatchedLambdas.Add(oldEnclosingLambdaBody, lambda);
                     }
 
                     lambda.ActiveNodeIndices.Add(i);
@@ -875,18 +888,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 activeNodes[i] = new ActiveNode(oldStatementSyntax, oldEnclosingLambdaBody, statementPart, isTracked ? trackedSpan : (TextSpan?)null, trackedNode);
             }
 
-            bool isActiveMethod;
-            var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodes.Where(n => n.EnclosingLambdaBodyOpt == null).ToArray(), diagnostics, out isActiveMethod);
+            bool hasStateMachineSuspensionPoint;
+            bool hasLambda;
+            var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodes.Where(n => n.EnclosingLambdaBodyOpt == null).ToArray(), diagnostics, out hasStateMachineSuspensionPoint);
+            var reverseMap = ComputeReverseMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics, out hasLambda);
 
-            if (IsMethod(edit.OldNode) && (isActiveMethod || hasActiveStatement))
+            // TODO: include reverse maps of field initializers
+            if (IsMethod(edit.OldNode) && (hasStateMachineSuspensionPoint || hasLambda || hasActiveStatement))
             {
                 // Save the body match for local variable mapping.
                 // We'll use it to tell the compiler what local variables to preserve in an active method.
                 // An edited async/iterator method is considered active.
-                updatedActiveMethodMatches.Add(ValueTuple.Create(editOrdinal, bodyMatch));
+                updatedActiveMethodMatches.Add(ValueTuple.Create(editOrdinal, reverseMap));
             }
 
-            Stack<KeyValuePair<SyntaxNode, SyntaxNode>> lambdaStack = null;
             for (int i = 0; i < activeNodes.Length; i++)
             {
                 int ordinal = start + i;
@@ -911,8 +926,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    SyntaxNode newEnclosingLambdaBody;
-                    match = ComputeLambdaBodyMatch(oldEnclosingLambdaBody, bodyMatch, lambdas, activeNodes, diagnostics, ref lambdaStack, out newEnclosingLambdaBody, trackingService != null);
+                    var oldLambdaInfo = lazyActiveOrMatchedLambdas[oldEnclosingLambdaBody];
+                    SyntaxNode newEnclosingLambdaBody = oldLambdaInfo.NewBody;
+                    match = oldLambdaInfo.Match;
 
                     if (match != null)
                     {
@@ -967,7 +983,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     Debug.Assert(oldEnclosingLambdaBody != null);
 
-                    newSpan = GetDeletedNodeDiagnosticSpan(oldEnclosingLambdaBody, bodyMatch, lambdas);
+                    newSpan = GetDeletedNodeDiagnosticSpan(oldEnclosingLambdaBody, bodyMatch, lazyActiveOrMatchedLambdas);
 
                     // Lambda containing the active statement can't be found in the new source.
                     diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldEnclosingLambdaBody.Parent,
@@ -999,105 +1015,131 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
-        /// Computes a match for <paramref name="oldLambdaBody"/>.
-        /// Recursively computes match for containing lambdas if needed.
+        /// Calculates a syntax map of the entire method body including all lambda bodies it contains (recursively).
+        /// Internal for testing.
         /// </summary>
-        private Match<SyntaxNode> ComputeLambdaBodyMatch(
-            SyntaxNode oldLambdaBody,
+        internal IReadOnlyDictionary<SyntaxNode, SyntaxNode> ComputeReverseMap(
             Match<SyntaxNode> bodyMatch,
-            Dictionary<SyntaxNode, ActiveLambda> lambdas,
             ActiveNode[] activeNodes,
+            ref Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
             List<RudeEditDiagnostic> diagnostics,
-            ref Stack<KeyValuePair<SyntaxNode, SyntaxNode>> stack,
-            out SyntaxNode matchingLambdaBody,
-            bool trackingAvailable)
+            out bool hasLambda)
         {
-            Debug.Assert(stack == null || stack.Count == 0);
-
-            // At this point lambdas only contains lambda bodies directly containing at least one active statement.
-            // oldLambdaBody contains an active statement -- that's why we are trying to find out a match for it.
-
-            var activeLambda = lambdas[oldLambdaBody];
-            var match = activeLambda.Match;
-            if (activeLambda.MatchCalculated)
-            {
-                matchingLambdaBody = activeLambda.NewLambdaBody;
-                return match;
-            }
-
-            // ascend the tree of nested lambdas:
-            SyntaxNode parentLambdaBody;
-            Match<SyntaxNode> parentMatch;
+            ArrayBuilder<Match<SyntaxNode>> lambdaBodyMatches = null;
+            int currentLambdaBodyMatch = -1;
+            Match<SyntaxNode> currentBodyMatch = bodyMatch;
+            
             while (true)
             {
-                parentLambdaBody = FindEnclosingLambdaBody(bodyMatch.OldRoot, oldLambdaBody.Parent);
-                if (parentLambdaBody == null)
+                foreach (var pair in currentBodyMatch.Matches)
                 {
-                    parentMatch = bodyMatch;
-                }
-                else if (lambdas.TryGetValue(parentLambdaBody, out activeLambda))
-                {
-                    parentMatch = activeLambda.Match;
-                }
-                else
-                {
-                    parentMatch = null;
+                    // Skip root, only enumerate body matches.
+                    if (pair.Key == currentBodyMatch.OldRoot)
+                    {
+                        Debug.Assert(pair.Value == currentBodyMatch.NewRoot);
+                        continue;
+                    }
+
+                    SyntaxNode oldLambda = pair.Key;
+                    SyntaxNode newLambda = pair.Value;
+                    SyntaxNode oldLambdaBody1, oldLambdaBody2;
+
+                    if (IsLambda(oldLambda))
+                    {
+                        Debug.Assert(IsLambda(newLambda));
+                       
+                        if (TryGetLambdaBodies(oldLambda, out oldLambdaBody1, out oldLambdaBody2))
+                        {
+                            if (lambdaBodyMatches == null)
+                            {
+                                lambdaBodyMatches = ArrayBuilder<Match<SyntaxNode>>.GetInstance();
+                            }
+
+                            if (lazyActiveOrMatchedLambdas == null)
+                            {
+                                lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
+                            }
+
+                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+
+                            if (oldLambdaBody2 != null)
+                            {
+                                lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+                            }
+                        }
+                    }
                 }
 
-                if (parentMatch != null)
+                currentLambdaBodyMatch++;
+                if (lambdaBodyMatches == null || currentLambdaBodyMatch == lambdaBodyMatches.Count)
                 {
                     break;
                 }
 
-                if (stack == null)
-                {
-                    stack = new Stack<KeyValuePair<SyntaxNode, SyntaxNode>>();
-                }
-
-                stack.Push(KeyValuePair.Create(oldLambdaBody, parentLambdaBody));
-                oldLambdaBody = parentLambdaBody;
+                currentBodyMatch = lambdaBodyMatches[currentLambdaBodyMatch];
             }
 
-            // descend the tree of nested lambdas:
-            while (true)
+            if (lambdaBodyMatches == null)
             {
-                SyntaxNode newLambda;
-                if (!parentMatch.TryGetNewNode(oldLambdaBody.Parent, out newLambda))
-                {
-                    // We were not able to find a matchin lambda.
-                    // All stacked lambdas won't be matched either.
-                    // Let's remember that so to avoid unnecessary calculations later.
-                    while (stack != null && stack.Count > 0)
-                    {
-                        lambdas[stack.Pop().Key] = ActiveLambda.NoMatch;
-                    }
-
-                    matchingLambdaBody = null;
-                    return null;
-                }
-
-                SyntaxNode newLambdaBody = GetPartnerLambdaBody(oldLambdaBody, newLambda);
-
-                // If the lambda body isn't in the lambdas map then it doesn't have any active/tracked statements.
-                var activeNodesInLambda = lambdas.TryGetValue(oldLambdaBody, out activeLambda) ?
-                    activeLambda.ActiveNodeIndices.Select(i => activeNodes[i]).ToArray() : SpecializedCollections.EmptyArray<ActiveNode>();
-
-                bool needsSyntaxMap;
-                match = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambda, diagnostics, out needsSyntaxMap);
-
-                lambdas[oldLambdaBody] = activeLambda.WithMatch(match, newLambdaBody);
-
-                if (stack == null || stack.Count == 0)
-                {
-                    matchingLambdaBody = newLambdaBody;
-                    return match;
-                }
-
-                var entry = stack.Pop();
-                oldLambdaBody = entry.Key;
-                parentLambdaBody = entry.Value;
-                parentMatch = match;
+                hasLambda = false;
+                return bodyMatch.ReverseMatches;
             }
+
+            var result = new Dictionary<SyntaxNode, SyntaxNode>();
+
+            // include all matches, including the root:
+            result.AddRange(bodyMatch.ReverseMatches);
+
+            foreach (var lambdaBodyMatch in lambdaBodyMatches)
+            {
+                foreach (var pair in lambdaBodyMatch.Matches)
+                {
+                    // Body match of a lambda whose body is an expression has the lambda as a root.
+                    // The lambda has already been included when enumerating parent body matches.
+                    Debug.Assert(
+                        !result.ContainsKey(pair.Value) || 
+                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key));
+
+                    // reverse
+                    result[pair.Value] = pair.Key;
+                }
+            }
+
+            lambdaBodyMatches?.Free();
+
+            hasLambda = true;
+            return result;
+        }
+
+        private Match<SyntaxNode> ComputeLambdaBodyMatch(
+            SyntaxNode lambdaBody,
+            SyntaxNode newLambda,
+            ActiveNode[] activeNodes,
+            [Out]Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
+            [Out]List<RudeEditDiagnostic> diagnostics)
+        {
+            SyntaxNode newLambdaBody = GetPartnerLambdaBody(lambdaBody, newLambda);
+
+            ActiveNode[] activeNodesInLambda;
+            LambdaInfo info;
+            if (lazyActiveOrMatchedLambdas.TryGetValue(lambdaBody, out info))
+            {
+                // Lambda may be matched but not be active.
+                activeNodesInLambda = info.ActiveNodeIndices?.Select(i => activeNodes[i]).ToArray();
+            }
+            else
+            {
+                // If the lambda body isn't in the map it doesn't have any active/tracked statements.
+                activeNodesInLambda = null;
+                info = new LambdaInfo();
+            }
+
+            bool needsSyntaxMap;
+            var lambdaBodyMatch = ComputeBodyMatch(lambdaBody, newLambdaBody, activeNodesInLambda ?? SpecializedCollections.EmptyArray<ActiveNode>(), diagnostics, out needsSyntaxMap);
+
+            lazyActiveOrMatchedLambdas[lambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
+
+            return lambdaBodyMatch;
         }
 
         // internal for testing
@@ -1106,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode newBody,
             ActiveNode[] activeNodes,
             List<RudeEditDiagnostic> diagnostics,
-            out bool isActiveMethod)
+            out bool hasStateMachineSuspensionPoint)
         {
             Debug.Assert(oldBody != null);
             Debug.Assert(newBody != null);
@@ -1131,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //    b) If the method has no active statements then the edit is valid, we don't need to calculate map.
 
             bool creatingStateMachineAroundActiveStatement = oldStateMachineSuspensionPoints.Length == 0 && newStateMachineSuspensionPoints.Length > 0 && activeNodes.Length > 0;
-            isActiveMethod = oldStateMachineSuspensionPoints.Length > 0 && newStateMachineSuspensionPoints.Length > 0;
+            hasStateMachineSuspensionPoint = oldStateMachineSuspensionPoints.Length > 0 && newStateMachineSuspensionPoints.Length > 0;
 
             if (oldStateMachineSuspensionPoints.Length > 0 || creatingStateMachineAroundActiveStatement)
             {
@@ -1288,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result.AsImmutable();
         }
 
-        private TextSpan GetDeletedNodeDiagnosticSpan(SyntaxNode deletedLambdaBody, Match<SyntaxNode> bodyMatch, Dictionary<SyntaxNode, ActiveLambda> lambdas)
+        private TextSpan GetDeletedNodeDiagnosticSpan(SyntaxNode deletedLambdaBody, Match<SyntaxNode> bodyMatch, Dictionary<SyntaxNode, LambdaInfo> lambdaInfos)
         {
             SyntaxNode oldLambdaBody = deletedLambdaBody;
             while (true)
@@ -1299,10 +1341,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return GetDeletedNodeDiagnosticSpan(bodyMatch, oldLambdaBody);
                 }
 
-                ActiveLambda activeLambda;
-                if (lambdas.TryGetValue(oldParentLambdaBody, out activeLambda))
+                LambdaInfo lambdaInfo;
+                if (lambdaInfos.TryGetValue(oldParentLambdaBody, out lambdaInfo) && lambdaInfo.Match != null)
                 {
-                    return GetDeletedNodeDiagnosticSpan(activeLambda.Match, oldLambdaBody);
+                    return GetDeletedNodeDiagnosticSpan(lambdaInfo.Match, oldLambdaBody);
                 }
 
                 oldLambdaBody = oldParentLambdaBody;
@@ -1451,9 +1493,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editMap.TryGetValue(node, out parentEdit) && parentEdit == editKind;
         }
 
-        #endregion
+#endregion
 
-        #region Rude Edits around Active Statement 
+#region Rude Edits around Active Statement 
 
         protected void AddRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, SyntaxNode newActiveStatement)
         {
@@ -1665,9 +1707,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        #endregion
+#endregion
 
-        #region Trivia Analysis
+#region Trivia Analysis
 
         // internal for testing
         internal void AnalyzeTrivia(
@@ -1795,9 +1837,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return x.OldLine.CompareTo(y.OldLine);
         }
 
-        #endregion
+#endregion
 
-        #region Semantic Analysis
+#region Semantic Analysis
 
         // internal for testing
         internal void AnalyzeSemantics(
@@ -1806,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText oldText,
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             List<KeyValuePair<SyntaxNode, SyntaxNode>> triviaEdits,
-            List<ValueTuple<int, Match<SyntaxNode>>> updatedActiveMethodMatches,
+            List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>> updatedActiveMethodMatches,
             SemanticModel oldModel,
             SemanticModel newModel,
             [Out]List<SemanticEdit> semanticEdits,
@@ -2022,8 +2064,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (updatedActiveMethodMatchIndex < updatedActiveMethodMatches.Count &&
                                 updatedActiveMethodMatches[updatedActiveMethodMatchIndex].Item1 == i)
                             {
-                                var bodyMatch = updatedActiveMethodMatches[updatedActiveMethodMatchIndex].Item2;
-                                syntaxMap = CreateSyntaxMap(bodyMatch);
+                                var reverseMap = updatedActiveMethodMatches[updatedActiveMethodMatchIndex].Item2;
+                                syntaxMap = CreateSyntaxMap(reverseMap);
                                 updatedActiveMethodMatchIndex++;
                             }
                             else
@@ -2051,10 +2093,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     int start, end;
 
-                    // TODO: also preserve local variables if the body contains lambdas
                     bool preserveLocalVariables =
                         TryGetOverlappingActiveStatements(oldText, edit.Key.Span, oldActiveStatements, out start, out end) ||
-                        IsStateMachineMethod(edit.Key);
+                        IsStateMachineMethod(edit.Key) ||
+                        ContainsLambda(edit.Key);
 
                     var syntaxMap = preserveLocalVariables ? CreateSyntaxMapForEquivalentNodes(edit.Key, edit.Value) : null;
 
@@ -2100,7 +2142,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        #region Type Layout Update Validation 
+#region Type Layout Update Validation 
 
         internal void ReportTypeLayoutUpdateRudeEdits(
             List<RudeEditDiagnostic> diagnostics,
@@ -2206,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        #endregion
+#endregion
 
         private static IMethodSymbol AsParameterlessConstructor(ISymbol symbol)
         {
@@ -2369,18 +2411,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static Func<SyntaxNode, SyntaxNode> CreateSyntaxMap(Match<SyntaxNode> match)
+        private static Func<SyntaxNode, SyntaxNode> CreateSyntaxMap(IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
         {
             return newNode =>
             {
                 SyntaxNode oldNode;
-                return match.TryGetOldNode(newNode, out oldNode) ? oldNode : null;
+                return reverseMap.TryGetValue(newNode, out oldNode) ? oldNode : null;
             };
         }
 
-        #endregion
+#endregion
 
-        #region Helpers 
+#region Helpers 
 
         private static SyntaxNode TryGetNode(SyntaxNode root, int position)
         {
@@ -2401,6 +2443,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-        #endregion
+#endregion
     }
 }

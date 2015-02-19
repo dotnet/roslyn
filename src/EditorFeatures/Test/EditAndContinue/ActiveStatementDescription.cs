@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -45,23 +47,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         private static readonly Regex s_tags = new Regex(
-            @"[<][/]?(AS|ER|N|TS)[:][.0-9]+[>]",
+            @"[<][/]?(AS|ER|N|TS)[:][.0-9,]+[>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         private static readonly Regex s_activeStatementPattern = new Regex(
-            @"[<]AS[:]    (?<Id>[0-9]+) [>]
+            @"[<]AS[:]    (?<Id>[0-9,]+) [>]
               (?<ActiveStatement>.*)
               [<][/]AS[:] (\k<Id>)      [>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         public static readonly Regex ExceptionRegionPattern = new Regex(
-            @"[<]ER[:]      (?<Id>[0-9]+[.][0-9]+)   [>]
+            @"[<]ER[:]      (?<Id>(?:[0-9]+[.][0-9]+[,]?)+)   [>]
               (?<ExceptionRegion>.*)
               [<][/]ER[:]   (\k<Id>)                 [>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         private static readonly Regex s_trackingStatementPattern = new Regex(
-            @"[<]TS[:]    (?<Id>[0-9]+) [>]
+            @"[<]TS[:]    (?<Id>[0-9,]+) [>]
               (?<TrackingStatement>.*)
               [<][/]TS[:] (\k<Id>)      [>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
@@ -84,6 +86,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return result.ToArray();
         }
 
+        internal static IEnumerable<int> GetIds(Match match)
+        {
+            return match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+        }
+
+        internal static IEnumerable<ValueTuple<int, int>> GetDottedIds(Match match)
+        {
+            return from ids in match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                   let parts = ids.Split('.')
+                   select ValueTuple.Create(int.Parse(parts[0]), int.Parse(parts[1]));
+        }
+
         internal static TextSpan[] GetActiveSpans(string src)
         {
             var matches = s_activeStatementPattern.Matches(src);
@@ -92,10 +106,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             for (int i = 0; i < matches.Count; i++)
             {
                 var stmt = matches[i].Groups["ActiveStatement"];
-                var id = int.Parse(matches[i].Groups["Id"].Value);
-                EnsureSlot(result, id);
-
-                result[id] = new TextSpan(stmt.Index, stmt.Length);
+                foreach (int id in GetIds(matches[i]))
+                {
+                    EnsureSlot(result, id);
+                    result[id] = new TextSpan(stmt.Index, stmt.Length);
+                }
             }
 
             return result.ToArray();
@@ -114,8 +129,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             for (int i = 0; i < matches.Count; i++)
             {
                 var span = matches[i].Groups["TrackingStatement"];
-                var id = int.Parse(matches[i].Groups["Id"].Value);
-                result[id] = new TextSpan(span.Index, span.Length);
+                foreach (int id in GetIds(matches[i]))
+                {
+                    result[id] = new TextSpan(span.Index, span.Length);
+                }
             }
 
             return result;
@@ -128,18 +145,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             for (int i = 0; i < matches.Count; i++)
             {
-                var stmt = matches[i].Groups["ExceptionRegion"];
-                var id = matches[i].Groups["Id"].Value.Split('.');
-                var asid = int.Parse(id[0]);
-                var erid = int.Parse(id[1]);
+                var exceptionRegion = matches[i].Groups["ExceptionRegion"];
 
-                if (result[asid] == null)
+                foreach (var id in GetDottedIds(matches[i]))
                 {
-                    result[asid] = new List<TextSpan>();
-                }
+                    var activeStatementId = id.Item1;
+                    var exceptionRegionId = id.Item2;
 
-                EnsureSlot(result[asid], erid);
-                result[asid][erid] = new TextSpan(stmt.Index, stmt.Length);
+                    if (result[activeStatementId] == null)
+                    {
+                        result[activeStatementId] = new List<TextSpan>();
+                    }
+
+                    EnsureSlot(result[activeStatementId], exceptionRegionId);
+                    result[activeStatementId][exceptionRegionId] = new TextSpan(exceptionRegion.Index, exceptionRegion.Length);
+                }
             }
 
             return result.Select(r => r.AsImmutableOrEmpty()).ToArray();

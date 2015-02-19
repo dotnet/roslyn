@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' they enable us to clearly document a discarded return value from a method invocation, e.g. var
                     ' discardedValue = F(); >shrug<
                     ' Note, this rule only applies to local variables and not to const locals, i.e. we always report unused 
-                    ' const locals. In addition, if the value has errors then supress these diagnostics in all cases.
+                    ' const locals. In addition, if the value has errors then suppress these diagnostics in all cases.
                     _unusedVariables.Remove(local)
                 End If
             End If

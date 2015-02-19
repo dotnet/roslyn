@@ -371,12 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsLambdaBody(SyntaxNode node)
         {
-            if (node == null)
-            {
-                return false;
-            }
-
-            var parent = node.Parent;
+            var parent = node?.Parent;
             if (parent == null)
             {
                 return false;

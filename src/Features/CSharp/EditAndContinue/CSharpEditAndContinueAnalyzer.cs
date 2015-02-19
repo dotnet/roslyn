@@ -839,6 +839,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return false;
         }
 
+        internal override bool ContainsLambda(SyntaxNode declaration)
+        {
+            return declaration.DescendantNodes().Any(SyntaxUtilities.IsLambda);
+        }
+
+        internal override bool IsLambda(SyntaxNode node)
+        {
+            return SyntaxUtilities.IsLambda(node);
+        }
+
+        internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
+        {
+            return SyntaxUtilities.TryGetLambdaBodies(node, out body1, out body2);
+        }
+
         #endregion
 
         #region Diagnostic Info
