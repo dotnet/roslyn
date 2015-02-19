@@ -3,6 +3,7 @@
 Imports System.Collections.ObjectModel
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -520,18 +521,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Class KeywordSyntax
 
-        Private Shared ReadOnly BoxedTrue As Object = True
-        Private Shared ReadOnly BoxedFalse As Object = False
-
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Select Case MyBase.Kind
                     Case SyntaxKind.NothingKeyword
                         Return Nothing
                     Case SyntaxKind.TrueKeyword
-                        Return BoxedTrue
+                        Return Boxes.BoxedTrue
                     Case SyntaxKind.FalseKeyword
-                        Return BoxedFalse
+                        Return Boxes.BoxedFalse
                     Case Else
                         Return Me.Text
                 End Select
@@ -545,4 +543,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 End Namespace
-
