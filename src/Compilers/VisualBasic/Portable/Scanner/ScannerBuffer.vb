@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Private Function PeekAheadChar(skip As Integer) As Char
+        Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGetCharAtOffset(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Friend Function PeekChar() As Char
+        Friend Function Peek() As Char
             Dim page = _curPage
             Dim position = _lineBufferOffset
             Dim ch = page._arr(position And PAGE_MASK)
@@ -134,8 +134,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ch
         End Function
 
+        Friend Function TryPeek(ByRef output As Char) As Boolean
+            If Not CanGetChar() Then Return False
+            output = Peek()
+            Return True
+        End Function
+
+        Friend Function TryPeek(at As Integer,ByRef output As Char) As Boolean
+            If Not CanGetCharAtOffset(at) Then Return False
+            output = Peek(at)
+            Return True
+        End Function
+
         Friend Function GetChar() As String
-            Return Intern(PeekChar())
+            Return Intern(Peek())
         End Function
 
         Friend Function GetText(start As Integer, length As Integer) As String
@@ -143,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim offsetInPage = start And PAGE_MASK
 
             If page._pageStart = (start And NOT_PAGE_MASK) AndAlso
-                offsetInPage + length < PAGE_SIZE Then
+                (offsetInPage + length) < PAGE_SIZE Then
 
                 Return Intern(page._arr, offsetInPage, length)
             End If
@@ -173,17 +185,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim page = GetPage(start)
             If textOffset + length < PAGE_SIZE Then
-                If suppressInterning Then
-                    Return New String(page._arr, textOffset, length)
-                Else
-                    Return Intern(page._arr, textOffset, length)
-                End If
+                If suppressInterning Then Return New String(page._arr, textOffset, length)
+                Return Intern(page._arr, textOffset, length)            
             End If
 
             ' make a string builder that is big enough, but not too big
-            If _builder Is Nothing Then
-                _builder = New StringBuilder(Math.Min(length, 1024))
-            End If
+            If _builder Is Nothing Then _builder = New StringBuilder(Math.Min(length, 1024))
+
 
             Dim cnt = Math.Min(length, PAGE_SIZE - textOffset)
             _builder.Append(page._arr, textOffset, cnt)
