@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly MemberRangeMap _memberRangeMap;
         private readonly DiagnosticAnalyzersAndStates _analyzersAndState;
         private readonly AnalyzerExecutor _executor;
-        
+
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)

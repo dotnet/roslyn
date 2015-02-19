@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [ImportingConstructor]
         public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null)
             : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
-                    diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
-                    SpecializedCollections.EmptyEnumerable<string>())
+                   diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
+                   SpecializedCollections.EmptyEnumerable<string>())
         {
         }
 

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly IGeneratedCodeRecognitionService _generatedCodeService;
         private readonly IAnalyzerDriverService _analyzerDriverService;
         private readonly bool _testOnly_DonotCatchAnalyzerExceptions;
-        
+
         private LogAggregator _logAggregator;
 
         private ImmutableArray<DeclarationInfo> _lazyDeclarationInfos;
@@ -376,8 +375,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                     catch (Exception e) when (CatchAnalyzerException(e, analyzer))
                     {
-                        var exceptionDiagnostics = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                        ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostics, compilation);
+                        var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
+                        if (exceptionDiagnostic != null)
+                        {
+                            ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
+                        }
+
                         return ImmutableArray<Diagnostic>.Empty;
                     }
                 }
