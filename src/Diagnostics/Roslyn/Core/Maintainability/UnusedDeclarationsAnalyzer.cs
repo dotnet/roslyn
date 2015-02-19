@@ -68,8 +68,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 var info = context.SemanticModel.GetSymbolInfo(context.Node, context.CancellationToken);
 
                 var hasLocations = info.Symbol?.OriginalDefinition?.Locations.Length > 0;
+                if (!hasLocations)
+                {
+                    return;
+                }
+
                 var inSource = info.Symbol?.OriginalDefinition?.Locations[0].IsInSource == true;
-                if (!hasLocations || !inSource || AccessibleFromOutside(info.Symbol.OriginalDefinition))
+                if (!inSource || AccessibleFromOutside(info.Symbol.OriginalDefinition))
                 {
                     return;
                 }
