@@ -529,53 +529,53 @@ namespace Roslyn.Test.MetadataUtilities
 
                 switch (import.Kind)
                 {
-                    case ImportScopeKind.ImportNamespace:
+                    case ImportDefinitionKind.ImportNamespace:
                         sb.AppendFormat("{0}", LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
-                    case ImportScopeKind.ImportAssemblyNamespace:
+                    case ImportDefinitionKind.ImportAssemblyNamespace:
                         sb.AppendFormat("{0}::{1}", 
                             Token(import.TargetAssembly),
                             LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
-                    case ImportScopeKind.ImportType:
+                    case ImportDefinitionKind.ImportType:
                         sb.AppendFormat("{0}::{1}",
                             Token(import.TargetAssembly),
                             Token(import.TargetType));
                         break;
 
-                    case ImportScopeKind.ImportXmlNamespace:
+                    case ImportDefinitionKind.ImportXmlNamespace:
                         sb.AppendFormat("<{0} = {1}>",
                             LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
                             LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
-                    case ImportScopeKind.ImportAssemblyReferenceAlias:
+                    case ImportDefinitionKind.ImportAssemblyReferenceAlias:
                         sb.AppendFormat("Extern Alias {0}",
                             LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias));
                         break;
 
-                    case ImportScopeKind.AliasAssemblyReference:
+                    case ImportDefinitionKind.AliasAssemblyReference:
                         sb.AppendFormat("{0} = {1}",
                             LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
                             Token(import.TargetAssembly));
                         break;
 
-                    case ImportScopeKind.AliasNamespace:
+                    case ImportDefinitionKind.AliasNamespace:
                         sb.AppendFormat("{0} = {1}",
                             LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
                             LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
-                    case ImportScopeKind.AliasAssemblyNamespace:
+                    case ImportDefinitionKind.AliasAssemblyNamespace:
                         sb.AppendFormat("{0} = {1}::{2}",
                             LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
                             Token(import.TargetAssembly),
                             LiteralUtf8Blob(import.TargetNamespace, BlobKind.ImportNamespace));
                         break;
 
-                    case ImportScopeKind.AliasType:
+                    case ImportDefinitionKind.AliasType:
                         sb.AppendFormat("{0} = {1}",
                             LiteralUtf8Blob(import.Alias, BlobKind.ImportAlias),
                             Token(import.TargetType));
