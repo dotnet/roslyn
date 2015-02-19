@@ -193,12 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            // TODO: do i need to complexify something?
             var oldBody = expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
             var oldParentingNode = oldBody.Parent;
 
-            // rewritten body
-            // TODO: extract out oldBody.Expression to a local, then use InlineLocal. This crashes VS. File a bug.
             var newStatement = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
             var newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(newStatement))
                                        .WithLeadingTrivia(oldBody.GetLeadingTrivia())
@@ -213,13 +210,23 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new AccessorDeclarationSyntax[] { getAccessor }));
 
                 newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
-                newParentingNode = newParentingNode.IsKind(SyntaxKind.PropertyDeclaration)
-                    ? ((PropertyDeclarationSyntax)newParentingNode)
+
+                if (newParentingNode.IsKind(SyntaxKind.PropertyDeclaration))
+                {
+                    var propertyDeclaration = ((PropertyDeclarationSyntax)newParentingNode);
+                    newParentingNode = propertyDeclaration
                         .WithAccessorList(accessorList)
                         .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None))
-                    : (SyntaxNode)((IndexerDeclarationSyntax)newParentingNode)
+                        .WithTrailingTrivia(propertyDeclaration.Semicolon.TrailingTrivia);
+                }
+                else if (newParentingNode.IsKind(SyntaxKind.IndexerDeclaration))
+                {
+                    var indexerDeclaration = ((IndexerDeclarationSyntax)newParentingNode);
+                    newParentingNode = indexerDeclaration
                         .WithAccessorList(accessorList)
-                        .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None));
+                        .WithSemicolon(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(indexerDeclaration.Semicolon.TrailingTrivia);
+                }
             }
             else if (oldParentingNode is BaseMethodDeclarationSyntax)
             {
@@ -229,22 +236,26 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 if (newParentingNode.IsKind(SyntaxKind.MethodDeclaration))
                 {
-                    newParentingNode = ((MethodDeclarationSyntax)newParentingNode)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                    var methodDeclaration = ((MethodDeclarationSyntax)newParentingNode);
+                    newParentingNode = methodDeclaration
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(methodDeclaration.SemicolonToken.TrailingTrivia);
                 }
                 else if (newParentingNode.IsKind(SyntaxKind.OperatorDeclaration))
                 {
-                    newParentingNode = ((OperatorDeclarationSyntax)newParentingNode)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                    var operatorDeclaration = ((OperatorDeclarationSyntax)newParentingNode);
+                    newParentingNode = operatorDeclaration
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(operatorDeclaration.SemicolonToken.TrailingTrivia);
                 }
                 else if (newParentingNode.IsKind(SyntaxKind.ConversionOperatorDeclaration))
                 {
-                    newParentingNode = ((ConversionOperatorDeclarationSyntax)newParentingNode)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                    var conversionOperatorDeclaration = ((ConversionOperatorDeclarationSyntax)newParentingNode);
+                    newParentingNode = conversionOperatorDeclaration
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                        .WithTrailingTrivia(conversionOperatorDeclaration.SemicolonToken.TrailingTrivia);
                 }
             }
-
-            // newParentingNode = newParentingNode.WithAdditionalAnnotations(Formatter.Annotation);
 
             var newRoot = document.Root.ReplaceNode(oldParentingNode, newParentingNode);
             return document.Document.WithSyntaxRoot(newRoot);
