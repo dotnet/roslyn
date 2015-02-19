@@ -84,13 +84,13 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles, compilationContext.CancellationToken);
-                var publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
 
                 if (publicApiAdditionalText == null)
                 {
                     return;
                 }
 
+                SourceText publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
                 HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText, compilationContext.CancellationToken);
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
