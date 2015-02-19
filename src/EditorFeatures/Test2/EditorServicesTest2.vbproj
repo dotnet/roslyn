@@ -320,6 +320,7 @@
     <Compile Include="Simplification\TypeInferenceSimplifierTests.vb" />
     <Compile Include="Simplification\TypeNameSimplifierTest.vb" />
     <Compile Include="Utilities\AssertEx.vb" />
+    <Compile Include="Utilities\TestNotificationService.vb" />
     <Compile Include="Workspaces\SymbolDescriptionServiceTests.vb" />
     <Compile Include="Workspaces\TryFindSourceDefinitionTests.vb" />
   </ItemGroup>
