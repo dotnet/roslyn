@@ -222,7 +222,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void GetValueThrowsCorrectExceptionDuringCancellation()
         {
-            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct));
+            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public void GetValueThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
+        {
+            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
         }
 
         [Fact]
@@ -231,10 +238,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // NOTE: since GetValueAsync inlines the call to the async computation, the GetValueAsync call will throw
             // immediately instead of returning a task that transitions to the cancelled state
-            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct));
+            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct), includeSynchronousComputation: false);
         }
 
-        private static void GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation(Action<AsyncLazy<object>, CancellationToken> doGetValue)
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public void GetValueAsyncThrowsCorrectExceptionDuringCancellationWithSynchronousComputation()
+        {
+            // In theory the synchronous computation isn't used during GetValueAsync, but just in case...
+            GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation((lazy, ct) => lazy.GetValueAsync(ct), includeSynchronousComputation: true);
+        }
+
+        private static void GetValueOrGetValueAsyncThrowsCorrectExceptionDuringCancellation(Action<AsyncLazy<object>, CancellationToken> doGetValue, bool includeSynchronousComputation)
         {
             // A call to GetValue/GetValueAsync with a token that is cancelled should throw an OperationCancelledException, but it's
             // important to make sure the correct token is cancelled. It should be cancelled with the token passed
@@ -243,6 +258,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var computeFunctionRunning = new ManualResetEvent(initialState: false);
 
             AsyncLazy<object> lazy;
+            Func<CancellationToken, object> synchronousComputation = null;
+
+            if (includeSynchronousComputation)
+            {
+                synchronousComputation = c =>
+                {
+                    computeFunctionRunning.Set();
+                    while (true)
+                    {
+                        c.ThrowIfCancellationRequested();
+                    }
+                };
+            }
 
             lazy = new AsyncLazy<object>(c =>
             {
@@ -251,7 +279,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     c.ThrowIfCancellationRequested();
                 }
-            }, cacheResult: false);
+            }, synchronousComputeFunction: synchronousComputation, cacheResult: false);
 
             var cancellationTokenSource = new CancellationTokenSource();
 
