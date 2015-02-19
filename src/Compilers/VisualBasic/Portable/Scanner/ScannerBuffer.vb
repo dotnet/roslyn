@@ -135,21 +135,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function TryPeek(ByRef output As Char) As Boolean
-            If CanGetChar() Then
-                output = Peek()
-                Return True
-            Else
-                Return False
-            End If
+            If Not CanGetChar() Then Return False
+            output = Peek()
+            Return True
         End Function
 
         Friend Function TryPeek(at As Integer,ByRef output As Char) As Boolean
-            If CanGetCharAtOffset(at) Then
-                output = Peek(at)
-                Return True
-            Else
-                Return False
-            End If
+            If Not CanGetCharAtOffset(at) Then Return False
+            output = Peek(at)
+            Return True
         End Function
 
         Friend Function GetChar() As String
@@ -161,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim offsetInPage = start And PAGE_MASK
 
             If page._pageStart = (start And NOT_PAGE_MASK) AndAlso
-                offsetInPage + length < PAGE_SIZE Then
+                (offsetInPage + length) < PAGE_SIZE Then
 
                 Return Intern(page._arr, offsetInPage, length)
             End If
@@ -191,17 +185,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim page = GetPage(start)
             If textOffset + length < PAGE_SIZE Then
-                If suppressInterning Then
-                    Return New String(page._arr, textOffset, length)
-                Else
-                    Return Intern(page._arr, textOffset, length)
-                End If
+                If suppressInterning Then Return New String(page._arr, textOffset, length)
+                Return Intern(page._arr, textOffset, length)            
             End If
 
             ' make a string builder that is big enough, but not too big
-            If _builder Is Nothing Then
-                _builder = New StringBuilder(Math.Min(length, 1024))
-            End If
+            If _builder Is Nothing Then _builder = New StringBuilder(Math.Min(length, 1024))
+
 
             Dim cnt = Math.Min(length, PAGE_SIZE - textOffset)
             _builder.Append(page._arr, textOffset, cnt)
