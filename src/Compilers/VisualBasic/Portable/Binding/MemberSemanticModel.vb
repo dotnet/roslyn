@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public NotOverridable Overrides ReadOnly Property HasAccessChecksSuppressed As Boolean
+        Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
                 Return Me.m_hasAccessChecksSuppressed
             End Get
@@ -73,13 +73,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend NotOverridable Overloads Overrides Function GetEnclosingBinder(position As Integer) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, FindInitialNodeFromPosition(position), position)
             Debug.Assert(binder IsNot Nothing)
-            Return SemanticModelBinder.Mark(binder, HasAccessChecksSuppressed)
+            Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
         End Function
 
         Private Overloads Function GetEnclosingBinder(node As VisualBasicSyntaxNode) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, node, node.SpanStart)
             Debug.Assert(binder IsNot Nothing)
-            Return SemanticModelBinder.Mark(binder, HasAccessChecksSuppressed)
+            Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
         End Function
 
         ' Get the bound node corresponding to the root.

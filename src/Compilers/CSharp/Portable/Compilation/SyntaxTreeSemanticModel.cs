@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>
-        public override bool HasAccessChecksSuppressed
+        public override bool IgnoresAccessibility
         {
             get { return _hasAccessChecksSuppressed; }
         }
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var outer = _binderFactory.GetBinder(node);
 
-            if (this.HasAccessChecksSuppressed)
+            if (this.IgnoresAccessibility)
             {
                 outer = outer.WithAdditionalFlags(BinderFlags.SuppressAccessChecks);
             }

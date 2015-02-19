@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns true if this Is a SemanticModel that ignores accessibility rules when answering semantic questions.
         ''' </summary>
-        Public NotOverridable Overrides ReadOnly Property HasAccessChecksSuppressed As Boolean
+        Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
                 Return Me._hasAccessChecksSuppressed
             End Get
@@ -151,19 +151,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, HasAccessChecksSuppressed), _methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, HasAccessChecksSuppressed), _initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, HasAccessChecksSuppressed), _attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, HasAccessChecksSuppressed), _topLevelCodeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _topLevelCodeSemanticModelCreator)
             End If
 
             Return Nothing
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return model.GetEnclosingBinder(position)
             Else
                 Dim binder As binder = _binderFactory.GetBinderForPosition(FindInitialNodeFromPosition(position), position)
-                Return SemanticModelBinder.Mark(binder, HasAccessChecksSuppressed)
+                Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
             End If
         End Function
 
@@ -583,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim docCommentBinder = Me._binderFactory.GetBinderForPosition(node, node.SpanStart)
-            docCommentBinder = SemanticModelBinder.Mark(docCommentBinder, HasAccessChecksSuppressed)
+            docCommentBinder = SemanticModelBinder.Mark(docCommentBinder, IgnoresAccessibility)
 
             If isCrefAttribute Then
                 Dim symbols As ImmutableArray(Of Symbol)

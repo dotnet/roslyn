@@ -2060,7 +2060,7 @@ virtual Microsoft.CodeAnalysis.Location.MetadataModule.get
 virtual Microsoft.CodeAnalysis.Location.SourceSpan.get
 virtual Microsoft.CodeAnalysis.Location.SourceTree.get
 virtual Microsoft.CodeAnalysis.MetadataReference.Display.get
-virtual Microsoft.CodeAnalysis.SemanticModel.HasAccessChecksSuppressed.get
+virtual Microsoft.CodeAnalysis.SemanticModel.IgnoresAccessibility.get
 virtual Microsoft.CodeAnalysis.SemanticModel.GetTopmostNodeForDiagnosticAnalysis(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.SyntaxNode declaringSyntax)
 virtual Microsoft.CodeAnalysis.SymbolVisitor.DefaultVisit(Microsoft.CodeAnalysis.ISymbol symbol)
 virtual Microsoft.CodeAnalysis.SymbolVisitor.Visit(Microsoft.CodeAnalysis.ISymbol symbol)

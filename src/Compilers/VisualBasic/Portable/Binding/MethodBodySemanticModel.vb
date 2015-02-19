@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 containingBinder = containingBinder.ContainingBinder
             Loop
 
-            Dim methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(methodSymbol, method, SemanticModelBinder.Mark(namedTypeBinder, HasAccessChecksSuppressed))
+            Dim methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(methodSymbol, method, SemanticModelBinder.Mark(namedTypeBinder, IgnoresAccessibility))
 
             ' Wrap this binder with a BlockBaseBinder to hold onto the locals declared within the statement.
             Dim binder = New StatementListBinder(methodBodyBinder, method.Statements)
