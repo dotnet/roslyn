@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class SupressAccessibilityChecksTests : CSharpTestBase
+    public class SuppressAccessibilityChecksTests : CSharpTestBase
     {
         private static SemanticModel GetSemanticModelWithSuppressAccessChecks()
         {

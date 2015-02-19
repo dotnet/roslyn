@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
-    Public Class SupressAccessibilityChecksTests
+    Public Class SuppressAccessibilityChecksTests
         Inherits BasicTestBase
 
         Private Function GetSemanticModelWithSuppressAccessChecks() As SemanticModel

@@ -24,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly m_speculatedPosition As Integer
         Private ReadOnly m_hasAccessChecksSuppressed As Boolean
 
-        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional isSupressingAccessChecks As Boolean = False)
+        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional isSuppressingAccessChecks As Boolean = False)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
             m_Root = root
-            m_hasAccessChecksSuppressed = isSupressingAccessChecks
-            m_RootBinder = SemanticModelBinder.Mark(rootBinder, isSupressingAccessChecks)
+            m_hasAccessChecksSuppressed = isSuppressingAccessChecks
+            m_RootBinder = SemanticModelBinder.Mark(rootBinder, isSuppressingAccessChecks)
             m_parentSemanticModelOpt = parentSemanticModelOpt
             m_speculatedPosition = speculatedPosition
         End Sub
