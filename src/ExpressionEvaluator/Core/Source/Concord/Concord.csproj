@@ -39,14 +39,22 @@
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata" />
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine" />
   </ItemGroup>
-  <Target Name="Ilasm" 
+  <Target Name="IlasmDesktop" 
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).il')"
           Outputs="$(OutDir)%(Identity).dll">
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).il" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; &quot;$(ConcordDir)@(ConcordAssemblies).il&quot;" />
+  </Target>
+  <Target Name="IlasmPhone" 
+          AfterTargets="CoreCompile"
+          Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).il')"
+          Outputs="$(OutDir)%(Identity).Phone.dll">
+    <MakeDir Directories="$(OutDir)Phone" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/key:$(ConcordDir)PhonePublicKey.snk&quot; &quot;/output:$(OutDir)Phone\@(ConcordAssemblies).dll&quot; &quot;$(ConcordDir)@(ConcordAssemblies).il&quot;" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
     <Delete Files="@(ConcordAssemblies->'$(OutDir)%(Identity).dll')" />
+    <Delete Files="@(ConcordAssemblies->'$(OutDir)Phone\%(Identity).dll')" />
   </Target>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
