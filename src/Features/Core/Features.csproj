@@ -498,12 +498,15 @@
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderBase.cs" />
     <Compile Include="SolutionCrawler\InvocationReasons.cs" />
     <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerProgressReporter.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\IWorkCoordinatorPriorityService.cs" />
-    <Compile Include="SolutionCrawler\IWorkCoordinatorRegistrationService.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerLogger.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerOptions.cs" />
+    <Compile Include="SolutionCrawler\SolutionCrawlerProgressReporter.cs" />
+    <Compile Include="SolutionCrawler\SolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\State\AbstractAnalyzerState.cs" />
     <Compile Include="SolutionCrawler\State\AbstractDocumentAnalyzerState.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.AsyncDocumentWorkItemQueue.cs" />
@@ -517,7 +520,7 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinatorRegistrationService.cs" />
+    <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
     <Compile Include="Workspace\FileTracker.cs" />

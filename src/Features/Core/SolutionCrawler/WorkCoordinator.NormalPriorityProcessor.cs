@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = SpecializedTasks.EmptyTask;
-                        _workItemQueue = new AsyncDocumentWorkItemQueue();
+                        _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, bool>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = default(ProjectId);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // process the new document
                             await ProcessDocumentAsync(this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -266,11 +266,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             return false;
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
-                        }
+                    }
 
                     private async Task ProcessDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
                     {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -422,11 +422,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
-                        }
+                    }
 
                     private void RemoveDocument(DocumentId documentId)
                     {
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
-                            this.Processor._correlationId, _processingSolution, this.Processor._logAggregator, this.Analyzers);
+                            this.Processor._registration.CorrelationId, _processingSolution, this.Processor._logAggregator, this.Analyzers);
 
                         this.Processor.ResetLogAggregator();
                     }
@@ -480,17 +480,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
                             }
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
-                        }
+                    }
 
                     public override void Shutdown()
                     {
                         base.Shutdown();
 
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(this.Processor._correlationId, _processingSolution, this.Processor._logAggregator, this.Analyzers);
+                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(this.Processor._registration.CorrelationId, _processingSolution, this.Processor._logAggregator, this.Analyzers);
 
                         _workItemQueue.Dispose();
 
