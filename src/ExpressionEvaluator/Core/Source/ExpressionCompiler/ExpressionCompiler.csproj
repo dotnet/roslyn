@@ -5,6 +5,7 @@
     <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
+    <OutDir>$(OutDir)$(OutDirSuffix)</OutDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>

@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <OutDirSuffix>Phone\</OutDirSuffix>
+    <ProjectGuid>{DF1BDB0F-B324-47C2-87EF-FE8873C20C84}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="CSharpResultProvider.csproj" />
+</Project>
