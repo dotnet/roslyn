@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Collections
+using System;
+
+namespace Microsoft.CodeAnalysis
 {
     internal static class Boxes
     {
@@ -15,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Collections
         public static readonly object BoxedUInt32Zero = 0U;
         public static readonly object BoxedInt64Zero = 0L;
         public static readonly object BoxedUInt64Zero = 0UL;
+        public static readonly object BoxedSingleZero = 0.0f;
+        public static readonly object BoxedDoubleZero = 0.0;
+        public static readonly object BoxedDecimalZero = 0m;
+
+        private static readonly object[] s_boxedAsciiChars = new object[128];
 
         public static object Box(bool b)
         {
@@ -43,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static object Box(int i)
         {
-            switch(i)
+            switch (i)
             {
                 case 0: return BoxedInt32Zero;
                 case 1: return BoxedInt32One;
-                default:
-                    return i;
+                default: return i;
             }
         }
 
@@ -65,6 +71,35 @@ namespace Microsoft.CodeAnalysis.Collections
         public static object Box(ulong ul)
         {
             return ul == 0 ? BoxedUInt64Zero : ul;
+        }
+
+        public static unsafe object Box(float f)
+        {
+            // There are many representations of zero in floating point.
+            // Use the boxed value only if the bit pattern is all zeros.
+            return *(int*)(&f) == 0 ? BoxedSingleZero : f;
+        }
+
+        public static object Box(double d)
+        {
+            // There are many representations of zero in floating point.
+            // Use the boxed value only if the bit pattern is all zeros.
+            return BitConverter.DoubleToInt64Bits(d) == 0 ? BoxedDoubleZero : d;
+        }
+
+        public static object Box(char c)
+        {
+            return c < 128
+                ? s_boxedAsciiChars[c] ?? (s_boxedAsciiChars[c] = c)
+                : c;
+        }
+
+        public static unsafe object Box(decimal d)
+        {
+            // There are many representation of zero in System.Decimal
+            // Use the boxed value only if the bit pattern is all zeros.
+            ulong* ptr = (ulong*)&d;
+            return ptr[0] == 0 && ptr[1] == 0 ? BoxedDecimalZero : d;
         }
     }
 }

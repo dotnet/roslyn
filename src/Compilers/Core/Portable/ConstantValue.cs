@@ -2,8 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -446,11 +444,11 @@ namespace Microsoft.CodeAnalysis
                     case ConstantValueTypeDiscriminator.UInt32: return Boxes.Box(UInt32Value);
                     case ConstantValueTypeDiscriminator.Int64: return Boxes.Box(Int64Value);
                     case ConstantValueTypeDiscriminator.UInt64: return Boxes.Box(UInt64Value);
-                    case ConstantValueTypeDiscriminator.Char: return CharValue;
+                    case ConstantValueTypeDiscriminator.Char: return Boxes.Box(CharValue);
                     case ConstantValueTypeDiscriminator.Boolean: return Boxes.Box(BooleanValue);
-                    case ConstantValueTypeDiscriminator.Single: return SingleValue;
-                    case ConstantValueTypeDiscriminator.Double: return DoubleValue;
-                    case ConstantValueTypeDiscriminator.Decimal: return DecimalValue;
+                    case ConstantValueTypeDiscriminator.Single: return Boxes.Box(SingleValue);
+                    case ConstantValueTypeDiscriminator.Double: return Boxes.Box(DoubleValue);
+                    case ConstantValueTypeDiscriminator.Decimal: return Boxes.Box(DecimalValue);
                     case ConstantValueTypeDiscriminator.DateTime: return DateTimeValue;
                     case ConstantValueTypeDiscriminator.String: return StringValue;
                     default: throw ExceptionUtilities.UnexpectedValue(this.Discriminator);

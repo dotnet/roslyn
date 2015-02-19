@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
