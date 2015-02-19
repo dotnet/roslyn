@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                                 switch (options)
                                 {
                                     case ReportDiagnostic.Suppress:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Suppress warning
                                         break;
 
                                     case ReportDiagnostic.Error:

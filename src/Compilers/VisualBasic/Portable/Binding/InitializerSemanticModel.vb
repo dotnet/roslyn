@@ -10,15 +10,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional isSupressingAccessChecks As Boolean = False)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, isSupressingAccessChecks)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional isSuppressingAccessChecks As Boolean = False)
+            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, isSuppressingAccessChecks)
         End Sub
 
         ''' <summary>
         ''' Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
         ''' </summary>
-        Friend Shared Function Create(binder As DeclarationInitializerBinder, Optional isSupressingAccessChecks As Boolean = False) As InitializerSemanticModel
-            Return New InitializerSemanticModel(binder.Root, binder, isSupressingAccessChecks:=isSupressingAccessChecks)
+        Friend Shared Function Create(binder As DeclarationInitializerBinder, Optional isSuppressingAccessChecks As Boolean = False) As InitializerSemanticModel
+            Return New InitializerSemanticModel(binder.Root, binder, isSuppressingAccessChecks:=isSuppressingAccessChecks)
         End Function
 
         ''' <summary>

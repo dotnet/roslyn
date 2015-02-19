@@ -6179,6 +6179,42 @@ class C
         }
 
         [Fact]
+        public void Lambdas_ActiveStatementRemoved4()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = a =>
+        {
+            <AS:1>z(2);</AS:1>
+
+            return b =>
+            {
+                <AS:0>return b;</AS:0>
+            };
+        };
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    <AS:0,1>{</AS:0,1>
+    
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "{", "lambda"),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "{", "lambda"));
+        }
+
+        [Fact]
         public void Queries_ActiveStatementRemoved_WhereClause()
         {
             string src1 = @"

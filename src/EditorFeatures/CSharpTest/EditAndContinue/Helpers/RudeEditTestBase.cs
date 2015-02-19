@@ -88,51 +88,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return match;
         }
 
-        internal static IEnumerable<Match<SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
+        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
         {
             var methodMatch = GetMethodMatch(src1, src2, options, stateMachine);
 
-            var queue = new Queue<Match<SyntaxNode>>();
-            queue.Enqueue(methodMatch);
+            bool hasLambda;
+            Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
+            var reverseMap = Analyzer.ComputeReverseMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>(), out hasLambda);
 
-            while (queue.Count > 0)
+            var result = new Dictionary<SyntaxNode, SyntaxNode>();
+            foreach (var pair in reverseMap)
             {
-                var match = queue.Dequeue();
-                yield return match;
-
-                foreach (var m in match.Matches)
+                if (pair.Key == methodMatch.NewRoot)
                 {
-                    if (m.Key == match.OldRoot)
-                    {
-                        Assert.Equal(match.NewRoot, m.Value);
-                        continue;
-                    }
-
-                    foreach (var body in GetLambdaBodies(m.Key, m.Value))
-                    {
-                        var lambdaMatch = new StatementSyntaxComparer(body.Item1, body.Item2).ComputeMatch(m.Key, m.Value);
-                        queue.Enqueue(lambdaMatch);
-                    }
+                    Assert.Same(pair.Value, methodMatch.OldRoot);
+                    continue;
                 }
+
+                result.Add(pair.Value, pair.Key);
             }
+
+            return result;
         }
 
         public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
         {
-            return new MatchingPairs(ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot)));
+            return ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
         }
 
-        public static MatchingPairs ToMatchingPairs(IEnumerable<Match<SyntaxNode>> match)
+        public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
         {
-            return new MatchingPairs(ToMatchingPairs(match.SelectMany(m => m.Matches.Where(partners => partners.Key != m.OldRoot))));
-        }
-
-        private static IEnumerable<MatchingPair> ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
-        {
-            return matches
+            return new MatchingPairs(matches
                 .OrderBy(partners => partners.Key.GetLocation().SourceSpan.Start)
                 .ThenByDescending(partners => partners.Key.Span.Length)
-                .Select(partners => new MatchingPair { Old = partners.Key.ToString().Replace("\r\n", " "), New = partners.Value.ToString().Replace("\r\n", " ") });
+                .Select(partners => new MatchingPair { Old = partners.Key.ToString().Replace("\r\n", " "), New = partners.Value.ToString().Replace("\r\n", " ") }));
+        }
+
+        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K,V>(IEnumerable<KeyValuePair<V, K>> mapping)
+        {
+            foreach (var pair in mapping)
+            {
+                yield return KeyValuePair.Create(pair.Value, pair.Key);
+            }
         }
 
         internal static BlockSyntax MakeMethodBody(
@@ -181,46 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
         {
             return new SyntaxMapDescription(oldSource, newSource);
-        }
-
-        private static ImmutableArray<ValueTuple<SyntaxNode, SyntaxNode>> GetLambdaBodies(SyntaxNode oldNode, SyntaxNode newNode)
-        {
-            switch (oldNode.Kind())
-            {
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                    return ImmutableArray.Create(ValueTuple.Create<SyntaxNode, SyntaxNode>(((AnonymousFunctionExpressionSyntax)oldNode).Body, ((AnonymousFunctionExpressionSyntax)newNode).Body));
-
-                case SyntaxKind.FromClause:
-                    return ImmutableArray.Create(ValueTuple.Create<SyntaxNode, SyntaxNode>(((FromClauseSyntax)oldNode).Expression, ((FromClauseSyntax)newNode).Expression));
-
-                case SyntaxKind.LetClause:
-                    return ImmutableArray.Create(ValueTuple.Create<SyntaxNode, SyntaxNode>(((LetClauseSyntax)oldNode).Expression, ((LetClauseSyntax)newNode).Expression));
-
-                case SyntaxKind.WhereClause:
-                    return ImmutableArray.Create(ValueTuple.Create<SyntaxNode, SyntaxNode>(((WhereClauseSyntax)oldNode).Condition, ((WhereClauseSyntax)newNode).Condition));
-
-                case SyntaxKind.AscendingOrdering:
-                case SyntaxKind.DescendingOrdering:
-                    return ImmutableArray.Create(ValueTuple.Create<SyntaxNode, SyntaxNode>(((OrderingSyntax)oldNode).Expression, ((OrderingSyntax)newNode).Expression));
-
-                case SyntaxKind.SelectClause:
-                    return ImmutableArray.Create(ValueTuple.Create<SyntaxNode, SyntaxNode>(((SelectClauseSyntax)oldNode).Expression, ((SelectClauseSyntax)newNode).Expression));
-
-                case SyntaxKind.JoinClause:
-                    return ImmutableArray.Create(
-                        ValueTuple.Create<SyntaxNode, SyntaxNode>(((JoinClauseSyntax)oldNode).LeftExpression, ((JoinClauseSyntax)newNode).LeftExpression),
-                        ValueTuple.Create<SyntaxNode, SyntaxNode>(((JoinClauseSyntax)oldNode).RightExpression, ((JoinClauseSyntax)newNode).RightExpression));
-
-                case SyntaxKind.GroupClause:
-                    return ImmutableArray.Create(
-                        ValueTuple.Create<SyntaxNode, SyntaxNode>(((GroupClauseSyntax)oldNode).GroupExpression, ((GroupClauseSyntax)newNode).ByExpression),
-                        ValueTuple.Create<SyntaxNode, SyntaxNode>(((GroupClauseSyntax)oldNode).GroupExpression, ((GroupClauseSyntax)newNode).ByExpression));
-
-                default:
-                    return ImmutableArray<ValueTuple<SyntaxNode, SyntaxNode>>.Empty;
-            }
         }
 
         internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)

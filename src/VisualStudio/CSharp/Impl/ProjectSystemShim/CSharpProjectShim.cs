@@ -111,8 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             UpdateWarning(warningOptions, CompilerOptions.OPTID_WARNASERRORLIST, ReportDiagnostic.Error);
             UpdateWarning(warningOptions, CompilerOptions.OPTID_WARNNOTASERRORLIST, ReportDiagnostic.Warn);
 
-            // Add the warning supressions second, since the if a warning appears in both lists the
-            // supression takes priority
+            // Add the warning suppressions second, since the if a warning appears in both lists the
+            // suppression takes priority
             UpdateWarning(warningOptions, CompilerOptions.OPTID_NOWARNLIST, ReportDiagnostic.Suppress);
 
             Platform platform;
