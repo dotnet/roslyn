@@ -614,13 +614,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
-            {
-                // This is an untested code path. If we
-                // reach here, add a corresponding test.
-                throw ExceptionUtilities.Unreachable;
-            }
-
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
 
@@ -630,11 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             TypeSymbol throughTypeOpt = null)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
-            {
-                return true;
-            }
-            return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
+            return this.Flags.Includes(BinderFlags.SuppressAccessChecks) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
         }
 
         internal bool IsSymbolAccessibleConditional(
@@ -650,6 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 failedThroughTypeCheck = false;
                 return true;
             }
+
             return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
         }
 
