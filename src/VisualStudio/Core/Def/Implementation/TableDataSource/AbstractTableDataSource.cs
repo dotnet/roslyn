@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -35,6 +36,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public abstract Guid Identifier { get; }
 
         protected abstract AbstractTableEntriesFactory<TData> CreateTableEntryFactory(object key, TArgs data);
+
+        protected void ConnectToSolutionCrawlerService(Workspace workspace)
+        {
+            var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
+            var reporter = crawlerService.GetProgressReporter(workspace);
+
+            // set initial value
+            ChangeStableState(stable: !reporter.InProgress);
+
+            reporter.Started += OnSolutionCrawlerStarted;
+            reporter.Stopped += OnSolutionCrawlerStopped;
+        }
+
+        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
+        {
+            ChangeStableState(stable: false);
+        }
+
+        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
+        {
+            ChangeStableState(stable: true);
+        }
 
         protected void OnDataAddedOrChanged(object key, TArgs data)
         {
@@ -88,6 +111,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
+        private void ChangeStableState(bool stable)
+        {
+            ImmutableArray<SubscriptionWithoutLock> snapshot;
+
+            lock (_gate)
+            {
+                snapshot = _subscriptions;
+            }
+
+            for (var i = 0; i < snapshot.Length; i++)
+            {
+                snapshot[i].IsStable = stable;
+            }
+        }
+
         protected void RefreshAllFactories()
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
@@ -134,6 +172,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 Register();
                 ReportInitialData();
+            }
+
+            public bool IsStable
+            {
+                get
+                {
+                    return _sink.IsStable;
+                }
+
+                set
+                {
+                    _sink.IsStable = value;
+                }
             }
 
             public void AddOrUpdate(ITableEntriesSnapshotFactory provider, bool newFactory)
