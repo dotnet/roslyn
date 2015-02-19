@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _workspace.Dispose()
 
             ' If we failed some other assert, we know we're going to have things left
-            ' over. So let's just supress these so we don't lose the root cause
+            ' over. So let's just suppress these so we don't lose the root cause
             If Not _failedAssert Then
                 If _unassertedRelatedLocations.Count > 0 Then
                     AssertEx.Fail("There were additional related locations than were unasserted.")
