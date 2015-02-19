@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract CSharpSyntaxNode Root { get; }
 
+
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
         // WARN: If isSpeculative is true, then don't look at .Parent - there might not be one.
         internal static bool CanGetSemanticInfo(CSharpSyntaxNode node, bool allowNamedArgumentName = false, bool isSpeculative = false)
@@ -2747,6 +2748,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="typeParameter"></param>
         public abstract ITypeParameterSymbol GetDeclaredSymbol(TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken));
 
+        internal BinderFlags GetSemanticModelBinderFlags()
+        {
+            return this.HasAccessChecksSuppressed
+                ? BinderFlags.SemanticModel | BinderFlags.SuppressAccessChecks
+                : BinderFlags.SemanticModel;
+        }
+
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
@@ -2771,7 +2779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                foreachBinder = foreachBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
+                foreachBinder = foreachBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
                 LocalSymbol local = foreachBinder.Locals.FirstOrDefault();
                 return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
                     ? local
@@ -2805,7 +2813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                catchBinder = catchBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
+                catchBinder = enclosingBinder.GetBinder(catchClause).WithAdditionalFlags(GetSemanticModelBinderFlags());
                 LocalSymbol local = catchBinder.Locals.FirstOrDefault();
                 return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
                     ? local

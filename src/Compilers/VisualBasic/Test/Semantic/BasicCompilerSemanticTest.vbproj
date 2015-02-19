@@ -120,6 +120,7 @@
     <Compile Include="Binding\MethodBodyBindingTests.vb" />
     <Compile Include="Binding\SyncLockTests.vb" />
     <Compile Include="Binding\UsingTests.vb" />
+    <Compile Include="Compilation\SupressAccessibilityChecksTests.vb" />
     <Compile Include="Compilation\CompilationAPITests.vb" />
     <Compile Include="Compilation\GetSemanticInfoBrokenCodeTests.vb" />
     <Compile Include="Compilation\MyTemplateTests.vb" />

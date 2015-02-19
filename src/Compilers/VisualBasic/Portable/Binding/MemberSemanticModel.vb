@@ -22,12 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Fields specific to speculative MemberSemanticModel
         Private ReadOnly m_parentSemanticModelOpt As SyntaxTreeSemanticModel
         Private ReadOnly m_speculatedPosition As Integer
+        Private ReadOnly m_hasAccessChecksSuppressed As Boolean
 
-        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer)
+        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional isSupressingAccessChecks As Boolean = False)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
             m_Root = root
-            m_RootBinder = SemanticModelBinder.Mark(rootBinder)
+            m_hasAccessChecksSuppressed = isSupressingAccessChecks
+            m_RootBinder = SemanticModelBinder.Mark(rootBinder, isSupressingAccessChecks)
             m_parentSemanticModelOpt = parentSemanticModelOpt
             m_speculatedPosition = speculatedPosition
         End Sub
@@ -62,16 +64,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property HasAccessChecksSuppressed As Boolean
+            Get
+                Return Me.m_hasAccessChecksSuppressed
+            End Get
+        End Property
+
         Friend NotOverridable Overloads Overrides Function GetEnclosingBinder(position As Integer) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, FindInitialNodeFromPosition(position), position)
             Debug.Assert(binder IsNot Nothing)
-            Return SemanticModelBinder.Mark(binder)
+            Return SemanticModelBinder.Mark(binder, HasAccessChecksSuppressed)
         End Function
 
         Private Overloads Function GetEnclosingBinder(node As VisualBasicSyntaxNode) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, node, node.SpanStart)
             Debug.Assert(binder IsNot Nothing)
-            Return SemanticModelBinder.Mark(binder)
+            Return SemanticModelBinder.Mark(binder, HasAccessChecksSuppressed)
         End Function
 
         ' Get the bound node corresponding to the root.

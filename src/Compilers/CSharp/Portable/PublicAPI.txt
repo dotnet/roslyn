@@ -10,7 +10,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Clone()
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree syntaxTree)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetDirectiveReference(Microsoft.CodeAnalysis.CSharp.Syntax.ReferenceDirectiveTriviaSyntax directive)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol)
-Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree)
+Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool suppressAccessChecks)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.LanguageVersion.get
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Options.get
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.RemoveAllReferences()
@@ -2436,7 +2436,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetAssemblyOrModu
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetCompilationNamespace(Microsoft.CodeAnalysis.INamespaceSymbol namespaceSymbol)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetEntryPoint(System.Threading.CancellationToken cancellationToken)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol)
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree)
+override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool suppressAccessChecks)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSubmissionResultType(out bool hasValue)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetTypeByMetadataName(string metadataName)
