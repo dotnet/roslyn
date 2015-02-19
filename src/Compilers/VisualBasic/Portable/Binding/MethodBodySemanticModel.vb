@@ -9,15 +9,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MethodBodySemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional isSupressingAccessChecks As Boolean = False)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, isSupressingAccessChecks:=isSupressingAccessChecks)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional isSuppressingAccessChecks As Boolean = False)
+            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, isSuppressingAccessChecks:=isSuppressingAccessChecks)
         End Sub
 
         ''' <summary>
         ''' Creates an MethodBodySemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(binder As MethodBodyBinder, Optional isSupressingAccessChecks As Boolean = False) As MethodBodySemanticModel
-            Return New MethodBodySemanticModel(binder.Root, binder, isSupressingAccessChecks:=isSupressingAccessChecks)
+        Friend Shared Function Create(binder As MethodBodyBinder, Optional isSuppressingAccessChecks As Boolean = False) As MethodBodySemanticModel
+            Return New MethodBodySemanticModel(binder.Root, binder, isSuppressingAccessChecks:=isSuppressingAccessChecks)
         End Function
 
         ''' <summary>
@@ -91,8 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class TopLevelCodeSemanticModel
         Inherits MemberSemanticModel
 
-        Public Sub New(binder As TopLevelCodeBinder, Optional isSupressingAccessChecks As Boolean = False)
-            MyBase.New(binder.Root, binder, parentSemanticModelOpt:=Nothing, speculatedPosition:=0, isSupressingAccessChecks:=isSupressingAccessChecks)
+        Public Sub New(binder As TopLevelCodeBinder, Optional isSuppressingAccessChecks As Boolean = False)
+            MyBase.New(binder.Root, binder, parentSemanticModelOpt:=Nothing, speculatedPosition:=0, isSuppressingAccessChecks:=isSuppressingAccessChecks)
         End Sub
 
         Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
