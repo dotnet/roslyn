@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     foreach (var argument in arguments)
                     {
                         var identity = (argument as AssemblyIdentity) ?? (argument as AssemblySymbol)?.Identity;
-                        if (identity != null)
+                        if (identity != null && !identity.Equals(MissingCorLibrarySymbol.Instance.Identity))
                         {
                             return ImmutableArray.Create(identity);
                         }
