@@ -299,6 +299,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var workspaceAnalyzersCount = _sharedAnalyzersAndStates.GetAnalyzerCount(project.Language);
                 newProjectAnalyzersAndStates = ProjectAnalyzersAndStates.CreateIfAnyAnalyzers(newAnalyzers, workspaceAnalyzersCount, project.Language);
+
+                // this cache logic is completely broken. cache can't be used in this way. if we didn't have an issue before that is just purely by luck.
+                // the reason it is broken is that, this method can be called from any place (no central call path so, can't figure out all the possible paths, but I confirmed that there
+                // are at least more than one path) from any workspace snapshot from any thread but the cache doesn't have any versioning or snapshot check,
+                // but regardless, this code updates the cache. which introduce a race where if code uses the cache in 2 different places in the same method, the return value might be different.
+                // and that is causing us to crash since one gets two completely different state.
+                //
+                // I tried to figure out how to fix this but, eventually gave up since it is so deeply spread in the code, I don't see any way to properly fix this.
+                // my conculusion is ripping out this code and re-write this state management code.
+
                 return _projectAnalyzersAndStatesMap.AddOrUpdate(project.Id, newProjectAnalyzersAndStates, (k, c) => newProjectAnalyzersAndStates);
             }
         }
