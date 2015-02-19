@@ -23,19 +23,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhereClause
                     Return DirectCast(newLambda, WhereClauseSyntax).Condition
 
+                ' source sequence in From and Aggregate (other than the first in the query)
                 Case SyntaxKind.CollectionRangeVariable
                     Return DirectCast(newLambda, CollectionRangeVariableSyntax).Expression
 
+                ' function call in Group By, Group Join, Aggregate: the argument 
                 Case SyntaxKind.FunctionAggregation
                     Return DirectCast(newLambda, FunctionAggregationSyntax).Argument
 
+                ' variable in Let, Select, Group By: the RHS
                 Case SyntaxKind.ExpressionRangeVariable
                     Return DirectCast(newLambda, ExpressionRangeVariableSyntax).Expression
 
-                Case SyntaxKind.TakeWhileClause, SyntaxKind.SkipWhileClause
+                Case SyntaxKind.TakeWhileClause,
+                     SyntaxKind.SkipWhileClause
                     Return DirectCast(newLambda, PartitionWhileClauseSyntax).Condition
 
-                Case SyntaxKind.AscendingOrdering, SyntaxKind.DescendingOrdering
+                Case SyntaxKind.AscendingOrdering,
+                     SyntaxKind.DescendingOrdering
                     Return DirectCast(newLambda, OrderingSyntax).Expression
 
                 Case SyntaxKind.JoinCondition

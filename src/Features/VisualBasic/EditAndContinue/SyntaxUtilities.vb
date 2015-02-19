@@ -71,8 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim body1 As SyntaxNode = Nothing
             Dim body2 As SyntaxNode = Nothing
 
-            Return TryGetLambdaBodies(parent, body1, body2) AndAlso
-                   (node Is body1 OrElse node Is body2)
+            Dim result = TryGetLambdaBodies(parent, body1, body2)
+            body = If(node Is body2, body2, body1)
+            Return result
         End Function
 
         Public Shared Function TryGetLambdaBodies(node As SyntaxNode, <Out> ByRef body1 As SyntaxNode, <Out> ByRef body2 As SyntaxNode) As Boolean
@@ -109,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 ' variable in Let, Select, Group By: the RHS
                 Case SyntaxKind.ExpressionRangeVariable
-                    body1 = DirectCast(node, ExpressionRangeVariableSyntax)
+                    body1 = DirectCast(node, ExpressionRangeVariableSyntax).Expression
                     Return True
 
                 Case SyntaxKind.TakeWhileClause,
