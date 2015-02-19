@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var nameWithoutAttribute = this.RenameSymbol.Name.GetWithoutAttributeSuffix(isCaseSensitive: true);
                 var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
-                return triggerText.StartsWith(triggerText);
+                return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
             }
 
             /// <summary>

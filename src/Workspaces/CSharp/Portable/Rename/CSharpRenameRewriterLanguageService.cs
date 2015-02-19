@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renameAnnotations = parameters.RenameAnnotations;
 
                 _aliasSymbol = _renamedSymbol as IAliasSymbol;
-                _renamableDeclarationLocation = _renamedSymbol.Locations.Where(loc => loc.IsInSource && loc.SourceTree == _semanticModel.SyntaxTree).FirstOrDefault();
-                _isVerbatim = _replacementText.StartsWith("@");
+                _renamableDeclarationLocation = _renamedSymbol.Locations.FirstOrDefault(loc => loc.IsInSource && loc.SourceTree == _semanticModel.SyntaxTree);
+                _isVerbatim = _replacementText.StartsWith("@", StringComparison.Ordinal);
 
                 _simplificationService = parameters.Document.Project.LanguageServices.GetService<ISimplificationService>();
             }
@@ -1102,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         public bool IsIdentifierValid(string replacementText, ISyntaxFactsService syntaxFactsService)
         {
             string escapedIdentifier;
-            if (replacementText.StartsWith("@"))
+            if (replacementText.StartsWith("@", StringComparison.Ordinal))
             {
                 escapedIdentifier = replacementText;
             }

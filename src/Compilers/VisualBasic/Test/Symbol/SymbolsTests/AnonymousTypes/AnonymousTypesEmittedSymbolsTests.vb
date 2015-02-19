@@ -93,7 +93,7 @@ End Module
                              additionalRefs:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
-                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType_")).Select(Function(t) t).ToList()
+                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType_", StringComparison.Ordinal)).ToList()
                                                   Assert.Equal(1, list.Count())
                                                   Dim type = list.First()
                                                   Assert.Equal("VB$AnonymousType_0", type.Name)
@@ -135,7 +135,7 @@ End Structure
                              additionalRefs:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
-                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Select(Function(t) t).ToList()
+                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType", StringComparison.Ordinal)).ToList()
                                                   Assert.Equal(1, list.Count())
                                                   Dim type = list.First()
                                                   Assert.Equal("VB$AnonymousType_0", type.Name)
@@ -180,7 +180,7 @@ End Class
                              additionalRefs:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
-                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Select(Function(t) t).ToList()
+                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType", StringComparison.Ordinal)).ToList()
                                                   ' no unification - diff in key
                                                   Assert.Equal(2, list.Count())
                                                   Dim type = m.ContainingAssembly.GlobalNamespace.GetTypeMembers("VB$AnonymousType_1").Single()

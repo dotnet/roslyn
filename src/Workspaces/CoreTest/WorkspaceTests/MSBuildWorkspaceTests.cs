@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = document.GetSyntaxTreeAsync().Result;
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -228,7 +228,7 @@ class C1
             Assert.Equal(expectedFileName, tree.FilePath);
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2320,7 +2320,7 @@ class C1
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);
 
             var cacheService = new WeakReference(sol.Workspace.CurrentSolution.Services.CacheService);

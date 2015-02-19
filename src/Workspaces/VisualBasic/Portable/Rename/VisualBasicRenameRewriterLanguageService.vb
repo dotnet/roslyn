@@ -788,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 ' We don't allow to use identifiers with type characters
                 Return False
             Else
-                If replacementText.StartsWith("[") AndAlso replacementText.EndsWith("]") Then
+                If replacementText.StartsWith("[", StringComparison.Ordinal) AndAlso replacementText.EndsWith("]", StringComparison.Ordinal) Then
                     possibleIdentifier = replacementText
                 Else
                     possibleIdentifier = "[" & replacementText & "]"

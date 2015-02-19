@@ -4433,7 +4433,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
 
             Dim originalSyntax = tree.GetCompilationUnitRoot().DescendantNodes.OfType(Of InvocationExpressionSyntax).Last()
-            Assert.True(originalSyntax.ToString().StartsWith("fields"))
+            Assert.True(originalSyntax.ToString().StartsWith("fields", StringComparison.Ordinal))
 
             Dim info1 = model.GetSymbolInfo(originalSyntax)
             Dim method1 = TryCast(info1.Symbol, MethodSymbol)

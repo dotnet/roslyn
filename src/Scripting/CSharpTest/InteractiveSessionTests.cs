@@ -2961,7 +2961,7 @@ System.Collections.IEnumerable w = new Window();
             // TODO: enable this with our AssemblyLoader:
             ResolveEventHandler handler = (_, args) =>
             {
-                if (args.Name.StartsWith("b,"))
+                if (args.Name.StartsWith("b,", StringComparison.Ordinal))
                 {
                     return Assembly.Load(badTypeBytes);
                 }

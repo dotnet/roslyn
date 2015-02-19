@@ -1641,13 +1641,13 @@ lNothing :
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CObj({0})", list)
 
                 Case "Short"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CShort({0})", list)
 
                 Case "Single"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
                     TestConversion_TwoTypesAndExpreession(type1, type2, "CSng({0})", list)

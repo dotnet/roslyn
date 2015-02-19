@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
 
                 var expectedMessage = string.Format(WorkspacesResources.CannotCodeGenUnsupportedOperator, method.Name);
-                Assert.True(exception != null && exception.Message.StartsWith(expectedMessage),
+                Assert.True(exception != null && exception.Message.StartsWith(expectedMessage, StringComparison.Ordinal),
                     string.Format("\r\nExpected exception: {0}\r\nActual exception: {1}\r\n", expectedMessage, exception == null ? "no exception" : exception.Message));
             }
         }
