@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Handle expression-level ambiguities
             if (RemovalMayIntroduceCastAmbiguity(node) ||
-                RemovalMayIntroduceCommaListAmbiguity(node))
+                RemovalMayIntroduceCommaListAmbiguity(node) ||
+                RemovalMayIntroduceInterpolationAmbiguity(node))
             {
                 return false;
             }
@@ -68,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Cases:
             //   $"{(x)}" -> $"{x}"
-            if (node.IsParentKind(SyntaxKind.Interpolation) &&
-                !RemovalMayIntroduceInterpolationAmbiguity(node))
+            if (node.IsParentKind(SyntaxKind.Interpolation))
             {
                 return true;
             }
@@ -122,19 +123,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : false;
         }
 
+        [ThreadStatic]
+        private static Stack<SyntaxNode> s_nodeStack;
+
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {
-            if (node.IsParentKind(SyntaxKind.Interpolation))
+            // First, find the parenting interpolation. If we find a parenthesize expression first,
+            // we can bail out early.
+            InterpolationSyntax interpolation = null;
+            foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
-                // Can't remove parentheses in this case:
-                //   $"{(true ? == 0 : 1):x"
-                var interpolation = (InterpolationSyntax)node.Parent;
-                if (node.Expression.IsKind(SyntaxKind.ConditionalExpression) &&
-                    interpolation.AlignmentClause == null &&
-                    interpolation.FormatClause != null &&
-                    !interpolation.FormatClause.ColonToken.IsMissing)
+                switch (ancestor.Kind())
                 {
-                    return true;
+                    case SyntaxKind.ParenthesizedExpression:
+                        return false;
+                    case SyntaxKind.Interpolation:
+                        interpolation = (InterpolationSyntax)ancestor;
+                        break;
+                }
+            }
+
+            if (interpolation == null)
+            {
+                return false;
+            }
+
+            if (s_nodeStack == null)
+            {
+                s_nodeStack = new Stack<SyntaxNode>();
+            }
+            else
+            {
+                s_nodeStack.Clear();
+            }
+
+            s_nodeStack.Push(node.Expression);
+
+            while (s_nodeStack.Count > 0)
+            {
+                var expression = s_nodeStack.Pop();
+
+                foreach (var nodeOrToken in expression.ChildNodesAndTokens())
+                {
+                    // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
+                    if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
+                    {
+                        s_nodeStack.Push(nodeOrToken.AsNode());
+                    }
+                    else if (nodeOrToken.IsToken)
+                    {
+                        if (nodeOrToken.IsKind(SyntaxKind.ColonToken) || nodeOrToken.IsKind(SyntaxKind.ColonColonToken))
+                        {
+                            s_nodeStack.Clear();
+                            return true;
+                        }
+                    }
                 }
             }
 
