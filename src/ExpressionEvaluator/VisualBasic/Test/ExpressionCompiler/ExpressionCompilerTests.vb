@@ -3704,7 +3704,7 @@ End Class
             Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
             Assert.True(result)
 
-            Dim symReader As ISymUnmanagedReader = New MockSymUnmanagedReader(ImmutableDictionary(Of Integer, MethodDebugInfo).Empty)
+            Dim symReader As ISymUnmanagedReader = New MockSymUnmanagedReader(ImmutableDictionary(Of Integer, MethodDebugInfoBytes).Empty)
 
             Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
             Dim evalContext = CreateMethodContext(runtime, "C.Main")

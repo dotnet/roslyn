@@ -198,7 +198,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             int token = metadataReader.GetToken(methodHandle);
 
-            byte[] cdi = pdbReader.SymbolReader.GetCustomDebugInfo(token, methodVersion: 0);
+            byte[] cdi = pdbReader.SymbolReader.GetCustomDebugInfoBytes(token, methodVersion: 0);
             ISymUnmanagedMethod method = pdbReader.SymbolReader.GetMethod(token);
             if (cdi == null && method == null)
             {
@@ -818,18 +818,19 @@ namespace Roslyn.Test.PdbUtilities
                     }
                     break;
                 case ImportTargetKind.Assembly:
-                    Debug.Assert(alias == null);
+                    Debug.Assert(alias != null);
+                    Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
                     if (target == null)
                     {
                         writer.WriteStartElement("extern");
-                        writer.WriteAttributeString("alias", externAlias);
+                        writer.WriteAttributeString("alias", alias);
                         writer.WriteEndElement(); // </extern>
                     }
                     else
                     {
                         writer.WriteStartElement("externinfo");
-                        writer.WriteAttributeString("alias", externAlias);
+                        writer.WriteAttributeString("alias", alias);
                         writer.WriteAttributeString("assembly", target);
                         writer.WriteEndElement(); // </externinfo>
                     }
