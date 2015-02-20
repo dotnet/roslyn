@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -368,16 +369,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Extracts information from the first <see cref="DebuggerDisplayAttribute"/> on the runtime type of <paramref name="value"/>, if there is one.
         /// </summary>
-        internal static void GetDebuggerDisplayStrings(this DkmClrValue value, out string nameString, out string valueString, out string typeString)
+        internal static bool TryGetDebuggerDisplayInfo(this DkmClrValue value, out DebuggerDisplayInfo displayInfo)
         {
+            displayInfo = default(DebuggerDisplayInfo);
+
             // The native EE does not consider DebuggerDisplayAttribute
             // on null or error instances.
             if (value.IsError() || value.IsNull)
             {
-                nameString = null;
-                valueString = null;
-                typeString = null;
-                return;
+                return false;
             }
 
             var clrType = value.Type;
@@ -386,16 +386,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrDebuggerDisplayAttribute attribute;
             if (clrType.TryGetEvalAttribute(out attributeTarget, out attribute)) // First, as in dev12.
             {
-                nameString = EvaluateDebuggerDisplayString(value, attribute.Name);
-                valueString = EvaluateDebuggerDisplayString(value, attribute.Value);
-                typeString = EvaluateDebuggerDisplayString(value, attribute.TypeName);
+                displayInfo = new DebuggerDisplayInfo(attributeTarget, attribute);
+                return true;
             }
-            else
-            {
-                nameString = null;
-                valueString = null;
-                typeString = null;
-            }
+
+            return false;
         }
 
         /// <summary>
@@ -439,9 +434,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        private static string EvaluateDebuggerDisplayString(DkmClrValue value, string str)
+        internal static void EvaluateDebuggerDisplayStringAndContinue(this DkmClrValue value, DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string str, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
         {
-            return str == null ? null : value.EvaluateDebuggerDisplayString(str);
+            if (str == null)
+            {
+                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
+            }
+            else
+            {
+                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
+            }
         }
 
         internal static DkmClrType GetProxyType(this DkmClrType type)
