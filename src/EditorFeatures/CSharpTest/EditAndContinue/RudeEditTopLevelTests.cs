@@ -1816,6 +1816,34 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
         }
 
+        [Fact(Skip = "TODO: Enable lambda edits")]
+        public void MethodWithLambda_Update()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        Func<int> a = () => 1;
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        Func<int> a = () => 1;
+        Console.WriteLine(1);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) });
+        }
+
         [Fact]
         public void MethodUpdate_LocalVariableDeclaration()
         {

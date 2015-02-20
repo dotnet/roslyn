@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
-                var result = _lastDiagnostics.GetIntersectingInOrderIntervals(start, length, introspector, skipZeroLengthIntervals: false);
+                var result = _lastDiagnostics.GetIntersectingInOrderIntervals(start, length, introspector);
                 if (result.Count == 0)
                 {
                     return;

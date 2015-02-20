@@ -128,7 +128,7 @@
     <Compile Include="Semantics\SemanticAnalyzerTests.cs" />
     <Compile Include="Semantics\SemanticErrorTests.cs" />
     <Compile Include="Semantics\StructsTests.cs" />
-    <Compile Include="Semantics\SupressAccessibilityChecksTests.cs" />
+    <Compile Include="Semantics\SuppressAccessibilityChecksTests.cs" />
     <Compile Include="Semantics\SwitchTests.cs" />
     <Compile Include="Semantics\SyntaxTreeRootTests.cs" />
     <Compile Include="Semantics\SynthesizedStaticConstructorTests.cs" />
