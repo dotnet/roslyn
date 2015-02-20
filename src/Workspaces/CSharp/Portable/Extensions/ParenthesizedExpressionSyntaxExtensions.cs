@@ -147,10 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // In order determine whether removing this parenthesized expression will introduce a
+            // parsing ambiguity, we must dig into the child tokens and nodes to determine whether
+            // they include any : or :: tokens. If they do, we can't remove the parentheses because
+            // the parser would assume that the first : would begin the format clause of the interpolation.
+
             var stack = s_nodeStackPool.AllocateAndClear();
             try
             {
-
                 stack.Push(node.Expression);
 
                 while (stack.Count > 0)
