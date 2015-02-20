@@ -12,20 +12,16 @@
     <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!--
-      As a convenience for developer machines without .NET 2.0 installed, we'll allow building against v4.*.
-      However, "real" builds must still target v2.0, and we always want to target 2.0 if it's present.
-    -->
-    <TargetFrameworkVersion Condition="Exists('$(WinDir)\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll') OR '$(RealSignBuild)' == 'true'">v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <NoStdLib>true</NoStdLib>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <RestorePackages>true</RestorePackages>
     <NeedsPhoneCopy>true</NeedsPhoneCopy>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
@@ -69,8 +65,10 @@
     <Compile Include="..\ExpressionCompiler\DateTimeUtilities.cs">
       <Link>Helpers\DateTimeUtilities.cs</Link>
     </Compile>
+    <Compile Include="SystemHelpers.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
+    <Reference Include="..\..\..\..\..\packages\Microsoft.NetFX20.1.0.0-rc2\lib\net20\mscorlib.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
   </ItemGroup>
@@ -134,4 +132,3 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
-
