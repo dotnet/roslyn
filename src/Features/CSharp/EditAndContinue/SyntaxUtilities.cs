@@ -162,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return !IsLambda(node.Kind());
         }
 
+        public static bool IsLambda(SyntaxNode node)
+        {
+            return IsLambda(node.Kind());
+        }
+
         public static bool IsLambda(SyntaxKind kind)
         {
             switch (kind)
@@ -181,6 +186,62 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.FromClause:
                     // Although from clause only creates a lambda if it is in a query body,
                     // for the purpose of node matching we consider all from clauses the same.
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
+        {
+            body1 = null;
+            body2 = null;
+
+            switch (node.Kind())
+            {
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                    body1 = ((AnonymousFunctionExpressionSyntax)node).Body;
+                    return true;
+
+                case SyntaxKind.FromClause:
+                    var fromClause = (FromClauseSyntax)node;
+                    if (!(fromClause.Parent is QueryBodySyntax))
+                    {
+                        return false;
+                    }
+
+                    body1 = fromClause.Expression;
+                    return true;
+
+                case SyntaxKind.JoinClause:
+                    var joinClause = (JoinClauseSyntax)node;
+                    body1 = joinClause.LeftExpression;
+                    body2 = joinClause.RightExpression;
+                    return true;
+
+                case SyntaxKind.LetClause:
+                    body1 = ((LetClauseSyntax)node).Expression;
+                    return true;
+
+                case SyntaxKind.WhereClause:
+                    body1 = ((WhereClauseSyntax)node).Condition;
+                    return true;
+
+                case SyntaxKind.AscendingOrdering:
+                case SyntaxKind.DescendingOrdering:
+                    body1 = ((OrderingSyntax)node).Expression;
+                    return true;
+
+                case SyntaxKind.SelectClause:
+                    body1 = ((SelectClauseSyntax)node).Expression;
+                    return true;
+
+                case SyntaxKind.GroupClause:
+                    var groupClause = (GroupClauseSyntax)node;
+                    body1 = groupClause.GroupExpression;
+                    body2 = groupClause.ByExpression;
                     return true;
             }
 
@@ -279,31 +340,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+            var anonymousFunction = declaration as AnonymousFunctionExpressionSyntax;
+            if (anonymousFunction != null)
             {
-                var lambda = (ParenthesizedLambdaExpressionSyntax)declaration;
-                if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
-                {
-                    return true;
-                }
-            }
-
-            if (declaration.IsKind(SyntaxKind.SimpleLambdaExpression))
-            {
-                var lambda = (SimpleLambdaExpressionSyntax)declaration;
-                if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
-                {
-                    return true;
-                }
-            }
-
-            if (declaration.IsKind(SyntaxKind.AnonymousMethodExpression))
-            {
-                var lambda = (AnonymousMethodExpressionSyntax)declaration;
-                if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
-                {
-                    return true;
-                }
+                return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }
 
             // expression bodied methods:

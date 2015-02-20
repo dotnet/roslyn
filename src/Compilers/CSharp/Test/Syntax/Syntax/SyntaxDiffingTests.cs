@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("struct", changes[0].NewText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/320")]
+        [Fact]
         public void TestQualifyWithThis()
         {
             var original =  @"

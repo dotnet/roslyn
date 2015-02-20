@@ -151,12 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             TestEmitters emitOptions = TestEmitters.All,
             string expectedOutput = null)
         {
+            var isWin8 = OSVersion.IsWin8;
             return CompileAndVerifyWinRt(
                 source,
                 additionalRefs: additionalRefs,
-                expectedOutput: expectedOutput,
+                expectedOutput: isWin8 ? expectedOutput : null,
                 emitOptions: emitOptions,
-                verify: OSVersion.IsWin8);
+                verify: isWin8);
         }
 
         internal CompilationVerifier CompileAndVerify(

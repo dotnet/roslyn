@@ -236,6 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 isEnabledByDefault: true,
                 warningLevel: GetWarningLevel(severity),
                 customTags: CustomTags,
+                properties: ImmutableDictionary<string, string>.Empty,
                 workspace: _workspace,
                 projectId: _projectId,
                 documentId: id,

@@ -103,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 isEnabledByDefault: true,
                 warningLevel: 0,
                 customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
                 workspace: _workspace,
                 projectId: projectId);
 

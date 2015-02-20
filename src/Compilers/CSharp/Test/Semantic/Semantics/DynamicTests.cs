@@ -1174,8 +1174,7 @@ class C
         object x = d1.N<int>; 
         d1.N<int*>();
         d1.N<System.TypedReference>();
-        // The dev11 compiler does not catch this one.
-        d1.N<S>(); 
+        d1.N<S>(); // The dev11 compiler does not catch this one.
     }
     static void Main() {}
 }";
@@ -1184,16 +1183,14 @@ class C
             comp.VerifyDiagnostics(
                 // (8,23): error CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>; 
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property"),
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property").WithLocation(8, 23),
                 // (9,14): error CS0306: The type 'int*' may not be used as a type argument
                 //         d1.N<int*>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-                // (10,14): error CS0306: The type 'System.TypedReference' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(9, 14),
+                // (10,14): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         d1.N<System.TypedReference>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.TypedReference").WithArguments("System.TypedReference"),
-                // (12,14): error CS0718: 'S': static types cannot be used as type arguments
-                //         d1.N<S>(); 
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S"));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(10, 14)
+                );
         }
 
         [Fact]

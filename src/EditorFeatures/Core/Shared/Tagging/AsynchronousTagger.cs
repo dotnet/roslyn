@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -128,6 +129,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
             }
 
+            var result = GetTags(requestedSpans, tags);
+
+            DebugVerifyTags(requestedSpans, result);
+
+            return result;
+        }
+
+        private static IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans, ITagSpanIntervalTree<TTag> tags)
+        {
             // Special case the case where there is only one requested span.  In that case, we don't
             // need to allocate any intermediate collections
             return requestedSpans.Count == 1
@@ -215,6 +225,25 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             finally
             {
                 enumerator.Dispose();
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void DebugVerifyTags(NormalizedSnapshotSpanCollection requestedSpans, IEnumerable<ITagSpan<TTag>> tags)
+        {
+            if (tags == null)
+            {
+                return;
+            }
+
+            foreach (var tag in tags)
+            {
+                var span = tag.Span;
+
+                if (!requestedSpans.Any(s => s.IntersectsWith(span)))
+                {
+                    Contract.Fail(tag + " doesn't intersects with any requested span");
+                }
             }
         }
     }

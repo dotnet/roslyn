@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             // display help on a particular command:
             command = commands[name];
 
-            if (command == null && name.StartsWith(prefix))
+            if (command == null && name.StartsWith(prefix, StringComparison.Ordinal))
             {
                 name = name.Substring(prefix.Length);
                 command = commands[name];

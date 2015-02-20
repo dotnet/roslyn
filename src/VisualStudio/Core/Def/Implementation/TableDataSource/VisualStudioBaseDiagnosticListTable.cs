@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -24,6 +25,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class VisualStudioBaseDiagnosticListTable : AbstractTable<DiagnosticsUpdatedArgs, DiagnosticData>
     {
+        // predefined name of diagnostic property which shows in what compilation stage the diagnostic is created.
+        private const string Origin = "Origin";
+
+        // key for new errorrank data. we will remove this once we get official vs base drop update.
+        private const string ErrorRankKey = "errorrank";
+
+        // predefined error ranks. we are going to start with this predefined error ranks for now and can be extended to support additional languages
+        // this predefined ranks will be moved from roslyn to table control in next base drop update.
+        private static class ErrorRank
+        {
+            public const int Lexical = 0;
+            public const int Syntactic = 100;
+            public const int Declaration = 200;
+            public const int Semantic = 300;
+            public const int Emit = 400;
+            public const int PostBuild = 500;
+            public const int Other = int.MaxValue;
+        }
+
         private static readonly string[] s_columns = new string[]
         {
             ShimTableColumnDefinitions.ErrorSeverity,
@@ -94,6 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 _diagnosticService = diagnosticService;
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                ConnectToSolutionCrawlerService(_workspace);
             }
 
             public override void OnProjectDependencyChanged(Solution solution)
@@ -214,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private int GetProjectRank(ProjectId projectId)
                 {
                     var rank = 0;
-                    if (_source._projectRanks.TryGetValue(projectId, out rank))
+                    if (projectId != null &&_source._projectRanks.TryGetValue(projectId, out rank))
                     {
                         return rank;
                     }
@@ -263,6 +285,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case ShimTableKeyNames.ProjectRank:
                                 content = _projectRank;
                                 return true;
+                            case ErrorRankKey:
+                                content = GetErrorRank(item);
+                                return true;
                             case ShimTableKeyNames.ErrorSeverity:
                                 content = GetErrorCategory(item.Severity);
                                 return true;
@@ -296,6 +321,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             default:
                                 content = null;
                                 return false;
+                        }
+                    }
+
+                    private int GetErrorRank(DiagnosticData item)
+                    {
+                        string value;
+                        if (!item.Properties.TryGetValue(Origin, out value))
+                        {
+                            return ErrorRank.Other;
+                        }
+
+                        switch (value)
+                        {
+                            case nameof(ErrorRank.Lexical):
+                                return ErrorRank.Lexical;
+                            case nameof(ErrorRank.Syntactic):
+                                return ErrorRank.Syntactic;
+                            case nameof(ErrorRank.Declaration):
+                                return ErrorRank.Declaration;
+                            case nameof(ErrorRank.Semantic):
+                                return ErrorRank.Semantic;
+                            case nameof(ErrorRank.Emit):
+                                return ErrorRank.Emit;
+                            case nameof(ErrorRank.PostBuild):
+                                return ErrorRank.PostBuild;
+                            default:
+                                return ErrorRank.Other;
                         }
                     }
 

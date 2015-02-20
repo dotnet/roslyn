@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
         public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            : base(workspace)
         {
             _owner = owner;
             _correlationId = correlationId;
@@ -771,6 +772,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.CustomTags,
+                diagnostic.Properties,
                 diagnostic.Workspace,
                 diagnostic.ProjectId,
                 diagnostic.DocumentId,

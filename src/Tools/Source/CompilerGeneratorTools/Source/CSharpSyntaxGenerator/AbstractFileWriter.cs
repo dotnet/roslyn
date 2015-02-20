@@ -131,12 +131,12 @@ namespace CSharpSyntaxGenerator
 
         protected static bool IsSeparatedNodeList(string typeName)
         {
-            return typeName.StartsWith("SeparatedSyntaxList<");
+            return typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
         }
 
         protected static bool IsNodeList(string typeName)
         {
-            return typeName.StartsWith("SyntaxList<");
+            return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
         protected static bool IsAnyNodeList(string typeName)

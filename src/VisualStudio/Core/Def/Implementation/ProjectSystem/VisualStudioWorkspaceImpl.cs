@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private VisualStudioProjectTracker _projectTracker;
 
         // document worker coordinator
-        private IWorkCoordinatorRegistrationService _workCoordinatorService;
+        private ISolutionCrawlerRegistrationService _registrationService;
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -914,14 +914,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            if (_workCoordinatorService == null)
+            if (_registrationService == null)
             {
                 lock (this)
                 {
-                    if (_workCoordinatorService == null)
+                    if (_registrationService == null)
                     {
-                        _workCoordinatorService = this.Services.GetService<IWorkCoordinatorRegistrationService>();
-                        _workCoordinatorService.Register(this);
+                        _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
+                        _registrationService.Register(this);
                     }
                 }
             }
@@ -929,14 +929,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StopSolutionCrawler()
         {
-            if (_workCoordinatorService != null)
+            if (_registrationService != null)
             {
                 lock (this)
                 {
-                    if (_workCoordinatorService != null)
+                    if (_registrationService != null)
                     {
-                        _workCoordinatorService.Unregister(this, blockingShutdown: true);
-                        _workCoordinatorService = null;
+                        _registrationService.Unregister(this, blockingShutdown: true);
+                        _registrationService = null;
                     }
                 }
             }

@@ -104,10 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
-                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
                 workspace: _workspace,
                 projectId: _projectId);
 
@@ -119,14 +117,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
-            if (_analyzerReference is AnalyzerFileReference)
+            var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
+            if (analyzerFileReference != null)
             {
-                ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed -= OnAnalyzerLoadError;
+                analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
                 if (_analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
+
+                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(analyzerFileReference, _language, _projectId);
             }
 
             _analyzerLoadErrors = null;

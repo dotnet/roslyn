@@ -116,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         Private Function GetDiagnosticData(workspace As Workspace, projectId As ProjectId) As DiagnosticData
             Return New DiagnosticData(
-                "Id", "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, DiagnosticSeverity.Error, True, 0, ImmutableArray(Of String).Empty, workspace, projectId)
+                "Id", "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, True, 0, workspace, projectId)
         End Function
 
         Private Class Waiter

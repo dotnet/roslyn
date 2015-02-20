@@ -338,11 +338,19 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
         }
 
-        public IEnumerable<KeyValuePair<TNode, TNode>> Matches
+        public IReadOnlyDictionary<TNode, TNode> Matches
         {
             get
             {
                 return new ReadOnlyDictionary<TNode, TNode>(_oneToTwo);
+            }
+        }
+
+        public IReadOnlyDictionary<TNode, TNode> ReverseMatches
+        {
+            get
+            {
+                return new ReadOnlyDictionary<TNode, TNode>(_twoToOne);
             }
         }
 

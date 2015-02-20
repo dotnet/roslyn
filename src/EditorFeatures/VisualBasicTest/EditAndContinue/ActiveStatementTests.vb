@@ -4167,6 +4167,34 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Lambdas_ActiveStatementRemoved4()
+            Dim src1 = "
+Class C
+    Shared Sub Main()
+        Dim f = Function(a)
+            <AS:1>z(2)</AS:1>
+
+            return Function (b)
+                <AS:0>Return b</AS:0>
+            End Function
+        End Function
+    End Sub
+End Class"
+            Dim src2 = "
+Class C
+    <AS:0,1>Shared Sub Main()</AS:0,1>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", "lambda"),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", "lambda"))
+        End Sub
+
+        <Fact>
         Public Sub Queries_ActiveStatementRemoved_WhereClause()
             Dim src1 = "
 Class C

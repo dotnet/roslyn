@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -332,8 +333,13 @@ namespace Microsoft.CodeAnalysis
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
+            ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
+            EventHandler<AnalyzerExceptionDiagnosticArgs> analyzerExceptionDiagnosticsHandler = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
+                analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                analyzerExceptionDiagnosticsHandler = AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, analyzerExceptionDiagnostics.Add);
+                
                 var analyzerManager = new AnalyzerManager();
                 analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
             }
@@ -443,7 +449,10 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerDriver != null)
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                    if (PrintErrors(analyzerDiagnostics, consoleOutput))
+                    var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
+                    AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(analyzerExceptionDiagnosticsHandler);
+
+                    if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {
                         return Failed;
                     }
@@ -605,7 +614,7 @@ namespace Microsoft.CodeAnalysis
                                 switch (options)
                                 {
                                     case ReportDiagnostic.Suppress:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Supress warning
+                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Suppress warning
                                         break;
 
                                     case ReportDiagnostic.Error:
@@ -874,7 +883,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool TryGetCompilerDiagnosticCode(string diagnosticId, string expectedPrefix, out uint code)
         {
             code = 0;
-            return diagnosticId.StartsWith(expectedPrefix) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
+            return diagnosticId.StartsWith(expectedPrefix, StringComparison.Ordinal) && uint.TryParse(diagnosticId.Substring(expectedPrefix.Length), out code);
         }
 
         /// <summary>
