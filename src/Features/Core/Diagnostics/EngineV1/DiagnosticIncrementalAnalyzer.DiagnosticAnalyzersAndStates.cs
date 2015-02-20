@@ -171,21 +171,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 Contract.ThrowIfNull(provider);
 
                 // Get the unique ID for given diagnostic analyzer.
-                // note that we also put version stamp so that we can detect changed provider
-                var providerType = provider.GetType();
-                var location = providerType.Assembly.Location;
-
-                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + providerType.AssemblyQualifiedName, GetProviderVersion(location));
-            }
-
-            private static VersionStamp GetProviderVersion(string path)
-            {
-                if (path == null || !File.Exists(path))
-                {
-                    return VersionStamp.Default;
-                }
-
-                return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
+                // note that we also put version stamp so that we can detect changed analyzer.
+                var tuple = WorkspaceAnalyzerManager.GetUniqueIdForAnalyzer(provider);
+                return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + tuple.Item1, tuple.Item2);
             }
 
             public DiagnosticState GetDiagnosticState(StateType stateType, ProviderId providerId, ProjectId projectId, string language)
