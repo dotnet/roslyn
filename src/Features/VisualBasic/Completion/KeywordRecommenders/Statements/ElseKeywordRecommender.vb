@@ -23,8 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             End If
 
             If context.IsSingleLineStatementContext AndAlso
-               context.IsInStatementBlockOfKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) AndAlso
-               IsNotDirectlyInElseBlock(context) Then
+               IsDirectlyInIfOrElseIf(context) Then
 
                 Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.ElseKeywordToolTip))
             End If
@@ -46,22 +45,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function IsNotDirectlyInElseBlock(context As VisualBasicSyntaxContext) As Boolean
-            Dim parent = context.TargetToken.Parent
-            Do While parent IsNot Nothing
-                If parent.IsKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) Then
-                    Return True
-                End If
+        Private Function IsDirectlyInIfOrElseIf(context As VisualBasicSyntaxContext) As Boolean
+            ' Maybe we're after the Then keyword
+            If context.TargetToken.IsKind(SyntaxKind.ThenKeyword) AndAlso
+                context.TargetToken.Parent?.Parent.IsKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) Then
+                Return True
+            End If
 
-                If parent.IsKind(SyntaxKind.ElseBlock) Then
-                    Return False
-                End If
-
-                parent = parent.Parent
-            Loop
-
-            ' We already know we're inside a Multiline If or ElseIf
-            Throw ExceptionUtilities.Unreachable
+            Dim statement = context.TargetToken.Parent.GetAncestor(Of StatementSyntax)
+            Return If(statement?.Parent.IsKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock), False)
         End Function
     End Class
 End Namespace

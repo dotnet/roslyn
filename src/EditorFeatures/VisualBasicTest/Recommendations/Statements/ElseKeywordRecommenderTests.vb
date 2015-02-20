@@ -266,5 +266,19 @@ Else
 End If
 </MethodBody>, "Else")
         End Sub
+
+        <Fact>
+<Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub ElseNotWithinDo()
+            VerifyRecommendationsMissing(
+<MethodBody>
+If True Then
+Do While True
+    |
+End While
+End If
+</MethodBody>, "Else")
+        End Sub
     End Class
+
 End Namespace
