@@ -1,9 +1,6 @@
-﻿// A few dependencies from System.dll, which we want to avoid when compiling against Desktop Framework 2.0.
-namespace System.Linq
-{
-    internal class Dummy { }
-}
-    
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+// A few dependencies from System.dll -- we want to avoid referencing the entire System.dll.
 namespace System.Diagnostics
 {
     internal static class Debug
@@ -42,4 +39,9 @@ namespace System.ComponentModel
     {
         public EditorBrowsableAttribute(EditorBrowsableState state) { }
     }
+}
+
+namespace System.Linq
+{
+    internal class Dummy { }
 }
