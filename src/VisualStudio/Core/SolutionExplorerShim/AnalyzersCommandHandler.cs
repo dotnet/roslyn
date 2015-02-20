@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _openHelpLinkMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenDiagnosticHelpLink, OpenDiagnosticHelpLinkHandler);
 
                 UpdateMenuItemVisibility();
-                UpdateMenuItemsChecked();
+                UpdateSeverityMenuItemsChecked();
 
                 if (_tracker != null)
                 {
@@ -120,14 +120,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 item.PropertyChanged += DiagnosticItemPropertyChangedHandler;
             }
 
-            UpdateMenuItemsChecked();
+            UpdateSeverityMenuItemsChecked();
+            UpdateSeverityMenuItemsEnabled();
         }
 
         private void DiagnosticItemPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(DiagnosticItem.EffectiveSeverity))
             {
-                UpdateMenuItemsChecked();
+                UpdateSeverityMenuItemsChecked();
             }
         }
 
@@ -159,13 +160,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                                 Path.GetExtension(itemName).Equals(".ruleset", StringComparison.OrdinalIgnoreCase);
         }
 
-        private void UpdateMenuItemsChecked()
+        private void UpdateSeverityMenuItemsChecked()
         {
             _setSeverityErrorMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Error);
             _setSeverityWarningMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Warn);
             _setSeverityInfoMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Info);
             _setSeverityHiddenMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Hidden);
             _setSeverityNoneMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Suppress);
+        }
+
+        private void UpdateSeverityMenuItemsEnabled()
+        {
+            bool configurable = !_selectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
+
+            _setSeverityErrorMenuItem.Enabled = configurable;
+            _setSeverityWarningMenuItem.Enabled = configurable;
+            _setSeverityInfoMenuItem.Enabled = configurable;
+            _setSeverityHiddenMenuItem.Enabled = configurable;
+            _setSeverityNoneMenuItem.Enabled = configurable;
         }
 
         private bool AnyDiagnosticsWithSeverity(ReportDiagnostic severity)
