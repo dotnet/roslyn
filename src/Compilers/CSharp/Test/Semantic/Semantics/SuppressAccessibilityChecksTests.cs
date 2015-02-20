@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class SuppressAccessibilityChecksTests : CSharpTestBase
     {
-        private static SemanticModel GetSemanticModelWithSuppressAccessChecks()
+        private static SemanticModel GetSemanticModelWithIgnoreAccessibility()
         {
             var compilationA = CreateCompilationWithMscorlib(@"
 namespace N
@@ -38,13 +40,13 @@ class B
 ", new MetadataReference[] {referenceA}, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var syntaxTree = compilationB.SyntaxTrees[0];
-            return compilationB.GetSemanticModel(syntaxTree, suppressAccessChecks: true);
+            return compilationB.GetSemanticModel(syntaxTree, ignoreAccessibility: true);
         }
 
         [Fact]
         public void TestAccessPrivateMemberOfInternalType()
         {
-            var semanticModel = GetSemanticModelWithSuppressAccessChecks();
+            var semanticModel = GetSemanticModelWithIgnoreAccessibility();
             var invocation = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var position = invocation.FullSpan.Start;
 
@@ -56,7 +58,7 @@ class B
         [Fact]
         public void TestAccessChecksInSpeculativeExpression()
         {
-            var semanticModel = GetSemanticModelWithSuppressAccessChecks();
+            var semanticModel = GetSemanticModelWithIgnoreAccessibility();
             var invocation = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var position = invocation.FullSpan.Start;
 
@@ -71,7 +73,7 @@ class B
         [Fact]
         public void TestAccessChecksInSpeculativeSemanticModel()
         {
-            var semanticModel = GetSemanticModelWithSuppressAccessChecks();
+            var semanticModel = GetSemanticModelWithIgnoreAccessibility();
             var invocation = semanticModel.SyntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var position = invocation.FullSpan.Start;
 
@@ -108,7 +110,7 @@ class C
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var comp = CreateCompilationWithMscorlib(tree);
-            var model = comp.GetSemanticModel(tree,suppressAccessChecks: true);
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().Body;
 
@@ -154,7 +156,7 @@ class B
 ", new MetadataReference[] { referenceA }, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var syntaxTree = compilationB.SyntaxTrees[0];
-            var semanticModel = compilationB.GetSemanticModel(syntaxTree, suppressAccessChecks: true);
+            var semanticModel = compilationB.GetSemanticModel(syntaxTree, ignoreAccessibility: true);
 
             var invocation = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
@@ -200,7 +202,7 @@ class C : R
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
-            var model = compilation.GetSemanticModel(tree, suppressAccessChecks: true);
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             AccessorDeclarationSyntax accesorDecl = root.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
             

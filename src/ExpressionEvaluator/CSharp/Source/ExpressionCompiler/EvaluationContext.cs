@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableSortedSet<int> _inScopeHoistedLocalIndices;
-        private readonly ImmutableArray<ImmutableArray<string>> _importStringGroups;
-        private readonly ImmutableArray<string> _externAliasStrings;
+        private readonly MethodDebugInfo _methodDebugInfo;
 
         private EvaluationContext(
             ImmutableArray<MetadataBlock> metadataBlocks,
@@ -44,11 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalIndices,
-            ImmutableArray<ImmutableArray<string>> importStringGroups,
-            ImmutableArray<string> externAliasStrings)
+            MethodDebugInfo methodDebugInfo)
         {
             Debug.Assert(inScopeHoistedLocalIndices != null);
-            Debug.Assert(importStringGroups.IsDefault == externAliasStrings.IsDefault);
 
             this.MetadataBlocks = metadataBlocks;
             this.MethodScope = methodScope;
@@ -57,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _currentFrame = currentFrame;
             _locals = locals;
             _inScopeHoistedLocalIndices = inScopeHoistedLocalIndices;
-            _importStringGroups = importStringGroups;
-            _externAliasStrings = externAliasStrings;
+            _methodDebugInfo = methodDebugInfo;
         }
 
         /// <summary>
@@ -98,8 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
                 ImmutableSortedSet<int>.Empty,
-                default(ImmutableArray<ImmutableArray<string>>),
-                default(ImmutableArray<string>));
+                default(MethodDebugInfo));
         }
 
         /// <summary>
@@ -153,14 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
             var dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
             var inScopeHoistedLocalIndices = ImmutableSortedSet<int>.Empty;
-            var groupedImportStrings = default(ImmutableArray<ImmutableArray<string>>);
-            var externAliasStrings = default(ImmutableArray<string>);
+            var methodDebugInfo = default(MethodDebugInfo);
 
             if (typedSymReader != null)
             {
                 try
                 {
-                    var cdi = typedSymReader.GetCustomDebugInfo(methodToken, methodVersion);
+                    var cdi = typedSymReader.GetCustomDebugInfoBytes(methodToken, methodVersion);
                     if (cdi != null)
                     {
                         CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
@@ -178,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             ilOffset);
                     }
 
-                    groupedImportStrings = typedSymReader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
+                    // TODO (acasey): switch on the type of typedSymReader and call the appropriate helper. (GH #702)
+                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion);
                 }
                 catch (InvalidOperationException)
                 {
@@ -207,8 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 currentFrame,
                 locals,
                 inScopeHoistedLocalIndices,
-                groupedImportStrings,
-                externAliasStrings);
+                methodDebugInfo);
         }
 
         internal CompilationContext CreateCompilationContext(CSharpSyntaxNode syntax)
@@ -219,8 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 _currentFrame,
                 _locals,
                 _inScopeHoistedLocalIndices,
-                _importStringGroups,
-                _externAliasStrings,
+                _methodDebugInfo,
                 syntax);
         }
 

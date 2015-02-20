@@ -1073,7 +1073,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfo(MetadataTokens.GetToken(methodHandle), methodVersion: 0);
+            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(MetadataTokens.GetToken(methodHandle), methodVersion: 0);
             if (debugInfo != null)
             {
                 try

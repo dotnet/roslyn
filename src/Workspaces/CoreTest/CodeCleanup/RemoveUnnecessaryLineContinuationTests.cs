@@ -1307,6 +1307,75 @@ End Module
             Verify(code, expected);
         }
 
+        [Fact]
+        [WorkItem(710, "#710")]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInStringInterpolation1()
+        {
+            var code = @"[|
+Module Program
+    Dim x = $""{ _
+            1}""
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Dim x = $""{ _
+            1}""
+End Module
+";
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(710, "#710")]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInStringInterpolation2()
+        {
+            var code = @"[|
+Module Program
+    Dim x = $""{1 _
+               }""
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Dim x = $""{1 _
+               }""
+End Module
+";
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(710, "#710")]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInStringInterpolation3()
+        {
+            var code = @"[|
+Module Program
+    Dim x = $""{ _
+
+1 _
+
+}""
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Dim x = $""{ _
+
+1 _
+
+}""
+End Module
+";
+            Verify(code, expected);
+        }
+
         private string CreateMethod(string body)
         {
             return @"Imports System

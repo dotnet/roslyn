@@ -94,6 +94,7 @@
     <Compile Include="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="Collections\ArrayElement.cs" />
     <Compile Include="Collections\BitArray.cs" />
+    <Compile Include="Collections\Boxes.cs" />
     <Compile Include="Collections\ByteSequenceComparer.cs" />
     <Compile Include="Collections\CachingDictionary.cs" />
     <Compile Include="Collections\CachingFactory.cs" />
@@ -564,6 +565,7 @@
     <Compile Include="Syntax\TranslationSyntaxReference.cs" />
     <Compile Include="Text\ChangedText.cs" />
     <Compile Include="Text\CompositeText.cs" />
+    <Compile Include="Text\LargeEncodedText.cs" />
     <Compile Include="Text\LinePosition.cs" />
     <Compile Include="Text\LinePositionSpan.cs" />
     <Compile Include="Text\SourceHashAlgorithm.cs" />

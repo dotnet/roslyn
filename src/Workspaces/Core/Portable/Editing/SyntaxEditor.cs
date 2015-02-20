@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertAfter(SyntaxNode node, SyntaxNode newNode)
         {
             CheckNodeInTree(node);
-            this.InsertBefore(node, new[] { newNode });
+            this.InsertAfter(node, new[] { newNode });
         }
 
         private void CheckNodeInTree(SyntaxNode node)
