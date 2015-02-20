@@ -6196,14 +6196,14 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Assert.Contains("warning BC42376", output)
 
             ' TEST: Verify /nowarn doesn't override /warnaserror: in the case of custom hidden diagnostics.
-            ' Although the compiler normally supresses printing of hidden diagnostics in the compiler output, they are never really suppressed
+            ' Although the compiler normally suppresses printing of hidden diagnostics in the compiler output, they are never really suppressed
             ' because in the IDE features that rely on hidden diagnostics to display light bulb need to continue to work even when users have global
             ' suppression (/nowarn) specified in their project. In other words, /nowarn flag is a no-op for hidden diagnostics.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror:Hidden01"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
 
             ' TEST: Verify /nowarn doesn't override /warnaserror: in the case of custom hidden diagnostics.
-            ' Although the compiler normally supresses printing of hidden diagnostics in the compiler output, they are never really suppressed
+            ' Although the compiler normally suppresses printing of hidden diagnostics in the compiler output, they are never really suppressed
             ' because in the IDE features that rely on hidden diagnostics to display light bulb need to continue to work even when users have global
             ' suppression (/nowarn) specified in their project. In other words, /nowarn flag is a no-op for hidden diagnostics.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:HIDDen01", "/nowarn"}, expectedErrorCount:=1)

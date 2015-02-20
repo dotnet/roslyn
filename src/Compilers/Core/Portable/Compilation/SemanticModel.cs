@@ -63,6 +63,14 @@ namespace Microsoft.CodeAnalysis
         protected abstract SyntaxTree SyntaxTreeCore { get; }
 
         /// <summary>
+        /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
+        /// </summary>
+        public virtual bool IgnoresAccessibility
+        {
+            get { return false; }
+        }
+
+        /// <summary>
         /// Gets symbol information about a syntax node.
         /// </summary>
         /// <param name="node">The syntax node to get semantic information for.</param>

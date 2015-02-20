@@ -295,6 +295,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot apply operation while a rename session is active..
+        /// </summary>
+        internal static string CannotApplyOperationWhileRenameSessionIsActive {
+            get {
+                return ResourceManager.GetString("CannotApplyOperationWhileRenameSessionIsActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot navigate to the symbol under the caret..
         /// </summary>
         internal static string CannotNavigateToTheSymbol {

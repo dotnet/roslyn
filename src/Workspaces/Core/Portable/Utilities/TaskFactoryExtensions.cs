@@ -81,13 +81,7 @@ namespace Roslyn.Utilities
         {
             // The one and only place we can call StartNew<>().
             var task = factory.StartNew(actionAsync, cancellationToken, creationOptions, scheduler).Unwrap();
-
-            // make it crash if exception has thrown
-            task.ContinueWith(t => FatalError.Report(t.Exception),
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
+            TaskExtensions.ReportFatalError(task, actionAsync);
             return task;
         }
 
@@ -105,13 +99,7 @@ namespace Roslyn.Utilities
         {
             // The one and only place we can call StartNew<>().
             var task = factory.StartNew(funcAsync, cancellationToken, creationOptions, scheduler).Unwrap();
-
-            // make it crash if exception has thrown
-            task.ContinueWith(t => FatalError.Report(t.Exception),
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
+            TaskExtensions.ReportFatalError(task, funcAsync);
             return task;
         }
     }

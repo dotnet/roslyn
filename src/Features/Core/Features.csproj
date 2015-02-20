@@ -177,7 +177,10 @@
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
+    <Compile Include="Diagnostics\WorkspaceAnalyzerExceptionDiagnosticArgs.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
+    <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource_Registration.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
@@ -498,12 +501,15 @@
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderBase.cs" />
     <Compile Include="SolutionCrawler\InvocationReasons.cs" />
     <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerProgressReporter.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\IWorkCoordinatorPriorityService.cs" />
-    <Compile Include="SolutionCrawler\IWorkCoordinatorRegistrationService.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerLogger.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerOptions.cs" />
+    <Compile Include="SolutionCrawler\SolutionCrawlerProgressReporter.cs" />
+    <Compile Include="SolutionCrawler\SolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\State\AbstractAnalyzerState.cs" />
     <Compile Include="SolutionCrawler\State\AbstractDocumentAnalyzerState.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.AsyncDocumentWorkItemQueue.cs" />
@@ -517,7 +523,7 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinatorRegistrationService.cs" />
+    <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
     <Compile Include="Workspace\FileTracker.cs" />
@@ -534,7 +540,9 @@
     <Compile Include="CodeFixes\Suppression\SuppressionCodeAction.cs" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.txt" />
+  </ItemGroup>
   <Import Project="..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -82,15 +83,15 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles);
-                var publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
+                AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles, compilationContext.CancellationToken);
 
                 if (publicApiAdditionalText == null)
                 {
                     return;
                 }
 
-                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText);
+                SourceText publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
+                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText, compilationContext.CancellationToken);
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
 
@@ -203,12 +204,14 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return null;
         }
 
-        private static HashSet<string> ReadPublicSymbols(SourceText file)
+        private static HashSet<string> ReadPublicSymbols(SourceText file, CancellationToken cancellationToken)
         {
             HashSet<string> publicSymbols = new HashSet<string>();
 
             foreach (var line in file.Lines)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var text = line.ToString();
 
                 if (!string.IsNullOrWhiteSpace(text))
@@ -248,10 +251,12 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return false;
         }
 
-        private static AdditionalText TryGetPublicApiSpec(ImmutableArray<AdditionalText> additionalTexts)
+        private static AdditionalText TryGetPublicApiSpec(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken)
         {
             foreach (var text in additionalTexts)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (Path.GetFileName(text.Path).Equals(PublicApiFileName, StringComparison.OrdinalIgnoreCase))
                 {
                     return text;
