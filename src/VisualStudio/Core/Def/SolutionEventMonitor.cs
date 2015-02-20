@@ -42,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             ContextChangedWorker(e, "Solution Building");
         }
+
         private void SolutionOpeningContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
         {
             ContextChangedWorker(e, "Solution Opening");
@@ -59,6 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     }
 
                     _operations[operation] = _notificationService.Start(operation);
+
                 }
                 else if (globalOperation != null)
                 {
