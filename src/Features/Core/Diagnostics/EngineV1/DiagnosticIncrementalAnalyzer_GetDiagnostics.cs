@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
-                    if (IsAnalyzerSuppressed(provider, project.CompilationOptions, driver) ||
+                    if (driver.IsAnalyzerSuppressed(provider) ||
                         !this.Owner.ShouldRunProviderForStateType(stateType, provider, driver, this.DiagnosticIds))
                     {
                         continue;

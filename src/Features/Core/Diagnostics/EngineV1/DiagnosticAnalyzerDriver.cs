@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     if (_document.SupportsSyntaxTree)
                     {
-                        AnalyzerDriverHelper.ExecuteSyntaxTreeActions(analyzerActions, _root.SyntaxTree,
+                        AnalyzerManager.Instance.ExecuteSyntaxTreeActions(analyzerActions, _root.SyntaxTree,
                                 _analyzerOptions, diagnostics.Add, CatchAnalyzerException, _cancellationToken);
                     }
                 }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
         {
-            Contract.ThrowIfFalse(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+            Contract.ThrowIfFalse(AnalyzerManager.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
 
             if (compilation != null)
             {
@@ -338,12 +338,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return actions;
         }
 
+        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer)
+        {
+            var options = this.Project.CompilationOptions;
+            if (options == null)
+            {
+                return false;
+            }
+
+            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
+
+            // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
+            // we can't determine if any descriptors support getting telemetry without having the descriptors.
+            var suppressed = AnalyzerManager.Instance.IsDiagnosticAnalyzerSuppressed(analyzer, options, CatchAnalyzerException_NoTelemetryLogging, AnalyzerHelper.IsCompilerAnalyzer, CancellationToken);
+
+            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+            return suppressed;
+        }
+
         private async Task<AnalyzerActions> GetAnalyzerActionsCoreAsync(DiagnosticAnalyzer analyzer)
         {
             var compilation = _project.SupportsCompilation ?
                 await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) :
                 null;
-            var analyzerActions = await AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, compilation, _analyzerOptions, CatchAnalyzerException, _cancellationToken).ConfigureAwait(false);
+            var analyzerActions = await AnalyzerManager.Instance.GetAnalyzerActionsAsync(analyzer, compilation, _analyzerOptions, CatchAnalyzerException, _cancellationToken).ConfigureAwait(false);
             DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, analyzerActions, (DiagnosticLogAggregator)_logAggregator);
             return analyzerActions;
         }
@@ -394,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         // SemanticModel actions.
                         if (analyzerActions.SemanticModelActionsCount > 0)
                         {
-                            AnalyzerDriverHelper.ExecuteSemanticModelActions(analyzerActions, model, _analyzerOptions,
+                            AnalyzerManager.Instance.ExecuteSemanticModelActions(analyzerActions, model, _analyzerOptions,
                                 diagnostics.Add, CatchAnalyzerException, _cancellationToken);
                         }
 
@@ -402,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         if (analyzerActions.SymbolActionsCount > 0)
                         {
                             var symbols = this.GetSymbolsToAnalyze(model);
-                            AnalyzerDriverHelper.ExecuteSymbolActions(analyzerActions, symbols, compilation,
+                            AnalyzerManager.Instance.ExecuteSymbolActions(analyzerActions, symbols, compilation,
                                     _analyzerOptions, diagnostics.Add, CatchAnalyzerException, _cancellationToken);
                         }
 
@@ -502,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 // CompilationEnd actions.
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                AnalyzerDriverHelper.ExecuteCompilationEndActions(analyzerActions, compilation, _analyzerOptions, localDiagnostics.Add, CatchAnalyzerException, _cancellationToken);
+                AnalyzerManager.Instance.ExecuteCompilationEndActions(analyzerActions, compilation, _analyzerOptions, localDiagnostics.Add, CatchAnalyzerException, _cancellationToken);
                 AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
 
                 var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
@@ -515,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             if (!IsCanceled(e, cancellationToken))
             {
                 // Create a info diagnostic saying that the analyzer failed
-                return AnalyzerDriverHelper.GetAnalyzerDiagnostic(analyzer, e);
+                return AnalyzerManager.GetAnalyzerDiagnostic(analyzer, e);
             }
 
             return null;
@@ -532,6 +550,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return CatchAnalyzerException(e, analyzer, _testOnly_DonotCatchAnalyzerExceptions);
         }
 
+        private bool CatchAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer)
+        {
+            return CatchAnalyzerException_NoTelemetryLogging(e, analyzer, _testOnly_DonotCatchAnalyzerExceptions);
+        }
+
         internal bool CatchAnalyzerExceptionHandler(Exception e, DiagnosticAnalyzer analyzer)
         {
             return CatchAnalyzerException(e, analyzer, testOnly_DonotCatchAnalyzerExceptions: false);
@@ -541,6 +564,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, e, _logAggregator);
 
+            return CatchAnalyzerException_NoTelemetryLogging(e, analyzer, testOnly_DonotCatchAnalyzerExceptions);
+        }
+
+        private bool CatchAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer, bool testOnly_DonotCatchAnalyzerExceptions)
+        {
             if (testOnly_DonotCatchAnalyzerExceptions)
             {
                 return false;

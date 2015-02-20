@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -204,20 +205,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return IsNotConfigurable(this.CustomTags);
-        }
-
-        internal static bool IsNotConfigurable(IEnumerable<string> customTags)
-        {
-            foreach (var customTag in customTags)
-            {
-                if (customTag == WellKnownDiagnosticTags.NotConfigurable)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
     }
 }

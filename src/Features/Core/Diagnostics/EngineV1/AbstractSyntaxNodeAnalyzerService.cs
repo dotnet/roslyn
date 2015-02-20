@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            AnalyzerDriverHelper.ExecuteSyntaxNodeActions(actions, descendantNodes, semanticModel,
+            AnalyzerManager.Instance.ExecuteSyntaxNodeActions(actions, descendantNodes, semanticModel,
                 analyzerOptions, reportDiagnostic, continueOnAnalyzerException, this.GetKind, cancellationToken);
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            AnalyzerDriverHelper.ExecuteCodeBlockActions(actions, declarationsInNode,
+            AnalyzerManager.Instance.ExecuteCodeBlockActions(actions, declarationsInNode,
                 semanticModel, analyzerOptions, reportDiagnostic, continueOnAnalyzerException, this.GetKind, cancellationToken);
         }
     }

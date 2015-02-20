@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AbstractHostDiagnosticUpdateSource
     {
-        internal static event EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
+        private static event EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
 
         protected AbstractHostDiagnosticUpdateSource()
         {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic = (sender, args) =>
                 ReportAnalyzerExceptionDiagnostic(sender, args, workspace, project);
 
-            return AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, onAnalyzerExceptionDiagnostic);
+            return AnalyzerManager.Instance.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, onAnalyzerExceptionDiagnostic);
         }
 
         internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(DiagnosticAnalyzer analyzer, Workspace workspace)
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<object, AnalyzerExceptionDiagnosticArgs> onAnalyzerExceptionDiagnostic = (sender, args) =>
                 ReportAnalyzerExceptionDiagnostic(sender, args, workspace, project);
 
-            return AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, onAnalyzerExceptionDiagnostic);
+            return AnalyzerManager.Instance.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, onAnalyzerExceptionDiagnostic);
         }
 
         internal static void UnregisterAnalyzerExceptionDiagnosticHandler(EventHandler<AnalyzerExceptionDiagnosticArgs> handler)
         {
-            AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+            AnalyzerManager.Instance.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
         }
 
         internal static void ReportAnalyzerExceptionDiagnostic(object sender, DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace)

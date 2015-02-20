@@ -333,14 +333,15 @@ namespace Microsoft.CodeAnalysis
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
+            AnalyzerManager analyzerManager = null;
             ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
             EventHandler<AnalyzerExceptionDiagnosticArgs> analyzerExceptionDiagnosticsHandler = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
+                analyzerManager = new AnalyzerManager();
                 analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-                analyzerExceptionDiagnosticsHandler = AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, analyzerExceptionDiagnostics.Add);
+                analyzerExceptionDiagnosticsHandler = analyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, analyzerExceptionDiagnostics.Add);
                 
-                var analyzerManager = new AnalyzerManager();
                 analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
             }
 
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
                     var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-                    AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(analyzerExceptionDiagnosticsHandler);
+                    analyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(analyzerExceptionDiagnosticsHandler);
 
                     if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {

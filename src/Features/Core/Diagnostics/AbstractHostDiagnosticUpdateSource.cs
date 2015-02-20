@@ -46,17 +46,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnAnalyzerExceptionDiagnostic(object sender, WorkspaceAnalyzerExceptionDiagnosticArgs args)
         {
-            if (this.Workspace != args.Workspace)
+            // If the diagnostic is to be reported for a specific workspace (non-null value of args.Workspace),
+            // then ensure it matches our workspace.
+            // Otherwise, if args.Workspace is null, then report the diagnostic for all workspaces.
+            if (args.Workspace != null && this.Workspace != args.Workspace)
             {
                 return;
             }
 
-            Contract.ThrowIfFalse(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(args.Diagnostic));
+            Contract.ThrowIfFalse(AnalyzerManager.IsAnalyzerExceptionDiagnostic(args.Diagnostic));
             
             bool raiseDiagnosticsUpdated = true;
             var diagnosticData = args.ProjectOpt != null ?
                 DiagnosticData.Create(args.ProjectOpt, args.Diagnostic) :
-                DiagnosticData.Create(args.Workspace, args.Diagnostic);
+                DiagnosticData.Create(this.Workspace, args.Diagnostic);
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 args.FaultedAnalyzer,

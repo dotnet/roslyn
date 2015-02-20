@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _addDiagnostic;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CancellationTokenRegistration _queueRegistration;
-        private readonly AnalyzerManager _analyzerManager;
+        protected readonly AnalyzerManager analyzerManager;
         protected readonly AnalyzerOptions analyzerOptions;
         internal readonly Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException;
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _compilation = comp;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var analyzerActionsTask = GetAnalyzerActionsAsync(_analyzers, _analyzerManager, comp, analyzerOptions, _addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                var analyzerActionsTask = GetAnalyzerActionsAsync(_analyzers, analyzerManager, comp, analyzerOptions, continueOnAnalyzerException, cancellationToken);
                 var initializeTask = analyzerActionsTask.ContinueWith(t =>
                 {
                     this.analyzerActions = t.Result;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var syntaxTreeAction in analyzerAndActions)
                         {
                             // Catch Exception from executing the action
-                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, continueOnAnalyzerException, () =>
+                            analyzerManager.ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, continueOnAnalyzerException, () =>
                             {
                                 var context = new SyntaxTreeAnalysisContext(tree, analyzerOptions, _addDiagnostic, cancellationToken);
                                 syntaxTreeAction.Action(context);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _analyzers = analyzers;
             this.analyzerOptions = options;
-            _analyzerManager = analyzerManager;
+            this.analyzerManager = analyzerManager;
 
             this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
             this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(da.Analyzer == analyzer);
 
                     // Catch Exception from analyzing the symbol
-                    AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, continueOnAnalyzerException, () =>
+                    analyzerManager.ExecuteAndCatchIfThrows(da.Analyzer, continueOnAnalyzerException, () =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         var symbolContext = new SymbolAnalysisContext(symbol, _compilation, this.analyzerOptions, addDiagnosticForSymbol, cancellationToken);
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Debug.Assert(semanticModelAction.Analyzer == analyzerAndActions.Key);
 
                             // Catch Exception from semanticModelAction
-                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, continueOnAnalyzerException, () =>
+                            analyzerManager.ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, continueOnAnalyzerException, () =>
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
                                     var semanticModelContext = new SemanticModelAnalysisContext(semanticModel, this.analyzerOptions, _addDiagnostic, cancellationToken);
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Debug.Assert(endAction.Analyzer == analyzerAndActions.Key);
 
                             // Catch Exception from endAction
-                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(endAction.Analyzer, continueOnAnalyzerException, () =>
+                            analyzerManager.ExecuteAndCatchIfThrows(endAction.Analyzer, continueOnAnalyzerException, () =>
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
                                     var compilationContext = new CompilationEndAnalysisContext(_compilation, this.analyzerOptions, _addDiagnostic, cancellationToken);
@@ -703,7 +703,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
-            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
             CancellationToken cancellationToken)
         {
@@ -712,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AnalyzerActions allAnalyzerActions = new AnalyzerActions();
                 foreach (var analyzer in analyzers)
                 {
-                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerManager, compilation.Options, addDiagnostic, continueOnAnalyzerException, cancellationToken))
+                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerManager, compilation.Options, continueOnAnalyzerException, cancellationToken))
                     {
                         var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer,
                             compilation, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
@@ -731,48 +730,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerManager analyzerManager,
             CompilationOptions options,
-            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            if (analyzer is CompilerDiagnosticAnalyzer)
-            {
-                // Compiler analyzer must always be executed for compiler errors, which cannot be suppressed or filtered.
-                return false;
-            }
-
-            var supportedDiagnostics = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, cancellationToken);
-            var diagnosticOptions = options.SpecificDiagnosticOptions;
-
-            foreach (var diag in supportedDiagnostics)
-            {
-                if (diag.IsNotConfigurable())
-                {
-                    // If diagnostic descriptor is not configurable, then diagnostics created through it cannot be suppressed.
-                    return false;
-                }
-
-                // Is this diagnostic suppressed by default (as written by the rule author)
-                var isSuppressed = !diag.IsEnabledByDefault;
-
-                // If the user said something about it, that overrides the author.
-                if (diagnosticOptions.ContainsKey(diag.Id))
-                {
-                    isSuppressed = diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress;
-                }
-
-                if (isSuppressed)
-                {
-                    continue;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, continueOnAnalyzerException, IsCompilerAnalyzer, cancellationToken);
         }
+
+        private static bool IsCompilerAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            return analyzer is CompilerDiagnosticAnalyzer;
+        }
+
 
         public void Dispose()
         {
@@ -829,7 +797,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> actionsByKind;
                             if (analzerAndActions.Any())
                             {
-                                actionsByKind = AnalyzerDriverHelper.GetNodeActionsByKind(analzerAndActions, addDiagnostic);
+                                actionsByKind = AnalyzerManager.GetNodeActionsByKind(analzerAndActions, addDiagnostic);
                             }
                             else
                             {
@@ -923,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var symbol = symbolEvent.Symbol;
             var executeSyntaxNodeActions = this.NodeActionsByKind.Any();
-            var executeCodeBlockActions = AnalyzerDriverHelper.CanHaveExecutableCodeBlock(symbol) && (this.CodeBlockStartActionsByAnalyer.Any() || this.CodeBlockEndActionsByAnalyer.Any());
+            var executeCodeBlockActions = AnalyzerManager.CanHaveExecutableCodeBlock(symbol) && (this.CodeBlockStartActionsByAnalyer.Any() || this.CodeBlockEndActionsByAnalyer.Any());
 
             if (executeSyntaxNodeActions || executeCodeBlockActions)
             {
@@ -963,7 +931,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     Action executeStatelessNodeActions = () =>
                         ExecuteStatelessNodeActions(analyzerAndActions.Value, syntax, symbol, declarationsInNode, semanticModel,
-                        reportDiagnostic, this.continueOnAnalyzerException, this.analyzerOptions, _getKind, cancellationToken);
+                        reportDiagnostic, this.continueOnAnalyzerException, this.analyzerOptions, _getKind, analyzerManager, cancellationToken);
 
                     AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeStatelessNodeActions, cancellationToken);
                 }
@@ -994,7 +962,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 this.CodeBlockEndActionsByAnalyer[analyzerAndActions.Key] :
                                 ImmutableArray<CodeBlockEndAnalyzerAction>.Empty;
 
-                            AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+                            analyzerManager.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
                                 syntax, symbol, executableCodeBlocks, analyzerOptions,
                                 semanticModel, reportDiagnostic, this.continueOnAnalyzerException, _getKind, cancellationToken);
                         };
@@ -1013,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 var codeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty;
                                 var codeBlockEndActions = analyzerAndActions.Value;
 
-                                AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+                                analyzerManager.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
                                     syntax, symbol, executableCodeBlocks, analyzerOptions,
                             semanticModel, reportDiagnostic, this.continueOnAnalyzerException, _getKind, cancellationToken);
                             };
@@ -1035,6 +1003,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             AnalyzerOptions analyzerOptions,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
+            AnalyzerManager analyzerManager,
             CancellationToken cancellationToken)
         {
             // Eliminate syntax nodes for descendant member declarations within declarations.
@@ -1076,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
                 declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true).Except(descendantDeclsToSkip);
 
-            AnalyzerDriverHelper.ExecuteSyntaxNodeActions(nodesToAnalyze, actionsByKind, semanticModel,
+            analyzerManager.ExecuteSyntaxNodeActions(nodesToAnalyze, actionsByKind, semanticModel,
                 analyzerOptions, addDiagnostic, continueOnAnalyzerException, getKind, cancellationToken);
         }
 

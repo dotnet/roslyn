@@ -75,15 +75,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            // TODO: report diagnostics from exceptions thrown in DiagnosticAnalyzer.SupportedDiagnostics
-
+            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, workspace: null);
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => !AnalyzerHelper.IsBuiltInAnalyzer(analyzer);
-            return AnalyzerManager.Default.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, CancellationToken.None);
+            var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, CancellationToken.None);
+            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+            return descriptors;
         }
 
         /// <summary>
         /// Get <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="language"/>
-        /// </summary>
+        /// </summary> 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetHostDiagnosticAnalyzersPerReference(string language)
         {
             return _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzers);
