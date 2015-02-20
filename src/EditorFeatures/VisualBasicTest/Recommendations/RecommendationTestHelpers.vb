@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Assert.Equal(recommendations.OrderBy(Function(recommendation) recommendation).ToArray(), recommendedKeywords)
         End Sub
 
-        Friend Sub VerifyRecommendationDescriptionTextIs(testSource As XElement, keyword As String, text As XElement)
+        Friend Sub VerifyRecommendationDescriptionTextIs(testSource As XElement, keyword As String, text As String)
             Dim source = ConvertTestSourceTag(testSource)
             Dim recommendedKeyword = GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|"c)).Single(Function(r) r.Keyword = keyword)
-            Dim expectedText = text.Value.Replace(vbLf, vbCrLf).Trim()
+            Dim expectedText = text.Trim()
             Assert.Equal(expectedText, recommendedKeyword.DescriptionFactory(CancellationToken.None).GetFullText())
         End Sub
 

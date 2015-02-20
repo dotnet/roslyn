@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 End If
             End If
 
-            Return members
+            Return members.Where(Function(m) Not m.IsKind(SymbolKind.Event)).ToSet()
         End Function
 
         Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean

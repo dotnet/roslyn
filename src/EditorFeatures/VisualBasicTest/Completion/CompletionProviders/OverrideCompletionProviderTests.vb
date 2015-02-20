@@ -1,8 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
@@ -1711,5 +1713,40 @@ End Class
 </a>
 
         VerifyItemIsAbsent(text.Value, "w")
+    End Sub
+
+    <WorkItem(715, "https://github.com/dotnet/roslyn/issues/715")>
+    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    Public Sub EventsNotOffered()
+        Dim text = <Workspace>
+                       <Project Language="Visual Basic" CommonReferences="true">
+                           <ProjectReference>CSProject</ProjectReference>
+                           <Document FilePath="VBDocument">
+Class D
+    Inherits C
+
+    overrides $$
+End Class</Document>
+                       </Project>
+                       <Project Language="C#" CommonReferences="true" AssemblyName="CSProject">
+                           <Document FilePath="CSDocument">
+using System;
+
+public class C
+{
+    public virtual event EventHandler e;
+}
+        </Document>
+                       </Project>
+                   </Workspace>
+
+        Using workspace = TestWorkspaceFactory.CreateWorkspace(text)
+            Dim hostDocument = workspace.Documents.First()
+            Dim caretPosition = hostDocument.CursorPosition.Value
+            Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+            Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
+            Dim group = CompletionProvider.GetGroupAsync(document, caretPosition, triggerInfo).Result
+            Assert.False(group.Items.Any(Function(c) c.DisplayText = "e"))
+        End Using
     End Sub
 End Class
