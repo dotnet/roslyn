@@ -12,22 +12,14 @@
     <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!--
-      As a convenience for developer machines without .NET 2.0 installed, we'll allow building against v4.*.
-      However, "real" builds must still target v2.0, and we always want to target 2.0 if it's present.
-    -->
-    <TargetFrameworkVersion Condition="Exists('$(WinDir)\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll') OR '$(RealSignBuild)' == 'true'">v2.0</TargetFrameworkVersion>
-    <!--
-      We get warnings about missing XML comments for publicly visible members in Microsoft.CodeAnalysis.CSharp.SyntaxKind
-    -->
-    <NoWarn>1591</NoWarn>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <NoStdLib>true</NoStdLib>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <NeedsPhoneCopy>true</NeedsPhoneCopy>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Parser\CharacterInfo.cs">
       <Link>Compiler\Parser\CharacterInfo.cs</Link>
@@ -52,6 +44,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup Label="File References">
+    <Reference Include="..\..\..\..\..\packages\Microsoft.NetFX20.1.0.0-rc2\lib\net20\mscorlib.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
   </ItemGroup>
