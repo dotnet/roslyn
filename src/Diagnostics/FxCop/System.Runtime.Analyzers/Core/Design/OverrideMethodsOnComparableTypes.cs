@@ -1,55 +1,63 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class CA1036DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
+    public sealed class OverrideMethodsOnComparableTypesAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1036";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterfaceDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterface), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterface), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterfaceDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                                   s_localizableTitle,
                                                                                   s_localizableMessage,
-                                                                                  FxCopDiagnosticCategory.Design,
+                                                                                  DiagnosticCategory.Design,
                                                                                   DiagnosticSeverity.Warning,
                                                                                   isEnabledByDefault: true,
                                                                                   description: s_localizableDescription,
                                                                                   helpLinkUri: "http://msdn.microsoft.com/library/ms182163.aspx",
-                                                                                  customTags: DiagnosticCustomTags.Microsoft);
+                                                                                  customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
+        public override void Initialize(AnalysisContext analysisContext)
         {
-            get
+            analysisContext.RegisterCompilationStartAction(compilationContext =>
             {
-                return ImmutableArray.Create(Rule);
-            }
+                var comparableType = WellKnownTypes.IComparable(compilationContext.Compilation);
+                var genericComparableType = WellKnownTypes.GenericIComparable(compilationContext.Compilation);
+
+                // Even if one of them is available, we should continue analysis.
+                if (comparableType == null && genericComparableType == null)
+                {
+                    return;
+                }
+
+                compilationContext.RegisterSymbolAction(context =>
+                {
+                    AnalyzeSymbol((INamedTypeSymbol)context.Symbol, comparableType, genericComparableType, context.ReportDiagnostic);
+                }, 
+                SymbolKind.NamedType);
+            });
         }
 
-        protected override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private static void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, INamedTypeSymbol comparableType, INamedTypeSymbol genericComparableType, Action<Diagnostic> addDiagnostic)
         {
-            var comparableType = WellKnownTypes.IComparable(compilation);
-
-            if (comparableType == null)
+            if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Private || namedTypeSymbol.TypeKind == TypeKind.Interface)
             {
                 return;
             }
 
-            if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Private)
-            {
-                return;
-            }
-
-            if (namedTypeSymbol.Interfaces.Contains(comparableType))
+            if (namedTypeSymbol.AllInterfaces.Any(t => t.Equals(comparableType) || 
+                                                      (t.ConstructedFrom?.Equals(genericComparableType) ?? false)))
             {
                 if (!(DoesOverrideEquals(namedTypeSymbol) && IsEqualityOperatorImplemented(namedTypeSymbol)))
                 {

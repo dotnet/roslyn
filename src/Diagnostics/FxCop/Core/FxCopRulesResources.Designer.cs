@@ -196,15 +196,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Custom attributes should have AttributeUsage attribute defined..
-        /// </summary>
-        internal static string CustomAttrShouldHaveAttributeUsage {
-            get {
-                return ResourceManager.GetString("CustomAttrShouldHaveAttributeUsage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Disposable fields should be disposed.
         /// </summary>
         internal static string DisposableFieldsShouldBeDisposed {
@@ -439,15 +430,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specify AttributeUsage attribute on &apos;{0}&apos; attribute class..
-        /// </summary>
-        internal static string MarkAttributesWithAttributeUsage {
-            get {
-                return ResourceManager.GetString("MarkAttributesWithAttributeUsage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Mark Enum with FlagsAttribute.
         /// </summary>
         internal static string MarkEnumsWithFlags {
@@ -498,24 +480,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string MovePInvokesToNativeMethodsClass {
             get {
                 return ResourceManager.GetString("MovePInvokesToNativeMethodsClass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overload operator Equals and comparison operators when implementing System.IComparable.
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnIComparableInterface {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnIComparableInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type..
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnIComparableInterfaceDescription {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnIComparableInterfaceDescription", resourceCulture);
             }
         }
         

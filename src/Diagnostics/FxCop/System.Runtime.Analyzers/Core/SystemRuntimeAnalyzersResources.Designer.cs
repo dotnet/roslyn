@@ -188,6 +188,24 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overload operator Equals and comparison operators when implementing System.IComparable.
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnIComparableInterface {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnIComparableInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type..
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnIComparableInterfaceDescription {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnIComparableInterfaceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; owns disposable fields but is not disposable.
         /// </summary>
         internal static string TypeOwnsDisposableFieldButIsNotDisposable {

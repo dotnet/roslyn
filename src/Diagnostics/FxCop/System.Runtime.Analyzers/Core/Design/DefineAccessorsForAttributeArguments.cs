@@ -43,14 +43,23 @@ namespace System.Runtime.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSymbolAction(context =>
+            analysisContext.RegisterCompilationStartAction(compilationContext =>
             {
-                AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
-            },
-            SymbolKind.NamedType);
+                var attributeType = WellKnownTypes.IDisposable(compilationContext.Compilation);
+                if (attributeType == null)
+                {
+                    return;
+                }
+
+                compilationContext.RegisterSymbolAction(context =>
+                {
+                    AnalyzeSymbol((INamedTypeSymbol)context.Symbol, attributeType, context.Compilation, context.ReportDiagnostic);
+                },
+                SymbolKind.NamedType);
+            });
         }
 
-        private void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void AnalyzeSymbol(INamedTypeSymbol symbol, INamedTypeSymbol attributeType, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
             if (symbol != null && symbol.GetBaseTypesAndThis().Contains(WellKnownTypes.Attribute(compilation)) && symbol.DeclaredAccessibility != Accessibility.Private)
             {

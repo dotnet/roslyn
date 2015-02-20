@@ -201,12 +201,6 @@
   <data name="ImplementSerializationConstructor" xml:space="preserve">
     <value>Implement Serialization constructor</value>
   </data>
-  <data name="MarkAttributesWithAttributeUsage" xml:space="preserve">
-    <value>Specify AttributeUsage attribute on '{0}' attribute class.</value>
-  </data>
-  <data name="OverloadOperatorEqualsOnIComparableInterface" xml:space="preserve">
-    <value>Overload operator Equals and comparison operators when implementing System.IComparable</value>
-  </data>
   <data name="IdentifierNamesShouldDifferMoreThanCase" xml:space="preserve">
     <value>{0} '{1}' have identical names in a case-insensitive manner.</value>
   </data>
@@ -215,9 +209,6 @@
   </data>
   <data name="AvoidUnsealedAttributes" xml:space="preserve">
     <value>Avoid unsealed attributes.</value>
-  </data>
-  <data name="CustomAttrShouldHaveAttributeUsage" xml:space="preserve">
-    <value>Custom attributes should have AttributeUsage attribute defined.</value>
   </data>
   <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
     <value>Do not lock on objects with weak identity.</value>
@@ -314,9 +305,6 @@
   </data>
   <data name="MarkISerializableTypesWithAttributeDescription" xml:space="preserve">
     <value>The System.Runtime.Serialization.ISerializable interface allows the type to customize its serialization, while the Serializable attribute enables the runtime to recognize the type as being serializable.</value>
-  </data>
-  <data name="OverloadOperatorEqualsOnIComparableInterfaceDescription" xml:space="preserve">
-    <value>Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type.</value>
   </data>
   <data name="OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription" xml:space="preserve">
     <value>Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator.</value>

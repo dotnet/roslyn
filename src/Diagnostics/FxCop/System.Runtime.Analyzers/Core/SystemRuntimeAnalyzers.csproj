@@ -53,6 +53,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\OverrideMethodsOnComparableTypes.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.Fixer.cs" />
     <Compile Include="Design\MarkAttributesWithAttributeUsage.cs" />

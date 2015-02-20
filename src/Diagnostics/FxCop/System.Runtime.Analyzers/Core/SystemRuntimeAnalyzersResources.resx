@@ -165,4 +165,10 @@
   <data name="DefineAccessorsForAttributeArgumentsRemoveSetter" xml:space="preserve">
     <value>Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.</value>
   </data>
+  <data name="OverloadOperatorEqualsOnIComparableInterface" xml:space="preserve">
+    <value>Overload operator Equals and comparison operators when implementing System.IComparable</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnIComparableInterfaceDescription" xml:space="preserve">
+    <value>Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type.</value>
+  </data>
 </root>

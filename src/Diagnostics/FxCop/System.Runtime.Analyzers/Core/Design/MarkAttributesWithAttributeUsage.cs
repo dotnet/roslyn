@@ -28,42 +28,35 @@ namespace System.Runtime.Analyzers
                                                                     helpLinkUri: "http://msdn.microsoft.com/library/ms182158.aspx",
                                                                     customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(Rule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSymbolAction(context =>
+            analysisContext.RegisterCompilationStartAction(compilationContext =>
             {
-                AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
-            },
-            SymbolKind.NamedType);
+                var attributeType = WellKnownTypes.Attribute(compilationContext.Compilation);
+                var attributeUsageAttributeType = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
+                if (attributeType == null || attributeUsageAttributeType == null)
+                {
+                    return;
+                }
+
+                compilationContext.RegisterSymbolAction(context =>
+                {
+                    AnalyzeSymbol((INamedTypeSymbol)context.Symbol, attributeType, attributeUsageAttributeType, context.ReportDiagnostic);
+                },
+                SymbolKind.NamedType);
+            });
         }
 
-        private static void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private static void AnalyzeSymbol(INamedTypeSymbol symbol, INamedTypeSymbol attributeType, INamedTypeSymbol attributeUsageAttributeType, Action<Diagnostic> addDiagnostic)
         {
-            var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilation);
-            if (attributeUsageAttribute == null)
+            if (symbol.IsAbstract || !symbol.GetBaseTypesAndThis().Contains(attributeType))
             {
                 return;
             }
 
-            if (symbol.IsAbstract || !symbol.GetBaseTypesAndThis().Contains(WellKnownTypes.Attribute(compilation)))
-            {
-                return;
-            }
-
-            if (attributeUsageAttribute == null)
-            {
-                return;
-            }
-
-            var hasAttributeUsageAttribute = symbol.GetAttributes().Any(attribute => attribute.AttributeClass == attributeUsageAttribute);
+            var hasAttributeUsageAttribute = symbol.GetAttributes().Any(attribute => attribute.AttributeClass == attributeUsageAttributeType);
             if (!hasAttributeUsageAttribute)
             {
                 addDiagnostic(symbol.CreateDiagnostic(Rule, symbol.Name));

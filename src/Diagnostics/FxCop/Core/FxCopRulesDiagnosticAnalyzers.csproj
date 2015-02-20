@@ -152,7 +152,6 @@
     <Compile Include="Shared\WellKnownTypes.cs" />
     <Compile Include="Shared\WordParser.cs" />
     <Compile Include="Shared\WordParserOptions.cs" />
-    <Compile Include="Design\CA1036DiagnosticAnalyzer.cs" />
     <Compile Include="SolutionChangeAction.cs" />
     <Compile Include="Usage\CA2200DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2213DiagnosticAnalyzer.cs" />

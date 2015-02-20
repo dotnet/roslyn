@@ -8,7 +8,7 @@ using Xunit;
 
 namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1001FixerTests : CodeFixTestBase
+    public partial class TypesThatOwnDisposableFieldsShouldBeDisposableFixerTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
