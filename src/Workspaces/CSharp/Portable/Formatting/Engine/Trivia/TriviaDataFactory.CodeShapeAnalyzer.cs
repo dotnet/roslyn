@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -291,9 +287,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         OnComment(trivia, index) ||
                         OnSkippedTokensOrText(trivia) ||
                         OnRegion(trivia, index) ||
-                        OnPreprocessor(trivia, index))
+                        OnPreprocessor(trivia, index) ||
+                        OnDisabledTextTrivia(trivia, index))
                     {
                         return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private bool OnDisabledTextTrivia(SyntaxTrivia trivia, int index)
+            {
+                if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                {
+                    var triviaString = trivia.ToString();
+                    if (!string.IsNullOrEmpty(triviaString) && SyntaxFacts.IsNewLine(triviaString.Last()))
+                    {
+                        ResetStateAfterNewLine(index);
                     }
                 }
 

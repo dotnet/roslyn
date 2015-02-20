@@ -4,10 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -28,26 +26,17 @@ namespace Microsoft.CodeAnalysis.Text
             _encodingOpt = encodingOpt;
         }
 
-        public override Encoding Encoding
-        {
-            get { return _encodingOpt; }
-        }
+        public override Encoding Encoding => _encodingOpt;
 
         /// <summary>
         /// Underlying string which is the source of this <see cref="StringText"/>instance
         /// </summary>
-        public string Source
-        {
-            get { return _source; }
-        }
+        public string Source => _source;
 
         /// <summary>
         /// The length of the text represented by <see cref="StringText"/>.
         /// </summary>
-        public override int Length
-        {
-            get { return this.Source.Length; }
-        }
+        public override int Length => _source.Length;
 
         /// <summary>
         /// Returns a character at given position.

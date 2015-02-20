@@ -173,12 +173,12 @@ namespace Microsoft.CodeAnalysis
                 other != null &&
                 this.Category == other.Category &&
                 this.DefaultSeverity == other.DefaultSeverity &&
-                this.Description == other.Description &&
+                this.Description.Equals(other.Description) &&
                 this.HelpLinkUri == other.HelpLinkUri &&
                 this.Id == other.Id &&
                 this.IsEnabledByDefault == other.IsEnabledByDefault &&
-                this.MessageFormat == other.MessageFormat &&
-                this.Title == other.Title;
+                this.MessageFormat.Equals(other.MessageFormat) &&
+                this.Title.Equals(other.Title);
         }
 
         public override bool Equals(object obj)

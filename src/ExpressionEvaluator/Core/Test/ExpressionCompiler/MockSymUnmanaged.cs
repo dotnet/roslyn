@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class MockSymUnmanagedReader : ISymUnmanagedReader
     {
-        private readonly ImmutableDictionary<int, MethodDebugInfo> _methodDebugInfoMap;
+        private readonly ImmutableDictionary<int, MethodDebugInfoBytes> _methodDebugInfoMap;
 
-        public MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfo> methodDebugInfoMap)
+        public MockSymUnmanagedReader(ImmutableDictionary<int, MethodDebugInfoBytes> methodDebugInfoMap)
         {
             _methodDebugInfoMap = methodDebugInfoMap;
         }
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Assert.Equal("MD2", name);
 
-            MethodDebugInfo info;
+            MethodDebugInfoBytes info;
             if (!_methodDebugInfoMap.TryGetValue(token.GetToken(), out info))
             {
                 bytesRead = 0;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Assert.Equal(1, version);
 
-            MethodDebugInfo info;
+            MethodDebugInfoBytes info;
             if (!_methodDebugInfoMap.TryGetValue(methodToken.GetToken(), out info))
             {
                 retVal = null;

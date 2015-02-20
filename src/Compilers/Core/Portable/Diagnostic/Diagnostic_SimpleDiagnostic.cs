@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var other = obj as SimpleDiagnostic;
                 return other != null
-                    && _descriptor == other._descriptor
+                    && _descriptor.Equals(other._descriptor)
                     && _messageArgs.SequenceEqual(other._messageArgs, (a, b) => a == b)
                     && _location == other._location
                     && _severity == other._severity

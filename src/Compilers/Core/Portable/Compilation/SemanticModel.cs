@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>
-        public virtual bool HasAccessChecksSuppressed
+        public virtual bool IgnoresAccessibility
         {
             get { return false; }
         }

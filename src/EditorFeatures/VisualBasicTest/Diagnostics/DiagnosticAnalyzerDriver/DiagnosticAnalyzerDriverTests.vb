@@ -58,7 +58,7 @@ End Class
         End Using
     End Sub
 
-    <Fact(Skip:="Failing test due to AnalyzerManager checkin")>
+    <Fact>
     Public Sub DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         Dim source = TestResource.AllInOneVisualBasicCode
         Using Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source)

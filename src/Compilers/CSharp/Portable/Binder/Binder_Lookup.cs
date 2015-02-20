@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
+            if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {
                 failedThroughTypeCheck = false;
                 return true;
