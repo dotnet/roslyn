@@ -2,12 +2,17 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace System.Runtime.Analyzers
 {
+    /// <summary>
+    /// CA1036: A public or protected type implements the System.IComparable interface and 
+    /// does not override Object.Equals or does not overload the language-specific operator
+    /// for equality, inequality, less than, or greater than. The rule does not report a
+    /// violation if the type inherits only an implementation of the interface.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class OverrideMethodsOnComparableTypesAnalyzer : DiagnosticAnalyzer
     {
@@ -66,23 +71,31 @@ namespace System.Runtime.Analyzers
             }
         }
 
-        private static bool DoesOverrideEquals(INamedTypeSymbol symbol)
+        internal static bool DoesOverrideEquals(INamedTypeSymbol symbol)
         {
             // Does the symbol override Object.Equals?
             return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Where(m => IsEqualsOverride(m)).Any();
         }
 
-        // Rule: A public or protected type implements the System.IComparable interface and 
-        // does not override Object.Equals or does not overload the language-specific operator
-        // for equality, inequality, less than, or greater than. The rule does not report a
-        // violation if the type inherits only an implementation of the interface.
         private static bool IsEqualsOverride(IMethodSymbol method)
         {
-            // TODO: reimplement using OverriddenMethods, possibly exposing that property if needed
             return method.IsOverride &&
                    method.ReturnType.SpecialType == SpecialType.System_Boolean &&
                    method.Parameters.Length == 1 &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
+
+        internal static bool DoesOverrideGetHashCode(INamedTypeSymbol symbol)
+        {
+            // Does the symbol override Object.GetHashCode?
+            return symbol.GetMembers(WellKnownMemberNames.ObjectGetHashCode).OfType<IMethodSymbol>().Where(m => IsGetHashCodeOverride(m)).Any();
+        }
+
+        private static bool IsGetHashCodeOverride(IMethodSymbol method)
+        {
+            return method.IsOverride &&
+                   method.ReturnType.SpecialType == SpecialType.System_Int32 &&
+                   method.Parameters.Length == 0;
         }
 
         private static bool IsEqualityOperatorImplemented(INamedTypeSymbol symbol)
@@ -94,7 +107,7 @@ namespace System.Runtime.Analyzers
                     IsOperatorImplemented(symbol, WellKnownMemberNames.GreaterThanOperatorName);
         }
 
-        private static bool IsOperatorImplemented(INamedTypeSymbol symbol, string op)
+        internal static bool IsOperatorImplemented(INamedTypeSymbol symbol, string op)
         {
             // TODO: should this filter on the right-hand-side operator type?
             return symbol.GetMembers(op).OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.UserDefinedOperator).Any();

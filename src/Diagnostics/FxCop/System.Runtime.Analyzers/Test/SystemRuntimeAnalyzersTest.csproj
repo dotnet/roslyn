@@ -101,6 +101,7 @@
     <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.Fixer.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.cs" />
     <Compile Include="Design\MarkAttributesWithAttributeUsageTests.cs" />
+    <Compile Include="Design\OverrideMethodsOnComparableTypesTests.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.cs" />
   </ItemGroup>

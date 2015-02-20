@@ -9,7 +9,7 @@ using Xunit;
 namespace System.Runtime.Analyzers.UnitTests
 {
     [WorkItem(858659, "DevDiv")]
-    public partial class OverrideMethodsOnComparableTypesTests : DiagnosticAnalyzerTestBase
+    public partial class OverrideMethodsOnComparableTypesTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {

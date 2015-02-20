@@ -125,6 +125,15 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create a property accessor..
+        /// </summary>
+        internal static string CreatePropertyAccessorForParameter {
+            get {
+                return ResourceManager.GetString("CreatePropertyAccessorForParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Custom attributes should have AttributeUsage attribute defined..
         /// </summary>
         internal static string CustomAttrShouldHaveAttributeUsage {
@@ -170,11 +179,38 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement Equality and Comparison methods and operators.
+        /// </summary>
+        internal static string ImplementComparable {
+            get {
+                return ResourceManager.GetString("ImplementComparable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement IDisposable Interface.
         /// </summary>
         internal static string ImplementIDisposableInterface {
             get {
                 return ResourceManager.GetString("ImplementIDisposableInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make the getter of the property public.
+        /// </summary>
+        internal static string MakeGetterPublic {
+            get {
+                return ResourceManager.GetString("MakeGetterPublic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make the setter of the property non-public.
+        /// </summary>
+        internal static string MakeSetterNonPublic {
+            get {
+                return ResourceManager.GetString("MakeSetterNonPublic", resourceCulture);
             }
         }
         

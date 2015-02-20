@@ -31,20 +31,20 @@ namespace System.Runtime.Analyzers
                         var parameter = generator.GetDeclaration(node, DeclarationKind.Parameter);
                         if (parameter != null)
                         {
-                            context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments,
+                            context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.CreatePropertyAccessorForParameter,
                                                          async ct => await AddAccessor(context.Document, parameter, ct).ConfigureAwait(false)),
                                                     diagnostic);
                         }
                         return;
 
                     case DefineAccessorsForAttributeArgumentsAnalyzer.MakePublicCase:
-                        context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments,
+                        context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.MakeGetterPublic,
                                                          async ct => await MakePublic(context.Document, node, ct).ConfigureAwait(false)),
                                                 diagnostic);
                         return;
 
                     case DefineAccessorsForAttributeArgumentsAnalyzer.RemoveSetterCase:
-                        context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments,
+                        context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.MakeSetterNonPublic,
                                                      async ct => await RemoveSetter(context.Document, node, ct).ConfigureAwait(false)),
                                                 diagnostic);
                         return;

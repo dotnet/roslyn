@@ -171,4 +171,16 @@
   <data name="OverloadOperatorEqualsOnIComparableInterfaceDescription" xml:space="preserve">
     <value>Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type.</value>
   </data>
+  <data name="CreatePropertyAccessorForParameter" xml:space="preserve">
+    <value>Create a property accessor.</value>
+  </data>
+  <data name="ImplementComparable" xml:space="preserve">
+    <value>Implement Equality and Comparison methods and operators</value>
+  </data>
+  <data name="MakeGetterPublic" xml:space="preserve">
+    <value>Make the getter of the property public</value>
+  </data>
+  <data name="MakeSetterNonPublic" xml:space="preserve">
+    <value>Make the setter of the property non-public</value>
+  </data>
 </root>
