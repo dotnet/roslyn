@@ -1,18 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using System.Threading;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -521,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 throw new ArgumentOutOfRangeException("expectedSymbols");
             }
 
-            return "+" + NonBreakingSpace + (expectedSymbols - 1) + NonBreakingSpace + "overload";
+            return "+" + NonBreakingSpace + (expectedSymbols - 1) + NonBreakingSpace + FeaturesResources.Overload;
         }
 
         protected void VerifyItemInLinkedFiles(string xmlString, string expectedItem, string expectedDescription)

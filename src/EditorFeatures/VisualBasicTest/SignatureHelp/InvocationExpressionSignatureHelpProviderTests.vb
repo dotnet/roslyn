@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class InvocationExpressionSignatureHelpProviderTests
@@ -551,7 +550,7 @@ End Module
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("<Extension> MyExtension.ExtensionMethod(x As Integer) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> MyExtension.ExtensionMethod(x As Integer) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Test(markup, expectedOrderedItems)
         End Sub
@@ -595,7 +594,7 @@ End Module
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("<Extension> SomeModule.ExtensionMethod()", String.Empty, Nothing, currentParameterIndex:=0)
+                New SignatureHelpTestItem($"<{Extension}> SomeModule.ExtensionMethod()", String.Empty, Nothing, currentParameterIndex:=0)
             }
 
             Test(markup, expectedOrderedItems)
@@ -618,17 +617,17 @@ End Module]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-<d>List(Of 'a).Add(item As 'a)
+$"List(Of 'a).Add(item As 'a)
 
-Anonymous Types:
-    'a is New With { .A As Integer, .B As Integer }</d>.Value.Replace(vbLf, vbCrLf),
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} New With {{ .A As Integer, .B As Integer }}",
                                      String.Empty,
                                      String.Empty,
                                      currentParameterIndex:=0,
-                                     description:=<d>
+                                     description:=$"
 
-Anonymous Types:
-    'a is New With { .A As Integer, .B As Integer }</d>.Value.Replace(vbLf, vbCrLf)))
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} New With {{ .A As Integer, .B As Integer }}"))
 
             Test(markup, expectedOrderedItems)
         End Sub
@@ -1707,7 +1706,7 @@ end class
                                  <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + "    Proj1 - Available" + vbCrLf + "    Proj2 - Not Available" + vbCrLf + vbCrLf + "You can use the navigation bar to switch context.", currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext, currentParameterIndex:=0)
             VerifyItemWithReferenceWorker(markup, {expectedDescription}, False)
         End Sub
 
@@ -1737,7 +1736,7 @@ class C
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
 
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + "\r\n\r\n    Proj1 - Available\r\n    Proj3 - Not Available\r\n\r\nYou can use the navigation bar to switch context.".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
             VerifyItemWithReferenceWorker(markup, {expectedDescription}, False)
         End Sub
     End Class
