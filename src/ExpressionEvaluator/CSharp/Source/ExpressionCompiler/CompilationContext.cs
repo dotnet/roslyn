@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var binder = (new BuckStopsHereBinder(compilation)).WithAdditionalFlags(
                 BinderFlags.SuppressObsoleteChecks |
-                BinderFlags.SuppressAccessChecks |
+                BinderFlags.IgnoreAccessibility |
                 BinderFlags.UnsafeRegion |
                 BinderFlags.UncheckedRegion |
                 BinderFlags.AllowManagedAddressOf |

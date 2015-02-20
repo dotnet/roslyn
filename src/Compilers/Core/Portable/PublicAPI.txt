@@ -117,7 +117,7 @@ Microsoft.CodeAnalysis.Compilation.GetAssemblyOrModuleSymbol(Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Compilation.GetCompilationNamespace(Microsoft.CodeAnalysis.INamespaceSymbol namespaceSymbol)
 Microsoft.CodeAnalysis.Compilation.GetEntryPoint(System.Threading.CancellationToken cancellationToken)
 Microsoft.CodeAnalysis.Compilation.GetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol)
-Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool suppressAccessChecks = false)
+Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool ignoreAccessibility = false)
 Microsoft.CodeAnalysis.Compilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType)
 Microsoft.CodeAnalysis.Compilation.GetSubmissionResultType(out bool hasValue)
 Microsoft.CodeAnalysis.Compilation.GetTypeByMetadataName(string fullyQualifiedMetadataName)
@@ -1448,7 +1448,7 @@ abstract Microsoft.CodeAnalysis.Compilation.CommonGetAssemblyOrModuleSymbol(Micr
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetCompilationNamespace(Microsoft.CodeAnalysis.INamespaceSymbol namespaceSymbol)
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetEntryPoint(System.Threading.CancellationToken cancellationToken)
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol)
-abstract Microsoft.CodeAnalysis.Compilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool suppressAccessChecks)
+abstract Microsoft.CodeAnalysis.Compilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool ignoreAccessibility)
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType)
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetSubmissionResultType(out bool hasValue)
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetTypeByMetadataName(string metadataName)
@@ -2060,7 +2060,7 @@ virtual Microsoft.CodeAnalysis.Location.MetadataModule.get
 virtual Microsoft.CodeAnalysis.Location.SourceSpan.get
 virtual Microsoft.CodeAnalysis.Location.SourceTree.get
 virtual Microsoft.CodeAnalysis.MetadataReference.Display.get
-virtual Microsoft.CodeAnalysis.SemanticModel.HasAccessChecksSuppressed.get
+virtual Microsoft.CodeAnalysis.SemanticModel.IgnoresAccessibility.get
 virtual Microsoft.CodeAnalysis.SemanticModel.GetTopmostNodeForDiagnosticAnalysis(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.SyntaxNode declaringSyntax)
 virtual Microsoft.CodeAnalysis.SymbolVisitor.DefaultVisit(Microsoft.CodeAnalysis.ISymbol symbol)
 virtual Microsoft.CodeAnalysis.SymbolVisitor.Visit(Microsoft.CodeAnalysis.ISymbol symbol)
