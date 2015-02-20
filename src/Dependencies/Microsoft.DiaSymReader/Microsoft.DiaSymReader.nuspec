@@ -7,7 +7,11 @@
       Microsoft DiaSymReader interop interfaces and utilities.
 Supported Platforms:
 - .NET Framework 4.5
-    </description>
+    </description>    
+    <dependencies>
+      <dependency id="Microsoft.NetFX20" version="1.0.0-rc2" />
+    </dependencies>
+    
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$currentVersion$</version>
