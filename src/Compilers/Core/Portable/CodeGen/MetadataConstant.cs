@@ -20,20 +20,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _value = value;
         }
 
-        object Cci.IMetadataConstant.Value
-        {
-            get { return _value; }
-        }
+        object Cci.IMetadataConstant.Value => _value;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
-        {
-            get { return _type; }
-        }
+        Cci.ITypeReference Cci.IMetadataExpression.Type => _type;
 
         [Conditional("DEBUG")]
         internal static void AssertValidConstant(object value)
