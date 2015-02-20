@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -79,7 +80,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         }
 
         // internal for testing purposes
-        internal DiagnosticAnalyzerDriver(Project project, ISyntaxNodeAnalyzerService syntaxNodeAnalyzerService, CancellationToken cancellationToken)
+        internal DiagnosticAnalyzerDriver(
+            Project project,
+            ISyntaxNodeAnalyzerService syntaxNodeAnalyzerService,
+            CancellationToken cancellationToken)
         {
             _project = project;
             _cancellationToken = cancellationToken;
@@ -233,11 +237,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return _lazyAllSyntaxNodesToAnalyze;
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer)
+        public async Task<IEnumerable<Diagnostic>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
             var compilation = _document.Project.SupportsCompilation ? await _document.Project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) : null;
 
             Contract.ThrowIfNull(_document);
+            Contract.ThrowIfFalse(analyzer.SupportsSyntaxDiagnosticAnalysis(this));
 
             using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
             {
@@ -254,19 +259,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                     catch (Exception e) when (CatchAnalyzerException(e, analyzer))
                     {
-                        var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                        if (exceptionDiagnostic != null)
-                        {
-                            ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
-                        }
-
-                        return ImmutableArray<Diagnostic>.Empty;
+                        var exceptionDiagnostics = AnalyzerExceptionToDiagnostics(analyzer, e, _cancellationToken);
+                        return GetFilteredDocumentDiagnostics(exceptionDiagnostics, compilation).ToImmutableArray();
                     }
                 }
 
-                var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
-
-                var analyzerActions = await this.GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
+                var analyzerActions = await this.GetAnalyzerActionsAsync(analyzer, diagnostics.Add).ConfigureAwait(false);
 
                 DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, analyzerActions, (DiagnosticLogAggregator)_logAggregator);
 
@@ -281,10 +279,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (diagnostics.Count == 0)
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return SpecializedCollections.EmptyEnumerable<Diagnostic>();
                 }
 
-                AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
                 return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
             }
         }
@@ -310,50 +307,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagsFilteredByLocation, compilation);
         }
 
-        internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
+        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, Action<Diagnostic> addDiagnostic)
         {
-            Contract.ThrowIfFalse(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+            Contract.ThrowIfFalse(_project.SupportsCompilation);
 
-            if (compilation != null)
-            {
-                var effectiveDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
-                if (effectiveDiagnostic == null)
-                {
-                    return;
-                }
-                else
-                {
-                    exceptionDiagnostic = effectiveDiagnostic;
-                }
-            }
-
-            AbstractHostDiagnosticUpdateSource.ReportAnalyzerExceptionDiagnostic(this, analyzer, exceptionDiagnostic, this.Project);
-        }
-
-        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
-        {
-            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
-            var actions = await GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
-            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
-            return actions;
-        }
-
-        private async Task<AnalyzerActions> GetAnalyzerActionsCoreAsync(DiagnosticAnalyzer analyzer)
-        {
-            var compilation = _project.SupportsCompilation ?
-                await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) :
-                null;
-            var analyzerActions = await AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, compilation, _analyzerOptions, CatchAnalyzerException, _cancellationToken).ConfigureAwait(false);
+            var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+            var analyzerActions = await AnalyzerManager.Default.GetAnalyzerActionsAsync(analyzer, compilation, addDiagnostic, _analyzerOptions, CatchAnalyzerException, _cancellationToken).ConfigureAwait(false);
             DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, analyzerActions, (DiagnosticLogAggregator)_logAggregator);
             return analyzerActions;
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer)
+        public async Task<IEnumerable<Diagnostic>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer)
         {
             var model = await _document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-            var compilation = model?.Compilation;
-
             Contract.ThrowIfNull(_document);
+            Contract.ThrowIfFalse(analyzer.SupportsSemanticDiagnosticAnalysis(this));
 
             using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
             {
@@ -375,20 +343,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                     catch (Exception e) when (CatchAnalyzerException(e, analyzer))
                     {
-                        var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                        if (exceptionDiagnostic != null)
-                        {
-                            ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
-                        }
-
-                        return ImmutableArray<Diagnostic>.Empty;
+                        var exceptionDiagnostics = AnalyzerExceptionToDiagnostics(analyzer, e, _cancellationToken);
+                        return model == null ? exceptionDiagnostics : GetFilteredDocumentDiagnostics(exceptionDiagnostics, model.Compilation);
                     }
                 }
                 else
                 {
-                    var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
+                    var analyzerActions = await GetAnalyzerActionsAsync(analyzer, diagnostics.Add).ConfigureAwait(false);
 
-                    var analyzerActions = await GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
                     if (analyzerActions != null)
                     {
                         // SemanticModel actions.
@@ -397,6 +359,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             AnalyzerDriverHelper.ExecuteSemanticModelActions(analyzerActions, model, _analyzerOptions,
                                 diagnostics.Add, CatchAnalyzerException, _cancellationToken);
                         }
+
+                        var compilation = model.Compilation;
 
                         // Symbol actions.
                         if (analyzerActions.SymbolActionsCount > 0)
@@ -423,19 +387,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             }
                         }
                     }
-
-                    AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
                 }
 
-                return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
+                var result = model == null
+                    ? diagnostics
+                    : GetFilteredDocumentDiagnostics(diagnostics, model.Compilation);
+
+                return result.ToImmutableArray();
             }
         }
 
-        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, Action<Project, DiagnosticAnalyzer, CancellationToken> forceAnalyzeAllDocuments)
+        public async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, Action<Project, DiagnosticAnalyzer, CancellationToken> forceAnalyzeAllDocuments)
         {
             Contract.ThrowIfNull(_project);
             Contract.ThrowIfFalse(_document == null);
-            
+            Contract.ThrowIfFalse(analyzer.SupportsProjectDiagnosticAnalysis(this));
+
             using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
             {
                 if (_project.SupportsCompilation)
@@ -463,12 +430,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
             catch (Exception e) when (CatchAnalyzerException(e, analyzer))
             {
-                var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                if (exceptionDiagnostic != null)
+                var exceptionDiagnostics = AnalyzerExceptionToDiagnostics(analyzer, e, _cancellationToken);
+                if (_project.SupportsCompilation)
                 {
                     var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                    ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
+                    exceptionDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(exceptionDiagnostics, compilation).ToImmutableArray();
                 }
+
+                diagnostics.AddRange(exceptionDiagnostics);
             }
         }
 
@@ -480,10 +449,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var localDiagnostics = pooledObject.Object;
 
-                var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
-
                 // Get all the analyzer actions, including the per-compilation actions.
-                var analyzerActions = await GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
+                var analyzerActions = await GetAnalyzerActionsAsync(analyzer, localDiagnostics.Add).ConfigureAwait(false);
                 
                 if (analyzerActions.CompilationEndActionsCount > 0 && analyzerActions.CompilationStartActionsCount > 0 && forceAnalyzeAllDocuments != null)
                 {
@@ -503,22 +470,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // CompilationEnd actions.
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 AnalyzerDriverHelper.ExecuteCompilationEndActions(analyzerActions, compilation, _analyzerOptions, localDiagnostics.Add, CatchAnalyzerException, _cancellationToken);
-                AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
-
-                var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
-                diagnostics.AddRange(filteredDiagnostics);
+                diagnostics.AddRange(CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation));
             }
         }
 
-        private static Diagnostic AnalyzerExceptionToDiagnostic(DiagnosticAnalyzer analyzer, Exception e, CancellationToken cancellationToken)
+        private static ImmutableArray<Diagnostic> AnalyzerExceptionToDiagnostics(DiagnosticAnalyzer analyzer, Exception e, CancellationToken cancellationToken)
         {
             if (!IsCanceled(e, cancellationToken))
             {
                 // Create a info diagnostic saying that the analyzer failed
-                return AnalyzerDriverHelper.GetAnalyzerDiagnostic(analyzer, e);
+                return ImmutableArray.Create(AnalyzerDriverHelper.GetAnalyzerDiagnostic(analyzer, e));
             }
 
-            return null;
+            return ImmutableArray<Diagnostic>.Empty;
         }
 
         private static bool IsCanceled(Exception e, CancellationToken cancellationToken)

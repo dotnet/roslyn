@@ -177,10 +177,7 @@
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
-    <Compile Include="Diagnostics\WorkspaceAnalyzerExceptionDiagnosticArgs.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
-    <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource_Registration.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
@@ -540,9 +537,7 @@
     <Compile Include="CodeFixes\Suppression\SuppressionCodeAction.cs" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <PublicAPI Include="PublicAPI.txt" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
