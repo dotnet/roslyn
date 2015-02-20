@@ -200,6 +200,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return result;
             }
 
+            public override SyntaxNode VisitInterpolation(InterpolationSyntax node)
+            {
+                var result = (InterpolationSyntax)base.VisitInterpolation(node);
+
+                if (result.Expression != null && !result.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                {
+                    result = result.WithExpression(result.Expression.Parenthesize());
+                }
+
+                return result;
+            }
+
             public override SyntaxNode VisitXmlNameAttribute(XmlNameAttributeSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();

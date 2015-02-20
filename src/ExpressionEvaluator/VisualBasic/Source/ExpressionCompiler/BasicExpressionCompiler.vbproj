@@ -74,6 +74,7 @@
     <Compile Include="CompilationContext.vb" />
     <Compile Include="CompilationExtensions.vb" />
     <Compile Include="EETypeNameDecoder.vb" />
+    <Compile Include="SymUnmanagedReaderExtensions.vb" />
     <Compile Include="InternalsVisibleTo.vb" />
     <Compile Include="EEAssemblyBuilder.vb" />
     <Compile Include="EvaluationContext.vb" />

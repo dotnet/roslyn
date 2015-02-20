@@ -13,11 +13,18 @@
     <RootNamespace>
     </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!--
-      As a convenience for developer machines without .NET 2.0 installed, we'll allow building against v4.*.
-      However, "real" builds must still target v2.0, and we always want to target 2.0 if it's present.
-    -->
-    <TargetFrameworkVersion Condition="Exists('$(WinDir)\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll') OR '$(RealSignBuild)' == 'true'">v2.0</TargetFrameworkVersion>
+    
+     <!--
+       This project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
+       Use the latest Framework toolset to build, but set msbuild properties below
+       so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
+    -->     
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <NoStdLib>true</NoStdLib>    
+    <FrameworkPathOverride>..\..\..\..\..\packages\Microsoft.NetFX20.1.0.0-rc2\lib\net20</FrameworkPathOverride>
+    
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <VBSyntaxGeneratorToolPath>$(OutDir)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>

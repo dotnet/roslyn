@@ -160,15 +160,15 @@ namespace Microsoft.CodeAnalysis
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
         /// <param name="syntaxTree">The specificed syntax tree.</param>
-        /// <param name="suppressAccessChecks">
+        /// <param name="ignoreAccessibility">
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
 		/// </param>
-        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool suppressAccessChecks = false)
+        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
-            return CommonGetSemanticModel(syntaxTree, suppressAccessChecks);
+            return CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
         }
 
-        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool suppressAccessChecks);
+        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity

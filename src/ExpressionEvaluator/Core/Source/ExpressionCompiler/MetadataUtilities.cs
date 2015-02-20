@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.SymReaderInterop;
 
@@ -402,6 +403,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 default:
                     return false;
             }
+        }
+
+        internal static string GetUtf8String(this BlobHandle blobHandle, MetadataReader metadataReader)
+        {
+            return Encoding.UTF8.GetString(metadataReader.GetBlobBytes(blobHandle));
         }
     }
 }

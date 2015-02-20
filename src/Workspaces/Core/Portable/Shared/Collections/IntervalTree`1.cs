@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         protected Node root;
 
-        private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals);
+        private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector);
         private static readonly TestInterval s_intersectsWithTest = IntersectsWith;
         private static readonly TestInterval s_containsTest = Contains;
         private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
@@ -42,19 +42,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        protected static bool Contains(T value, int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals)
+        protected static bool Contains(T value, int start, int length, IIntervalIntrospector<T> introspector)
         {
             var otherStart = start;
             var otherEnd = start + length;
 
             var thisEnd = GetEnd(value, introspector);
             var thisStart = introspector.GetStart(value);
-
-            if (thisStart == thisEnd &&
-                skipZeroLengthIntervals)
-            {
-                return false;
-            }
 
             // make sure "Contains" test to be same as what TextSpan does
             if (length == 0)
@@ -65,36 +59,24 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return thisStart <= otherStart && otherEnd <= thisEnd;
         }
 
-        private static bool IntersectsWith(T value, int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals)
+        private static bool IntersectsWith(T value, int start, int length, IIntervalIntrospector<T> introspector)
         {
             var otherStart = start;
             var otherEnd = start + length;
 
             var thisEnd = GetEnd(value, introspector);
             var thisStart = introspector.GetStart(value);
-
-            if (thisStart == thisEnd &&
-                skipZeroLengthIntervals)
-            {
-                return false;
-            }
 
             return otherStart <= thisEnd && otherEnd >= thisStart;
         }
 
-        private static bool OverlapsWith(T value, int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals)
+        private static bool OverlapsWith(T value, int start, int length, IIntervalIntrospector<T> introspector)
         {
             var otherStart = start;
             var otherEnd = start + length;
 
             var thisEnd = GetEnd(value, introspector);
             var thisStart = introspector.GetStart(value);
-
-            if (thisStart == thisEnd &&
-                skipZeroLengthIntervals)
-            {
-                return false;
-            }
 
             if (length == 0)
             {
@@ -107,24 +89,24 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return overlapStart < overlapEnd;
         }
 
-        public IEnumerable<T> GetOverlappingIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
+        public IEnumerable<T> GetOverlappingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
         {
-            return this.GetPreOrderIntervals(start, length, s_overlapsWithTest, introspector, skipZeroLengthIntervals);
+            return this.GetPreOrderIntervals(start, length, s_overlapsWithTest, introspector);
         }
 
-        public IEnumerable<T> GetIntersectingIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
+        public IEnumerable<T> GetIntersectingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
         {
-            return this.GetPreOrderIntervals(start, length, s_intersectsWithTest, introspector, skipZeroLengthIntervals);
+            return this.GetPreOrderIntervals(start, length, s_intersectsWithTest, introspector);
         }
 
-        public IList<T> GetIntersectingInOrderIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
+        public IList<T> GetIntersectingInOrderIntervals(int start, int length, IIntervalIntrospector<T> introspector)
         {
-            return this.GetInOrderIntervals(start, length, s_intersectsWithTest, introspector, skipZeroLengthIntervals);
+            return this.GetInOrderIntervals(start, length, s_intersectsWithTest, introspector);
         }
 
-        public IEnumerable<T> GetContainingIntervals(int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals = true)
+        public IEnumerable<T> GetContainingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
         {
-            return this.GetPreOrderIntervals(start, length, s_containsTest, introspector, skipZeroLengthIntervals);
+            return this.GetPreOrderIntervals(start, length, s_containsTest, introspector);
         }
 
         public bool IntersectsWith(int position, IIntervalIntrospector<T> introspector)
@@ -132,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return GetIntersectingIntervals(position, 0, introspector).Any();
         }
 
-        private IList<T> GetInOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals)
+        private IList<T> GetInOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             List<T> result = null;
 
@@ -167,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     }
 
                     currentNode = candidates.Pop();
-                    if (testInterval(currentNode.Value, start, length, introspector, skipZeroLengthIntervals))
+                    if (testInterval(currentNode.Value, start, length, introspector))
                     {
                         result = result ?? new List<T>();
                         result.Add(currentNode.Value);
@@ -194,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return result ?? SpecializedCollections.EmptyList<T>();
         }
 
-        private IEnumerable<T> GetPreOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals)
+        private IEnumerable<T> GetPreOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
             if (root == null || GetEnd(root.MaxEndNode.Value, introspector) < start)
             {
@@ -229,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     candidates.Push(left);
                 }
 
-                if (testInterval(currentNode.Value, start, length, introspector, skipZeroLengthIntervals))
+                if (testInterval(currentNode.Value, start, length, introspector))
                 {
                     yield return currentNode.Value;
                 }

@@ -113,5 +113,23 @@ namespace Microsoft.CodeAnalysis
                 (_formatArguments.Length > 0 ? string.Format(resourceString, _formatArguments) : resourceString) :
                 string.Empty;
         }
+
+        public override bool Equals(LocalizableString other)
+        {
+            var otherResourceString = other as LocalizableResourceString;
+            return other != null &&
+                _nameOfLocalizableResource == otherResourceString._nameOfLocalizableResource &&
+                _resourceManager == otherResourceString._resourceManager &&
+                _resourceSource == otherResourceString._resourceSource &&
+                _formatArguments.SequenceEqual(otherResourceString._formatArguments, (a, b) => a == b);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(_nameOfLocalizableResource.GetHashCode(),
+                Hash.Combine(_resourceManager.GetHashCode(),
+                Hash.Combine(_resourceSource.GetHashCode(),
+                Hash.CombineValues(_formatArguments))));
+        }
     }
 }
