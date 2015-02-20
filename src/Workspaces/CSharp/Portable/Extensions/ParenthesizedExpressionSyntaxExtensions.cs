@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : false;
         }
 
-        [ThreadStatic]
-        private static Stack<SyntaxNode> s_nodeStack;
+        private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
 
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {
@@ -148,37 +147,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (s_nodeStack == null)
+            var stack = s_nodeStackPool.AllocateAndClear();
+            try
             {
-                s_nodeStack = new Stack<SyntaxNode>();
-            }
-            else
-            {
-                s_nodeStack.Clear();
-            }
 
-            s_nodeStack.Push(node.Expression);
+                stack.Push(node.Expression);
 
-            while (s_nodeStack.Count > 0)
-            {
-                var expression = s_nodeStack.Pop();
-
-                foreach (var nodeOrToken in expression.ChildNodesAndTokens())
+                while (stack.Count > 0)
                 {
-                    // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
-                    if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
+                    var expression = stack.Pop();
+
+                    foreach (var nodeOrToken in expression.ChildNodesAndTokens())
                     {
-                        s_nodeStack.Push(nodeOrToken.AsNode());
-                    }
-                    else if (nodeOrToken.IsToken)
-                    {
-                        if (nodeOrToken.IsKind(SyntaxKind.ColonToken) || nodeOrToken.IsKind(SyntaxKind.ColonColonToken))
+                        // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
+                        if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
                         {
-                            s_nodeStack.Clear();
-                            return true;
+                            stack.Push(nodeOrToken.AsNode());
+                        }
+                        else if (nodeOrToken.IsToken)
+                        {
+                            if (nodeOrToken.IsKind(SyntaxKind.ColonToken) || nodeOrToken.IsKind(SyntaxKind.ColonColonToken))
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
+            }
+            finally
+            {
+                s_nodeStackPool.ClearAndFree(stack);
             }
 
             return false;
