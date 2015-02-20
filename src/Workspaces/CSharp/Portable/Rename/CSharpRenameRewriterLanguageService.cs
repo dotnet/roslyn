@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else if (isAccessorLocation)
                 {
-                    var prefix = oldIdentifier.Substring(0, oldIdentifier.IndexOf("_") + 1);
+                    var prefix = oldIdentifier.Substring(0, oldIdentifier.IndexOf('_') + 1);
                     currentNewIdentifier = prefix + currentNewIdentifier;
                 }
                 else if (!string.IsNullOrEmpty(suffix))

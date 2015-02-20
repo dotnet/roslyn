@@ -2504,7 +2504,7 @@ class equals
             var currIText = currTree.GetText();
 
             // Insert "// " before the "x" in "select x"; the next statement becomes part of the query.
-            var span = new TextSpan(text.LastIndexOf("x"), 0);
+            var span = new TextSpan(text.LastIndexOf('x'), 0);
             var change = new TextChange(span, "// ");
 
             currIText = currIText.WithChanges(change);

@@ -9430,7 +9430,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim stmtNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Select Case")).Parent, StatementSyntax)
+            Dim stmtNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Select Case", StringComparison.Ordinal)).Parent, StatementSyntax)
             Dim analysis = model.AnalyzeControlFlow(stmtNode, stmtNode)
 
             Assert.False(analysis.Succeeded)

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var index = spanText.LastIndexOf(searchName);
+                var index = spanText.LastIndexOf(searchName, StringComparison.Ordinal);
 
                 if (index < 0)
                 {
@@ -121,13 +121,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
             {
                 var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var position = spanText.LastIndexOf(replacementText);
+                var position = spanText.LastIndexOf(replacementText, StringComparison.Ordinal);
 
                 if (_isRenamingAttributePrefix)
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    var index = spanText.LastIndexOf(replacementText + AttributeSuffix);
+                    var index = spanText.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
                     position = index >= 0 ? index : position;
                 }
 

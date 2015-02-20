@@ -3987,7 +3987,7 @@ End Module
         </file>
     </compilation>
 
-            Dim position = compilationDef.<file>.Value.IndexOf("'POSITION")
+            Dim position = compilationDef.<file>.Value.IndexOf("'POSITION", StringComparison.Ordinal)
 
             Dim verifier = CompileAndVerify(compilationDef,
                              options:=TestOptions.DebugDll,

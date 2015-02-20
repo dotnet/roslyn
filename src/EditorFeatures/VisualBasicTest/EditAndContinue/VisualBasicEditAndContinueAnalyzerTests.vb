@@ -445,7 +445,7 @@ End Class
                 Dim newSyntaxRoot = newDocument.GetSyntaxRootAsync().Result
 
                 Dim oldStatementSource = "System.Console.WriteLine(1)"
-                Dim oldStatementPosition = source1.IndexOf(oldStatementSource)
+                Dim oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal)
                 Dim oldStatementTextSpan = New TextSpan(oldStatementPosition, oldStatementSource.Length)
                 Dim oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan)
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)

@@ -379,7 +379,7 @@ End Namespace";
                     name: "M",
                     returnType: typeof(void),
                     parameters: Parameters(Parameter(typeof(int), "i")),
-                    explicitInterface: s => s.LookupSymbols(input.IndexOf("M"), null, "M").First() as IMethodSymbol);
+                    explicitInterface: s => s.LookupSymbols(input.IndexOf('M'), null, "M").First() as IMethodSymbol);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

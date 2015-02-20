@@ -2531,7 +2531,7 @@ class C1 {
 
             TestSymbolDescription(text, findSymbol, format,
                 "IDictionary<IList<int>, string>",
-                text.IndexOf("foo"),
+                text.IndexOf("foo", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.InterfaceName,
                 SymbolDisplayPartKind.Punctuation,

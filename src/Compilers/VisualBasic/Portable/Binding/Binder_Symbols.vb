@@ -472,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Exit While
                     ElseIf typeIsQualifiedName Then
                         currTypeSyntax = DirectCast(currTypeSyntax, QualifiedNameSyntax).Left
-                        currDiagName = currDiagName.Substring(0, currDiagName.LastIndexOf("."))
+                        currDiagName = currDiagName.Substring(0, currDiagName.LastIndexOf("."c))
                     Else
                         Exit While
                     End If

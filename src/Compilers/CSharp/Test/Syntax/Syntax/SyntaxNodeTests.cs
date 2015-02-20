@@ -2441,7 +2441,7 @@ class Base<T>
         [Fact]
         public void GetDiagnosticsOnMissingToken3()
         {
-            string code = @"class c2 4";
+            const string code = @"class c2 4";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
             var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf('4'));
             var diag = syntaxTree.GetDiagnostics(token).ToList();

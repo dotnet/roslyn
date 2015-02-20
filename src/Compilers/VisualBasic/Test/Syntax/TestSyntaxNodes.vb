@@ -1859,7 +1859,7 @@ End Module
                 "End Class"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
 
-            Dim location = text.IndexOf("List(Of T)")
+            Dim location = text.IndexOf("List(Of T)", StringComparison.Ordinal)
             Dim openParenToken = CType(tree.GetRoot().FindToken(location + "List".Length), SyntaxToken)
 
             Assert.Equal(SyntaxKind.OpenParenToken, openParenToken.Kind)

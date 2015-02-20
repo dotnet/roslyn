@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         End If
                     End If
                 ElseIf isAccessorLocation Then
-                    Dim prefix = oldIdentifier.Substring(0, oldIdentifier.IndexOf("_") + 1)
+                    Dim prefix = oldIdentifier.Substring(0, oldIdentifier.IndexOf("_"c) + 1)
                     currentNewIdentifier = prefix + currentNewIdentifier
                 ElseIf Not String.IsNullOrEmpty(suffix) Then
                     currentNewIdentifier = currentNewIdentifier + suffix

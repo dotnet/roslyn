@@ -6056,7 +6056,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim index = source.IndexOf(word, StringComparison.Ordinal)
             While (index >= 0)
                 n += 1
-                index = source.IndexOf(word, index + word.Length)
+                index = source.IndexOf(word, index + word.Length, StringComparison.Ordinal)
             End While
             Return n
         End Function

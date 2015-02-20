@@ -121,7 +121,7 @@ Public Class XmlRenamer
             Return -1
         End If
 
-        Dim index As Integer = attrValue.IndexOf(kind)
+        Dim index As Integer = attrValue.IndexOf(kind, StringComparison.Ordinal)
 
         If (index > 0 AndAlso attrValue(index - 1) <> "|"c) Then
             Return -1    ' must be preceded by vert bar or nothing.

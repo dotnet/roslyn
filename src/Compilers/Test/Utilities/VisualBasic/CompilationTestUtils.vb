@@ -370,15 +370,15 @@ Friend Module CompilationUtils
 
         Dim commentText = text.Substring(startCommentIndex, endCommentIndex - startCommentIndex)
 
-        Dim endBindCommentLength = commentText.LastIndexOf("""")
+        Dim endBindCommentLength = commentText.LastIndexOf(""""c)
         If endBindCommentLength = 0 Then
             ' This cannot be 0 so it must be text that is quoted.  Look for double ending quote
             ' 'Bind:""some quoted string""
-            endBindCommentLength = commentText.LastIndexOf("""""", 1)
+            endBindCommentLength = commentText.LastIndexOf("""""", 1, StringComparison.Ordinal)
         End If
 
         bindText = commentText.Substring(0, endBindCommentLength)
-        Dim bindPoint = text.LastIndexOf(bindText, startCommentIndex - bindMarker.Length)
+        Dim bindPoint = text.LastIndexOf(bindText, startCommentIndex - bindMarker.Length, StringComparison.Ordinal)
         Return bindPoint
     End Function
 
@@ -1008,7 +1008,7 @@ Friend Module CompilationUtils
         Dim symType = New List(Of INamedTypeSymbol)
 
         Do
-            pos = text.IndexOf(stringInDecl, pos + 1)
+            pos = text.IndexOf(stringInDecl, pos + 1, StringComparison.Ordinal)
             If pos >= 0 Then
                 node = tree.GetRoot().FindToken(pos).Parent
                 While Not (TypeOf node Is TypeStatementSyntax OrElse TypeOf node Is EnumStatementSyntax)

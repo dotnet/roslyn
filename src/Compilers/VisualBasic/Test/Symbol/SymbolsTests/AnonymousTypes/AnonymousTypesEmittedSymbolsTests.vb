@@ -261,7 +261,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
-            Dim position = compilationDef.<file>.Value.IndexOf("Dim v2") - 1
+            Dim position = compilationDef.<file>.Value.IndexOf("Dim v2", StringComparison.Ordinal) - 1
 
             ' The sole purpose of this is to check if there will be any asserts 
             ' or exceptions related to adjusted names/locations of anonymous types 
@@ -571,7 +571,7 @@ End Module
         </file>
     </compilation>
 
-            Dim position = compilationDef.<file>.Value.IndexOf("'POSITION")
+            Dim position = compilationDef.<file>.Value.IndexOf("'POSITION", StringComparison.Ordinal)
 
             CompileAndVerify(compilationDef,
                              additionalRefs:={SystemCoreRef},

@@ -555,7 +555,7 @@ Public MustInherit Class WriteUtils
         text = text.Trim()
 
         While text.Length >= LineLength
-            Dim split As Integer = text.Substring(0, LineLength).LastIndexOf(" ")
+            Dim split As Integer = text.Substring(0, LineLength).LastIndexOf(' ')
             If split < 0 Then split = LineLength
 
             Dim line As String = text.Substring(0, split).Trim()

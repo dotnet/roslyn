@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         {
             if (statements != null)
             {
-                while (expected.IndexOf("$$") != -1)
+                while (expected.IndexOf("$$", StringComparison.Ordinal) != -1)
                 {
                     expected = expected.Replace("$$", statements);
                 }

@@ -57,7 +57,7 @@ End Class
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim position = tree.GetText().ToString().IndexOf("' Comment")
+            Dim position = tree.GetText().ToString().IndexOf("' Comment", StringComparison.Ordinal)
             model.GetSpeculativeSymbolInfo(position, SyntaxFactory.IdentifierName("Console"), SpeculativeBindingOption.BindAsTypeOrNamespace)
             compilation.AssertTheseDiagnostics(<errors>
 BC50001: Unused import statement.
@@ -183,7 +183,7 @@ End Class
             Dim model = compilation.GetSemanticModel(tree)
 
             ' Looks in the usings, but does not count as "use".
-            Assert.Equal(2, model.LookupNamespacesAndTypes(tree.ToString().IndexOf("Return"), name:="IEnumerable").Length)
+            Assert.Equal(2, model.LookupNamespacesAndTypes(tree.ToString().IndexOf("Return", StringComparison.Ordinal), name:="IEnumerable").Length)
 
             compilation.AssertTheseDiagnostics(<errors>
 BC50001: Unused import statement.

@@ -2107,28 +2107,28 @@ class Bar { }
             Func<int, string, bool, ImmutableArray<ISymbol>> lookupAttributeType = (pos, name, isVerbatim) =>
                 lookupAttributeTypeWithQualifier(pos, null, name, isVerbatim);
 
-            var position = text.IndexOf("Description(null)", 0);
+            var position = text.IndexOf("Description(null)", 0, StringComparison.Ordinal);
             var symbols = lookupAttributeType(position, "Description", false);
             Assert.Equal(2, symbols.Length);
 
             symbols = lookupAttributeType(position, "Description", true);
             Assert.Equal(0, symbols.Length);
 
-            position = text.IndexOf("X()", 0);
+            position = text.IndexOf("X()", 0, StringComparison.Ordinal);
             symbols = lookupAttributeType(position, "X", false);
             Assert.Equal(2, symbols.Length);
 
             symbols = lookupAttributeType(position, "X", true);
             Assert.Equal(1, symbols.Length);
 
-            position = text.IndexOf("Y(null)", 0);
+            position = text.IndexOf("Y(null)", 0, StringComparison.Ordinal);
             symbols = lookupAttributeType(position, "Y", false);
             Assert.Equal(1, symbols.Length);
 
             symbols = lookupAttributeType(position, "Y", true);
             Assert.Equal(0, symbols.Length);
 
-            var position2 = text.IndexOf("namespace InvalidWithoutSuffix", 0);
+            var position2 = text.IndexOf("namespace InvalidWithoutSuffix", 0, StringComparison.Ordinal);
             var qnSymbols = model.LookupNamespacesAndTypes(position2, name: "InvalidWithoutSuffix");
             Assert.Equal(1, qnSymbols.Length);
             var qnInvalidWithoutSuffix = (NamespaceOrTypeSymbol)qnSymbols[0];
@@ -2142,7 +2142,7 @@ class Bar { }
             symbols = lookupAttributeTypeWithQualifier(position, qnInvalidWithoutSuffix, "Y", true);
             Assert.Equal(0, symbols.Length);
 
-            position = text.IndexOf("Foo()", 0);
+            position = text.IndexOf("Foo()", 0, StringComparison.Ordinal);
             symbols = lookupAttributeType(position, "Foo", false);
             Assert.Equal(1, symbols.Length);
 
@@ -3586,7 +3586,7 @@ class Program
 }");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            dynamic methodDecl = (MethodDeclarationSyntax)tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("Main")).Parent;
+            dynamic methodDecl = (MethodDeclarationSyntax)tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("Main", StringComparison.Ordinal)).Parent;
             IdentifierNameSyntax x = methodDecl.Body.Statements[0].Declaration.Variables[0].Initializer.Value.Body;
             var info = model.GetSemanticInfoSummary(x);
             Assert.Equal(SymbolKind.Parameter, info.Symbol.Kind);
