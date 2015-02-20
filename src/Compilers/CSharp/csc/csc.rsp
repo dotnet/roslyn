@@ -38,7 +38,7 @@
 /r:System.Web.Mobile.dll
 /r:System.Web.RegularExpressions.dll
 /r:System.Web.Services.dll
-/r:System.Windows.Forms.Dll
+/r:System.Windows.Forms.dll
 /r:System.Workflow.Activities.dll
 /r:System.Workflow.ComponentModel.dll
 /r:System.Workflow.Runtime.dll

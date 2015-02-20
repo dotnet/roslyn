@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -437,19 +436,19 @@ namespace Microsoft.CodeAnalysis
                 {
                     case ConstantValueTypeDiscriminator.Bad: return null;
                     case ConstantValueTypeDiscriminator.Null: return null;
-                    case ConstantValueTypeDiscriminator.SByte: return SByteValue;
-                    case ConstantValueTypeDiscriminator.Byte: return ByteValue;
-                    case ConstantValueTypeDiscriminator.Int16: return Int16Value;
-                    case ConstantValueTypeDiscriminator.UInt16: return UInt16Value;
-                    case ConstantValueTypeDiscriminator.Int32: return Int32Value;
-                    case ConstantValueTypeDiscriminator.UInt32: return UInt32Value;
-                    case ConstantValueTypeDiscriminator.Int64: return Int64Value;
-                    case ConstantValueTypeDiscriminator.UInt64: return UInt64Value;
-                    case ConstantValueTypeDiscriminator.Char: return CharValue;
-                    case ConstantValueTypeDiscriminator.Boolean: return BooleanValue;
-                    case ConstantValueTypeDiscriminator.Single: return SingleValue;
-                    case ConstantValueTypeDiscriminator.Double: return DoubleValue;
-                    case ConstantValueTypeDiscriminator.Decimal: return DecimalValue;
+                    case ConstantValueTypeDiscriminator.SByte: return Boxes.Box(SByteValue);
+                    case ConstantValueTypeDiscriminator.Byte: return Boxes.Box(ByteValue);
+                    case ConstantValueTypeDiscriminator.Int16: return Boxes.Box(Int16Value);
+                    case ConstantValueTypeDiscriminator.UInt16: return Boxes.Box(UInt16Value);
+                    case ConstantValueTypeDiscriminator.Int32: return Boxes.Box(Int32Value);
+                    case ConstantValueTypeDiscriminator.UInt32: return Boxes.Box(UInt32Value);
+                    case ConstantValueTypeDiscriminator.Int64: return Boxes.Box(Int64Value);
+                    case ConstantValueTypeDiscriminator.UInt64: return Boxes.Box(UInt64Value);
+                    case ConstantValueTypeDiscriminator.Char: return Boxes.Box(CharValue);
+                    case ConstantValueTypeDiscriminator.Boolean: return Boxes.Box(BooleanValue);
+                    case ConstantValueTypeDiscriminator.Single: return Boxes.Box(SingleValue);
+                    case ConstantValueTypeDiscriminator.Double: return Boxes.Box(DoubleValue);
+                    case ConstantValueTypeDiscriminator.Decimal: return Boxes.Box(DecimalValue);
                     case ConstantValueTypeDiscriminator.DateTime: return DateTimeValue;
                     case ConstantValueTypeDiscriminator.String: return StringValue;
                     default: throw ExceptionUtilities.UnexpectedValue(this.Discriminator);
