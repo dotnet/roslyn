@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var analyzers = _workspaceAnalyzerManager.CreateDiagnosticAnalyzers(project);
 
-            var handler = WorkspaceAnalyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, project);
+            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
             var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
 
-            WorkspaceAnalyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
 
             return dxs;
         }

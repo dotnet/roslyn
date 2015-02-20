@@ -2,27 +2,21 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
+    /// <summary>
+    /// Diagnostic update source for reporting workspace host specific diagnostics,
+    /// which may not be related to any given project/document in the solution.
+    /// For example, these include diagnostics generated for exceptions from third party analyzers.
+    /// </summary>
+    internal abstract partial class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
-        private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> _analyzerHostDiagnosticsMap =
-            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.Empty;
-
-        protected AbstractHostDiagnosticUpdateSource()
-        {
-            // Register for exception diagnostics from workspace's analyzer manager.
-            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
-        }
-
-        ~AbstractHostDiagnosticUpdateSource()
-        {
-            // Unregister for exception diagnostics from workspace's analyzer manager.
-            WorkspaceAnalyzerManager.AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
-        }
+        private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
+            ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
 
         protected abstract Workspace Workspace { get; }
 
@@ -59,72 +53,86 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Contract.ThrowIfFalse(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(args.Diagnostic));
             
-            var diagnosticData = DiagnosticData.Create(args.Workspace, args.Diagnostic);
-            ImmutableArray<DiagnosticData> existingDiagnostics;
-            if (_analyzerHostDiagnosticsMap.TryGetValue(args.FaultedAnalyzer, out existingDiagnostics))
-            {
-                if (existingDiagnostics.Contains(diagnosticData))
-                {
-                    // don't fire duplicate diagnostics.
-                    return;
-                }
-            }
-            else
-            {
-                existingDiagnostics = ImmutableArray<DiagnosticData>.Empty;
-            }
+            bool raiseDiagnosticsUpdated = true;
+            var diagnosticData = args.ProjectOpt != null ?
+                DiagnosticData.Create(args.ProjectOpt, args.Diagnostic) :
+                DiagnosticData.Create(args.Workspace, args.Diagnostic);
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 args.FaultedAnalyzer,
-                ImmutableArray.Create(diagnosticData),
+                ImmutableHashSet.Create(diagnosticData),
                 (a, existing) =>
                 {
-                    var newDiags = existing.Add(diagnosticData).Distinct();
-                    return newDiags.Length == existing.Length ? existing : newDiags;
+                    var newDiags = existing.Add(diagnosticData);
+                    raiseDiagnosticsUpdated = newDiags.Count > existing.Count;
+                    return newDiags;
                 });
 
-            if (dxs.Length > existingDiagnostics.Length)
+            if (raiseDiagnosticsUpdated)
             {
                 RaiseDiagnosticsUpdated(MakeArgs(args.FaultedAnalyzer, dxs, args.ProjectOpt));
             }
         }
 
-        public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language)
+        public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
         {
             foreach (var analyzer in analyzerReference.GetAnalyzers(language))
             {
-                ClearAnalyzerDiagnostics(analyzer);
+                ClearAnalyzerDiagnostics(analyzer, projectId);
             }
         }
 
-        private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer)
+        private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, ProjectId projectId)
         {
-            ImmutableArray<DiagnosticData> existing;
-            if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
+            ImmutableHashSet<DiagnosticData> existing;
+            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out existing))
             {
-                RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableArray<DiagnosticData>.Empty, project: null));
+                return;
+            }
+
+            // Check if analyzer is shared by analyzer references from different projects.
+            var sharedAnalyzer = existing.Contains(d => d.ProjectId != null && d.ProjectId != projectId);
+            if (sharedAnalyzer)
+            {
+                var newDiags = existing.Where(d => d.ProjectId != projectId).ToImmutableHashSet();
+                if (newDiags.Count < existing.Count &&
+                    ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
+                {
+                    var project = this.Workspace.CurrentSolution.GetProject(projectId);
+                    RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project));
+                }
+            }
+            else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
+            {
+                var project = this.Workspace.CurrentSolution.GetProject(projectId);
+                RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project));
+
+                if (existing.Any(d => d.ProjectId == null))
+                {
+                    RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project: null));
+                }
             }
         }
 
-        private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items, Project project)
+        private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
             var id = WorkspaceAnalyzerManager.GetUniqueIdForAnalyzer(analyzer);
 
             return new DiagnosticsUpdatedArgs(
-                id: Tuple.Create(this, id),
+                id: Tuple.Create(this, id, project?.Id),
                 workspace: this.Workspace,
                 solution: project?.Solution,
                 projectId: project?.Id,
                 documentId: null,
-                diagnostics: items);
+                diagnostics: items.ToImmutableArray());
         }
 
-        internal ImmutableArray<DiagnosticData> TestOnly_GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
+        internal ImmutableHashSet<DiagnosticData> TestOnly_GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            ImmutableArray<DiagnosticData> diagnostics;
+            ImmutableHashSet<DiagnosticData> diagnostics;
             if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out diagnostics))
             {
-                diagnostics = ImmutableArray<DiagnosticData>.Empty;
+                diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
             }
 
             return diagnostics;

@@ -1,22 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed partial class WorkspaceAnalyzerManager
+    internal abstract partial class AbstractHostDiagnosticUpdateSource
     {
         internal static event EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
+
+        protected AbstractHostDiagnosticUpdateSource()
+        {
+            // Register for exception diagnostics from workspace's analyzer manager.
+            AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
+        }
+
+        ~AbstractHostDiagnosticUpdateSource()
+        {
+            // Unregister for exception diagnostics from workspace's analyzer manager.
+            AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
+        }
 
         internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Workspace workspace)
         {

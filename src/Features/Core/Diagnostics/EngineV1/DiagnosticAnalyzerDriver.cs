@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                 }
 
-                var handler = WorkspaceAnalyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
+                var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
 
                 var analyzerActions = await this.GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                WorkspaceAnalyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+                AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
                 return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
             }
         }
@@ -327,14 +327,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            WorkspaceAnalyzerManager.ReportAnalyzerExceptionDiagnostic(this, analyzer, exceptionDiagnostic, this.Project);
+            AbstractHostDiagnosticUpdateSource.ReportAnalyzerExceptionDiagnostic(this, analyzer, exceptionDiagnostic, this.Project);
         }
 
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
         {
-            var handler = WorkspaceAnalyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
+            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
             var actions = await GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
-            WorkspaceAnalyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
             return actions;
         }
 
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
                 else
                 {
-                    var handler = WorkspaceAnalyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
+                    var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
 
                     var analyzerActions = await GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
                     if (analyzerActions != null)
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         }
                     }
 
-                    WorkspaceAnalyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+                    AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
                 }
 
                 return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var localDiagnostics = pooledObject.Object;
 
-                var handler = WorkspaceAnalyzerManager.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
+                var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, this.Project);
 
                 // Get all the analyzer actions, including the per-compilation actions.
                 var analyzerActions = await GetAnalyzerActionsCoreAsync(analyzer).ConfigureAwait(false);
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // CompilationEnd actions.
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 AnalyzerDriverHelper.ExecuteCompilationEndActions(analyzerActions, compilation, _analyzerOptions, localDiagnostics.Add, CatchAnalyzerException, _cancellationToken);
-                WorkspaceAnalyzerManager.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
+                AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
 
                 var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
                 diagnostics.AddRange(filteredDiagnostics);
