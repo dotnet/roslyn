@@ -236,6 +236,9 @@ bar baz";
         [Fact]
         public void FromStream_CheckSum_NoBOM()
         {
+            // Note: The 0x95 is outside the ASCII range, so a question mark will
+            // be substituted in decoded text. Note, however, that the checksum
+            // should be derived from the original input.
             var bytes = new byte[] { 0x61, 0x62, 0x95 };
 
             var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);

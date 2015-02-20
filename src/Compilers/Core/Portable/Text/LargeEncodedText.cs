@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text;
@@ -123,21 +125,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding
-        {
-            get
-            {
-                return _encoding;
-            }
-        }
+        public override Encoding Encoding => _encoding;
 
-        public override int Length
-        {
-            get
-            {
-                return _length;
-            }
-        }
+        public override int Length => _length;
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
@@ -195,6 +185,71 @@ namespace Microsoft.CodeAnalysis.Text
                 chunkStartOffset = 0;
                 chunkIndex++;
             }
+        }
+
+        /// <summary>
+        /// Called from <see cref="SourceText.Lines"/> to initialize the <see cref="TextLineCollection"/>. Thereafter,
+        /// the collection is cached.
+        /// </summary>
+        /// <returns>A new <see cref="TextLineCollection"/> representing the individual text lines.</returns>
+        protected override TextLineCollection GetLinesCore()
+        {
+            return new LineInfo(this, ParseLineStarts());
+        }
+
+        private int[] ParseLineStarts()
+        {
+            var position = 0;
+            var index = 0;
+            var lastCr = -1;
+            var arrayBuilder = ArrayBuilder<int>.GetInstance();
+
+            // The following loop goes through every character in the text. It is highly
+            // performance critical, and thus inlines knowledge about common line breaks
+            // and non-line breaks.
+            foreach (var chunk in _chunks)
+            {
+                foreach (var c in chunk)
+                {
+                    index++;
+
+                    // Common case - ASCII & not a line break
+                    const uint bias = '\r' + 1;
+                    if (unchecked(c - bias) <= (127 - bias))
+                    {
+                        continue;
+                    }
+
+                    switch(c)
+                    {
+                        case '\r':
+                            lastCr = index;
+                            goto line_break;
+
+                        case '\n':
+                            // Assumes that the only 2-char line break sequence is CR+LF
+                            if (lastCr == (index - 1))
+                            {
+                                position = index;
+                                break;
+                            }
+
+                            goto line_break;
+
+                        case '\u0085':
+                        case '\u2028':
+                        case '\u2029':
+                        line_break:
+                            arrayBuilder.Add(position);
+                            position = index;
+                            break;
+                    }
+                }
+            }
+
+            // Create a start for the final line.  
+            arrayBuilder.Add(position);
+            return arrayBuilder.ToArrayAndFree();
         }
     }
 }

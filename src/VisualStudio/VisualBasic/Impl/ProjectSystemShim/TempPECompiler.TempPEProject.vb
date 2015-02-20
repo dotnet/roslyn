@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Function CompileAndGetErrorCount(metadataService As IMetadataService) As Integer
                 Dim trees = _files.Select(Function(path)
                                               Using stream = FileUtilities.OpenRead(path)
-                                                  Return SyntaxFactory.ParseSyntaxTree(EncodedStringText.From(stream), options:=_compilerOptions.ParseOptions, path:=path)
+                                                  Return SyntaxFactory.ParseSyntaxTree(SourceText.From(stream), options:=_compilerOptions.ParseOptions, path:=path)
                                               End Using
                                           End Function)
 
