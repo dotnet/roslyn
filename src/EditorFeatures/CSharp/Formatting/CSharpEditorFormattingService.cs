@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private static bool TokenShouldNotFormatOnTypeChar(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement) ||
-                token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent.IsKind(SyntaxKind.CaseSwitchLabel) || token.Parent.IsKind(SyntaxKind.DefaultSwitchLabel));
+            return (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement)) ||
+                (token.IsKind(SyntaxKind.ColonToken) && !(token.Parent.IsKind(SyntaxKind.LabeledStatement) || token.Parent.IsKind(SyntaxKind.CaseSwitchLabel) || token.Parent.IsKind(SyntaxKind.DefaultSwitchLabel)));
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
@@ -166,7 +166,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            // Check to see if the token is ')' and also the parent is a using statement. If not, bail
+            // Check to see if any of the below. If not, bail.
+            // case 1: The token is ')' and the parent is an using statement.
+            // case 2: The token is ':' and the parent is either labelled statement or case switch or default switch
             if (TokenShouldNotFormatOnTypeChar(token))
             {
                 return null;
