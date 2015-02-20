@@ -12,10 +12,17 @@
     <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
+
+    <!--
+       This project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
+       Use the latest Framework toolset to build, but set msbuild properties below
+       so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
+    -->    
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
     <NoStdLib>true</NoStdLib>
+    
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <NeedsPhoneCopy>true</NeedsPhoneCopy>
