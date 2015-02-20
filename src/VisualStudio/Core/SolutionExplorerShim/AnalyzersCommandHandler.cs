@@ -86,9 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 if (_tracker != null)
                 {
-                    _tracker.SelectedHierarchyChanged += SelectedHierarchyChangedHandler;
+                    _tracker.SelectedHierarchyItemChanged += SelectedHierarchyItemChangedHandler;
                     _tracker.SelectedDiagnosticItemsChanged += SelectedDiagnosticItemsChangedHandler;
-                    _tracker.SelectedItemIdChanged += SelectedItemIdChangedHandler;
                 }
 
                 var buildManager = (IVsSolutionBuildManager)_serviceProvider.GetService(typeof(SVsSolutionBuildManager));
@@ -132,12 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private void SelectedHierarchyChangedHandler(object sender, EventArgs e)
-        {
-            UpdateMenuItemVisibility();
-        }
-
-        private void SelectedItemIdChangedHandler(object sender, EventArgs e)
+        private void SelectedHierarchyItemChangedHandler(object sender, EventArgs e)
         {
             UpdateMenuItemVisibility();
         }
@@ -169,6 +163,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _setSeverityNoneMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Suppress);
         }
 
+        private bool AnyDiagnosticsWithSeverity(ReportDiagnostic severity)
+        {
+            return _selectedDiagnosticItems.Any(item => item.EffectiveSeverity == severity);
+        }
+
         private void UpdateSeverityMenuItemsEnabled()
         {
             bool configurable = !_selectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
@@ -178,11 +177,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _setSeverityInfoMenuItem.Enabled = configurable;
             _setSeverityHiddenMenuItem.Enabled = configurable;
             _setSeverityNoneMenuItem.Enabled = configurable;
-        }
-
-        private bool AnyDiagnosticsWithSeverity(ReportDiagnostic severity)
-        {
-            return _selectedDiagnosticItems.Any(item => item.EffectiveSeverity == severity);
         }
 
         private bool SelectedProjectSupportsAnalyzers()
