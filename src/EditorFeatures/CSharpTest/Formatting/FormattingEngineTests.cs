@@ -839,6 +839,227 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ColonInSwitchCase()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+                 case     1     :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+            case 1:    break;
+        }
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ColonInDefaultSwitchCase()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+            case 1:    break;
+                    default    :$$     break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+            case 1:    break;
+            default:     break;
+        }
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ColonInLabeledStatement()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+            label1   :$$   int s = 0;
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+            label1:   int s = 0;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInTargetAttribute()
+        {
+            var code = @"using System;
+[method    :$$    C]
+class C : Attribute
+{
+}";
+
+            var expected = @"using System;
+[method    :    C]
+class C : Attribute
+{
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInBaseList()
+        {
+            var code = @"class C   :$$   Attribute
+{
+}";
+
+            var expected = @"class C   :   Attribute
+{
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInThisConstructor()
+        {
+            var code = @"class Foo
+{
+    Foo(int s)   :$$   this()
+    {
+    }
+
+    Foo()
+    {
+    }
+}";
+
+            var expected = @"class Foo
+{
+    Foo(int s)   :   this()
+    {
+    }
+
+    Foo()
+    {
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInConditionalOperator()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var vari = foo()     ?    true  :$$  false;
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var vari = foo()     ?    true  :  false;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInArgument()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args  :$$  args);
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args  :  args);
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInTyepPararmeter()
+        {
+            var code = @"class Program<T>
+{
+    class C1<U>
+        where   T  :$$  U
+    {
+
+    }
+}";
+
+            var expected = @"class Program<T>
+{
+    class C1<U>
+        where   T  :  U
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
         private static void AssertFormatAfterTypeChar(string code, string expected)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
