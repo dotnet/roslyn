@@ -104,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _map.Remove(key);
             }
 
+            factory.OnUpdated();
+
             // let table manager know that we want to clear the entries
             for (var i = 0; i < snapshot.Length; i++)
             {

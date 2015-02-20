@@ -6,8 +6,9 @@
     <description>
       Microsoft DiaSymReader interop interfaces and utilities.
 Supported Platforms:
+- .NET Framework 2.0
 - .NET Framework 4.5
-    </description>
+    </description>  
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$currentVersion$</version>
@@ -20,5 +21,7 @@ Supported Platforms:
   <files>
     <file src="Microsoft.DiaSymReader.dll" target="lib\net45" />
     <file src="Microsoft.DiaSymReader.xml" target="lib\net45" />
+    <file src="NetFX20\Microsoft.DiaSymReader.dll" target="lib\net20" />
+    <file src="NetFX20\Microsoft.DiaSymReader.xml" target="lib\net20" />
   </files>
 </package>

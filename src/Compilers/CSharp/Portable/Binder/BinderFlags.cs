@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // InCatchBlock are also set.
         InNestedFinallyBlock = 1 << 21,
 
-        SuppressAccessChecks = 1 << 22,
+        IgnoreAccessibility = 1 << 22,
 
         ParameterDefaultValue = 1 << 23,
 

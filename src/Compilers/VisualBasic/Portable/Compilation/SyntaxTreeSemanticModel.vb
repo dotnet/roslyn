@@ -25,14 +25,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _sourceModule As SourceModuleSymbol
         Private ReadOnly _syntaxTree As SyntaxTree
         Private ReadOnly _binderFactory As BinderFactory
+        Private ReadOnly _ignoresAccessibility As Boolean
 
         ' maps from a higher-level binder to an appropriate SemanticModel for the construct (such as a method, or initializer).
-        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Binder, MemberSemanticModel)()
+        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Tuple(Of Binder, Boolean), MemberSemanticModel)()
 
-        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree)
+        Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False)
             _compilation = compilation
             _sourceModule = sourceModule
             _syntaxTree = syntaxTree
+            _ignoresAccessibility = ignoreAccessibility
             _binderFactory = New BinderFactory(sourceModule, syntaxTree)
         End Sub
 
@@ -62,6 +64,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me._syntaxTree
             End Get
         End Property
+
+        ''' <summary>
+        ''' Returns true if this Is a SemanticModel that ignores accessibility rules when answering semantic questions.
+        ''' </summary>
+        Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
+            Get
+                Return Me._ignoresAccessibility
+            End Get
+        End Property
+
 
         ''' <summary>
         ''' Get all the errors within the syntax tree associated with this object. Includes errors involving compiling
@@ -131,27 +143,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private Shared ReadOnly _methodBodySemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) MethodBodySemanticModel.Create(DirectCast(key, MethodBodyBinder))
-        Private Shared ReadOnly _initializerSemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) InitializerSemanticModel.Create(DirectCast(key, DeclarationInitializerBinder))
-        Private Shared ReadOnly _attributeSemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) AttributeSemanticModel.Create(DirectCast(key, AttributeBinder))
-        Private Shared ReadOnly _topLevelCodeSemanticModelCreator As Func(Of Binder, MemberSemanticModel) = Function(key As Binder) New TopLevelCodeSemanticModel(DirectCast(key, TopLevelCodeBinder))
+        Private Shared ReadOnly _methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, MethodBodyBinder), key.Item2)
+        Private Shared ReadOnly _initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
+        Private Shared ReadOnly _attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
+        Private Shared ReadOnly _topLevelCodeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) New TopLevelCodeSemanticModel(DirectCast(key.Item1, TopLevelCodeBinder), key.Item2)
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd(binder, _methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd(binder, _initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd(binder, _attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(binder, _topLevelCodeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _topLevelCodeSemanticModelCreator)
             End If
 
             Return Nothing
@@ -177,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return model.GetEnclosingBinder(position)
             Else
                 Dim binder As binder = _binderFactory.GetBinderForPosition(FindInitialNodeFromPosition(position), position)
-                Return SemanticModelBinder.Mark(binder)
+                Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
             End If
         End Function
 
@@ -571,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim docCommentBinder = Me._binderFactory.GetBinderForPosition(node, node.SpanStart)
-            docCommentBinder = SemanticModelBinder.Mark(docCommentBinder)
+            docCommentBinder = SemanticModelBinder.Mark(docCommentBinder, IgnoresAccessibility)
 
             If isCrefAttribute Then
                 Dim symbols As ImmutableArray(Of Symbol)

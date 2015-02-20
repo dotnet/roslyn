@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         foreach (var syntaxTreeAction in analyzerAndActions)
                         {
                             // Catch Exception from executing the action
-                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, _addDiagnostic, continueOnAnalyzerException, () =>
+                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, continueOnAnalyzerException, () =>
                             {
                                 var context = new SyntaxTreeAnalysisContext(tree, analyzerOptions, _addDiagnostic, cancellationToken);
                                 syntaxTreeAction.Action(context);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(da.Analyzer == analyzer);
 
                     // Catch Exception from analyzing the symbol
-                    AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, _addDiagnostic, continueOnAnalyzerException, () =>
+                    AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, continueOnAnalyzerException, () =>
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         var symbolContext = new SymbolAnalysisContext(symbol, _compilation, this.analyzerOptions, addDiagnosticForSymbol, cancellationToken);
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Debug.Assert(semanticModelAction.Analyzer == analyzerAndActions.Key);
 
                             // Catch Exception from semanticModelAction
-                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, _addDiagnostic, continueOnAnalyzerException, () =>
+                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, continueOnAnalyzerException, () =>
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
                                     var semanticModelContext = new SemanticModelAnalysisContext(semanticModel, this.analyzerOptions, _addDiagnostic, cancellationToken);
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Debug.Assert(endAction.Analyzer == analyzerAndActions.Key);
 
                             // Catch Exception from endAction
-                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(endAction.Analyzer, _addDiagnostic, continueOnAnalyzerException, () =>
+                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(endAction.Analyzer, continueOnAnalyzerException, () =>
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
                                     var compilationContext = new CompilationEndAnalysisContext(_compilation, this.analyzerOptions, _addDiagnostic, cancellationToken);
@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerManager, compilation.Options, addDiagnostic, continueOnAnalyzerException, cancellationToken))
                     {
                         var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer,
-                            compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                            compilation, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                         allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
                     }
                 }
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+            var supportedDiagnostics = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, cancellationToken);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
 
             foreach (var diag in supportedDiagnostics)
