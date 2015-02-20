@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
             If context.IsSingleLineStatementContext AndAlso
                context.IsInStatementBlockOfKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) AndAlso
-               Not context.IsInStatementBlockOfKind(SyntaxKind.ElseBlock) Then
+               IsNotDirectlyInElseBlock(context) Then
 
                 Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.ElseKeywordToolTip))
             End If
@@ -44,6 +44,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+        End Function
+
+        Private Function IsNotDirectlyInElseBlock(context As VisualBasicSyntaxContext) As Boolean
+            Dim parent = context.TargetToken.Parent
+            Do While parent IsNot Nothing
+                If parent.IsKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) Then
+                    Return True
+                End If
+
+                If parent.IsKind(SyntaxKind.ElseBlock) Then
+                    Return False
+                End If
+
+                parent = parent.Parent
+            Loop
+
+            ' We already know we're inside a Multiline If or ElseIf
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace
