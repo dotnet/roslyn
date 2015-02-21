@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be both extern and abstract.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be both extern and abstract..
         /// </summary>
         internal static string ERR_AbstractAndExtern {
             get {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be both abstract and sealed.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be both abstract and sealed..
         /// </summary>
         internal static string ERR_AbstractAndSealed {
             get {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot apply attribute class &apos;{0}&apos; because it is abstract.
+        ///   Looks up a localized string similar to Cannot apply attribute class &apos;{0}&apos; because it is abstract..
         /// </summary>
         internal static string ERR_AbstractAttributeClass {
             get {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot call an abstract base member: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot call an abstract base member: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_AbstractBaseCall {
             get {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: abstract event cannot have initializer.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: abstract event cannot have initializer..
         /// </summary>
         internal static string ERR_AbstractEventInitializer {
             get {
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot declare a body because it is marked abstract.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot declare a body because it is marked abstract..
         /// </summary>
         internal static string ERR_AbstractHasBody {
             get {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is abstract but it is contained in non-abstract class &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is abstract but it is contained in non-abstract class &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AbstractInConcreteClass {
             get {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The abstract method &apos;{0}&apos; cannot be marked virtual.
+        ///   Looks up a localized string similar to The abstract method &apos;{0}&apos; cannot be marked virtual..
         /// </summary>
         internal static string ERR_AbstractNotVirtual {
             get {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an abstract class cannot be sealed or static.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: an abstract class cannot be sealed or static..
         /// </summary>
         internal static string ERR_AbstractSealedStatic {
             get {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor..
         /// </summary>
         internal static string ERR_AccessModMissingAccessor {
             get {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be added to this assembly because it already is an assembly.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be added to this assembly because it already is an assembly..
         /// </summary>
         internal static string ERR_AddModuleAssembly {
             get {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An add or remove accessor expected.
+        ///   Looks up a localized string similar to An add or remove accessor expected..
         /// </summary>
         internal static string ERR_AddOrRemoveExpected {
             get {
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An add or remove accessor must have a body.
+        ///   Looks up a localized string similar to An add or remove accessor must have a body..
         /// </summary>
         internal static string ERR_AddRemoveMustHaveBody {
             get {
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot take the address of a read-only local variable.
+        ///   Looks up a localized string similar to Cannot take the address of a read-only local variable..
         /// </summary>
         internal static string ERR_AddrOnReadOnlyLocal {
             get {
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid reference alias option: &apos;{0}=&apos; -- missing filename.
+        ///   Looks up a localized string similar to Invalid reference alias option: &apos;{0}=&apos; -- missing filename..
         /// </summary>
         internal static string ERR_AliasMissingFile {
             get {
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Alias &apos;{0}&apos; not found.
+        ///   Looks up a localized string similar to Alias &apos;{0}&apos; not found..
         /// </summary>
         internal static string ERR_AliasNotFound {
             get {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands of type &apos;{1}&apos; and &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands of type &apos;{1}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_AmbigBinaryOps {
             get {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The call is ambiguous between the following methods or properties: &apos;{0}&apos; and &apos;{1}&apos;.
+        ///   Looks up a localized string similar to The call is ambiguous between the following methods or properties: &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AmbigCall {
             get {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is an ambiguous reference between &apos;{1}&apos; and &apos;{2}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is an ambiguous reference between &apos;{1}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_AmbigContext {
             get {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ambiguity between &apos;{0}&apos; and &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Ambiguity between &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AmbigMember {
             get {
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is ambiguous between &apos;{1}&apos; and &apos;{2}&apos;; use either &apos;@{0}&apos; or &apos;{0}Attribute&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is ambiguous between &apos;{1}&apos; and &apos;{2}&apos;; use either &apos;@{0}&apos; or &apos;{0}Attribute&apos;..
         /// </summary>
         internal static string ERR_AmbigousAttribute {
             get {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The inherited members &apos;{0}&apos; and &apos;{1}&apos; have the same signature in type &apos;{2}&apos;, so they cannot be overridden.
+        ///   Looks up a localized string similar to The inherited members &apos;{0}&apos; and &apos;{1}&apos; have the same signature in type &apos;{2}&apos;, so they cannot be overridden..
         /// </summary>
         internal static string ERR_AmbigOverride {
             get {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of conditional expression cannot be determined because &apos;{0}&apos; and &apos;{1}&apos; implicitly convert to one another.
+        ///   Looks up a localized string similar to Type of conditional expression cannot be determined because &apos;{0}&apos; and &apos;{1}&apos; implicitly convert to one another..
         /// </summary>
         internal static string ERR_AmbigQM {
             get {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ambiguous user defined conversions &apos;{0}&apos; and &apos;{1}&apos; when converting from &apos;{2}&apos; to &apos;{3}&apos;.
+        ///   Looks up a localized string similar to Ambiguous user defined conversions &apos;{0}&apos; and &apos;{1}&apos; when converting from &apos;{2}&apos; to &apos;{3}&apos;..
         /// </summary>
         internal static string ERR_AmbigUDConv {
             get {
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on an operand of type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on an operand of type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AmbigUnaryOp {
             get {
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
+        ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression..
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
             get {
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Foreach cannot operate on a &apos;{0}&apos;. Did you intend to invoke the &apos;{0}&apos;?.
+        ///   Looks up a localized string similar to Foreach cannot operate on a &apos;{0}&apos;. Did you intend to invoke the &apos;{0}&apos;?..
         /// </summary>
         internal static string ERR_AnonMethGrpInForEach {
             get {
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert {0} to type &apos;{1}&apos; because it is not a delegate type.
+        ///   Looks up a localized string similar to Cannot convert {0} to type &apos;{1}&apos; because it is not a delegate type..
         /// </summary>
         internal static string ERR_AnonMethToNonDel {
             get {
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An anonymous method expression cannot be converted to an expression tree.
+        ///   Looks up a localized string similar to An anonymous method expression cannot be converted to an expression tree..
         /// </summary>
         internal static string ERR_AnonymousMethodToExpressionTree {
             get {
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not all code paths return a value in {0} of type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Not all code paths return a value in {0} of type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AnonymousReturnExpected {
             get {
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An anonymous type cannot have multiple properties with the same name.
+        ///   Looks up a localized string similar to An anonymous type cannot have multiple properties with the same name..
         /// </summary>
         internal static string ERR_AnonymousTypeDuplicatePropertyName {
             get {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use anonymous type in a constant expression.
+        ///   Looks up a localized string similar to Cannot use anonymous type in a constant expression..
         /// </summary>
         internal static string ERR_AnonymousTypeNotAvailable {
             get {
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to anonymous type property.
+        ///   Looks up a localized string similar to Cannot assign {0} to anonymous type property..
         /// </summary>
         internal static string ERR_AnonymousTypePropertyAssignedBadValue {
             get {
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The __arglist construct is valid only within a variable argument method.
+        ///   Looks up a localized string similar to The __arglist construct is valid only within a variable argument method..
         /// </summary>
         internal static string ERR_ArgsInvalid {
             get {
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Array elements cannot be of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Array elements cannot be of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ArrayElementCantBeRefAny {
             get {
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A nested array initializer is expected.
+        ///   Looks up a localized string similar to A nested array initializer is expected..
         /// </summary>
         internal static string ERR_ArrayInitializerExpected {
             get {
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An array initializer of length &apos;{0}&apos; is expected.
+        ///   Looks up a localized string similar to An array initializer of length &apos;{0}&apos; is expected..
         /// </summary>
         internal static string ERR_ArrayInitializerIncorrectLength {
             get {
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: array elements cannot be of static type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: array elements cannot be of static type..
         /// </summary>
         internal static string ERR_ArrayOfStaticClass {
             get {
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Array size cannot be specified in a variable declaration (try initializing with a &apos;new&apos; expression).
+        ///   Looks up a localized string similar to Array size cannot be specified in a variable declaration (try initializing with a &apos;new&apos; expression)..
         /// </summary>
         internal static string ERR_ArraySizeInDeclaration {
             get {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The as operator must be used with a reference type or nullable type (&apos;{0}&apos; is a non-nullable value type).
+        ///   Looks up a localized string similar to The as operator must be used with a reference type or nullable type (&apos;{0}&apos; is a non-nullable value type)..
         /// </summary>
         internal static string ERR_AsMustHaveReferenceType {
             get {
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly &apos;{0}&apos; with identity &apos;{1}&apos; uses &apos;{2}&apos; which has a higher version than referenced assembly &apos;{3}&apos; with identity &apos;{4}&apos;.
+        ///   Looks up a localized string similar to Assembly &apos;{0}&apos; with identity &apos;{1}&apos; uses &apos;{2}&apos; which has a higher version than referenced assembly &apos;{3}&apos; with identity &apos;{4}&apos;..
         /// </summary>
         internal static string ERR_AssemblyMatchBadVersion {
             get {
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The /moduleassemblyname option may only be specified when building a target type of &apos;module&apos;.
+        ///   Looks up a localized string similar to The /moduleassemblyname option may only be specified when building a target type of &apos;module&apos;..
         /// </summary>
         internal static string ERR_AssemblyNameOnNonModule {
             get {
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The left-hand side of an assignment must be a variable, property or indexer.
+        ///   Looks up a localized string similar to The left-hand side of an assignment must be a variable, property or indexer..
         /// </summary>
         internal static string ERR_AssgLvalueExpected {
             get {
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be assigned to (except in a constructor or a variable initializer).
+        ///   Looks up a localized string similar to A readonly field cannot be assigned to (except in a constructor or a variable initializer)..
         /// </summary>
         internal static string ERR_AssgReadonly {
             get {
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be modified (except in a constructor or a variable initializer).
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be modified (except in a constructor or a variable initializer)..
         /// </summary>
         internal static string ERR_AssgReadonly2 {
             get {
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign to &apos;{0}&apos; because it is read-only.
+        ///   Looks up a localized string similar to Cannot assign to &apos;{0}&apos; because it is read-only..
         /// </summary>
         internal static string ERR_AssgReadonlyLocal {
             get {
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot modify members of &apos;{0}&apos; because it is a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot modify members of &apos;{0}&apos; because it is a &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AssgReadonlyLocal2Cause {
             get {
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign to &apos;{0}&apos; because it is a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot assign to &apos;{0}&apos; because it is a &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_AssgReadonlyLocalCause {
             get {
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property or indexer &apos;{0}&apos; cannot be assigned to -- it is read only.
+        ///   Looks up a localized string similar to Property or indexer &apos;{0}&apos; cannot be assigned to -- it is read only..
         /// </summary>
         internal static string ERR_AssgReadonlyProp {
             get {
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A static readonly field cannot be assigned to (except in a static constructor or a variable initializer).
+        ///   Looks up a localized string similar to A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)..
         /// </summary>
         internal static string ERR_AssgReadonlyStatic {
             get {
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be assigned to (except in a static constructor or a variable initializer).
+        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be assigned to (except in a static constructor or a variable initializer)..
         /// </summary>
         internal static string ERR_AssgReadonlyStatic2 {
             get {
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type parameter &apos;{0}&apos; cannot be used with the &apos;as&apos; operator because it does not have a class type constraint nor a &apos;class&apos; constraint.
+        ///   Looks up a localized string similar to The type parameter &apos;{0}&apos; cannot be used with the &apos;as&apos; operator because it does not have a class type constraint nor a &apos;class&apos; constraint..
         /// </summary>
         internal static string ERR_AsWithTypeVar {
             get {
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an attribute argument cannot use type parameters.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: an attribute argument cannot use type parameters..
         /// </summary>
         internal static string ERR_AttrArgWithTypeVars {
             get {
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot apply attribute class &apos;{0}&apos; because it is generic.
+        ///   Looks up a localized string similar to Cannot apply attribute class &apos;{0}&apos; because it is generic..
         /// </summary>
         internal static string ERR_AttributeCantBeGeneric {
             get {
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is only valid on classes derived from System.Attribute.
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is only valid on classes derived from System.Attribute..
         /// </summary>
         internal static string ERR_AttributeUsageOnNonAttributeClass {
             get {
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await in an unsafe context.
+        ///   Looks up a localized string similar to Cannot await in an unsafe context..
         /// </summary>
         internal static string ERR_AwaitInUnsafeContext {
             get {
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is inaccessible due to its protection level.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is inaccessible due to its protection level..
         /// </summary>
         internal static string ERR_BadAccess {
             get {
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No overload for method &apos;{0}&apos; takes {1} arguments.
+        ///   Looks up a localized string similar to No overload for method &apos;{0}&apos; takes {1} arguments..
         /// </summary>
         internal static string ERR_BadArgCount {
             get {
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument {0} should not be passed with the &apos;{1}&apos; keyword.
+        ///   Looks up a localized string similar to Argument {0} should not be passed with the &apos;{1}&apos; keyword..
         /// </summary>
         internal static string ERR_BadArgExtraRef {
             get {
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument {0} must be passed with the &apos;{1}&apos; keyword.
+        ///   Looks up a localized string similar to Argument {0} must be passed with the &apos;{1}&apos; keyword..
         /// </summary>
         internal static string ERR_BadArgRef {
             get {
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument {0}: cannot convert from &apos;{1}&apos; to &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Argument {0}: cannot convert from &apos;{1}&apos; to &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_BadArgType {
             get {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The best overloaded Add method &apos;{0}&apos; for the collection initializer has some invalid arguments.
+        ///   Looks up a localized string similar to The best overloaded Add method &apos;{0}&apos; for the collection initializer has some invalid arguments..
         /// </summary>
         internal static string ERR_BadArgTypesForCollectionAdd {
             get {
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument to the &apos;{0}&apos; attribute must be a valid identifier.
+        ///   Looks up a localized string similar to The argument to the &apos;{0}&apos; attribute must be a valid identifier..
         /// </summary>
         internal static string ERR_BadArgumentToAttribute {
             get {
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using the generic {1} &apos;{0}&apos; requires {2} type arguments.
+        ///   Looks up a localized string similar to Using the generic {1} &apos;{0}&apos; requires {2} type arguments..
         /// </summary>
         internal static string ERR_BadArity {
             get {
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Array type specifier, [], must appear before parameter name.
+        ///   Looks up a localized string similar to Array type specifier, [], must appear before parameter name..
         /// </summary>
         internal static string ERR_BadArraySyntax {
             get {
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Async methods cannot have ref or out parameters..
         /// </summary>
         internal static string ERR_BadAsyncArgType {
             get {
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async lambda expressions cannot be converted to expression trees.
+        ///   Looks up a localized string similar to Async lambda expressions cannot be converted to expression trees..
         /// </summary>
         internal static string ERR_BadAsyncExpressionTree {
             get {
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type of an async method must be void, Task or Task&lt;T&gt;.
+        ///   Looks up a localized string similar to The return type of an async method must be void, Task or Task&lt;T&gt;..
         /// </summary>
         internal static string ERR_BadAsyncReturn {
             get {
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Since this is an async method, the return expression must be of type &apos;{0}&apos; rather than &apos;Task&lt;{0}&gt;&apos;.
+        ///   Looks up a localized string similar to Since this is an async method, the return expression must be of type &apos;{0}&apos; rather than &apos;Task&lt;{0}&gt;&apos;..
         /// </summary>
         internal static string ERR_BadAsyncReturnExpression {
             get {
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type.
+        ///   Looks up a localized string similar to An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type..
         /// </summary>
         internal static string ERR_BadAttributeArgument {
             get {
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attribute constructor parameter &apos;{0}&apos; has type &apos;{1}&apos;, which is not a valid attribute parameter type.
+        ///   Looks up a localized string similar to Attribute constructor parameter &apos;{0}&apos; has type &apos;{1}&apos;, which is not a valid attribute parameter type..
         /// </summary>
         internal static string ERR_BadAttributeParamType {
             get {
@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the type {0} have a suitable GetAwaiter method.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the type {0} have a suitable GetAwaiter method..
         /// </summary>
         internal static string ERR_BadAwaitArg {
             get {
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the type &apos;{0}&apos; have a suitable GetAwaiter method. Are you missing a using directive for &apos;System&apos;?.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the type &apos;{0}&apos; have a suitable GetAwaiter method. Are you missing a using directive for &apos;System&apos;?..
         /// </summary>
         internal static string ERR_BadAwaitArg_NeedSystem {
             get {
@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot await &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadAwaitArgIntrinsic {
             get {
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await &apos;void&apos;.
+        ///   Looks up a localized string similar to Cannot await &apos;void&apos;..
         /// </summary>
         internal static string ERR_BadAwaitArgVoidCall {
             get {
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; cannot be used as an identifier within an async method or lambda expression.
+        ///   Looks up a localized string similar to &apos;await&apos; cannot be used as an identifier within an async method or lambda expression..
         /// </summary>
         internal static string ERR_BadAwaitAsIdentifier {
             get {
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the return type &apos;{0}&apos; of &apos;{1}.GetAwaiter()&apos; have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the return type &apos;{0}&apos; of &apos;{1}.GetAwaiter()&apos; have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion..
         /// </summary>
         internal static string ERR_BadAwaiterPattern {
             get {
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await in a catch clause.
+        ///   Looks up a localized string similar to Cannot await in a catch clause..
         /// </summary>
         internal static string ERR_BadAwaitInCatch {
             get {
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await in the filter expression of a catch clause.
+        ///   Looks up a localized string similar to Cannot await in the filter expression of a catch clause..
         /// </summary>
         internal static string ERR_BadAwaitInCatchFilter {
             get {
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await in the body of a finally clause.
+        ///   Looks up a localized string similar to Cannot await in the body of a finally clause..
         /// </summary>
         internal static string ERR_BadAwaitInFinally {
             get {
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot await in the body of a lock statement.
+        ///   Looks up a localized string similar to Cannot await in the body of a lock statement..
         /// </summary>
         internal static string ERR_BadAwaitInLock {
             get {
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;await&apos; operator may only be used in a query expression within the first collection expression of the initial &apos;from&apos; clause or within the collection expression of a &apos;join&apos; clause.
+        ///   Looks up a localized string similar to The &apos;await&apos; operator may only be used in a query expression within the first collection expression of the initial &apos;from&apos; clause or within the collection expression of a &apos;join&apos; clause..
         /// </summary>
         internal static string ERR_BadAwaitInQuery {
             get {
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;await&apos; operator can only be used when contained within a method or lambda expression marked with the &apos;async&apos; modifier.
+        ///   Looks up a localized string similar to The &apos;await&apos; operator can only be used when contained within a method or lambda expression marked with the &apos;async&apos; modifier..
         /// </summary>
         internal static string ERR_BadAwaitWithoutAsync {
             get {
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid image base number &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Invalid image base number &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadBaseNumber {
             get {
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid base type.
+        ///   Looks up a localized string similar to Invalid base type..
         /// </summary>
         internal static string ERR_BadBaseType {
             get {
@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One of the parameters of a binary operator must be the containing type.
+        ///   Looks up a localized string similar to One of the parameters of a binary operator must be the containing type..
         /// </summary>
         internal static string ERR_BadBinaryOperatorSignature {
             get {
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operands of type &apos;{1}&apos; and &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operands of type &apos;{1}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_BadBinaryOps {
             get {
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overloaded binary operator &apos;{0}&apos; takes two parameters.
+        ///   Looks up a localized string similar to Overloaded binary operator &apos;{0}&apos; takes two parameters..
         /// </summary>
         internal static string ERR_BadBinOpArgs {
             get {
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In order to be applicable as a short circuit operator a user-defined logical operator (&apos;{0}&apos;) must have the same return type and parameter types.
+        ///   Looks up a localized string similar to In order to be applicable as a short circuit operator a user-defined logical operator (&apos;{0}&apos;) must have the same return type and parameter types..
         /// </summary>
         internal static string ERR_BadBoolOp {
             get {
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CallerFilePathAttribute may only be applied to parameters with default values.
+        ///   Looks up a localized string similar to The CallerFilePathAttribute may only be applied to parameters with default values..
         /// </summary>
         internal static string ERR_BadCallerFilePathParamWithoutDefaultValue {
             get {
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CallerLineNumberAttribute may only be applied to parameters with default values.
+        ///   Looks up a localized string similar to The CallerLineNumberAttribute may only be applied to parameters with default values..
         /// </summary>
         internal static string ERR_BadCallerLineNumberParamWithoutDefaultValue {
             get {
@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CallerMemberNameAttribute may only be applied to parameters with default values.
+        ///   Looks up a localized string similar to The CallerMemberNameAttribute may only be applied to parameters with default values..
         /// </summary>
         internal static string ERR_BadCallerMemberNameParamWithoutDefaultValue {
             get {
@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The right hand side of a fixed statement assignment may not be a cast expression.
+        ///   Looks up a localized string similar to The right hand side of a fixed statement assignment may not be a cast expression..
         /// </summary>
         internal static string ERR_BadCastInFixed {
             get {
@@ -1169,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The managed coclass wrapper class signature &apos;{0}&apos; for interface &apos;{1}&apos; is not a valid class name signature.
+        ///   Looks up a localized string similar to The managed coclass wrapper class signature &apos;{0}&apos; for interface &apos;{1}&apos; is not a valid class name signature..
         /// </summary>
         internal static string ERR_BadCoClassSig {
             get {
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}.
+        ///   Looks up a localized string similar to {0}..
         /// </summary>
         internal static string ERR_BadCompilationOption {
             get {
@@ -1214,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be declared const.
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be declared const..
         /// </summary>
         internal static string ERR_BadConstType {
             get {
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a constructor that takes {1} arguments.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a constructor that takes {1} arguments..
         /// </summary>
         internal static string ERR_BadCtorArgCount {
             get {
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /debug; must be full or pdbonly.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /debug; must be full or pdbonly..
         /// </summary>
         internal static string ERR_BadDebugType {
             get {
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delegate &apos;{0}&apos; does not take {1} arguments.
+        ///   Looks up a localized string similar to Delegate &apos;{0}&apos; does not take {1} arguments..
         /// </summary>
         internal static string ERR_BadDelArgCount {
             get {
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The delegate &apos;{0}&apos; does not have a valid constructor.
+        ///   Looks up a localized string similar to The delegate &apos;{0}&apos; does not have a valid constructor..
         /// </summary>
         internal static string ERR_BadDelegateConstructor {
             get {
@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Control cannot leave the body of an anonymous method or lambda expression.
+        ///   Looks up a localized string similar to Control cannot leave the body of an anonymous method or lambda expression..
         /// </summary>
         internal static string ERR_BadDelegateLeave {
             get {
@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name of destructor must match name of class.
+        ///   Looks up a localized string similar to Name of destructor must match name of class..
         /// </summary>
         internal static string ERR_BadDestructorName {
             get {
@@ -1277,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preprocessor directives must appear as the first non-whitespace character on a line.
+        ///   Looks up a localized string similar to Preprocessor directives must appear as the first non-whitespace character on a line..
         /// </summary>
         internal static string ERR_BadDirectivePlacement {
             get {
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from the dynamic type are not allowed.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from the dynamic type are not allowed..
         /// </summary>
         internal static string ERR_BadDynamicConversion {
             get {
@@ -1313,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?.
+        ///   Looks up a localized string similar to Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?..
         /// </summary>
         internal static string ERR_BadDynamicMethodArgMemgrp {
             get {
@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Query expressions over source type &apos;dynamic&apos; or with a join sequence of type &apos;dynamic&apos; are not allowed.
+        ///   Looks up a localized string similar to Query expressions over source type &apos;dynamic&apos; or with a join sequence of type &apos;dynamic&apos; are not allowed..
         /// </summary>
         internal static string ERR_BadDynamicQuery {
             get {
@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The typeof operator cannot be used on the dynamic type.
+        ///   Looks up a localized string similar to The typeof operator cannot be used on the dynamic type..
         /// </summary>
         internal static string ERR_BadDynamicTypeof {
             get {
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Embedded statement cannot be a declaration or labeled statement.
+        ///   Looks up a localized string similar to Embedded statement cannot be a declaration or labeled statement..
         /// </summary>
         internal static string ERR_BadEmbeddedStmt {
             get {
@@ -1349,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A throw statement with no arguments is not allowed outside of a catch clause.
+        ///   Looks up a localized string similar to A throw statement with no arguments is not allowed outside of a catch clause..
         /// </summary>
         internal static string ERR_BadEmptyThrow {
             get {
@@ -1358,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause.
+        ///   Looks up a localized string similar to A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause..
         /// </summary>
         internal static string ERR_BadEmptyThrowInFinally {
             get {
@@ -1367,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The event &apos;{0}&apos; can only appear on the left hand side of += or -= (except when used from within the type &apos;{1}&apos;).
+        ///   Looks up a localized string similar to The event &apos;{0}&apos; can only appear on the left hand side of += or -= (except when used from within the type &apos;{1}&apos;)..
         /// </summary>
         internal static string ERR_BadEventUsage {
             get {
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The event &apos;{0}&apos; can only appear on the left hand side of += or -=.
+        ///   Looks up a localized string similar to The event &apos;{0}&apos; can only appear on the left hand side of += or -=..
         /// </summary>
         internal static string ERR_BadEventUsageNoField {
             get {
@@ -1385,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type caught or thrown must be derived from System.Exception.
+        ///   Looks up a localized string similar to The type caught or thrown must be derived from System.Exception..
         /// </summary>
         internal static string ERR_BadExceptionType {
             get {
@@ -1394,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extension method must be defined in a non-generic static class.
+        ///   Looks up a localized string similar to Extension method must be defined in a non-generic static class..
         /// </summary>
         internal static string ERR_BadExtensionAgg {
             get {
@@ -1403,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and the best extension method overload &apos;{2}&apos; has some invalid arguments.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and the best extension method overload &apos;{2}&apos; has some invalid arguments..
         /// </summary>
         internal static string ERR_BadExtensionArgTypes {
             get {
@@ -1412,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extension method must be static.
+        ///   Looks up a localized string similar to Extension method must be static..
         /// </summary>
         internal static string ERR_BadExtensionMeth {
             get {
@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The extern alias &apos;{0}&apos; was not specified in a /reference option.
+        ///   Looks up a localized string similar to The extern alias &apos;{0}&apos; was not specified in a /reference option..
         /// </summary>
         internal static string ERR_BadExternAlias {
             get {
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid extern alias for &apos;/reference&apos;; &apos;{0}&apos; is not a valid identifier.
+        ///   Looks up a localized string similar to Invalid extern alias for &apos;/reference&apos;; &apos;{0}&apos; is not a valid identifier..
         /// </summary>
         internal static string ERR_BadExternIdentifier {
             get {
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Control cannot leave the body of a finally clause.
+        ///   Looks up a localized string similar to Control cannot leave the body of a finally clause..
         /// </summary>
         internal static string ERR_BadFinallyLeave {
             get {
@@ -1448,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type of a local declared in a fixed statement must be a pointer type.
+        ///   Looks up a localized string similar to The type of a local declared in a fixed statement must be a pointer type..
         /// </summary>
         internal static string ERR_BadFixedInitType {
             get {
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type and identifier are both required in a foreach statement.
+        ///   Looks up a localized string similar to Type and identifier are both required in a foreach statement..
         /// </summary>
         internal static string ERR_BadForeachDecl {
             get {
@@ -1466,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public MoveNext method and public Current property.
+        ///   Looks up a localized string similar to foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public MoveNext method and public Current property..
         /// </summary>
         internal static string ERR_BadGetEnumerator {
             get {
@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type for ++ or -- operator must match the parameter type or be derived from the parameter type.
+        ///   Looks up a localized string similar to The return type for ++ or -- operator must match the parameter type or be derived from the parameter type..
         /// </summary>
         internal static string ERR_BadIncDecRetType {
             get {
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter type for ++ or -- operator must be the containing type.
+        ///   Looks up a localized string similar to The parameter type for ++ or -- operator must be the containing type..
         /// </summary>
         internal static string ERR_BadIncDecSignature {
             get {
@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrong number of indices inside []; expected {0}.
+        ///   Looks up a localized string similar to Wrong number of indices inside []; expected {0}..
         /// </summary>
         internal static string ERR_BadIndexCount {
             get {
@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;{0}&apos; attribute is valid only on an indexer that is not an explicit interface member declaration.
+        ///   Looks up a localized string similar to The &apos;{0}&apos; attribute is valid only on an indexer that is not an explicit interface member declaration..
         /// </summary>
         internal static string ERR_BadIndexerNameAttr {
             get {
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot apply indexing with [] to an expression of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot apply indexing with [] to an expression of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadIndexLHS {
             get {
@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and the best extension method overload &apos;{2}&apos; requires a receiver of type &apos;{3}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and the best extension method overload &apos;{2}&apos; requires a receiver of type &apos;{3}&apos;..
         /// </summary>
         internal static string ERR_BadInstanceArgType {
             get {
@@ -1529,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Iterators cannot have ref or out parameters..
         /// </summary>
         internal static string ERR_BadIteratorArgType {
             get {
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The body of &apos;{0}&apos; cannot be an iterator block because &apos;{1}&apos; is not an iterator interface type.
+        ///   Looks up a localized string similar to The body of &apos;{0}&apos; cannot be an iterator block because &apos;{1}&apos; is not an iterator interface type..
         /// </summary>
         internal static string ERR_BadIteratorReturn {
             get {
@@ -1547,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item.
+        ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item..
         /// </summary>
         internal static string ERR_BadMemberFlag {
             get {
@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More than one protection modifier.
+        ///   Looks up a localized string similar to More than one protection modifier..
         /// </summary>
         internal static string ERR_BadMemberProtection {
             get {
@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Member modifier &apos;{0}&apos; must precede the member type and name.
+        ///   Looks up a localized string similar to Member modifier &apos;{0}&apos; must precede the member type and name..
         /// </summary>
         internal static string ERR_BadModifierLocation {
             get {
@@ -1574,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A namespace declaration cannot have modifiers or attributes.
+        ///   Looks up a localized string similar to A namespace declaration cannot have modifiers or attributes..
         /// </summary>
         internal static string ERR_BadModifiersOnNamespace {
             get {
@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The best overload for &apos;{0}&apos; does not have a parameter named &apos;{1}&apos;.
+        ///   Looks up a localized string similar to The best overload for &apos;{0}&apos; does not have a parameter named &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_BadNamedArgument {
             get {
@@ -1592,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The delegate &apos;{0}&apos; does not have a parameter named &apos;{1}&apos;.
+        ///   Looks up a localized string similar to The delegate &apos;{0}&apos; does not have a parameter named &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_BadNamedArgumentForDelegateInvoke {
             get {
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid named attribute argument because it is not a valid attribute parameter type.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid named attribute argument because it is not a valid attribute parameter type..
         /// </summary>
         internal static string ERR_BadNamedAttributeArgumentType {
             get {
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A new expression requires (), [], or {} after type.
+        ///   Looks up a localized string similar to A new expression requires (), [], or {} after type..
         /// </summary>
         internal static string ERR_BadNewExpr {
             get {
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead.
+        ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead..
         /// </summary>
         internal static string ERR_BadOperatorSyntax {
             get {
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  The parameter modifier &apos;out&apos; cannot be used with &apos;this&apos; .
+        ///   Looks up a localized string similar to The parameter modifier &apos;out&apos; cannot be used with &apos;this&apos;..
         /// </summary>
         internal static string ERR_BadOutWithThis {
             get {
@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter {0} should not be declared with the &apos;{1}&apos; keyword.
+        ///   Looks up a localized string similar to Parameter {0} should not be declared with the &apos;{1}&apos; keyword..
         /// </summary>
         internal static string ERR_BadParamExtraRef {
             get {
@@ -1655,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A parameter array cannot be used with &apos;this&apos; modifier on an extension method.
+        ///   Looks up a localized string similar to A parameter array cannot be used with &apos;this&apos; modifier on an extension method..
         /// </summary>
         internal static string ERR_BadParamModThis {
             get {
@@ -1664,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter {0} must be declared with the &apos;{1}&apos; keyword.
+        ///   Looks up a localized string similar to Parameter {0} must be declared with the &apos;{1}&apos; keyword..
         /// </summary>
         internal static string ERR_BadParamRef {
             get {
@@ -1673,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter {0} is declared as type &apos;{1}{2}&apos; but should be &apos;{3}{4}&apos;.
+        ///   Looks up a localized string similar to Parameter {0} is declared as type &apos;{1}{2}&apos; but should be &apos;{3}{4}&apos;..
         /// </summary>
         internal static string ERR_BadParamType {
             get {
@@ -1682,7 +1682,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64..
         /// </summary>
         internal static string ERR_BadPlatformType {
             get {
@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /platform:anycpu32bitpreferred can only be used with /t:exe, /t:winexe and /t:appcontainerexe.
+        ///   Looks up a localized string similar to /platform:anycpu32bitpreferred can only be used with /t:exe, /t:winexe and /t:appcontainerexe..
         /// </summary>
         internal static string ERR_BadPrefer32OnLib {
             get {
@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot access protected member &apos;{0}&apos; via a qualifier of type &apos;{1}&apos;; the qualifier must be of type &apos;{2}&apos; (or derived from it).
+        ///   Looks up a localized string similar to Cannot access protected member &apos;{0}&apos; via a qualifier of type &apos;{1}&apos;; the qualifier must be of type &apos;{2}&apos; (or derived from it)..
         /// </summary>
         internal static string ERR_BadProtectedAccess {
             get {
@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  The parameter modifier &apos;ref&apos; cannot be used with &apos;this&apos; .
+        ///   Looks up a localized string similar to The parameter modifier &apos;ref&apos; cannot be used with &apos;this&apos;..
         /// </summary>
         internal static string ERR_BadRefWithThis {
             get {
@@ -1718,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos;; Resource visibility must be either &apos;public&apos; or &apos;private&apos;.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos;; Resource visibility must be either &apos;public&apos; or &apos;private&apos;..
         /// </summary>
         internal static string ERR_BadResourceVis {
             get {
@@ -1727,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{1} {0}&apos; has the wrong return type.
+        ///   Looks up a localized string similar to &apos;{1} {0}&apos; has the wrong return type..
         /// </summary>
         internal static string ERR_BadRetType {
             get {
@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int.
+        ///   Looks up a localized string similar to The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int..
         /// </summary>
         internal static string ERR_BadShiftOperatorSignature {
             get {
@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a {1} but is used like a {2}.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a {1} but is used like a {2}..
         /// </summary>
         internal static string ERR_BadSKknown {
             get {
@@ -1754,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a {1}, which is not valid in the given context.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a {1}, which is not valid in the given context..
         /// </summary>
         internal static string ERR_BadSKunknown {
             get {
@@ -1772,7 +1772,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A stackalloc expression requires [] after type.
+        ///   Looks up a localized string similar to A stackalloc expression requires [] after type..
         /// </summary>
         internal static string ERR_BadStackAllocExpr {
             get {
@@ -1781,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unrecognized option: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Unrecognized option: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadSwitch {
             get {
@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Method &apos;{0}&apos; has a parameter modifier &apos;this&apos; which is not on the first parameter.
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; has a parameter modifier &apos;this&apos; which is not on the first parameter..
         /// </summary>
         internal static string ERR_BadThisParam {
             get {
@@ -1799,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as a type argument.
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; may not be used as a type argument..
         /// </summary>
         internal static string ERR_BadTypeArgument {
             get {
@@ -1808,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first parameter of an extension method cannot be of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The first parameter of an extension method cannot be of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadTypeforThis {
             get {
@@ -1817,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot reference a type through an expression; try &apos;{1}&apos; instead.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot reference a type through an expression; try &apos;{1}&apos; instead..
         /// </summary>
         internal static string ERR_BadTypeReference {
             get {
@@ -1826,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand of type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand of type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_BadUnaryOp {
             get {
@@ -1835,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter of a unary operator must be the containing type.
+        ///   Looks up a localized string similar to The parameter of a unary operator must be the containing type..
         /// </summary>
         internal static string ERR_BadUnaryOperatorSignature {
             get {
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overloaded unary operator &apos;{0}&apos; takes one parameter.
+        ///   Looks up a localized string similar to Overloaded unary operator &apos;{0}&apos; takes one parameter..
         /// </summary>
         internal static string ERR_BadUnOpArgs {
             get {
@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A &apos;using namespace&apos; directive can only be applied to namespaces; &apos;{0}&apos; is a type not a namespace. Consider a &apos;using static&apos; directive instead.
+        ///   Looks up a localized string similar to A &apos;using namespace&apos; directive can only be applied to namespaces; &apos;{0}&apos; is a type not a namespace. Consider a &apos;using static&apos; directive instead..
         /// </summary>
         internal static string ERR_BadUsingNamespace {
             get {
@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A &apos;using static&apos; directive can only be applied to types; &apos;{0}&apos; is a namespace not a type. Consider a &apos;using namespace&apos; directive instead.
+        ///   Looks up a localized string similar to A &apos;using static&apos; directive can only be applied to types; &apos;{0}&apos; is a namespace not a type. Consider a &apos;using namespace&apos; directive instead..
         /// </summary>
         internal static string ERR_BadUsingType {
             get {
@@ -1871,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A method with vararg cannot be generic, be in a generic type, or have a params parameter.
+        ///   Looks up a localized string similar to A method with vararg cannot be generic, be in a generic type, or have a params parameter..
         /// </summary>
         internal static string ERR_BadVarargs {
             get {
@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected ; or = (cannot specify constructor arguments in declaration).
+        ///   Looks up a localized string similar to Expected ; or = (cannot specify constructor arguments in declaration)..
         /// </summary>
         internal static string ERR_BadVarDecl {
             get {
@@ -1889,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: base class &apos;{1}&apos; is less accessible than class &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: base class &apos;{1}&apos; is less accessible than class &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisBaseClass {
             get {
@@ -1898,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: base interface &apos;{1}&apos; is less accessible than interface &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: base interface &apos;{1}&apos; is less accessible than interface &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisBaseInterface {
             get {
@@ -1907,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: constraint type &apos;{1}&apos; is less accessible than &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: constraint type &apos;{1}&apos; is less accessible than &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisBound {
             get {
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than delegate &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than delegate &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisDelegateParam {
             get {
@@ -1925,7 +1925,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: return type &apos;{1}&apos; is less accessible than delegate &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: return type &apos;{1}&apos; is less accessible than delegate &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisDelegateReturn {
             get {
@@ -1934,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: event type &apos;{1}&apos; is less accessible than event &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: event type &apos;{1}&apos; is less accessible than event &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisEventType {
             get {
@@ -1943,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: field type &apos;{1}&apos; is less accessible than field &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: field type &apos;{1}&apos; is less accessible than field &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisFieldType {
             get {
@@ -1952,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than indexer &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than indexer &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisIndexerParam {
             get {
@@ -1961,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: indexer return type &apos;{1}&apos; is less accessible than indexer &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: indexer return type &apos;{1}&apos; is less accessible than indexer &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisIndexerReturn {
             get {
@@ -1970,7 +1970,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than operator &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than operator &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisOpParam {
             get {
@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: return type &apos;{1}&apos; is less accessible than operator &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: return type &apos;{1}&apos; is less accessible than operator &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisOpReturn {
             get {
@@ -1988,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: parameter type &apos;{1}&apos; is less accessible than method &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisParamType {
             get {
@@ -1997,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: property type &apos;{1}&apos; is less accessible than property &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: property type &apos;{1}&apos; is less accessible than property &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisPropertyType {
             get {
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent accessibility: return type &apos;{1}&apos; is less accessible than method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inconsistent accessibility: return type &apos;{1}&apos; is less accessible than method &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadVisReturnType {
             get {
@@ -2015,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning level must be in the range 0-4.
+        ///   Looks up a localized string similar to Warning level must be in the range 0-4..
         /// </summary>
         internal static string ERR_BadWarningLevel {
             get {
@@ -2024,7 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error reading Win32 resources -- {0}.
+        ///   Looks up a localized string similar to Error reading Win32 resources -- {0}..
         /// </summary>
         internal static string ERR_BadWin32Res {
             get {
@@ -2033,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot yield a value in the body of a catch clause.
+        ///   Looks up a localized string similar to Cannot yield a value in the body of a catch clause..
         /// </summary>
         internal static string ERR_BadYieldInCatch {
             get {
@@ -2042,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot yield in the body of a finally clause.
+        ///   Looks up a localized string similar to Cannot yield in the body of a finally clause..
         /// </summary>
         internal static string ERR_BadYieldInFinally {
             get {
@@ -2051,7 +2051,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot yield a value in the body of a try block with a catch clause.
+        ///   Looks up a localized string similar to Cannot yield a value in the body of a try block with a catch clause..
         /// </summary>
         internal static string ERR_BadYieldInTryOfCatch {
             get {
@@ -2060,7 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Base class &apos;{0}&apos; must come before any interfaces.
+        ///   Looks up a localized string similar to Base class &apos;{0}&apos; must come before any interfaces..
         /// </summary>
         internal static string ERR_BaseClassMustBeFirst {
             get {
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; inherits conflicting constraints &apos;{1}&apos; and &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; inherits conflicting constraints &apos;{1}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_BaseConstraintConflict {
             get {
@@ -2078,7 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of keyword &apos;base&apos; is not valid in this context.
+        ///   Looks up a localized string similar to Use of keyword &apos;base&apos; is not valid in this context..
         /// </summary>
         internal static string ERR_BaseIllegal {
             get {
@@ -2087,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword &apos;base&apos; is not available in the current context.
+        ///   Looks up a localized string similar to Keyword &apos;base&apos; is not available in the current context..
         /// </summary>
         internal static string ERR_BaseInBadContext {
             get {
@@ -2096,7 +2096,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword &apos;base&apos; is not available in a static method.
+        ///   Looks up a localized string similar to Keyword &apos;base&apos; is not available in a static method..
         /// </summary>
         internal static string ERR_BaseInStaticMeth {
             get {
@@ -2105,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a binary file instead of a text file.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a binary file instead of a text file..
         /// </summary>
         internal static string ERR_BinaryFile {
             get {
@@ -2114,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not supported by the language.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not supported by the language..
         /// </summary>
         internal static string ERR_BindToBogus {
             get {
@@ -2123,7 +2123,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property, indexer, or event &apos;{0}&apos; is not supported by the language; try directly calling accessor method &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Property, indexer, or event &apos;{0}&apos; is not supported by the language; try directly calling accessor method &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_BindToBogusProp1 {
             get {
@@ -2132,7 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property, indexer, or event &apos;{0}&apos; is not supported by the language; try directly calling accessor methods &apos;{1}&apos; or &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Property, indexer, or event &apos;{0}&apos; is not supported by the language; try directly calling accessor methods &apos;{1}&apos; or &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_BindToBogusProp2 {
             get {
@@ -2150,7 +2150,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement &apos;{1}&apos; because it is not supported by the language.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement &apos;{1}&apos; because it is not supported by the language..
         /// </summary>
         internal static string ERR_BogusExplicitImpl {
             get {
@@ -2159,7 +2159,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a type not supported by the language.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a type not supported by the language..
         /// </summary>
         internal static string ERR_BogusType {
             get {
@@ -2168,7 +2168,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain an out or ref parameter.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain an out or ref parameter..
         /// </summary>
         internal static string ERR_ByRefParameterInExpressionTree {
             get {
@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing the type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing the type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ByRefTypeAndAwait {
             get {
@@ -2213,7 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
+        ///   Looks up a localized string similar to Cannot pass null for friend assembly name..
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {
             get {
@@ -2222,7 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot explicitly call operator or accessor.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot explicitly call operator or accessor..
         /// </summary>
         internal static string ERR_CantCallSpecialMethod {
             get {
@@ -2231,7 +2231,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot change access modifiers when overriding &apos;{1}&apos; inherited member &apos;{2}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot change access modifiers when overriding &apos;{1}&apos; inherited member &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_CantChangeAccessOnOverride {
             get {
@@ -2240,7 +2240,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: return type must be &apos;{2}&apos; to match overridden member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: return type must be &apos;{2}&apos; to match overridden member &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantChangeReturnTypeOnOverride {
             get {
@@ -2249,7 +2249,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type must be &apos;{2}&apos; to match overridden member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type must be &apos;{2}&apos; to match overridden member &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantChangeTypeOnOverride {
             get {
@@ -2258,7 +2258,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert anonymous method block without a parameter list to delegate type &apos;{0}&apos; because it has one or more out parameters.
+        ///   Looks up a localized string similar to Cannot convert anonymous method block without a parameter list to delegate type &apos;{0}&apos; because it has one or more out parameters..
         /// </summary>
         internal static string ERR_CantConvAnonMethNoParams {
             get {
@@ -2267,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert {0} to delegate type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
+        ///   Looks up a localized string similar to Cannot convert {0} to delegate type &apos;{1}&apos; because the parameter types do not match the delegate parameter types..
         /// </summary>
         internal static string ERR_CantConvAnonMethParams {
             get {
@@ -2276,7 +2276,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        ///   Looks up a localized string similar to Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type..
         /// </summary>
         internal static string ERR_CantConvAnonMethReturns {
             get {
@@ -2294,7 +2294,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot derive from sealed type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot derive from sealed type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantDeriveFromSealedType {
             get {
@@ -2303,7 +2303,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conflicting options specified: Win32 resource file; Win32 icon.
+        ///   Looks up a localized string similar to Conflicting options specified: Win32 resource file; Win32 icon..
         /// </summary>
         internal static string ERR_CantHaveWin32ResAndIcon {
             get {
@@ -2312,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conflicting options specified: Win32 resource file; Win32 manifest.
+        ///   Looks up a localized string similar to Conflicting options specified: Win32 resource file; Win32 manifest..
         /// </summary>
         internal static string ERR_CantHaveWin32ResAndManifest {
             get {
@@ -2330,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create temporary file -- {0}.
+        ///   Looks up a localized string similar to Cannot create temporary file -- {0}..
         /// </summary>
         internal static string ERR_CantMakeTempFile {
             get {
@@ -2339,7 +2339,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot open &apos;{0}&apos; for writing -- &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot open &apos;{0}&apos; for writing -- &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantOpenFileWrite {
             get {
@@ -2348,7 +2348,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error opening icon file {0} -- {1}.
+        ///   Looks up a localized string similar to Error opening icon file {0} -- {1}..
         /// </summary>
         internal static string ERR_CantOpenIcon {
             get {
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error opening Win32 manifest file {0} -- {1}.
+        ///   Looks up a localized string similar to Error opening Win32 manifest file {0} -- {1}..
         /// </summary>
         internal static string ERR_CantOpenWin32Manifest {
             get {
@@ -2366,7 +2366,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error opening Win32 resource file &apos;{0}&apos; -- &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Error opening Win32 resource file &apos;{0}&apos; -- &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantOpenWin32Res {
             get {
@@ -2375,7 +2375,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override &apos;{1}&apos; because it is not supported by the language.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override &apos;{1}&apos; because it is not supported by the language..
         /// </summary>
         internal static string ERR_CantOverrideBogusMethod {
             get {
@@ -2384,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override; &apos;{1}&apos; is not an event.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override; &apos;{1}&apos; is not an event..
         /// </summary>
         internal static string ERR_CantOverrideNonEvent {
             get {
@@ -2393,7 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; is not a function.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; is not a function..
         /// </summary>
         internal static string ERR_CantOverrideNonFunction {
             get {
@@ -2402,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; is not a property.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; is not a property..
         /// </summary>
         internal static string ERR_CantOverrideNonProperty {
             get {
@@ -2411,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override inherited member &apos;{1}&apos; because it is not marked virtual, abstract, or override.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override inherited member &apos;{1}&apos; because it is not marked virtual, abstract, or override..
         /// </summary>
         internal static string ERR_CantOverrideNonVirtual {
             get {
@@ -2420,7 +2420,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override inherited member &apos;{1}&apos; because it is sealed.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override inherited member &apos;{1}&apos; because it is sealed..
         /// </summary>
         internal static string ERR_CantOverrideSealed {
             get {
@@ -2429,7 +2429,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot read config file &apos;{0}&apos; -- &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot read config file &apos;{0}&apos; -- &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantReadConfigFile {
             get {
@@ -2438,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error reading resource &apos;{0}&apos; -- &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Error reading resource &apos;{0}&apos; -- &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantReadResource {
             get {
@@ -2447,7 +2447,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error reading ruleset file {0} - {1}.
+        ///   Looks up a localized string similar to Error reading ruleset file {0} - {1}..
         /// </summary>
         internal static string ERR_CantReadRulesetFile {
             get {
@@ -2456,7 +2456,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot link resource files when building a module.
+        ///   Looks up a localized string similar to Cannot link resource files when building a module..
         /// </summary>
         internal static string ERR_CantRefResource {
             get {
@@ -2465,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return an expression of type &apos;void&apos;.
+        ///   Looks up a localized string similar to Cannot return an expression of type &apos;void&apos;..
         /// </summary>
         internal static string ERR_CantReturnVoid {
             get {
@@ -2474,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error reading Win32 manifest file &apos;{0}&apos; -- &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Error reading Win32 manifest file &apos;{0}&apos; -- &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CantSetWin32Manifest {
             get {
@@ -2483,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The RequiredAttribute attribute is not permitted on C# types.
+        ///   Looks up a localized string similar to The RequiredAttribute attribute is not permitted on C# types..
         /// </summary>
         internal static string ERR_CantUseRequiredAttribute {
             get {
@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The operation overflows at compile time in checked mode.
+        ///   Looks up a localized string similar to The operation overflows at compile time in checked mode..
         /// </summary>
         internal static string ERR_CheckedOverflow {
             get {
@@ -2501,7 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The evaluation of the constant value for &apos;{0}&apos; involves a circular definition.
+        ///   Looks up a localized string similar to The evaluation of the constant value for &apos;{0}&apos; involves a circular definition..
         /// </summary>
         internal static string ERR_CircConstValue {
             get {
@@ -2510,7 +2510,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Circular base class dependency involving &apos;{0}&apos; and &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Circular base class dependency involving &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CircularBase {
             get {
@@ -2519,7 +2519,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Circular constraint dependency involving &apos;{0}&apos; and &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Circular constraint dependency involving &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_CircularConstraint {
             get {
@@ -2528,7 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The class type constraint &apos;{0}&apos; must come before any other constraints.
+        ///   Looks up a localized string similar to The class type constraint &apos;{0}&apos; must come before any other constraints..
         /// </summary>
         internal static string ERR_ClassBoundNotFirst {
             get {
@@ -2537,7 +2537,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: containing type does not implement interface &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: containing type does not implement interface &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ClassDoesntImplementInterface {
             get {
@@ -2546,7 +2546,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An object, string, or class type expected.
+        ///   Looks up a localized string similar to An object, string, or class type expected..
         /// </summary>
         internal static string ERR_ClassTypeExpected {
             get {
@@ -2555,7 +2555,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ) expected.
+        ///   Looks up a localized string similar to ) expected..
         /// </summary>
         internal static string ERR_CloseParenExpected {
             get {
@@ -2609,7 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot initialize type &apos;{0}&apos; with a collection initializer because it does not implement &apos;System.Collections.IEnumerable&apos;.
+        ///   Looks up a localized string similar to Cannot initialize type &apos;{0}&apos; with a collection initializer because it does not implement &apos;System.Collections.IEnumerable&apos;..
         /// </summary>
         internal static string ERR_CollectionInitRequiresIEnumerable {
             get {
@@ -2618,7 +2618,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a class with the ComImport attribute cannot specify a base class.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a class with the ComImport attribute cannot specify a base class..
         /// </summary>
         internal static string ERR_ComImportWithBase {
             get {
@@ -2627,7 +2627,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Since &apos;{1}&apos; has the ComImport attribute, &apos;{0}&apos; must be extern or abstract.
+        ///   Looks up a localized string similar to Since &apos;{1}&apos; has the ComImport attribute, &apos;{0}&apos; must be extern or abstract..
         /// </summary>
         internal static string ERR_ComImportWithImpl {
             get {
@@ -2645,7 +2645,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Guid attribute must be specified with the ComImport attribute.
+        ///   Looks up a localized string similar to The Guid attribute must be specified with the ComImport attribute..
         /// </summary>
         internal static string ERR_ComImportWithoutUuidAttribute {
             get {
@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A class with the ComImport attribute cannot have a user-defined constructor.
+        ///   Looks up a localized string similar to A class with the ComImport attribute cannot have a user-defined constructor..
         /// </summary>
         internal static string ERR_ComImportWithUserCtor {
             get {
@@ -2663,7 +2663,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compilation cancelled by user.
+        ///   Looks up a localized string similar to Compilation cancelled by user..
         /// </summary>
         internal static string ERR_CompileCancelled {
             get {
@@ -2672,7 +2672,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a COM call with ref omitted on arguments.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a COM call with ref omitted on arguments..
         /// </summary>
         internal static string ERR_ComRefCallInExpressionTree {
             get {
@@ -2681,7 +2681,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must declare a body because it is not marked abstract, extern, or partial.
+        ///   Looks up a localized string similar to &apos;{0}&apos; must declare a body because it is not marked abstract, extern, or partial..
         /// </summary>
         internal static string ERR_ConcreteMissingBody {
             get {
@@ -2690,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because its return type is not void.
+        ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because its return type is not void..
         /// </summary>
         internal static string ERR_ConditionalMustReturnVoid {
             get {
@@ -2699,7 +2699,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Conditional attribute is not valid on interface members.
+        ///   Looks up a localized string similar to The Conditional attribute is not valid on interface members..
         /// </summary>
         internal static string ERR_ConditionalOnInterfaceMethod {
             get {
@@ -2708,7 +2708,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is only valid on methods or attribute classes.
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is only valid on methods or attribute classes..
         /// </summary>
         internal static string ERR_ConditionalOnNonAttributeClass {
             get {
@@ -2717,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because it is an override method.
+        ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because it is an override method..
         /// </summary>
         internal static string ERR_ConditionalOnOverride {
             get {
@@ -2726,7 +2726,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because it is a constructor, destructor, operator, or explicit interface implementation.
+        ///   Looks up a localized string similar to The Conditional attribute is not valid on &apos;{0}&apos; because it is a constructor, destructor, operator, or explicit interface implementation..
         /// </summary>
         internal static string ERR_ConditionalOnSpecialMethod {
             get {
@@ -2735,7 +2735,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conditional member &apos;{0}&apos; cannot have an out parameter.
+        ///   Looks up a localized string similar to Conditional member &apos;{0}&apos; cannot have an out parameter..
         /// </summary>
         internal static string ERR_ConditionalWithOutParam {
             get {
@@ -2744,7 +2744,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Namespace &apos;{1}&apos; contains a definition conflicting with alias &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Namespace &apos;{1}&apos; contains a definition conflicting with alias &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ConflictAliasAndMember {
             get {
@@ -2753,7 +2753,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Alias &apos;{0}&apos; conflicts with {1} definition.
+        ///   Looks up a localized string similar to Alias &apos;{0}&apos; conflicts with {1} definition..
         /// </summary>
         internal static string ERR_ConflictingAliasAndDefinition {
             get {
@@ -2771,7 +2771,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A constant value is expected.
+        ///   Looks up a localized string similar to A constant value is expected..
         /// </summary>
         internal static string ERR_ConstantExpected {
             get {
@@ -2780,7 +2780,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constant value &apos;{0}&apos; cannot be converted to a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Constant value &apos;{0}&apos; cannot be converted to a &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ConstOutOfRange {
             get {
@@ -2789,7 +2789,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constant value &apos;{0}&apos; cannot be converted to a &apos;{1}&apos; (use &apos;unchecked&apos; syntax to override).
+        ///   Looks up a localized string similar to Constant value &apos;{0}&apos; cannot be converted to a &apos;{1}&apos; (use &apos;unchecked&apos; syntax to override)..
         /// </summary>
         internal static string ERR_ConstOutOfRangeChecked {
             get {
@@ -2798,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot be used as constraints.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot be used as constraints..
         /// </summary>
         internal static string ERR_ConstraintIsStaticClass {
             get {
@@ -2807,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraints are not allowed on non-generic declarations.
+        ///   Looks up a localized string similar to Constraints are not allowed on non-generic declarations..
         /// </summary>
         internal static string ERR_ConstraintOnlyAllowedOnGenericDecl {
             get {
@@ -2816,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraint cannot be a dynamic type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Constraint cannot be a dynamic type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ConstructedDynamicTypeAsBound {
             get {
@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Static classes cannot have instance constructors.
+        ///   Looks up a localized string similar to Static classes cannot have instance constructors..
         /// </summary>
         internal static string ERR_ConstructorInStaticClass {
             get {
@@ -2834,7 +2834,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A const field requires a value to be provided.
+        ///   Looks up a localized string similar to A const field requires a value to be provided..
         /// </summary>
         internal static string ERR_ConstValueRequired {
             get {
@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User-defined conversion must convert to or from the enclosing type.
+        ///   Looks up a localized string similar to User-defined conversion must convert to or from the enclosing type..
         /// </summary>
         internal static string ERR_ConversionNotInvolvingContainedType {
             get {
@@ -2861,7 +2861,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from a base class are not allowed.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from a base class are not allowed..
         /// </summary>
         internal static string ERR_ConversionWithBase {
             get {
@@ -2870,7 +2870,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from a derived class are not allowed.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from a derived class are not allowed..
         /// </summary>
         internal static string ERR_ConversionWithDerived {
             get {
@@ -2879,7 +2879,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from an interface are not allowed.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from an interface are not allowed..
         /// </summary>
         internal static string ERR_ConversionWithInterface {
             get {
@@ -2888,7 +2888,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert to static type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot convert to static type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ConvertToStaticClass {
             get {
@@ -2897,7 +2897,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type parameter &apos;{1}&apos; has the &apos;struct&apos; constraint so &apos;{1}&apos; cannot be used as a constraint for &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Type parameter &apos;{1}&apos; has the &apos;struct&apos; constraint so &apos;{1}&apos; cannot be used as a constraint for &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ConWithValCon {
             get {
@@ -2924,7 +2924,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inherited interface &apos;{1}&apos; causes a cycle in the interface hierarchy of &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Inherited interface &apos;{1}&apos; causes a cycle in the interface hierarchy of &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_CycleInInterfaceInheritance {
             get {
@@ -2933,7 +2933,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type forwarder for type &apos;{0}&apos; in assembly &apos;{1}&apos; causes a cycle.
+        ///   Looks up a localized string similar to The type forwarder for type &apos;{0}&apos; in assembly &apos;{1}&apos; causes a cycle..
         /// </summary>
         internal static string ERR_CycleInTypeForwarder {
             get {
@@ -2942,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Evaluation of the decimal constant expression failed.
+        ///   Looks up a localized string similar to Evaluation of the decimal constant expression failed..
         /// </summary>
         internal static string ERR_DecConstError {
             get {
@@ -2951,7 +2951,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
+        ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer..
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
             get {
@@ -2960,7 +2960,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; is not applicable for the DefaultParameterValue attribute.
+        ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; is not applicable for the DefaultParameterValue attribute..
         /// </summary>
         internal static string ERR_DefaultValueBadValueType {
             get {
@@ -2969,7 +2969,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Optional parameters must appear after all required parameters.
+        ///   Looks up a localized string similar to Optional parameters must appear after all required parameters..
         /// </summary>
         internal static string ERR_DefaultValueBeforeRequiredValue {
             get {
@@ -2978,7 +2978,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify a default value for the &apos;this&apos; parameter.
+        ///   Looks up a localized string similar to Cannot specify a default value for the &apos;this&apos; parameter..
         /// </summary>
         internal static string ERR_DefaultValueForExtensionParameter {
             get {
@@ -2987,7 +2987,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify a default value for a parameter array.
+        ///   Looks up a localized string similar to Cannot specify a default value for a parameter array..
         /// </summary>
         internal static string ERR_DefaultValueForParamsParameter {
             get {
@@ -2996,7 +2996,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Default parameter value for &apos;{0}&apos; must be a compile-time constant.
+        ///   Looks up a localized string similar to Default parameter value for &apos;{0}&apos; must be a compile-time constant..
         /// </summary>
         internal static string ERR_DefaultValueMustBeConstant {
             get {
@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type of the argument to the DefaultParameterValue attribute must match the parameter type.
+        ///   Looks up a localized string similar to The type of the argument to the DefaultParameterValue attribute must match the parameter type..
         /// </summary>
         internal static string ERR_DefaultValueTypeMustMatch {
             get {
@@ -3023,7 +3023,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute.
+        ///   Looks up a localized string similar to Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute..
         /// </summary>
         internal static string ERR_DefaultValueUsedWithAttributes {
             get {
@@ -3032,7 +3032,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create delegate with &apos;{0}&apos; because it or a method it overrides has a Conditional attribute.
+        ///   Looks up a localized string similar to Cannot create delegate with &apos;{0}&apos; because it or a method it overrides has a Conditional attribute..
         /// </summary>
         internal static string ERR_DelegateOnConditional {
             get {
@@ -3041,7 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot bind delegate to &apos;{0}&apos; because it is a member of &apos;System.Nullable&lt;T&gt;&apos;.
+        ///   Looks up a localized string similar to Cannot bind delegate to &apos;{0}&apos; because it is a member of &apos;System.Nullable&lt;T&gt;&apos;..
         /// </summary>
         internal static string ERR_DelegateOnNullable {
             get {
@@ -3050,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The best overloaded Add method &apos;{0}&apos; for the collection initializer element is obsolete. {1}.
+        ///   Looks up a localized string similar to The best overloaded Add method &apos;{0}&apos; for the collection initializer element is obsolete. {1}..
         /// </summary>
         internal static string ERR_DeprecatedCollectionInitAddStr {
             get {
@@ -3059,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is obsolete: &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is obsolete: &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DeprecatedSymbolStr {
             get {
@@ -3068,7 +3068,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot implement a dynamic interface &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot implement a dynamic interface &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DeriveFromConstructedDynamic {
             get {
@@ -3077,7 +3077,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot derive from the dynamic type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot derive from the dynamic type..
         /// </summary>
         internal static string ERR_DeriveFromDynamic {
             get {
@@ -3086,7 +3086,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot derive from special class &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot derive from special class &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DeriveFromEnumOrValueType {
             get {
@@ -3095,7 +3095,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot derive from &apos;{0}&apos; because it is a type parameter.
+        ///   Looks up a localized string similar to Cannot derive from &apos;{0}&apos; because it is a type parameter..
         /// </summary>
         internal static string ERR_DerivingFromATyVar {
             get {
@@ -3104,7 +3104,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Static classes cannot contain destructors.
+        ///   Looks up a localized string similar to Static classes cannot contain destructors..
         /// </summary>
         internal static string ERR_DestructorInStaticClass {
             get {
@@ -3131,7 +3131,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DllImport attribute must be specified on a method marked &apos;static&apos; and &apos;extern&apos;.
+        ///   Looks up a localized string similar to The DllImport attribute must be specified on a method marked &apos;static&apos; and &apos;extern&apos;..
         /// </summary>
         internal static string ERR_DllImportOnInvalidMethod {
             get {
@@ -3140,7 +3140,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DoesntImplementAwaitInterface {
             get {
@@ -3158,7 +3158,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type name &apos;{0}&apos; does not exist in the type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to The type name &apos;{0}&apos; does not exist in the type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DottedTypeNameNotFoundInAgg {
             get {
@@ -3167,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; does not exist in the namespace &apos;{1}&apos; (are you missing an assembly reference?).
+        ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; does not exist in the namespace &apos;{1}&apos; (are you missing an assembly reference?)..
         /// </summary>
         internal static string ERR_DottedTypeNameNotFoundInNS {
             get {
@@ -3185,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property accessor already defined.
+        ///   Looks up a localized string similar to Property accessor already defined..
         /// </summary>
         internal static string ERR_DuplicateAccessor {
             get {
@@ -3194,7 +3194,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The using alias &apos;{0}&apos; appeared previously in this namespace.
+        ///   Looks up a localized string similar to The using alias &apos;{0}&apos; appeared previously in this namespace..
         /// </summary>
         internal static string ERR_DuplicateAlias {
             get {
@@ -3203,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate &apos;{0}&apos; attribute.
+        ///   Looks up a localized string similar to Duplicate &apos;{0}&apos; attribute..
         /// </summary>
         internal static string ERR_DuplicateAttribute {
             get {
@@ -3212,7 +3212,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate &apos;{0}&apos; attribute in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Duplicate &apos;{0}&apos; attribute in &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DuplicateAttributeInNetModule {
             get {
@@ -3221,7 +3221,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate constraint &apos;{0}&apos; for type parameter &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Duplicate constraint &apos;{0}&apos; for type parameter &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DuplicateBound {
             get {
@@ -3230,7 +3230,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch statement contains multiple cases with the label value &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The switch statement contains multiple cases with the label value &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_DuplicateCaseLabel {
             get {
@@ -3248,7 +3248,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate user-defined conversion in type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Duplicate user-defined conversion in type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_DuplicateConversionInClass {
             get {
@@ -3257,7 +3257,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter name &apos;{0}&apos; conflicts with an automatically-generated parameter name.
+        ///   Looks up a localized string similar to The parameter name &apos;{0}&apos; conflicts with an automatically-generated parameter name..
         /// </summary>
         internal static string ERR_DuplicateGeneratedName {
             get {
@@ -3284,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in interface list.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in interface list..
         /// </summary>
         internal static string ERR_DuplicateInterfaceInBaseList {
             get {
@@ -3293,7 +3293,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The label &apos;{0}&apos; is a duplicate.
+        ///   Looks up a localized string similar to The label &apos;{0}&apos; is a duplicate..
         /// </summary>
         internal static string ERR_DuplicateLabel {
             get {
@@ -3302,7 +3302,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate &apos;{0}&apos; modifier.
+        ///   Looks up a localized string similar to Duplicate &apos;{0}&apos; modifier..
         /// </summary>
         internal static string ERR_DuplicateModifier {
             get {
@@ -3311,7 +3311,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Named argument &apos;{0}&apos; cannot be specified multiple times.
+        ///   Looks up a localized string similar to Named argument &apos;{0}&apos; cannot be specified multiple times..
         /// </summary>
         internal static string ERR_DuplicateNamedArgument {
             get {
@@ -3320,7 +3320,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; duplicate named attribute argument.
+        ///   Looks up a localized string similar to &apos;{0}&apos; duplicate named attribute argument..
         /// </summary>
         internal static string ERR_DuplicateNamedAttributeArgument {
             get {
@@ -3329,7 +3329,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; already contains a definition for &apos;{1}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; already contains a definition for &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DuplicateNameInClass {
             get {
@@ -3338,7 +3338,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The namespace &apos;{1}&apos; already contains a definition for &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The namespace &apos;{1}&apos; already contains a definition for &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_DuplicateNameInNS {
             get {
@@ -3347,7 +3347,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter name &apos;{0}&apos; is a duplicate.
+        ///   Looks up a localized string similar to The parameter name &apos;{0}&apos; is a duplicate..
         /// </summary>
         internal static string ERR_DuplicateParamName {
             get {
@@ -3356,7 +3356,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify accessibility modifiers for both accessors of the property or indexer &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot specify accessibility modifiers for both accessors of the property or indexer &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_DuplicatePropertyAccessMods {
             get {
@@ -3365,7 +3365,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; duplicate TypeForwardedToAttribute.
+        ///   Looks up a localized string similar to &apos;{0}&apos; duplicate TypeForwardedToAttribute..
         /// </summary>
         internal static string ERR_DuplicateTypeForwarder {
             get {
@@ -3374,7 +3374,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate type parameter &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Duplicate type parameter &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_DuplicateTypeParameter {
             get {
@@ -3383,7 +3383,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A parameter can only have one &apos;{0}&apos; modifier.
+        ///   Looks up a localized string similar to A parameter can only have one &apos;{0}&apos; modifier..
         /// </summary>
         internal static string ERR_DupParamMod {
             get {
@@ -3392,7 +3392,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot define a class or member that utilizes &apos;dynamic&apos; because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?.
+        ///   Looks up a localized string similar to Cannot define a class or member that utilizes &apos;dynamic&apos; because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?..
         /// </summary>
         internal static string ERR_DynamicAttributeMissing {
             get {
@@ -3401,7 +3401,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?.
+        ///   Looks up a localized string similar to One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?..
         /// </summary>
         internal static string ERR_DynamicRequiredTypesMissing {
             get {
@@ -3410,7 +3410,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraint cannot be the dynamic type.
+        ///   Looks up a localized string similar to Constraint cannot be the dynamic type..
         /// </summary>
         internal static string ERR_DynamicTypeAsBound {
             get {
@@ -3419,7 +3419,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Empty character literal.
+        ///   Looks up a localized string similar to Empty character literal..
         /// </summary>
         internal static string ERR_EmptyCharConst {
             get {
@@ -3428,7 +3428,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Element initializer cannot be empty.
+        ///   Looks up a localized string similar to Element initializer cannot be empty..
         /// </summary>
         internal static string ERR_EmptyElementInitializer {
             get {
@@ -3446,7 +3446,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expression expected after yield return.
+        ///   Looks up a localized string similar to Expression expected after yield return..
         /// </summary>
         internal static string ERR_EmptyYield {
             get {
@@ -3482,7 +3482,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #endif directive expected.
+        ///   Looks up a localized string similar to #endif directive expected..
         /// </summary>
         internal static string ERR_EndifDirectiveExpected {
             get {
@@ -3491,7 +3491,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Single-line comment or end-of-line expected.
+        ///   Looks up a localized string similar to Single-line comment or end-of-line expected..
         /// </summary>
         internal static string ERR_EndOfPPLineExpected {
             get {
@@ -3500,7 +3500,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #endregion directive expected.
+        ///   Looks up a localized string similar to #endregion directive expected..
         /// </summary>
         internal static string ERR_EndRegionDirectiveExpected {
             get {
@@ -3509,7 +3509,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: the enumerator value is too large to fit in its type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: the enumerator value is too large to fit in its type..
         /// </summary>
         internal static string ERR_EnumeratorOverflow {
             get {
@@ -3518,7 +3518,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enums cannot contain explicit parameterless constructors.
+        ///   Looks up a localized string similar to Enums cannot contain explicit parameterless constructors..
         /// </summary>
         internal static string ERR_EnumsCantContainDefaultConstructor {
             get {
@@ -3527,7 +3527,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type or namespace definition, or end-of-file expected.
+        ///   Looks up a localized string similar to Type or namespace definition, or end-of-file expected..
         /// </summary>
         internal static string ERR_EOFExpected {
             get {
@@ -3536,7 +3536,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error building Win32 resources -- {0}.
+        ///   Looks up a localized string similar to Error building Win32 resources -- {0}..
         /// </summary>
         internal static string ERR_ErrorBuildingWin32Resources {
             get {
@@ -3545,7 +3545,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #error: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to #error: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ErrorDirective {
             get {
@@ -3572,7 +3572,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: event property must have both add and remove accessors.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: event property must have both add and remove accessors..
         /// </summary>
         internal static string ERR_EventNeedsBothAccessors {
             get {
@@ -3581,7 +3581,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: event must be of a delegate type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: event must be of a delegate type..
         /// </summary>
         internal static string ERR_EventNotDelegate {
             get {
@@ -3590,7 +3590,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An event in an interface cannot have add or remove accessors.
+        ///   Looks up a localized string similar to An event in an interface cannot have add or remove accessors..
         /// </summary>
         internal static string ERR_EventPropertyInInterface {
             get {
@@ -3599,7 +3599,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected contextual keyword &apos;by&apos;.
+        ///   Looks up a localized string similar to Expected contextual keyword &apos;by&apos;..
         /// </summary>
         internal static string ERR_ExpectedContextualKeywordBy {
             get {
@@ -3608,7 +3608,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected contextual keyword &apos;equals&apos;.
+        ///   Looks up a localized string similar to Expected contextual keyword &apos;equals&apos;..
         /// </summary>
         internal static string ERR_ExpectedContextualKeywordEquals {
             get {
@@ -3617,7 +3617,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected contextual keyword &apos;on&apos;.
+        ///   Looks up a localized string similar to Expected contextual keyword &apos;on&apos;..
         /// </summary>
         internal static string ERR_ExpectedContextualKeywordOn {
             get {
@@ -3626,7 +3626,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected catch or finally.
+        ///   Looks up a localized string similar to Expected catch or finally..
         /// </summary>
         internal static string ERR_ExpectedEndTry {
             get {
@@ -3635,7 +3635,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Quoted file name expected.
+        ///   Looks up a localized string similar to Quoted file name expected..
         /// </summary>
         internal static string ERR_ExpectedPPFile {
             get {
@@ -3644,7 +3644,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A query body must end with a select clause or a group clause.
+        ///   Looks up a localized string similar to A query body must end with a select clause or a group clause..
         /// </summary>
         internal static string ERR_ExpectedSelectOrGroup {
             get {
@@ -3653,7 +3653,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword, identifier, or string expected after verbatim specifier: @.
+        ///   Looks up a localized string similar to Keyword, identifier, or string expected after verbatim specifier: @..
         /// </summary>
         internal static string ERR_ExpectedVerbatimLiteral {
             get {
@@ -3671,7 +3671,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An explicit interface implementation of an event must use event accessor syntax.
+        ///   Looks up a localized string similar to An explicit interface implementation of an event must use event accessor syntax..
         /// </summary>
         internal static string ERR_ExplicitEventFieldImpl {
             get {
@@ -3689,7 +3689,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot inherit interface &apos;{0}&apos; with the specified type parameters because it causes method &apos;{1}&apos; to contain overloads which differ only on ref and out.
+        ///   Looks up a localized string similar to Cannot inherit interface &apos;{0}&apos; with the specified type parameters because it causes method &apos;{1}&apos; to contain overloads which differ only on ref and out..
         /// </summary>
         internal static string ERR_ExplicitImplCollisionOnRefOut {
             get {
@@ -3698,7 +3698,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; should not have a params parameter since &apos;{1}&apos; does not.
+        ///   Looks up a localized string similar to &apos;{0}&apos; should not have a params parameter since &apos;{1}&apos; does not..
         /// </summary>
         internal static string ERR_ExplicitImplParams {
             get {
@@ -3707,7 +3707,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: explicit interface declaration can only be declared in a class or struct.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: explicit interface declaration can only be declared in a class or struct..
         /// </summary>
         internal static string ERR_ExplicitInterfaceImplementationInNonClassOrStruct {
             get {
@@ -3716,7 +3716,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not an interface.
+        ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not an interface..
         /// </summary>
         internal static string ERR_ExplicitInterfaceImplementationNotInterface {
             get {
@@ -3725,7 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit).
+        ///   Looks up a localized string similar to &apos;{0}&apos;: Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)..
         /// </summary>
         internal static string ERR_ExplicitLayoutAndAutoImplementedProperty {
             get {
@@ -3734,7 +3734,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; explicit method implementation cannot implement &apos;{1}&apos; because it is an accessor.
+        ///   Looks up a localized string similar to &apos;{0}&apos; explicit method implementation cannot implement &apos;{1}&apos; because it is an accessor..
         /// </summary>
         internal static string ERR_ExplicitMethodImplAccessor {
             get {
@@ -3752,7 +3752,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; adds an accessor not found in interface member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; adds an accessor not found in interface member &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ExplicitPropertyAddingAccessor {
             get {
@@ -3761,7 +3761,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Explicit interface implementation &apos;{0}&apos; is missing accessor &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Explicit interface implementation &apos;{0}&apos; is missing accessor &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ExplicitPropertyMissingAccessor {
             get {
@@ -3788,7 +3788,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected expression.
+        ///   Looks up a localized string similar to Expected expression..
         /// </summary>
         internal static string ERR_ExpressionExpected {
             get {
@@ -3815,7 +3815,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain an anonymous method expression.
+        ///   Looks up a localized string similar to An expression tree may not contain an anonymous method expression..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsAnonymousMethod {
             get {
@@ -3824,7 +3824,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain an assignment operator.
+        ///   Looks up a localized string similar to An expression tree may not contain an assignment operator..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsAssignment {
             get {
@@ -3833,7 +3833,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null literal left-hand side.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null literal left-hand side..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsBadCoalesce {
             get {
@@ -3842,7 +3842,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a base access.
+        ///   Looks up a localized string similar to An expression tree may not contain a base access..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsBaseAccess {
             get {
@@ -3851,7 +3851,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a dynamic operation.
+        ///   Looks up a localized string similar to An expression tree may not contain a dynamic operation..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsDynamicOperation {
             get {
@@ -3860,7 +3860,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain an indexed property.
+        ///   Looks up a localized string similar to An expression tree may not contain an indexed property..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsIndexedProperty {
             get {
@@ -3869,7 +3869,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a multidimensional array initializer.
+        ///   Looks up a localized string similar to An expression tree may not contain a multidimensional array initializer..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer {
             get {
@@ -3878,7 +3878,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a named argument specification.
+        ///   Looks up a localized string similar to An expression tree may not contain a named argument specification..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsNamedArgument {
             get {
@@ -3887,7 +3887,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a call or invocation that uses optional arguments.
+        ///   Looks up a localized string similar to An expression tree may not contain a call or invocation that uses optional arguments..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsOptionalArgument {
             get {
@@ -3896,7 +3896,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain an unsafe pointer operation.
+        ///   Looks up a localized string similar to An expression tree may not contain an unsafe pointer operation..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsPointerOp {
             get {
@@ -3905,7 +3905,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert lambda to an expression tree whose type argument &apos;{0}&apos; is not a delegate type.
+        ///   Looks up a localized string similar to Cannot convert lambda to an expression tree whose type argument &apos;{0}&apos; is not a delegate type..
         /// </summary>
         internal static string ERR_ExpressionTreeMustHaveDelegate {
             get {
@@ -3914,7 +3914,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot define a new extension method because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference to System.Core.dll?.
+        ///   Looks up a localized string similar to Cannot define a new extension method because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference to System.Core.dll?..
         /// </summary>
         internal static string ERR_ExtensionAttrNotFound {
             get {
@@ -3923,7 +3923,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extension methods must be defined in a top level static class; {0} is a nested class.
+        ///   Looks up a localized string similar to Extension methods must be defined in a top level static class; {0} is a nested class..
         /// </summary>
         internal static string ERR_ExtensionMethodsDecl {
             get {
@@ -3932,7 +3932,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An extern alias declaration must precede all other elements defined in the namespace.
+        ///   Looks up a localized string similar to An extern alias declaration must precede all other elements defined in the namespace..
         /// </summary>
         internal static string ERR_ExternAfterElements {
             get {
@@ -3941,7 +3941,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;extern alias&apos; is not valid in this context.
+        ///   Looks up a localized string similar to &apos;extern alias&apos; is not valid in this context..
         /// </summary>
         internal static string ERR_ExternAliasNotAllowed {
             get {
@@ -3950,7 +3950,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and declare a body.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and declare a body..
         /// </summary>
         internal static string ERR_ExternHasBody {
             get {
@@ -3959,7 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and have a constructor initializer.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and have a constructor initializer..
         /// </summary>
         internal static string ERR_ExternHasConstructorInitializer {
             get {
@@ -4031,7 +4031,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
+        ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
             get {
@@ -4040,7 +4040,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field or property cannot be of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Field or property cannot be of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_FieldCantBeRefAny {
             get {
@@ -4049,7 +4049,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field cannot have void type.
+        ///   Looks up a localized string similar to Field cannot have void type..
         /// </summary>
         internal static string ERR_FieldCantHaveVoidType {
             get {
@@ -4067,7 +4067,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot have instance property or field initializers in structs.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot have instance property or field initializers in structs..
         /// </summary>
         internal static string ERR_FieldInitializerInStruct {
             get {
@@ -4076,7 +4076,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A field initializer cannot reference the non-static field, method, or property &apos;{0}&apos;.
+        ///   Looks up a localized string similar to A field initializer cannot reference the non-static field, method, or property &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_FieldInitRefNonstatic {
             get {
@@ -4112,7 +4112,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A fixed size buffer field must have the array size specifier after the field name.
+        ///   Looks up a localized string similar to A fixed size buffer field must have the array size specifier after the field name..
         /// </summary>
         internal static string ERR_FixedDimsRequired {
             get {
@@ -4121,7 +4121,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use fixed local &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
+        ///   Looks up a localized string similar to Cannot use fixed local &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression..
         /// </summary>
         internal static string ERR_FixedLocalInLambda {
             get {
@@ -4130,7 +4130,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must provide an initializer in a fixed or using statement declaration.
+        ///   Looks up a localized string similar to You must provide an initializer in a fixed or using statement declaration..
         /// </summary>
         internal static string ERR_FixedMustInit {
             get {
@@ -4139,7 +4139,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You can only take the address of an unfixed expression inside of a fixed statement initializer.
+        ///   Looks up a localized string similar to You can only take the address of an unfixed expression inside of a fixed statement initializer..
         /// </summary>
         internal static string ERR_FixedNeeded {
             get {
@@ -4148,7 +4148,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed size buffers can only be accessed through locals or fields.
+        ///   Looks up a localized string similar to Fixed size buffers can only be accessed through locals or fields..
         /// </summary>
         internal static string ERR_FixedNeedsLvalue {
             get {
@@ -4157,7 +4157,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed size buffer fields may only be members of structs.
+        ///   Looks up a localized string similar to Fixed size buffer fields may only be members of structs..
         /// </summary>
         internal static string ERR_FixedNotInStruct {
             get {
@@ -4166,7 +4166,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot use the fixed statement to take the address of an already fixed expression.
+        ///   Looks up a localized string similar to You cannot use the fixed statement to take the address of an already fixed expression..
         /// </summary>
         internal static string ERR_FixedNotNeeded {
             get {
@@ -4175,7 +4175,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed size buffer of length {0} and type &apos;{1}&apos; is too big.
+        ///   Looks up a localized string similar to Fixed size buffer of length {0} and type &apos;{1}&apos; is too big..
         /// </summary>
         internal static string ERR_FixedOverflow {
             get {
@@ -4184,7 +4184,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Floating-point constant is outside the range of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Floating-point constant is outside the range of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_FloatOverflow {
             get {
@@ -4193,7 +4193,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;.
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ForEachMissingMember {
             get {
@@ -4220,7 +4220,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; is defined in this assembly, but a type forwarder is specified for it.
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; is defined in this assembly, but a type forwarder is specified for it..
         /// </summary>
         internal static string ERR_ForwardedTypeInThisAssembly {
             get {
@@ -4229,7 +4229,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot forward type &apos;{0}&apos; because it is a nested type of &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot forward type &apos;{0}&apos; because it is a nested type of &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ForwardedTypeIsNested {
             get {
@@ -4283,7 +4283,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static types cannot be used as type arguments.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static types cannot be used as type arguments..
         /// </summary>
         internal static string ERR_GenericArgIsStaticClass {
             get {
@@ -4337,7 +4337,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A generic type cannot derive from &apos;{0}&apos; because it is an attribute class.
+        ///   Looks up a localized string similar to A generic type cannot derive from &apos;{0}&apos; because it is an attribute class..
         /// </summary>
         internal static string ERR_GenericDerivingFromAttribute {
             get {
@@ -4364,7 +4364,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A get or set accessor expected.
+        ///   Looks up a localized string similar to A get or set accessor expected..
         /// </summary>
         internal static string ERR_GetOrSetExpected {
             get {
@@ -4373,7 +4373,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly and module attributes are not allowed in this context.
+        ///   Looks up a localized string similar to Assembly and module attributes are not allowed in this context..
         /// </summary>
         internal static string ERR_GlobalAttributesNotAllowed {
             get {
@@ -4382,7 +4382,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations.
+        ///   Looks up a localized string similar to Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations..
         /// </summary>
         internal static string ERR_GlobalAttributesNotFirst {
             get {
@@ -4391,7 +4391,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Member definition, statement, or end-of-file expected.
+        ///   Looks up a localized string similar to Member definition, statement, or end-of-file expected..
         /// </summary>
         internal static string ERR_GlobalDefinitionOrStatementExpected {
             get {
@@ -4400,7 +4400,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot redefine the global extern alias.
+        ///   Looks up a localized string similar to You cannot redefine the global extern alias..
         /// </summary>
         internal static string ERR_GlobalExternAlias {
             get {
@@ -4409,7 +4409,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; could not be found in the global namespace (are you missing an assembly reference?).
+        ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; could not be found in the global namespace (are you missing an assembly reference?)..
         /// </summary>
         internal static string ERR_GlobalSingleTypeNameNotFound {
             get {
@@ -4427,7 +4427,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expressions and statements can only occur in a method body.
+        ///   Looks up a localized string similar to Expressions and statements can only occur in a method body..
         /// </summary>
         internal static string ERR_GlobalStatement {
             get {
@@ -4436,7 +4436,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The non-generic {1} &apos;{0}&apos; cannot be used with type arguments.
+        ///   Looks up a localized string similar to The non-generic {1} &apos;{0}&apos; cannot be used with type arguments..
         /// </summary>
         internal static string ERR_HasNoTypeVars {
             get {
@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; hides inherited abstract member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; hides inherited abstract member &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_HidingAbstractMethod {
             get {
@@ -4454,7 +4454,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Identifier expected.
+        ///   Looks up a localized string similar to Identifier expected..
         /// </summary>
         internal static string ERR_IdentifierExpected {
             get {
@@ -4463,7 +4463,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Identifier expected; &apos;{1}&apos; is a keyword.
+        ///   Looks up a localized string similar to Identifier expected; &apos;{1}&apos; is a keyword..
         /// </summary>
         internal static string ERR_IdentifierExpectedKW {
             get {
@@ -4472,7 +4472,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type.
+        ///   Looks up a localized string similar to User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type..
         /// </summary>
         internal static string ERR_IdentityConversion {
             get {
@@ -4481,7 +4481,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An __arglist expression may only appear inside of a call or new expression.
+        ///   Looks up a localized string similar to An __arglist expression may only appear inside of a call or new expression..
         /// </summary>
         internal static string ERR_IllegalArglist {
             get {
@@ -4490,7 +4490,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unrecognized escape sequence.
+        ///   Looks up a localized string similar to Unrecognized escape sequence..
         /// </summary>
         internal static string ERR_IllegalEscape {
             get {
@@ -4499,7 +4499,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double.
+        ///   Looks up a localized string similar to Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double..
         /// </summary>
         internal static string ERR_IllegalFixedType {
             get {
@@ -4508,7 +4508,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unsafe code may not appear in iterators.
+        ///   Looks up a localized string similar to Unsafe code may not appear in iterators..
         /// </summary>
         internal static string ERR_IllegalInnerUnsafe {
             get {
@@ -4517,7 +4517,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to params is not valid in this context.
+        ///   Looks up a localized string similar to params is not valid in this context..
         /// </summary>
         internal static string ERR_IllegalParams {
             get {
@@ -4526,7 +4526,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ref and out are not valid in this context.
+        ///   Looks up a localized string similar to ref and out are not valid in this context..
         /// </summary>
         internal static string ERR_IllegalRefParam {
             get {
@@ -4535,7 +4535,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, and new object expressions can be used as a statement.
+        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, and new object expressions can be used as a statement..
         /// </summary>
         internal static string ERR_IllegalStatement {
             get {
@@ -4544,7 +4544,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unsafe code may only appear if compiling with /unsafe.
+        ///   Looks up a localized string similar to Unsafe code may only appear if compiling with /unsafe..
         /// </summary>
         internal static string ERR_IllegalUnsafe {
             get {
@@ -4553,7 +4553,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to __arglist is not valid in this context.
+        ///   Looks up a localized string similar to __arglist is not valid in this context..
         /// </summary>
         internal static string ERR_IllegalVarArgs {
             get {
@@ -4580,7 +4580,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No best type found for implicitly-typed array.
+        ///   Looks up a localized string similar to No best type found for implicitly-typed array..
         /// </summary>
         internal static string ERR_ImplicitlyTypedArrayNoBestType {
             get {
@@ -4589,7 +4589,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implicitly-typed local variables cannot be fixed.
+        ///   Looks up a localized string similar to Implicitly-typed local variables cannot be fixed..
         /// </summary>
         internal static string ERR_ImplicitlyTypedLocalCannotBeFixed {
             get {
@@ -4598,7 +4598,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot initialize an implicitly-typed variable with an array initializer.
+        ///   Looks up a localized string similar to Cannot initialize an implicitly-typed variable with an array initializer..
         /// </summary>
         internal static string ERR_ImplicitlyTypedVariableAssignedArrayInitializer {
             get {
@@ -4607,7 +4607,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to an implicitly-typed variable.
+        ///   Looks up a localized string similar to Cannot assign {0} to an implicitly-typed variable..
         /// </summary>
         internal static string ERR_ImplicitlyTypedVariableAssignedBadValue {
             get {
@@ -4616,7 +4616,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implicitly-typed variables cannot be constant.
+        ///   Looks up a localized string similar to Implicitly-typed variables cannot be constant..
         /// </summary>
         internal static string ERR_ImplicitlyTypedVariableCannotBeConst {
             get {
@@ -4625,7 +4625,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implicitly-typed variables cannot have multiple declarators.
+        ///   Looks up a localized string similar to Implicitly-typed variables cannot have multiple declarators..
         /// </summary>
         internal static string ERR_ImplicitlyTypedVariableMultipleDeclarator {
             get {
@@ -4634,7 +4634,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implicitly-typed variables must be initialized.
+        ///   Looks up a localized string similar to Implicitly-typed variables must be initialized..
         /// </summary>
         internal static string ERR_ImplicitlyTypedVariableWithNoInitializer {
             get {
@@ -4652,7 +4652,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The referenced file &apos;{0}&apos; is not an assembly.
+        ///   Looks up a localized string similar to The referenced file &apos;{0}&apos; is not an assembly..
         /// </summary>
         internal static string ERR_ImportNonAssembly {
             get {
@@ -4661,7 +4661,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The property or indexer &apos;{0}&apos; cannot be used in this context because the get accessor is inaccessible.
+        ///   Looks up a localized string similar to The property or indexer &apos;{0}&apos; cannot be used in this context because the get accessor is inaccessible..
         /// </summary>
         internal static string ERR_InaccessibleGetter {
             get {
@@ -4670,7 +4670,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The property or indexer &apos;{0}&apos; cannot be used in this context because the set accessor is inaccessible.
+        ///   Looks up a localized string similar to The property or indexer &apos;{0}&apos; cannot be used in this context because the set accessor is inaccessible..
         /// </summary>
         internal static string ERR_InaccessibleSetter {
             get {
@@ -4679,7 +4679,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An out parameter cannot have the In attribute.
+        ///   Looks up a localized string similar to An out parameter cannot have the In attribute..
         /// </summary>
         internal static string ERR_InAttrOnOutParam {
             get {
@@ -4688,7 +4688,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type.
+        ///   Looks up a localized string similar to Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type..
         /// </summary>
         internal static string ERR_InconsistentIndexerNames {
             get {
@@ -4697,7 +4697,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit.
+        ///   Looks up a localized string similar to Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit..
         /// </summary>
         internal static string ERR_InconsistentLambdaParameterUsage {
             get {
@@ -4706,7 +4706,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The operand of an increment or decrement operator must be a variable, property or indexer.
+        ///   Looks up a localized string similar to The operand of an increment or decrement operator must be a variable, property or indexer..
         /// </summary>
         internal static string ERR_IncrementLvalueExpected {
             get {
@@ -4715,7 +4715,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indexed property &apos;{0}&apos; must have all arguments optional.
+        ///   Looks up a localized string similar to Indexed property &apos;{0}&apos; must have all arguments optional..
         /// </summary>
         internal static string ERR_IndexedPropertyMustHaveAllOptionalParams {
             get {
@@ -4724,7 +4724,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indexed property &apos;{0}&apos; has non-optional arguments which must be provided.
+        ///   Looks up a localized string similar to Indexed property &apos;{0}&apos; has non-optional arguments which must be provided..
         /// </summary>
         internal static string ERR_IndexedPropertyRequiresParams {
             get {
@@ -4733,7 +4733,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indexers cannot have void type.
+        ///   Looks up a localized string similar to Indexers cannot have void type..
         /// </summary>
         internal static string ERR_IndexerCantHaveVoidType {
             get {
@@ -4742,7 +4742,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot declare indexers in a static class.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot declare indexers in a static class..
         /// </summary>
         internal static string ERR_IndexerInStaticClass {
             get {
@@ -4751,7 +4751,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indexers must have at least one parameter.
+        ///   Looks up a localized string similar to Indexers must have at least one parameter..
         /// </summary>
         internal static string ERR_IndexerNeedsParam {
             get {
@@ -4760,7 +4760,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;in&apos; expected.
+        ///   Looks up a localized string similar to &apos;in&apos; expected..
         /// </summary>
         internal static string ERR_InExpected {
             get {
@@ -4805,7 +4805,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot declare instance members in a static class.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot declare instance members in a static class..
         /// </summary>
         internal static string ERR_InstanceMemberInStaticClass {
             get {
@@ -4814,7 +4814,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create an instance of the static class &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot create an instance of the static class &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_InstantiatingStaticClass {
             get {
@@ -4823,7 +4823,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression is too long or complex to compile.
+        ///   Looks up a localized string similar to An expression is too long or complex to compile..
         /// </summary>
         internal static string ERR_InsufficientStack {
             get {
@@ -4832,7 +4832,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Division by constant zero.
+        ///   Looks up a localized string similar to Division by constant zero..
         /// </summary>
         internal static string ERR_IntDivByZero {
             get {
@@ -4841,7 +4841,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type byte, sbyte, short, ushort, int, uint, long, or ulong expected.
+        ///   Looks up a localized string similar to Type byte, sbyte, short, ushort, int, uint, long, or ulong expected..
         /// </summary>
         internal static string ERR_IntegralTypeExpected {
             get {
@@ -4850,7 +4850,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value of an integral type expected.
+        ///   Looks up a localized string similar to A value of an integral type expected..
         /// </summary>
         internal static string ERR_IntegralTypeValueExpected {
             get {
@@ -4859,7 +4859,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: event in interface cannot have initializer.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: event in interface cannot have initializer..
         /// </summary>
         internal static string ERR_InterfaceEventInitializer {
             get {
@@ -4868,7 +4868,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conditional member &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Conditional member &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_InterfaceImplementedByConditional {
             get {
@@ -4877,7 +4877,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: interface members cannot have a definition.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: interface members cannot have a definition..
         /// </summary>
         internal static string ERR_InterfaceMemberHasBody {
             get {
@@ -4886,7 +4886,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not a member of interface.
+        ///   Looks up a localized string similar to &apos;{0}&apos; in explicit interface declaration is not a member of interface..
         /// </summary>
         internal static string ERR_InterfaceMemberNotFound {
             get {
@@ -4895,7 +4895,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: interfaces cannot declare types.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: interfaces cannot declare types..
         /// </summary>
         internal static string ERR_InterfacesCannotContainTypes {
             get {
@@ -4904,7 +4904,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interfaces cannot contain constructors.
+        ///   Looks up a localized string similar to Interfaces cannot contain constructors..
         /// </summary>
         internal static string ERR_InterfacesCantContainConstructors {
             get {
@@ -4913,7 +4913,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interfaces cannot contain fields.
+        ///   Looks up a localized string similar to Interfaces cannot contain fields..
         /// </summary>
         internal static string ERR_InterfacesCantContainFields {
             get {
@@ -4922,7 +4922,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interfaces cannot contain operators.
+        ///   Looks up a localized string similar to Interfaces cannot contain operators..
         /// </summary>
         internal static string ERR_InterfacesCantContainOperators {
             get {
@@ -4967,7 +4967,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Integral constant is too large.
+        ///   Looks up a localized string similar to Integral constant is too large..
         /// </summary>
         internal static string ERR_IntOverflow {
             get {
@@ -4976,7 +4976,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot take the address of the given expression.
+        ///   Looks up a localized string similar to Cannot take the address of the given expression..
         /// </summary>
         internal static string ERR_InvalidAddrOp {
             get {
@@ -4994,7 +4994,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid rank specifier: expected &apos;,&apos; or &apos;]&apos;.
+        ///   Looks up a localized string similar to Invalid rank specifier: expected &apos;,&apos; or &apos;]&apos;..
         /// </summary>
         internal static string ERR_InvalidArray {
             get {
@@ -5012,7 +5012,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Executables cannot be satellite assemblies; culture should always be empty.
+        ///   Looks up a localized string similar to Executables cannot be satellite assemblies; culture should always be empty..
         /// </summary>
         internal static string ERR_InvalidAssemblyCultureForExe {
             get {
@@ -5021,7 +5021,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly reference &apos;{0}&apos; is invalid and cannot be resolved.
+        ///   Looks up a localized string similar to Assembly reference &apos;{0}&apos; is invalid and cannot be resolved..
         /// </summary>
         internal static string ERR_InvalidAssemblyName {
             get {
@@ -5030,7 +5030,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for argument to &apos;{0}&apos; attribute.
+        ///   Looks up a localized string similar to Invalid value for argument to &apos;{0}&apos; attribute..
         /// </summary>
         internal static string ERR_InvalidAttributeArgument {
             get {
@@ -5048,7 +5048,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid debug information format: {0}.
+        ///   Looks up a localized string similar to Invalid debug information format: {0}..
         /// </summary>
         internal static string ERR_InvalidDebugInformationFormat {
             get {
@@ -5075,7 +5075,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid expression term &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Invalid expression term &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_InvalidExprTerm {
             get {
@@ -5084,7 +5084,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid file section alignment &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Invalid file section alignment &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_InvalidFileAlignment {
             get {
@@ -5093,7 +5093,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fixed size buffers must have a length greater than zero.
+        ///   Looks up a localized string similar to Fixed size buffers must have a length greater than zero..
         /// </summary>
         internal static string ERR_InvalidFixedArraySize {
             get {
@@ -5102,7 +5102,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command-line syntax error: Invalid Guid format &apos;{0}&apos; for option &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Command-line syntax error: Invalid Guid format &apos;{0}&apos; for option &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_InvalidFormatForGuidForOption {
             get {
@@ -5111,7 +5111,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid type specified as an argument for TypeForwardedTo attribute.
+        ///   Looks up a localized string similar to Invalid type specified as an argument for TypeForwardedTo attribute..
         /// </summary>
         internal static string ERR_InvalidFwdType {
             get {
@@ -5120,7 +5120,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A goto case is only valid inside a switch statement.
+        ///   Looks up a localized string similar to A goto case is only valid inside a switch statement..
         /// </summary>
         internal static string ERR_InvalidGotoCase {
             get {
@@ -5129,7 +5129,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid initializer member declarator.
+        ///   Looks up a localized string similar to Invalid initializer member declarator..
         /// </summary>
         internal static string ERR_InvalidInitializerElementInitializer {
             get {
@@ -5138,7 +5138,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The line number specified for #line directive is missing or invalid.
+        ///   Looks up a localized string similar to The line number specified for #line directive is missing or invalid..
         /// </summary>
         internal static string ERR_InvalidLineNumber {
             get {
@@ -5147,7 +5147,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; in class, struct, or interface member declaration.
+        ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; in class, struct, or interface member declaration..
         /// </summary>
         internal static string ERR_InvalidMemberDecl {
             get {
@@ -5156,7 +5156,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for named attribute argument &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Invalid value for named attribute argument &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_InvalidNamedArgument {
             get {
@@ -5165,7 +5165,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid number.
+        ///   Looks up a localized string similar to Invalid number..
         /// </summary>
         internal static string ERR_InvalidNumber {
             get {
@@ -5174,7 +5174,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid output name: {0}.
+        ///   Looks up a localized string similar to Invalid output name: {0}..
         /// </summary>
         internal static string ERR_InvalidOutputName {
             get {
@@ -5183,7 +5183,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid preprocessor expression.
+        ///   Looks up a localized string similar to Invalid preprocessor expression..
         /// </summary>
         internal static string ERR_InvalidPreprocExpr {
             get {
@@ -5192,7 +5192,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The accessibility modifier of the &apos;{0}&apos; accessor must be more restrictive than the property or indexer &apos;{1}&apos;.
+        ///   Looks up a localized string similar to The accessibility modifier of the &apos;{0}&apos; accessor must be more restrictive than the property or indexer &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_InvalidPropertyAccessMod {
             get {
@@ -5201,7 +5201,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of conditional expression cannot be determined because there is no implicit conversion between &apos;{0}&apos; and &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Type of conditional expression cannot be determined because there is no implicit conversion between &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_InvalidQM {
             get {
@@ -5219,7 +5219,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid format specifier.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid format specifier..
         /// </summary>
         internal static string ERR_InvalidSpecifier {
             get {
@@ -5228,7 +5228,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid version {0} for /subsystemversion. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.
+        ///   Looks up a localized string similar to Invalid version {0} for /subsystemversion. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise..
         /// </summary>
         internal static string ERR_InvalidSubsystemVersion {
             get {
@@ -5237,7 +5237,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build[.revision]]].
+        ///   Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build[.revision]]]..
         /// </summary>
         internal static string ERR_InvalidVersionFormat {
             get {
@@ -5246,7 +5246,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified version string does not conform to the required format - major.minor.build.revision.
+        ///   Looks up a localized string similar to The specified version string does not conform to the required format - major.minor.build.revision..
         /// </summary>
         internal static string ERR_InvalidVersionFormat2 {
             get {
@@ -5264,7 +5264,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No such label &apos;{0}&apos; within the scope of the goto statement.
+        ///   Looks up a localized string similar to No such label &apos;{0}&apos; within the scope of the goto statement..
         /// </summary>
         internal static string ERR_LabelNotFound {
             get {
@@ -5273,7 +5273,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The label &apos;{0}&apos; shadows another label by the same name in a contained scope.
+        ///   Looks up a localized string similar to The label &apos;{0}&apos; shadows another label by the same name in a contained scope..
         /// </summary>
         internal static string ERR_LabelShadow {
             get {
@@ -5291,7 +5291,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to { expected.
+        ///   Looks up a localized string similar to { expected..
         /// </summary>
         internal static string ERR_LbraceExpected {
             get {
@@ -5318,7 +5318,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Literal of type double cannot be implicitly converted to type &apos;{1}&apos;; use an &apos;{0}&apos; suffix to create a literal of this type.
+        ///   Looks up a localized string similar to Literal of type double cannot be implicitly converted to type &apos;{1}&apos;; use an &apos;{0}&apos; suffix to create a literal of this type..
         /// </summary>
         internal static string ERR_LiteralDoubleCast {
             get {
@@ -5327,7 +5327,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Local &apos;{0}&apos; or its members cannot have their address taken and be used inside an anonymous method or lambda expression.
+        ///   Looks up a localized string similar to Local &apos;{0}&apos; or its members cannot have their address taken and be used inside an anonymous method or lambda expression..
         /// </summary>
         internal static string ERR_LocalCantBeFixedAndHoisted {
             get {
@@ -5336,7 +5336,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A local variable named &apos;{0}&apos; is already defined in this scope.
+        ///   Looks up a localized string similar to A local variable named &apos;{0}&apos; is already defined in this scope..
         /// </summary>
         internal static string ERR_LocalDuplicate {
             get {
@@ -5345,7 +5345,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A local or parameter named &apos;{0}&apos; cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter.
+        ///   Looks up a localized string similar to A local or parameter named &apos;{0}&apos; cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter..
         /// </summary>
         internal static string ERR_LocalIllegallyOverrides {
             get {
@@ -5354,7 +5354,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter or local variable cannot have the same name as a method type parameter.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a parameter or local variable cannot have the same name as a method type parameter..
         /// </summary>
         internal static string ERR_LocalSameNameAsTypeParam {
             get {
@@ -5372,7 +5372,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a reference type as required by the lock statement.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a reference type as required by the lock statement..
         /// </summary>
         internal static string ERR_LockNeedsReference {
             get {
@@ -5381,7 +5381,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot do member lookup in &apos;{0}&apos; because it is a type parameter.
+        ///   Looks up a localized string similar to Cannot do member lookup in &apos;{0}&apos; because it is a type parameter..
         /// </summary>
         internal static string ERR_LookupInTypeVariable {
             get {
@@ -5390,7 +5390,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier..
         /// </summary>
         internal static string ERR_MainCantBeAsync {
             get {
@@ -5399,7 +5399,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; for Main method because it is imported.
+        ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; for Main method because it is imported..
         /// </summary>
         internal static string ERR_MainClassIsImport {
             get {
@@ -5408,7 +5408,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; specified for Main method must be a valid non-generic class or struct.
+        ///   Looks up a localized string similar to &apos;{0}&apos; specified for Main method must be a valid non-generic class or struct..
         /// </summary>
         internal static string ERR_MainClassNotClass {
             get {
@@ -5417,7 +5417,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find &apos;{0}&apos; specified for Main method.
+        ///   Looks up a localized string similar to Could not find &apos;{0}&apos; specified for Main method..
         /// </summary>
         internal static string ERR_MainClassNotFound {
             get {
@@ -5426,7 +5426,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot take the address of, get the size of, or declare a pointer to a managed type (&apos;{0}&apos;).
+        ///   Looks up a localized string similar to Cannot take the address of, get the size of, or declare a pointer to a managed type (&apos;{0}&apos;)..
         /// </summary>
         internal static string ERR_ManagedAddr {
             get {
@@ -5453,7 +5453,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{1}&apos; already defines a member called &apos;{0}&apos; with the same parameter types.
+        ///   Looks up a localized string similar to Type &apos;{1}&apos; already defines a member called &apos;{0}&apos; with the same parameter types..
         /// </summary>
         internal static string ERR_MemberAlreadyExists {
             get {
@@ -5462,7 +5462,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate initialization of member &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Duplicate initialization of member &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_MemberAlreadyInitialized {
             get {
@@ -5480,7 +5480,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: member names cannot be the same as their enclosing type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: member names cannot be the same as their enclosing type..
         /// </summary>
         internal static string ERR_MemberNameSameAsType {
             get {
@@ -5489,7 +5489,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Method must have a return type.
+        ///   Looks up a localized string similar to Method must have a return type..
         /// </summary>
         internal static string ERR_MemberNeedsType {
             get {
@@ -5498,7 +5498,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{1}&apos; already reserves a member called &apos;{0}&apos; with the same parameter types.
+        ///   Looks up a localized string similar to Type &apos;{1}&apos; already reserves a member called &apos;{0}&apos; with the same parameter types..
         /// </summary>
         internal static string ERR_MemberReserved {
             get {
@@ -5507,7 +5507,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a method group.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a method group..
         /// </summary>
         internal static string ERR_MemGroupInExpressionTree {
             get {
@@ -5534,7 +5534,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No overload for &apos;{0}&apos; matches delegate &apos;{1}&apos;.
+        ///   Looks up a localized string similar to No overload for &apos;{0}&apos; matches delegate &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_MethDelegateMismatch {
             get {
@@ -5543,7 +5543,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert method group &apos;{0}&apos; to non-delegate type &apos;{1}&apos;. Did you intend to invoke the method?.
+        ///   Looks up a localized string similar to Cannot convert method group &apos;{0}&apos; to non-delegate type &apos;{1}&apos;. Did you intend to invoke the method?..
         /// </summary>
         internal static string ERR_MethGrpToNonDel {
             get {
@@ -5552,7 +5552,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot make reference to variable of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot make reference to variable of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_MethodArgCantBeRefAny {
             get {
@@ -5570,7 +5570,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Method name expected.
+        ///   Looks up a localized string similar to Method name expected..
         /// </summary>
         internal static string ERR_MethodNameExpected {
             get {
@@ -5579,7 +5579,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Method or delegate cannot return type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Method or delegate cannot return type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_MethodReturnCantBeRefAny {
             get {
@@ -5588,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument missing.
+        ///   Looks up a localized string similar to Argument missing..
         /// </summary>
         internal static string ERR_MissingArgument {
             get {
@@ -5597,7 +5597,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Array creation must have array size or array initializer.
+        ///   Looks up a localized string similar to Array creation must have array size or array initializer..
         /// </summary>
         internal static string ERR_MissingArraySize {
             get {
@@ -5606,7 +5606,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The managed coclass wrapper class &apos;{0}&apos; for interface &apos;{1}&apos; cannot be found (are you missing an assembly reference?).
+        ///   Looks up a localized string similar to The managed coclass wrapper class &apos;{0}&apos; for interface &apos;{1}&apos; cannot be found (are you missing an assembly reference?)..
         /// </summary>
         internal static string ERR_MissingCoClass {
             get {
@@ -5615,7 +5615,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The /pdb option requires that the /debug option also be used.
+        ///   Looks up a localized string similar to The /pdb option requires that the /debug option also be used..
         /// </summary>
         internal static string ERR_MissingDebugSwitch {
             get {
@@ -5624,7 +5624,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_MissingGuidForOption {
             get {
@@ -5651,7 +5651,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing partial modifier on declaration of type &apos;{0}&apos;; another partial declaration of this type exists.
+        ///   Looks up a localized string similar to Missing partial modifier on declaration of type &apos;{0}&apos;; another partial declaration of this type exists..
         /// </summary>
         internal static string ERR_MissingPartial {
             get {
@@ -5660,7 +5660,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Quoted file name, single-line comment or end-of-line expected.
+        ///   Looks up a localized string similar to Quoted file name, single-line comment or end-of-line expected..
         /// </summary>
         internal static string ERR_MissingPPFile {
             get {
@@ -5669,7 +5669,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing compiler required member &apos;{0}.{1}&apos;.
+        ///   Looks up a localized string similar to Missing compiler required member &apos;{0}.{1}&apos;..
         /// </summary>
         internal static string ERR_MissingPredefinedMember {
             get {
@@ -5687,7 +5687,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute..
         /// </summary>
         internal static string ERR_MissingStructOffset {
             get {
@@ -5696,7 +5696,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reference to type &apos;{0}&apos; claims it is defined in &apos;{1}&apos;, but it could not be found.
+        ///   Looks up a localized string similar to Reference to type &apos;{0}&apos; claims it is defined in &apos;{1}&apos;, but it could not be found..
         /// </summary>
         internal static string ERR_MissingTypeInAssembly {
             get {
@@ -5705,7 +5705,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reference to type &apos;{0}&apos; claims it is defined in this assembly, but it is not defined in source or any added modules.
+        ///   Looks up a localized string similar to Reference to type &apos;{0}&apos; claims it is defined in this assembly, but it is not defined in source or any added modules..
         /// </summary>
         internal static string ERR_MissingTypeInSource {
             get {
@@ -5732,7 +5732,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter.
+        ///   Looks up a localized string similar to A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter..
         /// </summary>
         internal static string ERR_MultiParamMod {
             get {
@@ -5750,7 +5750,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation..
         /// </summary>
         internal static string ERR_MultipleIEnumOfT {
             get {
@@ -5759,7 +5759,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use more than one type in a for, using, fixed, or declaration statement.
+        ///   Looks up a localized string similar to Cannot use more than one type in a for, using, fixed, or declaration statement..
         /// </summary>
         internal static string ERR_MultiTypeInDeclaration {
             get {
@@ -5768,7 +5768,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In order for &apos;{0}&apos; to be applicable as a short circuit operator, its declaring type &apos;{1}&apos; must define operator true and operator false.
+        ///   Looks up a localized string similar to In order for &apos;{0}&apos; to be applicable as a short circuit operator, its declaring type &apos;{1}&apos; must define operator true and operator false..
         /// </summary>
         internal static string ERR_MustHaveOpTF {
             get {
@@ -5777,7 +5777,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Named attribute argument expected.
+        ///   Looks up a localized string similar to Named attribute argument expected..
         /// </summary>
         internal static string ERR_NamedArgumentExpected {
             get {
@@ -5786,7 +5786,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An array access may not have a named argument specifier.
+        ///   Looks up a localized string similar to An array access may not have a named argument specifier..
         /// </summary>
         internal static string ERR_NamedArgumentForArray {
             get {
@@ -5795,7 +5795,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified.
+        ///   Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified..
         /// </summary>
         internal static string ERR_NamedArgumentSpecificationBeforeFixedArgument {
             get {
@@ -5804,7 +5804,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Named argument &apos;{0}&apos; specifies a parameter for which a positional argument has already been given.
+        ///   Looks up a localized string similar to Named argument &apos;{0}&apos; specifies a parameter for which a positional argument has already been given..
         /// </summary>
         internal static string ERR_NamedArgumentUsedInPositional {
             get {
@@ -5813,7 +5813,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context.
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context..
         /// </summary>
         internal static string ERR_NameNotInContext {
             get {
@@ -5822,7 +5822,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context (are you missing a reference to assembly &apos;{1}&apos;?).
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context (are you missing a reference to assembly &apos;{1}&apos;?)..
         /// </summary>
         internal static string ERR_NameNotInContextPossibleMissingReference {
             get {
@@ -5849,7 +5849,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot declare namespace in script code.
+        ///   Looks up a localized string similar to You cannot declare namespace in script code..
         /// </summary>
         internal static string ERR_NamespaceNotAllowedInScript {
             get {
@@ -5858,7 +5858,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A namespace cannot directly contain members such as fields or methods.
+        ///   Looks up a localized string similar to A namespace cannot directly contain members such as fields or methods..
         /// </summary>
         internal static string ERR_NamespaceUnexpected {
             get {
@@ -5867,7 +5867,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create an array with a negative size.
+        ///   Looks up a localized string similar to Cannot create an array with a negative size..
         /// </summary>
         internal static string ERR_NegativeArraySize {
             get {
@@ -5876,7 +5876,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use a negative size with stackalloc.
+        ///   Looks up a localized string similar to Cannot use a negative size with stackalloc..
         /// </summary>
         internal static string ERR_NegativeStackAllocSize {
             get {
@@ -5903,7 +5903,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The new() constraint must be the last constraint specified.
+        ///   Looks up a localized string similar to The new() constraint must be the last constraint specified..
         /// </summary>
         internal static string ERR_NewBoundMustBeLast {
             get {
@@ -5912,7 +5912,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;new()&apos; constraint cannot be used with the &apos;struct&apos; constraint.
+        ///   Looks up a localized string similar to The &apos;new()&apos; constraint cannot be used with the &apos;struct&apos; constraint..
         /// </summary>
         internal static string ERR_NewBoundWithVal {
             get {
@@ -5930,7 +5930,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{2}&apos; must be a non-abstract type with a public parameterless constructor in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to &apos;{2}&apos; must be a non-abstract type with a public parameterless constructor in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_NewConstraintNotSatisfied {
             get {
@@ -5939,7 +5939,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Newline in constant.
+        ///   Looks up a localized string similar to Newline in constant..
         /// </summary>
         internal static string ERR_NewlineInConst {
             get {
@@ -5948,7 +5948,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot provide arguments when creating an instance of a variable type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot provide arguments when creating an instance of a variable type..
         /// </summary>
         internal static string ERR_NewTyvarWithArgs {
             get {
@@ -5957,7 +5957,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a new virtual member in sealed class &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a new virtual member in sealed class &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NewVirtualInSealed {
             get {
@@ -5966,7 +5966,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A &apos;using static&apos; directive cannot be used to declare an alias.
+        ///   Looks up a localized string similar to A &apos;using static&apos; directive cannot be used to declare an alias..
         /// </summary>
         internal static string ERR_NoAliasHere {
             get {
@@ -5975,7 +5975,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A base class is required for a &apos;base&apos; reference.
+        ///   Looks up a localized string similar to A base class is required for a &apos;base&apos; reference..
         /// </summary>
         internal static string ERR_NoBaseClass {
             get {
@@ -5984,7 +5984,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No enclosing loop out of which to break or continue.
+        ///   Looks up a localized string similar to No enclosing loop out of which to break or continue..
         /// </summary>
         internal static string ERR_NoBreakOrCont {
             get {
@@ -5993,7 +5993,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot find the interop type that matches the embedded interop type &apos;{0}&apos;. Are you missing an assembly reference?.
+        ///   Looks up a localized string similar to Cannot find the interop type that matches the embedded interop type &apos;{0}&apos;. Are you missing an assembly reference?..
         /// </summary>
         internal static string ERR_NoCanonicalView {
             get {
@@ -6002,7 +6002,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; has no constructors defined.
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; has no constructors defined..
         /// </summary>
         internal static string ERR_NoConstructors {
             get {
@@ -6011,7 +6011,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CallerFilePathAttribute cannot be applied because there are no standard conversions from type &apos;{0}&apos; to type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to CallerFilePathAttribute cannot be applied because there are no standard conversions from type &apos;{0}&apos; to type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoConversionForCallerFilePathParam {
             get {
@@ -6020,7 +6020,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CallerLineNumberAttribute cannot be applied because there are no standard conversions from type &apos;{0}&apos; to type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to CallerLineNumberAttribute cannot be applied because there are no standard conversions from type &apos;{0}&apos; to type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoConversionForCallerLineNumberParam {
             get {
@@ -6029,7 +6029,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CallerMemberNameAttribute cannot be applied because there are no standard conversions from type &apos;{0}&apos; to type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to CallerMemberNameAttribute cannot be applied because there are no standard conversions from type &apos;{0}&apos; to type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoConversionForCallerMemberNameParam {
             get {
@@ -6038,7 +6038,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value of type &apos;{0}&apos; cannot be used as a default parameter because there are no standard conversions to type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to A value of type &apos;{0}&apos; cannot be used as a default parameter because there are no standard conversions to type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoConversionForDefaultParam {
             get {
@@ -6047,7 +6047,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value of type &apos;{0}&apos; cannot be used as default parameter for nullable parameter &apos;{1}&apos; because &apos;{0}&apos; is not a simple type.
+        ///   Looks up a localized string similar to A value of type &apos;{0}&apos; cannot be used as default parameter for nullable parameter &apos;{1}&apos; because &apos;{0}&apos; is not a simple type..
         /// </summary>
         internal static string ERR_NoConversionForNubDefaultParam {
             get {
@@ -6056,7 +6056,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;..
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {
@@ -6065,7 +6065,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There is no argument given that corresponds to the required formal parameter &apos;{0}&apos; of &apos;{1}&apos;.
+        ///   Looks up a localized string similar to There is no argument given that corresponds to the required formal parameter &apos;{0}&apos; of &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoCorrespondingArgument {
             get {
@@ -6101,7 +6101,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Program does not contain a static &apos;Main&apos; method suitable for an entry point.
+        ///   Looks up a localized string similar to Program does not contain a static &apos;Main&apos; method suitable for an entry point..
         /// </summary>
         internal static string ERR_NoEntryPoint {
             get {
@@ -6110,7 +6110,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert type &apos;{0}&apos; to &apos;{1}&apos; via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion.
+        ///   Looks up a localized string similar to Cannot convert type &apos;{0}&apos; to &apos;{1}&apos; via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion..
         /// </summary>
         internal static string ERR_NoExplicitBuiltinConv {
             get {
@@ -6119,7 +6119,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert type &apos;{0}&apos; to &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot convert type &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoExplicitConv {
             get {
@@ -6128,7 +6128,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing file specification for &apos;{0}&apos; option.
+        ///   Looks up a localized string similar to Missing file specification for &apos;{0}&apos; option..
         /// </summary>
         internal static string ERR_NoFileSpec {
             get {
@@ -6137,7 +6137,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; does not have an overridable get accessor.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; does not have an overridable get accessor..
         /// </summary>
         internal static string ERR_NoGetToOverride {
             get {
@@ -6146,7 +6146,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot implicitly convert type &apos;{0}&apos; to &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot implicitly convert type &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoImplicitConv {
             get {
@@ -6155,7 +6155,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot implicitly convert type &apos;{0}&apos; to &apos;{1}&apos;. An explicit conversion exists (are you missing a cast?).
+        ///   Looks up a localized string similar to Cannot implicitly convert type &apos;{0}&apos; to &apos;{1}&apos;. An explicit conversion exists (are you missing a cast?)..
         /// </summary>
         internal static string ERR_NoImplicitConvCast {
             get {
@@ -6164,7 +6164,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a suitable static Main method.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a suitable static Main method..
         /// </summary>
         internal static string ERR_NoMainInClass {
             get {
@@ -6173,7 +6173,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify /main if building a module or library.
+        ///   Looks up a localized string similar to Cannot specify /main if building a module or library..
         /// </summary>
         internal static string ERR_NoMainOnDLL {
             get {
@@ -6182,7 +6182,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Metadata file &apos;{0}&apos; could not be found.
+        ///   Looks up a localized string similar to Metadata file &apos;{0}&apos; could not be found..
         /// </summary>
         internal static string ERR_NoMetadataFile {
             get {
@@ -6191,7 +6191,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifiers cannot be placed on event accessor declarations.
+        ///   Looks up a localized string similar to Modifiers cannot be placed on event accessor declarations..
         /// </summary>
         internal static string ERR_NoModifiersOnAccessor {
             get {
@@ -6200,7 +6200,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Class &apos;{0}&apos; cannot have multiple base classes: &apos;{1}&apos; and &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Class &apos;{0}&apos; cannot have multiple base classes: &apos;{1}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_NoMultipleInheritance {
             get {
@@ -6209,7 +6209,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Elements defined in a namespace cannot be explicitly declared as private, protected, or protected internal.
+        ///   Looks up a localized string similar to Elements defined in a namespace cannot be explicitly declared as private, protected, or protected internal..
         /// </summary>
         internal static string ERR_NoNamespacePrivate {
             get {
@@ -6218,7 +6218,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create an instance of the abstract class or interface &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot create an instance of the abstract class or interface &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_NoNewAbstract {
             get {
@@ -6227,7 +6227,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create an instance of the variable type &apos;{0}&apos; because it does not have the new() constraint.
+        ///   Looks up a localized string similar to Cannot create an instance of the variable type &apos;{0}&apos; because it does not have the new() constraint..
         /// </summary>
         internal static string ERR_NoNewTyvar {
             get {
@@ -6236,7 +6236,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; in interface list is not an interface.
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; in interface list is not an interface..
         /// </summary>
         internal static string ERR_NonInterfaceInInterfaceList {
             get {
@@ -6281,7 +6281,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected at least one script (.csx file) but none specified.
+        ///   Looks up a localized string similar to Expected at least one script (.csx file) but none specified..
         /// </summary>
         internal static string ERR_NoScriptsSpecified {
             get {
@@ -6290,7 +6290,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; does not have an overridable set accessor.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot override because &apos;{1}&apos; does not have an overridable set accessor..
         /// </summary>
         internal static string ERR_NoSetToOverride {
             get {
@@ -6299,7 +6299,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source file &apos;{0}&apos; could not be opened -- {1}.
+        ///   Looks up a localized string similar to Source file &apos;{0}&apos; could not be opened -- {1}..
         /// </summary>
         internal static string ERR_NoSourceFile {
             get {
@@ -6308,7 +6308,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_NoSuchMember {
             get {
@@ -6317,7 +6317,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?)..
         /// </summary>
         internal static string ERR_NoSuchMemberOrExtension {
             get {
@@ -6326,7 +6326,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive for &apos;{2}&apos;?).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive for &apos;{2}&apos;?)..
         /// </summary>
         internal static string ERR_NoSuchMemberOrExtensionNeedUsing {
             get {
@@ -6335,7 +6335,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not an attribute class.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not an attribute class..
         /// </summary>
         internal static string ERR_NotAnAttributeClass {
             get {
@@ -6344,7 +6344,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The expression being assigned to &apos;{0}&apos; must be constant.
+        ///   Looks up a localized string similar to The expression being assigned to &apos;{0}&apos; must be constant..
         /// </summary>
         internal static string ERR_NotConstantExpression {
             get {
@@ -6362,7 +6362,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is of type &apos;{1}&apos;. A default parameter value of a reference type other than string can only be initialized with null.
+        ///   Looks up a localized string similar to &apos;{0}&apos; is of type &apos;{1}&apos;. A default parameter value of a reference type other than string can only be initialized with null..
         /// </summary>
         internal static string ERR_NotNullRefDefaultParameter {
             get {
@@ -6398,7 +6398,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword &apos;void&apos; cannot be used in this context.
+        ///   Looks up a localized string similar to Keyword &apos;void&apos; cannot be used in this context..
         /// </summary>
         internal static string ERR_NoVoidHere {
             get {
@@ -6407,7 +6407,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid parameter type &apos;void&apos;.
+        ///   Looks up a localized string similar to Invalid parameter type &apos;void&apos;..
         /// </summary>
         internal static string ERR_NoVoidParameter {
             get {
@@ -6416,7 +6416,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of null is not valid in this context.
+        ///   Looks up a localized string similar to Use of null is not valid in this context..
         /// </summary>
         internal static string ERR_NullNotValid {
             get {
@@ -6434,7 +6434,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; has no base class and cannot call a base constructor.
+        ///   Looks up a localized string similar to &apos;{0}&apos; has no base class and cannot call a base constructor..
         /// </summary>
         internal static string ERR_ObjectCallingBaseConstructor {
             get {
@@ -6443,7 +6443,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The class System.Object cannot have a base class or implement an interface.
+        ///   Looks up a localized string similar to The class System.Object cannot have a base class or implement an interface..
         /// </summary>
         internal static string ERR_ObjectCantHaveBases {
             get {
@@ -6452,7 +6452,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Object and collection initializer expressions may not be applied to a delegate creation expression.
+        ///   Looks up a localized string similar to Object and collection initializer expressions may not be applied to a delegate creation expression..
         /// </summary>
         internal static string ERR_ObjectOrCollectionInitializerWithDelegateCreation {
             get {
@@ -6461,7 +6461,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Member &apos;{0}&apos; cannot be accessed with an instance reference; qualify it with a type name instead.
+        ///   Looks up a localized string similar to Member &apos;{0}&apos; cannot be accessed with an instance reference; qualify it with a type name instead..
         /// </summary>
         internal static string ERR_ObjectProhibited {
             get {
@@ -6470,7 +6470,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An object reference is required for the non-static field, method, or property &apos;{0}&apos;.
+        ///   Looks up a localized string similar to An object reference is required for the non-static field, method, or property &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ObjectRequired {
             get {
@@ -6488,7 +6488,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only class types can contain destructors.
+        ///   Looks up a localized string similar to Only class types can contain destructors..
         /// </summary>
         internal static string ERR_OnlyClassesCanContainDestructors {
             get {
@@ -6497,7 +6497,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to End-of-file found, &apos;*/&apos; expected.
+        ///   Looks up a localized string similar to End-of-file found, &apos;*/&apos; expected..
         /// </summary>
         internal static string ERR_OpenEndedComment {
             get {
@@ -6506,7 +6506,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error opening response file &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Error opening response file &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_OpenResponseFile {
             get {
@@ -6515,7 +6515,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User-defined operators cannot return void.
+        ///   Looks up a localized string similar to User-defined operators cannot return void..
         /// </summary>
         internal static string ERR_OperatorCantReturnVoid {
             get {
@@ -6524,7 +6524,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot contain user-defined operators.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot contain user-defined operators..
         /// </summary>
         internal static string ERR_OperatorInStaticClass {
             get {
@@ -6533,7 +6533,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The operator &apos;{0}&apos; requires a matching operator &apos;{1}&apos; to also be defined.
+        ///   Looks up a localized string similar to The operator &apos;{0}&apos; requires a matching operator &apos;{1}&apos; to also be defined..
         /// </summary>
         internal static string ERR_OperatorNeedsMatch {
             get {
@@ -6542,7 +6542,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User-defined operator &apos;{0}&apos; must be declared static and public.
+        ///   Looks up a localized string similar to User-defined operator &apos;{0}&apos; must be declared static and public..
         /// </summary>
         internal static string ERR_OperatorsMustBeStatic {
             get {
@@ -6551,7 +6551,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type of operator True or False must be bool.
+        ///   Looks up a localized string similar to The return type of operator True or False must be bool..
         /// </summary>
         internal static string ERR_OpTFRetType {
             get {
@@ -6569,7 +6569,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Outputs without source must have the /out option specified.
+        ///   Looks up a localized string similar to Outputs without source must have the /out option specified..
         /// </summary>
         internal static string ERR_OutputNeedsName {
             get {
@@ -6578,7 +6578,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not write to output file &apos;{0}&apos; -- &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Could not write to output file &apos;{0}&apos; -- &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_OutputWriteFailed {
             get {
@@ -6587,7 +6587,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on ref and out.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on ref and out..
         /// </summary>
         internal static string ERR_OverloadRefOut {
             get {
@@ -6596,7 +6596,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot define overloaded constructor &apos;{0}&apos; because it differs from another constructor only on ref and out.
+        ///   Looks up a localized string similar to Cannot define overloaded constructor &apos;{0}&apos; because it differs from another constructor only on ref and out..
         /// </summary>
         internal static string ERR_OverloadRefOutCtor {
             get {
@@ -6614,7 +6614,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: no suitable method found to override.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: no suitable method found to override..
         /// </summary>
         internal static string ERR_OverrideNotExpected {
             get {
@@ -6623,7 +6623,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A member &apos;{0}&apos; marked as override cannot be marked as new or virtual.
+        ///   Looks up a localized string similar to A member &apos;{0}&apos; marked as override cannot be marked as new or virtual..
         /// </summary>
         internal static string ERR_OverrideNotNew {
             get {
@@ -6632,7 +6632,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly.
+        ///   Looks up a localized string similar to Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly..
         /// </summary>
         internal static string ERR_OverrideWithConstraints {
             get {
@@ -6641,7 +6641,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overloadable binary operator expected.
+        ///   Looks up a localized string similar to Overloadable binary operator expected..
         /// </summary>
         internal static string ERR_OvlBinaryOperatorExpected {
             get {
@@ -6650,7 +6650,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overloadable operator expected.
+        ///   Looks up a localized string similar to Overloadable operator expected..
         /// </summary>
         internal static string ERR_OvlOperatorExpected {
             get {
@@ -6659,7 +6659,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overloadable unary operator expected.
+        ///   Looks up a localized string similar to Overloadable unary operator expected..
         /// </summary>
         internal static string ERR_OvlUnaryOperatorExpected {
             get {
@@ -6677,7 +6677,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static types cannot be used as parameters.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static types cannot be used as parameters..
         /// </summary>
         internal static string ERR_ParameterIsStaticClass {
             get {
@@ -6686,7 +6686,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameterless instance constructors in structs must be public.
+        ///   Looks up a localized string similar to Parameterless instance constructors in structs must be public..
         /// </summary>
         internal static string ERR_ParameterlessStructCtorsMustBePublic {
             get {
@@ -6704,7 +6704,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The params parameter cannot be declared as ref or out.
+        ///   Looks up a localized string similar to The params parameter cannot be declared as ref or out..
         /// </summary>
         internal static string ERR_ParamsCantBeRefOut {
             get {
@@ -6713,7 +6713,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A params parameter must be the last parameter in a formal parameter list.
+        ///   Looks up a localized string similar to A params parameter must be the last parameter in a formal parameter list..
         /// </summary>
         internal static string ERR_ParamsLast {
             get {
@@ -6722,7 +6722,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The params parameter must be a single dimensional array.
+        ///   Looks up a localized string similar to The params parameter must be a single dimensional array..
         /// </summary>
         internal static string ERR_ParamsMustBeArray {
             get {
@@ -6731,7 +6731,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The out parameter &apos;{0}&apos; must be assigned to before control leaves the current method.
+        ///   Looks up a localized string similar to The out parameter &apos;{0}&apos; must be assigned to before control leaves the current method..
         /// </summary>
         internal static string ERR_ParamUnassigned {
             get {
@@ -6740,7 +6740,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method cannot have out parameters.
+        ///   Looks up a localized string similar to A partial method cannot have out parameters..
         /// </summary>
         internal static string ERR_PartialMethodCannotHaveOutParameters {
             get {
@@ -6749,7 +6749,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Both partial method declarations must be extension methods or neither may be an extension method.
+        ///   Looks up a localized string similar to Both partial method declarations must be extension methods or neither may be an extension method..
         /// </summary>
         internal static string ERR_PartialMethodExtensionDifference {
             get {
@@ -6758,7 +6758,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent type parameter constraints.
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent type parameter constraints..
         /// </summary>
         internal static string ERR_PartialMethodInconsistentConstraints {
             get {
@@ -6767,7 +6767,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees.
+        ///   Looks up a localized string similar to Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees..
         /// </summary>
         internal static string ERR_PartialMethodInExpressionTree {
             get {
@@ -6776,7 +6776,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers.
+        ///   Looks up a localized string similar to A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers..
         /// </summary>
         internal static string ERR_PartialMethodInvalidModifier {
             get {
@@ -6785,7 +6785,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No defining declaration found for implementing declaration of partial method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to No defining declaration found for implementing declaration of partial method &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_PartialMethodMustHaveLatent {
             get {
@@ -6794,7 +6794,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial methods must have a void return type.
+        ///   Looks up a localized string similar to Partial methods must have a void return type..
         /// </summary>
         internal static string ERR_PartialMethodMustReturnVoid {
             get {
@@ -6803,7 +6803,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method may not explicitly implement an interface method.
+        ///   Looks up a localized string similar to A partial method may not explicitly implement an interface method..
         /// </summary>
         internal static string ERR_PartialMethodNotExplicit {
             get {
@@ -6812,7 +6812,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method must be declared within a partial class or partial struct.
+        ///   Looks up a localized string similar to A partial method must be declared within a partial class or partial struct..
         /// </summary>
         internal static string ERR_PartialMethodOnlyInPartialClass {
             get {
@@ -6821,7 +6821,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only methods, classes, structs, or interfaces may be partial.
+        ///   Looks up a localized string similar to Only methods, classes, structs, or interfaces may be partial..
         /// </summary>
         internal static string ERR_PartialMethodOnlyMethods {
             get {
@@ -6830,7 +6830,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method may not have multiple implementing declarations.
+        ///   Looks up a localized string similar to A partial method may not have multiple implementing declarations..
         /// </summary>
         internal static string ERR_PartialMethodOnlyOneActual {
             get {
@@ -6839,7 +6839,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method may not have multiple defining declarations.
+        ///   Looks up a localized string similar to A partial method may not have multiple defining declarations..
         /// </summary>
         internal static string ERR_PartialMethodOnlyOneLatent {
             get {
@@ -6848,7 +6848,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Both partial method declarations must use a params parameter or neither may use a params parameter.
+        ///   Looks up a localized string similar to Both partial method declarations must use a params parameter or neither may use a params parameter..
         /// </summary>
         internal static string ERR_PartialMethodParamsDifference {
             get {
@@ -6857,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Both partial method declarations must be static or neither may be static.
+        ///   Looks up a localized string similar to Both partial method declarations must be static or neither may be static..
         /// </summary>
         internal static string ERR_PartialMethodStaticDifference {
             get {
@@ -6866,7 +6866,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot create delegate from method &apos;{0}&apos; because it is a partial method without an implementing declaration.
+        ///   Looks up a localized string similar to Cannot create delegate from method &apos;{0}&apos; because it is a partial method without an implementing declaration..
         /// </summary>
         internal static string ERR_PartialMethodToDelegate {
             get {
@@ -6875,7 +6875,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Both partial method declarations must be unsafe or neither may be unsafe.
+        ///   Looks up a localized string similar to Both partial method declarations must be unsafe or neither may be unsafe..
         /// </summary>
         internal static string ERR_PartialMethodUnsafeDifference {
             get {
@@ -6884,7 +6884,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;partial&apos; modifier can only appear immediately before &apos;class&apos;, &apos;struct&apos;, &apos;interface&apos;, or &apos;void&apos;.
+        ///   Looks up a localized string similar to The &apos;partial&apos; modifier can only appear immediately before &apos;class&apos;, &apos;struct&apos;, &apos;interface&apos;, or &apos;void&apos;..
         /// </summary>
         internal static string ERR_PartialMisplaced {
             get {
@@ -6893,7 +6893,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; have conflicting accessibility modifiers.
+        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; have conflicting accessibility modifiers..
         /// </summary>
         internal static string ERR_PartialModifierConflict {
             get {
@@ -6902,7 +6902,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must not specify different base classes.
+        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must not specify different base classes..
         /// </summary>
         internal static string ERR_PartialMultipleBases {
             get {
@@ -6911,7 +6911,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must be all classes, all structs, or all interfaces.
+        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must be all classes, all structs, or all interfaces..
         /// </summary>
         internal static string ERR_PartialTypeKindConflict {
             get {
@@ -6920,7 +6920,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; have inconsistent constraints for type parameter &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; have inconsistent constraints for type parameter &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_PartialWrongConstraints {
             get {
@@ -6929,7 +6929,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must have the same type parameter names in the same order.
+        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must have the same type parameter names in the same order..
         /// </summary>
         internal static string ERR_PartialWrongTypeParams {
             get {
@@ -6938,7 +6938,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must have the same type parameter names and variance modifiers in the same order.
+        ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must have the same type parameter names and variance modifiers in the same order..
         /// </summary>
         internal static string ERR_PartialWrongTypeParamsVariance {
             get {
@@ -6947,7 +6947,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error reading file &apos;{0}&apos; specified for the named argument &apos;{1}&apos; for PermissionSet attribute: &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Error reading file &apos;{0}&apos; specified for the named argument &apos;{1}&apos; for PermissionSet attribute: &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_PermissionSetAttributeFileReadError {
             get {
@@ -6956,7 +6956,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to resolve file path &apos;{0}&apos; specified for the named argument &apos;{1}&apos; for PermissionSet attribute.
+        ///   Looks up a localized string similar to Unable to resolve file path &apos;{0}&apos; specified for the named argument &apos;{1}&apos; for PermissionSet attribute..
         /// </summary>
         internal static string ERR_PermissionSetAttributeInvalidFile {
             get {
@@ -6965,7 +6965,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Neither &apos;is&apos; nor &apos;as&apos; is valid on pointer types.
+        ///   Looks up a localized string similar to Neither &apos;is&apos; nor &apos;as&apos; is valid on pointer types..
         /// </summary>
         internal static string ERR_PointerInAsOrIs {
             get {
@@ -6974,7 +6974,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot define/undefine preprocessor symbols after first token in file.
+        ///   Looks up a localized string similar to Cannot define/undefine preprocessor symbols after first token in file..
         /// </summary>
         internal static string ERR_PPDefFollowsToken {
             get {
@@ -6983,7 +6983,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preprocessor directive expected.
+        ///   Looks up a localized string similar to Preprocessor directive expected..
         /// </summary>
         internal static string ERR_PPDirectiveExpected {
             get {
@@ -6992,7 +6992,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use #r after first token in file.
+        ///   Looks up a localized string similar to Cannot use #r after first token in file..
         /// </summary>
         internal static string ERR_PPReferenceFollowsToken {
             get {
@@ -7001,7 +7001,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
         /// </summary>
         internal static string ERR_PredefinedTypeNotFound {
             get {
@@ -7010,7 +7010,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute.
+        ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute..
         /// </summary>
         internal static string ERR_PrincipalPermissionInvalidAction {
             get {
@@ -7019,7 +7019,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: abstract properties cannot have private accessors.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: abstract properties cannot have private accessors..
         /// </summary>
         internal static string ERR_PrivateAbstractAccessor {
             get {
@@ -7028,7 +7028,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: accessibility modifiers may not be used on accessors in an interface.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: accessibility modifiers may not be used on accessors in an interface..
         /// </summary>
         internal static string ERR_PropertyAccessModInInterface {
             get {
@@ -7037,7 +7037,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: property or indexer cannot have void type.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: property or indexer cannot have void type..
         /// </summary>
         internal static string ERR_PropertyCantHaveVoidType {
             get {
@@ -7046,7 +7046,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The property or indexer &apos;{0}&apos; cannot be used in this context because it lacks the get accessor.
+        ///   Looks up a localized string similar to The property or indexer &apos;{0}&apos; cannot be used in this context because it lacks the get accessor..
         /// </summary>
         internal static string ERR_PropertyLacksGet {
             get {
@@ -7055,7 +7055,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: property or indexer must have at least one accessor.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: property or indexer must have at least one accessor..
         /// </summary>
         internal static string ERR_PropertyWithNoAccessors {
             get {
@@ -7064,7 +7064,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot contain protected members.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot contain protected members..
         /// </summary>
         internal static string ERR_ProtectedInStatic {
             get {
@@ -7073,7 +7073,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: new protected member declared in struct.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: new protected member declared in struct..
         /// </summary>
         internal static string ERR_ProtectedInStruct {
             get {
@@ -7082,7 +7082,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The * or -&gt; operator must be applied to a pointer.
+        ///   Looks up a localized string similar to The * or -&gt; operator must be applied to a pointer..
         /// </summary>
         internal static string ERR_PtrExpected {
             get {
@@ -7091,7 +7091,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A pointer must be indexed by only one value.
+        ///   Looks up a localized string similar to A pointer must be indexed by only one value..
         /// </summary>
         internal static string ERR_PtrIndexSingle {
             get {
@@ -7100,7 +7100,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error signing output with public key from container &apos;{0}&apos; -- {1}.
+        ///   Looks up a localized string similar to Error signing output with public key from container &apos;{0}&apos; -- {1}..
         /// </summary>
         internal static string ERR_PublicKeyContainerFailure {
             get {
@@ -7109,7 +7109,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error signing output with public key from file &apos;{0}&apos; -- {1}.
+        ///   Looks up a localized string similar to Error signing output with public key from file &apos;{0}&apos; -- {1}..
         /// </summary>
         internal static string ERR_PublicKeyFileFailure {
             get {
@@ -7118,7 +7118,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared.
+        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared..
         /// </summary>
         internal static string ERR_QueryDuplicateRangeVariable {
             get {
@@ -7163,7 +7163,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find an implementation of the query pattern for source type &apos;{0}&apos;.  &apos;{1}&apos; not found.  Are you missing a reference to &apos;System.Core.dll&apos; or a using directive for &apos;System.Linq&apos;?.
+        ///   Looks up a localized string similar to Could not find an implementation of the query pattern for source type &apos;{0}&apos;.  &apos;{1}&apos; not found.  Are you missing a reference to &apos;System.Core.dll&apos; or a using directive for &apos;System.Linq&apos;?..
         /// </summary>
         internal static string ERR_QueryNoProviderStandard {
             get {
@@ -7181,7 +7181,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass the range variable &apos;{0}&apos; as an out or ref parameter.
+        ///   Looks up a localized string similar to Cannot pass the range variable &apos;{0}&apos; as an out or ref parameter..
         /// </summary>
         internal static string ERR_QueryOutRefRangeVariable {
             get {
@@ -7190,7 +7190,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to a range variable.
+        ///   Looks up a localized string similar to Cannot assign {0} to a range variable..
         /// </summary>
         internal static string ERR_QueryRangeVariableAssignedBadValue {
             get {
@@ -7199,7 +7199,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; conflicts with a previous declaration of &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; conflicts with a previous declaration of &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_QueryRangeVariableOverrides {
             get {
@@ -7208,7 +7208,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Range variable &apos;{0}&apos; cannot be assigned to -- it is read only.
+        ///   Looks up a localized string similar to Range variable &apos;{0}&apos; cannot be assigned to -- it is read only..
         /// </summary>
         internal static string ERR_QueryRangeVariableReadOnly {
             get {
@@ -7217,7 +7217,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; cannot have the same name as a method type parameter.
+        ///   Looks up a localized string similar to The range variable &apos;{0}&apos; cannot have the same name as a method type parameter..
         /// </summary>
         internal static string ERR_QueryRangeVariableSameAsTypeParam {
             get {
@@ -7253,7 +7253,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to } expected.
+        ///   Looks up a localized string similar to } expected..
         /// </summary>
         internal static string ERR_RbraceExpected {
             get {
@@ -7262,7 +7262,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; of type &apos;{1}&apos; cannot be assigned with an object initializer because it is of a value type.
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; of type &apos;{1}&apos; cannot be assigned with an object initializer because it is of a value type..
         /// </summary>
         internal static string ERR_ReadonlyValueTypeInObjectInitializer {
             get {
@@ -7271,7 +7271,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself.
+        ///   Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself..
         /// </summary>
         internal static string ERR_RecursiveConstructorCall {
             get {
@@ -7289,7 +7289,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a reference type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a reference type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_RefConstraintNotSatisfied {
             get {
@@ -7298,7 +7298,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #r is only allowed in scripts.
+        ///   Looks up a localized string similar to #r is only allowed in scripts..
         /// </summary>
         internal static string ERR_ReferenceDirectiveOnlyAllowedInScripts {
             get {
@@ -7307,7 +7307,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A ref or out argument must be an assignable variable.
+        ///   Looks up a localized string similar to A ref or out argument must be an assignable variable..
         /// </summary>
         internal static string ERR_RefLvalueExpected {
             get {
@@ -7316,7 +7316,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A ref or out parameter cannot have a default value.
+        ///   Looks up a localized string similar to A ref or out parameter cannot have a default value..
         /// </summary>
         internal static string ERR_RefOutDefaultValue {
             get {
@@ -7325,7 +7325,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A property or indexer may not be passed as an out or ref parameter.
+        ///   Looks up a localized string similar to A property or indexer may not be passed as an out or ref parameter..
         /// </summary>
         internal static string ERR_RefProperty {
             get {
@@ -7334,7 +7334,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be passed ref or out (except in a constructor).
+        ///   Looks up a localized string similar to A readonly field cannot be passed ref or out (except in a constructor)..
         /// </summary>
         internal static string ERR_RefReadonly {
             get {
@@ -7343,7 +7343,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be passed ref or out (except in a constructor).
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be passed ref or out (except in a constructor)..
         /// </summary>
         internal static string ERR_RefReadonly2 {
             get {
@@ -7352,7 +7352,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass &apos;{0}&apos; as a ref or out argument because it is read-only.
+        ///   Looks up a localized string similar to Cannot pass &apos;{0}&apos; as a ref or out argument because it is read-only..
         /// </summary>
         internal static string ERR_RefReadonlyLocal {
             get {
@@ -7361,7 +7361,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass fields of &apos;{0}&apos; as a ref or out argument because it is a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot pass fields of &apos;{0}&apos; as a ref or out argument because it is a &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_RefReadonlyLocal2Cause {
             get {
@@ -7370,7 +7370,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass &apos;{0}&apos; as a ref or out argument because it is a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot pass &apos;{0}&apos; as a ref or out argument because it is a &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_RefReadonlyLocalCause {
             get {
@@ -7379,7 +7379,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A static readonly field cannot be passed ref or out (except in a static constructor).
+        ///   Looks up a localized string similar to A static readonly field cannot be passed ref or out (except in a static constructor)..
         /// </summary>
         internal static string ERR_RefReadonlyStatic {
             get {
@@ -7388,7 +7388,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be passed ref or out (except in a static constructor).
+        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be passed ref or out (except in a static constructor)..
         /// </summary>
         internal static string ERR_RefReadonlyStatic2 {
             get {
@@ -7397,7 +7397,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;class&apos; or &apos;struct&apos; constraint must come before any other constraints.
+        ///   Looks up a localized string similar to The &apos;class&apos; or &apos;struct&apos; constraint must come before any other constraints..
         /// </summary>
         internal static string ERR_RefValBoundMustBeFirst {
             get {
@@ -7406,7 +7406,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot specify both a constraint class and the &apos;class&apos; or &apos;struct&apos; constraint.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot specify both a constraint class and the &apos;class&apos; or &apos;struct&apos; constraint..
         /// </summary>
         internal static string ERR_RefValBoundWithClass {
             get {
@@ -7415,7 +7415,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session.
+        ///   Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session..
         /// </summary>
         internal static string ERR_ReservedAssemblyName {
             get {
@@ -7424,7 +7424,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The enumerator name &apos;{0}&apos; is reserved and cannot be used.
+        ///   Looks up a localized string similar to The enumerator name &apos;{0}&apos; is reserved and cannot be used..
         /// </summary>
         internal static string ERR_ReservedEnumerator {
             get {
@@ -7433,7 +7433,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Each linked resource and module must have a unique filename. Filename &apos;{0}&apos; is specified more than once in this assembly.
+        ///   Looks up a localized string similar to Each linked resource and module must have a unique filename. Filename &apos;{0}&apos; is specified more than once in this assembly..
         /// </summary>
         internal static string ERR_ResourceFileNameNotUnique {
             get {
@@ -7442,7 +7442,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resource identifier &apos;{0}&apos; has already been used in this assembly.
+        ///   Looks up a localized string similar to Resource identifier &apos;{0}&apos; has already been used in this assembly..
         /// </summary>
         internal static string ERR_ResourceNotUnique {
             get {
@@ -7451,7 +7451,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Since &apos;{0}&apos; returns void, a return keyword must not be followed by an object expression.
+        ///   Looks up a localized string similar to Since &apos;{0}&apos; returns void, a return keyword must not be followed by an object expression..
         /// </summary>
         internal static string ERR_RetNoObjectRequired {
             get {
@@ -7460,7 +7460,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Anonymous function converted to a void returning delegate cannot return a value.
+        ///   Looks up a localized string similar to Anonymous function converted to a void returning delegate cannot return a value..
         /// </summary>
         internal static string ERR_RetNoObjectRequiredLambda {
             get {
@@ -7469,7 +7469,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An object of a type convertible to &apos;{0}&apos; is required.
+        ///   Looks up a localized string similar to An object of a type convertible to &apos;{0}&apos; is required..
         /// </summary>
         internal static string ERR_RetObjectRequired {
             get {
@@ -7478,7 +7478,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: not all code paths return a value.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: not all code paths return a value..
         /// </summary>
         internal static string ERR_ReturnExpected {
             get {
@@ -7496,7 +7496,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot use &apos;return&apos; in top-level script code.
+        ///   Looks up a localized string similar to You cannot use &apos;return&apos; in top-level script code..
         /// </summary>
         internal static string ERR_ReturnNotAllowedInScript {
             get {
@@ -7505,7 +7505,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot modify the return value of &apos;{0}&apos; because it is not a variable.
+        ///   Looks up a localized string similar to Cannot modify the return value of &apos;{0}&apos; because it is not a variable..
         /// </summary>
         internal static string ERR_ReturnNotLValue {
             get {
@@ -7514,7 +7514,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static types cannot be used as return types.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static types cannot be used as return types..
         /// </summary>
         internal static string ERR_ReturnTypeIsStaticClass {
             get {
@@ -7523,7 +7523,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_SameFullNameAggAgg {
             get {
@@ -7532,7 +7532,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The namespace &apos;{1}&apos; in &apos;{0}&apos; conflicts with the type &apos;{3}&apos; in &apos;{2}&apos;.
+        ///   Looks up a localized string similar to The namespace &apos;{1}&apos; in &apos;{0}&apos; conflicts with the type &apos;{3}&apos; in &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_SameFullNameNsAgg {
             get {
@@ -7541,7 +7541,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{1}&apos; in &apos;{0}&apos; conflicts with the namespace &apos;{3}&apos; in &apos;{2}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{1}&apos; in &apos;{0}&apos; conflicts with the namespace &apos;{3}&apos; in &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_SameFullNameThisAggThisNs {
             get {
@@ -7550,7 +7550,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be sealed because it is not an override.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be sealed because it is not an override..
         /// </summary>
         internal static string ERR_SealedNonOverride {
             get {
@@ -7559,7 +7559,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a class cannot be both static and sealed.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a class cannot be both static and sealed..
         /// </summary>
         internal static string ERR_SealedStaticClass {
             get {
@@ -7568,7 +7568,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Security attribute &apos;{0}&apos; has an invalid SecurityAction value &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Security attribute &apos;{0}&apos; has an invalid SecurityAction value &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_SecurityAttributeInvalidAction {
             get {
@@ -7577,7 +7577,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for security attributes applied to an assembly.
+        ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for security attributes applied to an assembly..
         /// </summary>
         internal static string ERR_SecurityAttributeInvalidActionAssembly {
             get {
@@ -7586,7 +7586,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for security attributes applied to a type or a method.
+        ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for security attributes applied to a type or a method..
         /// </summary>
         internal static string ERR_SecurityAttributeInvalidActionTypeOrMethod {
             get {
@@ -7604,7 +7604,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to First argument to a security attribute must be a valid SecurityAction.
+        ///   Looks up a localized string similar to First argument to a security attribute must be a valid SecurityAction..
         /// </summary>
         internal static string ERR_SecurityAttributeMissingAction {
             get {
@@ -7631,7 +7631,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ; expected.
+        ///   Looks up a localized string similar to ; expected..
         /// </summary>
         internal static string ERR_SemicolonExpected {
             get {
@@ -7640,7 +7640,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to { or ; expected.
+        ///   Looks up a localized string similar to { or ; expected..
         /// </summary>
         internal static string ERR_SemiOrLBraceExpected {
             get {
@@ -7649,7 +7649,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Key file &apos;{0}&apos; is missing the private key needed for signing.
+        ///   Looks up a localized string similar to Key file &apos;{0}&apos; is missing the private key needed for signing..
         /// </summary>
         internal static string ERR_SignButNoPrivateKey {
             get {
@@ -7667,7 +7667,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; could not be found (are you missing a using directive or an assembly reference?).
+        ///   Looks up a localized string similar to The type or namespace name &apos;{0}&apos; could not be found (are you missing a using directive or an assembly reference?)..
         /// </summary>
         internal static string ERR_SingleTypeNameNotFound {
             get {
@@ -7685,7 +7685,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)..
         /// </summary>
         internal static string ERR_SizeofUnsafe {
             get {
@@ -7694,7 +7694,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside an anonymous function, query expression, iterator block or async method.
+        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside an anonymous function, query expression, iterator block or async method..
         /// </summary>
         internal static string ERR_SpecialByRefInLambda {
             get {
@@ -7703,7 +7703,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraint cannot be special class &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Constraint cannot be special class &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_SpecialTypeAsBound {
             get {
@@ -7712,7 +7712,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to stackalloc may not be used in a catch or finally block.
+        ///   Looks up a localized string similar to stackalloc may not be used in a catch or finally block..
         /// </summary>
         internal static string ERR_StackallocInCatchFinally {
             get {
@@ -7721,7 +7721,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A lambda expression with a statement body cannot be converted to an expression tree.
+        ///   Looks up a localized string similar to A lambda expression with a statement body cannot be converted to an expression tree..
         /// </summary>
         internal static string ERR_StatementLambdaToExpressionTree {
             get {
@@ -7730,7 +7730,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{1}&apos;: cannot derive from static class &apos;{0}&apos;.
+        ///   Looks up a localized string similar to &apos;{1}&apos;: cannot derive from static class &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_StaticBaseClass {
             get {
@@ -7739,7 +7739,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot implement interfaces.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static classes cannot implement interfaces..
         /// </summary>
         internal static string ERR_StaticClassInterfaceImpl {
             get {
@@ -7748,7 +7748,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The constant &apos;{0}&apos; cannot be marked static.
+        ///   Looks up a localized string similar to The constant &apos;{0}&apos; cannot be marked static..
         /// </summary>
         internal static string ERR_StaticConstant {
             get {
@@ -7757,7 +7757,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a static constructor must be parameterless.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a static constructor must be parameterless..
         /// </summary>
         internal static string ERR_StaticConstParam {
             get {
@@ -7766,7 +7766,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: access modifiers are not allowed on static constructors.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: access modifiers are not allowed on static constructors..
         /// </summary>
         internal static string ERR_StaticConstructorWithAccessModifiers {
             get {
@@ -7775,7 +7775,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: static constructor cannot have an explicit &apos;this&apos; or &apos;base&apos; constructor call.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: static constructor cannot have an explicit &apos;this&apos; or &apos;base&apos; constructor call..
         /// </summary>
         internal static string ERR_StaticConstructorWithExplicitConstructorCall {
             get {
@@ -7793,7 +7793,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The second operand of an &apos;is&apos; or &apos;as&apos; operator may not be static type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The second operand of an &apos;is&apos; or &apos;as&apos; operator may not be static type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_StaticInAsOrIs {
             get {
@@ -7802,7 +7802,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Static field or property &apos;{0}&apos; cannot be assigned in an object initializer.
+        ///   Looks up a localized string similar to Static field or property &apos;{0}&apos; cannot be assigned in an object initializer..
         /// </summary>
         internal static string ERR_StaticMemberInObjectInitializer {
             get {
@@ -7811,7 +7811,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A static member &apos;{0}&apos; cannot be marked as override, virtual, or abstract.
+        ///   Looks up a localized string similar to A static member &apos;{0}&apos; cannot be marked as override, virtual, or abstract..
         /// </summary>
         internal static string ERR_StaticNotVirtual {
             get {
@@ -7820,7 +7820,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Struct member &apos;{0}&apos; of type &apos;{1}&apos; causes a cycle in the struct layout.
+        ///   Looks up a localized string similar to Struct member &apos;{0}&apos; of type &apos;{1}&apos; causes a cycle in the struct layout..
         /// </summary>
         internal static string ERR_StructLayoutCycle {
             get {
@@ -7829,7 +7829,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The FieldOffset attribute is not allowed on static or const fields.
+        ///   Looks up a localized string similar to The FieldOffset attribute is not allowed on static or const fields..
         /// </summary>
         internal static string ERR_StructOffsetOnBadField {
             get {
@@ -7838,7 +7838,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit).
+        ///   Looks up a localized string similar to The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)..
         /// </summary>
         internal static string ERR_StructOffsetOnBadStruct {
             get {
@@ -7847,7 +7847,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Structs cannot contain explicit parameterless constructors.
+        ///   Looks up a localized string similar to Structs cannot contain explicit parameterless constructors..
         /// </summary>
         internal static string ERR_StructsCantContainDefaultConstructor {
             get {
@@ -7856,7 +7856,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: structs cannot call base class constructors.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: structs cannot call base class constructors..
         /// </summary>
         internal static string ERR_StructWithBaseConstructorCall {
             get {
@@ -7874,7 +7874,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Control cannot fall out of switch from final case label (&apos;{0}&apos;).
+        ///   Looks up a localized string similar to Control cannot fall out of switch from final case label (&apos;{0}&apos;)..
         /// </summary>
         internal static string ERR_SwitchFallOut {
             get {
@@ -7883,7 +7883,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Control cannot fall through from one case label (&apos;{0}&apos;) to another.
+        ///   Looks up a localized string similar to Control cannot fall through from one case label (&apos;{0}&apos;) to another..
         /// </summary>
         internal static string ERR_SwitchFallThrough {
             get {
@@ -7892,7 +7892,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type.
+        ///   Looks up a localized string similar to A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type..
         /// </summary>
         internal static string ERR_SwitchGoverningTypeValueExpected {
             get {
@@ -7901,7 +7901,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option.
+        ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option..
         /// </summary>
         internal static string ERR_SwitchNeedsNumber {
             get {
@@ -7910,7 +7910,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;{0}&apos; for &apos;{1}&apos; option.
+        ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;{0}&apos; for &apos;{1}&apos; option..
         /// </summary>
         internal static string ERR_SwitchNeedsString {
             get {
@@ -7919,7 +7919,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;MethodImplOptions.Synchronized&apos; cannot be applied to an async method.
+        ///   Looks up a localized string similar to &apos;MethodImplOptions.Synchronized&apos; cannot be applied to an async method..
         /// </summary>
         internal static string ERR_SynchronizedAsyncMethod {
             get {
@@ -7928,7 +7928,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Syntax error, &apos;{0}&apos; expected.
+        ///   Looks up a localized string similar to Syntax error, &apos;{0}&apos; expected..
         /// </summary>
         internal static string ERR_SyntaxError {
             get {
@@ -7937,7 +7937,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to System.Void cannot be used from C# -- use typeof(void) to get the void type object.
+        ///   Looks up a localized string similar to System.Void cannot be used from C# -- use typeof(void) to get the void type object..
         /// </summary>
         internal static string ERR_SystemVoid {
             get {
@@ -7946,7 +7946,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Since &apos;{0}&apos; is an async method that returns &apos;Task&apos;, a return keyword must not be followed by an object expression. Did you intend to return &apos;Task&lt;T&gt;&apos;?.
+        ///   Looks up a localized string similar to Since &apos;{0}&apos; is an async method that returns &apos;Task&apos;, a return keyword must not be followed by an object expression. Did you intend to return &apos;Task&lt;T&gt;&apos;?..
         /// </summary>
         internal static string ERR_TaskRetNoObjectRequired {
             get {
@@ -7955,7 +7955,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async lambda expression converted to a &apos;Task&apos; returning delegate cannot return a value. Did you intend to return &apos;Task&lt;T&gt;&apos;?.
+        ///   Looks up a localized string similar to Async lambda expression converted to a &apos;Task&apos; returning delegate cannot return a value. Did you intend to return &apos;Task&lt;T&gt;&apos;?..
         /// </summary>
         internal static string ERR_TaskRetNoObjectRequiredLambda {
             get {
@@ -7964,7 +7964,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword &apos;this&apos; is not available in the current context.
+        ///   Looks up a localized string similar to Keyword &apos;this&apos; is not available in the current context..
         /// </summary>
         internal static string ERR_ThisInBadContext {
             get {
@@ -7973,7 +7973,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword &apos;this&apos; is not valid in a static property, static method, or static field initializer.
+        ///   Looks up a localized string similar to Keyword &apos;this&apos; is not valid in a static property, static method, or static field initializer..
         /// </summary>
         internal static string ERR_ThisInStaticMeth {
             get {
@@ -7982,7 +7982,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Keyword &apos;this&apos; or &apos;base&apos; expected.
+        ///   Looks up a localized string similar to Keyword &apos;this&apos; or &apos;base&apos; expected..
         /// </summary>
         internal static string ERR_ThisOrBaseExpected {
             get {
@@ -8000,7 +8000,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement.
+        ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement..
         /// </summary>
         internal static string ERR_TooManyCatches {
             get {
@@ -8009,7 +8009,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Too many characters in character literal.
+        ///   Looks up a localized string similar to Too many characters in character literal..
         /// </summary>
         internal static string ERR_TooManyCharsInConst {
             get {
@@ -8018,7 +8018,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only 65534 locals, including those generated by the compiler, are allowed.
+        ///   Looks up a localized string similar to Only 65534 locals, including those generated by the compiler, are allowed..
         /// </summary>
         internal static string ERR_TooManyLocals {
             get {
@@ -8036,7 +8036,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The {1} &apos;{0}&apos; cannot be used with type arguments.
+        ///   Looks up a localized string similar to The {1} &apos;{0}&apos; cannot be used with type arguments..
         /// </summary>
         internal static string ERR_TypeArgsNotAllowed {
             get {
@@ -8045,7 +8045,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type expected.
+        ///   Looks up a localized string similar to Type expected..
         /// </summary>
         internal static string ERR_TypeExpected {
             get {
@@ -8054,7 +8054,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type parameter declaration must be an identifier not a type.
+        ///   Looks up a localized string similar to Type parameter declaration must be an identifier not a type..
         /// </summary>
         internal static string ERR_TypeParamMustBeIdentifier {
             get {
@@ -8072,7 +8072,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; has the same name as the containing type, or method.
+        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; has the same name as the containing type, or method..
         /// </summary>
         internal static string ERR_TypeVariableSameAsParent {
             get {
@@ -8081,7 +8081,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The contextual keyword &apos;var&apos; may only appear within a local variable declaration or in script code.
+        ///   Looks up a localized string similar to The contextual keyword &apos;var&apos; may only appear within a local variable declaration or in script code..
         /// </summary>
         internal static string ERR_TypeVarNotFound {
             get {
@@ -8090,7 +8090,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The contextual keyword &apos;var&apos; cannot be used in a range variable declaration.
+        ///   Looks up a localized string similar to The contextual keyword &apos;var&apos; cannot be used in a range variable declaration..
         /// </summary>
         internal static string ERR_TypeVarNotFoundRangeVariable {
             get {
@@ -8099,7 +8099,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{1}&apos; does not define type parameter &apos;{0}&apos;.
+        ///   Looks up a localized string similar to &apos;{1}&apos; does not define type parameter &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TyVarNotFoundInConstraint {
             get {
@@ -8108,7 +8108,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field &apos;{0}&apos; must be fully assigned before control is returned to the caller.
+        ///   Looks up a localized string similar to Field &apos;{0}&apos; must be fully assigned before control is returned to the caller..
         /// </summary>
         internal static string ERR_UnassignedThis {
             get {
@@ -8126,7 +8126,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot modify the result of an unboxing conversion.
+        ///   Looks up a localized string similar to Cannot modify the result of an unboxing conversion..
         /// </summary>
         internal static string ERR_UnboxNotLValue {
             get {
@@ -8153,7 +8153,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected use of an aliased name.
+        ///   Looks up a localized string similar to Unexpected use of an aliased name..
         /// </summary>
         internal static string ERR_UnexpectedAliasedName {
             get {
@@ -8171,7 +8171,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected character &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Unexpected character &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UnexpectedCharacter {
             get {
@@ -8180,7 +8180,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected preprocessor directive.
+        ///   Looks up a localized string similar to Unexpected preprocessor directive..
         /// </summary>
         internal static string ERR_UnexpectedDirective {
             get {
@@ -8189,7 +8189,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected use of a generic name.
+        ///   Looks up a localized string similar to Unexpected use of a generic name..
         /// </summary>
         internal static string ERR_UnexpectedGenericName {
             get {
@@ -8198,7 +8198,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Semicolon after method or accessor block is not valid.
+        ///   Looks up a localized string similar to Semicolon after method or accessor block is not valid..
         /// </summary>
         internal static string ERR_UnexpectedSemicolon {
             get {
@@ -8207,7 +8207,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected token &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Unexpected token &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UnexpectedToken {
             get {
@@ -8216,7 +8216,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected use of an unbound generic name.
+        ///   Looks up a localized string similar to Unexpected use of an unbound generic name..
         /// </summary>
         internal static string ERR_UnexpectedUnboundGenericName {
             get {
@@ -8234,7 +8234,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement both &apos;{1}&apos; and &apos;{2}&apos; because they may unify for some type parameter substitutions.
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement both &apos;{1}&apos; and &apos;{2}&apos; because they may unify for some type parameter substitutions..
         /// </summary>
         internal static string ERR_UnifyingInterfaceInstantiations {
             get {
@@ -8243,7 +8243,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement inherited abstract member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement inherited abstract member &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_UnimplementedAbstractMethod {
             get {
@@ -8261,7 +8261,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_UnimplementedInterfaceMember {
             get {
@@ -8270,7 +8270,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A previous catch clause already catches all exceptions of this or of a super type (&apos;{0}&apos;).
+        ///   Looks up a localized string similar to A previous catch clause already catches all exceptions of this or of a super type (&apos;{0}&apos;)..
         /// </summary>
         internal static string ERR_UnreachableCatch {
             get {
@@ -8279,7 +8279,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have unsafe parameters or return types.
+        ///   Looks up a localized string similar to Async methods cannot have unsafe parameters or return types..
         /// </summary>
         internal static string ERR_UnsafeAsyncArgType {
             get {
@@ -8288,7 +8288,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have unsafe parameters or yield types.
+        ///   Looks up a localized string similar to Iterators cannot have unsafe parameters or yield types..
         /// </summary>
         internal static string ERR_UnsafeIteratorArgType {
             get {
@@ -8297,7 +8297,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pointers and fixed size buffers may only be used in an unsafe context.
+        ///   Looks up a localized string similar to Pointers and fixed size buffers may only be used in an unsafe context..
         /// </summary>
         internal static string ERR_UnsafeNeeded {
             get {
@@ -8306,7 +8306,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unsafe type &apos;{0}&apos; cannot be used in object creation.
+        ///   Looks up a localized string similar to Unsafe type &apos;{0}&apos; cannot be used in object creation..
         /// </summary>
         internal static string ERR_UnsafeTypeInObjectCreation {
             get {
@@ -8315,7 +8315,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Transparent identifier member access failed for field &apos;{0}&apos; of &apos;{1}&apos;.  Does the data being queried implement the query pattern?.
+        ///   Looks up a localized string similar to Transparent identifier member access failed for field &apos;{0}&apos; of &apos;{1}&apos;.  Does the data being queried implement the query pattern?..
         /// </summary>
         internal static string ERR_UnsupportedTransparentIdentifierAccess {
             get {
@@ -8324,7 +8324,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unterminated string literal.
+        ///   Looks up a localized string similar to Unterminated string literal..
         /// </summary>
         internal static string ERR_UnterminatedStringLit {
             get {
@@ -8333,7 +8333,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of unassigned local variable &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Use of unassigned local variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UseDefViolation {
             get {
@@ -8342,7 +8342,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of possibly unassigned field &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Use of possibly unassigned field &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UseDefViolationField {
             get {
@@ -8351,7 +8351,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of unassigned out parameter &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Use of unassigned out parameter &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UseDefViolationOut {
             get {
@@ -8360,7 +8360,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of possibly unassigned auto-implemented property &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Use of possibly unassigned auto-implemented property &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UseDefViolationProperty {
             get {
@@ -8369,7 +8369,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;this&apos; object cannot be used before all of its fields are assigned to.
+        ///   Looks up a localized string similar to The &apos;this&apos; object cannot be used before all of its fields are assigned to..
         /// </summary>
         internal static string ERR_UseDefViolationThis {
             get {
@@ -8378,7 +8378,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A using clause must precede all other elements defined in the namespace except extern alias declarations.
+        ///   Looks up a localized string similar to A using clause must precede all other elements defined in the namespace except extern alias declarations..
         /// </summary>
         internal static string ERR_UsingAfterElements {
             get {
@@ -8387,7 +8387,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a non-nullable value type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a non-nullable value type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_ValConstraintNotSatisfied {
             get {
@@ -8396,7 +8396,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null to &apos;{0}&apos; because it is a non-nullable value type.
+        ///   Looks up a localized string similar to Cannot convert null to &apos;{0}&apos; because it is a non-nullable value type..
         /// </summary>
         internal static string ERR_ValueCantBeNull {
             get {
@@ -8405,7 +8405,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Syntax error; value expected.
+        ///   Looks up a localized string similar to Syntax error; value expected..
         /// </summary>
         internal static string ERR_ValueExpected {
             get {
@@ -8414,7 +8414,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extension method &apos;{0}&apos; defined on value type &apos;{1}&apos; cannot be used to create delegates.
+        ///   Looks up a localized string similar to Extension method &apos;{0}&apos; defined on value type &apos;{1}&apos; cannot be used to create delegates..
         /// </summary>
         internal static string ERR_ValueTypeExtDelegate {
             get {
@@ -8423,7 +8423,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of property &apos;{0}&apos; of type &apos;{1}&apos; cannot be assigned with an object initializer because it is of a value type.
+        ///   Looks up a localized string similar to Members of property &apos;{0}&apos; of type &apos;{1}&apos; cannot be assigned with an object initializer because it is of a value type..
         /// </summary>
         internal static string ERR_ValueTypePropertyInObjectInitializer {
             get {
@@ -8432,7 +8432,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to __arglist is not allowed in the parameter list of async methods.
+        ///   Looks up a localized string similar to __arglist is not allowed in the parameter list of async methods..
         /// </summary>
         internal static string ERR_VarargsAsync {
             get {
@@ -8441,7 +8441,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a method with variable arguments.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a method with variable arguments..
         /// </summary>
         internal static string ERR_VarArgsInExpressionTree {
             get {
@@ -8450,7 +8450,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to __arglist is not allowed in the parameter list of iterators.
+        ///   Looks up a localized string similar to __arglist is not allowed in the parameter list of iterators..
         /// </summary>
         internal static string ERR_VarargsIterator {
             get {
@@ -8459,7 +8459,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An __arglist parameter must be the last parameter in a formal parameter list.
+        ///   Looks up a localized string similar to An __arglist parameter must be the last parameter in a formal parameter list..
         /// </summary>
         internal static string ERR_VarargsLast {
             get {
@@ -8468,7 +8468,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot declare a variable of static type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Cannot declare a variable of static type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_VarDeclIsStaticClass {
             get {
@@ -8477,7 +8477,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use local variable &apos;{0}&apos; before it is declared.
+        ///   Looks up a localized string similar to Cannot use local variable &apos;{0}&apos; before it is declared..
         /// </summary>
         internal static string ERR_VariableUsedBeforeDeclaration {
             get {
@@ -8495,7 +8495,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: virtual or abstract members cannot be private.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: virtual or abstract members cannot be private..
         /// </summary>
         internal static string ERR_VirtualPrivate {
             get {
@@ -8504,7 +8504,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The operation in question is undefined on void pointers.
+        ///   Looks up a localized string similar to The operation in question is undefined on void pointers..
         /// </summary>
         internal static string ERR_VoidError {
             get {
@@ -8513,7 +8513,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a field cannot be both volatile and readonly.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a field cannot be both volatile and readonly..
         /// </summary>
         internal static string ERR_VolatileAndReadonly {
             get {
@@ -8522,7 +8522,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: a volatile field cannot be of the type &apos;{1}&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: a volatile field cannot be of the type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_VolatileStruct {
             get {
@@ -8540,7 +8540,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The yield statement cannot be used inside an anonymous method or lambda expression.
+        ///   Looks up a localized string similar to The yield statement cannot be used inside an anonymous method or lambda expression..
         /// </summary>
         internal static string ERR_YieldInAnonMeth {
             get {

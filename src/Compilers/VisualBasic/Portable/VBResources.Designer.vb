@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot find the interop type that matches the embedded type &apos;{0}&apos;. Are you missing an assembly reference?.
+        '''  Looks up a localized string similar to Cannot find the interop type that matches the embedded type &apos;{0}&apos;. Are you missing an assembly reference?..
         '''</summary>
         Friend ReadOnly Property ERR_AbsentReferenceToPIA1() As String
             Get
@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to No accessible &apos;{0}&apos; is most specific: {1}.
+        '''  Looks up a localized string similar to No accessible &apos;{0}&apos; is most specific: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_AmbiguousDelegateBinding2() As String
             Get
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to Member &apos;{0}.{1}&apos; that matches this signature cannot be implemented because the interface &apos;{2}&apos; contains multiple members with this same name and signature:
         '''   &apos;{3}&apos;
-        '''   &apos;{4}&apos;.
+        '''   &apos;{4}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_AmbiguousImplements3() As String
             Get
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Member &apos;{0}&apos; that matches this signature cannot be overridden because the class &apos;{1}&apos; contains multiple members with this same name and signature: {2}.
+        '''  Looks up a localized string similar to Member &apos;{0}&apos; that matches this signature cannot be overridden because the class &apos;{1}&apos; contains multiple members with this same name and signature: {2}..
         '''</summary>
         Friend ReadOnly Property ERR_AmbiguousOverrides3() As String
             Get
@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to option &apos;{0}&apos; requires &apos;{1}&apos;.
+        '''  Looks up a localized string similar to option &apos;{0}&apos; requires &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_ArgumentRequired() As String
             Get
@@ -964,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to code page &apos;{0}&apos; is invalid or not installed.
+        '''  Looks up a localized string similar to code page &apos;{0}&apos; is invalid or not installed..
         '''</summary>
         Friend ReadOnly Property ERR_BadCodepage() As String
             Get
@@ -973,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to {0}.
+        '''  Looks up a localized string similar to {0}..
         '''</summary>
         Friend ReadOnly Property ERR_BadCompilationOption() As String
             Get
@@ -1315,7 +1315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to load module file &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to Unable to load module file &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_BadModuleFile1() As String
             Get
@@ -1360,7 +1360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; can be called:{1}.
+        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; can be called:{1}..
         '''</summary>
         Friend ReadOnly Property ERR_BadOverloadCandidates2() As String
             Get
@@ -1441,7 +1441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to load referenced library &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to Unable to load referenced library &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_BadRefLib1() As String
             Get
@@ -1622,7 +1622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to the file &apos;{0}&apos; is not a text file.
+        '''  Looks up a localized string similar to the file &apos;{0}&apos; is not a text file..
         '''</summary>
         Friend ReadOnly Property ERR_BinaryFile() As String
             Get
@@ -1910,7 +1910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to can&apos;t open &apos;{0}&apos; for writing: {1}.
+        '''  Looks up a localized string similar to can&apos;t open &apos;{0}&apos; for writing: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_CantOpenFileWrite() As String
             Get
@@ -1955,7 +1955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Error reading ruleset file {0} - {1}.
+        '''  Looks up a localized string similar to Error reading ruleset file {0} - {1}..
         '''</summary>
         Friend ReadOnly Property ERR_CantReadRulesetFile() As String
             Get
@@ -2423,7 +2423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type parameter &apos;{0}&apos; cannot be constrained to itself: {1}.
+        '''  Looks up a localized string similar to Type parameter &apos;{0}&apos; cannot be constrained to itself: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_ConstraintCycle2() As String
             Get
@@ -2757,7 +2757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to No accessible method &apos;{0}&apos; has a signature compatible with delegate &apos;{1}&apos;:{2}.
+        '''  Looks up a localized string similar to No accessible method &apos;{0}&apos; has a signature compatible with delegate &apos;{1}&apos;:{2}..
         '''</summary>
         Friend ReadOnly Property ERR_DelegateBindingFailure3() As String
             Get
@@ -3486,7 +3486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Error creating Win32 resources: {0}.
+        '''  Looks up a localized string similar to Error creating Win32 resources: {0}..
         '''</summary>
         Friend ReadOnly Property ERR_ErrorCreatingWin32ResourceFile() As String
             Get
@@ -4522,8 +4522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''    Extension method &apos;{0}&apos; defined in &apos;{1}&apos;: {2}.
+        '''  Looks up a localized string similar to Extension method &apos;{0}&apos; defined in &apos;{1}&apos;: {2}..
         '''</summary>
         Friend ReadOnly Property ERR_ExtensionMethodOverloadCandidate3() As String
             Get
@@ -4577,7 +4576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Error signing assembly &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to Error signing assembly &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_FailureSigningAssembly() As String
             Get
@@ -4613,7 +4612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to file &apos;{0}&apos; could not be found.
+        '''  Looks up a localized string similar to file &apos;{0}&apos; could not be found..
         '''</summary>
         Friend ReadOnly Property ERR_FileNotFound() As String
             Get
@@ -4802,7 +4801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Error in project-level import &apos;{0}&apos; at &apos;{1}&apos; : {2}.
+        '''  Looks up a localized string similar to Error in project-level import &apos;{0}&apos; at &apos;{1}&apos; : {2}..
         '''</summary>
         Friend ReadOnly Property ERR_GeneralProjectImportsError3() As String
             Get
@@ -4937,7 +4936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to cannot specify both /win32icon and /win32resource.
+        '''  Looks up a localized string similar to cannot specify both /win32icon and /win32resource..
         '''</summary>
         Friend ReadOnly Property ERR_IconFileAndWin32ResFile() As String
             Get
@@ -5000,7 +4999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Inherits clause of {0} &apos;{1}&apos; causes cyclic dependency: {2}.
+        '''  Looks up a localized string similar to Inherits clause of {0} &apos;{1}&apos; causes cyclic dependency: {2}..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalBaseTypeReferences3() As String
             Get
@@ -5297,7 +5296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Class &apos;{0}&apos; cannot inherit from itself: {1}.
+        '''  Looks up a localized string similar to Class &apos;{0}&apos; cannot inherit from itself: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_InheritanceCycle1() As String
             Get
@@ -5487,7 +5486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Interface &apos;{0}&apos; cannot inherit from itself: {1}.
+        '''  Looks up a localized string similar to Interface &apos;{0}&apos; cannot inherit from itself: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_InterfaceCycle1() As String
             Get
@@ -5631,7 +5630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Executables cannot be satellite assemblies; culture should always be empty.
+        '''  Looks up a localized string similar to Executables cannot be satellite assemblies; culture should always be empty..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidAssemblyCultureForExe() As String
             Get
@@ -5640,7 +5639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;{0}&apos; is not a valid value for /moduleassemblyname.
+        '''  Looks up a localized string similar to &apos;{0}&apos; is not a valid value for /moduleassemblyname..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidAssemblyName() As String
             Get
@@ -5721,7 +5720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invalid debug information format: {0}.
+        '''  Looks up a localized string similar to Invalid debug information format: {0}..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidDebugInformationFormat() As String
             Get
@@ -5847,7 +5846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invalid file section alignment &apos;{0}&apos;.
+        '''  Looks up a localized string similar to Invalid file section alignment &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidFileAlignment() As String
             Get
@@ -5856,7 +5855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Command-line syntax error: Invalid Guid format &apos;{0}&apos; for option &apos;{1}&apos;.
+        '''  Looks up a localized string similar to Command-line syntax error: Invalid Guid format &apos;{0}&apos; for option &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidFormatForGuidForOption() As String
             Get
@@ -5865,7 +5864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;{0}&apos; is not a valid format specifier.
+        '''  Looks up a localized string similar to &apos;{0}&apos; is not a valid format specifier..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidFormatSpecifier() As String
             Get
@@ -6063,7 +6062,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invalid output name: {0}.
+        '''  Looks up a localized string similar to Invalid output name: {0}..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidOutputName() As String
             Get
@@ -6135,7 +6134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to the value &apos;{0}&apos; is invalid for option &apos;{1}&apos;.
+        '''  Looks up a localized string similar to the value &apos;{0}&apos; is invalid for option &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidSwitchValue() As String
             Get
@@ -6171,7 +6170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build|*[.revision|*]]].
+        '''  Looks up a localized string similar to The specified version string does not conform to the required format - major[.minor[.build|*[.revision|*]]]..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidVersionFormat() As String
             Get
@@ -6180,7 +6179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The specified version string does not conform to the recommended format - major.minor.build.revision.
+        '''  Looks up a localized string similar to The specified version string does not conform to the recommended format - major.minor.build.revision..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidVersionFormat2() As String
             Get
@@ -6361,7 +6360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to You cannot use &apos;{0}&apos; in top-level script code.
+        '''  Looks up a localized string similar to You cannot use &apos;{0}&apos; in top-level script code..
         '''</summary>
         Friend ReadOnly Property ERR_KeywordNotAllowedInScript() As String
             Get
@@ -6541,7 +6540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to could not find library &apos;{0}&apos;.
+        '''  Looks up a localized string similar to could not find library &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_LibNotFound() As String
             Get
@@ -6892,7 +6891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;.
+        '''  Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_MissingGuidForOption() As String
             Get
@@ -7000,7 +6999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Event &apos;{0}&apos; cannot implement a Windows Runtime event &apos;{1}&apos; and a regular .NET event &apos;{2}&apos;.
+        '''  Looks up a localized string similar to Event &apos;{0}&apos; cannot implement a Windows Runtime event &apos;{1}&apos; and a regular .NET event &apos;{2}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_MixingWinRTAndNETEvents() As String
             Get
@@ -7117,7 +7116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Sub Main&apos; is declared more than once in &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to &apos;Sub Main&apos; is declared more than once in &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_MoreThanOneValidMainWasFound2() As String
             Get
@@ -7495,7 +7494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to You cannot declare Namespace in script code.
+        '''  Looks up a localized string similar to You cannot declare Namespace in script code..
         '''</summary>
         Friend ReadOnly Property ERR_NamespaceNotAllowedInScript() As String
             Get
@@ -7540,7 +7539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to the /moduleassemblyname option may only be specified when building a target of type &apos;module&apos;.
+        '''  Looks up a localized string similar to the /moduleassemblyname option may only be specified when building a target of type &apos;module&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_NeedModule() As String
             Get
@@ -7774,7 +7773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; can be called with these arguments:{1}.
+        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; can be called with these arguments:{1}..
         '''</summary>
         Friend ReadOnly Property ERR_NoCallableOverloadCandidates2() As String
             Get
@@ -7855,7 +7854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; is most specific for these arguments:{1}.
+        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; is most specific for these arguments:{1}..
         '''</summary>
         Friend ReadOnly Property ERR_NoMostSpecificOverload2() As String
             Get
@@ -7891,7 +7890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; can be called without a narrowing conversion:{1}.
+        '''  Looks up a localized string similar to Overload resolution failed because no accessible &apos;{0}&apos; can be called without a narrowing conversion:{1}..
         '''</summary>
         Friend ReadOnly Property ERR_NoNonNarrowingOverloadCandidates2() As String
             Get
@@ -7936,7 +7935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to unable to open response file &apos;{0}&apos;.
+        '''  Looks up a localized string similar to unable to open response file &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_NoResponseFile() As String
             Get
@@ -7945,7 +7944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Expected at least one script (.vbx file) but none specified.
+        '''  Looks up a localized string similar to Expected at least one script (.vbx file) but none specified..
         '''</summary>
         Friend ReadOnly Property ERR_NoScriptsSpecified() As String
             Get
@@ -7963,7 +7962,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to no input sources specified.
+        '''  Looks up a localized string similar to no input sources specified..
         '''</summary>
         Friend ReadOnly Property ERR_NoSources() As String
             Get
@@ -7972,7 +7971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to cannot infer an output file name from resource only input files; provide the &apos;/out&apos; option.
+        '''  Looks up a localized string similar to cannot infer an output file name from resource only input files; provide the &apos;/out&apos; option..
         '''</summary>
         Friend ReadOnly Property ERR_NoSourcesOut() As String
             Get
@@ -8539,8 +8538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''    {0}.
+        '''  Looks up a localized string similar to {0}..
         '''</summary>
         Friend ReadOnly Property ERR_OverloadCandidate1() As String
             Get
@@ -8549,8 +8547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''    &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_OverloadCandidate2() As String
             Get
@@ -8622,8 +8619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''   &apos;{0}&apos;.
+        '''  Looks up a localized string similar to &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_OverriddenCandidate1() As String
             Get
@@ -8956,7 +8952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Failure writing debug information: {0}.
+        '''  Looks up a localized string similar to Failure writing debug information: {0}..
         '''</summary>
         Friend ReadOnly Property ERR_PDBWritingFailed() As String
             Get
@@ -9028,7 +9024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Project-level conditional compilation constant &apos;{1}&apos; is not valid: {0}.
+        '''  Looks up a localized string similar to Project-level conditional compilation constant &apos;{1}&apos; is not valid: {0}..
         '''</summary>
         Friend ReadOnly Property ERR_ProjectCCError1() As String
             Get
@@ -9100,7 +9096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Error extracting public key from container &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to Error extracting public key from container &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_PublicKeyContainerFailure() As String
             Get
@@ -9109,7 +9105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Error extracting public key from file &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to Error extracting public key from file &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_PublicKeyFileFailure() As String
             Get
@@ -9280,7 +9276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Structure &apos;{0}&apos; cannot contain an instance of itself: {1}.
+        '''  Looks up a localized string similar to Structure &apos;{0}&apos; cannot contain an instance of itself: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_RecordCycle2() As String
             Get
@@ -9344,7 +9340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to #R is only allowed in scripts.
+        '''  Looks up a localized string similar to #R is only allowed in scripts..
         '''</summary>
         Friend ReadOnly Property ERR_ReferenceDirectiveOnlyAllowedInScripts() As String
             Get
@@ -9353,7 +9349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;{0}.{1}&apos; is already implemented by the base class &apos;{2}&apos;. Re-implementation of Windows Runtime Interface &apos;{3}&apos; is not allowed.
+        '''  Looks up a localized string similar to &apos;{0}.{1}&apos; is already implemented by the base class &apos;{2}&apos;. Re-implementation of Windows Runtime Interface &apos;{3}&apos; is not allowed..
         '''</summary>
         Friend ReadOnly Property ERR_ReImplementatingWinRTInterface4() As String
             Get
@@ -9362,7 +9358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;{0}.{1}&apos; from &apos;implements {2}&apos; is already implemented by the base class &apos;{3}&apos;. Re-implementation of Windows Runtime Interface &apos;{4}&apos; is not allowed.
+        '''  Looks up a localized string similar to &apos;{0}.{1}&apos; from &apos;implements {2}&apos; is already implemented by the base class &apos;{3}&apos;. Re-implementation of Windows Runtime Interface &apos;{4}&apos; is not allowed..
         '''</summary>
         Friend ReadOnly Property ERR_ReImplementatingWinRTInterface5() As String
             Get
@@ -9371,7 +9367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to In a Windows Runtime event, the type of the ‘RemoveHandler’ method parameter must be &apos;EventRegistrationToken&apos;.
+        '''  Looks up a localized string similar to In a Windows Runtime event, the type of the ‘RemoveHandler’ method parameter must be &apos;EventRegistrationToken&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_RemoveParamWrongForWinRT() As String
             Get
@@ -9443,7 +9439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session.
+        '''  Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session..
         '''</summary>
         Friend ReadOnly Property ERR_ReservedAssemblyName() As String
             Get
@@ -9470,7 +9466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot link resource files when building a module.
+        '''  Looks up a localized string similar to Cannot link resource files when building a module..
         '''</summary>
         Friend ReadOnly Property ERR_ResourceInModule() As String
             Get
@@ -9983,7 +9979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself: {1}.
+        '''  Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_SubNewCycle1() As String
             Get
@@ -10002,7 +9998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;)!key.
+        '''  Looks up a localized string similar to This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;)!key..
         '''</summary>
         Friend ReadOnly Property ERR_SubRequiresParenthesesBang() As String
             Get
@@ -10011,7 +10007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;).Invoke().
+        '''  Looks up a localized string similar to This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;).Invoke()..
         '''</summary>
         Friend ReadOnly Property ERR_SubRequiresParenthesesDot() As String
             Get
@@ -10020,7 +10016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This single-line statement lambda must be enclosed in parentheses. For example: Call (Sub() &lt;statement&gt;) ().
+        '''  Looks up a localized string similar to This single-line statement lambda must be enclosed in parentheses. For example: Call (Sub() &lt;statement&gt;) ()..
         '''</summary>
         Friend ReadOnly Property ERR_SubRequiresParenthesesLParen() As String
             Get
@@ -10038,7 +10034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to option &apos;{0}&apos; can be followed only by &apos;+&apos; or &apos;-&apos;.
+        '''  Looks up a localized string similar to option &apos;{0}&apos; can be followed only by &apos;+&apos; or &apos;-&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_SwitchNeedsBool() As String
             Get
@@ -10164,7 +10160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to An expression is too long or complex to compile.
+        '''  Looks up a localized string similar to An expression is too long or complex to compile..
         '''</summary>
         Friend ReadOnly Property ERR_TooLongOrComplexExpression() As String
             Get
@@ -10686,7 +10682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot create temporary file: {0}.
+        '''  Looks up a localized string similar to Cannot create temporary file: {0}..
         '''</summary>
         Friend ReadOnly Property ERR_UnableToCreateTempFile() As String
             Get
@@ -10695,7 +10691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to open resource file &apos;{0}&apos;: {1}.
+        '''  Looks up a localized string similar to Unable to open resource file &apos;{0}&apos;: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_UnableToOpenResourceFile1() As String
             Get
@@ -10704,7 +10700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to open Win32 manifest file &apos;{0}&apos; : {1}.
+        '''  Looks up a localized string similar to Unable to open Win32 manifest file &apos;{0}&apos; : {1}..
         '''</summary>
         Friend ReadOnly Property ERR_UnableToReadUacManifest2() As String
             Get
@@ -10839,8 +10835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''    {0}: {1}.
+        '''  Looks up a localized string similar to {0}: {1}..
         '''</summary>
         Friend ReadOnly Property ERR_UnimplementedMustOverride() As String
             Get

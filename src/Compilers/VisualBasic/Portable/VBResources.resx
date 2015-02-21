@@ -166,19 +166,19 @@
     <value>Wrong number of type arguments</value>
   </data>
   <data name="ERR_FileNotFound" xml:space="preserve">
-    <value>file '{0}' could not be found</value>
+    <value>file '{0}' could not be found.</value>
   </data>
   <data name="ERR_NoResponseFile" xml:space="preserve">
-    <value>unable to open response file '{0}'</value>
+    <value>unable to open response file '{0}'.</value>
   </data>
   <data name="ERR_ArgumentRequired" xml:space="preserve">
-    <value>option '{0}' requires '{1}'</value>
+    <value>option '{0}' requires '{1}'.</value>
   </data>
   <data name="ERR_SwitchNeedsBool" xml:space="preserve">
-    <value>option '{0}' can be followed only by '+' or '-'</value>
+    <value>option '{0}' can be followed only by '+' or '-'.</value>
   </data>
   <data name="ERR_InvalidSwitchValue" xml:space="preserve">
-    <value>the value '{0}' is invalid for option '{1}'</value>
+    <value>the value '{0}' is invalid for option '{1}'.</value>
   </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
@@ -190,10 +190,10 @@
     <value>The options /vbruntime* and /target:module cannot be combined.</value>
   </data>
   <data name="ERR_InvalidFormatForGuidForOption" xml:space="preserve">
-    <value>Command-line syntax error: Invalid Guid format '{0}' for option '{1}'</value>
+    <value>Command-line syntax error: Invalid Guid format '{0}' for option '{1}'.</value>
   </data>
   <data name="ERR_MissingGuidForOption" xml:space="preserve">
-    <value>Command-line syntax error: Missing Guid for option '{1}'</value>
+    <value>Command-line syntax error: Missing Guid for option '{1}'.</value>
   </data>
   <data name="WRN_BadSwitch" xml:space="preserve">
     <value>unrecognized option '{0}'; ignored</value>
@@ -202,7 +202,7 @@
     <value>Unrecognized command-line option</value>
   </data>
   <data name="ERR_NoSources" xml:space="preserve">
-    <value>no input sources specified</value>
+    <value>no input sources specified.</value>
   </data>
   <data name="WRN_FileAlreadyIncluded" xml:space="preserve">
     <value>source file '{0}' specified multiple times</value>
@@ -211,22 +211,22 @@
     <value>Source file specified multiple times</value>
   </data>
   <data name="ERR_CantOpenFileWrite" xml:space="preserve">
-    <value>can't open '{0}' for writing: {1}</value>
+    <value>can't open '{0}' for writing: {1}.</value>
   </data>
   <data name="ERR_BadCodepage" xml:space="preserve">
-    <value>code page '{0}' is invalid or not installed</value>
+    <value>code page '{0}' is invalid or not installed.</value>
   </data>
   <data name="ERR_BinaryFile" xml:space="preserve">
-    <value>the file '{0}' is not a text file</value>
+    <value>the file '{0}' is not a text file.</value>
   </data>
   <data name="ERR_LibNotFound" xml:space="preserve">
-    <value>could not find library '{0}'</value>
+    <value>could not find library '{0}'.</value>
   </data>
   <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
     <value>Metadata references not supported.</value>
   </data>
   <data name="ERR_IconFileAndWin32ResFile" xml:space="preserve">
-    <value>cannot specify both /win32icon and /win32resource</value>
+    <value>cannot specify both /win32icon and /win32resource.</value>
   </data>
   <data name="WRN_NoConfigInResponseFile" xml:space="preserve">
     <value>ignoring /noconfig option because it was specified in a response file</value>
@@ -241,13 +241,13 @@
     <value>Warning number is either not configurable or not valid</value>
   </data>
   <data name="ERR_NoSourcesOut" xml:space="preserve">
-    <value>cannot infer an output file name from resource only input files; provide the '/out' option</value>
+    <value>cannot infer an output file name from resource only input files; provide the '/out' option.</value>
   </data>
   <data name="ERR_NeedModule" xml:space="preserve">
-    <value>the /moduleassemblyname option may only be specified when building a target of type 'module'</value>
+    <value>the /moduleassemblyname option may only be specified when building a target of type 'module'.</value>
   </data>
   <data name="ERR_InvalidAssemblyName" xml:space="preserve">
-    <value>'{0}' is not a valid value for /moduleassemblyname</value>
+    <value>'{0}' is not a valid value for /moduleassemblyname.</value>
   </data>
   <data name="ERR_ConflictingManifestSwitches" xml:space="preserve">
     <value>Error embedding Win32 manifest: Option /win32manifest conflicts with /nowin32manifest.</value>
@@ -565,10 +565,10 @@
     <value>Label '{0}' is not defined.</value>
   </data>
   <data name="ERR_ErrorCreatingWin32ResourceFile" xml:space="preserve">
-    <value>Error creating Win32 resources: {0}</value>
+    <value>Error creating Win32 resources: {0}.</value>
   </data>
   <data name="ERR_UnableToCreateTempFile" xml:space="preserve">
-    <value>Cannot create temporary file: {0}</value>
+    <value>Cannot create temporary file: {0}.</value>
   </data>
   <data name="ERR_RequiredNewCall2" xml:space="preserve">
     <value>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' does not have an accessible 'Sub New' that can be called with no arguments.</value>
@@ -762,7 +762,7 @@
     '{0}' is nested in '{1}'.</value>
   </data>
   <data name="ERR_InheritanceCycle1" xml:space="preserve">
-    <value>Class '{0}' cannot inherit from itself: {1}</value>
+    <value>Class '{0}' cannot inherit from itself: {1}.</value>
   </data>
   <data name="ERR_InheritsFromNonClass" xml:space="preserve">
     <value>Classes can inherit only from other classes.</value>
@@ -835,17 +835,17 @@
     '{0}' contains '{1}' (variable '{2}').</value>
   </data>
   <data name="ERR_RecordCycle2" xml:space="preserve">
-    <value>Structure '{0}' cannot contain an instance of itself: {1}</value>
+    <value>Structure '{0}' cannot contain an instance of itself: {1}.</value>
   </data>
   <data name="ERR_InterfaceCycle1" xml:space="preserve">
-    <value>Interface '{0}' cannot inherit from itself: {1}</value>
+    <value>Interface '{0}' cannot inherit from itself: {1}.</value>
   </data>
   <data name="ERR_SubNewCycle2" xml:space="preserve">
     <value>
     '{0}' calls '{1}'.</value>
   </data>
   <data name="ERR_SubNewCycle1" xml:space="preserve">
-    <value>Constructor '{0}' cannot call itself: {1}</value>
+    <value>Constructor '{0}' cannot call itself: {1}.</value>
   </data>
   <data name="ERR_InheritsFromCantInherit3" xml:space="preserve">
     <value>'{0}' cannot inherit from {2} '{1}' because '{1}' is declared 'NotInheritable'.</value>
@@ -1142,26 +1142,25 @@
     <value>Overload resolution failed because no '{0}' is accessible.</value>
   </data>
   <data name="ERR_NoCallableOverloadCandidates2" xml:space="preserve">
-    <value>Overload resolution failed because no accessible '{0}' can be called with these arguments:{1}</value>
+    <value>Overload resolution failed because no accessible '{0}' can be called with these arguments:{1}.</value>
   </data>
   <data name="ERR_BadOverloadCandidates2" xml:space="preserve">
-    <value>Overload resolution failed because no accessible '{0}' can be called:{1}</value>
+    <value>Overload resolution failed because no accessible '{0}' can be called:{1}.</value>
   </data>
   <data name="ERR_NoNonNarrowingOverloadCandidates2" xml:space="preserve">
-    <value>Overload resolution failed because no accessible '{0}' can be called without a narrowing conversion:{1}</value>
+    <value>Overload resolution failed because no accessible '{0}' can be called without a narrowing conversion:{1}.</value>
   </data>
   <data name="ERR_ArgumentNarrowing3" xml:space="preserve">
     <value>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</value>
   </data>
   <data name="ERR_NoMostSpecificOverload2" xml:space="preserve">
-    <value>Overload resolution failed because no accessible '{0}' is most specific for these arguments:{1}</value>
+    <value>Overload resolution failed because no accessible '{0}' is most specific for these arguments:{1}.</value>
   </data>
   <data name="ERR_NotMostSpecificOverload" xml:space="preserve">
     <value>Not most specific.</value>
   </data>
   <data name="ERR_OverloadCandidate2" xml:space="preserve">
-    <value>
-    '{0}': {1}</value>
+    <value>'{0}': {1}.</value>
   </data>
   <data name="ERR_NoGetProperty1" xml:space="preserve">
     <value>Property '{0}' is 'WriteOnly'.</value>
@@ -1462,7 +1461,7 @@
     Base type of '{0}' needs '{1}' to be resolved.</value>
   </data>
   <data name="ERR_IllegalBaseTypeReferences3" xml:space="preserve">
-    <value>Inherits clause of {0} '{1}' causes cyclic dependency: {2}</value>
+    <value>Inherits clause of {0} '{1}' causes cyclic dependency: {2}.</value>
   </data>
   <data name="ERR_InvalidMultipleAttributeUsage1" xml:space="preserve">
     <value>Attribute '{0}' cannot be applied multiple times.</value>
@@ -1561,7 +1560,7 @@
     <value>No accessible 'Main' method with an appropriate signature was found in '{0}'.</value>
   </data>
   <data name="ERR_MoreThanOneValidMainWasFound2" xml:space="preserve">
-    <value>'Sub Main' is declared more than once in '{0}': {1}</value>
+    <value>'Sub Main' is declared more than once in '{0}': {1}.</value>
   </data>
   <data name="ERR_CannotConvertValue2" xml:space="preserve">
     <value>Value '{0}' cannot be converted to '{1}'.</value>
@@ -1621,7 +1620,7 @@
     <value>'TryCast' operands must be class-constrained type parameter, but '{0}' has no class constraint.</value>
   </data>
   <data name="ERR_AmbiguousDelegateBinding2" xml:space="preserve">
-    <value>No accessible '{0}' is most specific: {1}</value>
+    <value>No accessible '{0}' is most specific: {1}.</value>
   </data>
   <data name="ERR_SharedStructMemberCannotSpecifyNew" xml:space="preserve">
     <value>Non-shared members in a Structure cannot be declared 'New'.</value>
@@ -1630,7 +1629,7 @@
     <value>None of the accessible 'Main' methods with the appropriate signatures found in '{0}' can be the startup method since they are all either generic or nested in generic types.</value>
   </data>
   <data name="ERR_GeneralProjectImportsError3" xml:space="preserve">
-    <value>Error in project-level import '{0}' at '{1}' : {2}</value>
+    <value>Error in project-level import '{0}' at '{1}' : {2}.</value>
   </data>
   <data name="ERR_InvalidTypeForAliasesImport2" xml:space="preserve">
     <value>'{1}' for the Imports alias to '{0}' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.</value>
@@ -1756,16 +1755,15 @@
     <value>Conversion from '{0}' to '{1}' cannot occur in a constant expression used as an argument to an attribute.</value>
   </data>
   <data name="ERR_AmbiguousOverrides3" xml:space="preserve">
-    <value>Member '{0}' that matches this signature cannot be overridden because the class '{1}' contains multiple members with this same name and signature: {2}</value>
+    <value>Member '{0}' that matches this signature cannot be overridden because the class '{1}' contains multiple members with this same name and signature: {2}.</value>
   </data>
   <data name="ERR_OverriddenCandidate1" xml:space="preserve">
-    <value>
-   '{0}'</value>
+    <value>'{0}'.</value>
   </data>
   <data name="ERR_AmbiguousImplements3" xml:space="preserve">
     <value>Member '{0}.{1}' that matches this signature cannot be implemented because the interface '{2}' contains multiple members with this same name and signature:
    '{3}'
-   '{4}'</value>
+   '{4}'.</value>
   </data>
   <data name="ERR_AddressOfNotCreatableDelegate1" xml:space="preserve">
     <value>'AddressOf' expression cannot be converted to '{0}' because type '{0}' is declared 'MustInherit' and cannot be created.</value>
@@ -1780,7 +1778,7 @@
     <value>Array initializer cannot be specified for a non constant dimension; use the empty initializer '{}'.</value>
   </data>
   <data name="ERR_DelegateBindingFailure3" xml:space="preserve">
-    <value>No accessible method '{0}' has a signature compatible with delegate '{1}':{2}</value>
+    <value>No accessible method '{0}' has a signature compatible with delegate '{1}':{2}.</value>
   </data>
   <data name="ERR_StructLayoutAttributeNotAllowed" xml:space="preserve">
     <value>Attribute 'StructLayout' cannot be applied to a generic type.</value>
@@ -1840,16 +1838,16 @@
     <value>Line continuation character '_' must be preceded by at least one white space and must be the last character on the line.</value>
   </data>
   <data name="ERR_BadModuleFile1" xml:space="preserve">
-    <value>Unable to load module file '{0}': {1}</value>
+    <value>Unable to load module file '{0}': {1}.</value>
   </data>
   <data name="ERR_BadRefLib1" xml:space="preserve">
-    <value>Unable to load referenced library '{0}': {1}</value>
+    <value>Unable to load referenced library '{0}': {1}.</value>
   </data>
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
   <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+    <value>Project-level conditional compilation constant '{1}' is not valid: {0}.</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
@@ -2248,7 +2246,7 @@
     <value>XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.</value>
   </data>
   <data name="ERR_UnableToReadUacManifest2" xml:space="preserve">
-    <value>Unable to open Win32 manifest file '{0}' : {1}</value>
+    <value>Unable to open Win32 manifest file '{0}' : {1}.</value>
   </data>
   <data name="WRN_UseValueForXmlExpression3" xml:space="preserve">
     <value>Cannot convert '{0}' to '{1}'. You can use the 'Value' property to get the string value of the first element of '{2}'.</value>
@@ -2269,13 +2267,13 @@
     <value>The value '{0}' is not a valid subsystem version. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.</value>
   </data>
   <data name="ERR_InvalidFileAlignment" xml:space="preserve">
-    <value>Invalid file section alignment '{0}'</value>
+    <value>Invalid file section alignment '{0}'.</value>
   </data>
   <data name="ERR_InvalidOutputName" xml:space="preserve">
-    <value>Invalid output name: {0}</value>
+    <value>Invalid output name: {0}.</value>
   </data>
   <data name="ERR_InvalidDebugInformationFormat" xml:space="preserve">
-    <value>Invalid debug information format: {0}</value>
+    <value>Invalid debug information format: {0}.</value>
   </data>
   <data name="ERR_LibAnycpu32bitPreferredConflict" xml:space="preserve">
     <value>/platform:anycpu32bitpreferred can only be used with /t:exe, /t:winexe and /t:appcontainerexe.</value>
@@ -2428,7 +2426,7 @@
     <value>'{0}' cannot be used as an attribute because it is declared 'MustInherit'.</value>
   </data>
   <data name="ERR_UnableToOpenResourceFile1" xml:space="preserve">
-    <value>Unable to open resource file '{0}': {1}</value>
+    <value>Unable to open resource file '{0}': {1}.</value>
   </data>
   <data name="ERR_BadAttributeNonPublicProperty1" xml:space="preserve">
     <value>Attribute member '{0}' cannot be the target of an assignment because it is not declared 'Public'.</value>
@@ -2756,7 +2754,7 @@
     '{0}' is constrained to '{1}'.</value>
   </data>
   <data name="ERR_ConstraintCycle2" xml:space="preserve">
-    <value>Type parameter '{0}' cannot be constrained to itself: {1}</value>
+    <value>Type parameter '{0}' cannot be constrained to itself: {1}.</value>
   </data>
   <data name="ERR_TypeParamWithStructConstAsConst" xml:space="preserve">
     <value>Type parameter with a 'Structure' constraint cannot be used as a constraint.</value>
@@ -3119,8 +3117,7 @@
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>
   <data name="ERR_ExtensionMethodOverloadCandidate3" xml:space="preserve">
-    <value>
-    Extension method '{0}' defined in '{1}': {2}</value>
+    <value>Extension method '{0}' defined in '{1}': {2}.</value>
   </data>
   <data name="ERR_DelegateBindingMismatch" xml:space="preserve">
     <value>Method does not have a signature compatible with the delegate.</value>
@@ -3388,8 +3385,7 @@
     <value>Argument matching parameter '{0}' narrows to '{1}'.</value>
   </data>
   <data name="ERR_OverloadCandidate1" xml:space="preserve">
-    <value>
-    {0}</value>
+    <value>{0}.</value>
   </data>
   <data name="ERR_AutoPropertyInitializedInStructure" xml:space="preserve">
     <value>Auto-implemented Properties contained in Structures cannot have initializers unless they are marked 'Shared'.</value>
@@ -4154,13 +4150,13 @@
     <value>Statement is not valid inside a single-line statement lambda.</value>
   </data>
   <data name="ERR_SubRequiresParenthesesBang" xml:space="preserve">
-    <value>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;)!key</value>
+    <value>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;)!key.</value>
   </data>
   <data name="ERR_SubRequiresParenthesesDot" xml:space="preserve">
-    <value>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;).Invoke()</value>
+    <value>This single-line statement lambda must be enclosed in parentheses. For example: (Sub() &lt;statement&gt;).Invoke().</value>
   </data>
   <data name="ERR_SubRequiresParenthesesLParen" xml:space="preserve">
-    <value>This single-line statement lambda must be enclosed in parentheses. For example: Call (Sub() &lt;statement&gt;) ()</value>
+    <value>This single-line statement lambda must be enclosed in parentheses. For example: Call (Sub() &lt;statement&gt;) ().</value>
   </data>
   <data name="ERR_SubRequiresSingleStatement" xml:space="preserve">
     <value>Single-line statement lambdas must include exactly one statement.</value>
@@ -4256,8 +4252,7 @@
     <value>'{0}' cannot be implemented by a {1} property.</value>
   </data>
   <data name="ERR_UnimplementedMustOverride" xml:space="preserve">
-    <value>
-    {0}: {1}</value>
+    <value>{0}: {1}.</value>
   </data>
   <data name="ERR_IfTooManyTypesObjectDisallowed" xml:space="preserve">
     <value>Cannot infer a common type because more than one type is possible.</value>
@@ -4281,10 +4276,10 @@
     <value>Cannot infer a common type.</value>
   </data>
   <data name="ERR_PublicKeyFileFailure" xml:space="preserve">
-    <value>Error extracting public key from file '{0}': {1}</value>
+    <value>Error extracting public key from file '{0}': {1}.</value>
   </data>
   <data name="ERR_PublicKeyContainerFailure" xml:space="preserve">
-    <value>Error extracting public key from container '{0}': {1}</value>
+    <value>Error extracting public key from container '{0}': {1}.</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
@@ -4302,10 +4297,10 @@
     <value>Key file '{0}' is missing the private key needed for signing.</value>
   </data>
   <data name="ERR_FailureSigningAssembly" xml:space="preserve">
-    <value>Error signing assembly '{0}': {1}</value>
+    <value>Error signing assembly '{0}': {1}.</value>
   </data>
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major[.minor[.build|*[.revision|*]]]</value>
+    <value>The specified version string does not conform to the required format - major[.minor[.build|*[.revision|*]]].</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
@@ -4314,10 +4309,10 @@
     <value>The specified version string does not conform to the recommended format</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the recommended format - major.minor.build.revision.</value>
   </data>
   <data name="ERR_InvalidAssemblyCultureForExe" xml:space="preserve">
-    <value>Executables cannot be satellite assemblies; culture should always be empty</value>
+    <value>Executables cannot be satellite assemblies; culture should always be empty.</value>
   </data>
   <data name="WRN_MainIgnored" xml:space="preserve">
     <value>The entry point of the program is global script code; ignoring '{0}' entry point.</value>
@@ -4338,19 +4333,19 @@
     <value>It is not recommended to have attributes named xmlns</value>
   </data>
   <data name="ERR_NoScriptsSpecified" xml:space="preserve">
-    <value>Expected at least one script (.vbx file) but none specified</value>
+    <value>Expected at least one script (.vbx file) but none specified.</value>
   </data>
   <data name="ERR_ReservedAssemblyName" xml:space="preserve">
-    <value>The assembly name '{0}' is reserved and cannot be used as a reference in an interactive session</value>
+    <value>The assembly name '{0}' is reserved and cannot be used as a reference in an interactive session.</value>
   </data>
   <data name="ERR_ReferenceDirectiveOnlyAllowedInScripts" xml:space="preserve">
-    <value>#R is only allowed in scripts</value>
+    <value>#R is only allowed in scripts.</value>
   </data>
   <data name="ERR_NamespaceNotAllowedInScript" xml:space="preserve">
-    <value>You cannot declare Namespace in script code</value>
+    <value>You cannot declare Namespace in script code.</value>
   </data>
   <data name="ERR_KeywordNotAllowedInScript" xml:space="preserve">
-    <value>You cannot use '{0}' in top-level script code</value>
+    <value>You cannot use '{0}' in top-level script code.</value>
   </data>
   <data name="ERR_LambdaNoType" xml:space="preserve">
     <value>Cannot infer a return type.  Consider adding an 'As' clause to specify the return type.</value>
@@ -4572,7 +4567,7 @@
     <value>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</value>
   </data>
   <data name="ERR_AbsentReferenceToPIA1" xml:space="preserve">
-    <value>Cannot find the interop type that matches the embedded type '{0}'. Are you missing an assembly reference?</value>
+    <value>Cannot find the interop type that matches the embedded type '{0}'. Are you missing an assembly reference?.</value>
   </data>
   <data name="ERR_CannotLinkClassWithNoPIA1" xml:space="preserve">
     <value>Reference to class '{0}' is not allowed when its assembly is configured to embed interop types.</value>
@@ -4737,7 +4732,7 @@
     <value>Event declarations that target WinMD must specify a delegate type.  Add an As clause to the event declaration.</value>
   </data>
   <data name="ERR_MixingWinRTAndNETEvents" xml:space="preserve">
-    <value>Event '{0}' cannot implement a Windows Runtime event '{1}' and a regular .NET event '{2}'</value>
+    <value>Event '{0}' cannot implement a Windows Runtime event '{1}' and a regular .NET event '{2}'.</value>
   </data>
   <data name="ERR_EventImplRemoveHandlerParamWrong" xml:space="preserve">
     <value>Event '{0}' cannot implement event '{1}' on interface '{2}' because the parameters of their 'RemoveHandler' methods do not match.</value>
@@ -4746,13 +4741,13 @@
     <value>The type of the 'AddHandler' method's parameter must be the same as the type of the event.</value>
   </data>
   <data name="ERR_RemoveParamWrongForWinRT" xml:space="preserve">
-    <value>In a Windows Runtime event, the type of the ‘RemoveHandler’ method parameter must be 'EventRegistrationToken'</value>
+    <value>In a Windows Runtime event, the type of the ‘RemoveHandler’ method parameter must be 'EventRegistrationToken'.</value>
   </data>
   <data name="ERR_ReImplementatingWinRTInterface5" xml:space="preserve">
-    <value>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</value>
+    <value>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed.</value>
   </data>
   <data name="ERR_ReImplementatingWinRTInterface4" xml:space="preserve">
-    <value>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</value>
+    <value>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed.</value>
   </data>
   <data name="ERR_BadIteratorByRefParam" xml:space="preserve">
     <value>Iterator methods cannot have ByRef parameters.</value>
@@ -4788,7 +4783,7 @@
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
   <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+    <value>{0}.</value>
   </data>
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source.</value>
@@ -4872,7 +4867,7 @@
     <value>Type '{0}' does not inherit the generic type parameters of its container.</value>
   </data>
   <data name="ERR_PDBWritingFailed" xml:space="preserve">
-    <value>Failure writing debug information: {0}</value>
+    <value>Failure writing debug information: {0}.</value>
   </data>
   <data name="ERR_ParamDefaultValueDiffersFromAttribute" xml:space="preserve">
     <value>The parameter has multiple distinct default values.</value>
@@ -4959,7 +4954,7 @@
     <value>the number of type parameters and arguments should be the same</value>
   </data>
   <data name="ERR_ResourceInModule" xml:space="preserve">
-    <value>Cannot link resource files when building a module</value>
+    <value>Cannot link resource files when building a module.</value>
   </data>
   <data name="NotAVbSymbol" xml:space="preserve">
     <value>Not a VB symbol.</value>
@@ -5176,7 +5171,7 @@
     <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException</value>
   </data>
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
-    <value>Error reading ruleset file {0} - {1}</value>
+    <value>Error reading ruleset file {0} - {1}.</value>
   </data>
   <data name="ERR_PlatformDoesntSupport" xml:space="preserve">
     <value>{0} is not supported in current project type.</value>
@@ -5188,7 +5183,7 @@
     <value>Cannot emit debug information for a source text without encoding.</value>
   </data>
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
-    <value>'{0}' is not a valid format specifier</value>
+    <value>'{0}' is not a valid format specifier.</value>
   </data>
   <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
@@ -5209,7 +5204,7 @@
     <value>Parameterless instance constructors in structures must be public.</value>
   </data>
   <data name="ERR_TooLongOrComplexExpression" xml:space="preserve">
-    <value>An expression is too long or complex to compile</value>
+    <value>An expression is too long or complex to compile.</value>
   </data>
   <data name="ERR_ExpressionDoesntHaveName" xml:space="preserve">
     <value>This expression does not have a name.</value>
