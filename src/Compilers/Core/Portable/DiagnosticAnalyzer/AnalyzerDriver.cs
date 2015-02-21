@@ -190,11 +190,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
 
             continueOnAnalyzerException = continueOnAnalyzerException ?? ((exception, analyzer) => true);
-            var addDiagnostic = analyzerDriver.GetDiagnosticSinkWithSuppression();
+            var addDiagnostic = GetDiagnosticSinkWithSuppression(analyzerDriver.DiagnosticQueue.Enqueue, newCompilation);
             addExceptionDiagnostic = addExceptionDiagnostic != null ?
                 GetDiagnosticSinkWithSuppression(addExceptionDiagnostic, newCompilation) :
                 addDiagnostic;
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
             
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void AddTasksForExecutingSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, IDictionary<DiagnosticAnalyzer, Task> taskMap, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
-            Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(symbol);
+            Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(DiagnosticQueue.Enqueue, _compilation, symbol);
 
             foreach (var analyzerAndActions in _symbolActionsByKind)
             {
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var actionsByKind = analyzerAndActions.Value;
 
                 Action executeSymbolActionsForAnalyzer = () =>
-                        ExecuteSymbolActionsForAnalyzer(symbol, analyzer, actionsByKind, addDiagnosticForSymbol, cancellationToken);
+                    ExecuteSymbolActionsForAnalyzer(symbol, analyzer, actionsByKind, addDiagnosticForSymbol, cancellationToken);
 
                 AddAnalyzerActionsExecutor(taskMap, analyzer, executeSymbolActionsForAnalyzer, cancellationToken);
             }
@@ -509,11 +509,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 endEvent.FlushCache();
             }
-        }
-
-        internal protected Action<Diagnostic> GetDiagnosticSinkWithSuppression(ISymbol symbolOpt = null)
-        {
-            return GetDiagnosticSinkWithSuppression(DiagnosticQueue.Enqueue, _compilation, symbolOpt);
         }
 
         internal static Action<Diagnostic> GetDiagnosticSinkWithSuppression(Action<Diagnostic> addDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)

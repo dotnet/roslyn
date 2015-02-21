@@ -11,6 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    /// <summary>
+    /// Contains the core execution logic for callbacks into analyzers.
+    /// </summary>
     internal class AnalyzerExecutor
     {
         internal const string DiagnosticId = "AD0001";
