@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
             return new ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact(Skip = "GitHub Issue 759"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WorkItem(759)]
         public void TestTypeParameterNamesCSharp()
         {
             var source = @"
