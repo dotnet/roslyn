@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns></returns>
         public abstract Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
         /// <summary>
-        /// This method appears not to need to have an effect. Can we remove it?
+        /// ???
         /// </summary>
-        /// <param name="solution"></param>
+        /// <param name="solution">The solution.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
