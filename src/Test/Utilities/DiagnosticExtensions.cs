@@ -137,15 +137,13 @@ namespace Microsoft.CodeAnalysis
             var analyzersArray = analyzers.ToImmutableArray();
 
             var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-            var handler = AnalyzerManager.Instance.RegisterAnalyzerExceptionDiagnosticHandler(analyzersArray, exceptionDiagnostics.Add);
+            Action<Diagnostic> addExceptionDiagnostic = d => exceptionDiagnostics.Add(d);
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, addExceptionDiagnostic, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
-
-            AnalyzerManager.Instance.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
-
+            
             return (TCompilation)newCompilation; // note this is a new compilation
         }
 

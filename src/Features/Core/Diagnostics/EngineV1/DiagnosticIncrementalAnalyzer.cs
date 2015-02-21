@@ -35,15 +35,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
-            : base(workspace)
+        public DiagnosticIncrementalAnalyzer(
+            DiagnosticAnalyzerService owner, 
+            int correlationId, 
+            Workspace workspace, 
+            WorkspaceAnalyzerManager workspaceAnalyzerManager, 
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(workspace, hostDiagnosticUpdateSource)
         {
             _owner = owner;
             _correlationId = correlationId;
             _memberRangeMap = new MemberRangeMap();
             _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzerManager);
             _executor = new AnalyzerExecutor(this);
-
+            
             _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
         }
 

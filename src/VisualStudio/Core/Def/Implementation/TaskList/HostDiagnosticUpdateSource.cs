@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace = workspace;
         }
 
-        protected override Workspace Workspace
+        internal override Workspace Workspace
         {
             get
             {

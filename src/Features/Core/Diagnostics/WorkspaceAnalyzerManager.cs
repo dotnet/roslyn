@@ -48,16 +48,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
 
-        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
-            this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies))
+        /// <summary>
+        /// Host diagnostic update source for analyzer host specific diagnostics.
+        /// </summary>
+        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+
+        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
+            this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies), hostDiagnosticUpdateSource)
         {
         }
 
-        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
+        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<string, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);            
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
@@ -75,11 +81,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzer, workspace: null);
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => !AnalyzerHelper.IsBuiltInAnalyzer(analyzer);
-            var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, continueOnAnalyzerException, CancellationToken.None);
-            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
-            return descriptors;
+            var analyzerExecutor = AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource, continueOnAnalyzerException, CancellationToken.None);
+            return AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
         }
 
         /// <summary>

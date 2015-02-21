@@ -69,17 +69,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // v2 diagnostic engine - for now v1
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
-            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
                 : base(workspace)
             {
                 _workspaceAnalyzerManager = workspaceAnalyzerManager;
                 _owner = owner;
 
                 var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, workspace, _workspaceAnalyzerManager);
+                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, workspace, _workspaceAnalyzerManager, hostDiagnosticUpdateSource);
 
                 var v2CorrelationId = LogAggregator.GetNextId();
-                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, workspace, _workspaceAnalyzerManager);
+                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, workspace, _workspaceAnalyzerManager, hostDiagnosticUpdateSource);
             }
 
             #region IIncrementalAnalyzer
