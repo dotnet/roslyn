@@ -85,7 +85,8 @@ class C
             }
         }
 
-        [Fact]
+        [Fact(Skip = "GitHub Issue 759")]
+        [WorkItem(759)]
         public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;

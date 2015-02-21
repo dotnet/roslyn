@@ -508,7 +508,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             };
 
-            AnalyzerExceptionDiagnostic += handler;
+            // TODO: re-enable once bug 759 is fixed
+            // AnalyzerExceptionDiagnostic += handler;
             return handler;
         }
 
@@ -529,7 +530,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             };
 
-            AnalyzerExceptionDiagnostic += handler;
+            // TODO: re-enable once bug 759 is fixed
+            // AnalyzerExceptionDiagnostic += handler;
             return handler;
         }
 

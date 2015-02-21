@@ -81,7 +81,8 @@ public class C
 
         #endregion
 
-        [Fact]
+        [Fact(Skip = "GitHub Issue 759")]
+        [WorkItem(759)]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);

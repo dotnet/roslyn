@@ -398,7 +398,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact(Skip:="GitHub Issue 759"), WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WorkItem(759)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully2()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">

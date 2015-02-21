@@ -12,13 +12,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected AbstractHostDiagnosticUpdateSource()
         {
             // Register for exception diagnostics from workspace's analyzer manager.
-            AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
+            // TODO: re-enable once bug 759 is fixed
+            // AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
         }
 
         ~AbstractHostDiagnosticUpdateSource()
         {
             // Unregister for exception diagnostics from workspace's analyzer manager.
-            AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
+            // TODO: re-enable once bug 759 is fixed
+            // AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;
         }
 
         internal static EventHandler<AnalyzerExceptionDiagnosticArgs> RegisterAnalyzerExceptionDiagnosticHandler(ImmutableArray<DiagnosticAnalyzer> analyzers, Workspace workspace)
