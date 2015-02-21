@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
+            private readonly Workspace _workspace;
             private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
             private readonly DiagnosticAnalyzerService _owner;
 
@@ -70,16 +71,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
             public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
-                : base(workspace)
             {
+                _workspace = workspace;
                 _workspaceAnalyzerManager = workspaceAnalyzerManager;
                 _owner = owner;
 
                 var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, workspace, _workspaceAnalyzerManager);
+                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, _workspace, _workspaceAnalyzerManager);
 
                 var v2CorrelationId = LogAggregator.GetNextId();
-                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, workspace, _workspaceAnalyzerManager);
+                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, _workspace, _workspaceAnalyzerManager);
             }
 
             #region IIncrementalAnalyzer
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var turnedOffAnalyzer = GetAnalyzer(!useV2);
 
-                foreach (var project in Workspace.CurrentSolution.Projects)
+                foreach (var project in _workspace.CurrentSolution.Projects)
                 {
                     foreach (var document in project.Documents)
                     {
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 get
                 {
-                    var option = Workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
+                    var option = _workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
                     return GetAnalyzer(option);
                 }
             }

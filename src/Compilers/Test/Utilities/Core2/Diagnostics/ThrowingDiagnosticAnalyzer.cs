@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     handled[i] = analyzer.Thrown ? true : (bool?)null;
                     if (analyzer.Thrown)
                     {
-                        Assert.True(diagnostics.Any(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic));
+                        Assert.True(diagnostics.Any(d => AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(d.Id, d.Descriptor.CustomTags)));
                     }
                     else
                     {
-                        Assert.False(diagnostics.Any(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic));
+                        Assert.False(diagnostics.Any(d => AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(d.Id, d.Descriptor.CustomTags)));
                     }
                 }
                 catch (DeliberateException)

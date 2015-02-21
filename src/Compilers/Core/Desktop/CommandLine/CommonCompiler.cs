@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -333,13 +332,8 @@ namespace Microsoft.CodeAnalysis
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
-            ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
-            EventHandler<AnalyzerExceptionDiagnosticArgs> analyzerExceptionDiagnosticsHandler = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
-                analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-                analyzerExceptionDiagnosticsHandler = AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, analyzerExceptionDiagnostics.Add);
-                
                 var analyzerManager = new AnalyzerManager();
                 analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, out compilation, cancellationToken);
             }
@@ -449,10 +443,7 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerDriver != null)
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                    var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-                    AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(analyzerExceptionDiagnosticsHandler);
-
-                    if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
+                    if (PrintErrors(analyzerDiagnostics, consoleOutput))
                     {
                         return Failed;
                     }

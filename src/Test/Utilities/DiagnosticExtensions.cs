@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis
@@ -134,18 +132,11 @@ namespace Microsoft.CodeAnalysis
         {
             // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
             continueOnAnalyzerException = continueOnAnalyzerException ?? DonotCatchAnalyzerExceptions;
-            var analyzersArray = analyzers.ToImmutableArray();
-
-            var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-            var handler = AnalyzerDriverHelper.RegisterAnalyzerExceptionDiagnosticHandler(analyzersArray, exceptionDiagnostics.Add);
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Default, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzers.ToImmutableArray(), options, AnalyzerManager.Default, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
-            diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
-
-            AnalyzerDriverHelper.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
-
+            diagnostics = driver.GetDiagnosticsAsync().Result;
             return (TCompilation)newCompilation; // note this is a new compilation
         }
 

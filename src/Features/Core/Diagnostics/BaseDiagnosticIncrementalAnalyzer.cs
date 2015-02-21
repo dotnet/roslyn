@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -13,11 +12,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class BaseDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
-        protected BaseDiagnosticIncrementalAnalyzer(Workspace workspace)
-        {
-            this.Workspace = workspace;
-        }
-
         #region IIncrementalAnalyzer
         public abstract Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken);
         public abstract Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken);
@@ -39,8 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
         #endregion
-
-        public Workspace Workspace { get; private set; }
 
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {

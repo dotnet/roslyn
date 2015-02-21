@@ -2,7 +2,6 @@
 
 using System;
 using System.Globalization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract class LocalizableString : IFormattable, IEquatable<LocalizableString>
+    public abstract class LocalizableString : IFormattable
     {
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
@@ -37,14 +36,6 @@ namespace Microsoft.CodeAnalysis
             return ToString(formatProvider);
         }
 
-        public abstract override int GetHashCode();
-        public abstract bool Equals(LocalizableString other);
-        
-        public override bool Equals(object other)
-        {
-            return Equals(other as LocalizableString);
-        }
-
         private sealed class FixedLocalizableString : LocalizableString
         {
             private readonly string _fixedString;
@@ -57,17 +48,6 @@ namespace Microsoft.CodeAnalysis
             public override string ToString(IFormatProvider formatProvider)
             {
                 return _fixedString;
-            }
-
-            public override bool Equals(LocalizableString other)
-            {
-                var fixedStr = other as FixedLocalizableString;
-                return fixedStr != null && string.Equals(_fixedString, fixedStr.ToString());
-            }
-
-            public override int GetHashCode()
-            {
-                return _fixedString == null ? 0 : _fixedString.GetHashCode();
             }
         }
     }

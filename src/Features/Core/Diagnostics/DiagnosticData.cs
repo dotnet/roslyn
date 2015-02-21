@@ -282,26 +282,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
-        {
-            return new DiagnosticData(
-                diagnostic.Id,
-                diagnostic.Descriptor.Category,
-                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
-                diagnostic.Severity,
-                diagnostic.DefaultSeverity,
-                diagnostic.Descriptor.IsEnabledByDefault,
-                diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
-                workspace,
-                projectId: null,
-                title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
-                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: diagnostic.Descriptor.HelpLinkUri);
-        }
-
         public static DiagnosticData Create(Project project, Diagnostic diagnostic)
         {
             if (diagnostic.Location.IsInSource)

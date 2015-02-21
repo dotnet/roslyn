@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private int GetProjectRank(ProjectId projectId)
                 {
                     var rank = 0;
-                    if (projectId != null &&_source._projectRanks.TryGetValue(projectId, out rank))
+                    if (_source._projectRanks.TryGetValue(projectId, out rank))
                     {
                         return rank;
                     }

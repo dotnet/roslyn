@@ -117,17 +117,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
-            var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
-            if (analyzerFileReference != null)
+            if (_analyzerReference is AnalyzerFileReference)
             {
-                analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
+                ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
                 if (_analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
-
-                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(analyzerFileReference, _language, _projectId);
             }
 
             _analyzerLoadErrors = null;

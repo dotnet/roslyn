@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -414,7 +413,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
-                Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
                 Dim diagnosticService = New DiagnosticAnalyzerService()
 
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
@@ -426,12 +424,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
                                                                         document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
                                                                         CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
-
-                diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.True(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
+                Assert.True(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(diagnostic.Id, diagnostic.CustomTags))
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
             End Using
         End Sub
