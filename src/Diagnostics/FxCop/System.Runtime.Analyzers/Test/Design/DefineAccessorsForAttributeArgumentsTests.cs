@@ -1,25 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1019Tests : DiagnosticAnalyzerTestBase
+    public partial class DefineAccessorsForAttributeArgumentsTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicCA1019DiagnosticAnalyzer();
+            return new BasicDefineAccessorsForAttributeArgumentsAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpCA1019DiagnosticAnalyzer();
+            return new CSharpDefineAccessorsForAttributeArgumentsAnalyzer();
         }
 
         #region No Diagnostic Tests
@@ -2761,42 +2758,42 @@ End Class
         private static DiagnosticResult GetCA1019CSharpDefaultResultAt(int line, int column, string paramName, string attributeTypeName)
         {
             // Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsDefault, paramName, attributeTypeName);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsDefault, paramName, attributeTypeName);
             return GetCSharpResultAt(line, column, CA1019Name, message);
         }
 
         private static DiagnosticResult GetCA1019BasicDefaultResultAt(int line, int column, string paramName, string attributeTypeName)
         {
             // Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsDefault, paramName, attributeTypeName);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsDefault, paramName, attributeTypeName);
             return GetBasicResultAt(line, column, CA1019Name, message);
         }
 
         private static DiagnosticResult GetCA1019CSharpIncreaseVisibilityResultAt(int line, int column, string propertyName, string paramName)
         {
             // If '{0}' is the property accessor for positional argument '{1}', make it public.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, propertyName, paramName);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, propertyName, paramName);
             return GetCSharpResultAt(line, column, CA1019Name, message);
         }
 
         private static DiagnosticResult GetCA1019BasicIncreaseVisibilityResultAt(int line, int column, string propertyName, string paramName)
         {
             // If '{0}' is the property accessor for positional argument '{1}', make it public.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, propertyName, paramName);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, propertyName, paramName);
             return GetBasicResultAt(line, column, CA1019Name, message);
         }
 
         private static DiagnosticResult GetCA1019CSharpRemoveSetterResultAt(int line, int column, string propertyName, string paramName)
         {
             // Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsRemoveSetter, propertyName, paramName);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsRemoveSetter, propertyName, paramName);
             return GetCSharpResultAt(line, column, CA1019Name, message);
         }
 
         private static DiagnosticResult GetCA1019BasicRemoveSetterResultAt(int line, int column, string propertyName, string paramName)
         {
             // Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.
-            var message = string.Format(FxCopRulesResources.DefineAccessorsForAttributeArgumentsRemoveSetter, propertyName, paramName);
+            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsRemoveSetter, propertyName, paramName);
             return GetBasicResultAt(line, column, CA1019Name, message);
         }
     }

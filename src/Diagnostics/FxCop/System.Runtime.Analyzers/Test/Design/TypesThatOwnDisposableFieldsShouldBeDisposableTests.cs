@@ -7,7 +7,7 @@ using Xunit;
 
 namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1001Tests : DiagnosticAnalyzerTestBase
+    public partial class TypesThatOwnDisposableFieldsShouldBeDisposableAnalyzerTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
