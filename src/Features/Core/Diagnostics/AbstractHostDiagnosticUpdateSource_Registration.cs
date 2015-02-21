@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AbstractHostDiagnosticUpdateSource
     {
+        // TODO(mavasani): Fix the event to be an instance field.
         internal static event EventHandler<WorkspaceAnalyzerExceptionDiagnosticArgs> AnalyzerExceptionDiagnostic;
 
         protected AbstractHostDiagnosticUpdateSource()
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerExceptionDiagnostic += OnAnalyzerExceptionDiagnostic;
         }
 
-        ~AbstractHostDiagnosticUpdateSource()
+        internal void UnregisterDiagnosticUpdateSource()
         {
             // Unregister for exception diagnostics from workspace's analyzer manager.
             AnalyzerExceptionDiagnostic -= OnAnalyzerExceptionDiagnostic;

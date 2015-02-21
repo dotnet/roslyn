@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
 
             var exceptionDiagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer).Select(d => d.ToDiagnostic(tree: null));
+            exceptionDiagnosticsSource.UnregisterDiagnosticUpdateSource();
 
             return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }

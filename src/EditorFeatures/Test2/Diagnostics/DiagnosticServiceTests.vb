@@ -433,6 +433,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnostic = diagnostics.First()
                 Assert.True(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
+                exceptionDiagnosticsSource.UnregisterDiagnosticUpdateSource()
             End Using
         End Sub
 
