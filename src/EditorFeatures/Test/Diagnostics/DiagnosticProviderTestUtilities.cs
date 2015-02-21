@@ -44,11 +44,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 //  (a) If the span is contained within a method level member and analyzer supports semantic in span: analyze in member span.
                 //  (b) Otherwise, analyze entire syntax tree span.
                 var spanToTest = root.FullSpan;
-                Action<DiagnosticAnalyzer, ImmutableArray<Diagnostic>, Project> reportExceptionDiagnostics =
-                    (a, diagnostics, p) => builder.AddRange(diagnostics);
 
                 var driver = new DiagnosticAnalyzerDriver(document, spanToTest, root,
-                    syntaxNodeAnalyzerService: nodeInBodyAnalyzerService, 
+                    syntaxNodeAnalyzerService: nodeInBodyAnalyzerService,
+                    hostDiagnosticUpdateSource: exceptionDiagnosticsSource,
                     cancellationToken: CancellationToken.None, 
                     testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
                 var diagnosticAnalyzerCategory = analyzer.GetDiagnosticAnalyzerCategory(driver);
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var nodeInBodyAnalyzerService = project.Language == LanguageNames.CSharp ?
                     (ISyntaxNodeAnalyzerService)new CSharpSyntaxNodeAnalyzerService() :
                     new VisualBasicSyntaxNodeAnalyzerService();
-                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, CancellationToken.None);
+                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, exceptionDiagnosticsSource, CancellationToken.None);
 
                 if (analyzer.SupportsProjectDiagnosticAnalysis(driver))
                 {

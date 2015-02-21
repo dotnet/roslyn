@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-            return new IncrementalAnalyzerDelegatee(this, workspace, _workspaceAnalyzerManager);
+            return new IncrementalAnalyzerDelegatee(this, workspace, _workspaceAnalyzerManager, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
             public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-                : base(workspace)
+                : base(workspace, hostDiagnosticUpdateSource)
             {
                 _workspaceAnalyzerManager = workspaceAnalyzerManager;
                 _owner = owner;

@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Project project)
         {
             return diagnostic =>
-                hostDiagnosticUpdateSource.ReportAnalyzerDiagnostic(analyzer, diagnostic, project.Solution.Workspace, project);
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project.Solution.Workspace, project);
         }
 
         public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Workspace workspace)
         {
             return diagnostic =>
-                hostDiagnosticUpdateSource.ReportAnalyzerDiagnostic(analyzer, diagnostic, workspace, null);
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, workspace, null);
         }
 
         public static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
             CancellationToken cancellationToken)
         {
-            var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, hostDiagnosticUpdateSource.Workspace);
+            var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, hostDiagnosticUpdateSource?.Workspace);
 
             // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
             // we can't determine if any descriptors support getting telemetry without having the descriptors.

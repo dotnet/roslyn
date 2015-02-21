@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, out _compilation, _cancellationToken);
         }
 
-        private void AddExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
+        private void AddExceptionDiagnostic(Diagnostic diagnostic)
         {
             _exceptionDiagnostics.Add(diagnostic);
         }

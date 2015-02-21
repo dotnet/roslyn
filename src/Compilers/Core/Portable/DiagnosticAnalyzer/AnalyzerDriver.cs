@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Finally, it initializes and starts the <see cref="_primaryTask"/> for the driver.
         /// </summary>
         /// <remarks>
-        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{DiagnosticAnalyzer, Diagnostic}, out Compilation, CancellationToken)"/>.
+        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Diagnostic}, out Compilation, CancellationToken)"/>.
         /// </remarks>
         private void Initialize(Compilation comp, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {

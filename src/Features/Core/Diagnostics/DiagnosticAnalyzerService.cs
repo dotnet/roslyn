@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
                    diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
                    SpecializedCollections.EmptyEnumerable<string>(),
-                  hostDiagnosticUpdateSource)
+                  hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
         {
         }
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         // internal for testing purposes.
         internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 

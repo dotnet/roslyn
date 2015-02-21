@@ -141,16 +141,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task<WorkspaceAnalyzerExecutor> GetWorkspaceAnalyzerExecutor(DiagnosticAnalyzer analyzer, Action<Diagnostic> addDiagnostic)
-        {
-            var compilation = _project.SupportsCompilation ?
-                await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) :
-                null;
-
-            return WorkspaceAnalyzerExecutor.Create(analyzer, _project, compilation,
-                _hostDiagnosticUpdateSource, _analyzerOptions, addDiagnostic, CatchAnalyzerException, _cancellationToken);
-        }
-
         private ImmutableArray<DeclarationInfo> GetDeclarationInfos(SemanticModel model)
         {
             if (_lazyDeclarationInfos == null)
@@ -325,6 +315,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
         {
             Contract.ThrowIfFalse(AnalyzerManager.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+
+            if (_hostDiagnosticUpdateSource == null)
+            {
+                return;
+            }
 
             if (compilation != null)
             {

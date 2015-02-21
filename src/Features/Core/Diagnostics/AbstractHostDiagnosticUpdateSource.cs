@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// which may not be related to any given project/document in the solution.
     /// For example, these include diagnostics generated for exceptions from third party analyzers.
     /// </summary>
-    internal abstract partial class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
@@ -44,16 +44,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ReportAnalyzerDiagnostic(
-            DiagnosticAnalyzer analyzer,
-            Diagnostic diagnostic,
-            Workspace workspace,
-            Project project)
+        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, Project project)
         {
-            // If the diagnostic is to be reported for a specific workspace (non-null value of args.Workspace),
-            // then ensure it matches our workspace.
-            // Otherwise, if args.Workspace is null, then report the diagnostic for all workspaces.
-            if (workspace != null && workspace != this.Workspace)
+            if (workspace != this.Workspace)
             {
                 return;
             }
