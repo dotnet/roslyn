@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// unique group of diagnostics, where a group is identified by analysis classification (project), project, and analyzer.
         /// </summary>
         /// <param name="project">The project to analyze.</param>
-        /// <param name="semanticsChanged">???</param>
+        /// <param name="semanticsChanged">Indicates a change to the declarative semantics of the project.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken);
