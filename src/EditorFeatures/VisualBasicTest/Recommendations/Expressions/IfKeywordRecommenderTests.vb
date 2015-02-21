@@ -1,18 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class IfKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "If",
-                                                  <Text><![CDATA[
-If function (+1 overload)
-If <condition> returns True, the function calculates and returns <expressionIfTrue>. Otherwise, it returns <expressionIfFalse>.
-If(<condition> As Boolean, <expressionIfTrue>, <expressionIfFalse>) As <result>
-                                                  ]]></Text>)
+$"{String.Format(VBFeaturesResources.Function1, "If")} (+1 {FeaturesResources.Overload})
+{IfConditionReturnsResults}
+If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

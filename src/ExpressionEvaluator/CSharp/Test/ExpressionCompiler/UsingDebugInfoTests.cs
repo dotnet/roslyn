@@ -274,11 +274,11 @@ namespace D
             const int methodToken3 = 0x6000540; // Has a using
             const string importString = "USystem";
 
-            ISymUnmanagedReader reader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+            ISymUnmanagedReader reader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
             {
-                { methodToken1, new MethodDebugInfo.Builder().AddForward(methodToken2).Build() },
-                { methodToken2, new MethodDebugInfo.Builder().AddForward(methodToken3).Build() },
-                { methodToken3, new MethodDebugInfo.Builder(new [] { new [] { importString } }).Build() },
+                { methodToken1, new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build() },
+                { methodToken2, new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build() },
+                { methodToken3, new MethodDebugInfoBytes.Builder(new [] { new [] { importString } }).Build() },
             }.ToImmutableDictionary());
 
             ImmutableArray<string> externAliasStrings;
@@ -301,9 +301,9 @@ namespace D
             const int methodVersion = 1;
             const int methodToken1 = 0x600057a; // Forwards to itself
 
-            ISymUnmanagedReader reader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+            ISymUnmanagedReader reader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
             {
-                { methodToken1, new MethodDebugInfo.Builder().AddForward(methodToken1).Build() },
+                { methodToken1, new MethodDebugInfoBytes.Builder().AddForward(methodToken1).Build() },
             }.ToImmutableDictionary());
 
             ImmutableArray<string> externAliasStrings;
@@ -411,9 +411,9 @@ public class C
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
                 var methodToken = metadataReader.GetToken(methodHandle);
 
-                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfo.Builder(new [] { new[] { "USystem", "USystem.IO" } }, suppressUsingInfo: true).AddUsingInfo(1, 1).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { new[] { "USystem", "USystem.IO" } }, suppressUsingInfo: true).AddUsingInfo(1, 1).Build() },
                 }.ToImmutableDictionary());
             }
 
@@ -456,9 +456,9 @@ namespace N
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
                 var methodToken = metadataReader.GetToken(methodHandle);
 
-                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfo.Builder(new [] { new[] { "USystem" } }, suppressUsingInfo: true).AddUsingInfo(1).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { new[] { "USystem" } }, suppressUsingInfo: true).AddUsingInfo(1).Build() },
                 }.ToImmutableDictionary());
             }
 
@@ -501,9 +501,9 @@ namespace N
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
                 var methodToken = metadataReader.GetToken(methodHandle);
 
-                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfo.Builder(new [] { new[] { "TSystem.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" } }, suppressUsingInfo: true).AddUsingInfo(1).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { new[] { "TSystem.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" } }, suppressUsingInfo: true).AddUsingInfo(1).Build() },
                 }.ToImmutableDictionary());
             }
 

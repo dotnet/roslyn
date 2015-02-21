@@ -19,37 +19,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub DirectCastHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "DirectCast",
-                                                  <Text><![CDATA[
-DirectCast function
-Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.
-DirectCast(<expression>, <typeName>) As <result>]]></Text>)
+$"{VBFeaturesResources.DirectcastFunction}
+{IntroducesTypeConversion}
+DirectCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub TryCastHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "TryCast",
-                                                  <Text><![CDATA[
-TryCast function
-Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.
-TryCast(<expression>, <typeName>) As <result>]]></Text>)
+$"{VBFeaturesResources.TrycastFunction}
+{IntroducesSafeTypeConversion}
+TryCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CTypeHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "CType",
-                                                  <Text><![CDATA[
-CType function
-Returns the result of explicitly converting an expression to a specified data type.
-CType(<expression>, <typeName>) As <result>]]></Text>)
+$"{VBFeaturesResources.CtypeFunction}
+{ReturnsConvertResult}
+CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CBoolHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "CBool",
-                                                  <Text><![CDATA[
-CBool function
-Converts an expression to the Boolean data type.
-CBool(<expression>) As Boolean]]></Text>)
+$"{String.Format(VBFeaturesResources.Function1, "CBool")}
+{String.Format(ConvertsToDataType, "Boolean")}
+CBool({Expression1}) As Boolean")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
