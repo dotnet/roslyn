@@ -51,8 +51,6 @@ namespace System.Runtime.Analyzers
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            var throwStatement = generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException")));
-
             if (!OverrideMethodsOnComparableTypesAnalyzer.DoesOverrideEquals(typeSymbol))
             {
                 var equalsMethod = generator.MethodDeclaration(WellKnownMemberNames.ObjectEquals,
