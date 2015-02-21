@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -396,11 +397,13 @@ namespace Roslyn.Utilities
             }
             catch (OperationCanceledException oce) when (CrashIfCanceledWithDifferentToken(oce, cancellationToken))
             {
-                // The underlying computation cancelled with the correct token, but we must ourselves insure that the caller
+                // The underlying computation cancelled with the correct token, but we must ourselves ensure that the caller
                 // on our stack gets an OperationCanceledException thrown with the right token
                 requestToCompleteSynchronouslyCancellationToken.ThrowIfCancellationRequested();
 
-                // The cancellation must have been requested, so this is unreachable
+                // We can only be here if the computation was cancelled, which means all requests for the value
+                // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
+                // because that token from the requestor was cancelled.
                 throw ExceptionUtilities.Unreachable;
             }
         }
@@ -504,13 +507,38 @@ namespace Roslyn.Utilities
             }
         }
 
-        // Using inheritance instead of wrapping a TaskCompletionSource to avoid a second allocation
-        private class Request : TaskCompletionSource<T>
+        private sealed class Request
         {
+            /// <summary>
+            /// The <see cref="CancellationToken"/> associated with this request. This field will be initialized before
+            /// any cancellation is observed from the token.
+            /// </summary>
+            private CancellationToken _cancellationToken;
             private CancellationTokenRegistration _cancellationTokenRegistration;
+
+            // We use a AsyncTaskMethodBuilder so we have the ability to cancel the task with a given cancellation token
+            // TODO: remove this once we're on .NET 4.6 and can move back to using TaskCompletionSource.
+            // WARNING: this is a mutable struct, and thus cannot be made readonly
+            private AsyncTaskMethodBuilder<T> _taskBuilder;
+
+            public Request()
+            {
+                // .Task on AsyncTaskMethodBuilder is lazily created in a non-synchronized way, so we must request it
+                // once before we start doing fancy stuff
+                var ignored = _taskBuilder.Task;
+            }
+
+            public Task<T> Task
+            {
+                get
+                {
+                    return _taskBuilder.Task;
+                }
+            }
 
             public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
             {
+                _cancellationToken = cancellationToken;
                 _cancellationTokenRegistration = cancellationToken.Register(callback, this);
             }
 
@@ -526,24 +554,36 @@ namespace Roslyn.Utilities
 
             public void CompleteFromTaskSynchronously(Task<T> task)
             {
-                if (task.Status == TaskStatus.RanToCompletion)
+                // AsyncTaskMethodBuilder doesn't give us Try* methods, and the Set methods may throw if the task
+                // is already completed. The belief is that the race is somewhere between rare to impossible, and
+                // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
+                // and catch it if it fails
+                if (_taskBuilder.Task.IsCompleted)
                 {
-                    if (TrySetResult(task.Result))
+                    return;
+                }
+
+                try
+                {
+                    if (task.Status == TaskStatus.RanToCompletion)
                     {
-                        _cancellationTokenRegistration.Dispose();
+                        _taskBuilder.SetResult(task.Result);
+                    }
+                    else if (task.Status == TaskStatus.Faulted)
+                    {
+                        _taskBuilder.SetException(task.Exception);
+                    }
+                    else
+                    {
+                        CancelSynchronously();
                     }
                 }
-                else if (task.Status == TaskStatus.Faulted)
+                catch (InvalidOperationException)
                 {
-                    if (TrySetException(task.Exception))
-                    {
-                        _cancellationTokenRegistration.Dispose();
-                    }
+                    // Something else beat us to setting the state, so bail
                 }
-                else
-                {
-                    CancelSynchronously();
-                }
+
+                _cancellationTokenRegistration.Dispose();
             }
 
             public void CancelAsynchronously()
@@ -555,11 +595,22 @@ namespace Roslyn.Utilities
 
             private void CancelSynchronously()
             {
-                if (TrySetCanceled())
+                // AsyncTaskMethodBuilder doesn't give us Try* methods, and the Set methods may throw if the task
+                // is already completed. The belief is that the race is somewhere between rare to impossible, and
+                // so we'll do a quick check to see if the task is already completed or otherwise just give it a shot
+                // and catch it if it fails
+                if (_taskBuilder.Task.IsCompleted)
                 {
-                    // Paranoia: the only reason we should ever get here is if the CancellationToken that
-                    // we registered against was cancelled, but just in case, dispose the registration
-                    _cancellationTokenRegistration.Dispose();
+                    return;
+                }
+
+                try
+                {
+                    _taskBuilder.SetException(new OperationCanceledException(_cancellationToken));
+                }
+                catch (InvalidOperationException)
+                {
+                    // Something else beat us to setting the state, so bail
                 }
             }
         }

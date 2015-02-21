@@ -296,5 +296,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(cancellationTokenSource.Token, oce.CancellationToken);
             }
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public void GetValueAsyncThatIsCancelledReturnsTaskCancelledWithCorrectToken()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            var lazy = new AsyncLazy<object>(c => Task.Run((Func<object>)(() =>
+            {
+                cancellationTokenSource.Cancel();
+                while (true)
+                {
+                    c.ThrowIfCancellationRequested();
+                }
+            }), c), cacheResult: true);
+
+            var task = lazy.GetValueAsync(cancellationTokenSource.Token);
+
+            // Now wait until the task completes
+            try
+            {
+                task.Wait();
+                AssertEx.Fail(nameof(AsyncLazy<object>.GetValueAsync) + " did not throw an exception.");
+            }
+            catch (AggregateException ex)
+            {
+                var operationCancelledException = (OperationCanceledException)ex.Flatten().InnerException;
+                Assert.Equal(cancellationTokenSource.Token, operationCancelledException.CancellationToken);
+            }
+        }
     }
 }
