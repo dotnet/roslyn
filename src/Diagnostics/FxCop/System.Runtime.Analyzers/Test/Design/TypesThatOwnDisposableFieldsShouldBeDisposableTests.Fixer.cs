@@ -4,12 +4,11 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1001FixerTests : CodeFixTestBase
+    public partial class TypesThatOwnDisposableFieldsShouldBeDisposableFixerTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
