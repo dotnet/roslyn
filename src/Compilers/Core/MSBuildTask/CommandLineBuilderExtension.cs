@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// CommandLineBuilder derived class for specialized logic specific to MSBuild tasks

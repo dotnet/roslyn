@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// Functions for dealing with the specially formatted errors returned by
