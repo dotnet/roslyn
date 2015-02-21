@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (syntax/semantics), document, and analyzer.
         /// </summary>
-        /// <param name="document"></param>
-        /// <param name="bodyOpt"></param>
+        /// <param name="document">The document to analyze.</param>
+        /// <param name="bodyOpt">If present, indicates a portion (e.g. a method body) of the document to analyze.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken);
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (project), project, and analyzer.
         /// </summary>
-        /// <param name="project"></param>
-        /// <param name="semanticsChanged"></param>
+        /// <param name="project">The project to analyze.</param>
+        /// <param name="semanticsChanged">???</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken);
@@ -45,26 +45,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (syntax), document, and analyzer.
         /// </summary>
-        /// <param name="document"></param>
+        /// <param name="document">The document to analyze.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
         /// <summary>
         /// Respond to a document being opened for editing in the host.
         /// </summary>
-        /// <param name="document"></param>
+        /// <param name="document">The opened document.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         /// <summary>
         /// Flush cached diagnostics produced by a prior analysis of a document.
         /// </summary>
-        /// <param name="document"></param>
+        /// <param name="document">The document whose diagnostics are to be flushed.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
         /// <summary>
-        /// This method appears not to need to have an effect.
+        /// This method appears not to need to have an effect. Can we remove it?
         /// </summary>
         /// <param name="solution"></param>
         /// <param name="cancellationToken"></param>
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Get previously-computed (and potentially stale) diagnostics associated with a particular combination of
         /// analysis classification (syntax/semantics/project), document/project, and analyzer.
         /// </summary>
-        /// <param name="solution"></param>
+        /// <param name="solution">The solution.</param>
         /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/>.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get previously-computed (and potentially stale) diagnostics associated with a particular document, project, or solution.
         /// </summary>
-        /// <param name="solution">Ignored if projectId or documentId is non null.</param>
-        /// <param name="projectId">Ignored if documentId is non null.</param>
-        /// <param name="documentId"></param>
+        /// <param name="solution">The solution. If projectId and documentId are both null, returned diagnostics are for the entire solution.</param>
+        /// <param name="projectId">If projectId is non null and documentId is null, returned diagnostics are for that project only.</param>
+        /// <param name="documentId">If documentId is non null, returned diagnostics are for that document only.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken));
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Get diagnostics associated with a particular combination of
         /// analysis classification (syntax/semantics/project), document/project, and analyzer.
         /// </summary>
-        /// <param name="solution"></param>
+        /// <param name="solution">The solution.</param>
         /// <param name="id">Matched against values supplied in a <see cref="DiagnosticsUpdatedArgs"/> to <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(object, DiagnosticsUpdatedArgs)"/>.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -117,45 +117,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get diagnostics associated with a particular document, project, or solution.
         /// </summary>
-        /// <param name="solution">Ignored if projectId or documentId is non null.</param>
-        /// <param name="projectId">Ignored if documentId is non null.</param>
-        /// <param name="documentId"></param>
+        /// <param name="solution">The solution. If projectId and documentId are both null, returned diagnostics are for the entire solution.</param>
+        /// <param name="projectId">If projectId is non null and documentId is null, returned diagnostics are for that project only.</param>
+        /// <param name="documentId">If documentId is non null, returned diagnostics are for that document only.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics matching one of a set of diagnostic IDs associated with a particular document, project, or solution.
         /// </summary>
-        /// <param name="solution">Ignored if projectId or documentId is non null.</param>
-        /// <param name="projectId">Ignored if documentId is non null.</param>
-        /// <param name="documentId"></param>
-        /// <param name="diagnosticIds"></param>
+        /// <param name="solution">The solution. If projectId and documentId are both null, returned diagnostics are for the entire solution.</param>
+        /// <param name="projectId">If projectId is non null and documentId is null, returned diagnostics are for that project only.</param>
+        /// <param name="documentId">If documentId is non null, returned diagnostics are for that document only.</param>
+        /// <param name="diagnosticIds">The diagnostic IDs to match.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Get diagnostics matching one of a set of diagnostic IDs that are not associated with a particular document.
         /// </summary>
-        /// <param name="solution">Ignored if projectId is non null.</param>
-        /// <param name="projectId"></param>
-        /// <param name="diagnosticIds"></param>
+        /// <param name="solution">The solution. If projectId is null, returned diagnostics are for the entire solution.</param>
+        /// <param name="projectId">If projectId is non null, returned diagnostics are for that project only.</param>
+        /// <param name="diagnosticIds">The diagnostic IDs to match.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Add diagnostics local to a span to a list of diagnostics.
         /// </summary>
-        /// <param name="document"></param>
-        /// <param name="range"></param>
-        /// <param name="diagnostics"></param>
+        /// <param name="document">The document containing the span.</param>
+        /// <param name="range">The span for which to produce diagnostics.</param>
+        /// <param name="diagnostics">The list of diagnostics to be augmented.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if the set of results is complete, false if getting a complete set requires running per-document actions.</returns>
         public abstract Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken);
         /// <summary>
         /// Get diagnostics local to a span.
         /// </summary>
-        /// <param name="document"></param>
-        /// <param name="range"></param>
+        /// <param name="document">The document containing the span.</param>
+        /// <param name="range">The span for which to produce diagnostics.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
