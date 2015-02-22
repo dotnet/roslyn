@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ScanToken_Unified(
                                           precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
                                           ch As Char, FullWidthChar As Boolean) As SyntaxToken
-            Const lengthWithMaybeEquals = 1
+            Dim lengthWithMaybeEquals = 1
 
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED
@@ -1116,7 +1116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         If FullWidthChar Then
                             spelling = GetText(3)
                         Else
-                            spelling = "Of"
+                            spelling = "If"
                             AdvanceChar(3)
                         End If
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
@@ -1150,8 +1150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case "?"c : Return MakeQuestionToken(precedingTrivia, FullWidthChar)
 
                 Case "%"c
-                    If CanGetCharAtOffset(1) AndAlso
-                        PeekAheadChar(1) = ">"c Then
+                    If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = ">"c Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
