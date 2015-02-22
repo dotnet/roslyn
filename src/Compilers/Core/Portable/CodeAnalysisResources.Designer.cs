@@ -494,6 +494,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid data at offset {0}: {1}{2}*{3}{4}.
+        /// </summary>
+        internal static string InvalidDataAtOffset {
+            get {
+                return ResourceManager.GetString("InvalidDataAtOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {
@@ -526,6 +535,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidOutputKindForSubmission {
             get {
                 return ResourceManager.GetString("InvalidOutputKindForSubmission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid public key..
+        /// </summary>
+        internal static string InvalidPublicKey {
+            get {
+                return ResourceManager.GetString("InvalidPublicKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid public key token..
+        /// </summary>
+        internal static string InvalidPublicKeyToken {
+            get {
+                return ResourceManager.GetString("InvalidPublicKeyToken", resourceCulture);
             }
         }
         
@@ -967,24 +994,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string XmlReferencesNotSupported {
             get {
                 return ResourceManager.GetString("XmlReferencesNotSupported", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid public key..
-        /// </summary>
-        internal static string InvalidPublicKey {
-            get {
-                return ResourceManager.GetString("InvalidPublicKey", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid public key token..
-        /// </summary>
-        internal static string InvalidPublicKeyToken {
-            get {
-                return ResourceManager.GetString("InvalidPublicKeyToken", resourceCulture);
             }
         }
     }
