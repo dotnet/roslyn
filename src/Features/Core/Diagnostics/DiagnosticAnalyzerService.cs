@@ -16,24 +16,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         [ImportingConstructor]
-        public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null)
+        public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
+            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
                    diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
-                   SpecializedCollections.EmptyEnumerable<string>())
+                   SpecializedCollections.EmptyEnumerable<string>(),
+                  hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
         {
         }
 
-        private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies) : this()
+        private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         // internal for testing purposes.
-        internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers) : this()
+        internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers);
+            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)

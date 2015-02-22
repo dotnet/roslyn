@@ -58,7 +58,7 @@ End Class
         End Using
     End Sub
 
-    <Fact(Skip:="GitHub Issue 759")>
+    <Fact>
     <WorkItem(759)>
     Public Sub DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         Dim source = TestResource.AllInOneVisualBasicCode

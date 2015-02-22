@@ -85,7 +85,7 @@ class C
             }
         }
 
-        [Fact(Skip = "GitHub Issue 759")]
+        [Fact]
         [WorkItem(759)]
         public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {

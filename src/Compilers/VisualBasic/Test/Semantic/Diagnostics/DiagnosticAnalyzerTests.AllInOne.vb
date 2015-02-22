@@ -38,7 +38,7 @@ End Enum
             CreateCompilationWithMscorlib(source).VerifyAnalyzerDiagnostics({New BasicTrackingDiagnosticAnalyzer()})
         End Sub
 
-        <Fact(Skip:="GitHub Issue 759")>
+        <Fact>
         <WorkItem(759)>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
