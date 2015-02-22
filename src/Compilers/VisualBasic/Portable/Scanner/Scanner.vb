@@ -1098,7 +1098,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         If FullWidthChar THen
                         spelling =GetText(3)
                         Else
-                            spelling ="And"
+                            spelling = "End"
                             AdvanceChar(3)
                         End If
                         Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
@@ -1112,7 +1112,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                            PeekAheadChar(2) = " "c Then
 
                         ' TODO: do we allow widechars in keywords?
-                        Dim spelling = GetText(2)
+                        Dim spelling As String
+                        If FullWidthChar Then
+                            spelling = GetText(3)
+                        Else
+                            spelling = "Of"
+                            AdvanceChar(3)
+                        End If
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
