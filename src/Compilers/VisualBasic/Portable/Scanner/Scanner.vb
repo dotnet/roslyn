@@ -1076,7 +1076,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                        PeekAheadChar(1) = "s"c AndAlso
                        PeekAheadChar(2) = " "c Then
 
-                        Dim spelling = GetText(2)
+                        Dim spelling As String
+                        If FullWidthChar Then
+                            spelling = GetText(2)
+                        Else
+                            spelling = "As"
+                            AdvanceChar(2)
+                        End If
                         Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
@@ -1088,7 +1094,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         PeekAheadChar(2) = "d"c AndAlso
                         PeekAheadChar(3) = " "c Then
 
-                        Dim spelling = GetText(3)
+                        Dim spelling As String
+                        If FullWidthChar THen
+                        spelling =GetText(3)
+                        Else
+                            spelling ="And"
+                            AdvanceChar(3)
+                        End If
                         Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
                     Else
                         Return ScanIdentifierOrKeyword(precedingTrivia)
