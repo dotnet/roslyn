@@ -424,7 +424,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public Task<ExecutionResult> ResetAsync(bool initialize = true)
         {
-            GetInteractiveWindow().AddLogicalInput(_interactiveCommands.CommandPrefix + "reset");
             GetInteractiveWindow().WriteLine("Resetting execution engine.");
             GetInteractiveWindow().Flush();
 
