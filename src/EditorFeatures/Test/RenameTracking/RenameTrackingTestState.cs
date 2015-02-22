@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 _historyRegistry,
                 Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
+                Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
                 SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
                 Workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
