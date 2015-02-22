@@ -2,9 +2,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -62,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                     Return suffixParts
                 End If
 
-                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, "<result>"))
+                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, Result))
             End If
 
             Return suffixParts

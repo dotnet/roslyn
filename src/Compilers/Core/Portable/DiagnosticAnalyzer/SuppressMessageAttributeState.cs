@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private GlobalSuppressions _lazyGlobalSuppressions;
         private ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
         private ISymbol _lazySuppressMessageAttribute;
-        private ConcurrentSet<string> _faultedAnalyzerMessages;
-
+        
         private class GlobalSuppressions
         {
             private readonly HashSet<string> _compilationWideSuppressions = new HashSet<string>();
@@ -75,21 +74,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool IsDiagnosticSuppressed(Diagnostic diagnostic, ISymbol symbolOpt = null)
         {
-            // Suppress duplicate analyzer exception diagnostics from the analyzer driver.
-            if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException))
-            {
-                if (_faultedAnalyzerMessages == null)
-                {
-                    Interlocked.CompareExchange(ref _faultedAnalyzerMessages, new ConcurrentSet<string>(), null);
-                }
-
-                var message = diagnostic.GetMessage();
-                if (!_faultedAnalyzerMessages.Add(message))
-                {
-                    return true;
-                }
-            }
-
             if (symbolOpt != null && IsDiagnosticSuppressed(diagnostic.Id, symbolOpt))
             {
                 return true;

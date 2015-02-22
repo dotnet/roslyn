@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
-        private readonly bool _hasAccessChecksSuppressed;
+        private readonly bool _ignoresAccessibility;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool suppressAccessChecks = false)
+        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
-            _hasAccessChecksSuppressed = suppressAccessChecks;
+            _ignoresAccessibility = ignoreAccessibility;
 
             if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
             {
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>
-        public override bool HasAccessChecksSuppressed
+        public override bool IgnoresAccessibility
         {
-            get { return _hasAccessChecksSuppressed; }
+            get { return _ignoresAccessibility; }
         }
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
@@ -903,9 +903,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var outer = _binderFactory.GetBinder(node);
 
-            if (this.HasAccessChecksSuppressed)
+            if (this.IgnoresAccessibility)
             {
-                outer = outer.WithAdditionalFlags(BinderFlags.SuppressAccessChecks);
+                outer = outer.WithAdditionalFlags(BinderFlags.IgnoreAccessibility);
             }
 
             switch (node.Kind())

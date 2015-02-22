@@ -426,4 +426,7 @@
   <data name="InvalidPublicKeyToken" xml:space="preserve">
     <value>Invalid public key token.</value>
   </data>
+  <data name="InvalidDataAtOffset" xml:space="preserve">
+    <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
+  </data>
 </root>

@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             Compilation compilation,
-            Action<Diagnostic> addDiagnostic,
             AnalyzerOptions analyzerOptions,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
                     AnalyzerDriverHelper.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope, compilation,
-                        analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                        analyzerOptions, continueOnAnalyzerException, cancellationToken);
                     return compilationAnalysisScope;
                 }, cancellationToken);
             };
@@ -69,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             Compilation compilation,
-            Action<Diagnostic> addDiagnostic,
             AnalyzerOptions analyzerOptions,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 return await GetCompilationAnalysisScopeCoreAsync(analyzer, sessionScope,
-                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    compilation, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -89,14 +87,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 cancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope,
-                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    compilation, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
             }
         }
 
         private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
             DiagnosticAnalyzer analyzer,
-            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
@@ -105,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Task.Run(() =>
                 {
                     var sessionScope = new HostSessionStartAnalysisScope();
-                    AnalyzerDriverHelper.ExecuteInitializeMethod(a, sessionScope, addDiagnostic, continueOnAnalyzerException, cancellationToken);
+                    AnalyzerDriverHelper.ExecuteInitializeMethod(a, sessionScope, continueOnAnalyzerException, cancellationToken);
                     return sessionScope;
                 }, cancellationToken);
             };
@@ -116,13 +113,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
-            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             try
             {
-                return await GetSessionAnalysisScopeCoreAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                return await GetSessionAnalysisScopeCoreAsync(analyzer, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -131,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _sessionScopeMap.Remove(analyzer);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return await GetSessionAnalysisScopeAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                return await GetSessionAnalysisScopeAsync(analyzer, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -143,16 +139,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             DiagnosticAnalyzer analyzer,
             Compilation compilation,
-            Action<Diagnostic> addDiagnostic,
             AnalyzerOptions analyzerOptions,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, addDiagnostic, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
             if (sessionScope.CompilationStartActions.Length > 0 && compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope,
-                    compilation, addDiagnostic, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    compilation, analyzerOptions, continueOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
             }
 
@@ -164,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
             DiagnosticAnalyzer analyzer,
-            Action<Diagnostic> addDiagnostic,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
@@ -173,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
-                AnalyzerDriverHelper.ExecuteAndCatchIfThrows(analyzer, addDiagnostic, continueOnAnalyzerException, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; }, cancellationToken);
+                AnalyzerDriverHelper.ExecuteAndCatchIfThrows(analyzer, continueOnAnalyzerException, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; }, cancellationToken);
 
                 return supportedDiagnostics;
             });

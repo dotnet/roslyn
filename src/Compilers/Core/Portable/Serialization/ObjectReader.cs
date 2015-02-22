@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -181,10 +182,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static readonly object s_int32Zero = 0;
-        private static readonly object s_booleanTrue = true;
-        private static readonly object s_booleanFalse = false;
-
         /// <summary>
         /// Read a value from the stream. The value must have been written using ObjectWriter.WriteValue.
         /// </summary>
@@ -196,9 +193,9 @@ namespace Roslyn.Utilities
                 case DataKind.Null:
                     return null;
                 case DataKind.Boolean_T:
-                    return s_booleanTrue;
+                    return Boxes.BoxedTrue;
                 case DataKind.Boolean_F:
-                    return s_booleanFalse;
+                    return Boxes.BoxedFalse;
                 case DataKind.Int8:
                     return _reader.ReadSByte();
                 case DataKind.UInt8:
@@ -214,7 +211,7 @@ namespace Roslyn.Utilities
                 case DataKind.Int32_S:
                     return (int)_reader.ReadUInt16();
                 case DataKind.Int32_Z:
-                    return s_int32Zero;
+                    return Boxes.BoxedInt32Zero;
                 case DataKind.UInt32:
                     return _reader.ReadUInt32();
                 case DataKind.Int64:

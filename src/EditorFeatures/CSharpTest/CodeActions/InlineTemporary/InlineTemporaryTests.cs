@@ -3508,6 +3508,52 @@ class A
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestAliasQualifiedNameIntoInterpolation()
+        {
+            Test(
+            @"
+class A
+{
+    void M()
+    {
+        var [|g|] = global::System.Guid.Empty;
+        var s = $""{g}"";
+    }
+}
+", @"
+class A
+{
+    void M()
+    {
+        var s = $""{(global::System.Guid.Empty)}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestConditionalExpressionIntoInterpolation()
+        {
+            Test(
+            @"
+class A
+{
+    bool M(bool b)
+    {
+        var [|x|] = b ? 19 : 23;
+        var s = $""{x}"";
+    }
+}
+", @"
+class A
+{
+    bool M(bool b)
+    {
+        var s = $""{(b ? 19 : 23)}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConditionalExpressionIntoInterpolationWithFormatClause()
         {
             Test(

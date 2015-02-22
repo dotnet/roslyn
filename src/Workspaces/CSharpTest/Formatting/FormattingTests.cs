@@ -5913,5 +5913,100 @@ class Program
 }";
             AssertFormat(expected, code);
         }
+
+        [WorkItem(285)]
+        [WorkItem(1089196)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatHashInBadDirectiveToZeroColumnAnywhereInsideIfDef()
+        {
+            const string code = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+            #
+
+#endif
+    }
+}";
+
+            const string expected = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+#
+
+#endif
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(285)]
+        [WorkItem(1089196)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatHashElseToZeroColumnAnywhereInsideIfDef()
+        {
+            const string code = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+            #else
+        Appropriate indentation should be here though #
+#endif
+    }
+}";
+
+            const string expected = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+#else
+        Appropriate indentation should be here though #
+#endif
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(285)]
+        [WorkItem(1089196)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatHashsToZeroColumnAnywhereInsideIfDef()
+        {
+            const string code = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+            #else
+        #
+
+#endif
+    }
+}";
+
+            const string expected = @"class MyClass
+{
+    static void Main(string[] args)
+    {
+#if false
+
+#else
+#
+
+#endif
+    }
+}";
+            AssertFormat(expected, code);
+        }
     }
 }

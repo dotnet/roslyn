@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
@@ -24,9 +23,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "GetXmlNamespace([<xmlNamespacePrefix>]) As System.Xml.Linq.XNamespace",
-                                     "Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.",
-                                     "The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.",
+                                     $"GetXmlNamespace([{XmlNamespacePrefix}]) As System.Xml.Linq.XNamespace",
+                                     ReturnsXNamespaceObject,
+                                     XMLNSToReturnObjectFor,
                                      currentParameterIndex:=0))
             Test(markup, expectedOrderedItems)
         End Sub

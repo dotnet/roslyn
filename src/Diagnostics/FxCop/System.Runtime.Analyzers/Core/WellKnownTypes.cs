@@ -141,6 +141,11 @@ namespace System.Runtime.Analyzers
             return compilation.GetTypeByMetadataName("System.IComparable");
         }
 
+        public static INamedTypeSymbol GenericIComparable(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.IComparable`1");
+        }
+
         public static INamedTypeSymbol ComSourceInterfaceAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComSourceInterfacesAttribute");
@@ -169,6 +174,11 @@ namespace System.Runtime.Analyzers
         public static INamedTypeSymbol NotImplementedException(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.NotImplementedException");
+        }
+
+        public static INamedTypeSymbol Attribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Attribute");
         }
     }
 }
