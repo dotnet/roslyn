@@ -3154,7 +3154,7 @@ class C
             var description = $"({CSharpFeaturesResources.Awaitable}) Task C.Foo()";
 
             var documentation = $@"
-{CSharpFeaturesResources.Usage}
+{WorkspacesResources.Usage}
   await Foo();";
 
             VerifyWithMscorlib45(markup, new[] { MainDescription(description), Usage(documentation) });

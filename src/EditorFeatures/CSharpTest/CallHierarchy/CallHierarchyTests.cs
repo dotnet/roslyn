@@ -429,7 +429,7 @@ namespace N
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), EditorFeaturesResources.Overrides });
-            testState.VerifyResult(root, EditorFeatures.Overrides, new[] { "N.G.Foo()" });
+            testState.VerifyResult(root, EditorFeaturesResources.Overrides, new[] { "N.G.Foo()" });
         }
 
         [WorkItem(844613)]

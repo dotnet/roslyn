@@ -309,9 +309,6 @@
   <data name="AwaitableExtension" xml:space="preserve">
     <value>Awaitable, Extension</value>
   </data>
-  <data name="Usage" xml:space="preserve">
-    <value>Usage:</value>
-  </data>
   <data name="Await" xml:space="preserve">
     <value>Await</value>
   </data>

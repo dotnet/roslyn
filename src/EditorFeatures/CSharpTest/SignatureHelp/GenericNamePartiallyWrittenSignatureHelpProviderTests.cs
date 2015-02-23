@@ -75,7 +75,7 @@ class Program
 }
 ";
             var documentation = $@"
-{CSharpFeaturesResources.Usage}
+{WorkspacesResources.Usage}
   int x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();

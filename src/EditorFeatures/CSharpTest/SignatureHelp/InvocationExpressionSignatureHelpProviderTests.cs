@@ -1505,7 +1505,7 @@ class C
 }";
 
             var description = $@"
-{CSharpFeaturesResources.Usage}
+{WorkspacesResources.Usage}
   await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
@@ -1528,7 +1528,7 @@ class C
 }";
 
             var description = $@"
-{CSharpFeaturesResources.Usage}
+{WorkspacesResources.Usage}
   Task<int> x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
