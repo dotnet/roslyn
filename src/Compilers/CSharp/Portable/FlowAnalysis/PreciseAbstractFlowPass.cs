@@ -1602,6 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // visit switch block
             VisitSwitchBlock(node);
+            IntersectWith(ref breakState, ref this.State);
             ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
@@ -1661,13 +1662,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitSwitchBlock(BoundSwitchStatement node)
         {
+            var afterSwitchState = UnreachableState();
             var switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
             // visit switch sections
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
                 VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
+                IntersectWith(ref afterSwitchState, ref this.State);
             }
+
+            SetState(afterSwitchState);
         }
 
         public virtual BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
