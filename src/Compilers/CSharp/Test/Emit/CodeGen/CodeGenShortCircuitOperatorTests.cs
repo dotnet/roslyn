@@ -5542,5 +5542,28 @@ M1(Action<C<T>> x)
 M
 ---");
         }
+
+        [WorkItem(74, "https://github.com/dotnet/roslyn/issues/74")]
+        [Fact]
+        public void ConditionalInAsyncTask()
+        {
+            var source = @"
+#pragma warning disable CS1998 // suppress 'no await in async' warning
+using System;
+using System.Threading.Tasks;
+
+class Foo<T>
+{
+    T Method() => default(T); // returns value of unconstrained type parameter type
+    void M1() => this?.Method();
+    async void M2() => this?.Method();
+    async Task M3() => this?.Method();
+    void M4() {
+        Action f1 = async () => this?.Method();
+        Func<Task> f2 = async () => this?.Method();
+    }
+}";
+            var compilation = CreateCompilation(source, references: new[] { MscorlibRef }).VerifyDiagnostics();
+        }
     }
 }
