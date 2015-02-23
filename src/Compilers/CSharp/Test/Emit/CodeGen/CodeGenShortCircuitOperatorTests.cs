@@ -4176,7 +4176,7 @@ class Program
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/760")]
         public void ConditionalMemberAccessRace002()
         {
             var source = @"
