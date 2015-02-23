@@ -99,6 +99,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
+                public void RequestCancellationOnRunningTasks()
+                {
+                    lock (_gate)
+                    {
+                        // request to cancel all running works
+                        _cancellationMap.Do(p => p.Value.Cancel());
+                    }
+                }
+
                 public void Dispose()
                 {
                     lock (_gate)
