@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             return compilation == null
                 ? diagnostics
-                : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagsFilteredByLocation, compilation);
+                : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagsFilteredByLocation.ToImmutableArray(), compilation);
         }
 
         internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // CompilationEnd actions.
                 analyzerExecutor.ExecuteCompilationEndActions(analyzerActions);
 
-                var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
+                var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics.ToImmutableArray(), compilation);
                 diagnostics.AddRange(filteredDiagnostics);
             }
         }
