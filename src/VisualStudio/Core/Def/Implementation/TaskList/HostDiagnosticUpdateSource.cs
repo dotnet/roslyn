@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     [Export(typeof(IDiagnosticUpdateSource))]
+    [Export(typeof(AbstractHostDiagnosticUpdateSource))]
     [Export(typeof(HostDiagnosticUpdateSource))]
     internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
     {
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace = workspace;
         }
 
-        protected override Workspace Workspace
+        internal override Workspace Workspace
         {
             get
             {

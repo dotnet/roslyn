@@ -35,15 +35,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
-            : base(workspace)
+        public DiagnosticIncrementalAnalyzer(
+            DiagnosticAnalyzerService owner, 
+            int correlationId, 
+            Workspace workspace, 
+            WorkspaceAnalyzerManager workspaceAnalyzerManager, 
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(workspace, hostDiagnosticUpdateSource)
         {
             _owner = owner;
             _correlationId = correlationId;
             _memberRangeMap = new MemberRangeMap();
             _analyzersAndState = new DiagnosticAnalyzersAndStates(this, workspace, workspaceAnalyzerManager);
             _executor = new AnalyzerExecutor(this);
-
+            
             _diagnosticLogAggregator = new DiagnosticLogAggregator(_owner);
         }
 
@@ -109,8 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
-                var options = document.Project.CompilationOptions;
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 var openedDocument = document.IsOpen();
 
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
-                    if (IsAnalyzerSuppressed(provider, options, userDiagnosticDriver))
+                    if (userDiagnosticDriver.IsAnalyzerSuppressed(provider))
                     {
                         await HandleSuppressedAnalyzerAsync(document, StateType.Syntax, providerId, provider, cancellationToken).ConfigureAwait(false);
                     }
@@ -189,17 +193,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var memberId = syntaxFacts.GetMethodLevelMemberId(root, member);
 
-                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, cancellationToken);
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, cancellationToken);
-                var options = document.Project.CompilationOptions;
-
+                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                 {
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
                     bool supportsSemanticInSpan;
-                    if (IsAnalyzerSuppressed(provider, options, spanBasedDriver))
+                    if (spanBasedDriver.IsAnalyzerSuppressed(provider))
                     {
                         await HandleSuppressedAnalyzerAsync(document, StateType.Document, providerId, provider, cancellationToken).ConfigureAwait(false);
                     }
@@ -239,16 +242,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 bool openedDocument = document.IsOpen();
-                var options = document.Project.CompilationOptions;
-
+                
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                 {
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
-                    if (IsAnalyzerSuppressed(provider, options, userDiagnosticDriver))
+                    if (userDiagnosticDriver.IsAnalyzerSuppressed(provider))
                     {
                         await HandleSuppressedAnalyzerAsync(document, StateType.Document, providerId, provider, cancellationToken).ConfigureAwait(false);
                     }
@@ -296,16 +298,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, cancellationToken);
-                var options = project.CompilationOptions;
-
+                var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                
                 var versions = new VersionArgument(VersionStamp.Default, semanticVersion, projectVersion);
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(project, cancellationToken).ConfigureAwait(false))
                 {
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
-                    if (IsAnalyzerSuppressed(provider, options, userDiagnosticDriver))
+                    if (userDiagnosticDriver.IsAnalyzerSuppressed(provider))
                     {
                         await HandleSuppressedAnalyzerAsync(project, providerId, provider, cancellationToken).ConfigureAwait(false);
                     }
@@ -461,17 +462,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var fullSpan = root == null ? null : (TextSpan?)root.FullSpan;
 
                 // Share the diagnostic analyzer driver across all analyzers.
-                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, cancellationToken);
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, cancellationToken);
-                var options = document.Project.CompilationOptions;
-
+                var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
+                
                 foreach (var providerAndId in await _analyzersAndState.GetAllProviderAndIdsAsync(document.Project, cancellationToken).ConfigureAwait(false))
                 {
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
                     bool supportsSemanticInSpan;
-                    if (!IsAnalyzerSuppressed(provider, options, spanBasedDriver) &&
+                    if (!spanBasedDriver.IsAnalyzerSuppressed(provider) &&
                         ShouldRunProviderForStateType(stateType, provider, spanBasedDriver, out supportsSemanticInSpan))
                     {
                         var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private static bool ShouldRunProviderForStateType(StateType stateTypeId, DiagnosticAnalyzer provider, DiagnosticAnalyzerDriver driver,
             out bool supportsSemanticInSpan, ImmutableHashSet<string> diagnosticIds = null, Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getDescriptor = null)
         {
-            Debug.Assert(!IsAnalyzerSuppressed(provider, driver.Project.CompilationOptions, driver));
+            Debug.Assert(!driver.IsAnalyzerSuppressed(provider));
 
             supportsSemanticInSpan = false;
             if (diagnosticIds != null && getDescriptor(provider).All(d => !diagnosticIds.Contains(d.Id)))
@@ -602,17 +602,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private static bool IsAnalyzerSuppressed(DiagnosticAnalyzer provider, CompilationOptions options, DiagnosticAnalyzerDriver driver)
-        {
-            if (options != null && CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(provider, options, driver.CatchAnalyzerExceptionHandler))
-            {
-                // All diagnostics that are generated by this DiagnosticAnalyzer will be suppressed, so we need not run the analyzer.
-                return true;
-            }
-
-            return false;
         }
 
         // internal for testing purposes only.

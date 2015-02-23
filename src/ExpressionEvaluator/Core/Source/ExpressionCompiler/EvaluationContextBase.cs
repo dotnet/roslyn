@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static readonly AssemblyIdentity SystemCoreIdentity = new AssemblyIdentity("System.Core");
         internal static readonly AssemblyIdentity SystemXmlIdentity = new AssemblyIdentity("System.Xml");
         internal static readonly AssemblyIdentity SystemXmlLinqIdentity = new AssemblyIdentity("System.Xml.Linq");
+        internal static readonly AssemblyIdentity MicrosoftVisualBasicIdentity = new AssemblyIdentity("Microsoft.VisualBasic");
 
         /// <summary>
         /// Compile C# expression and emit assembly with evaluation method.

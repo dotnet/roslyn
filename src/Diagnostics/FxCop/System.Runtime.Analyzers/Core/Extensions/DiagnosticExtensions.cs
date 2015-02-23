@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -84,17 +85,6 @@ namespace System.Runtime.Analyzers
             return symbol.Locations.CreateDiagnostic(rule, args);
         }
 
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<Location> locations,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (var location in locations)
-            {
-                yield return location.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
@@ -129,6 +119,21 @@ namespace System.Runtime.Analyzers
             return Diagnostic.Create(rule,
                      location: location,
                      additionalLocations: additionalLocations,
+                     messageArgs: args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this IEnumerable<Location> locations,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string> properties,
+            params object[] args)
+        {
+            var location = locations.First(l => l.IsInSource);
+            var additionalLocations = locations.Where(l => l.IsInSource).Skip(1);
+            return Diagnostic.Create(rule,
+                     location: location,
+                     additionalLocations: additionalLocations,
+                     properties: properties,
                      messageArgs: args);
         }
     }

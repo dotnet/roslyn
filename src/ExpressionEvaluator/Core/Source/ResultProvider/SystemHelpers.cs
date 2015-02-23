@@ -40,8 +40,3 @@ namespace System.ComponentModel
         public EditorBrowsableAttribute(EditorBrowsableState state) { }
     }
 }
-
-namespace System.Linq
-{
-    internal class Dummy { }
-}

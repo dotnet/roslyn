@@ -172,15 +172,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private ExceptionHandlerScope EnclosingExceptionHandler
-        {
-            get { return _scopeManager.EnclosingExceptionHandler; }
-        }
+        private ExceptionHandlerScope EnclosingExceptionHandler => _scopeManager.EnclosingExceptionHandler;
 
-        internal bool InExceptionHandler
-        {
-            get { return this.EnclosingExceptionHandler != null; }
-        }
+        internal bool InExceptionHandler => this.EnclosingExceptionHandler != null;
 
         /// <summary>
         /// Realizes method body.
@@ -201,10 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Gets all scopes that contain variables.
         /// </summary>
-        internal ImmutableArray<Cci.LocalScope> GetAllScopes()
-        {
-            return _scopeManager.GetAllScopesWithLocals();
-        }
+        internal ImmutableArray<Cci.LocalScope> GetAllScopes() => _scopeManager.GetAllScopesWithLocals();
 
         /// <summary>
         /// Gets all scopes that contain variables.
@@ -236,13 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal ushort MaxStack
-        {
-            get
-            {
-                return (ushort)_emitState.MaxStack;
-            }
-        }
+        internal ushort MaxStack => (ushort)_emitState.MaxStack;
 
         /// <summary>
         /// IL opcodes emitted by this builder.
@@ -254,13 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Example: a label will not result in any code so when emitting debugging information 
         ///          an extra NOP may be needed if we want to decorate the label with sequence point. 
         /// </summary>
-        internal int InstructionsEmitted
-        {
-            get
-            {
-                return _emitState.InstructionsEmitted;
-            }
-        }
+        internal int InstructionsEmitted => _emitState.InstructionsEmitted;
 
         /// <summary>
         /// Marks blocks that are reachable.
@@ -1161,9 +1140,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         internal bool PossiblyDefinedOutsideOfTry(LocalDefinition local)
-        {
-            return _scopeManager.PossiblyDefinedOutsideOfTry(local);
-        }
+            => _scopeManager.PossiblyDefinedOutsideOfTry(local);
 
         /// <summary>
         /// Marks the end of filter condition and start of the actual filter handler.

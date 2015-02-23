@@ -183,10 +183,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a StringComparer that compares strings according the VB identifier comparison rules.
         /// </summary>
-        public static StringComparer Comparer
-        {
-            get { return s_comparer; }
-        }
+        public static StringComparer Comparer => s_comparer;
 
         /// <summary>
         /// Determines if two VB identifiers are equal according to the VB identifier comparison rules.
@@ -194,10 +191,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="left">First identifier to compare</param>
         /// <param name="right">Second identifier to compare</param>
         /// <returns>true if the identifiers should be considered the same.</returns>
-        public static bool Equals(string left, string right)
-        {
-            return s_comparer.Equals(left, right);
-        }
+        public static bool Equals(string left, string right) => s_comparer.Equals(left, right);
 
         /// <summary>
         /// Determines if the string 'value' end with string 'possibleEnd'.
@@ -205,10 +199,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="value"></param>
         /// <param name="possibleEnd"></param>
         /// <returns></returns>
-        public static bool EndsWith(string value, string possibleEnd)
-        {
-            return OneToOneUnicodeComparer.EndsWith(value, possibleEnd);
-        }
+        public static bool EndsWith(string value, string possibleEnd) => OneToOneUnicodeComparer.EndsWith(value, possibleEnd);
 
         /// <summary>
         /// Compares two VB identifiers according to the VB identifier comparison rules.
@@ -216,10 +207,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="left">First identifier to compare</param>
         /// <param name="right">Second identifier to compare</param>
         /// <returns>-1 if <paramref name="left"/> &lt; <paramref name="right"/>, 1 if <paramref name="left"/> &gt; <paramref name="right"/>, 0 if they are equal.</returns>
-        public static int Compare(string left, string right)
-        {
-            return s_comparer.Compare(left, right);
-        }
+        public static int Compare(string left, string right) => s_comparer.Compare(left, right);
 
         /// <summary>
         /// Gets a case-insensitive hash code for VB identifiers.

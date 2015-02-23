@@ -147,4 +147,40 @@
   <data name="TypeOwnsDisposableFieldButIsNotDisposable" xml:space="preserve">
     <value>Type '{0}' owns disposable fields but is not disposable</value>
   </data>
+  <data name="CustomAttrShouldHaveAttributeUsage" xml:space="preserve">
+    <value>Custom attributes should have AttributeUsage attribute defined.</value>
+  </data>
+  <data name="MarkAttributesWithAttributeUsage" xml:space="preserve">
+    <value>Specify AttributeUsage attribute on '{0}' attribute class.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArguments" xml:space="preserve">
+    <value>Define accessors for attribute arguments.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArgumentsDefault" xml:space="preserve">
+    <value>Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArgumentsIncreaseVisibility" xml:space="preserve">
+    <value>If '{0}' is the property accessor for positional argument '{1}', ensure that property getter is public.</value>
+  </data>
+  <data name="DefineAccessorsForAttributeArgumentsRemoveSetter" xml:space="preserve">
+    <value>Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnIComparableInterface" xml:space="preserve">
+    <value>Overload operator Equals and comparison operators when implementing System.IComparable</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnIComparableInterfaceDescription" xml:space="preserve">
+    <value>Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type.</value>
+  </data>
+  <data name="CreatePropertyAccessorForParameter" xml:space="preserve">
+    <value>Create a property accessor.</value>
+  </data>
+  <data name="ImplementComparable" xml:space="preserve">
+    <value>Implement Equality and Comparison methods and operators</value>
+  </data>
+  <data name="MakeGetterPublic" xml:space="preserve">
+    <value>Make the getter of the property public</value>
+  </data>
+  <data name="MakeSetterNonPublic" xml:space="preserve">
+    <value>Make the setter of the property non-public</value>
+  </data>
 </root>

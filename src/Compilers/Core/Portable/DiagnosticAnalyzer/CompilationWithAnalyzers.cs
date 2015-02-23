@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerDriver _driver;
         private readonly Compilation _compilation;
         private readonly CancellationToken _cancellationToken;
+        private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
 
         public Compilation Compilation
         {
@@ -29,7 +31,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Default, out _compilation, _cancellationToken);
+            _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, out _compilation, _cancellationToken);
+        }
+
+        private void AddExceptionDiagnostic(Diagnostic diagnostic)
+        {
+            _exceptionDiagnostics.Add(diagnostic);
         }
 
         /// <summary>
@@ -53,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
 
             ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics);
+            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
         }
 
         /// <summary>
@@ -110,8 +118,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(continueOnAnalyzerException));
             }
 
-            Action<Diagnostic> dummy = _ => { };
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, AnalyzerManager.Default, options, dummy, continueOnAnalyzerException, CancellationToken.None);
+            // TODO: Public API change to surface exception diagnostics?
+            Action<Diagnostic> addExceptionDiagnostic = diagnostic => { };
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(addExceptionDiagnostic, continueOnAnalyzerException, CancellationToken.None);
+
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
         }
     }
 }
