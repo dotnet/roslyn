@@ -59,6 +59,7 @@ End Class
     End Sub
 
     <Fact>
+    <WorkItem(759)>
     Public Sub DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         Dim source = TestResource.AllInOneVisualBasicCode
         Using Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source)

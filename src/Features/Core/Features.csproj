@@ -177,10 +177,8 @@
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
-    <Compile Include="Diagnostics\WorkspaceAnalyzerExceptionDiagnosticArgs.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource_Registration.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />

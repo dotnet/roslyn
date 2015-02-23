@@ -1072,7 +1072,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(MetadataTokens.GetToken(methodHandle), methodVersion: 0);
+            int methodToken = MetadataTokens.GetToken(methodHandle);
+            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 0);
             if (debugInfo != null)
             {
                 try
@@ -1081,9 +1082,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     var lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
                     return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
                 }
-                catch (InvalidOperationException e)
-            {
-                    log.Write("Error reading Local Slot Map CDI: {0}", e.Message);
+                catch (Exception e) when (e is InvalidOperationException || e is InvalidDataException)
+                {
+                    log.Write($"Error reading CDI of method 0x{methodToken:X8}: {e.Message}");
                 }
             }
 

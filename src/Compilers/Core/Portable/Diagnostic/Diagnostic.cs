@@ -7,6 +7,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual bool IsNotConfigurable()
         {
-            return DiagnosticDescriptor.IsNotConfigurable(this.CustomTags);
+            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
     }
 }
