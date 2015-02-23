@@ -6299,7 +6299,7 @@ class Program
 }";
 
             var description = $@"({CSharpEditorResources.Awaitable}) Task Program.foo()
-Usage:
+{CSharpFeaturesResources.Usage}
   {CSharpFeaturesResources.Await} foo();";
 
             VerifyItemWithMscorlib45(markup, "foo", description, "C#");
@@ -6320,7 +6320,7 @@ class Program
 }";
 
             var description = $@"({CSharpEditorResources.Awaitable}) Task<int> Program.foo()
-Usage:
+{CSharpFeaturesResources.Usage}
   int x = {CSharpFeaturesResources.Await} foo();";
 
             VerifyItemWithMscorlib45(markup, "foo", description, "C#");
