@@ -52,20 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             public override int FindSlotIndexContainingOffset(int offset)
             {
                 Debug.Assert(offset >= 0 && offset < FullWidth);
-                int idx = _childOffsets.BinarySearch(offset);
-
-                if (idx < 0)
-                {
-                    idx = (~idx - 1);
-                }
-
-                // skip zero-length nodes (they won't ever contain the offset)
-                while (idx < _childOffsets.Length - 1 && _childOffsets[idx] == _childOffsets[idx + 1])
-                {
-                    idx++;
-                }
-
-                return idx;
+                return _childOffsets.BinarySearchUpperBound(offset) - 1;
             }
 
             private static int[] CalculateOffsets(ArrayElement<CSharpSyntaxNode>[] children)

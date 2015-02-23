@@ -512,7 +512,7 @@ a + b";
 
         private void CheckFindToken(SyntaxNode node)
         {
-            for (int i = node.FullSpan.End - 1; i >= 0; i--)
+            for (int i = 0; i < node.FullSpan.End; i++)
             {
                 var token = node.FindToken(i);
                 Assert.Equal(true, token.FullSpan.Contains(i));
