@@ -81,6 +81,24 @@
     <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
 
+  <!--
+    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
+    Use the latest Framework toolset to build, but set msbuild properties below
+    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
+  -->
+  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <NoStdLib>true</NoStdLib>
+    <FrameworkPathOverride>$(NuGetPackagesPath)\Microsoft.NetFX20.1.0.2-rc2\lib\net20</FrameworkPathOverride>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
+    <Reference Include="$(FrameworkPathOverride)\mscorlib.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(OutDir)' == ''">
     <!-- If we don't already have an OutDir, set one-->
     <OutDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\$(Configuration)'))\</OutDir>
@@ -121,7 +139,7 @@
         <Import Include="System.Collections.Generic" />
         <Import Include="System.Diagnostics" />
       </ItemGroup>
-      <ItemGroup Condition="'$(TargetFrameworkVersion)' != 'v2.0'">
+      <ItemGroup Condition="'$(TargetNetFX20)' != 'true'">
         <Import Include="System.Linq" />
       </ItemGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
