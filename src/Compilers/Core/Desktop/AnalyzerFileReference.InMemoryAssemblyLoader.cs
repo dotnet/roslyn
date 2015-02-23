@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 try
                 {
+                    if (!File.Exists(filePath))
+                    {
+                        return null;
+                    }
+
                     using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
                     using (var peReader = new PEReader(stream))
                     {
