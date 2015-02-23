@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
-            if (diagnostics == null)
+            if (diagnostics == default(ImmutableArray<Diagnostic>))
             {
                 throw new ArgumentNullException(nameof(diagnostics));
             }
