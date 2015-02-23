@@ -121,6 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             UpdateSeverityMenuItemsChecked();
             UpdateSeverityMenuItemsEnabled();
+            UpdateOpenHelpLinkMenuItemVisibility();
         }
 
         private void DiagnosticItemPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
@@ -144,14 +145,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
             _referencesContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
 
-            _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
-                                            !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
-
-
             string itemName;
             _setActiveRuleSetMenuItem.Visible = selectedProjectSupportsAnalyzers &&
                                                 _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out itemName) &&
                                                 Path.GetExtension(itemName).Equals(".ruleset", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void UpdateOpenHelpLinkMenuItemVisibility()
+        {
+            _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
+                                                        !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
         }
 
         private void UpdateSeverityMenuItemsChecked()
