@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        sealed class TextLineEqualityComparer : IEqualityComparer<TextLine>
+        private sealed class TextLineEqualityComparer : IEqualityComparer<TextLine>
         {
             public bool Equals(TextLine x, TextLine y)
             {
@@ -235,83 +235,80 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        private static void AssertChangedTextLinesHelper(string originalText, params TextChange[] changes)
+        {
+            var changedText = SourceText.From(originalText).WithChanges(changes);
+            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
+        }
+
         [Fact]
         public void TestOptimizedSourceTextLinesSimpleSubstition()
         {
-            var changedText = SourceText.From("Line1\r\nLine2\r\nLine3").WithChanges(
+            AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3",
                 new TextChange(new TextSpan(8, 2), "IN"),
                 new TextChange(new TextSpan(15, 2), "IN"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesSubstitionWithLongerText()
         {
-            var changedText = SourceText.From("Line1\r\nLine2\r\nLine3").WithChanges(
+            AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3",
                 new TextChange(new TextSpan(8, 2), new string('a', 10)),
                 new TextChange(new TextSpan(15, 2), new string('a', 10)));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesInsertCrLf()
         {
-            var changedText = SourceText.From("Line1\r\nLine2\r\nLine3").WithChanges(
+            AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3",
                 new TextChange(new TextSpan(8, 2), "\r\n"),
                 new TextChange(new TextSpan(15, 2), "\r\n"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesSimpleCr()
         {
-            var changedText = SourceText.From("Line1\rLine2\rLine3").WithChanges(
+            AssertChangedTextLinesHelper("Line1\rLine2\rLine3",
                 new TextChange(new TextSpan(6, 0), "aa\r"),
                 new TextChange(new TextSpan(11, 0), "aa\r"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesSimpleLf()
         {
-            var changedText = SourceText.From("Line1\nLine2\nLine3").WithChanges(
+            AssertChangedTextLinesHelper("Line1\nLine2\nLine3",
                 new TextChange(new TextSpan(6, 0), "aa\n"),
                 new TextChange(new TextSpan(11, 0), "aa\n"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesRemoveCrLf()
         {
-            var changedText = SourceText.From("Line1\r\nLine2\r\nLine3").WithChanges(
+            AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3",
                 new TextChange(new TextSpan(4, 4), "aaaaaa"),
                 new TextChange(new TextSpan(15, 4), "aaaaaa"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesBrakeCrLf()
         {
-            var changedText = SourceText.From("Test\r\nMessage").WithChanges(
+            AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "aaaaaa"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLinesBrakeCrLfWithLfPrefixedAndCrSufixed()
         {
-            var changedText = SourceText.From("Test\r\nMessage").WithChanges(
+            AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "\naaaaaa\r"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
         [Fact]
         public void TestOptimizedSourceTextLineInsertAtEnd()
         {
-            var changedText = SourceText.From("Line1\r\nLine2\r\nLine3\r\n").WithChanges(
+            AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3\r\n",
                 new TextChange(new TextSpan(21, 0), "Line4\r\n"),
                 new TextChange(new TextSpan(21, 0), "Line5\r\n"));
-            Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
     }
 }
