@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetNetFX20>true</TargetNetFX20>
+  </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
@@ -11,19 +14,13 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.Concord.DoNotUse</AssemblyName>
-    <!--
-      As a convenience for developer machines without .NET 2.0 installed, we'll allow building against v4.*.
-      However, "real" builds must still target v2.0, and we always want to target 2.0 if it's present.
-    -->
-    <TargetFrameworkVersion Condition="Exists('$(WinDir)\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll') OR '$(RealSignBuild)' == 'true'">v2.0</TargetFrameworkVersion>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <ConcordDir>$(MSBuildThisFileDirectory)</ConcordDir>
-	<NonShipping>true</NonShipping>
+	  <NonShipping>true</NonShipping>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <None Include="$(ConcordDir)Microsoft.VisualStudio.Debugger.Engine.xml">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -33,8 +30,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata" />
     <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine" />
@@ -43,7 +38,7 @@
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).il')"
           Outputs="$(OutDir)%(Identity).dll">
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).il" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).il" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
     <Delete Files="@(ConcordAssemblies->'$(OutDir)%(Identity).dll')" />

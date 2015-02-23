@@ -81,7 +81,7 @@ public class C
 
         #endregion
 
-        [Fact(Skip = "GitHub Issue 759")]
+        [Fact]
         [WorkItem(759)]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
