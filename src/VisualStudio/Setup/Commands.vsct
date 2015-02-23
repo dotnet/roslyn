@@ -193,10 +193,10 @@
       <Button guid="guidRoslynGrpId" id="cmdidOpenRuleSet" priority="200" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpAnalyzerFolderContextMenu" />
         <Strings>
-          <ButtonText>&amp;Open Rule Set</ButtonText>
-          <CanonicalName>OpenRuleSet</CanonicalName>
-          <LocCanonicalName>OpenRuleSet</LocCanonicalName>
-          <CommandName>OpenRuleSet</CommandName>
+          <ButtonText>&amp;Open Active Rule Set</ButtonText>
+          <CanonicalName>OpenActiveRuleSet</CanonicalName>
+          <LocCanonicalName>OpenActiveRuleSet</LocCanonicalName>
+          <CommandName>OpenActiveRuleSet</CommandName>
         </Strings>
       </Button>
       <!-- Buttons to set severity of diagnostics -->
