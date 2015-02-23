@@ -56,24 +56,24 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (_notificationService != null)
             {
-                var globalOperation = _operations[operation];
+                TryCancelPendingNotification(operation);
+                
                 if (e.Activated)
                 {
-                    if (globalOperation != null)
-                    {
-                        globalOperation.Dispose();
-                    }
-
                     _operations[operation] = _notificationService.Start(operation);
-
-                }
-                else if (globalOperation != null)
-                {
-                    globalOperation.Done();
-                    globalOperation.Dispose();
-                    globalOperation = null;
                 }
             }
         }
+
+        private void TryCancelPendingNotification(string operation)
+        {
+            if (_operations.ContainsKey(operation))
+            {
+                var globalOperation = _operations[operation];
+                globalOperation.Done();
+                globalOperation.Dispose();
+            }
+        }
+       
     }
 }
