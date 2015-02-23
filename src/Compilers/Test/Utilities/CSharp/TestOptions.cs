@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public static class TestOptions
@@ -32,5 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
+
+        public static CSharpCompilationOptions WithStrictMode(this CSharpCompilationOptions options)
+        {
+            return options.WithFeatures(options.Features.Add("strict"));
+        }
     }
 }

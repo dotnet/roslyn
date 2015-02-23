@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
+                    protected override void PauseOnGlobalOperation()
+                    {
+                        _workItemQueue.RequestCancellationOnRunningTasks();
+                    }
+
                     public void Enqueue(WorkItem item)
                     {
                         this.UpdateLastAccessTime();
