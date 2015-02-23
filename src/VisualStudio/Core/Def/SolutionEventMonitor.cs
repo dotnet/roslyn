@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         private GlobalOperationNotificationService _notificationService;
         private Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
+
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
             var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as GlobalOperationNotificationService;
@@ -20,9 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 _notificationService = notificationService;
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged += SolutionBuildingContextChanged;
-                KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContext_UIContextChanged;
+                KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContextChanged;
             }
         }
+
         public void Dispose()
         {
             foreach (var globalOperation in _operations.Values)
@@ -36,17 +38,20 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 _notificationService = null;
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged -= SolutionBuildingContextChanged;
+                KnownUIContexts.SolutionOpeningContext.UIContextChanged -= SolutionOpeningContextChanged;
             }
         }
+
         private void SolutionBuildingContextChanged(object sender, UIContextChangedEventArgs e)
         {
             ContextChangedWorker(e, "Solution Building");
         }
 
-        private void SolutionOpeningContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
+        private void SolutionOpeningContextChanged(object sender, UIContextChangedEventArgs e)
         {
             ContextChangedWorker(e, "Solution Opening");
         }
+
         private void ContextChangedWorker(UIContextChangedEventArgs e, string operation)
         {
             if (_notificationService != null)
