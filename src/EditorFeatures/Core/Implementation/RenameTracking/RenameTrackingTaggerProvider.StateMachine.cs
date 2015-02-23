@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
@@ -251,10 +252,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         SnapshotSpan snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
                         var textSpan = snapshotSpan.Span.ToTextSpan();
+
+                        var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey, trackingSession.OriginalName);
+                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey, snapshotSpan.GetText());
+                        var properties = builder.ToImmutable();
+
                         var diagnostic = Diagnostic.Create(diagnosticDescriptor,
                             tree.GetLocation(textSpan),
-                            trackingSession.OriginalName,
-                            snapshotSpan.GetText());
+                            properties);
+
                         return SpecializedCollections.SingletonEnumerable(diagnostic);
                     }
 

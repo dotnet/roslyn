@@ -137,12 +137,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             bool showPreview)
         {
             // This can run on a background thread.
-            string message = diagnostic.GetMessage();
 
-            if (showPreview)
-            {
-                message += EditorFeaturesResources.WithPreview;
-            }
+            var renameToResourceString = showPreview ? EditorFeaturesResources.RenameToWithPreview : EditorFeaturesResources.RenameTo;
+            var message = string.Format(
+                renameToResourceString, 
+                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey], 
+                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 
             return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry, showPreview);
         }
