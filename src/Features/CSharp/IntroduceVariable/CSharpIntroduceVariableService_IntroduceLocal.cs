@@ -202,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                        .WithTrailingTrivia(oldBody.GetTrailingTrivia())
                                        .WithAdditionalAnnotations(Formatter.Annotation);
 
-            // TODO: What happens to surrounding directives - do we make if def'd out code active with this rewrite?
             SyntaxNode newParentingNode = null;
             if (oldParentingNode is BasePropertyDeclarationSyntax)
             {

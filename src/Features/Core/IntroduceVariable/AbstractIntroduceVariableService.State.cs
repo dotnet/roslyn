@@ -129,8 +129,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                // TODO: This may have to move to a partial class with its own method
-                // IsInSomething*Context* to deal with query variables etc.
                 if (_service.IsInExpressionBodiedMember(this.Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
