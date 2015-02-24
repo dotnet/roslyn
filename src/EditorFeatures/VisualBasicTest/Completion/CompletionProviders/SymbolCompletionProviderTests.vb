@@ -2795,7 +2795,7 @@ Class SomeClass
     End Sub
 End Class</Code>.Value
 
-            VerifyItemExists(code, "Foo", "(Deprecated) Sub SomeClass.Foo()")
+            VerifyItemExists(code, "Foo", $"({VBFeaturesResources.Deprecated}) Sub SomeClass.Foo()")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
