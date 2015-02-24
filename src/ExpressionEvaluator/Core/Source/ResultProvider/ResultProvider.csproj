@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetNetFX20>true</TargetNetFX20>
+  </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
@@ -12,20 +15,12 @@
     <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!--
-      As a convenience for developer machines without .NET 2.0 installed, we'll allow building against v4.*.
-      However, "real" builds must still target v2.0, and we always want to target 2.0 if it's present.
-    -->
-    <TargetFrameworkVersion Condition="Exists('$(WinDir)\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll') OR '$(RealSignBuild)' == 'true'">v2.0</TargetFrameworkVersion>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <RestorePackages>true</RestorePackages>
     <NeedsPhoneCopy>true</NeedsPhoneCopy>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
@@ -69,6 +64,7 @@
     <Compile Include="..\ExpressionCompiler\DateTimeUtilities.cs">
       <Link>Helpers\DateTimeUtilities.cs</Link>
     </Compile>
+    <Compile Include="SystemHelpers.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
@@ -81,11 +77,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <Compile Include="Expansion\AggregateExpansion.cs" />
     <Compile Include="Expansion\ArrayExpansion.cs" />
@@ -137,4 +130,3 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
-

@@ -465,7 +465,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             newBody = LocalDeclarationRewriter.Rewrite(_compilation, _container, newBody)
 
             ' Rewrite pseudo-variable references to helper method calls.
-            newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody), BoundBlock)
+            newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics), BoundBlock)
+            If diagnostics.HasAnyErrors() Then
+                Return newBody
+            End If
 
             ' Create a map from original local to target local.
             Dim localMap = PooledDictionary(Of LocalSymbol, LocalSymbol).GetInstance()

@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, methodName));
                 var methodToken = metadataReader.GetToken(methodHandle);
 
-                return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfo>
+                return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfo.Builder(new [] { importStrings }).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { importStrings }).Build() },
                 }.ToImmutableDictionary());
             }
         }

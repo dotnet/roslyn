@@ -342,9 +342,6 @@
   <data name="DocumentIsNotCurrentlyBeingTracked" xml:space="preserve">
     <value>document is not currently being tracked</value>
   </data>
-  <data name="RenameTracking" xml:space="preserve">
-    <value>Rename Tracking</value>
-  </data>
   <data name="ComputingRenameInformation" xml:space="preserve">
     <value>Computing Rename information...</value>
   </data>
@@ -624,9 +621,6 @@
   <data name="RenameToWithPreview" xml:space="preserve">
     <value>Rename '{0}' to '{1}' with preview...</value>
   </data>
-  <data name="WithPreview" xml:space="preserve">
-    <value> with preview...</value>
-  </data>
   <data name="PreviewChanges" xml:space="preserve">
     <value>Preview Changes</value>
   </data>
@@ -729,5 +723,8 @@ Do you want to proceed?</value>
   </data>
   <data name="FixAllOccurrences" xml:space="preserve">
     <value>Fix all occurrences</value>
+  </data>
+  <data name="CannotApplyOperationWhileRenameSessionIsActive" xml:space="preserve">
+    <value>Cannot apply operation while a rename session is active.</value>
   </data>
 </root>

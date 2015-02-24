@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                                   .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False))
                 End If
 
-                Dim registrationService = workspace.Services.GetService(Of IWorkCoordinatorRegistrationService)()
+                Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
                 registrationService.Register(workspace)
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
@@ -293,8 +293,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim analyzerService = New DiagnosticAnalyzerService(compilerAnalyzersMap)
 
             ' CollectErrors generates interleaved background and foreground tasks.
-            Dim solutionWorkCoordinator = DirectCast(workspace.Services.GetService(Of IWorkCoordinatorRegistrationService)(), WorkCoordinatorRegistrationService)
-            solutionWorkCoordinator.WaitUntilCompletion_ForTestingPurposesOnly(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
+            Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
+            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
 
             Return analyzerService
         End Function

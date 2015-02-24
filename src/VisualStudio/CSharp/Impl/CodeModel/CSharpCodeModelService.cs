@@ -138,6 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
@@ -1309,7 +1310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             for (int i = 1; i < lines.Length; i++)
             {
                 var line = lines[i].TrimStart();
-                if (line.StartsWith("///"))
+                if (line.StartsWith("///", StringComparison.Ordinal))
                 {
                     line = line.Substring(3);
                 }
@@ -2139,6 +2140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return EnvDTE.vsCMFunction.vsCMFunctionDestructor;
 
                 case MethodKind.UserDefinedOperator:
+                case MethodKind.Conversion:
                     return EnvDTE.vsCMFunction.vsCMFunctionOperator;
 
                 case MethodKind.PropertyGet:

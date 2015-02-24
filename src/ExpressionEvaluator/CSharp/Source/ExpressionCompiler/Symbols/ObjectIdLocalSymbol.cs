@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _isWritable; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return RewriteLocalInternal(compilation, container, syntax, this);
         }
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 _getAddressMethod = getAddressMethod;
             }
 
-            internal override BoundExpression GetValue(BoundPseudoVariable variable)
+            internal override BoundExpression GetValue(BoundPseudoVariable variable, DiagnosticBag diagnostics)
             {
                 var local = variable.LocalSymbol;
                 var expr = InvokeGetMethod(_getValueMethod, variable.Syntax, local.Name);
-                return ConvertToLocalType(_compilation, expr, local.Type);
+                return ConvertToLocalType(_compilation, expr, local.Type, diagnostics);
             }
 
             internal override BoundExpression GetAddress(BoundPseudoVariable variable)

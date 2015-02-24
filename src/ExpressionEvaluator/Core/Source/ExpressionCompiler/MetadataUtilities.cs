@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.SymReaderInterop;
 
@@ -392,16 +393,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 case COR_E_BADIMAGEFORMAT:
                     // Some callers may not be able to provide a module name (the name may need to be read from
                     // metadata, and this Exception indicates that we cannot construct a MetadataReader).
-                    Debug.WriteLine("Module '{0}' contains corrupt metadata.", new string[] { moduleName ?? "<unspecified>" });
+                    Debug.WriteLine($"Module '{moduleName ?? "<unspecified>"}' contains corrupt metadata.");
                     return true;
                 case CORDBG_E_MISSING_METADATA:
                     // All callers that pass this Exception should also have a module name available (from the DkmClrModuleInstance).
                     Debug.Assert(moduleName != null);
-                    Debug.WriteLine("Module '{0}' is missing metadata.", moduleName);
+                    Debug.WriteLine($"Module '{moduleName}' is missing metadata.");
                     return true;
                 default:
                     return false;
             }
+        }
+
+        internal static string GetUtf8String(this BlobHandle blobHandle, MetadataReader metadataReader)
+        {
+            return Encoding.UTF8.GetString(metadataReader.GetBlobBytes(blobHandle));
         }
     }
 }

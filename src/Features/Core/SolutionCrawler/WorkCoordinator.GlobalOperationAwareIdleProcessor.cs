@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {
@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
                     }
 
+                    protected abstract void PauseOnGlobalOperation();
+
                     private void OnGlobalOperationStarted(object sender, EventArgs e)
                     {
                         Contract.ThrowIfFalse(_globalOperation == null);
@@ -54,6 +56,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _globalOperationTask = _globalOperation.Task;
 
                         SolutionCrawlerLogger.LogGlobalOperation(this.Processor._logAggregator);
+
+                        PauseOnGlobalOperation();
                     }
 
                     private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)

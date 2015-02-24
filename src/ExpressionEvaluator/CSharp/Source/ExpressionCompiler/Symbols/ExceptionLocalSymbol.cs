@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(this.Name == this.Name.ToLowerInvariant());
             var method = container.GetOrAddSynthesizedMethod(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         m => ImmutableArray<ParameterSymbol>.Empty);
                 });
             var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method);
-            return ConvertToLocalType(compilation, call, this.Type);
+            return ConvertToLocalType(compilation, call, this.Type, diagnostics);
         }
     }
 }

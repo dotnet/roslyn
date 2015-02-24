@@ -97,8 +97,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TypesThatOwnDisposableFieldsShouldBeDisposableTests.Fixer.cs" />
-    <Compile Include="TypesThatOwnDisposableFieldsShouldBeDisposableTests.cs" />
+    <Compile Include="Design\OverrideMethodsOnComparableTypesTests.cs" />
+    <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.Fixer.cs" />
+    <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.cs" />
+    <Compile Include="Design\MarkAttributesWithAttributeUsageTests.cs" />
+    <Compile Include="Design\OverrideMethodsOnComparableTypesTests.Fixer.cs" />
+    <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.Fixer.cs" />
+    <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposableTests.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

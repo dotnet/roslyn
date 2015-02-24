@@ -682,7 +682,7 @@
     <Compile Include="Shared\Options\FeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\InternalFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\PerformanceFunctionIdOptionsProvider.cs" />
-    <Compile Include="Shared\Preview\PreviewWorkCoordinatorRegistrationService.cs" />
+    <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
     <Compile Include="Shared\SuggestionSupport\IDocumentSupportsSuggestionService.cs" />

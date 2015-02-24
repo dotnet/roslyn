@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// Use a separate class for closed files to simplify memory leak investigations
             /// </summary>
-            internal class ClosedSnapshotSourceText : SnapshotSourceText
+            internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
             {
                 public ClosedSnapshotSourceText(ITextSnapshot roslynSnapshot, Encoding encodingOpt)
                     : base(roslynSnapshot, encodingOpt, containerOpt: null)
@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Text
             private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
             private readonly int _reiteratedVersion;
-            private LineInfo _lineInfo;
 
             private SnapshotSourceText(ITextSnapshot editorSnapshot, Encoding encodingOpt)
             {
@@ -145,17 +144,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             #region Lines
-            public override TextLineCollection Lines
+            protected override TextLineCollection GetLinesCore()
             {
-                get
-                {
-                    if (_lineInfo == null)
-                    {
-                        System.Threading.Interlocked.CompareExchange(ref _lineInfo, new LineInfo(this), null);
-                    }
-
-                    return _lineInfo;
-                }
+                return new LineInfo(this);
             }
 
             private class LineInfo : TextLineCollection

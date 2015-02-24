@@ -50,6 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _identifier = identifier;
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
+
+                ConnectToSolutionCrawlerService(_workspace);
             }
 
             public override string DisplayName

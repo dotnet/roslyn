@@ -85,7 +85,8 @@ class C
             }
         }
 
-        [Fact(Skip = "Failing test due to AnalyzerManager checkin")]
+        [Fact]
+        [WorkItem(759)]
         public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;

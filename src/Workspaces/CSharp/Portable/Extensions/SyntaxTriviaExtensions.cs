@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var commentText = trivia.ToString();
             if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
             {
-                if (commentText.StartsWith("//"))
+                if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
                     commentText = commentText.Substring(2);
                 }
@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var textBuilder = new StringBuilder();
 
-                if (commentText.EndsWith("*/"))
+                if (commentText.EndsWith("*/", StringComparison.Ordinal))
                 {
                     commentText = commentText.Substring(0, commentText.Length - 2);
                 }
 
-                if (commentText.StartsWith("/*"))
+                if (commentText.StartsWith("/*", StringComparison.Ordinal))
                 {
                     commentText = commentText.Substring(2);
                 }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     // Note: we trim leading '*' characters in multi-line comments.
                     // If the '*' was intentional, sorry, it's gone.
-                    if (trimmedLine.StartsWith("*"))
+                    if (trimmedLine.StartsWith("*", StringComparison.Ordinal))
                     {
                         trimmedLine = trimmedLine.TrimStart('*');
                         trimmedLine = trimmedLine.TrimStart(null);

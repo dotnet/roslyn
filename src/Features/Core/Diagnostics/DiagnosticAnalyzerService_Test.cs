@@ -10,21 +10,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticAnalyzerService
     {
         // Internal for testing purposes.
-        internal DiagnosticAnalyzerService(string language, DiagnosticAnalyzer analyzer)
-            : this(language, ImmutableArray.Create(analyzer))
+        internal DiagnosticAnalyzerService(string language, DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
+            : this(language, ImmutableArray.Create(analyzer), hostDiagnosticUpdateSource)
         {
         }
 
         // Internal for testing purposes.
-        internal DiagnosticAnalyzerService(string language, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        internal DiagnosticAnalyzerService(string language, ImmutableArray<DiagnosticAnalyzer> analyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(ImmutableDictionary.CreateRange(
-                SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(language, analyzers))))
+                SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(language, analyzers))), hostDiagnosticUpdateSource)
         {
         }
 
         // Internal for testing purposes.
-        internal DiagnosticAnalyzerService(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
-            : this(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap)))
+        internal DiagnosticAnalyzerService(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
+            : this(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource)
         {
         }
 

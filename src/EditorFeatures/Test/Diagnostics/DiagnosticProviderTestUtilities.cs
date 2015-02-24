@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,6 +27,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // If no user diagnostic analyzer, then test compiler diagnostics.
             var analyzer = analyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
 
+            var exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(project.Solution.Workspace);
+
             if (getDocumentDiagnostics)
             {
                 var tree = document.GetSyntaxTreeAsync().Result;
@@ -41,7 +45,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 //  (b) Otherwise, analyze entire syntax tree span.
                 var spanToTest = root.FullSpan;
 
-                var driver = new DiagnosticAnalyzerDriver(document, spanToTest, root, syntaxNodeAnalyzerService: nodeInBodyAnalyzerService, cancellationToken: CancellationToken.None, testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
+                var driver = new DiagnosticAnalyzerDriver(document, spanToTest, root,
+                    syntaxNodeAnalyzerService: nodeInBodyAnalyzerService,
+                    hostDiagnosticUpdateSource: exceptionDiagnosticsSource,
+                    cancellationToken: CancellationToken.None, 
+                    testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
                 var diagnosticAnalyzerCategory = analyzer.GetDiagnosticAnalyzerCategory(driver);
                 bool supportsSemanticInSpan = (diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
                 if (supportsSemanticInSpan)
@@ -59,12 +67,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 if ((diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SyntaxAnalysis) != 0)
                 {
-                    builder.AddRange(driver.GetSyntaxDiagnosticsAsync(analyzer).Result ?? SpecializedCollections.EmptyEnumerable<Diagnostic>());
+                    builder.AddRange(driver.GetSyntaxDiagnosticsAsync(analyzer).Result);
                 }
 
                 if (supportsSemanticInSpan || (diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SemanticDocumentAnalysis) != 0)
                 {
-                    builder.AddRange(driver.GetSemanticDiagnosticsAsync(analyzer).Result ?? SpecializedCollections.EmptyEnumerable<Diagnostic>());
+                    builder.AddRange(driver.GetSemanticDiagnosticsAsync(analyzer).Result);
                 }
 
                 documentDiagnostics = builder.Where(d => d.Location == Location.None ||
@@ -76,15 +84,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var nodeInBodyAnalyzerService = project.Language == LanguageNames.CSharp ?
                     (ISyntaxNodeAnalyzerService)new CSharpSyntaxNodeAnalyzerService() :
                     new VisualBasicSyntaxNodeAnalyzerService();
-                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, CancellationToken.None);
+                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, exceptionDiagnosticsSource, CancellationToken.None);
 
                 if (analyzer.SupportsProjectDiagnosticAnalysis(driver))
                 {
-                    projectDiagnostics = driver.GetProjectDiagnosticsAsync(analyzer, null).Result ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                    projectDiagnostics = driver.GetProjectDiagnosticsAsync(analyzer, null).Result;
                 }
             }
 
-            return documentDiagnostics.Concat(projectDiagnostics);
+            var exceptionDiagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer).Select(d => d.ToDiagnostic(tree: null));
+
+            return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }
 
         public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer providerOpt, Document document, TextSpan span, bool donotCatchAnalyzerExceptions = true)

@@ -4,9 +4,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// this should be alway thread-safe.
     /// </summary>
-    internal sealed class WorkspaceAnalyzerManager
+    internal sealed partial class WorkspaceAnalyzerManager
     {
         /// <summary>
         /// Key is analyzer reference identity <see cref="GetAnalyzerReferenceIdentity(AnalyzerReference)"/>.
@@ -48,16 +48,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
 
-        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies) :
-            this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies))
+        /// <summary>
+        /// Host diagnostic update source for analyzer host specific diagnostics.
+        /// </summary>
+        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+
+        public WorkspaceAnalyzerManager(IEnumerable<string> hostAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
+            this(CreateAnalyzerReferencesFromAssemblies(hostAnalyzerAssemblies), hostDiagnosticUpdateSource)
         {
         }
 
-        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
+        public WorkspaceAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<string, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);            
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
@@ -75,16 +81,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            // TODO: report diagnostics from exceptions thrown in DiagnosticAnalyzer.SupportedDiagnostics
-            Action<Diagnostic> dummyAddDiagnostic = _ => { };
-
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => !AnalyzerHelper.IsBuiltInAnalyzer(analyzer);
-            return AnalyzerManager.Default.GetSupportedDiagnosticDescriptors(analyzer, dummyAddDiagnostic, continueOnAnalyzerException, CancellationToken.None);
+            var analyzerExecutor = AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource, continueOnAnalyzerException, CancellationToken.None);
+            return AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
         }
 
         /// <summary>
         /// Get <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="language"/>
-        /// </summary>
+        /// </summary> 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetHostDiagnosticAnalyzersPerReference(string language)
         {
             return _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzers);
@@ -170,6 +174,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+        }
+
+        internal static ValueTuple<string, VersionStamp> GetUniqueIdForAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            // note that we also put version stamp so that we can detect changed analyzer.
+            var type = analyzer.GetType();
+            return ValueTuple.Create(type.AssemblyQualifiedName, GetProviderVersion(type.Assembly.Location));
+        }
+
+        private static VersionStamp GetProviderVersion(string path)
+        {
+            if (path == null || !File.Exists(path))
+            {
+                return VersionStamp.Default;
+            }
+
+            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
         private static string GetAnalyzerReferenceId(AnalyzerReference reference)

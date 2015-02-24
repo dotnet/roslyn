@@ -1,17 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class GetXmlNamespaceKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GetXmlNamespaceHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "GetXmlNamespace",
-                                                  <Text><![CDATA[
-GetXmlNamespace function
-Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.
-GetXmlNamespace([<xmlNamespacePrefix>]) As System.Xml.Linq.XNamespace]]></Text>)
+$"{VBFeaturesResources.GetxmlnamespaceFunction}
+{ReturnsXNamespaceObject}
+GetXmlNamespace([{XmlNamespacePrefix}]) As System.Xml.Linq.XNamespace")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

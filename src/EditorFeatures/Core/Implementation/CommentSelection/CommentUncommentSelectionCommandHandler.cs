@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 var trimmedSpanText = spanText.Trim();
 
                 // See if the selection includes just a block comment (plus whitespace)
-                if (trimmedSpanText.StartsWith(service.BlockCommentStartString) && trimmedSpanText.EndsWith(service.BlockCommentEndString))
+                if (trimmedSpanText.StartsWith(service.BlockCommentStartString, StringComparison.Ordinal) && trimmedSpanText.EndsWith(service.BlockCommentEndString, StringComparison.Ordinal))
                 {
-                    positionOfStart = span.Start + spanText.IndexOf(service.BlockCommentStartString);
-                    positionOfEnd = span.Start + spanText.LastIndexOf(service.BlockCommentEndString);
+                    positionOfStart = span.Start + spanText.IndexOf(service.BlockCommentStartString, StringComparison.Ordinal);
+                    positionOfEnd = span.Start + spanText.LastIndexOf(service.BlockCommentEndString, StringComparison.Ordinal);
                 }
                 else
                 {
@@ -273,9 +273,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             {
                 var line = span.Snapshot.GetLineFromLineNumber(lineNumber);
                 var lineText = line.GetText();
-                if (lineText.Trim().StartsWith(service.SingleLineCommentString))
+                if (lineText.Trim().StartsWith(service.SingleLineCommentString, StringComparison.Ordinal))
                 {
-                    DeleteText(textChanges, new TextSpan(line.Start.Position + lineText.IndexOf(service.SingleLineCommentString), service.SingleLineCommentString.Length));
+                    DeleteText(textChanges, new TextSpan(line.Start.Position + lineText.IndexOf(service.SingleLineCommentString, StringComparison.Ordinal), service.SingleLineCommentString.Length));
                 }
             }
 

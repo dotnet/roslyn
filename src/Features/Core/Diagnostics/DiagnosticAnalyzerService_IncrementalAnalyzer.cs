@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-            return new IncrementalAnalyzerDelegatee(this, workspace, _workspaceAnalyzerManager);
+            return new IncrementalAnalyzerDelegatee(this, workspace, _workspaceAnalyzerManager, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
-            private readonly Workspace _workspace;
             private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
             private readonly DiagnosticAnalyzerService _owner;
 
@@ -70,17 +69,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // v2 diagnostic engine - for now v1
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
-            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+                : base(workspace, hostDiagnosticUpdateSource)
             {
-                _workspace = workspace;
                 _workspaceAnalyzerManager = workspaceAnalyzerManager;
                 _owner = owner;
 
                 var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, _workspace, _workspaceAnalyzerManager);
+                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, workspace, _workspaceAnalyzerManager, hostDiagnosticUpdateSource);
 
                 var v2CorrelationId = LogAggregator.GetNextId();
-                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, _workspace, _workspaceAnalyzerManager);
+                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, workspace, _workspaceAnalyzerManager, hostDiagnosticUpdateSource);
             }
 
             #region IIncrementalAnalyzer
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var turnedOffAnalyzer = GetAnalyzer(!useV2);
 
-                foreach (var project in _workspace.CurrentSolution.Projects)
+                foreach (var project in Workspace.CurrentSolution.Projects)
                 {
                     foreach (var document in project.Documents)
                     {
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 get
                 {
-                    var option = _workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
+                    var option = Workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
                     return GetAnalyzer(option);
                 }
             }

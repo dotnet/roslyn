@@ -1064,7 +1064,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 string id = ServicesVSResources.ERR_CantReadRulesetFileId;
                 string category = ServicesVSResources.ErrorCategory;
                 string message = string.Format(ServicesVSResources.ERR_CantReadRulesetFileMessage, ruleSetFile.FilePath, ruleSetFile.GetException().Message);
-                DiagnosticData data = new DiagnosticData(id, category, message, ServicesVSResources.ERR_CantReadRulesetFileMessage, DiagnosticSeverity.Error, DiagnosticSeverity.Error, true, 0, ImmutableArray<string>.Empty, this.Workspace, this.Id);
+                DiagnosticData data = new DiagnosticData(id, category, message, ServicesVSResources.ERR_CantReadRulesetFileMessage, DiagnosticSeverity.Error, true, 0, this.Workspace, this.Id);
 
                 this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(data));
             }

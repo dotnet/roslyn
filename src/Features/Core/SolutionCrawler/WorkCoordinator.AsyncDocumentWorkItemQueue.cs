@@ -1,18 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
             private class AsyncDocumentWorkItemQueue : AsyncWorkItemQueue<DocumentId>
             {
                 private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
+
+                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter) :
+                    base(progressReporter)
+                {
+                }
 
                 protected override int WorkItemCount_NoLock
                 {

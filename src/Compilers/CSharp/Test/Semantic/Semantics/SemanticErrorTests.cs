@@ -19034,12 +19034,13 @@ class Test
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_GotoCaseShouldConvert, Line = 13, Column = 13, IsWarning = true } });
         }
 
-        [Fact]
+        [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
         public void CS0472WRN_NubExprIsConstBool()
         {
-            // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null", but does 
-            // for "int == null". Roslyn corrects this lapse and produces warnings for both built-in and
-            // user-defined lifted equality operators.
+            // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null",
+            // but does for "int == null". Roslyn corrects this lapse and produces warnings for both built-in
+            // and user-defined lifted equality operators, but the new warnings for user-defined types are
+            // only given in "strict" more.
 
             var text = @"
 using System;
@@ -19145,8 +19146,7 @@ class MyClass
 ftftftftftftftftftftftft
 tf
 ftftftft";
-            var comp = this.CompileAndVerify(source: text, expectedOutput: expected);
-            comp.VerifyDiagnostics(
+            var fullExpected = new DiagnosticDescription[] {
                 // (19,11): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         W(i == null);            // CS0472
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?").WithLocation(19, 11),
@@ -19243,7 +19243,10 @@ ftftftft";
                 // (96,11): warning CS0472: The result of the expression is always 'true' since a value of type 'MyClass.E' is never equal to 'null' of type 'MyClass.E?'
                 //         W((E?)null != 0);
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
-                    );
+            };
+            var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
+            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithStrictMode()).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]

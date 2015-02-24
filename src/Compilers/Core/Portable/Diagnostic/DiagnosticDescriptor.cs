@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -173,12 +174,12 @@ namespace Microsoft.CodeAnalysis
                 other != null &&
                 this.Category == other.Category &&
                 this.DefaultSeverity == other.DefaultSeverity &&
-                this.Description == other.Description &&
+                this.Description.Equals(other.Description) &&
                 this.HelpLinkUri == other.HelpLinkUri &&
                 this.Id == other.Id &&
                 this.IsEnabledByDefault == other.IsEnabledByDefault &&
-                this.MessageFormat == other.MessageFormat &&
-                this.Title == other.Title;
+                this.MessageFormat.Equals(other.MessageFormat) &&
+                this.Title.Equals(other.Title);
         }
 
         public override bool Equals(object obj)
@@ -204,20 +205,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return IsNotConfigurable(this.CustomTags);
-        }
-
-        internal static bool IsNotConfigurable(IEnumerable<string> customTags)
-        {
-            foreach (var customTag in customTags)
-            {
-                if (customTag == WellKnownDiagnosticTags.NotConfigurable)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
     }
 }
