@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
         {
-            Contract.ThrowIfFalse(AnalyzerManager.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+            Contract.ThrowIfFalse(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
 
             if (_hostDiagnosticUpdateSource == null)
             {
