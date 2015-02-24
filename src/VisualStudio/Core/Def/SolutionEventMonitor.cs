@@ -54,26 +54,28 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void ContextChangedWorker(UIContextChangedEventArgs e, string operation)
         {
-            if (_notificationService != null)
+            if (_notificationService == null)
             {
-                var globalOperation = _operations[operation];
-                if (e.Activated)
-                {
-                    if (globalOperation != null)
-                    {
-                        globalOperation.Dispose();
-                    }
+                return;
+            }
 
-                    _operations[operation] = _notificationService.Start(operation);
+            TryCancelPendingNotification(operation);
 
-                }
-                else if (globalOperation != null)
-                {
-                    globalOperation.Done();
-                    globalOperation.Dispose();
-                    globalOperation = null;
-                }
+            if (e.Activated)
+            {
+                _operations[operation] = _notificationService.Start(operation);
             }
         }
+
+        private void TryCancelPendingNotification(string operation)
+        {
+            GlobalOperationRegistration globalOperation;
+            if (_operations.TryGetValue(operation, out globalOperation))
+            {
+                globalOperation.Done();
+                globalOperation.Dispose();
+            }
+        }
+
     }
 }
