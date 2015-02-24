@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IVsMonitorSelection _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
 
-        public event EventHandler SelectedDiagnosticItemsChanged;
         public event EventHandler SelectedHierarchyItemChanged;
 
         [ImportingConstructor]
@@ -87,7 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                   .Select(b => b.Folder)
                                   .FirstOrDefault();
 
-            var oldSelectedDiagnosticItems = this.SelectedDiagnosticItems;
             this.SelectedDiagnosticItems = selectedObjects
                                            .OfType<DiagnosticItem.BrowseObject>()
                                            .Select(b => b.DiagnosticItem)
@@ -97,11 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 oldSelectedItemId != this.SelectedItemId)
             {
                 this.SelectedHierarchyItemChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            if (oldSelectedDiagnosticItems != this.SelectedDiagnosticItems)
-            {
-                this.SelectedDiagnosticItemsChanged?.Invoke(this, EventArgs.Empty);
             }
 
             return VSConstants.S_OK;
