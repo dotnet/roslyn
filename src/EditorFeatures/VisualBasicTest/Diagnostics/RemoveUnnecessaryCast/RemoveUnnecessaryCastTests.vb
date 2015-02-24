@@ -2481,6 +2481,7 @@ Class Program
     End Sub
 End Class
 </File>
+
             Test(markup, expected, compareTokens:=False)
         End Sub
 
@@ -2572,6 +2573,68 @@ End Module
 </File>
             Test(markup, expected, compareTokens:=False)
         End Sub
+
 #End Region
+
+        <WorkItem(739, "#739")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub RemoveAroundArrayLiteralInInterpolation1()
+            Dim markup =
+<File>
+Module M
+    Dim x = $"{ [|CObj({})|] }" ' Remove unnecessary cast
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module M
+    Dim x = $"{ {} }" ' Remove unnecessary cast
+End Module
+</File>
+
+            Test(markup, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(739, "#739")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub RemoveAroundArrayLiteralInInterpolation2()
+            Dim markup =
+<File>
+Module M
+    Dim x = $"{[|CObj({})|] }" ' Remove unnecessary cast
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module M
+    Dim x = $"{({}) }" ' Remove unnecessary cast
+End Module
+</File>
+
+            Test(markup, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(739, "#739")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub RemoveAroundArrayLiteralInInterpolation3()
+            Dim markup =
+<File>
+Module M
+    Dim x = $"{ [|CObj({})|]}" ' Remove unnecessary cast
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module M
+    Dim x = $"{ {}}" ' Remove unnecessary cast
+End Module
+</File>
+
+            Test(markup, expected, compareTokens:=False)
+        End Sub
+
     End Class
 End Namespace
