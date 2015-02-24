@@ -180,7 +180,7 @@ class A { }";
 
             while (currentIndex < codeWithMarker.Length)
             {
-                int startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex);
+                int startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex, StringComparison.Ordinal);
                 if (startPosition < 0)
                 {
                     // no more markers
@@ -189,7 +189,7 @@ class A { }";
 
                 codeWithMarker = codeWithMarker.Substring(0, startPosition) + codeWithMarker.Substring(startPosition + 5);
 
-                int endPosition = codeWithMarker.IndexOf("/*2*/", startPosition);
+                int endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
 
                 codeWithMarker = codeWithMarker.Substring(0, endPosition) + codeWithMarker.Substring(endPosition + 5);
 

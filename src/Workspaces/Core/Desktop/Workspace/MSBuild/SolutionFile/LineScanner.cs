@@ -1,4 +1,6 @@
 
+using System;
+
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class LineScanner
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public string ReadUpToAndEat(string delimiter)
         {
-            int index = _line.IndexOf(delimiter, _currentPosition);
+            int index = _line.IndexOf(delimiter, _currentPosition, StringComparison.Ordinal);
 
             if (index == -1)
             {

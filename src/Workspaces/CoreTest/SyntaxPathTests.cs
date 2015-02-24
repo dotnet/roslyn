@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static SyntaxTree WithReplace(SyntaxTree syntaxTree, int startIndex, string oldText, string newText)
         {            // Use the offset to find the first element to replace at
             return WithReplace(syntaxTree,
-                offset: syntaxTree.GetText().ToString().IndexOf(oldText, startIndex),
+                offset: syntaxTree.GetText().ToString().IndexOf(oldText, startIndex, StringComparison.Ordinal),
                 length: oldText.Length,
                 newText: newText);
         }
