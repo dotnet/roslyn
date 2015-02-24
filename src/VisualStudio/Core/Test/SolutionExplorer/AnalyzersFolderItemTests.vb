@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
 
                 Assert.Equal(expected:="Analyzers", actual:=analyzerFolder.Text)
             End Using
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
                 Dim browseObject = DirectCast(analyzerFolder.GetBrowseObject(), AnalyzersFolderItem.BrowseObject)
 
                 Assert.Equal(expected:="Analyzers", actual:=browseObject.GetComponentName())

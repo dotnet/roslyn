@@ -18,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
-                Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single())
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single(), Nothing)
 
                 Assert.Equal(expected:="Foo", actual:=analyzer.Text)
             End Using
@@ -37,8 +37,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
-                Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single())
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single(), Nothing)
                 Dim browseObject = DirectCast(analyzer.GetBrowseObject(), AnalyzerItem.BrowseObject)
 
                 Assert.Equal(expected:="Analyzer Properties", actual:=browseObject.GetClassName())

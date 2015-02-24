@@ -12,11 +12,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Order]
     internal sealed class DiagnosticItemProvider : AttachedCollectionSourceProvider<AnalyzerItem>
     {
+        [Import(typeof(AnalyzersCommandHandler))]
+        private IAnalyzersCommandHandler _commandHandler = null;
+
         protected override IAttachedCollectionSource CreateCollectionSource(AnalyzerItem item, string relationshipName)
         {
             if (relationshipName == KnownRelationships.Contains)
             {
-                return new DiagnosticItemSource(item);
+                return new DiagnosticItemSource(item, _commandHandler);
             }
 
             return null;
