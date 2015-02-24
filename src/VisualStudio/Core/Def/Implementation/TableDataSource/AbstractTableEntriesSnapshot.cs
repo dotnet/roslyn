@@ -184,6 +184,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected string GetProjectName(Workspace workspace, ProjectId projectId)
         {
+            if (projectId == null)
+            {
+                return null;
+            }
+
             var project = workspace.CurrentSolution.GetProject(projectId);
             if (project == null)
             {
@@ -195,6 +200,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId)
         {
+            if (projectId == null)
+            {
+                return null;
+            }
+
             var vsWorkspace = workspace as VisualStudioWorkspace;
             if (vsWorkspace == null)
             {

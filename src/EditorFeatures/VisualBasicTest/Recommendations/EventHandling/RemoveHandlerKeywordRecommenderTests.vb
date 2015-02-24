@@ -1,22 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RemoveHandlerKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "RemoveHandler",
-                                                  <Text><![CDATA[
-RemoveHandler statement
-Removes the association between an event and an event handler or delegate at run time.
-RemoveHandler <event>, <handler>]]></Text>)
+$"{VBFeaturesResources.RemovehandlerStatement}
+{RemovesEventAssociation}
+RemoveHandler {Event1}, {Handler}")
         End Sub
 
         <Fact>

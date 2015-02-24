@@ -838,7 +838,7 @@ Class C
 End Class
 </File>
 
-            TestExactActionSetOffered(code.ConvertTestSourceTag(), {"Change 'Function' to 'Sub'.", "Delete the 'Exit Function' statement."})
+            TestExactActionSetOffered(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
         End Sub
 
         <WorkItem(531354)>
@@ -853,7 +853,7 @@ Class C
 End Class
 </File>
 
-            TestExactActionSetOffered(code.ConvertTestSourceTag(), {"Insert 'Sub'.", "Delete the 'Exit' statement."})
+            TestExactActionSetOffered(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert, "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit")})
         End Sub
 
     End Class

@@ -1449,7 +1449,7 @@ Class SomeClass(Of T)
 End Class
                        ]]></Text>
 
-            VerifyItemExists(test.Value, "T", "T in SomeClass(Of T)")
+            VerifyItemExists(test.Value, "T", $"T {FeaturesResources.In} SomeClass(Of T)")
         End Sub
 
         <WorkItem(542225)>
@@ -2754,10 +2754,10 @@ Class C
         End Function
 End Class</Code>.Value
 
-            Dim description = <File>&lt;Awaitable&gt; Function C.Foo() As Task
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.Foo() As Task
 Doc Comment!
 Usage:
-  Await Foo()</File>.ConvertTestSourceTag()
+  <%= VBFeaturesResources.Await %> Foo()</File>.ConvertTestSourceTag()
 
             VerifyItemWithMscorlib45(code, "Foo", description, LanguageNames.VisualBasic)
         End Sub
@@ -5042,7 +5042,7 @@ end class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            VerifyItemInLinkedFiles(markup, "x", "(field) C.x As Integer")
+            VerifyItemInLinkedFiles(markup, "x", $"({FeaturesResources.Field}) C.x As Integer")
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5065,7 +5065,7 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = "(field) C.x As Integer" + vbCrLf + vbCrLf + "    Proj1 - Available" + vbCrLf + "    Proj2 - Not Available" + vbCrLf + vbCrLf + "You can use the navigation bar to switch context."
+            Dim expectedDescription = $"({FeaturesResources.Field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext
             VerifyItemInLinkedFiles(markup, "x", expectedDescription)
         End Sub
 

@@ -125,11 +125,119 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create a property accessor..
+        /// </summary>
+        internal static string CreatePropertyAccessorForParameter {
+            get {
+                return ResourceManager.GetString("CreatePropertyAccessorForParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom attributes should have AttributeUsage attribute defined..
+        /// </summary>
+        internal static string CustomAttrShouldHaveAttributeUsage {
+            get {
+                return ResourceManager.GetString("CustomAttrShouldHaveAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Define accessors for attribute arguments..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArguments {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a public read-only property accessor for positional argument &apos;{0}&apos; of attribute &apos;{1}&apos;..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArgumentsDefault {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArgumentsDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If &apos;{0}&apos; is the property accessor for positional argument &apos;{1}&apos;, ensure that property getter is public..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArgumentsIncreaseVisibility {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArgumentsIncreaseVisibility", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove the property setter from &apos;{0}&apos; or reduce its accessibility because it corresponds to positional argument &apos;{1}&apos;..
+        /// </summary>
+        internal static string DefineAccessorsForAttributeArgumentsRemoveSetter {
+            get {
+                return ResourceManager.GetString("DefineAccessorsForAttributeArgumentsRemoveSetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement Equality and Comparison methods and operators.
+        /// </summary>
+        internal static string ImplementComparable {
+            get {
+                return ResourceManager.GetString("ImplementComparable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement IDisposable Interface.
         /// </summary>
         internal static string ImplementIDisposableInterface {
             get {
                 return ResourceManager.GetString("ImplementIDisposableInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make the getter of the property public.
+        /// </summary>
+        internal static string MakeGetterPublic {
+            get {
+                return ResourceManager.GetString("MakeGetterPublic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make the setter of the property non-public.
+        /// </summary>
+        internal static string MakeSetterNonPublic {
+            get {
+                return ResourceManager.GetString("MakeSetterNonPublic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify AttributeUsage attribute on &apos;{0}&apos; attribute class..
+        /// </summary>
+        internal static string MarkAttributesWithAttributeUsage {
+            get {
+                return ResourceManager.GetString("MarkAttributesWithAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overload operator Equals and comparison operators when implementing System.IComparable.
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnIComparableInterface {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnIComparableInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types that implement IComparable should redefine Equals and comparison operators to keep the meanings of less than, greater than, and equals consistent throughout the type..
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnIComparableInterfaceDescription {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnIComparableInterfaceDescription", resourceCulture);
             }
         }
         

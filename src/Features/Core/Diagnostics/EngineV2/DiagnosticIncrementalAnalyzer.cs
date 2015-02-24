@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerService _owner;
         private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
-            : base(workspace)
+        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(workspace, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
             _owner = owner;
@@ -156,16 +156,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var analyzers = _workspaceAnalyzerManager.CreateDiagnosticAnalyzers(project);
 
-            var handler = AbstractHostDiagnosticUpdateSource.RegisterAnalyzerExceptionDiagnosticHandler(analyzers, project);
-
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
             // REVIEW: this API is a bit strange. 
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
             var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
-
-            AbstractHostDiagnosticUpdateSource.UnregisterAnalyzerExceptionDiagnosticHandler(handler);
-
+            
             return dxs;
         }
 

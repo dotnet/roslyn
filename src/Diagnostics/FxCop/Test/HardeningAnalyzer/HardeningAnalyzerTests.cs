@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WorkItem(759)]
         public void TestTypeParameterNamesCSharp()
         {
             var source = @"

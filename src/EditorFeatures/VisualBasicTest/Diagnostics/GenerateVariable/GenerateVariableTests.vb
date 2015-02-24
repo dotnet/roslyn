@@ -179,7 +179,7 @@ NewLines("Class A \n Friend field As Integer \n End Class \n Class B \n Public S
         Public Sub TestOnlyGenerateFieldInByRefProperty()
             TestExactActionSetOffered(
 NewLines("Class A \n End Class \n Class B \n Public Sub Foo(ByRef d As Integer) \n End Sub \n Public Sub Bar() \n Dim s As New A() \n Foo(s.[|field|]) \n End Sub \n End Class"),
-{"Generate field 'field' in 'A'"})
+{String.Format(FeaturesResources.GenerateFieldIn, "field", "A")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>

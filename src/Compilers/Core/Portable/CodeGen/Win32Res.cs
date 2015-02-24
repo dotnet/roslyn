@@ -35,39 +35,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _typeName = typeName;
         }
 
-        public string TypeName
-        {
-            get { return _typeName; }
-        }
+        public string TypeName => _typeName;
 
-        public int TypeId
-        {
-            get { return _typeId; }
-        }
+        public int TypeId => _typeId;
 
-        public string Name
-        {
-            get { return _name; }
-        }
+        public string Name => _name;
 
-        public int Id
-        {
-            get { return _id; }
-        }
+        public int Id => _id;
 
-        public DWORD LanguageId
-        {
-            get { return _languageId; }
-        }
+        public DWORD LanguageId => _languageId;
 
-        public DWORD CodePage
-        {
-            get { return _codePage; }
-        }
+        public DWORD CodePage => _codePage;
 
-        public IEnumerable<byte> Data
-        {
-            get { return _data; }
-        }
+        public IEnumerable<byte> Data => _data;
     }
 }

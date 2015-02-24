@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA1018Tests : DiagnosticAnalyzerTestBase
+    public partial class MarkAttributesWithAttributeUsageTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new CA1018DiagnosticAnalyzer();
+            return new MarkAttributesWithAttributeUsageAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CA1018DiagnosticAnalyzer();
+            return new MarkAttributesWithAttributeUsageAnalyzer();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -109,7 +108,7 @@ End Class
         }
 
         internal static string CA1018Name = "CA1018";
-        internal static string CA1018Message = FxCopRulesResources.MarkAttributesWithAttributeUsage;
+        internal static string CA1018Message = SystemRuntimeAnalyzersResources.MarkAttributesWithAttributeUsage;
 
         private static DiagnosticResult GetCA1018CSharpResultAt(int line, int column, string objectName)
         {
