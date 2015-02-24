@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 2) <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is invoked only once per-analyzer.
     /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-analyzer per-compilation.
     /// </summary>
+    /// <remarks>
+    /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/> and
+    /// <see cref="GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer, AnalyzerExecutor)"/> out of the AnalyzerManager and into analyzer drivers.
+    /// </remarks>
     internal class AnalyzerManager
     {
         /// <summary>
