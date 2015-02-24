@@ -657,7 +657,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return SymbolAndDiagnostics.Empty;
                     }
 
-                    return info.ImplementationForInterfaceMemberMap.GetOrAdd(interfaceMember, this.ComputeImplementationAndDiagnosticsForInterfaceMember);
+                    // PERF: Avoid delegate allocation by splitting GetOrAdd into TryGetValue+TryAdd
+                    var map = info.ImplementationForInterfaceMemberMap;
+                    SymbolAndDiagnostics result;
+                    if (map.TryGetValue(interfaceMember, out result))
+                    {
+                        return result;
+                    }
+
+                    result = ComputeImplementationAndDiagnosticsForInterfaceMember(interfaceMember);
+                    map.TryAdd(interfaceMember, result);
+                    return result;
 
                 default:
                     return SymbolAndDiagnostics.Empty;

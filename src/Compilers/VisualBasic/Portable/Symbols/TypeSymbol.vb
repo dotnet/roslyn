@@ -478,7 +478,16 @@ Done:
                 Return Nothing
             End If
 
-            Return ImplementationForInterfaceMemberMap.GetOrAdd(interfaceMember, AddressOf Me.ComputeImplementationForInterfaceMember)
+            ' PERF: Avoid delegate allocation by splitting GetOrAdd into TryGetValue+TryAdd
+            Dim map = ImplementationForInterfaceMemberMap
+            Dim result As Symbol = Nothing
+            If map.TryGetValue(interfaceMember, result) Then
+                Return result
+            End If
+
+            result = ComputeImplementationForInterfaceMember(interfaceMember)
+            map.TryAdd(interfaceMember, result)
+            Return result
         End Function
 
         Private ReadOnly Property ImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
