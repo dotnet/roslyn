@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
-
 #endregion
+
 using System;
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -33,10 +35,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         //     '16' and '10'.
         public readonly uint Radix;
 
-        public string GetTypeName(DkmClrType clrType)
+        public string GetTypeName(DkmClrType clrType, ReadOnlyCollection<string> formatSpecifiers)
         {
             // The real version does some sort of dynamic dispatch that ultimately calls this method.
-            return _formatter.GetTypeName(this, clrType);
+            return _formatter.GetTypeName(this, clrType, formatSpecifiers);
         }
     }
 }
