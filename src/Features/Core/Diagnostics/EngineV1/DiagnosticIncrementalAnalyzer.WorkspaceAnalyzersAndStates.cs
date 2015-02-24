@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             /// </summary>
             private partial class WorkspaceAnalyzersAndStates
             {
-                private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+                private readonly HostAnalyzerManager _workspaceAnalyzerManager;
                 private ImmutableDictionary<string, PerLanguageAnalyzersAndStates> _perLanguageAnalyzersAndStatesMap;
 
-                public WorkspaceAnalyzersAndStates(WorkspaceAnalyzerManager workspaceAnalyzerManager)
+                public WorkspaceAnalyzersAndStates(HostAnalyzerManager workspaceAnalyzerManager)
                 {
                     _workspaceAnalyzerManager = workspaceAnalyzerManager;
                     _perLanguageAnalyzersAndStatesMap = ImmutableDictionary<string, PerLanguageAnalyzersAndStates>.Empty;
@@ -40,8 +40,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 public int GetAnalyzerCount(string language)
                 {
+                    var count = _workspaceAnalyzerManager.GetHostAnalyzerCount(language);
+
+#if DEBUG
                     var analyzersAndStates = this.GetOrCreatePerLanguageAnalyzersAndStates(language);
-                    return analyzersAndStates.AnalyzerCount;
+                    Contract.Requires(count == analyzersAndStates.AnalyzerCount);
+#endif
+
+                    return count;
                 }
 
                 public bool HasAnalyzerReference(AnalyzerReference analyzerReference, string language)

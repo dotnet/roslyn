@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             public readonly Workspace Workspace;
 
-            public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            public DiagnosticAnalyzersAndStates(DiagnosticIncrementalAnalyzer owner, Workspace workspace, HostAnalyzerManager workspaceAnalyzerManager)
             {
                 _owner = owner;
                 _sharedAnalyzersAndStates = new WorkspaceAnalyzersAndStates(workspaceAnalyzerManager);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 // Get the unique ID for given diagnostic analyzer.
                 // note that we also put version stamp so that we can detect changed analyzer.
-                var tuple = WorkspaceAnalyzerManager.GetUniqueIdForAnalyzer(provider);
+                var tuple = HostAnalyzerManager.GetUniqueIdForAnalyzer(provider);
                 return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + tuple.Item1, tuple.Item2);
             }
 

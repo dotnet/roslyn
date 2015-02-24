@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
-            private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+            private readonly HostAnalyzerManager _workspaceAnalyzerManager;
             private readonly DiagnosticAnalyzerService _owner;
 
             // v1 diagnostic engine
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // v2 diagnostic engine - for now v1
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
-            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
                 : base(workspace, hostDiagnosticUpdateSource)
             {
                 _workspaceAnalyzerManager = workspaceAnalyzerManager;

@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerService _owner;
-        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+        private readonly HostAnalyzerManager _workspaceAnalyzerManager;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(workspace, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;

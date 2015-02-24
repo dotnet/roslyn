@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+        private readonly HostAnalyzerManager _workspaceAnalyzerManager;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
         [ImportingConstructor]
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
+            _workspaceAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         // internal for testing purposes.
         internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
+            _workspaceAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 

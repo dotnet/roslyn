@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     private readonly int _analyzerCount;
                     private readonly DiagnosticState[,] _diagnosticStateMaps;
 
-                    public PerLanguageAnalyzersAndStates(WorkspaceAnalyzerManager workspaceAnalyzerManager, string language)
+                    public PerLanguageAnalyzersAndStates(HostAnalyzerManager workspaceAnalyzerManager, string language)
                     {
                         _language = language;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
 
                     private static ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>> CreateAnalyzerIdMap(
-                        WorkspaceAnalyzerManager workspaceAnalyzerManager, string language)
+                        HostAnalyzerManager workspaceAnalyzerManager, string language)
                     {
                         var index = 0;
                         var map = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<DiagnosticAnalyzer, ProviderId>>();

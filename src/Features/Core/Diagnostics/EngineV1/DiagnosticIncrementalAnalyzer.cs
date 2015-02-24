@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             DiagnosticAnalyzerService owner, 
             int correlationId, 
             Workspace workspace, 
-            WorkspaceAnalyzerManager workspaceAnalyzerManager, 
+            HostAnalyzerManager workspaceAnalyzerManager, 
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(workspace, hostDiagnosticUpdateSource)
         {
