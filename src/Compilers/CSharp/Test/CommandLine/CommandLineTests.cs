@@ -1622,7 +1622,8 @@ class C
             Assert.Equal((int)ErrorCode.ERR_CantReadRulesetFile, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal(file.Path, (string)err.Arguments[0]);
-            if (Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en", StringComparison.Ordinal) || Thread.CurrentThread.CurrentUICulture.Name == "")
+            var currentUICultureName = Thread.CurrentThread.CurrentUICulture.Name;
+            if (currentUICultureName.Length == 0 || currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase))
             {
                 Assert.Equal("Data at the root level is invalid. Line 1, position 1.", (string)err.Arguments[1]);
             }

@@ -2066,7 +2066,8 @@ a.vb
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)
             Assert.Equal(2, err.Arguments.Count)
             Assert.Equal(file.Path, DirectCast(err.Arguments(0), String))
-            If Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en", StringComparison.Ordinal) OrElse Thread.CurrentThread.CurrentUICulture.Name = "" Then
+            Dim currentUICultureName  = Thread.CurrentThread.CurrentUICulture.Name
+            If currentUICultureName.Length = 0 OrElse currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase) Then
                 Assert.Equal(err.Arguments(1), "Root element is missing.")
             End If
         End Sub

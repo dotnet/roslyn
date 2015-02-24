@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             MockMessageProvider provider = new MockMessageProvider();
             SyntaxTree syntaxTree = new MockSyntaxTree();
-            CultureInfo englishCulture = CultureInfo.GetCultureInfo("en");
 
             DiagnosticInfo di3 = new CustomErrorInfo(provider, "OtherSymbol", new SourceLocation(syntaxTree, new TextSpan(14, 8)));
             var d3 = new CSDiagnostic(di3, new SourceLocation(syntaxTree, new TextSpan(1, 1)));
