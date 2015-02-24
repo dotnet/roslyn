@@ -250,6 +250,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return compilationActions.Append(sessionActions);
         }
+
+        public AnalyzerActions GetCompilationOnlyAnalyzerActions(DiagnosticAnalyzer analyzer)
+        {
+            return base.GetAnalyzerActions(analyzer);
+        }
     }
 
     /// <summary>

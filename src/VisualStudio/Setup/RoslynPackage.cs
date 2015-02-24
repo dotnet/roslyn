@@ -59,8 +59,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
 
-            var telemetrySetup = componentModel.GetService<IRoslynTelemetrySetup>();
-            telemetrySetup?.Initialize(this);
+            var telemetrySetupExtensions = componentModel.GetExtensions<IRoslynTelemetrySetup>();
+            foreach (var telemetrySetup in telemetrySetupExtensions)
+            {
+                telemetrySetup.Initialize(this);
+            }
                 
             // set workspace output pane
             _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
