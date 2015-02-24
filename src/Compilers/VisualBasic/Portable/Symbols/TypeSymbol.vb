@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property AllInterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 If (m_lazyAllInterfaces.IsDefault) Then
-                    ImmutableInterlocked.InterlockedCompareExchange(m_lazyAllInterfaces, MakeAllInterfaces(), Nothing)
+                    ImmutableInterlocked.InterlockedInitialize(m_lazyAllInterfaces, MakeAllInterfaces())
                 End If
 
                 Return m_lazyAllInterfaces
@@ -478,12 +478,31 @@ Done:
                 Return Nothing
             End If
 
-            If m_lazyImplementationForInterfaceMemberMap Is Nothing Then
-                Interlocked.CompareExchange(m_lazyImplementationForInterfaceMemberMap, New ConcurrentDictionary(Of Symbol, Symbol)(), Nothing)
+            ' PERF: Avoid delegate allocation by splitting GetOrAdd into TryGetValue+TryAdd
+            Dim map = ImplementationForInterfaceMemberMap
+            Dim result As Symbol = Nothing
+            If map.TryGetValue(interfaceMember, result) Then
+                Return result
             End If
 
-            Return m_lazyImplementationForInterfaceMemberMap.GetOrAdd(interfaceMember, AddressOf Me.ComputeImplementationForInterfaceMember)
+            result = ComputeImplementationForInterfaceMember(interfaceMember)
+            map.TryAdd(interfaceMember, result)
+            Return result
         End Function
+
+        Private ReadOnly Property ImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
+            Get
+                Dim map = m_lazyImplementationForInterfaceMemberMap
+                If map IsNot Nothing Then
+                    Return map
+                End If
+
+                ' PERF: Avoid over-allocation. In many cases, there's only 1 entry and we don't expect concurrent updates.
+                map = New ConcurrentDictionary(Of Symbol, Symbol)(concurrencyLevel:=1, capacity:=1)
+                Return If(Interlocked.CompareExchange(m_lazyImplementationForInterfaceMemberMap, map, Nothing), map)
+            End Get
+        End Property
+
 
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.

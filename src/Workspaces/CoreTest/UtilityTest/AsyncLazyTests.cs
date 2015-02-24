@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expectedTaskStatus, observedAntecedentTaskStatus.Value);
         }
 
-        [Fact]
+        [Fact(Skip = "GitHub Issue 204")]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueAsyncStillCachesResult()
         {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "GitHub Issue 204")]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueWithoutSynchronousComputationStillCachesResult()
         {
