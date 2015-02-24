@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis
     /// Represents a pointer type such as "int *". Pointer types
     /// are used only in unsafe code.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IPointerTypeSymbol : ITypeSymbol
     {
         /// <summary>
