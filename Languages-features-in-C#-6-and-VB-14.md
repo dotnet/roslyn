@@ -19,7 +19,7 @@ The [VS2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2
 | Using static members | `using System.Console; … Write(4);` | Added | Exists |
 | Dictionary initializer | `new JObject { ["x"] = 3, ["y"] = 7 }` | Added | No |
 | Await in catch/finally | `try … catch { await … } finally { await … }` | Added | No |
-| Exception filters | `catch(E e) if (e.Count > 5) { … }` | Added | Exists |
+| Exception filters | `catch(E e) when (e.Count > 5) { … }` | Added | Exists |
 | Partial modules | `Partial Module M1` | N/A | Added |
 | Partial interfaces | `Partial Interface I1` | Exists | Added |
 | Multiline string literals | `"Hello<newline>World"` | Exists | Added |
