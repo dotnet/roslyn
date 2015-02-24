@@ -5178,7 +5178,7 @@ End Module
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
 
                 output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /preferreduilang:en /r:" & ref & " /t:library " & source, expectedRetCode:=1)
-                Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied."))
+                Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied.", StringComparison.Ordinal))
 
             Finally
                 Dim output = RunAndGetOutput("cmd", "/C icacls " & ref & " /reset /Q")

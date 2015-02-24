@@ -69,7 +69,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
         Dim text As String = tree.GetRoot().ToFullString()
         Dim bindCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
-        bindText = text.Substring(bindCommentIndex, text.IndexOf("""", bindCommentIndex, StringComparison.Ordinal) - bindCommentIndex)
+        bindText = text.Substring(bindCommentIndex, text.IndexOf(""""c, bindCommentIndex) - bindCommentIndex)
         Dim bindPoint = text.LastIndexOf(bindText, bindCommentIndex - bindMarker.Length, StringComparison.Ordinal)
         Return bindPoint
     End Function

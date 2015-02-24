@@ -1999,10 +1999,10 @@ class C
             var compilation = CreateCompilationWithMscorlib(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
-            var position = text.IndexOf("{", text.IndexOf("a)", StringComparison.Ordinal), StringComparison.Ordinal);
+            var position = text.IndexOf('{', text.IndexOf("a)", StringComparison.Ordinal));
             var symbols = model.LookupSymbols(position, name: "a");
             Assert.Equal(1, symbols.Length);
-            position = text.IndexOf("{", text.IndexOf("b)", StringComparison.Ordinal), StringComparison.Ordinal);
+            position = text.IndexOf('{', text.IndexOf("b)", StringComparison.Ordinal));
             symbols = model.LookupSymbols(position, name: "b");
             Assert.Equal(1, symbols.Length);
         }
@@ -3259,7 +3259,7 @@ class Program
 
             // Get the parameter node from the SyntaxTree for the lambda parameter "param1"
             var root = tree.GetCompilationUnitRoot();
-            var paramNode = root.FindToken(root.ToFullString().IndexOf("x", StringComparison.Ordinal)).Parent;
+            var paramNode = root.FindToken(root.ToFullString().IndexOf('x')).Parent;
 
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(paramNode);
@@ -3285,7 +3285,7 @@ class Program
 
             // Get the parameter node from the SyntaxTree for the lambda parameter "param1"
             var root = tree.GetCompilationUnitRoot();
-            var paramNode = root.FindToken(root.ToFullString().IndexOf("x", StringComparison.Ordinal)).Parent;
+            var paramNode = root.FindToken(root.ToFullString().IndexOf('x')).Parent;
 
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(paramNode);

@@ -1459,7 +1459,7 @@ End Module
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Split comment at "#".
-        Dim position = oldText.ToString().IndexOf("#", StringComparison.Ordinal)
+        Dim position = oldText.ToString().IndexOf("#"c)
         Dim newText = oldText.Replace(start:=position, length:=0, newText:=vbCrLf)
         Dim newTree = oldTree.WithChangedText(newText)
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))

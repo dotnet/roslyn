@@ -300,21 +300,21 @@ class C1 {
             var global = comp.GlobalNamespace;
 
             // check 'q'
-            int posQ = text.IndexOf("q", StringComparison.Ordinal);
+            int posQ = text.IndexOf('q');
             var declaratorQ = tree.GetCompilationUnitRoot().FindToken(posQ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorQ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorQ.Initializer.Value);
 
             // check 'x'
-            int posX = text.IndexOf("x", StringComparison.Ordinal);
+            int posX = text.IndexOf('x');
             var declaratorX = tree.GetCompilationUnitRoot().FindToken(posX).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorX),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
 
             // check 'z' --> 'x'
-            int posZ = text.IndexOf("z", StringComparison.Ordinal);
+            int posZ = text.IndexOf('z');
             var declaratorZ = tree.GetCompilationUnitRoot().FindToken(posZ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorZ),

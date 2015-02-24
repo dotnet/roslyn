@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 
             AssertExtent(
                 TestString,
-                pos: TestString.LastIndexOf("\"", StringComparison.Ordinal),
+                pos: TestString.LastIndexOf('"'),
                 isSignificant: true,
                 start: startOfString + lengthOfStringIncludingQuotes - 1, length: 2);
 

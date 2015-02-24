@@ -904,7 +904,7 @@ public class Test2
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
-            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("5", StringComparison.Ordinal));
+            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
             var info = semanticModel.GetSpeculativeTypeInfo(selectExpression.SpanStart, SyntaxFactory.ParseExpression("x"), SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
