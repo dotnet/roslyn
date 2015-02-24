@@ -861,6 +861,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal static string AnalyzerFailure => CodeAnalysisResources.CompilerAnalyzerFailure;
         internal static string AnalyzerThrows => CodeAnalysisResources.CompilerAnalyzerThrows;
+        internal static string DiagnosticDescriptorThrows => CodeAnalysisResources.DiagnosticDescriptorThrows;
         internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
     }
