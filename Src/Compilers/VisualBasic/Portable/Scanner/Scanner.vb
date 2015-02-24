@@ -3,7 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
 '-----------------------------------------------------------------------------
-
+' Testing
 Option Compare Binary
 Option Strict On
 
