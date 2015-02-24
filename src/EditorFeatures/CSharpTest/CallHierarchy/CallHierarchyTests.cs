@@ -383,9 +383,9 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.I.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), string.Format(EditorFeaturesResources.Implements, "Foo") });
+            testState.VerifyRoot(root, "N.I.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), string.Format(EditorFeaturesResources.ImplementsArg, "Foo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.G.Main()" });
-            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Implements, "Foo"), new[] { "N.C.Foo()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.ImplementsArg, "Foo"), new[] { "N.C.Foo()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]

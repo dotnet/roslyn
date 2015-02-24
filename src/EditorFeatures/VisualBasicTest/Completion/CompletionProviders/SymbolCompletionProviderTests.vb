@@ -2754,10 +2754,11 @@ Class C
         End Function
 End Class</Code>.Value
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.Foo() As Task
+            Dim description =
+$"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
 Doc Comment!
-<%= WorkspacesResources.Usage %>
-  <%= VBFeaturesResources.Await %> Foo()</File>.ConvertTestSourceTag()
+{WorkspacesResources.Usage}
+  {VBFeaturesResources.Await} Foo()"
 
             VerifyItemWithMscorlib45(code, "Foo", description, LanguageNames.VisualBasic)
         End Sub

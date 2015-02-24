@@ -2492,7 +2492,7 @@ class C
     {
         $$";
 
-            VerifyItemExists(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.GenericOverload})");
+            VerifyItemExists(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.GenericOverloads})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

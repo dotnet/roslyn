@@ -266,7 +266,7 @@ private bool disposedValue = false; // To detect redundant calls
     {{
         if (disposing)
         {{
-            // TODO: dispose managed state (managed objects).          
+            // TODO: dispose managed state (managed objects).
         }}
  
         // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -276,7 +276,7 @@ private bool disposedValue = false; // To detect redundant calls
     }}
 }}
 
- // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources. 
+// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
 // ~{1}() {{
 //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 //   Dispose(false);
