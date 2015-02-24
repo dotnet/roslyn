@@ -247,6 +247,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
                     string assemblyFullPath = Path.Combine(directoryPath, assemblyIdentity.Name + ".dll");
+                    if (!File.Exists(assemblyFullPath))
+                    {
+                        return null;
+                    }
 
                     assembly = LoadCore(assemblyFullPath);
 
