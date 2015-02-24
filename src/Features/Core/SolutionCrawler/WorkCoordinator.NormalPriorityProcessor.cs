@@ -183,6 +183,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
+                    protected override void PauseOnGlobalOperation()
+                    {
+                        _workItemQueue.RequestCancellationOnRunningTasks();
+                    }
+
                     private void SetProjectProcessing(ProjectId currentProject)
                     {
                         if (currentProject != _currentProjectProcessing)

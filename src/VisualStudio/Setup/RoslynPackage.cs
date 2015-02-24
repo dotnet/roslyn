@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private AnalyzerItemsTracker _analyzerTracker;
-        private IDisposable _solutionBuildMonitor;
+        private IDisposable _solutionEventMonitor;
 
         protected override void Initialize()
         {
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContext();
 
-            _solutionBuildMonitor = new SolutionBuildMonitor(_workspace);
+            _solutionEventMonitor = new SolutionEventMonitor(_workspace);
         }
 
         private void InitializeColors()
@@ -163,10 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             ReportSessionWideTelemetry();
 
-            if (_solutionBuildMonitor != null)
+            if (_solutionEventMonitor != null)
             {
-                _solutionBuildMonitor.Dispose();
-                _solutionBuildMonitor = null;
+                _solutionEventMonitor.Dispose();
+                _solutionEventMonitor = null;
             }
 
             base.Dispose(disposing);
