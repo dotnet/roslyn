@@ -130,46 +130,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueAsyncStillCachesResult()
         {
-            using (new StopTheThreadPoolContext())
-            {
-                int computations = 0;
-                var requestCancellationTokenSource = new CancellationTokenSource();
+            int computations = 0;
+            var requestCancellationTokenSource = new CancellationTokenSource();
 
-                var lazy = new AsyncLazy<object>(c =>
-                    {
-                        Interlocked.Increment(ref computations);
-
-                        // We do not want to ever use the cancellation token that we are passed to this
-                        // computation. Rather, we will ignore it but cancel any request that is
-                        // outstanding.
-                        requestCancellationTokenSource.Cancel();
-
-                        return Task.FromResult(new object());
-                    }, cacheResult: true);
-
-                // Do a first request. Even though we will get a cancellation during the evaluation,
-                // since we handed a result back, that result must be cached.
-                var firstRequestResult = lazy.GetValueAsync(requestCancellationTokenSource.Token).Result;
-
-                // And a second request. We'll let this one complete normally.
-                var secondRequestResult = lazy.GetValueAsync(CancellationToken.None).Result;
-
-                // We should have gotten the same cached result, and we should have only computed once.
-                Assert.Same(secondRequestResult, firstRequestResult);
-                Assert.Equal(1, computations);
-            }
-        }
-
-        [Fact(Skip = "GitHub Issue 204")]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
-        public void CancellationDuringInlinedComputationFromGetValueWithoutSynchronousComputationStillCachesResult()
-        {
-            using (new StopTheThreadPoolContext())
-            {
-                int computations = 0;
-                var requestCancellationTokenSource = new CancellationTokenSource();
-
-                var lazy = new AsyncLazy<object>(c =>
+            var lazy = new AsyncLazy<object>(c =>
                 {
                     Interlocked.Increment(ref computations);
 
@@ -181,17 +145,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     return Task.FromResult(new object());
                 }, cacheResult: true);
 
-                // Do a first request. Even though we will get a cancellation during the evaluation,
-                // since we handed a result back, that result must be cached.
-                var firstRequestResult = lazy.GetValue(requestCancellationTokenSource.Token);
+            // Do a first request. Even though we will get a cancellation during the evaluation,
+            // since we handed a result back, that result must be cached.
+            var firstRequestResult = lazy.GetValueAsync(requestCancellationTokenSource.Token).Result;
 
-                // And a second request. We'll let this one complete normally.
-                var secondRequestResult = lazy.GetValue(CancellationToken.None);
+            // And a second request. We'll let this one complete normally.
+            var secondRequestResult = lazy.GetValueAsync(CancellationToken.None).Result;
 
-                // We should have gotten the same cached result, and we should have only computed once.
-                Assert.Same(secondRequestResult, firstRequestResult);
-                Assert.Equal(1, computations);
-            }
+            // We should have gotten the same cached result, and we should have only computed once.
+            Assert.Same(secondRequestResult, firstRequestResult);
+            Assert.Equal(1, computations);
+        }
+
+        [Fact(Skip = "GitHub Issue 204")]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public void CancellationDuringInlinedComputationFromGetValueWithoutSynchronousComputationStillCachesResult()
+        {
+            int computations = 0;
+            var requestCancellationTokenSource = new CancellationTokenSource();
+
+            var lazy = new AsyncLazy<object>(c =>
+            {
+                Interlocked.Increment(ref computations);
+
+                // We do not want to ever use the cancellation token that we are passed to this
+                // computation. Rather, we will ignore it but cancel any request that is
+                // outstanding.
+                requestCancellationTokenSource.Cancel();
+
+                return Task.FromResult(new object());
+            }, cacheResult: true);
+
+            // Do a first request. Even though we will get a cancellation during the evaluation,
+            // since we handed a result back, that result must be cached.
+            var firstRequestResult = lazy.GetValue(requestCancellationTokenSource.Token);
+
+            // And a second request. We'll let this one complete normally.
+            var secondRequestResult = lazy.GetValue(CancellationToken.None);
+
+            // We should have gotten the same cached result, and we should have only computed once.
+            Assert.Same(secondRequestResult, firstRequestResult);
+            Assert.Equal(1, computations);
         }
 
         [Fact]
