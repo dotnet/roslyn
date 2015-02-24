@@ -25,44 +25,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// The name of the parameter or property or field that corresponds to the argument.
         /// </summary>
-        string Cci.IMetadataNamedArgument.ArgumentName
-        {
-            get
-            {
-                return _entity.Name;
-            }
-        }
+        string Cci.IMetadataNamedArgument.ArgumentName => _entity.Name;
 
         /// <summary>
         /// The value of the argument.
         /// </summary>
-        Cci.IMetadataExpression Cci.IMetadataNamedArgument.ArgumentValue
-        {
-            get
-            {
-                return _value;
-            }
-        }
+        Cci.IMetadataExpression Cci.IMetadataNamedArgument.ArgumentValue => _value;
 
         /// <summary>
         /// True if the named argument provides the value of a field.
         /// </summary>
-        bool Cci.IMetadataNamedArgument.IsField
-        {
-            get
-            {
-                return _entity is Cci.IFieldDefinition;
-            }
-        }
+        bool Cci.IMetadataNamedArgument.IsField => _entity is Cci.IFieldDefinition;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
-        {
-            get { return _type; }
-        }
+        Cci.ITypeReference Cci.IMetadataExpression.Type => _type;
     }
 }

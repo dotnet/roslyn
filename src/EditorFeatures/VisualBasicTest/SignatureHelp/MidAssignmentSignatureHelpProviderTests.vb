@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class MidAssignmentSignatureHelpProviderTests
@@ -24,9 +23,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "Mid(<stringName>, <startIndex>, [<length>]) = <stringExpression>",
-                                     "Replaces a specified number of characters in a String variable with characters from another string.",
-                                     "The name of the string variable to modify.",
+                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
+                                     ReplacesChars,
+                                     NameOfStringVariable,
                                      currentParameterIndex:=0))
             Test(markup, expectedOrderedItems)
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
@@ -44,9 +43,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "Mid(<stringName>, <startIndex>, [<length>]) = <stringExpression>",
-                                     "Replaces a specified number of characters in a String variable with characters from another string.",
-                                     "The one-based character position in the string where the replacement of text begins.",
+                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
+                                     ReplacesChars,
+                                     OneBasedStartPos,
                                      currentParameterIndex:=1))
             Test(markup, expectedOrderedItems)
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
@@ -64,9 +63,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "Mid(<stringName>, <startIndex>, [<length>]) = <stringExpression>",
-                                     "Replaces a specified number of characters in a String variable with characters from another string.",
-                                     "The number of characters to replace. If omitted, the length of <stringExpression> is used.",
+                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
+                                     ReplacesChars,
+                                     NumberOfCharsToReplace,
                                      currentParameterIndex:=2))
             Test(markup, expectedOrderedItems)
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)

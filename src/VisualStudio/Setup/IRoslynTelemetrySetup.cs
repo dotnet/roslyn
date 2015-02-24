@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.ComponentModelHost;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
+    /// <summary>
+    /// This interface allows the host to set up a telemetry service during package initialization.
+    /// </summary>
     internal interface IRoslynTelemetrySetup
     {
         void Initialize(IServiceProvider componentModel);

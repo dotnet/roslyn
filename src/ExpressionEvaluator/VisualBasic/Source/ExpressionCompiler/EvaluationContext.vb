@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _hoistedLocalFieldNames As ImmutableHashSet(Of String)
-        Private ReadOnly _importStrings As ImmutableArray(Of String)
+        Private ReadOnly _methodDebugInfo As MethodDebugInfo
 
         Private Sub New(
             metadataBlocks As ImmutableArray(Of MetadataBlock),
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
             hoistedLocalFieldNames As ImmutableHashSet(Of String),
-            importStrings As ImmutableArray(Of String))
+            methodDebugInfo As MethodDebugInfo)
 
             Me.MetadataBlocks = metadataBlocks
             Me.MethodScope = methodScope
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _currentFrame = currentFrame
             _locals = locals
             _hoistedLocalFieldNames = hoistedLocalFieldNames
-            _importStrings = importStrings
+            _methodDebugInfo = methodDebugInfo
         End Sub
 
         ''' <summary>
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 currentFrame,
                 locals:=Nothing,
                 hoistedLocalFieldNames:=Nothing,
-                importStrings:=Nothing)
+                methodDebugInfo:=Nothing)
         End Function
 
         ''' <summary>
@@ -155,13 +155,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             scopes.Free()
             Dim locals = localBuilder.ToImmutableAndFree()
 
-            Dim importStrings As ImmutableArray(Of String)
+            Dim methodDebugInfo As MethodDebugInfo
             If IsDteeEntryPoint(currentFrame) Then
-                importStrings = SynthesizeImportStringsForDtee(lazyAssemblyReaders.Value)
+                methodDebugInfo = SynthesizeMethodDebugInfoForDtee(lazyAssemblyReaders.Value)
             ElseIf typedSymReader IsNot Nothing Then
-                importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(typedSymReader, methodToken, methodVersion)
+                ' TODO (acasey): Switch on the type of typedSymReader and call the appropriate helper. (GH #702)
+                methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion)
             Else
-                importStrings = Nothing
+                methodDebugInfo = Nothing
             End If
 
             Return New EvaluationContext(
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 currentFrame,
                 locals,
                 hoistedLocalFieldNames,
-                importStrings)
+                methodDebugInfo)
         End Function
 
         Private Shared Function GetLocalNames(scopes As ArrayBuilder(Of ISymUnmanagedScope), <Out> ByRef hoistedLocalFieldNames As ImmutableHashSet(Of String)) As ImmutableArray(Of String)
@@ -201,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' Logic copied from ProcedureContext::IsDteeEntryPoint.
         ''' Friend for testing.
         ''' </remarks>
-        ''' <seealso cref="SynthesizeImportStringsForDtee"/>
+        ''' <seealso cref="SynthesizeMethodDebugInfoForDtee"/>
         Friend Shared Function IsDteeEntryPoint(currentFrame As MethodSymbol) As Boolean
             Dim typeName = currentFrame.ContainingType.Name
             Dim methodName = currentFrame.Name
@@ -228,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </remarks>
         ''' <seealso cref="IsDteeEntryPoint"/>
         ''' <seealso cref="PENamedTypeSymbol.TypeKind"/>
-        Friend Shared Function SynthesizeImportStringsForDtee(assemblyReaders As ImmutableArray(Of AssemblyReaders)) As ImmutableArray(Of String)
+        Friend Shared Function SynthesizeMethodDebugInfoForDtee(assemblyReaders As ImmutableArray(Of AssemblyReaders)) As MethodDebugInfo
             Dim [imports] = PooledHashSet(Of String).GetInstance()
 
             For Each readers In assemblyReaders
@@ -250,35 +251,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             PEModule.FindTargetAttribute(metadataReader, typeDefHandle, AttributeDescription.StandardModuleAttribute).HasValue Then
 
                             Dim namespaceName = metadataReader.GetString(typeDef.Namespace)
-                            [imports].Add("@P:" & namespaceName)
+                            [imports].Add(namespaceName)
                         End If
                     Next
 
                     For Each methodDefHandle In metadataReader.MethodDefinitions
                         ' EnC can't change the default namespace of the assembly, so version 1 will suffice.
-                        Dim importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
-                            symReader,
-                            metadataReader.GetToken(methodDefHandle),
-                            methodVersion:=1)
+                        Dim methodDefaultNamespaceName = symReader.GetMethodDebugInfo(metadataReader.GetToken(methodDefHandle), methodVersion:=1).DefaultNamespaceName
 
                         ' Some methods aren't decorated with import custom debug info.
-                        If importStrings.Any() Then
-                            For Each importString In importStrings
-                                Dim [alias] As String = Nothing
-                                Dim target As String = Nothing
-                                Dim kind As ImportTargetKind = Nothing
-                                Dim scope As ImportScope = Nothing
-                                If CustomDebugInfoReader.TryParseVisualBasicImportString(importString, [alias], target, kind, scope) AndAlso kind = ImportTargetKind.DefaultNamespace Then
-                                    Debug.Assert([alias] Is Nothing)
-                                    Debug.Assert(target IsNot Nothing)
+                        If Not String.IsNullOrEmpty(methodDefaultNamespaceName) Then
 
-                                    ' NOTE: We're adding it as a project-level import, not as the default namespace
-                                    ' (because there's one for each assembly and they can't all be the default).
-                                    [imports].Add("@P:" & target)
-
-                                    Exit For
-                                End If
-                            Next
+                            ' NOTE: We're adding it as a project-level import, not as the default namespace
+                            ' (because there's one for each assembly and they can't all be the default).
+                            [imports].Add(methodDefaultNamespaceName)
 
                             ' The default namespace should be the same for all methods, so we only need to check one.
                             Exit For
@@ -291,13 +277,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End Try
             Next
 
-            ' add empty default namespace:
-            Dim added = [imports].Add("*")
-            Debug.Assert(added) ' All other imports were project-level, so a conflict should be impossible.
-
-            Dim result = ImmutableArray.CreateRange([imports])
+            Dim projectLevelImportRecords = ImmutableArray.CreateRange([imports].Select(AddressOf NativeImportRecord.CreateFromVisualBasicDteeNamespace))
             [imports].Free()
-            Return result
+            Dim fileLevelImportRecords = ImmutableArray(Of ImportRecord).Empty
+
+            Dim importRecordGroups = ImmutableArray.Create(projectLevelImportRecords, fileLevelImportRecords)
+
+            Return New MethodDebugInfo(importRecordGroups, ImmutableArray(Of ExternAliasRecord).Empty, defaultNamespaceName:="")
         End Function
 
         Friend Function CreateCompilationContext(syntax As ExecutableStatementSyntax) As CompilationContext
@@ -307,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 _currentFrame,
                 _locals,
                 _hoistedLocalFieldNames,
-                _importStrings,
+                _methodDebugInfo,
                 syntax)
         End Function
 
@@ -600,6 +586,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
                 Case ERRID.ERR_XmlFeaturesNotAvailable
                     Return ImmutableArray.Create(SystemIdentity, SystemCoreIdentity, SystemXmlIdentity, SystemXmlLinqIdentity)
+                Case ERRID.ERR_MissingRuntimeHelper
+                    Return ImmutableArray.Create(MicrosoftVisualBasicIdentity)
             End Select
 
             Return Nothing
