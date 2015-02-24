@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property AllInterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 If (m_lazyAllInterfaces.IsDefault) Then
-                    ImmutableInterlocked.InterlockedCompareExchange(m_lazyAllInterfaces, MakeAllInterfaces(), Nothing)
+                    ImmutableInterlocked.InterlockedInitialize(m_lazyAllInterfaces, MakeAllInterfaces())
                 End If
 
                 Return m_lazyAllInterfaces
@@ -478,12 +478,22 @@ Done:
                 Return Nothing
             End If
 
-            If m_lazyImplementationForInterfaceMemberMap Is Nothing Then
-                Interlocked.CompareExchange(m_lazyImplementationForInterfaceMemberMap, New ConcurrentDictionary(Of Symbol, Symbol)(), Nothing)
-            End If
-
-            Return m_lazyImplementationForInterfaceMemberMap.GetOrAdd(interfaceMember, AddressOf Me.ComputeImplementationForInterfaceMember)
+            Return ImplementationForInterfaceMemberMap.GetOrAdd(interfaceMember, AddressOf Me.ComputeImplementationForInterfaceMember)
         End Function
+
+        Private ReadOnly Property ImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
+            Get
+                Dim map = m_lazyImplementationForInterfaceMemberMap
+                If map IsNot Nothing Then
+                    Return map
+                End If
+
+                ' PERF: Avoid over-allocation. In many cases, there's only 1 entry and we don't expect concurrent updates.
+                map = New ConcurrentDictionary(Of Symbol, Symbol)(concurrencyLevel:=1, capacity:=1)
+                Return If(Interlocked.CompareExchange(m_lazyImplementationForInterfaceMemberMap, map, Nothing), map)
+            End Get
+        End Property
+
 
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.
