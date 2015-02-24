@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="customTags">Optional custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.</param>
         public TriggerDiagnosticDescriptor(string id, params string[] customTags)
             : base(id, title: "", messageFormat: "", category: "", defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-                    customTags: customTags.Append(WellKnownDiagnosticTags.NotConfigurable))
+                    customTags: customTags.Append(WellKnownDiagnosticTags.NotConfigurable).Append(WellKnownDiagnosticTags.Trigger))
         {
         }
     }

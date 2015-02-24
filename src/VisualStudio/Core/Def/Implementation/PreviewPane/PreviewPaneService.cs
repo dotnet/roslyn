@@ -65,29 +65,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         object IPreviewPaneService.GetPreviewPane(Diagnostic diagnostic, object previewContent)
         {
-            var telemetry = diagnostic == null ? false : diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry);
+            var isHeaderMissing = (diagnostic == null) || diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Trigger);
 
-            if ((diagnostic == null) && (previewContent == null))
+            if (isHeaderMissing)
             {
-                // Bail out in cases where there is no diagnostic (which means there is nothing to put in
-                // the header section of the preview pane) as well as no preview content (i.e. no diff view).
-                return null;
+                if (previewContent == null)
+                {
+                    // Bail out in cases where there is nothing to put in the header section
+                    // of the preview pane and no preview content (i.e. no diff view) either.
+                    return null;
+                }
+
+                return new PreviewPane(
+                    null, null, null, null, null, null, false, previewContent, _serviceProvider);
             }
 
-            if ((diagnostic == null) || (diagnostic.Descriptor is TriggerDiagnosticDescriptor))
-            {
-                return new PreviewPane(
-                    null, null, null, null, null, null, telemetry, previewContent, _serviceProvider);
-            }
-            else
-            {
-                return new PreviewPane(
-                    GetSeverityIconForDiagnostic(diagnostic),
-                    diagnostic.Id, diagnostic.GetMessage(),
-                    diagnostic.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo),
-                    diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                    diagnostic.Descriptor.HelpLinkUri, telemetry, previewContent, _serviceProvider);
-            }
+            return new PreviewPane(
+                GetSeverityIconForDiagnostic(diagnostic),
+                diagnostic.Id, diagnostic.GetMessage(),
+                diagnostic.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo),
+                diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
+                diagnostic.Descriptor.HelpLinkUri,
+                diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                previewContent, _serviceProvider);
         }
     }
 }

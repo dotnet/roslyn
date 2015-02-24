@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         public const string Compiler = "Compiler";
 
         /// <summary>
-        /// Indicates that the diagnostic can be used for telemetry
+        /// Indicates that the diagnostic can be used for telemetry.
         /// </summary>
         public const string Telemetry = "Telemetry";
 
@@ -40,5 +40,10 @@ namespace Microsoft.CodeAnalysis
         /// Indicates that the diagnostic is related to an exception thrown by a <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         public const string AnalyzerException = "AnalyzerException";
+
+        /// <summary>
+        /// Indicates that the diagnostic is a 'trigger' diagnostic (<see cref="TriggerDiagnosticDescriptor"/>).
+        /// </summary>
+        public const string Trigger = "Trigger";
     }
 }
