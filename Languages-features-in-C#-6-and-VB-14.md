@@ -16,7 +16,7 @@ The [VS2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2
 | Getter-only auto-properties | `public int Y { get; } = y;` | Added | Added |
 | [Ctor assignment to getter-only autoprops](http://roslyn.codeplex.com/discussions/568824) | `Y = 15` | Added | Added |
 | Parameterless struct ctors | `Structure S : Sub New() : End Sub : End Structure` | Added | Added |
-| Using static members | `using System.Console; … Write(4);` | Added | Exists |
+| Using static members | `using static System.Console; … Write(4);` | Added | Exists |
 | Dictionary initializer | `new JObject { ["x"] = 3, ["y"] = 7 }` | Added | No |
 | Await in catch/finally | `try … catch { await … } finally { await … }` | Added | No |
 | Exception filters | `catch(E e) when (e.Count > 5) { … }` | Added | Exists |
