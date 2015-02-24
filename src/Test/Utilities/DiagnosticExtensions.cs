@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(this Compilation compilation, IEnumerable<Diagnostic> diagnostics)
         {
-            return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
+            return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics.ToImmutableArrayOrEmpty(), compilation);
         }
 
         /// <summary>

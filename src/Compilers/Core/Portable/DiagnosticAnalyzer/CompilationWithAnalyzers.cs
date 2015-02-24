@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
         /// 4) Pragma directives for the given <paramref name="compilation"/>.
         /// </summary>
-        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation)
+        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
-            if (diagnostics == null)
+            if (diagnostics == default(ImmutableArray<Diagnostic>))
             {
                 throw new ArgumentNullException(nameof(diagnostics));
             }
