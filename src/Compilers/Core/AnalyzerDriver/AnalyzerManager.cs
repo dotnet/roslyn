@@ -249,23 +249,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return false;
         }
-
-        internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
-        {
-            if (diagnostic.Id == AnalyzerExecutor.DiagnosticId)
-            {
-#pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
-#pragma warning restore RS0013
-                {
-                    if (tag == WellKnownDiagnosticTags.AnalyzerException)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
     }
 }

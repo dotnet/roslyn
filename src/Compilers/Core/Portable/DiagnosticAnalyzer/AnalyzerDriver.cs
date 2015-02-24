@@ -823,15 +823,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (declInNode.DeclaredNode != declaredNode)
                 {
                     // Might be a field declaration statement with multiple fields declared.
-                    // Adjust syntax node for analysis to be just the field (except for the first field so that we don't skip nodes common to all fields).
+                    // If so, we execute syntax node analysis for entire field declaration (and its descendants)
+                    // if we processing the first field and skip syntax actions for remaining fields in the declaration.
                     if (declInNode.DeclaredSymbol == declaredSymbol)
                     {
                         if (!first)
                         {
-                            declaredNode = declInNode.DeclaredNode;
+                            return;
                         }
-
-                        continue;
+                        
+                        break;
                     }
 
                     // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.
@@ -861,6 +862,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal static string AnalyzerFailure => CodeAnalysisResources.CompilerAnalyzerFailure;
         internal static string AnalyzerThrows => CodeAnalysisResources.CompilerAnalyzerThrows;
+        internal static string DiagnosticDescriptorThrows => CodeAnalysisResources.DiagnosticDescriptorThrows;
         internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
     }

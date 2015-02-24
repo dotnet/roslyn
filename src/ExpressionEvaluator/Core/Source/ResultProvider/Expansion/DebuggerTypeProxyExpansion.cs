@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     DkmClrValue proxyValue;
                     try
                     {
-                        proxyValue = value.InstantiateProxyType(proxyType);
+                        proxyValue = value.InstantiateProxyType(inspectionContext, proxyType);
                     }
                     catch
                     {
@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     if (proxyValue != null)
                     {
                         return new DebuggerTypeProxyExpansion(
+                            inspectionContext,
                             proxyValue,
                             name,
                             typeDeclaringMemberOpt,
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly string editableValue;
 
         private DebuggerTypeProxyExpansion(
+            DkmInspectionContext inspectionContext,
             DkmClrValue proxyValue,
             string name,
             Type typeDeclaringMemberOpt,
@@ -110,6 +112,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(proxyValue != null);
             var proxyType = proxyValue.Type.GetLmrType();
             var proxyMembers = MemberExpansion.CreateExpansion(
+                inspectionContext,
                 proxyType,
                 proxyValue,
                 ExpansionFlags.IncludeBaseMembers,
@@ -121,10 +124,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     null :
                     formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), childFullNamePrefix);
                 this.proxyItem = new EvalResultDataItem(
-                    name: null,
+                    ExpansionKind.Default,
+                    name: string.Empty,
                     typeDeclaringMember: null,
                     declaredType: proxyType,
+                    parent: null,
                     value: proxyValue,
+                    displayValue: null,
                     expansion: proxyMembers,
                     childShouldParenthesize: false,
                     fullName: null,
@@ -132,7 +138,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers: Formatter.NoFormatSpecifiers,
                     category: default(DkmEvaluationResultCategory),
                     flags: default(DkmEvaluationResultFlags),
-                    editableValue: null);
+                    editableValue: null,
+                    inspectionContext: inspectionContext);
             }
 
             this.name = name;
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -171,29 +178,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index++;
         }
 
-        private DkmEvaluationResult CreateRawViewRow(
+        private EvalResultDataItem CreateRawViewRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext)
         {
-            var dataItem = new EvalResultDataItem(
+            return new EvalResultDataItem(
+                ExpansionKind.RawView,
                 this.name,
                 this.typeDeclaringMemberOpt,
                 _declaredType,
-                this.value,
-                CreateRawView(resultProvider, inspectionContext, _declaredType, this.value),
-                this.childShouldParenthesize,
-                this.fullName,
-                this.childFullNamePrefix,
-                Formatter.AddFormatSpecifier(this.formatSpecifiers, "raw"),
-                DkmEvaluationResultCategory.Data,
-                this.flags | DkmEvaluationResultFlags.ReadOnly,
-                this.editableValue);
-            return ResultProvider.CreateEvaluationResult(
-                value,
-                Resources.RawView,
-                typeName: "",
-                display: null,
-                dataItem: dataItem);
+                parent: null,
+                value: this.value,
+                displayValue: null,
+                expansion: CreateRawView(resultProvider, inspectionContext, _declaredType, this.value),
+                childShouldParenthesize: this.childShouldParenthesize,
+                fullName: this.fullName,
+                childFullNamePrefixOpt: this.childFullNamePrefix,
+                formatSpecifiers: Formatter.AddFormatSpecifier(this.formatSpecifiers, "raw"),
+                category: DkmEvaluationResultCategory.Data,
+                flags: this.flags | DkmEvaluationResultFlags.ReadOnly,
+                editableValue: this.editableValue,
+                inspectionContext: inspectionContext);
         }
 
         private static Expansion CreateRawView(

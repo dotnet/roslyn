@@ -794,8 +794,8 @@ public class B
                 context.ReportDiagnostic(diagnostic);
             }
         }
-        [Fact]
 
+        [Fact]
         private void TestNoDuplicateCallbacksForFieldDeclaration()
         {
             string source = @"
@@ -810,8 +810,28 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
-        [Fact, WorkItem(1096600)]
 
+        [Fact, WorkItem(565)]
+        private void TestCallbacksForFieldDeclarationWithMultipleVariables()
+        {
+            string source = @"
+public class B
+{
+    public string field1, field2;
+    public int field3 = 0, field4 = 1;
+    public int field5, field6 = 1;
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new FieldDeclarationAnalyzer() };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                     Diagnostic("MyFieldDiagnostic", @"public string field1, field2;").WithLocation(4, 5),
+                     Diagnostic("MyFieldDiagnostic", @"public int field3 = 0, field4 = 1;").WithLocation(5, 5),
+                     Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
+        }
+
+        [Fact, WorkItem(1096600)]
         private void TestDescriptorForConfigurableCompilerDiagnostics()
         {
             // Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
