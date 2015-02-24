@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 2) <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is invoked only once per-analyzer.
     /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-analyzer per-compilation.
     /// </summary>
+    /// <remarks>
+    /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/> and
+    /// <see cref="GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer, AnalyzerExecutor)"/> out of the AnalyzerManager and into analyzer drivers.
+    /// </remarks>
     internal class AnalyzerManager
     {
         /// <summary>
@@ -139,6 +143,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return sessionScope.GetAnalyzerActions(analyzer);
+        }
+
+        /// <summary>
+        /// Returns true if analyzer registered a compilation start action during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/>
+        /// which registered a compilation end action and at least one other analyzer action, that the end action depends upon.
+        /// </summary>
+        public async Task<bool> GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            {
+                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                var compilationActions = compilationScope.GetCompilationOnlyAnalyzerActions(analyzer);
+                return compilationActions != null &&
+                    compilationActions.CompilationEndActionsCount > 0 &&
+                    (compilationActions.CodeBlockEndActionsCount > 0 ||
+                     compilationActions.CodeBlockStartActionsCount > 0 ||
+                     compilationActions.SemanticModelActionsCount > 0 ||
+                     compilationActions.SymbolActionsCount > 0 ||
+                     compilationActions.SyntaxNodeActionsCount > 0 ||
+                     compilationActions.SyntaxTreeActionsCount > 0);
+            }
+
+            return false;
         }
 
         /// <summary>
