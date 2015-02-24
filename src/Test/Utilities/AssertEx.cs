@@ -413,7 +413,7 @@ namespace Roslyn.Test.Utilities
                 var trimmedLine = line.Trim();
                 if (trimmedLine.Length > 0)
                 {
-                    if (!(trimmedLine.StartsWith("{", StringComparison.Ordinal) || trimmedLine.StartsWith("}", StringComparison.Ordinal)))
+                    if (!(trimmedLine[0] == '{' || trimmedLine[0] == '}'))
                     {
                         output.Append("  ");
                     }

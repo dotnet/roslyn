@@ -1802,7 +1802,7 @@ public class C : B
             comp.VerifyDiagnostics();
 
             var accessor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PropertySymbol>("P").GetMethod;
-            Assert.True(accessor.Name.StartsWith("_", StringComparison.Ordinal));
+            Assert.True(accessor.Name[0] == '_');
         }
 
         [Fact]
