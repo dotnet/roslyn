@@ -107,8 +107,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(type IsNot Nothing)
 
             Select Case kind
-                Case PseudoVariableKind.Exception, PseudoVariableKind.StowedException
-                    Return New ExceptionLocalSymbol(_containingMethod, id, type)
+                Case PseudoVariableKind.Exception
+                    Return New ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName)
+                Case PseudoVariableKind.StowedException
+                    Return New ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
                 Case PseudoVariableKind.ReturnValue
                     Return New ReturnValueLocalSymbol(_containingMethod, id, type, index)
                 Case PseudoVariableKind.ObjectId
