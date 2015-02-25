@@ -48,6 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub ErrorsRequiringVbCore()
+            Assert.Equal(EvaluationContextBase.MicrosoftVisualBasicIdentity, GetMissingAssemblyIdentities(ERRID.ERR_MissingRuntimeHelper).Single())
+        End Sub
+
+        <Fact>
         Public Sub MultipleAssemblyArguments()
             Dim identity1 = New AssemblyIdentity(GetUniqueName())
             Dim identity2 = New AssemblyIdentity(GetUniqueName())
@@ -190,6 +195,38 @@ End Class
                               EvaluationContextBase.SystemCoreIdentity,
                               EvaluationContextBase.SystemXmlIdentity,
                               EvaluationContextBase.SystemXmlLinqIdentity)
+        End Sub
+
+        <Fact>
+        Public Sub ERR_MissingRuntimeAssembly()
+            Const source = "
+Public Class C
+    Public Sub M(o As Object)
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
+
+            Const expectedError = "(1,2): error BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual' is not defined."
+            Dim expectedMissingAssemblyIdentity = EvaluationContextBase.MicrosoftVisualBasicIdentity
+
+            Dim resultProperties As ResultProperties = Nothing
+            Dim actualError As String = Nothing
+            Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "o = o",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                actualError,
+                actualMissingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData:=Nothing)
+            Assert.Equal(expectedError, actualError)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
         <WorkItem(1124725, "DevDiv")>

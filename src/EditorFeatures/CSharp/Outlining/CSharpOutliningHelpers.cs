@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
     internal static class CSharpOutliningHelpers
     {
         public const string Ellipsis = "...";
+        public const string MultiLineCommentSuffix = "*/";
         public const int MaxXmlDocCommentBannerLength = 120;
 
         private static int GetCollapsibleStart(SyntaxToken firstToken)
@@ -121,8 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
                 }
                 else
                 {
-                    int suffixLength = "*/".Length;
-                    text = text.Substring(0, text.Length - suffixLength);
+                    text = text.EndsWith(MultiLineCommentSuffix) ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length) : text;
                 }
 
                 return CreateCommentBannerTextWithPrefix(text, "/*");

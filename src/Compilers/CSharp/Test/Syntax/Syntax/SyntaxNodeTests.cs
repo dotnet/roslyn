@@ -481,6 +481,44 @@ a + b";
             Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
         }
 
+        [Fact]
+        public void TestFindTokenInLargeList()
+        {
+            var identifier = SyntaxFactory.Identifier("x");
+            var missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
+            var name = SyntaxFactory.IdentifierName(identifier);
+            var missingName = SyntaxFactory.IdentifierName(missingIdentifier);
+            var comma = SyntaxFactory.Token(SyntaxKind.CommaToken);
+            var missingComma = SyntaxFactory.MissingToken(SyntaxKind.CommaToken);
+            var argument = SyntaxFactory.Argument(name);
+            var missingArgument = SyntaxFactory.Argument(missingName);
+
+            // make a large list that has lots of zero-length nodes (that shouldn't be found)
+            var nodesAndTokens = SyntaxFactory.NodeOrTokenList(
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                argument);
+
+            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
+            var invocation = SyntaxFactory.InvocationExpression(name, argumentList);
+            CheckFindToken(invocation);
+        }
+
+        private void CheckFindToken(SyntaxNode node)
+        {
+            for (int i = 0; i < node.FullSpan.End; i++)
+            {
+                var token = node.FindToken(i);
+                Assert.Equal(true, token.FullSpan.Contains(i));
+            }
+        }
+
         [WorkItem(755236, "DevDiv")]
         [Fact]
         public void TestFindNode()

@@ -267,12 +267,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             pcConstants = 0;
             return SymUnmanagedReaderExtensions.S_OK;
         }
-
-        // TODO: Clean this up once DevDiv #1004487 is resolved.
-        public int _VtblGap1_9()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     internal sealed class MockSymUnmanagedNamespace : ISymUnmanagedNamespace
