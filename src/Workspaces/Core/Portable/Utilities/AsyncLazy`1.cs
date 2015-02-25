@@ -272,6 +272,10 @@ namespace Roslyn.Utilities
                 // We have a value, so complete
                 CompleteWithTask(Task.FromResult(result), CancellationToken.None);
 
+                // Optimization: if they did cancel and the computation never observed it, let's throw so we don't keep
+                // processing a value somebody never wanted
+                cancellationToken.ThrowIfCancellationRequested();
+
                 return result;
             }
         }
@@ -387,6 +391,8 @@ namespace Roslyn.Utilities
                             task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
                         }
 
+                        // It's safe to synchronously complete this task, since the Task object hasn't been returned
+                        // to the caller of GetValueAsync yet
                         requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
                     }
                 }
@@ -565,17 +571,19 @@ namespace Roslyn.Utilities
 
                 try
                 {
-                    if (task.Status == TaskStatus.RanToCompletion)
+                    // As an optimization, we'll cancel the request even we did get a value for it.
+                    // That way things abort sooner.
+                    if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
                     {
-                        _taskBuilder.SetResult(task.Result);
+                        CancelSynchronously();
                     }
-                    else if (task.Status == TaskStatus.Faulted)
+                    else if (task.IsFaulted)
                     {
                         _taskBuilder.SetException(task.Exception);
                     }
                     else
                     {
-                        CancelSynchronously();
+                        _taskBuilder.SetResult(task.Result);
                     }
                 }
                 catch (InvalidOperationException)
