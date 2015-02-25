@@ -150,14 +150,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
             {
-                if (args.RequestingAssembly == null)
+                try
                 {
-                    return ResolveForUnknownRequestor(args.Name);
+                    if (args.RequestingAssembly == null)
+                    {
+                        return ResolveForUnknownRequestor(args.Name);
+                    }
+                    else
+                    {
+                        return ResolveForKnownRequestor(args.Name, args.RequestingAssembly);
+                    }
                 }
-                else
-                {
-                    return ResolveForKnownRequestor(args.Name, args.RequestingAssembly);
-                }
+                catch { }
+
+                return null;
             }
 
             /// <summary>
