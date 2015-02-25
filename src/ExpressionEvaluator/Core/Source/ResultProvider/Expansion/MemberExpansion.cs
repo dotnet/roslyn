@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MemberAndDeclarationInfo member,
             EvalResultDataItem parent)
         {
-            var memberValue = GetMemberValue(value, member);
+            var memberValue = GetMemberValue(value, member, inspectionContext);
             return CreateMemberDataItem(
                 resultProvider,
                 inspectionContext,
@@ -234,11 +234,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ExpansionFlags.All);
         }
 
-        private static DkmClrValue GetMemberValue(DkmClrValue container, MemberAndDeclarationInfo member)
+        private static DkmClrValue GetMemberValue(DkmClrValue container, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)
         {
             // Note: GetMemberValue() may return special value
             // when func-eval of properties is disabled.
-            return container.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName);
+            return container.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
         }
 
         private sealed class RootHiddenExpansion : Expansion
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 bool visitAll,
                 ref int index)
             {
-                var memberValue = GetMemberValue(value, _member);
+                var memberValue = GetMemberValue(value, _member, inspectionContext);
                 if (memberValue.IsError())
                 {
                     if (InRange(startIndex, count, index))

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return IncludeObjectId(
                         value,
-                        FormatPrimitive(value, options & ~ObjectDisplayOptions.UseQuotes),
+                        FormatPrimitive(value, options & ~ObjectDisplayOptions.UseQuotes, inspectionContext),
                         flags);
                 }
             }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return IncludeObjectId(
                     value,
-                    GetEnumDisplayString(lmrType, value, options, (flags & GetValueFlags.IncludeTypeName) != 0),
+                    GetEnumDisplayString(lmrType, value, options, (flags & GetValueFlags.IncludeTypeName) != 0, inspectionContext),
                     flags);
             }
             else if (lmrType.IsArray)
@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // NOTE: the HostObjectValue will have a size corresponding to the process bitness
                 // and FormatPrimitive will adjust accordingly.
-                var tmp = FormatPrimitive(value, ObjectDisplayOptions.UseHexadecimalNumbers); // Always in hex.
+                var tmp = FormatPrimitive(value, ObjectDisplayOptions.UseHexadecimalNumbers, inspectionContext); // Always in hex.
                 Debug.Assert(tmp != null);
                 return tmp;
             }
             else if (lmrType.IsNullable())
             {
-                var nullableValue = value.GetNullableValue();
+                var nullableValue = value.GetNullableValue(inspectionContext);
                 // It should be impossible to nest nullables, so this recursion should introduce only a single extra stack frame.
                 return nullableValue == null
                     ? _nullString
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (lmrType.IsNullable())
             {
-                var nullableValue = value.GetNullableValue();
+                var nullableValue = value.GetNullableValue(inspectionContext);
                 return nullableValue != null ? GetUnderlyingStringImpl(nullableValue, inspectionContext) : null;
             }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // Check for special cased non-primitives that have underlying strings
                 if (string.Equals(lmrType.FullName, "System.Data.SqlTypes.SqlString", StringComparison.Ordinal))
                 {
-                    var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.SqlStringValue);
+                    var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.SqlStringValue, inspectionContext);
                     return fieldValue.HostObjectValue as string;
                 }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// NOTE: no curlies for enum values.
         /// </remarks>
 #pragma warning restore RS0010
-        private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName)
+        private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName, DkmInspectionContext  inspectionContext)
         {
             Debug.Assert(lmrType.IsEnum);
             Debug.Assert(value != null);
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             fields.Free();
 
-            return displayString ?? FormatPrimitive(value, options);
+            return displayString ?? FormatPrimitive(value, options, inspectionContext);
         }
 
         private static void FillEnumFields(ArrayBuilder<EnumField> fields, Type lmrType)
@@ -363,14 +363,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return null;
         }
 
-        internal string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options)
+        internal string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value != null);
 
             object obj;
             if (value.Type.GetLmrType().IsDateTime())
             {
-                DkmClrValue dateDataValue = value.GetFieldValue(DateTimeUtilities.DateTimeDateDataFieldName);
+                DkmClrValue dateDataValue = value.GetFieldValue(DateTimeUtilities.DateTimeDateDataFieldName, inspectionContext);
                 Debug.Assert(dateDataValue.HostObjectValue != null);
 
                 obj = DateTimeUtilities.ToDateTime((ulong)dateDataValue.HostObjectValue);
