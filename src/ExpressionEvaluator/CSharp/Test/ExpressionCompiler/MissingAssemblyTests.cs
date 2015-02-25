@@ -358,7 +358,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef);
+            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference);
 
             const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
             var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
