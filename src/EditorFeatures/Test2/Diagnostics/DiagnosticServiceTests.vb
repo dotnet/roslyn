@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.True(AnalyzerManager.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
+                Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message)
             End Using
         End Sub
@@ -806,6 +806,72 @@ End Class
                     Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
                     context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desriptor1, sourceLoc))
                 End If
+            End Sub
+        End Class
+
+        <Fact, WorkItem(565)>
+        Sub TestFieldDeclarationAnalyzer()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+public class B
+{
+    public string field0;
+    public string field1, field2;
+    public int field3 = 0, field4 = 1;
+    public int field5, field6 = 1;
+}
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+                Dim analyzer = New FieldDeclarationAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New DiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+                Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).
+                    WaitAndGetResult(CancellationToken.None).
+                    OrderBy(Function(d) d.TextSpan.Start).
+                    ToArray()
+                Assert.Equal(4, diagnostics.Length)
+                Assert.Equal(4, diagnostics.Where(Function(d) d.Id = FieldDeclarationAnalyzer.Desriptor1.Id).Count)
+
+                Assert.Equal("public string field0;", diagnostics(0).Message)
+                Assert.Equal("public string field1, field2;", diagnostics(1).Message)
+                Assert.Equal("public int field3 = 0, field4 = 1;", diagnostics(2).Message)
+                Assert.Equal("public int field5, field6 = 1;", diagnostics(3).Message)
+            End Using
+        End Sub
+
+        Class FieldDeclarationAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared Desriptor1 As New DiagnosticDescriptor("FieldDeclarationDiagnostic", "DummyDescription", "{0}", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Desriptor1)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, CodeAnalysis.CSharp.SyntaxKind.FieldDeclaration)
+            End Sub
+
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim fieldDecl = DirectCast(context.Node, CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax)
+                context.ReportDiagnostic(Diagnostic.Create(Desriptor1, fieldDecl.GetLocation, fieldDecl.ToString()))
             End Sub
         End Class
 

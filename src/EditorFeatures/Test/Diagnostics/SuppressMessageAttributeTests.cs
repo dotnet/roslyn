@@ -45,5 +45,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
             }
         }
+
+        protected override DiagnosticDescription WithArguments(DiagnosticDescription d, params string[] arguments)
+        {
+            // TODO: Round tripping between Diagnostic and DiagnosticData seems to cause us to lose the arguments info.
+            //       For now return just the original diagnostic, we need to clean this up to handle this scenario better.
+            return d;
+        }
     }
 }

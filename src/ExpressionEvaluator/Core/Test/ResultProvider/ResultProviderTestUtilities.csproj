@@ -111,6 +111,9 @@
     <Compile Include="..\..\Source\ResultProvider\Helpers\ArrayBuilder.cs">
       <Link>ResultProvider\Helpers\ArrayBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\Source\ResultProvider\Helpers\DebuggerDisplayInfo.cs">
+      <Link>ResultProvider\Helpers\DebuggerDisplayInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\Source\ResultProvider\Helpers\DkmClrValueFlagsExtensions.cs">
       <Link>ResultProvider\Helpers\DkmClrValueFlagsExtensions.cs</Link>
     </Compile>
@@ -153,6 +156,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Debugger\Engine\DkmContinueCorruptingException.cs" />
+    <Compile Include="Debugger\Engine\DkmEvaluateDebuggerDisplayStringAsyncResult.cs" />
+    <Compile Include="Debugger\Engine\DkmEvaluationAsyncResult.cs" />
     <Compile Include="Debugger\Engine\DkmExceptionCode.cs" />
     <Compile Include="Debugger\Engine\DkmException.cs" />
     <Compile Include="Debugger\Engine\DkmClrAppDomain.cs" />
@@ -183,6 +188,7 @@
     <Compile Include="Debugger\Engine\DkmModuleInstance.cs" />
     <Compile Include="Debugger\Engine\DkmReportNonFatalWatsonExceptionAttribute.cs" />
     <Compile Include="Debugger\Engine\DkmSuccessEvaluationResult.cs" />
+    <Compile Include="Debugger\Engine\DkmWorkList.cs" />
     <Compile Include="Debugger\Engine\IDkmClrFormatter.cs" />
     <Compile Include="Debugger\Engine\IDkmClrResultProvider.cs" />
     <Compile Include="Debugger\MemberInfo\AssemblyImpl.cs" />
@@ -222,4 +228,3 @@
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
-

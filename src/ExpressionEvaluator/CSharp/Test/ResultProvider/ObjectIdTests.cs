@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 FormatResult("c", value, objectType),
                 EvalResult("c", "99 'c' {$2}", "object {char}", "c", DkmEvaluationResultFlags.HasObjectId, editableValue: "'c'"));
             // char (hex)
-            value = CreateDkmClrValue(value: 'c', type: typeof(char), alias: "3", evalFlags: DkmEvaluationResultFlags.HasObjectId, inspectionContext: CreateDkmInspectionContext(radix: 16));
+            value = CreateDkmClrValue(value: 'c', type: typeof(char), alias: "3", evalFlags: DkmEvaluationResultFlags.HasObjectId);
             Verify(
-                FormatResult("c", value, objectType),
+                FormatResult("c", value, objectType, inspectionContext: CreateDkmInspectionContext(radix: 16)),
                 EvalResult("c", "0x0063 'c' {$3}", "object {char}", "c", DkmEvaluationResultFlags.HasObjectId, editableValue: "'c'"));
             // enum
             value = CreateDkmClrValue(value: DkmEvaluationResultFlags.HasObjectId, type: typeof(DkmEvaluationResultFlags), alias: "Four", evalFlags: DkmEvaluationResultFlags.HasObjectId);
