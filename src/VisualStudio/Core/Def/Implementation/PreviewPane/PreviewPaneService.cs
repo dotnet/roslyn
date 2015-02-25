@@ -77,7 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
 
                 return new PreviewPane(
-                    null, null, null, null, null, null, false, previewContent, _serviceProvider);
+                    severityIcon: null, id: null, title: null, helpMessage: null,
+                    description: null, helpLink: null, telemetry: false,
+                    previewContent: previewContent, serviceProvider: _serviceProvider);
             }
 
             return new PreviewPane(
