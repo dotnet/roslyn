@@ -618,9 +618,6 @@
   <data name="PreviewCodeChanges" xml:space="preserve">
     <value>Preview Code Changes:</value>
   </data>
-  <data name="RenameToWithPreview" xml:space="preserve">
-    <value>Rename '{0}' to '{1}' with preview...</value>
-  </data>
   <data name="PreviewChanges" xml:space="preserve">
     <value>Preview Changes</value>
   </data>
