@@ -103,7 +103,6 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
     <Compile Include="UtilityTest\AsyncLazyTests.cs" />
-    <Compile Include="UtilityTest\AsyncLazyTests.StopTheThreadPoolContext.cs" />
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
     <Compile Include="CodeCleanup\CodeCleanupTests.cs" />
     <Compile Include="CodeCleanup\Extensions.cs" />
