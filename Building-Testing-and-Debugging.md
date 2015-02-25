@@ -2,30 +2,20 @@
 # Building, Testing, and Debugging
 
 ## Required Software
-**Microsoft Visual Studio Ultimate 2015 CTP5**
 
-The Roslyn source code currently targets prerelease builds of Visual Studio 2015", the latest preview release (**CTP5**)can be downloaded free from [http://support.microsoft.com/kb/2967191](http://support.microsoft.com/kb/2967191).
+The Roslyn source code currently targets Visual Studio 2015 CTP6.  In order to edit, build and test the source code both the CTP and the SDK will need to be installed:
 
-**Microsoft Visual Studio 2015 CTP5 SDK**
-
-The Visual Studio SDK is used to extend Visual Studio 2015".  This can be downloaded free from a [url:http://support.microsoft.com/kb/2967191].
-
-**NuGet package manager**
-
-We use [NuGet](http://nuget.org) with package restore for our dependencies.  We have seen some issues with package restore in some versions of the NuGet Package Manager, so we recommend making sure you have at least NuGet 2.8.1 installed.  Go to Tools\Extensions and Updates and click on the Updates tab to see if you are up to date.
-
-**Latest Visual Studio 2015 CTP5 is recommended**
-
-When using a Preview build you should ensure you select the repo branch that matches your installed Visual Studio preview, E.g releases/Dev14CTP5. Roslyn is being developed at the same time as other core Visual Studio Components, APIs Roslyn is using may change during this preview phase, if you select the matching branch, then the source code you build will match the installed core Visual Studio components. 
+- [Visual Studio 2015 CTP6](http://go.microsoft.com/?linkid=9875137&clcid=0x409&wt.mc_id=o~msft~vscom~download-body~dn906891&campaign=o~msft~vscom~download-body~dn906891)
+- [Visual Studio 2015 SDK](http://go.microsoft.com/?linkid=9875738)
 
 ## Getting the code
 
-1. Clone (http://github.com/dotnet/roslyn)
-2. Switch to the "releases/Dev14CTP5" branch
+1. Clone (https://github.com/dotnet/roslyn)
+2. Open RoslynLight.sln 
 
-## Using Visual Studio Preview releases 
+## Using earlier versions of Visual Studio 2015 
 
-There are API differences between "master" and "releases/build-preview". If you build "master" you will not be able to test your changes in Visual Studio. 
+The Roslyn build depends on Visual Studio APIs that change from release to release.  In order to use an older version of Visual Studio to load the source code you will need to use the appropriate branch.
 
 > Use git branch --list from the command line to see the possible branches, E.g:
 
@@ -41,6 +31,8 @@ git branch --list --all
 ```
 git checkout releases/Dev14CTP5 
 ```
+
+Note: PRs will only be accepted from the master branch.  
 
 ## Strong Name Verification
 Roslyn binaries are configured to be delay signed using the Microsoft strong name key.  We are using a new technique to allow these assemblies to be loaded - currently 'fakesign' - these assemblies do not need to have strong name signing disabled to be loaded.  However, they cannot be installed in the GAC neither can they be loaded from a partially trusted AppDomain.
@@ -165,4 +157,3 @@ You are welcome to continue to use the End User Preview to provide feedback on t
 1.  In a Visual Studio Command Shell, type the following command:
 2.  MSBUILD ConsoleApplication01.csproj /t:Rebuild /p:RoslynHive=VisualStudio\14.0Roslyn
 3.  In the build output from this command observe a compiler command line similar to: `%USERPROFILE%\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\14.0ROSLYN\EXTENSIONS\MSOPENTECH\OPENSOURCEDEBUG\1.0\csc.exe`
-
