@@ -560,7 +560,7 @@ WriteLine(5);
         /// Tests that a dependency is correctly resolved and loaded at runtime.
         /// A depends on B, which depends on C. When CallB is jitted B is loaded. When CallC is jitted C is loaded.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/860")]
         public void AddReference_Dependencies()
         {
             var dir = Temp.CreateDirectory();
