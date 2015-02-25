@@ -2309,6 +2309,67 @@ End Class"
             locals.Free()
         End Sub
 
+        <WorkItem(1115030)>
+        <Fact>
+        Public Sub ExceptionInAsyncMethod()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+    Shared Function F() As Object
+        Throw New ArgumentException()
+    End Function
+    Shared Async Function M() As Task
+        Dim o As Object
+        Try
+            o = F()
+        Catch e As Exception
+#ExternalSource(""test"", 999)
+            o = e
+#End ExternalSource
+        End Try
+    End Function
+End Class"
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_2_M.MoveNext",
+                atLineNumber:=999)
+            Dim testData = New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "e", expectedILOpt:=
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (Integer V_0, //e
+                System.Exception V_1,
+                System.Exception V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_e$1 As Exception""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "o", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0, //e
+                System.Exception V_1,
+                System.Exception V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_o$0 As Object""
+  IL_0006:  ret
+}")
+            locals.Free()
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
             testData = New CompilationTestData()
