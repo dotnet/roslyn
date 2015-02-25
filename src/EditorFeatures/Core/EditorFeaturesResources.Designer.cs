@@ -1601,15 +1601,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename &apos;{0}&apos; to &apos;{1}&apos; with preview....
-        /// </summary>
-        internal static string RenameToWithPreview {
-            get {
-                return ResourceManager.GetString("RenameToWithPreview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Renaming anonymous type members is not yet supported..
         /// </summary>
         internal static string RenamingAnonymousTypeMemberNotSupported {

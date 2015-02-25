@@ -610,6 +610,7 @@
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingCodeAction.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingCommitter.cs" />
+    <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingSolutionSet.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.StateMachine.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.TrackingSession.cs" />
