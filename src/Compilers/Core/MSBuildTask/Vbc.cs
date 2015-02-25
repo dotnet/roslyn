@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
+using Microsoft.CodeAnalysis.CompilerServer;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -229,6 +230,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #endregion
 
         #region Tool Members
+
+        internal override BuildProtocolConstants.RequestLanguage Language
+            => BuildProtocolConstants.RequestLanguage.VisualBasicCompile;
+
+        internal override void LogMessages(string output, MessageImportance messageImportance)
+        {
+            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+            foreach (string line in lines)
+            {
+                //Code below will parse the set of four lines that comprise a VB
+                //error message into a single object. The four-line format contains
+                //a second line that is blank. This must be passed to the code below
+                //to satisfy the parser. The parser needs to work with output from
+                //old compilers as well. 
+                LogEventsFromTextOutput(line, messageImportance);
+            }
+        }
 
         /// <summary>
         ///  Return the name of the tool to execute.
