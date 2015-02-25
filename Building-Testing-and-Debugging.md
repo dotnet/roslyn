@@ -1,17 +1,30 @@
-
 # Building, Testing, and Debugging
 
 ## Required Software
 
-The Roslyn source code currently targets Visual Studio 2015 CTP6.  In order to edit, build and test the source code both the CTP and the SDK will need to be installed:
+The Roslyn source code targets the latest public build of Visual Studio 2015.  At this time that is CTP6.  In order to edit, build and test the source code both the latest public drop and the SDK will need to be installed:
 
 - [Visual Studio 2015 CTP6](http://go.microsoft.com/?linkid=9875137&clcid=0x409&wt.mc_id=o~msft~vscom~download-body~dn906891&campaign=o~msft~vscom~download-body~dn906891)
 - [Visual Studio 2015 SDK](http://go.microsoft.com/?linkid=9875738)
 
 ## Getting the code
 
-1. Clone (https://github.com/dotnet/roslyn)
+1. Clone https://github.com/dotnet/roslyn
 2. Open RoslynLight.sln 
+
+## Running Unit Tests
+To run the unit tests:
+
+> msbuild /v:m /m BuildAndTest.proj /p:CIBuild=true
+
+This command will build and run all of the code / tests which are supported on the current public build of Visual Studio 2015.  
+
+To debug suites use the *xunit.console.x86.exe* runner command which is included in the [xunit.runners](https://www.nuget.org/packages/xunit.runners) NuGet package.  Make sure to use a 2.0 version of the runner.  
+
+> xunit.console.x86.exe [UnitTestDll] -noshadow 
+
+## Contributing
+Please see [[Contributing Code]] for details on contributing changes back to the code.
 
 ## Using earlier versions of Visual Studio 2015 
 
@@ -49,7 +62,7 @@ From the command prompt, change directory to `<clone dir>` and run `Src\.nuget\n
 This ensures that all of the references and tools needed to build Roslyn are present on the computer.  Because we use toolset packages, it's important to do this before opening the solution.
 
 ## Building the command line compilers
-In order to build the command line compilers, you can simply open "Src\Roslyn.sln" from the directory where you created your git clone.  Alternatively, you can build from the command line using `msbuild Src\Roslyn.sln`.  If you want to debug the C# compiler, you should set the “Compilers\CSharp\csc” project as the startup project.  For the Visual Basic compiler, it’s the "Compilers\VisualBasic\vbc" project.
+In order to build the command line compilers, you can simply open "Src\RoslynLight.sln" from the directory where you created your git clone.  Alternatively, you can build from the command line using `msbuild Src\RoslynLight.sln`.  If you want to debug the C# compiler, you should set the “Compilers\CSharp\csc” project as the startup project.  For the Visual Basic compiler, it’s the "Compilers\VisualBasic\vbc" project.
 
 Note that in most situations the compilers will NOT be invoked through csc and vbc for performance reasons, but they are the simplest way to debug.  Other entry points include:
 
@@ -82,30 +95,6 @@ At the command line type:
 set RoslynHive=VisualStudio\14.0Roslyn
 MSBuild someproj.vbproj
 ```
-
-# Running Unit Tests
-To run the unit tests:
-
-* Close the solution in Visual Studio (to ensure files are not locked)
-* Open a Developer Command Prompt (administrator rights are not required)
-* Navigate to the root of your clone
-* Run `msbuild /m BuildAndTest.proj /p:DeployExtension=false`
-
-This will first build all sources, and then run all unit tests using the msbuild runner from the [xUnit 2.0 runners NuGet Package](https://www.nuget.org/packages/xunit.runners/2.0.0-alpha-build2576).  Results will be placed in a file named <clone dir>\UnitTestResults.html.  Several warnings are expected as we have a policy of adding skipped unit tests to represent bugs that are not yet fixed.
-
-**Debugging unit test failures**
-You can debug a unit test project using *xunit.console.clr4.x86.exe* which is part of the package above:
-
-* Open project properties for the unit test project containing the test you want to debug
-* Select the Debug tab
-* Change the "Start Action" to "Debug External Program"
-* Set the path to the program to be "<clone directory>\Src\packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.console.x86.exe"
-* Enter the full path of the unit test assembly, followed by "-noshadow" to the "Command Line Arguments" text box
-* Set a breakpoint in the body of the test you want to run
-* Start Debugging (F5)
-
-## Contributing
-Please see [How to Contribute] for details on contributing changes back to the code.
 
 **Removing the code**
 To remove the code
