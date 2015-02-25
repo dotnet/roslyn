@@ -58,7 +58,7 @@
     <ItemGroup Condition="'$(CIBuild)' == 'true'">
       <TestAssemblies 
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
-        Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;Binaries\$(Configuration)\**\*.ExpressionCompiler.UnitTests.dll;Microsoft.CodeAnalysis.Scripting.UnitTests.dll" />
+        Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;Binaries\$(Configuration)\**\*.ExpressionCompiler.UnitTests.dll;Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll" />
     </ItemGroup>
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
