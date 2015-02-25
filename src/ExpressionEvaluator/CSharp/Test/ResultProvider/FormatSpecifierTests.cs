@@ -439,11 +439,11 @@ class C
             {
                 var type = runtime.GetType("C");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C");
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", "o.P, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.P", "'o.P' threw an exception of type 'System.NotImplementedException'"));
-                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C");
+                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 evalResult = FormatResult("o.Q", "o.Q, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.Q", "'o.Q' threw an exception of type 'E'"));
@@ -489,11 +489,11 @@ class C
             {
                 var type = runtime.GetType("C");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C");
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", "o.P, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.P", "Property 'P' evaluation timed out"));
-                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C");
+                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 evalResult = FormatResult("o.Q", "o.Q, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.Q", "Property 'Q' evaluation timed out"));
