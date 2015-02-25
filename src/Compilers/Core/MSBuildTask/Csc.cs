@@ -6,6 +6,8 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CompilerServer;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -152,6 +154,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
+        internal override BuildProtocolConstants.RequestLanguage Language
+            => BuildProtocolConstants.RequestLanguage.CSharpCompile;
+
+        private static string[] s_separators = { "\r\n" };
+
+        internal override void LogMessages(string output, MessageImportance messageImportance)
+        {
+            var lines = output.Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string line in lines)
+            {
+                string trimmedMessage = line.Trim();
+                if (trimmedMessage != "")
+                {
+                    Log.LogMessageFromText(trimmedMessage, messageImportance);
+                }
+            }
+        }
+
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
@@ -274,8 +294,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// list of aliases, and if any of the aliases specified is the string "global",
         /// then we add that reference to the command-line without an alias.
         /// </summary>
-        /// <param name="commandLine"></param>
-        /// <owner>RGoel</owner>
         private void AddReferencesToCommandLine
             (
             CommandLineBuilderExtension commandLine
@@ -393,7 +411,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // add them to the outgoing string.
             foreach (string singleIdentifier in allIdentifiers)
             {
-                if (CSharp.SyntaxFacts.IsValidIdentifier(singleIdentifier))
+                if (SyntaxFacts.IsValidIdentifier(singleIdentifier))
                 {
                     // Separate them with a semicolon if there's something already in
                     // the outgoing string.

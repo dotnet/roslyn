@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
                 {
-                    uint argIndex = arg.ArgumentIndex;
+                    int argIndex = arg.ArgumentIndex;
                     while (argIndex >= commandLineArguments.Count)
                         commandLineArguments.Add("");
-                    commandLineArguments[(int)argIndex] = arg.Value;
+                    commandLineArguments[argIndex] = arg.Value;
                 }
             }
 

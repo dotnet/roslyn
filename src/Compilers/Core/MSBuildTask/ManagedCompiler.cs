@@ -2,23 +2,15 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Resources;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
-
 using Microsoft.Build.Framework;
-using Microsoft.Build.Shared;
-using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CompilerServer;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -28,6 +20,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ToolTask
     {
+        private CancellationTokenSource _sharedCompileCts = null;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         #region Properties
@@ -249,6 +242,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store["Win32Resource"]; }
         }
 
+        /// <summary>
+        /// If this property is true then the task will take every C# or VB
+        /// compilation which is queued by MSBuild and send it to the 
+        /// VBCSCompiler server instance, starting a new instance if necessary.
+        /// If false, we will use the values from ToolPath/Exe.
+        /// </summary>
+        public bool UseSharedCompilation
+        {
+            set { _store[nameof(UseSharedCompilation)] = value; }
+            get { return _store.GetOrDefault(nameof(UseSharedCompilation), false); }
+        }
+
         // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the 
         // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit 
         // property is set. 
@@ -277,6 +282,169 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         #endregion
+
+        internal abstract BuildProtocolConstants.RequestLanguage Language { get; }
+
+        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        {
+            if (!UseSharedCompilation)
+            {
+                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            }
+
+            using (_sharedCompileCts = new CancellationTokenSource())
+            {
+                try
+                {
+                    var responseTask = BuildClient.TryRunServerCompilation(
+                        Language,
+                        CurrentDirectoryToUse(),
+                        GetArguments(commandLineCommands, responseFileCommands),
+                        _sharedCompileCts.Token,
+                        libEnvVariable: LibDirectoryToUse());
+
+                    responseTask.Wait(_sharedCompileCts.Token);
+
+                    ExitCode = responseTask.Result != null
+                        ? HandleResponse(responseTask.Result)
+                        : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                }
+                catch (OperationCanceledException)
+                {
+                    ExitCode = 0;
+                }
+                catch (Exception e)
+                {
+                    Log.LogErrorWithCodeFromResources("Compiler.UnexpectedException");
+                    LogErrorOutput(e.ToString());
+                    ExitCode = -1;
+                }
+            }
+            return ExitCode;
+        }
+
+        /// <summary>
+        /// Cancel the in-process build task.
+        /// </summary>
+        public override void Cancel()
+        {
+            base.Cancel();
+
+            _sharedCompileCts?.Cancel();
+        }
+
+        /// <summary>
+        /// Get the current directory that the compiler should run in.
+        /// </summary>
+        private string CurrentDirectoryToUse()
+        {
+            // ToolTask has a method for this. But it may return null. Use the process directory
+            // if ToolTask didn't override. MSBuild uses the process directory.
+            string workingDirectory = GetWorkingDirectory();
+            if (string.IsNullOrEmpty(workingDirectory))
+                workingDirectory = Environment.CurrentDirectory;
+            return workingDirectory;
+        }
+
+        /// <summary>
+        /// Get the "LIB" environment variable, or NULL if none.
+        /// </summary>
+        private string LibDirectoryToUse()
+        {
+            // First check the real environment.
+            string libDirectory = Environment.GetEnvironmentVariable("LIB");
+
+            // Now go through additional environment variables.
+            string[] additionalVariables = this.EnvironmentVariables;
+            if (additionalVariables != null)
+            {
+                foreach (string var in this.EnvironmentVariables)
+                {
+                    if (var.StartsWith("LIB=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        libDirectory = var.Substring(4);
+                    }
+                }
+            }
+
+            return libDirectory;
+        }
+
+        /// <summary>
+        /// The return code of the compilation. Strangely, this isn't overridable from ToolTask, so we need 
+        /// to create our own.
+        /// </summary>
+        [Output]
+        public new int ExitCode { get; private set; } = 0;
+
+        /// <summary>
+        /// Handle a response from the server, reporting messages and returning
+        /// the appropriate exit code.
+        /// </summary>
+        private int HandleResponse(BuildResponse response)
+        {
+            var completedResponse = response as CompletedBuildResponse;
+            if (completedResponse != null)
+            {
+                LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+
+                if (LogStandardErrorAsError)
+                {
+                    LogErrorOutput(completedResponse.ErrorOutput);
+                }
+                else
+                {
+                    LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                }
+
+                ExitCode = completedResponse.ReturnCode;
+            }
+            else
+            {
+                Debug.Assert(response is MismatchedVersionBuildResponse);
+
+                LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                ExitCode = -1;
+            }
+            return ExitCode;
+        }
+
+        private void LogErrorOutput(string output)
+        {
+            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string line in lines)
+            {
+                string trimmedMessage = line.Trim();
+                if (trimmedMessage != "")
+                {
+                    Log.LogError(trimmedMessage);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Log each of the messages in the given output with the given importance.
+        /// We assume each line is a message to log.
+        /// </summary>
+        /// <remarks>
+        /// Should be "private protected" visibility once it is introduced into C#.
+        /// </remarks>
+        internal abstract void LogMessages(string output, MessageImportance messageImportance);
+
+        /// <summary>
+        /// Get the command line arguments to pass to the compiler.
+        /// </summary>
+        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
+        {
+            CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+            CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
+            var commandLineArguments =
+                CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
+            var responseFileArguments =
+                CommandLineParser.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
+            return commandLineArguments.Concat(responseFileArguments).ToArray();
+        }
 
         /// <summary>
         /// Returns the command line switch used by the tool executable to specify the response file
@@ -645,8 +813,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This method will only be called during the initialization of the host object,
         /// which is only used during IDE builds.
         /// </summary>
-        /// <param name="noDefaultWin32Manifest"></param>
-        /// <param name="win32Manifest"></param>
         /// <returns>the path to the win32 manifest to provide to the host object</returns>
         internal string GetWin32ManifestSwitch
         (
