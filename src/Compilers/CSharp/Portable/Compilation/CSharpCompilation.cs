@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we are done gathering declaration diagnostics. Assert that is
                 // the case. But since we have bugs (see https://github.com/dotnet/roslyn/issues/846)
                 // we disable the assertion until they are fixed.
-                ////Debug.Assert(!_declarationDiagnosticsFrozen);
+                Debug.Assert(!_declarationDiagnosticsFrozen || true);
                 if (_lazyDeclarationDiagnostics == null)
                 {
                     var diagnostics = new DiagnosticBag();
