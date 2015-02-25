@@ -58,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             return VSConstants.S_OK;
         }
+
         int IVsSelectionEvents.OnSelectionChanged(
             IVsHierarchy pHierOld,
             uint itemidOld,

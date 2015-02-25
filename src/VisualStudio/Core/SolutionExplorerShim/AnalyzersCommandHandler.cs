@@ -238,11 +238,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsChecked()
         {
-            _setSeverityErrorMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Error);
-            _setSeverityWarningMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Warn);
-            _setSeverityInfoMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Info);
-            _setSeverityHiddenMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Hidden);
-            _setSeverityNoneMenuItem.Checked = AnyDiagnosticsWithSeverity(ReportDiagnostic.Suppress);
+            bool errorMenuItemChecked = false;
+            bool warningMenuItemChecked = false;
+            bool infoMenuItemChecked = false;
+            bool hiddenMenuItemChecked = false;
+            bool noneMenuItemChecked = false;
+
+            var workspace = TryGetWorkspace() as VisualStudioWorkspaceImpl;
+            if (workspace != null)
+            {
+                var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.AnalyzerItem.AnalyzersFolder.ProjectId);
+
+                foreach (var group in groups)
+                {
+                    var project = (AbstractProject)workspace.GetHostProject(group.Key);
+                    IRuleSetFile ruleSet = project.RuleSetFile;
+
+                    if (ruleSet != null)
+                    {
+                        var specificOptions = ruleSet.GetSpecificDiagnosticOptions();
+
+                        foreach (var diagnosticItem in group)
+                        {
+                            ReportDiagnostic ruleSetSeverity;
+                            if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity))
+                            {
+                                switch (ruleSetSeverity)
+                                {
+                                    case ReportDiagnostic.Default:
+                                        break;
+                                    case ReportDiagnostic.Error:
+                                        errorMenuItemChecked = true;
+                                        break;
+                                    case ReportDiagnostic.Warn:
+                                        warningMenuItemChecked = true;
+                                        break;
+                                    case ReportDiagnostic.Info:
+                                        infoMenuItemChecked = true;
+                                        break;
+                                    case ReportDiagnostic.Hidden:
+                                        hiddenMenuItemChecked = true;
+                                        break;
+                                    case ReportDiagnostic.Suppress:
+                                        noneMenuItemChecked = true;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            _setSeverityErrorMenuItem.Checked = errorMenuItemChecked;
+            _setSeverityWarningMenuItem.Checked = warningMenuItemChecked;
+            _setSeverityInfoMenuItem.Checked = infoMenuItemChecked;
+            _setSeverityHiddenMenuItem.Checked = hiddenMenuItemChecked;
+            _setSeverityNoneMenuItem.Checked = noneMenuItemChecked;
         }
 
         private bool AnyDiagnosticsWithSeverity(ReportDiagnostic severity)
@@ -304,7 +357,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 if (workspace != null)
                 {
                     var project = (AbstractProject)workspace.GetHostProject(projectId);
-
                     if (project == null)
                     {
                         SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotFindProject, projectId));
