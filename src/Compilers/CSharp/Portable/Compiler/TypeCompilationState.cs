@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A graph of method->method references for this(...) constructor initializers.
         /// Used to detect and report initializer cycles.
         /// </summary>
-        Dictionary<MethodSymbol, Tuple<MethodSymbol, CSharpSyntaxNode>> _constructorInitializers;
+        SmallDictionary<MethodSymbol, MethodSymbol> _constructorInitializers;
 
         public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
@@ -175,55 +175,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             _constructorInitializers = null;
         }
 
-        // Add an edge to the ctor-initializer graph
-        internal void NoteConstructorInitializer(MethodSymbol method1, MethodSymbol method2, CSharpSyntaxNode syntax)
+        /// <summary>
+        /// Report an error if adding the edge (method1, method2) to the ctor-initializer
+        /// graph would add a new cycle to that graph.
+        /// </summary>
+        /// <param name="method1">a calling ctor</param>
+        /// <param name="method2">the chained-to ctor</param>
+        /// <param name="syntax">where to report a cyclic error if needed</param>
+        /// <param name="diagnostics">a diagnostic bag for receiving the diagnostic</param>
+        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            if (_constructorInitializers == null)
+            // precondition and postcondition: the graph _constructorInitializers is acyclic.
+            // If adding the edge (method1, method2) would induce a cycle, we report an error
+            // and do not add it to the set of edges. If it would not induce a cycle we add
+            // it to the set of edges and return.
+
+            if (method1 == method2)
             {
-                _constructorInitializers = new Dictionary<MethodSymbol, Tuple<MethodSymbol, CSharpSyntaxNode>>();
+                // direct recursion is diagnosed elsewhere
+                throw ExceptionUtilities.Unreachable;
             }
 
-            _constructorInitializers.Add(method1, new Tuple<MethodSymbol, CSharpSyntaxNode>(method2, syntax));
-        }
-
-        // Report any cycles in the ctor-intializer graph starting at the given ctor.
-        internal void ReportCtorInitializerCycles(MethodSymbol ctor, DiagnosticBag diagnostics)
-        {
             if (_constructorInitializers == null)
             {
+                _constructorInitializers = new SmallDictionary<MethodSymbol, MethodSymbol>();
+                _constructorInitializers.Add(method1, method2);
                 return;
             }
 
-            var visiting = PooledHashSet<MethodSymbol>.GetInstance();
-            var todo = PooledHashSet<MethodSymbol>.GetInstance();
-            todo.AddAll(_constructorInitializers.Keys);
-
-            if (HasCycleAt(ctor, visiting, todo))
+            MethodSymbol next = method2;
+            while (true)
             {
-                var errorLocation = _constructorInitializers[ctor].Item2.Location;
-                diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall2, errorLocation, ctor);
-                _constructorInitializers.Remove(ctor);
-            }
-
-            visiting.Free();
-            todo.Free();
-        }
-
-        private bool HasCycleAt(MethodSymbol ctor, HashSet<MethodSymbol> visiting, HashSet<MethodSymbol> todo)
-        {
-            // Consider rewriting this code to use an explicit stack instead of recursion.
-            try
-            {
-                if (!visiting.Add(ctor))
-                    return true;
-                if (!todo.Remove(ctor))
-                    return false;
-                var next = _constructorInitializers[ctor];
-                return next != null && HasCycleAt(next.Item1, visiting, todo);
-            }
-            finally
-            {
-                visiting.Remove(ctor);
+                if (_constructorInitializers.TryGetValue(next, out next))
+                {
+                    Debug.Assert((object)next != null);
+                    if (method1 == next)
+                    {
+                        // We found a (new) cycle containing the edge (method1, method2). Report an
+                        // error and do not add the edge.
+                        diagnostics.Add(ErrorCode.ERR_IndirectRecursiveConstructorCall, syntax.Location, method1);
+                        return;
+                    }
+                }
+                else
+                {
+                    // we've reached the end of the path without finding a cycle. Add the new edge.
+                    _constructorInitializers.Add(method1, method2);
+                    return;
+                }
             }
         }
     }
