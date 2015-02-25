@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
         {
-            Contract.ThrowIfFalse(AnalyzerManager.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+            Contract.ThrowIfFalse(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
 
             if (_hostDiagnosticUpdateSource == null)
             {
@@ -510,20 +510,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // Get all the analyzer actions, including the per-compilation actions.
                 var analyzerExecutor = GetAnalyzerExecutor(analyzer, compilation, localDiagnostics.Add);
                 var analyzerActions = await this.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                
-                if (analyzerActions.CompilationEndActionsCount > 0 && analyzerActions.CompilationStartActionsCount > 0 && forceAnalyzeAllDocuments != null)
+                var hasDependentCompilationEndAction = await AnalyzerManager.Instance.GetAnalyzerHasDependentCompilationEndAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+
+                if (hasDependentCompilationEndAction && forceAnalyzeAllDocuments != null)
                 {
-                    if (analyzerActions.CodeBlockEndActionsCount > 0 ||
-                        analyzerActions.CodeBlockStartActionsCount > 0 ||
-                        analyzerActions.SemanticModelActionsCount > 0 ||
-                        analyzerActions.SymbolActionsCount > 0 ||
-                        analyzerActions.SyntaxNodeActionsCount > 0 ||
-                        analyzerActions.SyntaxTreeActionsCount > 0)
-                    {
-                        // Analyzer registered a compilation end action and at least one other analyzer action during it's compilation start action.
-                        // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
-                        forceAnalyzeAllDocuments(_project, analyzer, _cancellationToken);
-                    }
+                    // Analyzer registered a compilation end action and at least one other analyzer action during it's compilation start action.
+                    // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
+                    forceAnalyzeAllDocuments(_project, analyzer, _cancellationToken);
                 }
 
                 // CompilationEnd actions.
