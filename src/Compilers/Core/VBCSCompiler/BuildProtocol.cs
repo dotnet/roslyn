@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public static BuildRequest Create(RequestLanguage language,
                                           string workingDirectory,
-                                          string tempPath,
                                           IList<string> args,
                                           string libDirectory = null)
         {
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Read the length of the request
             var lengthBuffer = new byte[4];
             Log("Reading length of request");
-            await BuildProtocolConstants.ReadAllAsync(inStream,
+            await ReadAllAsync(inStream,
                                                       lengthBuffer,
                                                       4,
                                                       cancellationToken).ConfigureAwait(false);
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // Read the full request
             var responseBuffer = new byte[length];
-            await BuildProtocolConstants.ReadAllAsync(inStream,
+            await ReadAllAsync(inStream,
                                                       responseBuffer,
                                                       length,
                                                       cancellationToken).ConfigureAwait(false);
@@ -323,16 +322,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Log("Reading response length");
             // Read the response length
             var lengthBuffer = new byte[4];
-            await BuildProtocolConstants.ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
+            await ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToUInt32(lengthBuffer, 0);
 
             // Read the response
             Log("Reading response of length {0}", length);
             var responseBuffer = new byte[length];
-            await BuildProtocolConstants.ReadAllAsync(stream,
-                                                      responseBuffer,
-                                                      responseBuffer.Length,
-                                                      cancellationToken).ConfigureAwait(false);
+            await ReadAllAsync(stream,
+                               responseBuffer,
+                               responseBuffer.Length,
+                               cancellationToken).ConfigureAwait(false);
 
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     case ResponseType.Completed:
                         return CompletedBuildResponse.Create(reader);
                     case ResponseType.MismatchedVersion:
-                        return MismatchedVersionBuildResponse.Create(reader);
+                        return new MismatchedVersionBuildResponse();
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -407,11 +406,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
-
-        public static MismatchedVersionBuildResponse Create(BinaryReader reader)
-        {
-            return new MismatchedVersionBuildResponse();
-        }
 
         /// <summary>
         /// MismatchedVersion has no body.

@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract partial class CommonCompiler
     {
-        protected const int Failed = 1;
-        protected const int Succeeded = 0;
+        internal const int Failed = 1;
+        internal const int Succeeded = 0;
 
         /// <summary>
         /// Return the path in which to look for response files.  This should only be called 
