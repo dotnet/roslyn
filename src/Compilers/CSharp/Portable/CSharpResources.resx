@@ -1418,6 +1418,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_RecursiveConstructorCall" xml:space="preserve">
     <value>Constructor '{0}' cannot call itself</value>
   </data>
+  <data name="ERR_RecursiveConstructorCall2" xml:space="preserve">
+    <value>Constructor '{0}' cannot call itself through another constructor</value>
+  </data>
   <data name="ERR_ObjectCallingBaseConstructor" xml:space="preserve">
     <value>'{0}' has no base class and cannot call a base constructor</value>
   </data>

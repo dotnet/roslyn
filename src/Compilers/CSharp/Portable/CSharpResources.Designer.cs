@@ -7280,6 +7280,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself through another constructor.
+        /// </summary>
+        internal static string ERR_RecursiveConstructorCall2 {
+            get {
+                return ResourceManager.GetString("ERR_RecursiveConstructorCall2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type of &apos;{0}&apos; cannot be inferred since its initializer directly or indirectly refers to the definition..
         /// </summary>
         internal static string ERR_RecursivelyTypedVariable {

@@ -10055,6 +10055,31 @@ public class A : A<int>
                 Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "base").WithArguments("A.A()"));
         }
 
+        [WorkItem(366, "https://github.com/dotnet/roslyn/issues/366")]
+        [Fact]
+        public void IndirectConstructorCycle()
+        {
+            var text = @"
+public class A
+{
+    public A() : this(1) {}
+    public A(int x) : this(string.Empty) {}
+    public A(string s) : this(1) {}
+    public A(long l) : this(double.MaxValue) {}
+    public A(double d) : this(char.MaxValue) {}
+    public A(char c) : this(long.MaxValue) {}
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (6,24): error CS0768: Constructor 'A.A(string)' cannot call itself through another constructor
+                //     public A(string s) : this(1) {}
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall2, ": this(1)").WithArguments("A.A(string)").WithLocation(6, 24),
+                // (9,22): error CS0768: Constructor 'A.A(char)' cannot call itself through another constructor
+                //     public A(char c) : this(long.MaxValue) {}
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall2, ": this(long.MaxValue)").WithArguments("A.A(char)").WithLocation(9, 22)
+                );
+        }
+
         [Fact]
         public void CS0517ERR_ObjectCallingBaseConstructor()
         {
