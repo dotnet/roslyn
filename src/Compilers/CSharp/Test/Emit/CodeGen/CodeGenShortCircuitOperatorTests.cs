@@ -5554,16 +5554,39 @@ using System.Threading.Tasks;
 
 class Foo<T>
 {
-    T Method() => default(T); // returns value of unconstrained type parameter type
-    void M1() => this?.Method();
-    async void M2() => this?.Method();
-    async Task M3() => this?.Method();
-    void M4() {
-        Action f1 = async () => this?.Method();
-        Func<Task> f2 = async () => this?.Method();
+    public T Method(int i)
+    {
+        Console.Write(i);
+        return default(T); // returns value of unconstrained type parameter type
+    }
+    public void M1() => this?.Method(4);
+    public async void M2() => this?.Method(5);
+    public async Task M3() => this?.Method(6);
+    public async Task M4() {
+        Foo<T> a = new Foo<T>();
+        Foo<T> b = null;
+        Action f1 = async () => this?.Method(1);
+        f1();
+        Func<Task> f2 = async () => a?.Method(2);
+        await f2();
+        Func<Task> f3 = async () => b?.Method(3);
+        await f3();
+        M1();
+        M2();
+        await M3();
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        // this will complete synchronously as there are no truly async ops.
+        new Foo<int>().M4();
     }
 }";
-            var compilation = CreateCompilation(source, references: new[] { MscorlibRef }).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(
+                source, references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: "12456");
         }
     }
 }
