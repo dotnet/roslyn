@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 2) <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is invoked only once per-analyzer.
     /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-analyzer per-compilation.
     /// </summary>
+    /// <remarks>
+    /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/> and
+    /// <see cref="GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer, AnalyzerExecutor)"/> out of the AnalyzerManager and into analyzer drivers.
+    /// </remarks>
     internal class AnalyzerManager
     {
         /// <summary>
@@ -142,6 +146,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns true if analyzer registered a compilation start action during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/>
+        /// which registered a compilation end action and at least one other analyzer action, that the end action depends upon.
+        /// </summary>
+        public async Task<bool> GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            {
+                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                var compilationActions = compilationScope.GetCompilationOnlyAnalyzerActions(analyzer);
+                return compilationActions != null &&
+                    compilationActions.CompilationEndActionsCount > 0 &&
+                    (compilationActions.CodeBlockEndActionsCount > 0 ||
+                     compilationActions.CodeBlockStartActionsCount > 0 ||
+                     compilationActions.SemanticModelActionsCount > 0 ||
+                     compilationActions.SymbolActionsCount > 0 ||
+                     compilationActions.SyntaxNodeActionsCount > 0 ||
+                     compilationActions.SyntaxTreeActionsCount > 0);
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
@@ -216,24 +244,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (customTag == WellKnownDiagnosticTags.NotConfigurable)
                 {
                     return true;
-                }
-            }
-
-            return false;
-        }
-
-        internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
-        {
-            if (diagnostic.Id == AnalyzerExecutor.DiagnosticId)
-            {
-#pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
-#pragma warning restore RS0013
-                {
-                    if (tag == WellKnownDiagnosticTags.AnalyzerException)
-                    {
-                        return true;
-                    }
                 }
             }
 

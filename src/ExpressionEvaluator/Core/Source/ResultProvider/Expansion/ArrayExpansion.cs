@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index += _count;
         }
 
-        private DkmEvaluationResult GetRow(
+        private EvalResultDataItem GetRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue value,
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var formatter = resultProvider.Formatter;
             var name = formatter.GetArrayIndexExpression(indices);
             var elementType = value.Type.ElementType;
-            var element = value.GetArrayElement(indices);
+            var element = value.GetArrayElement(indices, inspectionContext);
             var fullName = GetFullName(parent, name, formatter);
-            var dataItem = resultProvider.CreateDataItem(
+            return resultProvider.CreateDataItem(
                 inspectionContext,
                 name,
                 typeDeclaringMember: null,
@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 category: DkmEvaluationResultCategory.Other,
                 flags: element.EvalFlags,
                 evalFlags: inspectionContext.EvaluationFlags);
-            return resultProvider.GetResult(dataItem, element.Type, elementType, parent);
         }
 
         private int[] GetIndices(int index)

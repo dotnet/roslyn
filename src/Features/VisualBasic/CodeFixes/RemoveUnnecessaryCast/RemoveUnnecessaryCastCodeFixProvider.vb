@@ -117,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             ' Finally, rewrite the cast expression
             Dim exprToRewrite As ExpressionSyntax = Nothing
             Dim annotatedNodes = Await FindNodesWithAnnotationAsync(_expressionAnnotation, document, cancellationToken).ConfigureAwait(False)
+
             For Each annotatedNode In annotatedNodes
                 exprToRewrite = TryCast(annotatedNode.AsNode, ExpressionSyntax)
                 If exprToRewrite IsNot Nothing AndAlso exprToRewrite.IsKind(originalExpr.Kind) Then
@@ -138,9 +139,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             End If
 
             Dim rewriter = New Rewriter(exprToRewrite)
-            Dim newExpression = rewriter.Visit(exprToRewrite).WithoutAnnotations(_expressionAnnotation)
+            Dim newExpression = rewriter.Visit(exprToRewrite)
+
+            ' Remove the annotation from the expression so that it isn't hanging around later.
+            If newExpression.HasAnnotation(_expressionAnnotation) Then
+
+                newExpression = newExpression.WithoutAnnotations(_expressionAnnotation)
+
+            ElseIf newExpression.IsKind(SyntaxKind.ParenthesizedExpression) Then
+
+                Dim parenthesizedExpression = DirectCast(newExpression, ParenthesizedExpressionSyntax)
+                If parenthesizedExpression.Expression.HasAnnotation(_expressionAnnotation) Then
+                    newExpression = parenthesizedExpression _
+                        .WithExpression(parenthesizedExpression.Expression.WithoutAnnotations(_expressionAnnotation))
+                End If
+
+            End If
 
             document = Await document.ReplaceNodeAsync(exprToRewrite, newExpression, cancellationToken).ConfigureAwait(False)
+
             If annotatedNodes.Count > 1 Then
                 Return Await RewriteCoreAsync(document, originalExpr, cancellationToken).ConfigureAwait(False)
             End If

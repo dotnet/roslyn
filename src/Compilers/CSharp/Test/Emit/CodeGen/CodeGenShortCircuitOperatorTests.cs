@@ -4176,7 +4176,7 @@ class Program
             var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
-        [Fact]
+        [Fact(Skip = "836"), WorkItem(836, "GitHub")]
         public void ConditionalMemberAccessRace002()
         {
             var source = @"
