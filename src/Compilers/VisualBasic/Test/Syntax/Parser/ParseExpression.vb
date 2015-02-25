@@ -2734,4 +2734,46 @@ End Module]]>.Value)
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
+    <Fact>
+    Public Sub TooDeepLambdaDeclarationsAsExpression()
+        Dim depth = 5000
+        Dim builder As New StringBuilder()
+        builder.AppendLine("Sub()")
+        For i = 0 To depth
+            Dim line = String.Format("Dim x{0} = Sub()", i)
+            builder.AppendLine(line)
+        Next
+
+        For i = 0 To depth
+            builder.AppendLine("End Sub")
+        Next
+
+        builder.AppendLine("End Sub")
+
+        Dim expr = SyntaxFactory.ParseExpression(builder.ToString())
+        Dim diagnostic = expr.GetDiagnostics().Single()
+        Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
+    End Sub
+
+    <Fact>
+    Public Sub TooDeepLambdaDeclarationsAsStatement()
+        Dim depth = 5000
+        Dim builder As New StringBuilder()
+        builder.AppendLine("Dim c = Sub()")
+        For i = 0 To depth
+            Dim line = String.Format("Dim x{0} = Sub()", i)
+            builder.AppendLine(line)
+        Next
+
+        For i = 0 To depth
+            builder.AppendLine("End Sub")
+        Next
+
+        builder.AppendLine("End Sub")
+
+        Dim stmt = SyntaxFactory.ParseExecutableStatement(builder.ToString())
+        Dim diagnostic = stmt.GetDiagnostics().Single()
+        Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
+    End Sub
+
 End Class
