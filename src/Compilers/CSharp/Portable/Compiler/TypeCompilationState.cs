@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -67,6 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly CSharpCompilation Compilation;
 
         public LambdaFrame staticLambdaFrame;
+
+        /// <summary>
+        /// A graph of method->method references for this(...) constructor initializers.
+        /// Used to detect and report initializer cycles.
+        /// </summary>
+        Dictionary<MethodSymbol, Tuple<MethodSymbol, CSharpSyntaxNode>> _constructorInitializers;
 
         public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
@@ -164,6 +172,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _wrappers = null;
+            _constructorInitializers = null;
+        }
+
+        // Add an edge to the ctor-initializer graph
+        internal void NoteConstructorInitializer(MethodSymbol method1, MethodSymbol method2, CSharpSyntaxNode syntax)
+        {
+            if (_constructorInitializers == null)
+            {
+                _constructorInitializers = new Dictionary<MethodSymbol, Tuple<MethodSymbol, CSharpSyntaxNode>>();
+            }
+
+            _constructorInitializers.Add(method1, new Tuple<MethodSymbol, CSharpSyntaxNode>(method2, syntax));
+        }
+
+        // Report any cycles in the ctor-intializer graph starting at the given ctor.
+        internal void ReportCtorInitializerCycles(MethodSymbol ctor, DiagnosticBag diagnostics)
+        {
+            if (_constructorInitializers == null)
+            {
+                return;
+            }
+
+            var visiting = PooledHashSet<MethodSymbol>.GetInstance();
+            var todo = PooledHashSet<MethodSymbol>.GetInstance();
+            todo.AddAll(_constructorInitializers.Keys);
+
+            if (HasCycleAt(ctor, visiting, todo))
+            {
+                var errorLocation = _constructorInitializers[ctor].Item2.Location;
+                diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall2, errorLocation, ctor);
+                _constructorInitializers.Remove(ctor);
+            }
+
+            visiting.Free();
+            todo.Free();
+        }
+
+        private bool HasCycleAt(MethodSymbol ctor, HashSet<MethodSymbol> visiting, HashSet<MethodSymbol> todo)
+        {
+            // Consider rewriting this code to use an explicit stack instead of recursion.
+            try
+            {
+                if (!visiting.Add(ctor))
+                    return true;
+                if (!todo.Remove(ctor))
+                    return false;
+                var next = _constructorInitializers[ctor];
+                return next != null && HasCycleAt(next.Item1, visiting, todo);
+            }
+            finally
+            {
+                visiting.Remove(ctor);
+            }
         }
     }
 }

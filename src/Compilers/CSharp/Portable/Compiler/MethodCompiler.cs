@@ -908,6 +908,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // errors (note: errors, not diagnostics).
                 SetGlobalErrorIfTrue(hasErrors);
 
+                if (methodSymbol.MethodKind == MethodKind.Constructor)
+                {
+                    compilationState.ReportCtorInitializerCycles(methodSymbol, diagsForCurrentMethod);
+                }
+
                 bool diagsWritten = false;
                 var actualDiagnostics = diagsForCurrentMethod.ToReadOnly();
                 if (sourceMethod != null)
@@ -1412,6 +1417,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerInvocation != null)
                 {
+                    var ctorCall = initializerInvocation as BoundCall;
+                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
+                    {
+                        // Note a this(...) constructor initializer so that later we can detect (indirect) cycles.
+                        compilationState.NoteConstructorInitializer(method, ctorCall.Method, ctorCall.Syntax);
+                    }
+
                     constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
                 }
