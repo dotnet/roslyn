@@ -54,6 +54,7 @@
         Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
+    <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
     <ItemGroup Condition="'$(CIBuild)' == 'true'">
       <TestAssemblies 
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
