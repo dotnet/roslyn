@@ -220,7 +220,7 @@ namespace Roslyn.Utilities
                 // cancelled this new computation if we were the only requestor.
                 if (newAsynchronousComputation != null)
                 {
-                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
+                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
                 }
 
                 return request.Task.WaitAndGetResult(cancellationToken);
@@ -254,7 +254,7 @@ namespace Roslyn.Utilities
 
                     if (newAsynchronousComputation != null)
                     {
-                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: null, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
+                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: null, callerCancellationToken: cancellationToken);
                     }
 
                     throw;
@@ -324,7 +324,7 @@ namespace Roslyn.Utilities
 
             if (newAsynchronousComputation != null)
             {
-                StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
+                StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
             }
 
             return request.Task;
@@ -352,7 +352,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request requestToCompleteSynchronously, CancellationToken requestToCompleteSynchronouslyCancellationToken)
+        private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request requestToCompleteSynchronously, CancellationToken callerCancellationToken)
         {
             var cancellationToken = computationToStart.CancellationTokenSource.Token;
 
@@ -399,7 +399,7 @@ namespace Roslyn.Utilities
             {
                 // The underlying computation cancelled with the correct token, but we must ourselves ensure that the caller
                 // on our stack gets an OperationCanceledException thrown with the right token
-                requestToCompleteSynchronouslyCancellationToken.ThrowIfCancellationRequested();
+                callerCancellationToken.ThrowIfCancellationRequested();
 
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
