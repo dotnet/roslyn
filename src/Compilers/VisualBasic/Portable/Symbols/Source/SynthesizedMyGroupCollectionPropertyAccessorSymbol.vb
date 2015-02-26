@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim containingTypeName As String = MakeSafeName(containingType.Name)
 
             Dim targetTypeName As String = PropertyOrEvent.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            Debug.Assert(targetTypeName.StartsWith("Global."))
+            Debug.Assert(targetTypeName.StartsWith("Global.", StringComparison.Ordinal))
 
             Dim propertyName As String = MakeSafeName(PropertyOrEvent.Name)
 

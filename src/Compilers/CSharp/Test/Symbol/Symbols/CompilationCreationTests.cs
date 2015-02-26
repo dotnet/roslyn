@@ -2748,7 +2748,7 @@ System.Diagnostics.Process.GetCurrentProcess();
         {
             public override string ResolveReference(string reference, string baseFilePath)
             {
-                return reference.EndsWith("-resolve") ? s_resolvedPath : reference;
+                return reference.EndsWith("-resolve", StringComparison.Ordinal) ? s_resolvedPath : reference;
             }
         }
 

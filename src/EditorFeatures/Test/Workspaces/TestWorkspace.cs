@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -454,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
-                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":|}"));
+                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":|}", StringComparison.Ordinal));
 
             var currentPositionInInertText = 0;
             var currentPositionInProjectionBuffer = 0;

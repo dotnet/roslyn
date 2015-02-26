@@ -532,7 +532,7 @@ public class Ref<T> where T : Entity
         {
             var text = CurrentDocument.GetTextAsync().Result;
             var tree = CurrentDocument.GetSyntaxTreeAsync().Result;
-            var position = text.ToString().IndexOf("DynamicMethod");
+            var position = text.ToString().IndexOf("DynamicMethod", StringComparison.Ordinal);
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
             var scope = vsCMElement.vsCMElementFunction;
@@ -547,8 +547,7 @@ public class Ref<T> where T : Entity
         {
             var text = CurrentDocument.GetTextAsync().Result;
             var tree = CurrentDocument.GetSyntaxTreeAsync().Result;
-            var position = text.ToString().IndexOf("protected virtual string MethodB");
-            position--;
+            var position = text.ToString().IndexOf("protected virtual string MethodB", StringComparison.Ordinal) - 1;
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
 

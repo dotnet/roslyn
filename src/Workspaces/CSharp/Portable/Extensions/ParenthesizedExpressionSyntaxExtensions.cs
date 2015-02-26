@@ -271,15 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return true;
                 }
-
-                if (expression.IsKind(SyntaxKind.NumericLiteralExpression))
-                {
-                    var numericLiteral = (LiteralExpressionSyntax)expression;
-                    if (numericLiteral.Token.ValueText.StartsWith("-", StringComparison.Ordinal))
-                    {
-                        return true;
-                    }
-                }
             }
 
             return false;

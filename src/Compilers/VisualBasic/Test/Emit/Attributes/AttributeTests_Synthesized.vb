@@ -33,7 +33,7 @@ End Class
             Dim reference = CreateCompilationWithMscorlibAndVBRuntime(source).EmitToImageReference()
             Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
-            Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
+            Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Single(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)), NamedTypeSymbol)
             Dim expectedAttrs = {"CompilerGeneratedAttribute"}
             Dim actualAttrs = GetAttributeNames(pid.GetAttributes())
             AssertEx.SetEqual(expectedAttrs, actualAttrs)

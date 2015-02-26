@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
 
                 Dim keywordList = GetIntrinsicTypeKeywords(context)
 
-                Return keywordList.Where(Function(k) k.Keyword.EndsWith("Byte") OrElse
-                                                     k.Keyword.EndsWith("Short") OrElse
-                                                     k.Keyword.EndsWith("Integer") OrElse
-                                                     k.Keyword.EndsWith("Long"))
+                Return keywordList.Where(Function(k) k.Keyword.EndsWith("Byte", StringComparison.Ordinal) OrElse
+                                                     k.Keyword.EndsWith("Short", StringComparison.Ordinal) OrElse
+                                                     k.Keyword.EndsWith("Integer", StringComparison.Ordinal) OrElse
+                                                     k.Keyword.EndsWith("Long", StringComparison.Ordinal))
             End If
 
             ' Are we inside a type constraint? Because these are never allowed there

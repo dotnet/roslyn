@@ -155,7 +155,7 @@ End Class
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en"})
             cmd.Run(output, Nothing)
 
-            Assert.True(output.ToString().StartsWith(LogoLine1), "vbc should print logo and help if no args specified")
+            Assert.True(output.ToString().StartsWith(LogoLine1, StringComparison.Ordinal), "vbc should print logo and help if no args specified")
         End Sub
 
         <Fact>
@@ -1713,14 +1713,14 @@ a.vb
             parsedArgs.Errors.Verify()
             AssertEx.Equal({"a", "b", "c"},
                            parsedArgs.MetadataReferences.
-                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll")).
+                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal)).
                                       Select(Function(res) res.Reference))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/Reference: ,,, b ,,", "/nostdlib", "/vbruntime-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal({" ", " b "},
                            parsedArgs.MetadataReferences.
-                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll")).
+                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal)).
                                       Select(Function(res) res.Reference))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/r:", "a.vb"}, _baseDirectory)
@@ -2066,7 +2066,7 @@ a.vb
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)
             Assert.Equal(2, err.Arguments.Count)
             Assert.Equal(file.Path, DirectCast(err.Arguments(0), String))
-            If Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en") OrElse Thread.CurrentThread.CurrentUICulture.Name = "" Then
+            If Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en", StringComparison.Ordinal) OrElse Thread.CurrentThread.CurrentUICulture.Name = "" Then
                 Assert.Equal(err.Arguments(1), "Root element is missing.")
             End If
         End Sub
@@ -3277,10 +3277,10 @@ End Class
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(1).Properties.Kind)
             Assert.Equal("abc", parsedArgs.MetadataReferences(2).Reference)
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(2).Properties.Kind)
-            Assert.False(parsedArgs.MetadataReferences(0).Reference.EndsWith("mscorlib.dll"))
-            Assert.False(parsedArgs.MetadataReferences(1).Reference.EndsWith("mscorlib.dll"))
-            Assert.False(parsedArgs.MetadataReferences(2).Reference.EndsWith("mscorlib.dll"))
-            Assert.True(parsedArgs.DefaultCoreLibraryReference.Value.Reference.EndsWith("mscorlib.dll"))
+            Assert.False(parsedArgs.MetadataReferences(0).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.False(parsedArgs.MetadataReferences(1).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.False(parsedArgs.MetadataReferences(2).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.True(parsedArgs.DefaultCoreLibraryReference.Value.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
             Assert.Equal(MetadataImageKind.Assembly, parsedArgs.DefaultCoreLibraryReference.Value.Properties.Kind)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/ADDMODULE", "a.vb"}, _baseDirectory)
@@ -3349,7 +3349,7 @@ End Class
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.True(outWriter.ToString().Trim().StartsWith("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
+            Assert.True(outWriter.ToString().Trim().StartsWith("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ", StringComparison.Ordinal)) ' Cannot create a file when that file already exists.
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
@@ -5178,7 +5178,7 @@ End Module
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
 
                 output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /preferreduilang:en /r:" & ref & " /t:library " & source, expectedRetCode:=1)
-                Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied."))
+                Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied.", StringComparison.Ordinal))
 
             Finally
                 Dim output = RunAndGetOutput("cmd", "/C icacls " & ref & " /reset /Q")
@@ -6053,10 +6053,10 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
         Private Shared Function OccurrenceCount(source As String, word As String) As Integer
             Dim n = 0
-            Dim index = source.IndexOf(word)
+            Dim index = source.IndexOf(word, StringComparison.Ordinal)
             While (index >= 0)
                 n += 1
-                index = source.IndexOf(word, index + word.Length)
+                index = source.IndexOf(word, index + word.Length, StringComparison.Ordinal)
             End While
             Return n
         End Function

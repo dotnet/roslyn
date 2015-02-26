@@ -2384,7 +2384,7 @@ End Module
     </file>
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression("Property1")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -2417,7 +2417,7 @@ End Module
     </file>
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression("Property1")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -3647,7 +3647,7 @@ End Module
     </file>
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression("{1, 2, 3}")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -3755,7 +3755,7 @@ End Module
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim source = compilation.SyntaxTrees.Single().GetCompilationUnitRoot().ToFullString()
-            Dim position = source.IndexOf("fielda = Group")
+            Dim position = source.IndexOf("fielda = Group", StringComparison.Ordinal)
             Dim syntaxNode = compilation.SyntaxTrees().Single().GetCompilationUnitRoot().FindToken(position).Parent.Parent.Parent.DescendantNodesAndSelf.OfType(Of GroupAggregationSyntax).Single()
 
             Dim speculativeConstantValue = semanticModel.GetSpeculativeConstantValue(syntaxNode.SpanStart, syntaxNode)
@@ -3778,7 +3778,7 @@ End Module
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim source = compilation.SyntaxTrees.Single().GetCompilationUnitRoot().ToFullString()
-            Dim position = source.IndexOf("GoTo Label1")
+            Dim position = source.IndexOf("GoTo Label1", StringComparison.Ordinal)
             Dim syntaxNode = compilation.SyntaxTrees().Single().GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf.OfType(Of LabelSyntax).Single()
 
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeConstantValue(syntaxNode.SpanStart, syntaxNode)
@@ -4433,7 +4433,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
 
             Dim originalSyntax = tree.GetCompilationUnitRoot().DescendantNodes.OfType(Of InvocationExpressionSyntax).Last()
-            Assert.True(originalSyntax.ToString().StartsWith("fields"))
+            Assert.True(originalSyntax.ToString().StartsWith("fields", StringComparison.Ordinal))
 
             Dim info1 = model.GetSymbolInfo(originalSyntax)
             Dim method1 = TryCast(info1.Symbol, MethodSymbol)
@@ -4495,7 +4495,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
 
             Dim originalSyntax = tree.GetCompilationUnitRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax).Single()
-            Assert.True(originalSyntax.ToString().EndsWith(".ToList"))
+            Assert.True(originalSyntax.ToString().EndsWith(".ToList", StringComparison.Ordinal))
 
             Dim info1 = model.GetSymbolInfo(originalSyntax)
             Dim method1 = TryCast(info1.Symbol, MethodSymbol)
