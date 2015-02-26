@@ -2754,10 +2754,11 @@ Class C
         End Function
 End Class</Code>.Value
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.Foo() As Task
+            Dim description =
+$"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
 Doc Comment!
-Usage:
-  <%= VBFeaturesResources.Await %> Foo()</File>.ConvertTestSourceTag()
+{WorkspacesResources.Usage}
+  {VBFeaturesResources.Await} Foo()"
 
             VerifyItemWithMscorlib45(code, "Foo", description, LanguageNames.VisualBasic)
         End Sub
@@ -2794,7 +2795,7 @@ Class SomeClass
     End Sub
 End Class</Code>.Value
 
-            VerifyItemExists(code, "Foo", "(Deprecated) Sub SomeClass.Foo()")
+            VerifyItemExists(code, "Foo", $"({VBFeaturesResources.Deprecated}) Sub SomeClass.Foo()")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

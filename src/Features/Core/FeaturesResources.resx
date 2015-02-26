@@ -746,6 +746,9 @@ Do you want to continue?</value>
   <data name="UserDiagnosticAnalyzerThrows" xml:space="preserve">
     <value>The User Diagnostic Analyzer '{0}' threw an exception with message '{1}'.</value>
   </data>
+  <data name="DiagnosticDescriptorThrows" xml:space="preserve">
+    <value>The DiagnosticDescriptor with ID '{0}' threw an exception with message '{1}'.</value>
+  </data>
   <data name="RemoveUnnecessaryCast" xml:space="preserve">
     <value>Remove Unnecessary Cast</value>
   </data>

@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-
         internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
         {
             bool hasErrors = false;
@@ -223,8 +222,17 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
-
+                // Catch exceptions from diagnostic formatter as diagnostic descriptors for analyzer diagnostics can throw an exception while formatting diagnostic message.
+                try
+                {
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                }
+                catch (Exception ex)
+                {
+                    var exceptionDiagnostic = AnalyzerExecutor.GetDescriptorDiagnostic(diag.Id, ex);
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(exceptionDiagnostic, this.Culture));
+                }
+                
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
                     hasErrors = true;

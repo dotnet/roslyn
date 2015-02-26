@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 FormatResult("i", value, objectType),
                 EvalResult("i", "1 {$1}", "Object {Integer}", "i", DkmEvaluationResultFlags.HasObjectId))
             ' Integer (hex)
-            value = CreateDkmClrValue(value:=2, type:=GetType(Integer), alias:="2", evalFlags:=DkmEvaluationResultFlags.HasObjectId, inspectionContext:=CreateDkmInspectionContext(radix:=16))
+            value = CreateDkmClrValue(value:=2, type:=GetType(Integer), alias:="2", evalFlags:=DkmEvaluationResultFlags.HasObjectId)
             Verify(
-                FormatResult("i", value, objectType),
+                FormatResult("i", value, objectType, inspectionContext:=CreateDkmInspectionContext(radix:=16)),
                 EvalResult("i", "&H00000002 {$2}", "Object {Integer}", "i", DkmEvaluationResultFlags.HasObjectId))
             ' Char
             value = CreateDkmClrValue(value:="c"c, type:=GetType(Char), alias:="3", evalFlags:=DkmEvaluationResultFlags.HasObjectId)
