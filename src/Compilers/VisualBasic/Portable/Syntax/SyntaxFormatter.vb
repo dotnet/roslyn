@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class SyntaxFormatter
         Inherits VisualBasicSyntaxRewriter
 
+        Private ReadOnly consideredSpan As TextSpan
         Private ReadOnly indentWhitespace As String
         Private ReadOnly useElasticTrivia As Boolean
         Private ReadOnly useDefaultCasing As Boolean
@@ -35,9 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' <param name="useElasticTrivia">Whether to use elastic trivia or not</param>
         ''' <param name="useDefaultCasing">Whether to rewrite keywords in default casing or not</param>
         ''' <remarks></remarks>
-        Private Sub New(indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False)
-            : MyBase.New(VisitIntoStructuredTrivia:=True)
+        Private Sub New(consideredSpan As TextSpan, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False)
+            MyBase.New(visitIntoStructuredTrivia:=True)
 
+            Me.consideredSpan = consideredSpan
             Me.indentWhitespace = indentWhitespace
             Me.useElasticTrivia = useElasticTrivia
             Me.useDefaultCasing = useDefaultCasing
@@ -46,21 +48,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Friend Shared Function Format(Of TNode As SyntaxNode)(node As TNode, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxNode
-            Dim formatter As New SyntaxFormatter(indentWhitespace, useElasticTrivia, useDefaultCasing)
+            Dim formatter As New SyntaxFormatter(node.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
             Dim result As TNode = CType(formatter.Visit(node), TNode)
             formatter.Free()
             Return result
         End Function
 
         Friend Shared Function Format(token As SyntaxToken, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxToken
-            Dim formatter As New SyntaxFormatter(indentWhitespace, useElasticTrivia, useDefaultCasing)
+            Dim formatter As New SyntaxFormatter(token.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
             Dim result As SyntaxToken = formatter.VisitToken(token)
             formatter.Free()
             Return result
         End Function
 
         Friend Shared Function Format(trivia As SyntaxTriviaList, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxTriviaList
-            Dim formatter = New SyntaxFormatter(indentWhitespace, useElasticTrivia, useDefaultCasing)
+            Dim formatter = New SyntaxFormatter(trivia.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
             Dim result As SyntaxTriviaList = formatter.RewriteTrivia(trivia,
                                             formatter.GetIndentationDepth(),
                                             isTrailing:=False,
@@ -659,9 +661,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Function GetNextRelevantToken(token As SyntaxToken) As SyntaxToken
-            Return token.GetNextToken(Function(t As SyntaxToken)
-                                          Return t.Kind <> SyntaxKind.None
-                                      End Function, Function(t As SyntaxTrivia) False)
+            Dim nextToken = token.GetNextToken(Function(t As SyntaxToken)
+                                                   Return t.Kind <> SyntaxKind.None
+                                               End Function, Function(t As SyntaxTrivia) False)
+
+            If consideredSpan.Contains(nextToken.FullSpan) Then
+                Return nextToken
+            Else
+                Return Nothing
+            End If
+
         End Function
 
         Private Sub AddLinebreaksAfterElementsIfNeeded(Of TNode As SyntaxNode)(
