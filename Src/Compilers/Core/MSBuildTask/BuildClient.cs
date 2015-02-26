@@ -13,8 +13,8 @@ using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -45,6 +45,81 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 assemblyPath = Assembly.GetCallingAssembly().Location;
             }
             return Path.GetDirectoryName(assemblyPath);
+        }
+
+        /// <summary>
+        /// Run a compilation through the compiler server and print the output
+        /// to the console. If the compiler server fails, run the fallback
+        /// compiler.
+        /// </summary>
+        public static int RunWithConsoleOutput(
+            string[] args,
+            RequestLanguage language,
+            Func<string[], int> fallbackCompiler)
+        {
+            var errorMessage = CommandLineParser.CheckClientArgsForErrors(args);
+
+            if (errorMessage != null)
+            {
+                Console.Out.WriteLine(errorMessage);
+                return 1;
+            }
+
+            var responseTask = TryRunServerCompilation(
+                language,
+                Environment.CurrentDirectory,
+                args,
+                default(CancellationToken),
+                libEnvVariable: Environment.GetEnvironmentVariable("LIB"));
+
+            responseTask.Wait();
+
+            int exitCode;
+            var response = responseTask.Result;
+            if (response != null)
+            {
+                exitCode = HandleResponse(response);
+            }
+            else
+            {
+                exitCode = fallbackCompiler(args.Where(arg => !arg.StartsWith("/keepalive")).ToArray());
+            }
+
+            return exitCode;
+        }
+
+        private static int HandleResponse(BuildResponse response)
+        {
+            if (response.Type == BuildResponse.ResponseType.Completed)
+            {
+                var completedResponse = (CompletedBuildResponse)response;
+                var origEncoding = Console.OutputEncoding;
+                try
+                {
+                    if (completedResponse.Utf8Output && Console.IsOutputRedirected)
+                    {
+                        Console.OutputEncoding = Encoding.UTF8;
+                    }
+                    Console.Out.Write(completedResponse.Output);
+                    Console.Error.Write(completedResponse.ErrorOutput);
+                }
+                finally
+                {
+                    try
+                    {
+                        Console.OutputEncoding = origEncoding;
+                    }
+                    catch
+                    { // Try to reset the output encoding, ignore if we can't
+                    }
+                }
+                return completedResponse.ReturnCode;
+            }
+            else
+            {
+                Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
+                return -1;
+            }
         }
 
         /// <summary>
@@ -106,7 +181,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return null;
+            return Task.FromResult<BuildResponse>(null);
         }
 
         /// <summary>
