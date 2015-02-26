@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis
             // which migth also lock the file until the reference is GC'd.
             var metadata = AssemblyMetadata.CreateFromStream(peStream);
 
-            return metadata.GetReference(filePath: location);
+            return metadata.GetReference(documentation, filePath: location);
         }
     }
 }
