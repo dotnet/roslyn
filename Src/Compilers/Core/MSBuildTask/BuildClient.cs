@@ -227,8 +227,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // It is okay for this call to fail.  Errors will be reflected in the 
                     // IsConnected property which will be read on the next iteration of the 
                     // loop
-                    var msg = string.Format("Pipe {0}: Error poking pipe.");
-                    LogException(e, msg);
+                    LogException(e, "Error poking pipe");
                 }
             }
 
