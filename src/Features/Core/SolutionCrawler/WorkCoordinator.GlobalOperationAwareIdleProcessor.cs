@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
                     {
-                        Contract.ThrowIfFalse(_globalOperation != null);
+                        if (_globalOperation == null)
+                        {
+                            // we subscribed to the event while it is already running.
+                            return;
+                        }
 
                         // events are serialized. no lock is needed
                         _globalOperation.SetResult(null);

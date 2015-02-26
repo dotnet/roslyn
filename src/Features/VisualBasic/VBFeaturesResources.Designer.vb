@@ -2640,15 +2640,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Usage:.
-        '''</summary>
-        Friend ReadOnly Property Usage() As String
-            Get
-                Return ResourceManager.GetString("Usage", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
         '''Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using.
         '''</summary>

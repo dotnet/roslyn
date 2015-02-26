@@ -2309,6 +2309,52 @@ End Class"
             locals.Free()
         End Sub
 
+        <WorkItem(1115044, "DevDiv")>
+        <Fact>
+        Public Sub CaseSensitivity()
+            Const source = "
+Class C
+    Shared Sub M(p As Integer)
+        Dim s As String
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData As CompilationTestData
+
+            testData = New CompilationTestData()
+            context.CompileExpression("P", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (String V_0) //s
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+")
+
+            testData = New CompilationTestData()
+            context.CompileExpression("S", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (String V_0) //s
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}
+")
+        End Sub
+
         <WorkItem(1115030)>
         <Fact(Skip:="1115030")>
         Public Sub CatchInAsyncStateMachine()

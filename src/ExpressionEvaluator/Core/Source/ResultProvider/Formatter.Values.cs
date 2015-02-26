@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     // This class provides implementation for the "displaying values as strings" aspect of the default (C#) Formatter component.
     internal abstract partial class Formatter
     {
-        internal string GetValueString(DkmClrValue value, ObjectDisplayOptions options, GetValueFlags flags)
+        internal string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
         {
             if (value.IsError())
             {
                 return (string)value.HostObjectValue;
             }
 
-            if (UsesHexadecimalNumbers(value))
+            if (UsesHexadecimalNumbers(inspectionContext))
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return IncludeObjectId(
                         value,
-                        FormatPrimitive(value, options & ~ObjectDisplayOptions.UseQuotes),
+                        FormatPrimitive(value, options & ~ObjectDisplayOptions.UseQuotes, inspectionContext),
                         flags);
                 }
             }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return IncludeObjectId(
                     value,
-                    GetEnumDisplayString(lmrType, value, options, (flags & GetValueFlags.IncludeTypeName) != 0),
+                    GetEnumDisplayString(lmrType, value, options, (flags & GetValueFlags.IncludeTypeName) != 0, inspectionContext),
                     flags);
             }
             else if (lmrType.IsArray)
@@ -86,34 +86,34 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // NOTE: the HostObjectValue will have a size corresponding to the process bitness
                 // and FormatPrimitive will adjust accordingly.
-                var tmp = FormatPrimitive(value, ObjectDisplayOptions.UseHexadecimalNumbers); // Always in hex.
+                var tmp = FormatPrimitive(value, ObjectDisplayOptions.UseHexadecimalNumbers, inspectionContext); // Always in hex.
                 Debug.Assert(tmp != null);
                 return tmp;
             }
             else if (lmrType.IsNullable())
             {
-                var nullableValue = value.GetNullableValue();
+                var nullableValue = value.GetNullableValue(inspectionContext);
                 // It should be impossible to nest nullables, so this recursion should introduce only a single extra stack frame.
                 return nullableValue == null
                     ? _nullString
-                    : GetValueString(nullableValue, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
+                    : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
             }
 
             // "value.EvaluateToString()" will check "Call string-conversion function on objects in variables windows"
             // (Tools > Options setting) and call "value.ToString()" if appropriate.
             return IncludeObjectId(
                 value,
-                string.Format(_defaultFormat, value.EvaluateToString() ?? value.InspectionContext.GetTypeName(value.Type)),
+                string.Format(_defaultFormat, value.EvaluateToString(inspectionContext) ?? inspectionContext.GetTypeName(value.Type, Formatter.NoFormatSpecifiers)),
                 flags);
         }
 
         /// <summary>
         /// Gets the string representation of a character literal without including the numeric code point.
         /// </summary>
-        internal string GetValueStringForCharacter(DkmClrValue value, ObjectDisplayOptions options)
+        internal string GetValueStringForCharacter(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options)
         {
             Debug.Assert(value.Type.GetLmrType().IsCharacter());
-            if (UsesHexadecimalNumbers(value))
+            if (UsesHexadecimalNumbers(inspectionContext))
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
             }
@@ -122,12 +122,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return charTemp;
         }
 
-        internal bool HasUnderlyingString(DkmClrValue value)
+        internal bool HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
-            return GetUnderlyingString(value) != null;
+            return GetUnderlyingString(value, inspectionContext) != null;
         }
 
-        internal string GetUnderlyingString(DkmClrValue value)
+        internal string GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             RawStringDataItem dataItem = value.GetDataItem<RawStringDataItem>();
             if (dataItem != null)
@@ -135,13 +135,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return dataItem.RawString;
             }
 
-            string underlyingString = GetUnderlyingStringImpl(value);
+            string underlyingString = GetUnderlyingStringImpl(value, inspectionContext);
             dataItem = new RawStringDataItem(underlyingString);
             value.SetDataItem(DkmDataCreationDisposition.CreateNew, dataItem);
             return underlyingString;
         }
 
-        private string GetUnderlyingStringImpl(DkmClrValue value)
+        private string GetUnderlyingStringImpl(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             if (value.IsNull)
             {
@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (lmrType.IsNullable())
             {
-                var nullableValue = value.GetNullableValue();
-                return nullableValue != null ? GetUnderlyingStringImpl(nullableValue) : null;
+                var nullableValue = value.GetNullableValue(inspectionContext);
+                return nullableValue != null ? GetUnderlyingStringImpl(nullableValue, inspectionContext) : null;
             }
 
             if (lmrType.IsString())
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // Check for special cased non-primitives that have underlying strings
                 if (string.Equals(lmrType.FullName, "System.Data.SqlTypes.SqlString", StringComparison.Ordinal))
                 {
-                    var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.SqlStringValue);
+                    var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.SqlStringValue, inspectionContext);
                     return fieldValue.HostObjectValue as string;
                 }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     if (string.Equals(lmrType.FullName, "System.Xml.Linq.XNode", StringComparison.Ordinal))
                     {
-                        return value.EvaluateToString();
+                        return value.EvaluateToString(inspectionContext);
                     }
 
                     lmrType = lmrType.BaseType;
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// NOTE: no curlies for enum values.
         /// </remarks>
 #pragma warning restore RS0010
-        private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName)
+        private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName, DkmInspectionContext  inspectionContext)
         {
             Debug.Assert(lmrType.IsEnum);
             Debug.Assert(value != null);
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             fields.Free();
 
-            return displayString ?? FormatPrimitive(value, options);
+            return displayString ?? FormatPrimitive(value, options, inspectionContext);
         }
 
         private static void FillEnumFields(ArrayBuilder<EnumField> fields, Type lmrType)
@@ -283,11 +283,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        private static bool UsesHexadecimalNumbers(DkmClrValue value)
+        private static bool UsesHexadecimalNumbers(DkmInspectionContext inspectionContext)
         {
-            Debug.Assert(value.InspectionContext != null);
+            Debug.Assert(inspectionContext != null);
 
-            return value.InspectionContext.Radix == 16;
+            return inspectionContext.Radix == 16;
         }
 
         /// <summary>
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal string GetEditableValue(DkmClrValue value)
+        internal string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             if (value.IsError())
             {
@@ -339,11 +339,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (type.IsEnum)
             {
-                return this.GetValueString(value, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
+                return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
             }
             else if (type.IsDecimal())
             {
-                return this.GetValueString(value, ObjectDisplayOptions.IncludeTypeSuffix, GetValueFlags.None);
+                return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.IncludeTypeSuffix, GetValueFlags.None);
             }
             // The legacy EE didn't special-case strings or chars (when ",nq" was used,
             // you had to manually add quotes when editing) but it makes sense to
@@ -352,25 +352,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 if (!value.IsNull)
                 {
-                    return this.GetValueString(value, ObjectDisplayOptions.UseQuotes, GetValueFlags.None);
+                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes, GetValueFlags.None);
                 }
             }
             else if (type.IsCharacter())
             {
-                return this.GetValueStringForCharacter(value, ObjectDisplayOptions.UseQuotes);
+                return this.GetValueStringForCharacter(value, inspectionContext, ObjectDisplayOptions.UseQuotes);
             }
 
             return null;
         }
 
-        internal string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options)
+        internal string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value != null);
 
             object obj;
             if (value.Type.GetLmrType().IsDateTime())
             {
-                DkmClrValue dateDataValue = value.GetFieldValue(DateTimeUtilities.DateTimeDateDataFieldName);
+                DkmClrValue dateDataValue = value.GetFieldValue(DateTimeUtilities.DateTimeDateDataFieldName, inspectionContext);
                 Debug.Assert(dateDataValue.HostObjectValue != null);
 
                 obj = DateTimeUtilities.ToDateTime((ulong)dateDataValue.HostObjectValue);

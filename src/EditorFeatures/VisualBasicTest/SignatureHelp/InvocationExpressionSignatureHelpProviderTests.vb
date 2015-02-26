@@ -743,7 +743,7 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", "Usage:", "  Await Foo()")
+            Dim documentation = StringFromLines("", WorkspacesResources.Usage, "  Await Foo()")
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
                 New SignatureHelpTestItem("C.Foo() As Task", currentParameterIndex:=0, methodDocumentation:=documentation)
@@ -767,7 +767,7 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", "Usage:", "  Dim r as Integer = Await Foo()")
+            Dim documentation = StringFromLines("", WorkspacesResources.Usage, "  Dim r as Integer = Await Foo()")
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
                 New SignatureHelpTestItem("C.Foo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=documentation)

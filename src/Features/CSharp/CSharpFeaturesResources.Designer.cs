@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///    {{
         ///        if (disposing)
         ///        {{
-        ///            // TODO: dispose managed state (managed objects).          
+        ///            // TODO: dispose managed state (managed objects).
         ///        }}
         /// 
         ///        // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///    }}
         ///}}
         ///
-        /// // TODO: override a finalizer o [rest of string was truncated]&quot;;.
+        ///// TODO: override a finalizer only if Disp [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DisposePattern {
             get {
@@ -581,15 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TheSelectionContainsSyntacticErrors {
             get {
                 return ResourceManager.GetString("TheSelectionContainsSyntacticErrors", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Usage:.
-        /// </summary>
-        internal static string Usage {
-            get {
-                return ResourceManager.GetString("Usage", resourceCulture);
             }
         }
         

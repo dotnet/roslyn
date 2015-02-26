@@ -876,7 +876,7 @@ class Program
     }
 }";
 
-            TestExactActionSetOffered(code, new[] { "Introduce local constant for '5'" });
+            TestExactActionSetOffered(code, new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5") });
 
             Test(code,
 @"
@@ -916,7 +916,7 @@ class Program
 }";
 
             TestExactActionSetOffered(code,
-                new[] { "Introduce local constant for '5'", "Introduce local constant for all occurrences of '5'" });
+                new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5"), string.Format(FeaturesResources.IntroduceLocalConstantForAll, "5") });
         }
 
         [WorkItem(529795)]

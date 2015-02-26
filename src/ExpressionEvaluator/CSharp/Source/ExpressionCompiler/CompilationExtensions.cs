@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken, out MetadataDecoder metadataDecoder)
         {
             var module = compilation.GetModule(moduleVersionId);
+            CheckModule(module, moduleVersionId);
             var reader = module.Module.MetadataReader;
             var typeHandle = (TypeDefinitionHandle)MetadataTokens.Handle(typeToken);
             var type = GetType(module, typeHandle);
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static PEMethodSymbol GetMethod(this CSharpCompilation compilation, Guid moduleVersionId, MethodDefinitionHandle methodHandle)
         {
             var module = compilation.GetModule(moduleVersionId);
+            CheckModule(module, moduleVersionId);
             var reader = module.Module.MetadataReader;
             var typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType();
             var type = GetType(module, typeHandle);
@@ -86,6 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             return null;
+        }
+
+        private static void CheckModule(PEModuleSymbol module, Guid moduleVersionId)
+        {
+            if ((object)module == null)
+            {
+                throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
+            }
         }
 
         internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks)

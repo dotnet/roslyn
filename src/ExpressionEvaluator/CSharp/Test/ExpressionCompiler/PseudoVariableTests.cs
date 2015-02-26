@@ -117,35 +117,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(testData.Methods.Count, 3);
-
-            var assembly = ImmutableArray.CreateRange(result.Assembly);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
   .maxstack  2
-  IL_0000:  call       ""System.Exception <>x.$exception()""
+  IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0018
   IL_000d:  pop
-  IL_000e:  call       ""System.Exception <>x.$stowedexception()""
+  IL_000e:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetStowedException()""
   IL_0013:  castclass  ""System.InvalidOperationException""
   IL_0018:  ret
-}");
-            assembly.VerifyIL("<>x.$exception",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-            assembly.VerifyIL("<>x.$stowedexception",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
 }");
         }
 
@@ -182,29 +166,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(testData.Methods.Count, 2);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0015
   IL_0009:  pop
   IL_000a:  ldc.i4.2
-  IL_000b:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_000b:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0010:  castclass  ""string""
   IL_0015:  ret
 }");
-            testData.GetMethodData("<>x.<>GetReturnValue").VerifyIL(
-@"{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldnull
-  IL_0001:  throw
-}");
-
             // Value type $ReturnValue.
             testData = new CompilationTestData();
             result = context.CompileExpression(
@@ -224,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   .maxstack  1
   .locals init (int? V_0)
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0006:  unbox.any  ""int?""
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
@@ -256,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  call       ""object <>x.<>GetReturnValue(int)""
+  IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0006:  unbox.any  ""int""
   IL_000b:  ldc.i4.2
   IL_000c:  sub
@@ -319,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression(
+            context.CompileExpression(
                 InspectionContextFactory.Empty.Add("23", typeof(string)).Add("4", typeof(Type)),
                 "(object)$23 ?? $4.BaseType",
                 DkmEvaluationFlags.TreatAsExpression,
@@ -330,30 +306,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(testData.Methods.Count, 3);
+            Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       40 (0x28)
   .maxstack  2
   IL_0000:  ldstr      ""23""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""string""
   IL_000f:  dup
   IL_0010:  brtrue.s   IL_0027
   IL_0012:  pop
   IL_0013:  ldstr      ""4""
-  IL_0018:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0018:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_001d:  castclass  ""System.Type""
   IL_0022:  callvirt   ""System.Type System.Type.BaseType.get""
   IL_0027:  ret
-}");
-            var assembly = ImmutableArray.CreateRange(result.Assembly);
-            assembly.VerifyIL("<>x.<>GetObjectByAlias",
-@"{
-  // Code size        2 (0x2)
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
 }");
         }
 
@@ -400,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  unbox.any  ""C.S<int>""
   IL_000f:  ldfld      ""int C.S<int>.F""
   IL_0014:  ldc.i4.1
@@ -448,10 +416,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   // Code size       44 (0x2c)
   .maxstack  4
   IL_0000:  ldstr      ""a""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""C[]""
   IL_000f:  ldstr      ""b""
-  IL_0014:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0014:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0019:  castclass  ""int[,]""
   IL_001e:  ldc.i4.1
   IL_001f:  ldc.i4.0
@@ -541,17 +509,17 @@ class C
         [Fact]
         public void Variables()
         {
-            CheckVariable("$exception", valid: true, methodNames: new[] { "<>x.$exception()" });
-            CheckVariable("$stowedexception", valid: true, methodNames: new[] { "<>x.$stowedexception()" });
+            CheckVariable("$exception", valid: true);
+            CheckVariable("$stowedexception", valid: true);
             CheckVariable("$Exception", valid: false);
             CheckVariable("$STOWEDEXCEPTION", valid: false);
-            CheckVariable("$ReturnValue", valid: true, methodNames: new[] { "<>x.<>GetReturnValue(int)" });
+            CheckVariable("$ReturnValue", valid: true);
             CheckVariable("$RETURNVALUE", valid: false);
-            CheckVariable("$returnvalue", valid: true, methodNames: new[] { "<>x.<>GetReturnValue(int)" }); // Lowercase $ReturnValue supported.
-            CheckVariable("$ReturnValue0", valid: true, methodNames: new[] { "<>x.<>GetReturnValue(int)" });
-            CheckVariable("$returnvalue21", valid: true, methodNames: new[] { "<>x.<>GetReturnValue(int)" });
+            CheckVariable("$returnvalue", valid: true); // Lowercase $ReturnValue supported.
+            CheckVariable("$ReturnValue0", valid: true);
+            CheckVariable("$returnvalue21", valid: true);
             CheckVariable("$ReturnValue3A", valid: false);
-            CheckVariable("$33", valid: true, methodNames: new[] { "<>x.<>GetObjectByAlias(string)", "<>x.<>GetVariableAddress<<>T>(string)" });
+            CheckVariable("$33", valid: true);
             CheckVariable("$03", valid: false);
             CheckVariable("$3A", valid: false);
             CheckVariable("$0", valid: false);
@@ -559,7 +527,7 @@ class C
             CheckVariable("$Unknown", valid: false);
         }
 
-        private void CheckVariable(string variableName, bool valid, string[] methodNames = null)
+        private void CheckVariable(string variableName, bool valid)
         {
             var source =
 @"class C
@@ -579,13 +547,7 @@ class C
                 error: out error);
             if (valid)
             {
-                var builder = ArrayBuilder<string>.GetInstance();
-                builder.Add("<>x.<>m0()");
-                if (methodNames != null)
-                {
-                    builder.AddRange(methodNames);
-                }
-                var expectedNames = builder.ToImmutableAndFree();
+                var expectedNames = new[] { "<>x.<>m0()" };
                 var actualNames = testData.Methods.Keys;
                 AssertEx.SetEqual(expectedNames, actualNames);
             }
@@ -657,7 +619,7 @@ class C
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_000f
   IL_0009:  pop
-  IL_000a:  call       ""System.Exception <>x.$exception()""
+  IL_000a:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_000f:  ret
 }");
         }
@@ -691,12 +653,12 @@ class C
 @"{
   // Code size       22 (0x16)
   .maxstack  2
-  IL_0000:  call       ""System.Exception <>x.$exception()""
+  IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0005:  callvirt   ""System.Exception System.Exception.InnerException.get""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0013
   IL_000d:  pop
-  IL_000e:  call       ""System.Exception <>x.$exception()""
+  IL_000e:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0013:  starg.s    V_0
   IL_0015:  ret
 }");
@@ -881,7 +843,7 @@ class C
   .locals init (T V_0,
                 int V_1)
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""int <>x.<>GetVariableAddress<int>(string)""
+  IL_0005:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_000a:  ldc.i4.1
   IL_000b:  dup
   IL_000c:  stloc.1
@@ -908,16 +870,9 @@ class C
   .maxstack  1
   .locals init (T V_0)
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""int <>x.<>GetVariableAddress<int>(string)""
+  IL_0005:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_000a:  call       ""int C.F<int>(ref int)""
   IL_000f:  ret
-}");
-            testData.GetMethodData("<>x.<>GetVariableAddress<<>T>").VerifyIL(
-@"{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldnull
-  IL_0001:  throw
 }");
         }
 
@@ -964,7 +919,7 @@ class C
   .maxstack  3
   .locals init (object V_0)
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""S <>x.<>GetVariableAddress<S>(string)""
+  IL_0005:  call       ""S Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S>(string)""
   IL_000a:  ldc.i4.1
   IL_000b:  box        ""int""
   IL_0010:  dup
@@ -1018,7 +973,7 @@ class C
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""S <>x.<>GetVariableAddress<S>(string)""
+  IL_0005:  call       ""S Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S>(string)""
   IL_000a:  ldflda     ""int S.F""
   IL_000f:  dup
   IL_0010:  ldind.i4
@@ -1083,7 +1038,7 @@ class C
             var referenceA2 = compilationA2.EmitToImageReference();
             var runtime = CreateRuntimeInstance(
                 assemblyNameB,
-                ImmutableArray.Create(MscorlibRef, referenceA2),
+                ImmutableArray.Create(MscorlibRef, referenceA2).AddIntrinsicAssembly(),
                 exeBytes,
                 new SymReader(pdbBytes));
 
@@ -1111,18 +1066,18 @@ class C
   // Code size       44 (0x2c)
   .maxstack  2
   .locals init (A<object> V_0) //o
-  IL_0000:  call       ""System.Exception <>x.$exception()""
+  IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_002b
   IL_0008:  pop
   IL_0009:  ldstr      ""1""
-  IL_000e:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_000e:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0013:  castclass  ""A<B<object>>""
   IL_0018:  dup
   IL_0019:  brtrue.s   IL_002b
   IL_001b:  pop
   IL_001c:  ldstr      ""2""
-  IL_0021:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0021:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0026:  castclass  ""B<A<object>[]>""
   IL_002b:  ret
 }");
@@ -1187,6 +1142,7 @@ class B
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
             modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: new SymReader(pdbA)));
             modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: new SymReader(pdbB)));
+            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
             {
@@ -1211,7 +1167,7 @@ class B
   // Code size       11 (0xb)
   .maxstack  1
   .locals init (object V_0) //o
-  IL_0000:  call       ""System.Exception <>x<T>.$exception()""
+  IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
   IL_0005:  castclass  ""E""
   IL_000a:  ret
 }");
@@ -1233,7 +1189,7 @@ class B
   .maxstack  1
   .locals init (object V_0) //o
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""object <>x<T>.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""A<B>""
   IL_000f:  stloc.0
   IL_0010:  ret
