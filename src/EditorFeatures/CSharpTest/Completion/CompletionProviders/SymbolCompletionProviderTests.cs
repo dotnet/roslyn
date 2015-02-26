@@ -7899,5 +7899,25 @@ class C
 
             VerifyItemExists(markup, "x");
         }
+
+        [WorkItem(717, "https://github.com/dotnet/roslyn/issues/717")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void ExpressionContextCompletionWithinCast()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            var x = ($$)
+            var y = 1;
+        }
+    }
+}
+";
+            VerifyItemExists(markup, "i");
+        }
     }
 }
