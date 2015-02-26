@@ -4,6 +4,7 @@
 ' Contains the definition of the Scanner, which produces tokens from text 
 '-----------------------------------------------------------------------------
 
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -95,14 +96,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
+        Friend Function TryPeek(at As Integer, <[In], Out> ByRef c As Char) As Boolean
+            If Not CanGetCharAtOffset(at) Then Return False
+            c = Peek(at)
+            Return True
+        End Function
+        Friend Function NextAre(ahead As Integer, text As String) As Boolean
+            Dim n = text.Length
+            If Not CanGetCharAtOffset(ahead) Then Return False
+            For i = 0 To n - 1
+                Dim c As Char
+                If TryPeek(i + 1, c) = False OrElse c = text(i) Then Return False
+            Next
+            Return True
+        End Function
+        Friend Function NextAre(ahead As Integer, first As Integer, text As String) As Boolean
+            Dim n = text.Length
+            If Not CanGetCharAtOffset(ahead) Then Return False
+            For i = first To n - 1
+                Dim c As Char
+                If TryPeek(i + 1, c) = False OrElse c = text(i - first) Then Return False
+            Next
+            Return True
+        End Function
+
+        Friend Function PeekIs(ahead As Integer, eq As Char) As Boolean
+            Dim c As Char
+            Return TryPeek(ahead, c) AndAlso (c = eq)
+        End Function
+
         ' PERF CRITICAL
-        Private Function PeekAheadChar(skip As Integer) As Char
-            Debug.Assert(CanGetCharAtOffset(skip))
-            Debug.Assert(skip >= -MaxCharsLookBehind)
+        Private Function Peek(ahead As Integer) As Char
+            Debug.Assert(CanGetCharAtOffset(ahead))
+            Debug.Assert(ahead >= -MaxCharsLookBehind)
 
             Dim position = _lineBufferOffset
             Dim page = _curPage
-            position += skip
+            position += ahead
 
             Dim ch = page._arr(position And PAGE_MASK)
 
@@ -118,24 +148,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Friend Function PeekChar() As Char
+        Friend Function Peek() As Char
             Dim page = _curPage
-            Dim position = _lineBufferOffset
-            Dim ch = page._arr(position And PAGE_MASK)
-
+            Dim pos = _lineBufferOffset
+            Dim ch = page._arr(pos And PAGE_MASK)
             Dim start = page._pageStart
-            Dim expectedStart = position And NOT_PAGE_MASK
+            Dim expectedStart = pos And NOT_PAGE_MASK
 
             If start <> expectedStart Then
-                page = GetPage(position)
-                ch = page._arr(position And PAGE_MASK)
+                page = GetPage(pos)
+                ch = page._arr(pos And PAGE_MASK)
             End If
 
             Return ch
         End Function
 
         Friend Function GetChar() As String
-            Return Intern(PeekChar())
+            Return Intern(Peek())
         End Function
 
         Friend Function GetText(start As Integer, length As Integer) As String
@@ -157,11 +186,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If page._pageStart = (start And NOT_PAGE_MASK) AndAlso
                 offsetInPage + length < PAGE_SIZE Then
                 Dim arr() As Char = page._arr
-
                 ' Always intern CR+LF since it occurs so frequently
-                If length = 2 AndAlso arr(offsetInPage) = ChrW(13) AndAlso arr(offsetInPage + 1) = ChrW(10) Then
-                    Return vbCrLf
-                End If
+                If length = 2 AndAlso arr(offsetInPage) = ChrW(13) AndAlso arr(offsetInPage + 1) = ChrW(10) Then Return vbCrLf
 
                 Return New String(arr, offsetInPage, length)
             End If
@@ -172,18 +198,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim textOffset = start And PAGE_MASK
 
             Dim page = GetPage(start)
-            If textOffset + length < PAGE_SIZE Then
-                If suppressInterning Then
-                    Return New String(page._arr, textOffset, length)
-                Else
-                    Return Intern(page._arr, textOffset, length)
-                End If
-            End If
-
+            If textOffset + length < PAGE_SIZE Then Return If(suppressInterning, New String(page._arr, textOffset, length), Intern(page._arr, textOffset, length))
             ' make a string builder that is big enough, but not too big
-            If _builder Is Nothing Then
-                _builder = New StringBuilder(Math.Min(length, 1024))
-            End If
+            If _builder Is Nothing Then _builder = New StringBuilder(Math.Min(length, 1024))
 
             Dim cnt = Math.Min(length, PAGE_SIZE - textOffset)
             _builder.Append(page._arr, textOffset, cnt)
@@ -201,12 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 start += cnt
             Loop While length > 0
 
-            Dim result As String
-            If suppressInterning Then
-                result = _builder.ToString
-            Else
-                result = _stringTable.Add(_builder)
-            End If
+            Dim result As String = If(suppressInterning, _builder.ToString, _stringTable.Add(_builder))
             If result.Length < 1024 Then
                 _builder.Clear()
             Else

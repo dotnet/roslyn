@@ -292,13 +292,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function TokenOfString(tokenName As String) As SyntaxKind
             Debug.Assert(tokenName IsNot Nothing)
-
             tokenName = EnsureHalfWidth(tokenName)
-
             Dim kind As SyntaxKind
-            If Not _Keywords.TryGetValue(tokenName, kind) Then
-                kind = SyntaxKind.IdentifierToken
-            End If
+            If Not _Keywords.TryGetValue(tokenName, kind) Then kind = SyntaxKind.IdentifierToken
             Return kind
         End Function
 
@@ -307,30 +303,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             For i As Integer = 0 To s.Length - 1
                 Dim ch = s(i)
-
                 If SyntaxFacts.IsFullWidth(ch) Then
                     ch = SyntaxFacts.MakeHalfWidth(ch)
-
                     If result Is Nothing Then
                         result = New Char(s.Length - 1) {}
                         For j As Integer = 0 To i - 1
                             result(j) = s(j)
                         Next
                     End If
-
                     result(i) = ch
                 Else
-                    If result IsNot Nothing Then
-                        result(i) = ch
-                    End If
+                    If result IsNot Nothing Then result(i) = ch
                 End If
             Next
 
-            If result IsNot Nothing Then
-                Return New String(result)
-            Else
-                Return s
-            End If
+            Return If( result IsNot Nothing, New String(result), s)
         End Function
 
         Friend Shared Function CanFollowExpression(kind As SyntaxKind) As Boolean
@@ -343,29 +330,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function IsQueryClause(kind As SyntaxKind) As Boolean
             Dim description As KeywordDescription = Nothing
-            If (_KeywordProperties.TryGetValue(kind, description)) Then
-                Return description.kdIsQueryClause
-            End If
+            If (_KeywordProperties.TryGetValue(kind, description)) Then Return description.kdIsQueryClause
             Return False
         End Function
 
         Friend Shared Function TokenOpPrec(kind As SyntaxKind) As OperatorPrecedence
             Dim description As KeywordDescription = Nothing
-            If (_KeywordProperties.TryGetValue(kind, description)) Then
-                Return description.kdOperPrec
-            End If
-
+            If (_KeywordProperties.TryGetValue(kind, description)) Then Return description.kdOperPrec
             Debug.Assert(False, "the kind is not found")
-
             Return PrecedenceNone
         End Function
 
-        Private Shared Sub AddKeyword(
-            Token As SyntaxKind,
-            New7To8 As Boolean,
-            Precedence As OperatorPrecedence,
-            isQueryClause As Boolean,
-            canFollowExpr As Boolean)
+        Private Shared Sub AddKeyword( Token As SyntaxKind, New7To8 As Boolean, Precedence As OperatorPrecedence, isQueryClause As Boolean, canFollowExpr As Boolean)
 
             Dim keyword As New KeywordDescription(New7To8, Precedence, isQueryClause, canFollowExpr)
             _KeywordProperties.Add(Token, keyword)

@@ -202,13 +202,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend ReadOnly Property LastToken As SyntaxToken
             Get
                 Dim count = _tokens.Count
-                If count > 0 Then
-                    Return _tokens(count - 1).InnerTokenObject
-                ElseIf _currentToken.InnerTokenObject IsNot Nothing Then
-                    Return _currentToken.InnerTokenObject
-                Else
-                    Return _prevToken.InnerTokenObject
-                End If
+                If count > 0 Then Return _tokens(count - 1).InnerTokenObject
+                If _currentToken.InnerTokenObject IsNot Nothing Then Return _currentToken.InnerTokenObject
+                Return _prevToken.InnerTokenObject
             End Get
         End Property
 
@@ -387,11 +383,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function PeekNextToken(state As ScannerState) As SyntaxToken
             If _tokens.Count > 0 Then
                 Dim tk = _tokens(0)
-                If tk.State = state Then
-                    Return tk.InnerTokenObject
-                Else
-                    AbandonPeekedTokens()
-                End If
+                If tk.State = state Then Return tk.InnerTokenObject
+                AbandonPeekedTokens()
             End If
 
             ' ensure that current token has been read
@@ -425,22 +418,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             ' just want the token #1
-            If tokenOffset = 1 Then
-                Return PeekNextToken(state)
-            End If
-
+            If tokenOffset = 1 Then Return PeekNextToken(state)
             Dim offsetInQueue = tokenOffset - 1
             Debug.Assert(offsetInQueue <= _tokens.Count)
 
             ' asking for next after already read (common case)
-            If offsetInQueue = _tokens.Count Then
-                Return GetTokenAndAddToQueue(state)
-            End If
-
+            If offsetInQueue = _tokens.Count Then Return GetTokenAndAddToQueue(state)
             ' already have in right state
-            If offsetInQueue < _tokens.Count AndAlso _tokens(offsetInQueue).State = state Then
-                Return _tokens(offsetInQueue).InnerTokenObject
-            End If
+            If offsetInQueue < _tokens.Count AndAlso _tokens(offsetInQueue).State = state Then Return _tokens(offsetInQueue).InnerTokenObject
 
             ' we have tokens at given offset (and maybe after), but they are not in right state.
             ' need to rollback
@@ -477,10 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub AbandonPeekedTokens()
-            If _tokens.Count = 0 Then
-                Return
-            End If
-
+            If _tokens.Count = 0 Then Return
             RevertState(_tokens(0))
             _tokens.Clear()
         End Sub
@@ -525,9 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function SaveAndClearTokens() As ScannerToken()
-            If _tokens.Count = 0 Then
-                Return Nothing
-            End If
+            If _tokens.Count = 0 Then Return Nothing
             Dim tokens = _tokens.ToArray()
             _tokens.Clear()
             Return tokens
@@ -535,9 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Sub RestoreTokens(tokens As ScannerToken())
             _tokens.Clear()
-            If tokens IsNot Nothing Then
-                _tokens.AddRange(tokens)
-            End If
+            If tokens IsNot Nothing Then _tokens.AddRange(tokens)
         End Sub
 
         Private Structure LineBufferAndEndOfTerminatorOffsets
@@ -573,74 +551,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function GetScannerToken(state As ScannerState) As SyntaxToken
-            Dim token As SyntaxToken = Nothing
-
             Select Case state
-                Case ScannerState.VB
-                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=False)
-
-                Case ScannerState.VBAllowLeadingMultilineTrivia
-                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=Not IsScanningDirective)
-
-                Case ScannerState.Misc
-                    token = Me.ScanXmlMisc()
-
-                Case ScannerState.Element,
-                     ScannerState.EndElement,
-                     ScannerState.DocType
-                    token = Me.ScanXmlElement(state)
-
-                Case ScannerState.Content
-                    token = Me.ScanXmlContent()
-
-                Case ScannerState.CData
-                    token = Me.ScanXmlCData()
-
-                Case ScannerState.StartProcessingInstruction,
-                    ScannerState.ProcessingInstruction
-                    token = Me.ScanXmlPIData(state)
-
-                Case ScannerState.Comment
-                    token = Me.ScanXmlComment()
-
-                Case ScannerState.SingleQuotedString
-                    token = Me.ScanXmlStringSingle()
-
-                Case ScannerState.SmartSingleQuotedString
-                    token = Me.ScanXmlStringSmartSingle()
-
-                Case ScannerState.QuotedString
-                    token = Me.ScanXmlStringDouble()
-
-                Case ScannerState.SmartQuotedString
-                    token = Me.ScanXmlStringSmartDouble()
-
-                Case ScannerState.UnQuotedString
-                    token = Me.ScanXmlStringUnQuoted()
-
-                Case ScannerState.InterpolatedStringPunctuation
-                    token = Me.ScanInterpolatedStringPunctuation()
-
-                Case ScannerState.InterpolatedStringContent
-                    token = Me.ScanInterpolatedStringContent()
-
-                Case ScannerState.InterpolatedStringFormatString
-                    token = Me.ScanInterpolatedStringFormatString()
-
+                Case ScannerState.VB                             : Return Me.GetNextToken(allowLeadingMultilineTrivia:=False)
+                Case ScannerState.VBAllowLeadingMultilineTrivia  : Return Me.GetNextToken(allowLeadingMultilineTrivia:=Not IsScanningDirective)
+                Case ScannerState.Misc                           : Return Me.ScanXmlMisc()
+                Case ScannerState.Element,                       
+                     ScannerState.EndElement,                    
+                     ScannerState.DocType                        : Return Me.ScanXmlElement(state)
+                Case ScannerState.Content                        : Return Me.ScanXmlContent()
+                Case ScannerState.CData                          : Return Me.ScanXmlCData()
+                Case ScannerState.StartProcessingInstruction, 
+                     ScannerState.ProcessingInstruction          : Return Me.ScanXmlPIData(state)
+                Case ScannerState.Comment                        : Return Me.ScanXmlComment()
+                Case ScannerState.SingleQuotedString             : Return Me.ScanXmlStringSingle()
+                Case ScannerState.SmartSingleQuotedString        : Return Me.ScanXmlStringSmartSingle()
+                Case ScannerState.QuotedString                   : Return Me.ScanXmlStringDouble()
+                Case ScannerState.SmartQuotedString              : Return Me.ScanXmlStringSmartDouble()
+                Case ScannerState.UnQuotedString                 : Return Me.ScanXmlStringUnQuoted()
+                Case ScannerState.InterpolatedStringPunctuation  : Return Me.ScanInterpolatedStringPunctuation()
+                Case ScannerState.InterpolatedStringContent      : Return Me.ScanInterpolatedStringContent()
+                Case ScannerState.InterpolatedStringFormatString : Return Me.ScanInterpolatedStringFormatString()
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(state)
-
             End Select
-
-            Return token
         End Function
 
         Protected Structure ScannerToken
-            Friend Sub New(preprocessorState As PreprocessorState,
-                           lineBufferOffset As Integer,
+            Friend Sub New(preprocessorState     As PreprocessorState,
+                           lineBufferOffset      As Integer,
                            endOfTerminatorTrivia As Integer,
-                           token As SyntaxToken,
-                           state As ScannerState)
+                           token                 As SyntaxToken,
+                           state                 As ScannerState)
                 Me.PreprocessorState = preprocessorState
                 Me.Position = lineBufferOffset
                 Me.EndOfTerminatorTrivia = endOfTerminatorTrivia

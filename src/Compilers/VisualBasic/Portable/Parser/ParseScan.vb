@@ -21,13 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' The scanner scans the fist token of a statement differently with regard to trivia.  It we peek past the EOL and then get the token.
             ' The token may not have the correct trivia attached to it when we get it.  The solution is to attach the state to the token so we
             ' know if we peeked the token in the first token of new statement state or the next token of a statement state.
-
-            If PeekToken(i).Kind = SyntaxKind.StatementTerminatorToken Then
-                If PeekToken(i + 1).Kind <> SyntaxKind.EmptyToken Then
-                    Return True
-                End If
-            End If
-            Return False
+            Return (PeekToken(i).Kind = SyntaxKind.StatementTerminatorToken) AndAlso (PeekToken(i + 1).Kind <> SyntaxKind.EmptyToken)
         End Function
 
         'TODO - This is really peekToken skipping optional statementterminator
@@ -128,37 +122,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         'Parser::BeginsGeneric // A generic is signified by '(' [tkStatementTerminator] tkOF
 
         Private Function BeginsGeneric(Optional nonArrayName As Boolean = False, Optional allowGenericsWithoutOf As Boolean = False) As Boolean
+            If CurrentToken.Kind <> SyntaxKind.OpenParenToken Then Return False
+            If nonArrayName Then Return True
+            Dim t = PeekPastStatementTerminator()
 
-            If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-
-                If nonArrayName Then
-                    Return True
+            If t.Kind = SyntaxKind.OfKeyword Then Return True
+            If allowGenericsWithoutOf Then
+                ' // To enable a better user experience in some common generics'
+                ' // error scenarios, we special case foo(Integer) and
+                ' // foo(Integer, garbage).
+                ' //
+                ' // "(Integer" indicates possibly type parameters with missing "of",
+                ' // but not "(Integer." and "Integer!" because they could possibly
+                ' // imply qualified names or expressions. Also note that "Integer :="
+                ' // could imply named arguments. Here "Integer" is just an example,
+                ' // it could be any intrinsic type.
+                ' //
+                If SyntaxFacts.IsPredefinedTypeOrVariant(t.Kind) Then
+                    Select Case PeekToken(2).Kind
+                        Case SyntaxKind.CloseParenToken, SyntaxKind.CommaToken
+                            Return True
+                    End Select
                 End If
-
-                Dim t = PeekPastStatementTerminator()
-
-                If t.Kind = SyntaxKind.OfKeyword Then
-                    Return True
-                ElseIf allowGenericsWithoutOf Then
-                    ' // To enable a better user experience in some common generics'
-                    ' // error scenarios, we special case foo(Integer) and
-                    ' // foo(Integer, garbage).
-                    ' //
-                    ' // "(Integer" indicates possibly type parameters with missing "of",
-                    ' // but not "(Integer." and "Integer!" because they could possibly
-                    ' // imply qualified names or expressions. Also note that "Integer :="
-                    ' // could imply named arguments. Here "Integer" is just an example,
-                    ' // it could be any intrinsic type.
-                    ' //
-                    If SyntaxFacts.IsPredefinedTypeOrVariant(t.Kind) Then
-                        Select Case PeekToken(2).Kind
-                            Case SyntaxKind.CloseParenToken, SyntaxKind.CommaToken
-                                Return True
-                        End Select
-                    End If
-                End If
-
             End If
+
 
             Return False
         End Function
@@ -259,9 +246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Exit While
                 End If
 
-                If IsTokenOrKeyword(CurrentToken, resyncTokens) Then
-                    Exit While
-                End If
+                If IsTokenOrKeyword(CurrentToken, resyncTokens) Then Exit While
+
 
                 skippedTokens.Add(CurrentToken)
                 GetNextToken(state)
@@ -285,18 +271,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ResyncAndConsumeStatementTerminator() As SyntaxList(Of SyntaxToken)
             Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
 
-            While CurrentToken.Kind <> SyntaxKind.EndOfFileToken AndAlso
-                    CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken
+            While (CurrentToken.Kind <> SyntaxKind.EndOfFileToken) AndAlso (CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken)
 
                 skippedTokens.Add(CurrentToken)
                 GetNextToken(ScannerState.VB)
             End While
 
             If CurrentToken.Kind = SyntaxKind.StatementTerminatorToken Then
-                If CurrentToken.HasLeadingTrivia Then
-                    skippedTokens.Add(CurrentToken)
-                End If
-
+                If CurrentToken.HasLeadingTrivia Then skippedTokens.Add(CurrentToken)
                 GetNextToken(ScannerState.VB)
             End If
 
@@ -368,10 +350,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function TryEatNewLineIfFollowedBy(kind As SyntaxKind) As Boolean
             Debug.Assert(CanUseInTryGetToken(kind))
 
-            If NextLineStartsWith(kind) Then
-                'Add trivia to the token that has been peeked on next line
-                Return TryEatNewLine()
-            End If
+            If NextLineStartsWith(kind) Then Return TryEatNewLine()     'Add trivia to the token that has been peeked on next line
+
             Return False
         End Function
 
@@ -387,9 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function TryEatNewLineIfNotFollowedBy(kind As SyntaxKind) As Boolean
             Debug.Assert(CanUseInTryGetToken(kind))
 
-            If Not NextLineStartsWith(kind) Then
-                Return TryEatNewLine()
-            End If
+            If Not NextLineStartsWith(kind) Then Return TryEatNewLine()
             Return False
         End Function
 
@@ -408,10 +386,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.IsEndOfLine Then
                 Dim nextToken = PeekToken(1)
 
-                If nextToken.Kind = kind Then
-                    Return True
+                If nextToken.Kind = kind Then  Return True
 
-                ElseIf nextToken.Kind = SyntaxKind.IdentifierToken Then
+                if nextToken.Kind = SyntaxKind.IdentifierToken Then
                     Dim contextualKind As SyntaxKind = Nothing
                     If TryIdentifierAsContextualKeyword(nextToken, contextualKind) AndAlso contextualKind = kind Then
                         Return True

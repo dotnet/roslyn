@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports WKMN = Microsoft.CodeAnalysis.WellKnownMemberNames
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -53,22 +54,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property UnaryOperatorKind As UnaryOperatorKind
                 Get
-                    If Not IsUnary Then
-                        Return UnaryOperatorKind.Error
-                    End If
-
-                    Return CType(m_Id >> 2, UnaryOperatorKind)
+                    If  IsUnary Then Return CType(m_Id >> 2, UnaryOperatorKind)
+                    Return UnaryOperatorKind.Error
                 End Get
             End Property
 
             Public ReadOnly Property BinaryOperatorKind As BinaryOperatorKind
                 Get
-                    If Not IsBinary Then
-                        Return BinaryOperatorKind.Error
-                    End If
-
-                    Return CType(m_Id >> 2, BinaryOperatorKind)
-                End Get
+                    If IsBinary Then Return CType(m_Id >> 2, BinaryOperatorKind)
+                    Return BinaryOperatorKind.Error
+                        End Get
             End Property
         End Structure
 
@@ -85,40 +80,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Shared Sub New()
             Dim operators As New Dictionary(Of String, OperatorInfo)(IdentifierComparison.Comparer)
 
-            operators.Add(WellKnownMemberNames.OnesComplementOperatorName, New OperatorInfo(UnaryOperatorKind.Not))
-            operators.Add(WellKnownMemberNames.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue))
-            operators.Add(WellKnownMemberNames.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse))
-            operators.Add(WellKnownMemberNames.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Plus))
-            operators.Add(WellKnownMemberNames.AdditionOperatorName, New OperatorInfo(BinaryOperatorKind.Add))
-            operators.Add(WellKnownMemberNames.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus))
-            operators.Add(WellKnownMemberNames.SubtractionOperatorName, New OperatorInfo(BinaryOperatorKind.Subtract))
-            operators.Add(WellKnownMemberNames.MultiplyOperatorName, New OperatorInfo(BinaryOperatorKind.Multiply))
-            operators.Add(WellKnownMemberNames.DivisionOperatorName, New OperatorInfo(BinaryOperatorKind.Divide))
-            operators.Add(WellKnownMemberNames.IntegerDivisionOperatorName, New OperatorInfo(BinaryOperatorKind.IntegerDivide))
-            operators.Add(WellKnownMemberNames.ModulusOperatorName, New OperatorInfo(BinaryOperatorKind.Modulo))
-            operators.Add(WellKnownMemberNames.ExponentOperatorName, New OperatorInfo(BinaryOperatorKind.Power))
-            operators.Add(WellKnownMemberNames.EqualityOperatorName, New OperatorInfo(BinaryOperatorKind.Equals))
-            operators.Add(WellKnownMemberNames.InequalityOperatorName, New OperatorInfo(BinaryOperatorKind.NotEquals))
-            operators.Add(WellKnownMemberNames.LessThanOperatorName, New OperatorInfo(BinaryOperatorKind.LessThan))
-            operators.Add(WellKnownMemberNames.GreaterThanOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThan))
-            operators.Add(WellKnownMemberNames.LessThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.LessThanOrEqual))
-            operators.Add(WellKnownMemberNames.GreaterThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThanOrEqual))
-            operators.Add(WellKnownMemberNames.LikeOperatorName, New OperatorInfo(BinaryOperatorKind.Like))
-            operators.Add(WellKnownMemberNames.ConcatenateOperatorName, New OperatorInfo(BinaryOperatorKind.Concatenate))
-            operators.Add(WellKnownMemberNames.BitwiseAndOperatorName, New OperatorInfo(BinaryOperatorKind.And))
-            operators.Add(WellKnownMemberNames.BitwiseOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or))
-            operators.Add(WellKnownMemberNames.ExclusiveOrOperatorName, New OperatorInfo(BinaryOperatorKind.Xor))
-            operators.Add(WellKnownMemberNames.LeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
-            operators.Add(WellKnownMemberNames.RightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
-            operators.Add(WellKnownMemberNames.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit))
-            operators.Add(WellKnownMemberNames.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit))
+            operators.Add(WKMN.OnesComplementOperatorName, New OperatorInfo(UnaryOperatorKind.Not))
+            operators.Add(WKMN.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue))
+            operators.Add(WKMN.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse))
+            operators.Add(WKMN.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Plus))
+            operators.Add(WKMN.AdditionOperatorName, New OperatorInfo(BinaryOperatorKind.Add))
+            operators.Add(WKMN.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus))
+            operators.Add(WKMN.SubtractionOperatorName, New OperatorInfo(BinaryOperatorKind.Subtract))
+            operators.Add(WKMN.MultiplyOperatorName, New OperatorInfo(BinaryOperatorKind.Multiply))
+            operators.Add(WKMN.DivisionOperatorName, New OperatorInfo(BinaryOperatorKind.Divide))
+            operators.Add(WKMN.IntegerDivisionOperatorName, New OperatorInfo(BinaryOperatorKind.IntegerDivide))
+            operators.Add(WKMN.ModulusOperatorName, New OperatorInfo(BinaryOperatorKind.Modulo))
+            operators.Add(WKMN.ExponentOperatorName, New OperatorInfo(BinaryOperatorKind.Power))
+            operators.Add(WKMN.EqualityOperatorName, New OperatorInfo(BinaryOperatorKind.Equals))
+            operators.Add(WKMN.InequalityOperatorName, New OperatorInfo(BinaryOperatorKind.NotEquals))
+            operators.Add(WKMN.LessThanOperatorName, New OperatorInfo(BinaryOperatorKind.LessThan))
+            operators.Add(WKMN.GreaterThanOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThan))
+            operators.Add(WKMN.LessThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.LessThanOrEqual))
+            operators.Add(WKMN.GreaterThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThanOrEqual))
+            operators.Add(WKMN.LikeOperatorName, New OperatorInfo(BinaryOperatorKind.Like))
+            operators.Add(WKMN.ConcatenateOperatorName, New OperatorInfo(BinaryOperatorKind.Concatenate))
+            operators.Add(WKMN.BitwiseAndOperatorName, New OperatorInfo(BinaryOperatorKind.And))
+            operators.Add(WKMN.BitwiseOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or))
+            operators.Add(WKMN.ExclusiveOrOperatorName, New OperatorInfo(BinaryOperatorKind.Xor))
+            operators.Add(WKMN.LeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
+            operators.Add(WKMN.RightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
+            operators.Add(WKMN.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit))
+            operators.Add(WKMN.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit))
 
             ' These cannot be declared in source, but can be imported.
-            operators.Add(WellKnownMemberNames.LogicalNotOperatorName, New OperatorInfo(UnaryOperatorKind.Not))
-            operators.Add(WellKnownMemberNames.LogicalAndOperatorName, New OperatorInfo(BinaryOperatorKind.And))
-            operators.Add(WellKnownMemberNames.LogicalOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or))
-            operators.Add(WellKnownMemberNames.UnsignedLeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
-            operators.Add(WellKnownMemberNames.UnsignedRightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
+            operators.Add(WKMN.LogicalNotOperatorName, New OperatorInfo(UnaryOperatorKind.Not))
+            operators.Add(WKMN.LogicalAndOperatorName, New OperatorInfo(BinaryOperatorKind.And))
+            operators.Add(WKMN.LogicalOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or))
+            operators.Add(WKMN.UnsignedLeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
+            operators.Add(WKMN.UnsignedRightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
 
             OperatorNames = operators
         End Sub
@@ -129,27 +124,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function GetOperatorTokenKind(opInfo As OperatorInfo) As SyntaxKind
-            If opInfo.IsUnary Then
-                Return GetOperatorTokenKind(opInfo.UnaryOperatorKind)
-            Else
-                Return GetOperatorTokenKind(opInfo.BinaryOperatorKind)
-            End If
+            If opInfo.IsUnary Then Return GetOperatorTokenKind(opInfo.UnaryOperatorKind)
+            Return GetOperatorTokenKind(opInfo.BinaryOperatorKind)
         End Function
 
         Friend Shared Function GetOperatorTokenKind(op As UnaryOperatorKind) As SyntaxKind
             Select Case op
-                Case UnaryOperatorKind.IsFalse
-                    Return SyntaxKind.IsFalseKeyword
-                Case UnaryOperatorKind.IsTrue
-                    Return SyntaxKind.IsTrueKeyword
-                Case UnaryOperatorKind.Minus
-                    Return SyntaxKind.MinusToken
-                Case UnaryOperatorKind.Not
-                    Return SyntaxKind.NotKeyword
-                Case UnaryOperatorKind.Plus
-                    Return SyntaxKind.PlusToken
-                Case UnaryOperatorKind.Implicit, UnaryOperatorKind.Explicit
-                    Return SyntaxKind.CTypeKeyword
+                Case UnaryOperatorKind.IsFalse   : Return SyntaxKind.IsFalseKeyword
+                Case UnaryOperatorKind.IsTrue    : Return SyntaxKind.IsTrueKeyword
+                Case UnaryOperatorKind.Minus     : Return SyntaxKind.MinusToken
+                Case UnaryOperatorKind.Not       : Return SyntaxKind.NotKeyword
+                Case UnaryOperatorKind.Plus      : Return SyntaxKind.PlusToken
+                Case UnaryOperatorKind.Implicit,
+                     UnaryOperatorKind.Explicit  : Return SyntaxKind.CTypeKeyword
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(op)
             End Select
@@ -157,55 +144,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function GetOperatorTokenKind(op As BinaryOperatorKind) As SyntaxKind
             Select Case op
-                Case BinaryOperatorKind.Add
-                    Return SyntaxKind.PlusToken
-                Case BinaryOperatorKind.Subtract
-                    Return SyntaxKind.MinusToken
-                Case BinaryOperatorKind.Multiply
-                    Return SyntaxKind.AsteriskToken
-                Case BinaryOperatorKind.Divide
-                    Return SyntaxKind.SlashToken
-                Case BinaryOperatorKind.IntegerDivide
-                    Return SyntaxKind.BackslashToken
-                Case BinaryOperatorKind.Modulo
-                    Return SyntaxKind.ModKeyword
-                Case BinaryOperatorKind.Power
-                    Return SyntaxKind.CaretToken
-                Case BinaryOperatorKind.Equals
-                    Return SyntaxKind.EqualsToken
-                Case BinaryOperatorKind.NotEquals
-                    Return SyntaxKind.LessThanGreaterThanToken
-                Case BinaryOperatorKind.LessThan
-                    Return SyntaxKind.LessThanToken
-                Case BinaryOperatorKind.GreaterThan
-                    Return SyntaxKind.GreaterThanToken
-                Case BinaryOperatorKind.LessThanOrEqual
-                    Return SyntaxKind.LessThanEqualsToken
-                Case BinaryOperatorKind.GreaterThanOrEqual
-                    Return SyntaxKind.GreaterThanEqualsToken
-                Case BinaryOperatorKind.Like
-                    Return SyntaxKind.LikeKeyword
-                Case BinaryOperatorKind.Concatenate
-                    Return SyntaxKind.AmpersandToken
-                Case BinaryOperatorKind.And
-                    Return SyntaxKind.AndKeyword
-                Case BinaryOperatorKind.Or
-                    Return SyntaxKind.OrKeyword
-                Case BinaryOperatorKind.Xor
-                    Return SyntaxKind.XorKeyword
-                Case BinaryOperatorKind.LeftShift
-                    Return SyntaxKind.LessThanLessThanToken
-                Case BinaryOperatorKind.RightShift
-                    Return SyntaxKind.GreaterThanGreaterThanToken
-                Case BinaryOperatorKind.AndAlso
-                    Return SyntaxKind.AndAlsoKeyword
-                Case BinaryOperatorKind.OrElse
-                    Return SyntaxKind.OrElseKeyword
-                Case BinaryOperatorKind.Is
-                    Return SyntaxKind.IsKeyword
-                Case BinaryOperatorKind.IsNot
-                    Return SyntaxKind.IsNotKeyword
-
+                Case BinaryOperatorKind.Add                : Return SyntaxKind.PlusToken
+                Case BinaryOperatorKind.Subtract           : Return SyntaxKind.MinusToken
+                Case BinaryOperatorKind.Multiply           : Return SyntaxKind.AsteriskToken
+                Case BinaryOperatorKind.Divide             : Return SyntaxKind.SlashToken
+                Case BinaryOperatorKind.IntegerDivide      : Return SyntaxKind.BackslashToken
+                Case BinaryOperatorKind.Modulo             : Return SyntaxKind.ModKeyword
+                Case BinaryOperatorKind.Power              : Return SyntaxKind.CaretToken
+                Case BinaryOperatorKind.Equals             : Return SyntaxKind.EqualsToken
+                Case BinaryOperatorKind.NotEquals          : Return SyntaxKind.LessThanGreaterThanToken
+                Case BinaryOperatorKind.LessThan           : Return SyntaxKind.LessThanToken
+                Case BinaryOperatorKind.GreaterThan        : Return SyntaxKind.GreaterThanToken
+                Case BinaryOperatorKind.LessThanOrEqual    : Return SyntaxKind.LessThanEqualsToken
+                Case BinaryOperatorKind.GreaterThanOrEqual : Return SyntaxKind.GreaterThanEqualsToken
+                Case BinaryOperatorKind.Like               : Return SyntaxKind.LikeKeyword
+                Case BinaryOperatorKind.Concatenate        : Return SyntaxKind.AmpersandToken
+                Case BinaryOperatorKind.And                : Return SyntaxKind.AndKeyword
+                Case BinaryOperatorKind.Or                 : Return SyntaxKind.OrKeyword
+                Case BinaryOperatorKind.Xor                : Return SyntaxKind.XorKeyword
+                Case BinaryOperatorKind.LeftShift          : Return SyntaxKind.LessThanLessThanToken
+                Case BinaryOperatorKind.RightShift         : Return SyntaxKind.GreaterThanGreaterThanToken
+                Case BinaryOperatorKind.AndAlso            : Return SyntaxKind.AndAlsoKeyword
+                Case BinaryOperatorKind.OrElse             : Return SyntaxKind.OrElseKeyword
+                Case BinaryOperatorKind.Is                 : Return SyntaxKind.IsKeyword
+                Case BinaryOperatorKind.IsNot              : Return SyntaxKind.IsNotKeyword
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(op)
             End Select
@@ -214,46 +176,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function TryGetOperatorName(op As BinaryOperatorKind) As String
 
             Select Case (op And BinaryOperatorKind.OpMask)
-                Case BinaryOperatorKind.Add
-                    Return WellKnownMemberNames.AdditionOperatorName
-                Case BinaryOperatorKind.Concatenate
-                    Return WellKnownMemberNames.ConcatenateOperatorName
-                Case BinaryOperatorKind.Like
-                    Return WellKnownMemberNames.LikeOperatorName
-                Case BinaryOperatorKind.Equals
-                    Return WellKnownMemberNames.EqualityOperatorName
-                Case BinaryOperatorKind.NotEquals
-                    Return WellKnownMemberNames.InequalityOperatorName
-                Case BinaryOperatorKind.LessThanOrEqual
-                    Return WellKnownMemberNames.LessThanOrEqualOperatorName
-                Case BinaryOperatorKind.GreaterThanOrEqual
-                    Return WellKnownMemberNames.GreaterThanOrEqualOperatorName
-                Case BinaryOperatorKind.LessThan
-                    Return WellKnownMemberNames.LessThanOperatorName
-                Case BinaryOperatorKind.GreaterThan
-                    Return WellKnownMemberNames.GreaterThanOperatorName
-                Case BinaryOperatorKind.Subtract
-                    Return WellKnownMemberNames.SubtractionOperatorName
-                Case BinaryOperatorKind.Multiply
-                    Return WellKnownMemberNames.MultiplyOperatorName
-                Case BinaryOperatorKind.Power
-                    Return WellKnownMemberNames.ExponentOperatorName
-                Case BinaryOperatorKind.Divide
-                    Return WellKnownMemberNames.DivisionOperatorName
-                Case BinaryOperatorKind.Modulo
-                    Return WellKnownMemberNames.ModulusOperatorName
-                Case BinaryOperatorKind.IntegerDivide
-                    Return WellKnownMemberNames.IntegerDivisionOperatorName
-                Case BinaryOperatorKind.LeftShift
-                    Return WellKnownMemberNames.LeftShiftOperatorName
-                Case BinaryOperatorKind.RightShift
-                    Return WellKnownMemberNames.RightShiftOperatorName
-                Case BinaryOperatorKind.Xor
-                    Return WellKnownMemberNames.ExclusiveOrOperatorName
-                Case BinaryOperatorKind.Or
-                    Return WellKnownMemberNames.BitwiseOrOperatorName
-                Case BinaryOperatorKind.And
-                    Return WellKnownMemberNames.BitwiseAndOperatorName
+                Case BinaryOperatorKind.Add                : Return WKMN.AdditionOperatorName
+                Case BinaryOperatorKind.Concatenate        : Return WKMN.ConcatenateOperatorName
+                Case BinaryOperatorKind.Like               : Return WKMN.LikeOperatorName
+                Case BinaryOperatorKind.Equals             : Return WKMN.EqualityOperatorName
+                Case BinaryOperatorKind.NotEquals          : Return WKMN.InequalityOperatorName
+                Case BinaryOperatorKind.LessThanOrEqual    : Return WKMN.LessThanOrEqualOperatorName
+                Case BinaryOperatorKind.GreaterThanOrEqual : Return WKMN.GreaterThanOrEqualOperatorName
+                Case BinaryOperatorKind.LessThan           : Return WKMN.LessThanOperatorName
+                Case BinaryOperatorKind.GreaterThan        : Return WKMN.GreaterThanOperatorName
+                Case BinaryOperatorKind.Subtract           : Return WKMN.SubtractionOperatorName
+                Case BinaryOperatorKind.Multiply           : Return WKMN.MultiplyOperatorName
+                Case BinaryOperatorKind.Power              : Return WKMN.ExponentOperatorName
+                Case BinaryOperatorKind.Divide             : Return WKMN.DivisionOperatorName
+                Case BinaryOperatorKind.Modulo             : Return WKMN.ModulusOperatorName
+                Case BinaryOperatorKind.IntegerDivide      : Return WKMN.IntegerDivisionOperatorName
+                Case BinaryOperatorKind.LeftShift          : Return WKMN.LeftShiftOperatorName
+                Case BinaryOperatorKind.RightShift         : Return WKMN.RightShiftOperatorName
+                Case BinaryOperatorKind.Xor                : Return WKMN.ExclusiveOrOperatorName
+                Case BinaryOperatorKind.Or                 : Return WKMN.BitwiseOrOperatorName
+                Case BinaryOperatorKind.And                : Return WKMN.BitwiseAndOperatorName
 
                 Case Else
                     Return Nothing
@@ -265,39 +207,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function TryGetOperatorName(op As UnaryOperatorKind) As String
-
             Select Case (op And UnaryOperatorKind.OpMask)
-                Case UnaryOperatorKind.Plus
-                    Return WellKnownMemberNames.UnaryPlusOperatorName
-                Case UnaryOperatorKind.Minus
-                    Return WellKnownMemberNames.UnaryNegationOperatorName
-                Case UnaryOperatorKind.Not
-                    Return WellKnownMemberNames.OnesComplementOperatorName
-                Case UnaryOperatorKind.Implicit
-                    Return WellKnownMemberNames.ImplicitConversionName
-                Case UnaryOperatorKind.Explicit
-                    Return WellKnownMemberNames.ExplicitConversionName
-                Case UnaryOperatorKind.IsTrue
-                    Return WellKnownMemberNames.TrueOperatorName
-                Case UnaryOperatorKind.IsFalse
-                    Return WellKnownMemberNames.FalseOperatorName
-
+                Case UnaryOperatorKind.Plus     : Return WKMN.UnaryPlusOperatorName
+                Case UnaryOperatorKind.Minus    : Return WKMN.UnaryNegationOperatorName
+                Case UnaryOperatorKind.Not      : Return WKMN.OnesComplementOperatorName
+                Case UnaryOperatorKind.Implicit : Return WKMN.ImplicitConversionName
+                Case UnaryOperatorKind.Explicit : Return WKMN.ExplicitConversionName
+                Case UnaryOperatorKind.IsTrue   : Return WKMN.TrueOperatorName
+                Case UnaryOperatorKind.IsFalse  : Return WKMN.FalseOperatorName
                 Case Else
                     Return Nothing
             End Select
         End Function
 
-        Friend Shared Function ValidateOverloadedOperator(
-            method As MethodSymbol,
-            opInfo As OperatorInfo,
-            Optional diagnosticsOpt As DiagnosticBag = Nothing
-        ) As Boolean
+        Friend Shared Function ValidateOverloadedOperator ( method As MethodSymbol,
+                                                            opInfo As OperatorInfo,
+                                           Optional diagnosticsOpt As DiagnosticBag = Nothing
+                                                          ) As Boolean
             Debug.Assert(method.IsMethodKindBasedOnSyntax OrElse diagnosticsOpt Is Nothing)
             Debug.Assert(opInfo.ParamCount <> 0)
 
-            If method.ParameterCount <> opInfo.ParamCount Then
-                Return False
-            End If
+            If method.ParameterCount <> opInfo.ParamCount Then Return False
 
             Dim result As Boolean = True
             Dim containingType As NamedTypeSymbol = method.ContainingType
@@ -461,12 +391,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As UnaryOperatorKind
 
             Select Case opCode
-                Case SyntaxKind.UnaryPlusExpression
-                    result = UnaryOperatorKind.Plus
-                Case SyntaxKind.UnaryMinusExpression
-                    result = UnaryOperatorKind.Minus
-                Case SyntaxKind.NotExpression
-                    result = UnaryOperatorKind.Not
+                Case SyntaxKind.UnaryPlusExpression  : result = UnaryOperatorKind.Plus
+                Case SyntaxKind.UnaryMinusExpression : result = UnaryOperatorKind.Minus
+                Case SyntaxKind.NotExpression        : result = UnaryOperatorKind.Not
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opCode)
             End Select
@@ -554,10 +481,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns result type of the operator or SpecialType.None if operator is not supported.
         ''' </summary>
-        Friend Shared Function ResolveNotLiftedIntrinsicUnaryOperator(
-            opCode As UnaryOperatorKind,
-            operandSpecialType As SpecialType
-        ) As SpecialType
+        Friend Shared Function ResolveNotLiftedIntrinsicUnaryOperator _
+            ( opCode As UnaryOperatorKind, operandSpecialType As SpecialType) As SpecialType
 
             Dim intrinsicOperatorType As SpecialType
 
@@ -648,17 +573,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             intrinsicOperatorType = operandSpecialType
 
-                        Case SpecialType.System_UInt16
-                            intrinsicOperatorType = SpecialType.System_Int32
-
-                        Case SpecialType.System_UInt32
-                            intrinsicOperatorType = SpecialType.System_Int64
-
-                        Case SpecialType.System_UInt64
-                            intrinsicOperatorType = SpecialType.System_Decimal
-
-                        Case SpecialType.System_String
-                            intrinsicOperatorType = SpecialType.System_Double
+                        Case SpecialType.System_UInt16 : intrinsicOperatorType = SpecialType.System_Int32
+                        Case SpecialType.System_UInt32 : intrinsicOperatorType = SpecialType.System_Int64
+                        Case SpecialType.System_UInt64 : intrinsicOperatorType = SpecialType.System_Decimal
+                        Case SpecialType.System_String : intrinsicOperatorType = SpecialType.System_Double
 
                         Case Else
                             intrinsicOperatorType = SpecialType.None
@@ -1047,30 +965,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim resultUnderlying = resultType.GetEnumUnderlyingTypeOrSelf()
 
                 If leftUnderlying.IsIntegralType() OrElse leftUnderlying.IsCharType() OrElse leftUnderlying.IsDateTimeType() Then
-                    result = FoldIntegralCharOrDateTimeBinaryOperator(
-                                                op,
-                                                leftConstantValue,
-                                                rightConstantValue,
-                                                leftUnderlying,
-                                                resultUnderlying,
-                                                integerOverflow,
-                                                divideByZero)
+                    result = FoldIntegralCharOrDateTimeBinaryOperator(op, leftConstantValue, rightConstantValue,
+                                                                       leftUnderlying, resultUnderlying,
+                                                                       integerOverflow, divideByZero)
 
                 ElseIf leftUnderlying.IsFloatingType() Then
-                    result = FoldFloatingBinaryOperator(
-                                                op,
-                                                leftConstantValue,
-                                                rightConstantValue,
-                                                leftUnderlying,
-                                                resultUnderlying)
+                    result = FoldFloatingBinaryOperator(op, leftConstantValue, rightConstantValue, leftUnderlying, resultUnderlying)
 
                 ElseIf leftUnderlying.IsDecimalType() Then
-                    result = FoldDecimalBinaryOperator(
-                                                op,
-                                                leftConstantValue,
-                                                rightConstantValue,
-                                                resultUnderlying,
-                                                divideByZero)
+                    result = FoldDecimalBinaryOperator(op, leftConstantValue, rightConstantValue, resultUnderlying, divideByZero)
 
                 ElseIf leftUnderlying.IsStringType() Then
                     ' During normal compilation we never fold string comparison with 
@@ -1078,21 +981,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' this code path in EE and folds comparison regardless of Option Compare.
                     ' I am not sure if we need this in Roslyn, will ignore Option Compare Text for now.
                     Debug.Assert((operatorKind And BinaryOperatorKind.CompareText) = 0)
-                    result = FoldStringBinaryOperator(
-                                                op,
-                                                leftConstantValue,
-                                                rightConstantValue,
-                                                compoundStringLength)
+                    result = FoldStringBinaryOperator(op, leftConstantValue, rightConstantValue, compoundStringLength)
 
-                    If result.IsBad Then
-                        compoundLengthOutOfLimit = True
-                    End If
+                    If result.IsBad Then compoundLengthOutOfLimit = True
 
                 ElseIf leftUnderlying.IsBooleanType() Then
-                    result = FoldBooleanBinaryOperator(
-                                                op,
-                                                leftConstantValue,
-                                                rightConstantValue)
+                    result = FoldBooleanBinaryOperator(op, leftConstantValue, rightConstantValue)
                 End If
 
                 Debug.Assert(result IsNot Nothing)
@@ -1288,38 +1182,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As ConstantValue
 
-            Dim leftValue As Double = If(operandType.IsSingleType, left.SingleValue, left.DoubleValue)
-            Dim rightValue As Double = If(operandType.IsSingleType, right.SingleValue, right.DoubleValue)
+            Dim L_Value As Double = If(operandType.IsSingleType, left.SingleValue, left.DoubleValue)
+            Dim R_Value As Double = If(operandType.IsSingleType, right.SingleValue, right.DoubleValue)
 
             If resultType.IsBooleanType() Then
                 Dim resultValue As Boolean
 
                 Select Case op
 
-                    Case BinaryOperatorKind.Equals
-                        resultValue = (leftValue = rightValue)
-
-                    Case BinaryOperatorKind.NotEquals
-                        resultValue = (leftValue <> rightValue)
-
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        resultValue = (leftValue <= rightValue)
-
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        resultValue = (leftValue >= rightValue)
-
-                    Case BinaryOperatorKind.LessThan
-                        resultValue = (leftValue < rightValue)
-
-                    Case BinaryOperatorKind.GreaterThan
-                        resultValue = (leftValue > rightValue)
-
+                    Case BinaryOperatorKind.Equals : resultValue = (L_Value = R_Value)
+                    Case BinaryOperatorKind.NotEquals : resultValue = (L_Value <> R_Value)
+                    Case BinaryOperatorKind.LessThanOrEqual : resultValue = (L_Value <= R_Value)
+                    Case BinaryOperatorKind.GreaterThanOrEqual : resultValue = (L_Value >= R_Value)
+                    Case BinaryOperatorKind.LessThan : resultValue = (L_Value < R_Value)
+                    Case BinaryOperatorKind.GreaterThan : resultValue = (L_Value > R_Value)
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(op)
                 End Select
-
                 result = ConstantValue.Create(resultValue)
-
             Else
 
                 ' Compute the result in 64-bit arithmetic, and determine if the
@@ -1330,42 +1210,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case op
 
                     Case BinaryOperatorKind.Add
-                        resultValue = leftValue + rightValue
+                        resultValue = L_Value + R_Value
 
                     Case BinaryOperatorKind.Subtract
-                        resultValue = leftValue - rightValue
+                        resultValue = L_Value - R_Value
 
                     Case BinaryOperatorKind.Multiply
-                        resultValue = leftValue * rightValue
+                        resultValue = L_Value * R_Value
 
                     Case BinaryOperatorKind.Power
 
                         ' VSW#463059: Special case CRT changes to match CLR behavior.
-                        If Double.IsInfinity(rightValue) Then
-                            If leftValue.Equals(1.0) Then
-                                resultValue = leftValue
+                        If Double.IsInfinity(R_Value) Then
+                            If L_Value.Equals(1.0) Then
+                                resultValue = L_Value
                                 Exit Select
                             End If
 
-                            If leftValue.Equals(-1.0) Then
+                            If L_Value.Equals(-1.0) Then
                                 resultValue = Double.NaN
                                 Exit Select
                             End If
 
                         ElseIf (
-                            Double.IsNaN(rightValue)
+                            Double.IsNaN(R_Value)
                         ) Then
                             resultValue = Double.NaN
                             Exit Select
                         End If
 
-                        resultValue = Math.Pow(leftValue, rightValue)
+                        resultValue = Math.Pow(L_Value, R_Value)
 
                     Case BinaryOperatorKind.Divide
 
                         ' We have decided not to detect zerodivide in compile-time
                         ' evaluation of floating expressions.
-                        resultValue = leftValue / rightValue
+                        resultValue = L_Value / R_Value
 
                     Case BinaryOperatorKind.Modulo
 
@@ -1376,7 +1256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Dev10 compiler used fmod function here and it behaves differently. It looks like
                         ' ILOpCode.Rem operation, that we use to emit Mod operator, produces result consistent 
                         ' with fmod. 
-                        resultValue = leftValue Mod rightValue
+                        resultValue = L_Value Mod R_Value
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(op)
@@ -1419,25 +1299,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim comparisonResult As Integer = leftValue.CompareTo(rightValue)
 
                 Select Case op
-
-                    Case BinaryOperatorKind.Equals
-                        resultValue = (comparisonResult = 0)
-
-                    Case BinaryOperatorKind.NotEquals
-                        resultValue = Not (comparisonResult = 0)
-
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        resultValue = (comparisonResult <= 0)
-
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        resultValue = (comparisonResult >= 0)
-
-                    Case BinaryOperatorKind.LessThan
-                        resultValue = (comparisonResult < 0)
-
-                    Case BinaryOperatorKind.GreaterThan
-                        resultValue = (comparisonResult > 0)
-
+                    Case BinaryOperatorKind.Equals : resultValue = (comparisonResult = 0)
+                    Case BinaryOperatorKind.NotEquals : resultValue = Not (comparisonResult = 0)
+                    Case BinaryOperatorKind.LessThanOrEqual : resultValue = (comparisonResult <= 0)
+                    Case BinaryOperatorKind.GreaterThanOrEqual : resultValue = (comparisonResult >= 0)
+                    Case BinaryOperatorKind.LessThan : resultValue = (comparisonResult < 0)
+                    Case BinaryOperatorKind.GreaterThan : resultValue = (comparisonResult > 0)
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(op)
                 End Select
@@ -1449,25 +1316,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Try
                     Select Case op
-                        Case BinaryOperatorKind.Add
-                            resultValue = Decimal.Add(leftValue, rightValue)
-
-                        Case BinaryOperatorKind.Subtract
-                            resultValue = Decimal.Subtract(leftValue, rightValue)
-
-                        Case BinaryOperatorKind.Multiply
-                            resultValue = Decimal.Multiply(leftValue, rightValue)
-
-                        Case BinaryOperatorKind.Divide
-                            resultValue = Decimal.Divide(leftValue, rightValue)
-
-                        Case BinaryOperatorKind.Modulo
-                            resultValue = Decimal.Remainder(leftValue, rightValue)
-
+                        Case BinaryOperatorKind.Add : resultValue = Decimal.Add(leftValue, rightValue)
+                        Case BinaryOperatorKind.Subtract : resultValue = Decimal.Subtract(leftValue, rightValue)
+                        Case BinaryOperatorKind.Multiply : resultValue = Decimal.Multiply(leftValue, rightValue)
+                        Case BinaryOperatorKind.Divide : resultValue = Decimal.Divide(leftValue, rightValue)
+                        Case BinaryOperatorKind.Modulo : resultValue = Decimal.Remainder(leftValue, rightValue)
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(op)
                     End Select
-
                 Catch ex As OverflowException
                     overflow = True
                 Catch ex As DivideByZeroException
@@ -1487,39 +1343,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
         ''' The <paramref name="compoundStringLength"/> parameter contains value corresponding to the 
-        ''' <paramref name="left"/> node, or zero, which will trigger inference. Upon return, it will 
+        ''' <paramref name="l"/> node, or zero, which will trigger inference. Upon return, it will 
         ''' be adjusted to correspond future result node.
         ''' </summary>
         Private Shared Function FoldStringBinaryOperator(
             op As BinaryOperatorKind,
-            left As ConstantValue,
-            right As ConstantValue,
+            l As ConstantValue,
+            r As ConstantValue,
             <[In], Out> Optional ByRef compoundStringLength As Integer = 0
         ) As ConstantValue
             Debug.Assert((op And BinaryOperatorKind.OpMask) = op)
 
             Dim result As ConstantValue
 
-            Dim leftValue As String = If(left.IsNothing, String.Empty, left.StringValue)
-            Dim rightValue As String = If(right.IsNothing, String.Empty, right.StringValue)
+            Dim L_Value As String = If(l.IsNothing, String.Empty, l.StringValue)
+            Dim R_Value As String = If(r.IsNothing, String.Empty, r.StringValue)
 
             Select Case op
                 Case BinaryOperatorKind.Concatenate
                     If compoundStringLength = 0 Then
                         ' Infer. Keep it simple for now.
-                        compoundStringLength = leftValue.Length
+                        compoundStringLength = L_Value.Length
                     End If
 
-                    Debug.Assert(compoundStringLength >= leftValue.Length)
+                    Debug.Assert(compoundStringLength >= L_Value.Length)
 
-                    Dim newCompoundLength = CLng(compoundStringLength) + CLng(leftValue.Length) + CLng(rightValue.Length)
+                    Dim newCompoundLength = CLng(compoundStringLength) + CLng(L_Value.Length) + CLng(R_Value.Length)
 
                     If newCompoundLength > Integer.MaxValue Then
                         Return ConstantValue.Bad
                     End If
 
                     Try
-                        result = ConstantValue.Create(String.Concat(leftValue, rightValue))
+                        result = ConstantValue.Create(String.Concat(L_Value, R_Value))
                         compoundStringLength = CInt(newCompoundLength)
                     Catch e As System.OutOfMemoryException
                         Return ConstantValue.Bad
@@ -1534,26 +1390,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim stringComparisonSucceeds As Boolean = False
 
-                    Dim comparisonResult As Integer = String.Compare(leftValue, rightValue, StringComparison.Ordinal)
+                    Dim comparisonResult As Integer = String.Compare(L_Value, R_Value, StringComparison.Ordinal)
 
                     Select Case op
-                        Case BinaryOperatorKind.Equals
-                            stringComparisonSucceeds = (comparisonResult = 0)
-
-                        Case BinaryOperatorKind.NotEquals
-                            stringComparisonSucceeds = (comparisonResult <> 0)
-
-                        Case BinaryOperatorKind.GreaterThan
-                            stringComparisonSucceeds = (comparisonResult > 0)
-
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            stringComparisonSucceeds = (comparisonResult >= 0)
-
-                        Case BinaryOperatorKind.LessThan
-                            stringComparisonSucceeds = (comparisonResult < 0)
-
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            stringComparisonSucceeds = (comparisonResult <= 0)
+                        Case BinaryOperatorKind.Equals : stringComparisonSucceeds = (comparisonResult = 0)
+                        Case BinaryOperatorKind.NotEquals : stringComparisonSucceeds = (comparisonResult <> 0)
+                        Case BinaryOperatorKind.GreaterThan : stringComparisonSucceeds = (comparisonResult > 0)
+                        Case BinaryOperatorKind.GreaterThanOrEqual : stringComparisonSucceeds = (comparisonResult >= 0)
+                        Case BinaryOperatorKind.LessThan : stringComparisonSucceeds = (comparisonResult < 0)
+                        Case BinaryOperatorKind.LessThanOrEqual : stringComparisonSucceeds = (comparisonResult <= 0)
 
                     End Select
 
@@ -1568,75 +1413,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function FoldBooleanBinaryOperator(
             op As BinaryOperatorKind,
-            left As ConstantValue,
-            right As ConstantValue
+            l As ConstantValue,
+            r As ConstantValue
         ) As ConstantValue
             Debug.Assert((op And BinaryOperatorKind.OpMask) = op)
 
-            Dim result As ConstantValue
-
-            Dim leftValue As Boolean = left.BooleanValue
-            Dim rightValue As Boolean = right.BooleanValue
+            Dim L_Value As Boolean = l.BooleanValue
+            Dim R_Value As Boolean = r.BooleanValue
 
             Dim operationSucceeds As Boolean = False
 
             Select Case op
 
-                Case BinaryOperatorKind.Equals
-                    operationSucceeds = (leftValue = rightValue)
-
-                Case BinaryOperatorKind.NotEquals
-                    operationSucceeds = (leftValue <> rightValue)
-
-                Case BinaryOperatorKind.GreaterThan
-                    ' Amazingly, False > True.
-                    operationSucceeds = (leftValue = False AndAlso rightValue = True)
-
-                Case BinaryOperatorKind.GreaterThanOrEqual
-                    operationSucceeds = (leftValue = False OrElse rightValue = True)
-
-                Case BinaryOperatorKind.LessThan
-                    operationSucceeds = (leftValue = True AndAlso rightValue = False)
-
-                Case BinaryOperatorKind.LessThanOrEqual
-                    operationSucceeds = (leftValue = True OrElse rightValue = False)
-
-                Case BinaryOperatorKind.Xor
-                    operationSucceeds = (leftValue Xor rightValue)
-
+                Case BinaryOperatorKind.Equals             : operationSucceeds = (L_Value = R_Value)
+                Case BinaryOperatorKind.NotEquals          : operationSucceeds = (L_Value <> R_Value)
+                Case BinaryOperatorKind.GreaterThan        : operationSucceeds = (L_Value = False AndAlso R_Value = True) ' Amazingly, False > True.
+                Case BinaryOperatorKind.GreaterThanOrEqual : operationSucceeds = (L_Value = False OrElse R_Value = True)
+                Case BinaryOperatorKind.LessThan           : operationSucceeds = (L_Value = True AndAlso R_Value = False)
+                Case BinaryOperatorKind.LessThanOrEqual    : operationSucceeds = (L_Value = True OrElse R_Value = False)
+                Case BinaryOperatorKind.Xor                : operationSucceeds = (L_Value Xor R_Value)
                 Case BinaryOperatorKind.OrElse,
-                     BinaryOperatorKind.Or
-
-                    operationSucceeds = (leftValue OrElse rightValue)
-
+                     BinaryOperatorKind.Or                 : operationSucceeds = (L_Value OrElse R_Value)
                 Case BinaryOperatorKind.AndAlso,
-                     BinaryOperatorKind.And
-                    operationSucceeds = (leftValue AndAlso rightValue)
+                     BinaryOperatorKind.And                : operationSucceeds = (L_Value AndAlso R_Value)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(op)
             End Select
 
-            result = ConstantValue.Create(operationSucceeds)
-
-            Return result
+            Return ConstantValue.Create(operationSucceeds)
         End Function
 
         ''' <summary>
         ''' Returns result type of the operator or SpecialType.None if operator is not supported.
         ''' </summary>
-        Friend Shared Function ResolveNotLiftedIntrinsicBinaryOperator(
-            opCode As BinaryOperatorKind,
-            left As SpecialType,
-            right As SpecialType
-        ) As SpecialType
+        Friend Shared Function ResolveNotLiftedIntrinsicBinaryOperator _ 
+           ( opCode As BinaryOperatorKind, l As SpecialType, r As SpecialType ) As SpecialType
 
-            Dim leftIndex = left.TypeToIndex()
-            Dim rightIndex = right.TypeToIndex()
+            Dim lx = l.TypeToIndex()
+            Dim rx = r.TypeToIndex()
 
-            If Not (leftIndex.HasValue AndAlso rightIndex.HasValue) Then
-                Return SpecialType.None
-            End If
+            If Not (lx.HasValue AndAlso rx.HasValue) Then Return SpecialType.None
 
             Dim tableKind As BinaryOperatorTables.TableKind
 
@@ -1687,7 +1504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(opCode)
             End Select
 
-            Return CType(BinaryOperatorTables.Table(tableKind, leftIndex.Value, rightIndex.Value), SpecialType)
+            Return CType(BinaryOperatorTables.Table(tableKind, lx.Value, rx.Value), SpecialType)
         End Function
 
         Private Class BinaryOperatorTables
@@ -2143,13 +1960,8 @@ Done:
                     applicable.Clear()
                     applicableCount = 0
                 Else
-                    If Conversions.IsIdentityConversion(conversionIn) Then
-                        mostSpecificSourceType = source
-                    End If
-
-                    If Conversions.IsIdentityConversion(conversionOut) Then
-                        mostSpecificTargetType = destination
-                    End If
+                    If Conversions.IsIdentityConversion(conversionIn)  Then mostSpecificSourceType = source
+                    If Conversions.IsIdentityConversion(conversionOut) Then mostSpecificTargetType = destination
 
                     applicable(currentIndex) = True
                     applicableCount += 1
@@ -2166,10 +1978,7 @@ Done:
 #End If
 
             If bestMatch IsNot Nothing Then
-                If bestMatchIsAmbiguous Then
-                    bestMatch = Nothing
-                End If
-
+                If bestMatchIsAmbiguous Then bestMatch = Nothing
                 Return True
             End If
 
@@ -2185,10 +1994,7 @@ Done:
                         typeSet = ArrayBuilder(Of TypeSymbol).GetInstance()
 
                         For i As Integer = 0 To opSet.Count - 1
-                            If Not applicable(i) Then
-                                Continue For
-                            End If
-
+                            If Not applicable(i) Then Continue For
                             typeSet.Add(opSet(i).Parameters(0).Type)
                         Next
 
@@ -2205,10 +2011,7 @@ Done:
                         End If
 
                         For i As Integer = 0 To opSet.Count - 1
-                            If Not applicable(i) Then
-                                Continue For
-                            End If
-
+                            If Not applicable(i) Then Continue For
                             typeSet.Add(opSet(i).ReturnType)
                         Next
 
@@ -2217,17 +2020,14 @@ Done:
                         mostSpecificTargetType = MostEncompassing(typeSet, useSiteDiagnostics)
                     End If
 
-                    If typeSet IsNot Nothing Then
-                        typeSet.Free()
-                    End If
+                    If typeSet IsNot Nothing Then typeSet.Free()
+
 
                     If mostSpecificSourceType IsNot Nothing AndAlso mostSpecificTargetType IsNot Nothing Then
                         bestMatch = ChooseMostSpecificConversionOperator(opSet, applicable, mostSpecificSourceType, mostSpecificTargetType, bestMatchIsAmbiguous)
                     End If
 
-                    If bestMatch IsNot Nothing AndAlso bestMatchIsAmbiguous Then
-                        bestMatch = Nothing
-                    End If
+                    If bestMatch IsNot Nothing AndAlso bestMatchIsAmbiguous Then bestMatch = Nothing
                 Else
                     For i As Integer = 0 To opSet.Count - 1
                         If applicable(i) Then
@@ -2258,9 +2058,8 @@ Done:
             bestMatchIsAmbiguous = False
 
             For i As Integer = 0 To opSet.Count - 1
-                If Not applicable(i) Then
-                    Continue For
-                End If
+                If Not applicable(i) Then Continue For
+
 
                 Dim method As MethodSymbol = opSet(i)
 
@@ -2556,10 +2355,7 @@ Done:
             Next
 #End If
             If bestMatch IsNot Nothing Then
-                If bestMatchIsAmbiguous Then
-                    bestMatch = Nothing
-                End If
-
+                If bestMatchIsAmbiguous Then bestMatch = Nothing
                 Return True
             End If
 
@@ -2575,14 +2371,10 @@ Done:
                         typeSet = ArrayBuilder(Of TypeSymbol).GetInstance()
 
                         For i As Integer = 0 To opSet.Count - 1
-                            If Not applicable(i) Then
-                                Continue For
-                            End If
+                            If Not applicable(i) Then Continue For
 
                             If haveWideningInConversions <> 0 Then
-                                If Not Conversions.IsWideningConversion(conversionKinds(i).Key) Then
-                                    Continue For
-                                End If
+                                If Not Conversions.IsWideningConversion(conversionKinds(i).Key) Then Continue For
                             Else
                                 Debug.Assert(Conversions.IsNarrowingConversion(conversionKinds(i).Key))
                             End If
@@ -2607,14 +2399,10 @@ Done:
                         End If
 
                         For i As Integer = 0 To opSet.Count - 1
-                            If Not applicable(i) Then
-                                Continue For
-                            End If
+                            If Not applicable(i) Then Continue For
 
                             If haveWideningOutConversions <> 0 Then
-                                If Not Conversions.IsWideningConversion(conversionKinds(i).Value) Then
-                                    Continue For
-                                End If
+                                If Not Conversions.IsWideningConversion(conversionKinds(i).Value) Then Continue For
                             Else
                                 Debug.Assert(Conversions.IsNarrowingConversion(conversionKinds(i).Value))
                             End If
@@ -2631,9 +2419,7 @@ Done:
                         End If
                     End If
 
-                    If typeSet IsNot Nothing Then
-                        typeSet.Free()
-                    End If
+                    If typeSet IsNot Nothing Then typeSet.Free()
 
                     If mostSpecificSourceType IsNot Nothing AndAlso mostSpecificTargetType IsNot Nothing Then
                         bestMatch = ChooseMostSpecificConversionOperator(opSet, applicable, mostSpecificSourceType, mostSpecificTargetType, bestMatchIsAmbiguous)
@@ -2678,9 +2464,7 @@ Done:
                 Debug.Assert(Not type.IsErrorType())
 
                 For j As Integer = 0 To typeSet.Count - 1
-                    If i = j Then
-                        Continue For
-                    End If
+                    If i = j Then Continue For
 
                     Dim conv As ConversionKind = Conversions.ClassifyPredefinedConversion(type, typeSet(j), useSiteDiagnostics)
 
@@ -2723,10 +2507,7 @@ Next_i:
                 Debug.Assert(Not type.IsErrorType())
 
                 For j As Integer = 0 To typeSet.Count - 1
-                    If i = j Then
-                        Continue For
-                    End If
-
+                    If i = j Then Continue For
                     Dim conv As ConversionKind = Conversions.ClassifyPredefinedConversion(typeSet(j), type, useSiteDiagnostics)
 
                     If Not Conversions.IsWideningConversion(conv) Then
@@ -2778,9 +2559,7 @@ Next_i:
         ''' Returns number of types in the list of {input type, output type} that refer to a generic type parameter.
         ''' </summary>
         Private Shared Function DetermineConversionOperatorDegreeOfGenericity(method As MethodSymbol) As Integer
-            If Not method.ContainingType.IsGenericType Then
-                Return 0
-            End If
+            If Not method.ContainingType.IsGenericType Then Return 0
 
             Dim result As Integer = 0
             Dim definition As MethodSymbol = method.OriginalDefinition
@@ -2804,9 +2583,7 @@ Next_i:
             Debug.Assert(method.MethodKind = MethodKind.Conversion)
             Dim forth As Char = method.Name(3)
 
-            If forth = "I"c OrElse forth = "i"c Then
-                Return True
-            End If
+            If forth = "I"c OrElse forth = "i"c Then Return True
 
             Debug.Assert(forth = "E"c OrElse forth = "e"c)
             Return False
@@ -2824,8 +2601,8 @@ Next_i:
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
             CollectUserDefinedOperators(source, destination, MethodKind.Conversion,
-                                        WellKnownMemberNames.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit),
-                                        WellKnownMemberNames.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit),
+                                        WKMN.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit),
+                                        WKMN.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit),
                                         opSet, useSiteDiagnostics)
         End Sub
 
@@ -2847,9 +2624,7 @@ Next_i:
         )
             type1 = GetTypeToLookForOperatorsIn(type1, useSiteDiagnostics)
 
-            If type2 IsNot Nothing Then
-                type2 = GetTypeToLookForOperatorsIn(type2, useSiteDiagnostics)
-            End If
+            If type2 IsNot Nothing Then type2 = GetTypeToLookForOperatorsIn(type2, useSiteDiagnostics)
 
             Dim commonAncestor As NamedTypeSymbol = Nothing
 
@@ -2909,9 +2684,8 @@ Next_i:
                     Dim method = DirectCast(member, MethodSymbol)
 
                     If method.MethodKind = opKind Then
-                        If method.IsShadows Then
-                            stopClimbing = True
-                        End If
+                        If method.IsShadows Then stopClimbing = True
+
 
                         ' Operators that were declared in syntax may not satisfy all the constraints on user-defined operators -
                         ' they require extra validation.
@@ -2943,7 +2717,7 @@ Next_i:
             Dim opSet = ArrayBuilder(Of MethodSymbol).GetInstance()
 
             CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
-                                        WellKnownMemberNames.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue),
+                                        WKMN.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue),
                                         Nothing, Nothing,
                                         opSet, useSiteDiagnostics)
 
@@ -2957,7 +2731,7 @@ Next_i:
             Dim opSet = ArrayBuilder(Of MethodSymbol).GetInstance()
 
             CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
-                                        WellKnownMemberNames.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse),
+                                        WKMN.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse),
                                         Nothing, Nothing,
                                         opSet, useSiteDiagnostics)
 
@@ -2980,17 +2754,17 @@ Next_i:
                 Case UnaryOperatorKind.Not
                     Dim opInfo As New OperatorInfo(UnaryOperatorKind.Not)
                     CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.OnesComplementOperatorName, opInfo,
-                                                WellKnownMemberNames.LogicalNotOperatorName, opInfo,
+                                                WKMN.OnesComplementOperatorName, opInfo,
+                                                WKMN.LogicalNotOperatorName, opInfo,
                                                 opSet, useSiteDiagnostics)
                 Case UnaryOperatorKind.Minus
                     CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus),
+                                                WKMN.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case UnaryOperatorKind.Plus
                     CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Minus),
+                                                WKMN.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Minus),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case Else
@@ -3016,108 +2790,108 @@ Next_i:
             Select Case opKind
                 Case BinaryOperatorKind.Add
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.AdditionOperatorName, New OperatorInfo(opKind),
+                                                WKMN.AdditionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Subtract
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.SubtractionOperatorName, New OperatorInfo(opKind),
+                                                WKMN.SubtractionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Multiply
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.MultiplyOperatorName, New OperatorInfo(opKind),
+                                                WKMN.MultiplyOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Divide
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.DivisionOperatorName, New OperatorInfo(opKind),
+                                                WKMN.DivisionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.IntegerDivide
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.IntegerDivisionOperatorName, New OperatorInfo(opKind),
+                                                WKMN.IntegerDivisionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Modulo
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.ModulusOperatorName, New OperatorInfo(opKind),
+                                                WKMN.ModulusOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Power
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.ExponentOperatorName, New OperatorInfo(opKind),
+                                                WKMN.ExponentOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Equals
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.EqualityOperatorName, New OperatorInfo(opKind),
+                                                WKMN.EqualityOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.NotEquals
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.InequalityOperatorName, New OperatorInfo(opKind),
+                                                WKMN.InequalityOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.LessThan
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.LessThanOperatorName, New OperatorInfo(opKind),
+                                                WKMN.LessThanOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.GreaterThan
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.GreaterThanOperatorName, New OperatorInfo(opKind),
+                                                WKMN.GreaterThanOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.LessThanOrEqual
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.LessThanOrEqualOperatorName, New OperatorInfo(opKind),
+                                                WKMN.LessThanOrEqualOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.GreaterThanOrEqual
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.GreaterThanOrEqualOperatorName, New OperatorInfo(opKind),
+                                                WKMN.GreaterThanOrEqualOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Like
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.LikeOperatorName, New OperatorInfo(opKind),
+                                                WKMN.LikeOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Concatenate
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.ConcatenateOperatorName, New OperatorInfo(opKind),
+                                                WKMN.ConcatenateOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.And, BinaryOperatorKind.AndAlso
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.BitwiseAndOperatorName, opInfo,
-                                                WellKnownMemberNames.LogicalAndOperatorName, opInfo,
+                                                WKMN.BitwiseAndOperatorName, opInfo,
+                                                WKMN.LogicalAndOperatorName, opInfo,
                                                 opSet, useSiteDiagnostics)
 
                 Case BinaryOperatorKind.Or, BinaryOperatorKind.OrElse
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.BitwiseOrOperatorName, opInfo,
-                                                WellKnownMemberNames.LogicalOrOperatorName, opInfo,
+                                                WKMN.BitwiseOrOperatorName, opInfo,
+                                                WKMN.LogicalOrOperatorName, opInfo,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.Xor
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.ExclusiveOrOperatorName, New OperatorInfo(opKind),
+                                                WKMN.ExclusiveOrOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.LeftShift
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.LeftShiftOperatorName, opInfo,
-                                                WellKnownMemberNames.UnsignedLeftShiftOperatorName, opInfo,
+                                                WKMN.LeftShiftOperatorName, opInfo,
+                                                WKMN.UnsignedLeftShiftOperatorName, opInfo,
                                                 opSet, useSiteDiagnostics)
                 Case BinaryOperatorKind.RightShift
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
-                                                WellKnownMemberNames.RightShiftOperatorName, opInfo,
-                                                WellKnownMemberNames.UnsignedRightShiftOperatorName, opInfo,
+                                                WKMN.RightShiftOperatorName, opInfo,
+                                                WKMN.UnsignedRightShiftOperatorName, opInfo,
                                                 opSet, useSiteDiagnostics)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
@@ -3171,10 +2945,7 @@ Next_i:
                 Dim useSiteErrorInfo As DiagnosticInfo = method.GetUseSiteErrorInfo()
 
                 If useSiteErrorInfo IsNot Nothing Then
-                    If useSiteDiagnostics Is Nothing Then
-                        useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                    End If
-
+                    If useSiteDiagnostics Is Nothing Then useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
                     useSiteDiagnostics.Add(useSiteErrorInfo)
 
                     If includeEliminatedCandidates Then
@@ -3194,8 +2965,8 @@ Next_i:
 
                     Dim param2 As ParameterSymbol = Nothing
                     Dim type2 As TypeSymbol = Nothing
-                    Dim isNullable2 As Boolean = False
-                    Dim canLift2 As Boolean = False
+                    Dim isNullable2 = False
+                    Dim canLift2 = False
 
                     If argument2 IsNot Nothing AndAlso Not isNullable1 Then
                         param2 = method.Parameters(1)
@@ -3206,18 +2977,12 @@ Next_i:
 
                     If (canLift1 OrElse canLift2) AndAlso Not isNullable1 AndAlso Not isNullable2 Then
                         ' Should lift this operator.
-                        If canLift1 Then
-                            param1 = LiftParameterSymbol(param1, nullableOfT)
-                        End If
-
-                        If canLift2 Then
-                            param2 = LiftParameterSymbol(param2, nullableOfT)
-                        End If
+                        If canLift1 Then param1 = LiftParameterSymbol(param1, nullableOfT)
+                        If canLift2 Then param2 = LiftParameterSymbol(param2, nullableOfT)
 
                         Dim returnType As TypeSymbol = method.ReturnType
-                        If CanLiftType(returnType) Then
-                            returnType = nullableOfT.Construct(returnType)
-                        End If
+                        If CanLiftType(returnType) Then returnType = nullableOfT.Construct(returnType)
+
 
                         CombineCandidates(candidates,
                                           New CandidateAnalysisResult(New LiftedOperatorCandidate(method,
@@ -3255,15 +3020,10 @@ Next_i:
         End Function
 
         Private Shared Function LiftParameterSymbol(param As ParameterSymbol, nullableOfT As NamedTypeSymbol) As ParameterSymbol
-
-            If param.IsDefinition Then
-                Return New LiftedParameterSymbol(param, nullableOfT.Construct(param.Type))
-            Else
-                Dim definition As ParameterSymbol = param.OriginalDefinition
-
-                Return SubstitutedParameterSymbol.CreateMethodParameter(DirectCast(param.ContainingSymbol, SubstitutedMethodSymbol),
-                                                                        New LiftedParameterSymbol(definition, nullableOfT.Construct(definition.Type)))
-            End If
+            If param.IsDefinition Then Return New LiftedParameterSymbol(param, nullableOfT.Construct(param.Type))
+            Dim definition As ParameterSymbol = param.OriginalDefinition
+            Return SubstitutedParameterSymbol.CreateMethodParameter(DirectCast(param.ContainingSymbol, SubstitutedMethodSymbol),
+                                                 New LiftedParameterSymbol(definition, nullableOfT.Construct(definition.Type)))
         End Function
 
         Private NotInheritable Class LiftedParameterSymbol

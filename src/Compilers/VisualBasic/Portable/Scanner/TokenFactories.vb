@@ -30,10 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly triviaKeyEquality As Func(Of TriviaKey, SyntaxTrivia, Boolean) =
             Function(key, value) (key.spelling Is value.Text) AndAlso (key.kind = value.Kind)
 
-        Private Shared ReadOnly singleSpaceWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-        Private Shared ReadOnly fourSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("    ")
-        Private Shared ReadOnly eightSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("        ")
-        Private Shared ReadOnly twelveSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
+        Private Shared ReadOnly singleSpaceWhitespaceTrivia   As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+        Private Shared ReadOnly fourSpacesWhitespaceTrivia    As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("    ")
+        Private Shared ReadOnly eightSpacesWhitespaceTrivia   As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("        ")
+        Private Shared ReadOnly twelveSpacesWhitespaceTrivia  As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
         Private Shared ReadOnly sixteenSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("                ")
 
 
@@ -67,14 +67,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared ReadOnly wsListKeyEquality As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode), Boolean) =
             Function(builder, list)
-                If builder.Count <> list.Count Then
-                    Return False
-                End If
-
+                If builder.Count <> list.Count Then Return False
                 For i = 0 To builder.Count - 1
-                    If builder(i) IsNot list.ItemUntyped(i) Then
-                        Return False
-                    End If
+                    If builder(i) IsNot list.ItemUntyped(i) Then Return False
                 Next
                 Return True
             End Function
@@ -104,15 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Function(key)
                 Dim code = RuntimeHelpers.GetHashCode(key.spelling)
                 Dim trivia = key.pTrivia
-                If trivia IsNot Nothing Then
-                    code = code Xor (RuntimeHelpers.GetHashCode(trivia) << 1)
-                End If
-
+                If trivia IsNot Nothing Then code = code Xor (RuntimeHelpers.GetHashCode(trivia) << 1)
                 trivia = key.fTrivia
-                If trivia IsNot Nothing Then
-                    code = code Xor RuntimeHelpers.GetHashCode(trivia)
-                End If
-
+                If trivia IsNot Nothing Then code = code Xor RuntimeHelpers.GetHashCode(trivia)
                 Return code
             End Function
 
@@ -221,66 +210,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function MakeTriviaArray(builder As SyntaxListBuilder) As SyntaxList(Of VisualBasicSyntaxNode)
-            If builder.Count = 0 Then
-                Return Nothing
-            End If
+            If builder.Count = 0 Then Return Nothing
             Dim foundTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             Dim useCache = CanCache(builder)
 
-            If useCache Then
-                Return _wslTable.GetOrMakeValue(builder)
-            Else
-                Return builder.ToList
-            End If
+            Return If( useCache, _wslTable.GetOrMakeValue(builder), builder.ToList)
         End Function
 
 #End Region
 
 #Region "Identifiers"
-        Private Function MakeIdentifier(spelling As String,
-                                       contextualKind As SyntaxKind,
-                                       isBracketed As Boolean,
-                                       BaseSpelling As String,
-                                       TypeCharacter As TypeCharacter,
-                                       leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As IdentifierTokenSyntax
-
+        Private Function MakeIdentifier(      spelling As String,
+                                        contextualKind As SyntaxKind,
+                                           isBracketed As Boolean,
+                                          BaseSpelling As String,
+                                         TypeCharacter As TypeCharacter,
+                                         leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
+                                       ) As IdentifierTokenSyntax
             Dim followingTrivia = ScanSingleLineTrivia()
-
-            Return MakeIdentifier(spelling,
-                               contextualKind,
-                               isBracketed,
-                               BaseSpelling,
-                               TypeCharacter,
-                               leadingTrivia,
-                               followingTrivia)
-
+            Return MakeIdentifier(spelling, contextualKind, isBracketed, BaseSpelling, TypeCharacter, leadingTrivia, followingTrivia)
         End Function
 
         Friend Function MakeIdentifier(keyword As KeywordSyntax) As IdentifierTokenSyntax
-            Return MakeIdentifier(keyword.Text,
-                                  keyword.Kind,
-                                  False,
-                                  keyword.Text,
-                                  TypeCharacter.None,
-                                  keyword.GetLeadingTrivia,
-                                  keyword.GetTrailingTrivia)
+            Return MakeIdentifier( keyword.Text, keyword.Kind, False, keyword.Text, TypeCharacter.None, keyword.GetLeadingTrivia, keyword.GetTrailingTrivia)
         End Function
 
-        Private Function MakeIdentifier(spelling As String,
-                               contextualKind As SyntaxKind,
-                               isBracketed As Boolean,
-                               BaseSpelling As String,
-                               TypeCharacter As TypeCharacter,
-                               precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
-                               followingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As IdentifierTokenSyntax
+        Private Function MakeIdentifier (       spelling As String,
+                                          contextualKind As SyntaxKind,
+                                            isBracketed As Boolean,
+                                            BaseSpelling As String,
+                                           TypeCharacter As TypeCharacter,
+                                         precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+                                         followingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
+                                        ) As IdentifierTokenSyntax
 
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
-
             Dim id As IdentifierTokenSyntax = Nothing
-            If _idTable.TryGetValue(tp, id) Then
-                Return id
-            End If
-
+            If _idTable.TryGetValue(tp, id) Then Return id
             If contextualKind <> SyntaxKind.IdentifierToken OrElse
                 isBracketed = True OrElse
                 TypeCharacter <> TypeCharacter.None Then
@@ -298,36 +264,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #Region "Keywords"
 
-        Private Function MakeKeyword(tokenType As SyntaxKind,
-                                     spelling As String,
-                                     precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As KeywordSyntax
-
+        Private Function MakeKeyword(tokenType As SyntaxKind, spelling As String, precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As KeywordSyntax
             Dim followingTrivia = ScanSingleLineTrivia()
-
-            Return MakeKeyword(tokenType,
-                               spelling,
-                               precedingTrivia,
-                               followingTrivia)
+            Return MakeKeyword(tokenType, spelling, precedingTrivia, followingTrivia)
         End Function
 
-        Friend Function MakeKeyword(identifier As IdentifierTokenSyntax) As KeywordSyntax
-            Debug.Assert(identifier.PossibleKeywordKind <> SyntaxKind.IdentifierToken AndAlso
-                         Not identifier.IsBracketed AndAlso
-                         (identifier.TypeCharacter = TypeCharacter.None OrElse identifier.PossibleKeywordKind = SyntaxKind.MidKeyword))
+        Friend Function MakeKeyword(id As IdentifierTokenSyntax) As KeywordSyntax
+            Debug.Assert(id.PossibleKeywordKind <> SyntaxKind.IdentifierToken AndAlso
+                         Not id.IsBracketed AndAlso
+                         (id.TypeCharacter = TypeCharacter.None OrElse id.PossibleKeywordKind = SyntaxKind.MidKeyword))
 
-            Return MakeKeyword(identifier.PossibleKeywordKind,
-                               identifier.Text,
-                               identifier.GetLeadingTrivia,
-                               identifier.GetTrailingTrivia)
+            Return MakeKeyword(id.PossibleKeywordKind, id.Text, id.GetLeadingTrivia, id.GetTrailingTrivia)
         End Function
 
         Friend Function MakeKeyword(xmlName As XmlNameTokenSyntax) As KeywordSyntax
             Debug.Assert(xmlName.PossibleKeywordKind <> SyntaxKind.XmlNameToken)
 
-            Return MakeKeyword(xmlName.PossibleKeywordKind,
-                               xmlName.Text,
-                               xmlName.GetLeadingTrivia,
-                               xmlName.GetTrailingTrivia)
+            Return MakeKeyword(xmlName.PossibleKeywordKind, xmlName.Text, xmlName.GetLeadingTrivia, xmlName.GetTrailingTrivia)
         End Function
 
         Private Function MakeKeyword(tokenType As SyntaxKind,
@@ -338,9 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
 
             Dim kw As KeywordSyntax = Nothing
-            If _kwTable.TryGetValue(tp, kw) Then
-                Return kw
-            End If
+            If _kwTable.TryGetValue(tp, kw) Then Return kw
 
             kw = New KeywordSyntax(tokenType, spelling, precedingTrivia.Node, followingTrivia.Node)
             _kwTable.Add(tp, kw)
@@ -375,10 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
 
             Dim p As PunctuationSyntax = Nothing
-            If _punctTable.TryGetValue(tp, p) Then
-                Return p
-            End If
-
+            If _punctTable.TryGetValue(tp, p) Then Return p
             p = New PunctuationSyntax(kind, spelling, precedingTrivia.Node, followingTrivia.Node)
             _punctTable.Add(tp, p)
             Return p
@@ -448,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MakeColonToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Debug.Assert(PeekChar() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
+            Debug.Assert(Peek() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
             Debug.Assert(Not precedingTrivia.Any())
 
             Dim width = _endOfTerminatorTrivia - _lineBufferOffset
@@ -625,22 +573,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim spelling = GetText(length)
             Dim followingTrivia = ScanSingleLineTrivia()
-
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
-
             Dim p As SyntaxToken = Nothing
-            If _literalTable.TryGetValue(tp, p) Then
-                Return p
-            End If
-
-            p = SyntaxFactory.IntegerLiteralToken(
-                        spelling,
-                        base,
-                        typeCharacter,
-                        integralValue,
-                        precedingTrivia.Node,
-                        followingTrivia.Node)
-
+            If _literalTable.TryGetValue(tp, p) Then Return p
+            p = SyntaxFactory.IntegerLiteralToken( spelling, base, typeCharacter, integralValue, precedingTrivia.Node, followingTrivia.Node)
             _literalTable.Add(tp, p)
             Return p
         End Function
@@ -648,14 +584,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function MakeCharacterLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), value As Char, length As Integer) As SyntaxToken
             Dim spelling = GetText(length)
             Dim followingTrivia = ScanSingleLineTrivia()
-
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
-
             Dim p As SyntaxToken = Nothing
-            If _literalTable.TryGetValue(tp, p) Then
-                Return p
-            End If
-
+            If _literalTable.TryGetValue(tp, p) Then Return p
             p = SyntaxFactory.CharacterLiteralToken(spelling, value, precedingTrivia.Node, followingTrivia.Node)
             _literalTable.Add(tp, p)
             Return p
@@ -664,14 +595,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function MakeDateLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), value As DateTime, length As Integer) As SyntaxToken
             Dim spelling = GetText(length)
             Dim followingTrivia = ScanSingleLineTrivia()
-
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
-
             Dim p As SyntaxToken = Nothing
-            If _literalTable.TryGetValue(tp, p) Then
-                Return p
-            End If
-
+            If _literalTable.TryGetValue(tp, p) Then Return p
             p = SyntaxFactory.DateLiteralToken(spelling, value, precedingTrivia.Node, followingTrivia.Node)
             _literalTable.Add(tp, p)
             Return p
@@ -684,21 +610,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim spelling = GetText(length)
             Dim followingTrivia = ScanSingleLineTrivia()
-
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
-
             Dim p As SyntaxToken = Nothing
-            If _literalTable.TryGetValue(tp, p) Then
-                Return p
-            End If
-
-            p = SyntaxFactory.FloatingLiteralToken(
-                        spelling,
-                        typeCharacter,
-                        floatingValue,
-                        precedingTrivia.Node,
-                        followingTrivia.Node)
-
+            If _literalTable.TryGetValue(tp, p) Then Return p
+            p = SyntaxFactory.FloatingLiteralToken( spelling, typeCharacter, floatingValue, precedingTrivia.Node, followingTrivia.Node)
             _literalTable.Add(tp, p)
             Return p
         End Function
@@ -714,17 +629,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
 
             Dim p As SyntaxToken = Nothing
-            If _literalTable.TryGetValue(tp, p) Then
-                Return p
-            End If
-
-            p = SyntaxFactory.DecimalLiteralToken(
-                        spelling,
-                        typeCharacter,
-                        decimalValue,
-                        precedingTrivia.Node,
-                        followingTrivia.Node)
-
+            If _literalTable.TryGetValue(tp, p) Then Return p
+            p = SyntaxFactory.DecimalLiteralToken( spelling, typeCharacter, decimalValue, precedingTrivia.Node, followingTrivia.Node)
             _literalTable.Add(tp, p)
             Return p
         End Function
