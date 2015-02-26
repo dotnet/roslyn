@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+Imports Microsoft.VisualStudio.LanguageServices.SolutionExplorer
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
@@ -20,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
 
-                Assert.Equal(expected:="Analyzers", actual:=analyzerFolder.Text)
+                Assert.Equal(expected:=SolutionExplorerShim.AnalyzersFolderItem_Name, actual:=analyzerFolder.Text)
             End Using
         End Sub
 
@@ -39,8 +40,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
                 Dim browseObject = DirectCast(analyzerFolder.GetBrowseObject(), AnalyzersFolderItem.BrowseObject)
 
-                Assert.Equal(expected:="Analyzers", actual:=browseObject.GetComponentName())
-                Assert.Equal(expected:="Folder Properties", actual:=browseObject.GetClassName())
+                Assert.Equal(expected:=SolutionExplorerShim.AnalyzersFolderItem_Name, actual:=browseObject.GetComponentName())
+                Assert.Equal(expected:=SolutionExplorerShim.AnalyzersFolderItem_PropertyWindowClassName, actual:=browseObject.GetClassName())
             End Using
         End Sub
     End Class

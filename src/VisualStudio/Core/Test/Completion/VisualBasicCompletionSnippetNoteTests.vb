@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
@@ -20,9 +21,9 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "Interface")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="Interface Keyword" & vbCrLf &
-                    "Declares the name of an interface and the definitions of the members of the interface." & vbCrLf &
-                    "Note: Tab twice to insert the 'Interface' snippet.")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.InterfaceKeywordToolTip & vbCrLf &
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface"))
             End Using
         End Sub
 
@@ -31,9 +32,9 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "intErfaCE")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="Interface Keyword" & vbCrLf &
-                    "Declares the name of an interface and the definitions of the members of the interface." & vbCrLf &
-                    "Note: Tab twice to insert the 'Interface' snippet.")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.InterfaceKeywordToolTip & vbCrLf &
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface"))
             End Using
         End Sub
 
@@ -42,8 +43,8 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "Interfac")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="Interface Keyword" & vbCrLf &
-                    "Declares the name of an interface and the definitions of the members of the interface.")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.InterfaceKeywordToolTip)
             End Using
         End Sub
 
@@ -52,8 +53,8 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(markup, "Interfaces")
                 state.SendTypeChars("Interfac")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="Interface Keyword" & vbCrLf &
-                    "Declares the name of an interface and the definitions of the members of the interface.")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.InterfaceKeywordToolTip)
             End Using
         End Sub
 
@@ -73,7 +74,7 @@ End Class]]></document>
 
                 state.SendTypeChars("DisplayTex")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="Note: Tab twice to insert the 'InsertionText' snippet.")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
             End Using
         End Sub
 
