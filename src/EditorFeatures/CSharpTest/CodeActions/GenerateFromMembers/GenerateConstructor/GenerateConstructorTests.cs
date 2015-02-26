@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructor;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -148,7 +145,7 @@ index: 0);
         {
             TestSmartTagText(
 @"using System.Collections.Generic; class Program { [|bool b; HashSet<string> s;|] }",
-@"Generate constructor 'Program(bool, HashSet<string>)'");
+string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<string>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -156,7 +153,7 @@ index: 0);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Generate field assigning constructor 'Program(bool, HashSet<string>)'");
+string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "bool, HashSet<string>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -164,7 +161,7 @@ index: 0);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Generate delegating constructor 'Program(bool, HashSet<string>)'",
+string.Format(FeaturesResources.GenerateDelegatingConstructor, "Program", "bool, HashSet<string>"),
 index: 1);
         }
 

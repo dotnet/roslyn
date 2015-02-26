@@ -1,5 +1,5 @@
 
-//  Microsoft (R) .NET Framework IL Disassembler.  Version 4.0.30319.34209
+//  Microsoft (R) .NET Framework IL Disassembler.  Version 4.0.30319.33440
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 
 
@@ -39,13 +39,13 @@
   .ver 1:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Engine.dll
-// MVID: {6ACEF75E-71AE-4A5E-A3C0-CAD7BC16BC75}
+// MVID: {0F7065FE-E352-4628-8FE7-0426F0FBBB7F}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x02880000
+// Image base: 0x010C0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -6979,6 +6979,7 @@
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_REMOTE_DISCONNECTED = int32(0x8EDE0011)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_REMOTE_NEW_VER_REQUIRED = int32(0x8EDE0024)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_SERVER_ONLY_METHOD = int32(0x8EDE0022)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_STA_THREADS_NOT_SUPPORTED = int32(0x8EDE0026)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_THREAD_ABORTED = int32(0x8EDE0003)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_UNAVAILABLE_OBJECT = int32(0x8EDE0005)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_WORKLIST_ALREADY_STARTED = int32(0x8EDE000B)
@@ -22950,7 +22951,8 @@
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
           GetMemberValue(string MemberName,
                          int32 MemberType,
-                         string ParentTypeName) cil managed
+                         string ParentTypeName,
+                         class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -24126,7 +24128,8 @@
           GetMemberValue(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
                          string memberName,
                          int32 memberType,
-                         string parentTypeName) cil managed
+                         string parentTypeName,
+                         class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::GetMemberValue
 

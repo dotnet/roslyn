@@ -240,9 +240,10 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, {}, TestOptions.DebugDll)
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef)
+            Dim context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference)
 
             Const expectedError = "(1,1): error BC30002: Type 'System.Void' is not defined."
+            Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
 
             Dim resultProperties As ResultProperties = Nothing
             Dim actualError As String = Nothing
@@ -259,11 +260,8 @@ End Class
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData:=Nothing)
 
-            ' This behavior is reasonable, but it would be much nicer to report that comp.Assembly.CorLibrary.Identity
-            ' is missing, as in C# (GitHub #597).
-
             Assert.Equal(expectedError, actualError)
-            Assert.Empty(actualMissingAssemblyIdentities)
+            Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
         Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext

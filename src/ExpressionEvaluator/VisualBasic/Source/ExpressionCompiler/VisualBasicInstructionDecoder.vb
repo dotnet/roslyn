@@ -80,10 +80,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return method.GetAllTypeParameters()
         End Function
 
-        Friend Overrides Function GetCompilation(instructionAddress As DkmClrInstructionAddress) As VisualBasicCompilation
-            Dim appDomain = instructionAddress.ModuleInstance.AppDomain
+        Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
+            Dim appDomain = moduleInstance.AppDomain
             Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
-            Dim metadataBlocks = instructionAddress.Process.GetMetadataBlocks(appDomain)
+            Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain)
 
             Dim compilation As VisualBasicCompilation
             If metadataBlocks.HaveNotChanged(previous) Then
