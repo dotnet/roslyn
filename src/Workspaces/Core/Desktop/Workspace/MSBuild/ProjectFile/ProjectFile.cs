@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return PathUtilities.GetFileName(assemblyName);
         }
 
-        protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
+        protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
         {
-            return executedProject.GetItems("ProjectReference")
+            return GetProjectReferenceItems(executedProject)
                 .Select(reference => new ProjectFileReference(
                     path: reference.EvaluatedInclude,
                     aliases: ImmutableArray<string>.Empty));
