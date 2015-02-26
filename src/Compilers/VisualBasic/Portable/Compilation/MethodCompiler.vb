@@ -1262,9 +1262,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(_moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls)
 
-            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
-            Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
-
             For Each handledEvent In handledEvents
                 If handledEvent.HandlesKind <> HandledEventKind.WithEvents Then
                     Continue For
@@ -1294,8 +1291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' setter needs to rewritten as it may require lambda conversions
                 Dim setterBody = setter.GetBoundMethodBody(diagnostics, containingTypeBinder)
 
-                Dim lambdaOrdinalDispenser = 0
-                Dim scopeOrdinalDispenser = 0
+                Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
+                Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
 
                 setterBody = Rewriter.LowerBodyOrInitializer(setter,
                                                              withEventPropertyIdDispenser,
@@ -1315,6 +1312,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not lambdaDebugInfoBuilder.Any())
                 Debug.Assert(Not closureDebugInfoBuilder.Any())
 
+                lambdaDebugInfoBuilder.Free()
+                closureDebugInfoBuilder.Free()
+
                 compilationState.AddMethodWrapper(setter, setter, setterBody)
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, setter)
 
@@ -1322,9 +1322,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, prop)
                 withEventPropertyIdDispenser += 1
             Next
-
-            lambdaDebugInfoBuilder.Free()
-            closureDebugInfoBuilder.Free()
         End Sub
 
         ''' <summary> 

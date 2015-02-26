@@ -77,8 +77,6 @@ End Class
 </symbols>)
         End Sub
 
-
-
         <Fact()>
         Public Sub LambdaMethod()
             Dim source =
@@ -164,7 +162,6 @@ End Module
 </symbols>)
         End Sub
 
-        ' TODO: Invalid method token
         <Fact>
         <WorkItem(544000, "DevDiv")>
         Public Sub TestLambdaNameStability()
@@ -240,5 +237,193 @@ End Module
 </symbols>)
         End Sub
 
+        <Fact>
+        Public Sub PartiallydefinedClass_1()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Partial Class C
+    Public m1 As Func(Of Integer) = Function() 1
+
+    Sub Main()
+    End Sub
+End Class
+    </file>
+    <file name="b.vb">
+Imports System
+Partial Class C
+    Public m2 As Func(Of Integer) = Function() 2
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    TestOptions.DebugDll)
+
+            ' Check two distinct lambda offets for m1 and m2
+            compilation.VerifyPdb(
+<symbols>
+    <files>
+        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="E9, 8A, 62, CA, DC, E3, 2B, C4, 4B,  6, D5, 97, 3C, 77, 18, 2E, 6F, 67, EE, 15, "/>
+        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="A1, 36, 22, 63, B1, FC, DD, 52, E1, 86, 92, E9, 1A, 7D, 68, 5A, C5, 74, 27, 69, "/>
+    </files>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLambdaMap>
+                    <methodOrdinal>0</methodOrdinal>
+                    <lambda offset="-26"/>
+                    <lambda offset="-12"/>
+                </encLambdaMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x6" startLine="3" startColumn="12" endLine="3" endColumn="49" document="1"/>
+                <entry offset="0x30" startLine="3" startColumn="12" endLine="3" endColumn="49" document="2"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x5b">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+        <method containingType="C" name="Main">
+            <sequencePoints>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="12" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x2">
+                <importsforward declaringType="C" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="C+_Closure$__" name="_Lambda$__0-0">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="37" endLine="3" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="48" endLine="3" endColumn="49" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x7">
+                <importsforward declaringType="C" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="C+_Closure$__" name="_Lambda$__0-1">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="37" endLine="3" endColumn="47" document="2"/>
+                <entry offset="0x1" startLine="3" startColumn="48" endLine="3" endColumn="49" document="2"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x7">
+                <importsforward declaringType="C" methodName=".ctor"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub PartiallydefinedClass_2()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Partial Class C
+    Public m1 As Func(Of Integer) = Function() 1
+
+    Sub Main()
+    End Sub
+End Class
+
+Partial Class C
+    Public m2 As Func(Of Integer) = Function() 2
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    TestOptions.DebugDll)
+
+            ' Check two distinct lambda offets for m1 and m2
+            compilation.VerifyPdb(
+<symbols>
+    <files>
+        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="CC,  4, 2E, 86, CE, 51, 76, 57, 53, 27, C4, A0, 42, 3C, DA, FC, 6A, 91, 4A, 39, "/>
+    </files>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLambdaMap>
+                    <methodOrdinal>0</methodOrdinal>
+                    <lambda offset="-26"/>
+                    <lambda offset="-12"/>
+                </encLambdaMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x6" startLine="3" startColumn="12" endLine="3" endColumn="49" document="1"/>
+                <entry offset="0x30" startLine="10" startColumn="12" endLine="10" endColumn="49" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x5b">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+        <method containingType="C" name="Main">
+            <sequencePoints>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="12" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x2">
+                <importsforward declaringType="C" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="C+_Closure$__" name="_Lambda$__0-0">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="37" endLine="3" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="48" endLine="3" endColumn="49" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x7">
+                <importsforward declaringType="C" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="C+_Closure$__" name="_Lambda$__0-1">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="21" offset="-1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="10" startColumn="37" endLine="10" endColumn="47" document="1"/>
+                <entry offset="0x1" startLine="10" startColumn="48" endLine="10" endColumn="49" document="1"/>
+            </sequencePoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x7">
+                <importsforward declaringType="C" methodName=".ctor"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
     End Class
 End Namespace

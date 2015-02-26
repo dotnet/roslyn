@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)
         ''' </summary>
         Friend Shared Function GetCorrespondingLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
+
             Dim oldLambda = oldBody.Parent
 
             Select Case oldLambda.Kind
@@ -43,11 +44,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.DescendingOrdering
                     Return DirectCast(newLambda, OrderingSyntax).Expression
 
+                Case SyntaxKind.SelectClause
+                    Dim oldSelect = DirectCast(oldLambda, SelectClauseSyntax)
+                    Return DirectCast(newLambda, SelectClauseSyntax).Variables.First
+
                 Case SyntaxKind.JoinCondition
                     Dim oldJoin = DirectCast(oldLambda, JoinConditionSyntax)
                     Dim newJoin = DirectCast(newLambda, JoinConditionSyntax)
                     Debug.Assert(oldJoin.Left Is oldBody OrElse oldJoin.Right Is oldBody)
                     Return If(oldJoin.Left Is oldBody, newJoin.Left, newJoin.Right)
+
+                Case SyntaxKind.GroupByClause
+                    Dim oldGroup = DirectCast(oldLambda, GroupByClauseSyntax)
+                    Dim newGroup = DirectCast(newLambda, GroupByClauseSyntax)
+                    If oldBody.IsKind(SyntaxKind.ExpressionRangeVariable) Then
+                        Debug.Assert(oldGroup.Keys.Contains(DirectCast(oldBody, ExpressionRangeVariableSyntax)))
+                        Dim location = oldGroup.Keys.IndexOf(DirectCast(oldBody, ExpressionRangeVariableSyntax))
+                        Return newGroup.Keys(location)
+                    Else
+                        Debug.Assert(oldBody.IsKind(SyntaxKind.AggregationRangeVariable))
+                        Dim syntax = newGroup.AggregationVariables.First
+                        Return If(syntax, newLambda)
+                    End If
+
+                Case SyntaxKind.FromClause
+                    Dim oldFrom = DirectCast(oldLambda, FromClauseSyntax)
+                    Dim newFrom = DirectCast(newLambda, FromClauseSyntax)
+                    Debug.Assert(oldFrom.Variables.Contains(DirectCast(oldBody, CollectionRangeVariableSyntax)))
+                    Dim location = oldFrom.Variables.IndexOf(DirectCast(oldBody, CollectionRangeVariableSyntax))
+                    Return newFrom.Variables(location)
+
+                Case SyntaxKind.GroupJoinClause
+                    Dim oldGroup = DirectCast(oldLambda, GroupJoinClauseSyntax)
+                    Dim newGroup = DirectCast(newLambda, GroupJoinClauseSyntax)
+                    Debug.Assert(oldBody.IsKind(SyntaxKind.AggregationRangeVariable))
+                    Dim syntax = newGroup.AggregationVariables.First
+                    Return If(syntax, newLambda)
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable

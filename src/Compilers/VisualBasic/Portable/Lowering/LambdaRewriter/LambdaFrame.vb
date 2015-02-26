@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly ClosureOrdinal As Integer
 
         'NOTE: this does not include captured parent frame references 
-        Friend ReadOnly m_captured_locals As New ArrayBuilder(Of LambdaCapturedVariable)
-        Friend ReadOnly m_constructor As SynthesizedLambdaConstructor
+        Friend ReadOnly CapturedLocals As New ArrayBuilder(Of LambdaCapturedVariable)
+        Private ReadOnly m_constructor As SynthesizedLambdaConstructor
         Friend ReadOnly TypeMap As TypeSubstitution
 
         Private ReadOnly m_scopeSyntaxOpt As VisualBasicSyntaxNode
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isStatic Then
                 Me.m_sharedConstructor = New SynthesizedConstructorSymbol(Nothing, Me, isShared:=True, isDebuggable:=False, binder:=Nothing, diagnostics:=Nothing)
                 Dim cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName()
-                Me.m_singletonCache = New SynthesizedFieldSymbol(Me, Me, Me, cacheVariableName, Accessibility.Public, isReadOnly:=True, isShared:=True)
+                Me.m_singletonCache = New SynthesizedLambdaCacheFieldSymbol(Me, Me, Me, cacheVariableName, topLevelMethod, Accessibility.Public, isReadOnly:=True, isShared:=True)
                 m_scopeSyntaxOpt = Nothing
             Else
                 m_scopeSyntaxOpt = scopeSyntaxOpt
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            Dim members = StaticCast(Of Symbol).From(m_captured_locals.AsImmutable())
+            Dim members = StaticCast(Of Symbol).From(CapturedLocals.AsImmutable())
             If m_sharedConstructor IsNot Nothing Then
                 members = members.AddRange(ImmutableArray.Create(Of Symbol)(m_constructor, m_sharedConstructor, m_singletonCache))
             Else
@@ -165,9 +165,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
             If m_singletonCache Is Nothing Then
-                Return m_captured_locals
+                Return CapturedLocals
             Else
-                Return DirectCast(m_captured_locals, IEnumerable(Of FieldSymbol)).Concat(Me.m_singletonCache)
+                Return DirectCast(CapturedLocals, IEnumerable(Of FieldSymbol)).Concat(Me.m_singletonCache)
             End If
         End Function
 

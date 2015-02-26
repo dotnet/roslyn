@@ -1468,7 +1468,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaBinders = ImmutableArray.Create(Of Binder)(outerKeyBinder, innerKeyBinder)
             End If
 
-
             Dim joinSelectorLambda As New BoundQueryLambda(joinSelectorSyntax,
                                                            joinSelectorLambdaSymbol,
                                                            joinSelectorRangeVariables,
@@ -1897,7 +1896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim keysSelector = keysLambdaBinder.BindExpressionRangeVariables(keys, True, groupBy,
                                                                              keysRangeVariables, diagnostics)
 
-            Dim keysLambda As New BoundQueryLambda(groupBy,
+            Dim keysLambda As New BoundQueryLambda(keysSelector.Syntax,
                                                    keysLambdaSymbol,
                                                    source.RangeVariables,
                                                    keysSelector,
@@ -2117,7 +2116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                               intoRangeVariables,
                                                                               diagnostics)
 
-            Dim intoLambda As New BoundQueryLambda(syntaxNode,
+            Dim syntax As VisualBasicSyntaxNode = aggregationVariables.FirstOrDefault()
+            Dim intoLambda As New BoundQueryLambda(If(syntax, syntaxNode),
                                                    intoLambdaSymbol,
                                                    keysRangeVariables,
                                                    intoSelector,
@@ -3358,7 +3358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressDiagnostics.Free()
                 End If
 
-                outerKeyLambda = New BoundQueryLambda(join,
+                outerKeyLambda = New BoundQueryLambda(outerKey.Syntax,
                                                       outerKeyLambdaSymbol,
                                                       outer.RangeVariables,
                                                       outerKey,
@@ -3366,7 +3366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 outerKeyLambda.SetWasCompilerGenerated()
 
-                innerKeyLambda = New BoundQueryLambda(join,
+                innerKeyLambda = New BoundQueryLambda(innerKey.Syntax,
                                                       innerKeyLambdaSymbol,
                                                       inner.RangeVariables,
                                                       innerKey,

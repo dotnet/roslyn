@@ -951,22 +951,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal static ImmutableArray<FieldOrPropertyInitializer> GetInitializersInSourceTree(SyntaxTree tree, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
+        private static ImmutableArray<FieldOrPropertyInitializer> GetInitializersInSourceTree(SyntaxTree tree, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
+            var builder = ArrayBuilder<FieldOrPropertyInitializer>.GetInstance();
             foreach (var siblingInitializers in initializers)
             {
                 Debug.Assert(!siblingInitializers.IsEmpty);
 
                 if (siblingInitializers[0].Syntax.SyntaxTree == tree)
                 {
-                    return siblingInitializers;
+                    builder.AddRange(siblingInitializers);
                 }
             }
 
-            return ImmutableArray<FieldOrPropertyInitializer>.Empty;
+            return builder.ToImmutable();
         }
 
-        internal static int IndexOfInitializerContainingPosition(ImmutableArray<FieldOrPropertyInitializer> initializers, int position)
+        private static int IndexOfInitializerContainingPosition(ImmutableArray<FieldOrPropertyInitializer> initializers, int position)
         {
             // Search for the start of the span (the spans are non-overlapping and sorted)
             int index = initializers.BinarySearch(position, (initializer, pos) => initializer.Syntax.Span.Start.CompareTo(pos));

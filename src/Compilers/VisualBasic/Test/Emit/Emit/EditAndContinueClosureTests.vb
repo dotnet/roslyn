@@ -437,5 +437,523 @@ End Module
                 Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
+        <Fact>
+        Public Sub PartialClass()
+            Dim source0 = MarkedSource("
+Imports System
+Class C
+    Public m1 As Func(Of Integer) = <N:0>Function() 1</N:0>
+End Class
+
+Partial Class C
+    Public m2 As Func(Of Integer) = <N:1>Function() 1</N:1>
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Class C
+    Public m1 As Func(Of Integer) = <N:0>Function() 10</N:0>
+End Class
+
+Partial Class C
+    Public m2 As Func(Of Integer) = <N:1>Function() 10</N:1>
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
+            Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I0-0, $I0-1, _Lambda$__0-0, _Lambda$__0-1}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpress_Where()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     <N:1>Where a > 1</N:1>
+                     <N:2>Select a</N:2>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     <N:1>Where a > 10</N:1>
+                     <N:2>Select a + 10</N:2>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, _Lambda$__1-0, _Lambda$__1-1}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_Group()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     <N:1>Group By g = a Mod 5 Into Group</N:1>
+                     <N:2>Select g</N:2>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     <N:1>Group By g = a Mod 10 Into Group</N:1>
+                     <N:2>Select g</N:2>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_Group_2()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     <N:1>Group By a Into g = Count()</N:1>
+                     <N:2>Select g</N:2>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     <N:1>Group By a Into g = Count()</N:1>
+                     <N:2>Select g</N:2>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_Group_3()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     <N:1>Group y = a, z = a * a By b = a Mod 2 Into s = <N:2>Sum(y)</N:2></N:1>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     <N:1>Group y = a, z = a * a By b = a Mod 2 Into s = <N:2>Sum(y+z)</N:2></N:1>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-3, $I1-2, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(22, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_Join()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     Join b In {5, 10} On <N:1>a Equals b</N:1>
+                     <N:2>Select b</N:2>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     Join b In {50, 100} On <N:1>a +1 Equals b - 1</N:1>
+                     <N:2>Select b</N:2>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_Let()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     Let <N:1>b = a + a</N:1>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     Let <N:1>b = a * a</N:1>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_JoinAndGroup()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3}</N:0>
+                     <N:4>Join b In {5, 10} On <N:1>a Equals b</N:1></N:4>
+                     <N:2>Group By a Into d = Count()</N:2>
+                     <N:3>Select d</N:3>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30}</N:0>
+                     <N:4>Join b In {5, 10} On <N:1>a +1 Equals b - 1</N:1></N:4>
+                     <N:2>Group By a Into d = Count()</N:2>
+                     <N:3>Select d * 10</N:3>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, $I1-4, $I1-5, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3, _Lambda$__1-4, _Lambda$__1-5}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(22, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(23, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(24, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
+
+        <Fact>
+        Public Sub QueryExpression_GroupJoin()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {1, 2, 3, 4, 5}</N:0>
+                     <N:1>Group Join b In {2, 3, 4} On <N:2>a Equals b</N:2> Into c = Group</N:1>
+                     <N:3>Select c</N:3>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Linq
+Class C
+    Sub F()
+        Dim result = <N:0>From a In {10, 20, 30, 40, 50}</N:0>
+                     <N:1>Group Join b In {20, 30, 40} On <N:2>a + 1 Equals b - 1</N:2> Into c = Group</N:1>
+                     <N:3>Select c</N:3>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences.Concat(SystemCoreRef), options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' no new synthesized members generated (with #1 in names)
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3}")
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            ' Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default))
+        End Sub
     End Class
 End Namespace

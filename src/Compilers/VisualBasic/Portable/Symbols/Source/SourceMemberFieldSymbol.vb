@@ -577,7 +577,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Else
                                 If initializerOpt Is Nothing Then
                                     ' Array declaration with implicit initializer.
-                                    Dim initializer = New FieldOrPropertyInitializer(fieldSymbol, modifiedIdentifierRef)
+                                    Dim initializer = Function(precedingInitializersLength As Integer)
+                                                          Return New FieldOrPropertyInitializer(fieldSymbol, modifiedIdentifierRef, precedingInitializersLength)
+                                                      End Function
                                     If fieldSymbol.IsShared Then
                                         SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer, members.StaticSyntaxLength)
                                     Else
@@ -611,7 +613,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 If initializerOptRef IsNot Nothing Then
-                    Dim initializer = New FieldOrPropertyInitializer(fieldOrWithEventSymbols.AsImmutableOrNull, initializerOptRef)
+                    Dim initializer = Function(precedingInitializersLength As Integer)
+                                          Return New FieldOrPropertyInitializer(fieldOrWithEventSymbols.AsImmutableOrNull, initializerOptRef, precedingInitializersLength)
+                                      End Function
 
                     ' all symbols are the same regarding the sharedness
                     Dim symbolsAreShared = nameCount > 0 AndAlso fieldOrWithEventSymbols(0).IsShared

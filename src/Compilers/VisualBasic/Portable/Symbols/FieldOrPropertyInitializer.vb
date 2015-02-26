@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' A sum of widths of spans of all preceding initializers
         ''' (instance and static initializers are summed separately, and trivias are not counted).
         ''' </summary>
-        Friend PrecedingInitializersLength As Integer
+        Friend ReadOnly PrecedingInitializersLength As Integer
 
         Friend ReadOnly IsMetadataConstant As Boolean
 
@@ -35,10 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Initializer for an executable statement in script code.
         ''' </summary>
         ''' <param name="syntax">The initializer syntax for the statement.</param>
-        Public Sub New(syntax As SyntaxReference)
+        Public Sub New(syntax As SyntaxReference, precedingInitializersLength As Integer)
             Debug.Assert(TypeOf syntax.GetSyntax() Is StatementSyntax)
             Me.Syntax = syntax
             Me.IsMetadataConstant = False
+            Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
 
         ''' <summary>
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="field">The field.</param>
         ''' <param name="syntax">The initializer syntax for the field.</param>
-        Public Sub New(field As FieldSymbol, syntax As SyntaxReference)
+        Public Sub New(field As FieldSymbol, syntax As SyntaxReference, precedingInitializersLength As Integer)
             Debug.Assert(field IsNot Nothing)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse
                          syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue) OrElse
@@ -55,17 +56,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)(field)
             Me.Syntax = syntax
             Me.IsMetadataConstant = field.IsMetadataConstant
+            Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
 
         ''' <summary>
         ''' Initializes a new instance of the <see cref="FieldOrPropertyInitializer" /> structure.
         ''' </summary>
-        Public Sub New(fieldsOrProperties As ImmutableArray(Of Symbol), syntax As SyntaxReference)
+        Public Sub New(fieldsOrProperties As ImmutableArray(Of Symbol), syntax As SyntaxReference, precedingInitializersLength As Integer)
             Debug.Assert(Not fieldsOrProperties.IsEmpty)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
             Me.FieldsOrProperty = fieldsOrProperties
             Me.Syntax = syntax
             Me.IsMetadataConstant = False
+            Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
 
         ''' <summary>
@@ -73,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="property">The property.</param>
         ''' <param name="syntax">The initializer syntax for the property.</param>
-        Public Sub New([property] As PropertySymbol, syntax As SyntaxReference)
+        Public Sub New([property] As PropertySymbol, syntax As SyntaxReference, precedingInitializersLength As Integer)
             Debug.Assert([property] IsNot Nothing)
             Debug.Assert(syntax IsNot Nothing)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
@@ -81,6 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)([property])
             Me.Syntax = syntax
             Me.IsMetadataConstant = False
+            Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
     End Structure
 End Namespace

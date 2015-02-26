@@ -225,7 +225,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalCapturedAndHoisted()
+        Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
     <file>
@@ -233,7 +233,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Public Class C
-    Private Async Function Async_Lambda_Hoisted() As Task
+    Private Async Function Async_Lambda() As Task
         Dim x As Integer = 1
         Dim y As Integer = 2
 
@@ -252,16 +252,11 @@ End Class
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
 
-            compilation.VerifyPdb("C.Async_Lambda_Hoisted",
-<symbols>
-    <methods/>
-</symbols>)
-
-            ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
-            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_Hoisted.MoveNext",
+            ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" and "$VB$ResumableLocal_a$1".
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_1_Async_Lambda_Hoisted" name="MoveNext">
+        <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="27" offset="-1"/>
@@ -275,7 +270,7 @@ End Class
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x12" startLine="5" startColumn="5" endLine="5" endColumn="58" document="0"/>
+                <entry offset="0x12" startLine="5" startColumn="5" endLine="5" endColumn="50" document="0"/>
                 <entry offset="0x13" hidden="true" document="0"/>
                 <entry offset="0x1e" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
                 <entry offset="0x2a" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
@@ -301,16 +296,16 @@ End Class
                 </scope>
             </scope>
             <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_Lambda_Hoisted"/>
-                <await yield="0x91" resume="0xb0" declaringType="C+VB$StateMachine_1_Async_Lambda_Hoisted" methodName="MoveNext"/>
+                <kickoffMethod declaringType="C" methodName="Async_Lambda"/>
+                <await yield="0x91" resume="0xb0" declaringType="C+VB$StateMachine_1_Async_Lambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalCapturedAndNotHoisted()
+        <Fact()>
+        Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
     <file>
@@ -318,13 +313,15 @@ Imports System
 Imports System.Threading.Tasks
 
 Public Class C
-    Private Async Function Async_Lambda_NotHoisted() As Task
+    Private Async Function Async_Lambda() As Task
         Dim x As Integer = 1
         Dim y As Integer = 2
 
         Dim a As Func(Of Integer) = Function() x + y
 
         Await Console.Out.WriteAsync((x + y).ToString)
+        x.ToString()
+        y.ToString()
     End Function
 End Class
     </file>
@@ -333,52 +330,40 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                    TestOptions.DebugDll)
+                    TestOptions.ReleaseDll)
 
-            ' Goal: We're looking for the single-mangled name "$VB$Closure_1".
-            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_NotHoisted.MoveNext",
+            ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" but not "$VB$ResumableLocal_a$1".
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_1_Async_Lambda_NotHoisted" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
+        <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x12" startLine="5" startColumn="5" endLine="5" endColumn="61" document="0"/>
-                <entry offset="0x13" hidden="true" document="0"/>
-                <entry offset="0x1e" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x2a" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x36" startLine="9" startColumn="13" endLine="9" endColumn="53" document="0"/>
-                <entry offset="0x4d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
-                <entry offset="0xda" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xdc" hidden="true" document="0"/>
-                <entry offset="0xe4" hidden="true" document="0"/>
-                <entry offset="0x101" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0x10b" hidden="true" document="0"/>
+                <entry offset="0xa" hidden="true" document="0"/>
+                <entry offset="0x15" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
+                <entry offset="0x21" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
+                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
+                <entry offset="0xb3" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
+                <entry offset="0xc4" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
+                <entry offset="0xd5" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0xd7" hidden="true" document="0"/>
+                <entry offset="0xde" hidden="true" document="0"/>
+                <entry offset="0xf9" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0x103" hidden="true" document="0"/>
             </sequencePoints>
             <locals>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0xdb" attributes="0"/>
-                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xdb" attributes="0"/>
+                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0xa" il_end="0xd6" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0x118">
+            <scope startOffset="0x0" endOffset="0x10f">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
-                <scope startOffset="0x12" endOffset="0xdb">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0xdb" attributes="0"/>
-                    <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xdb" attributes="0"/>
+                <scope startOffset="0xa" endOffset="0xd6">
+                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0xa" il_end="0xd6" attributes="0"/>
                 </scope>
             </scope>
             <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_Lambda_NotHoisted"/>
-                <await yield="0x91" resume="0xad" declaringType="C+VB$StateMachine_1_Async_Lambda_NotHoisted" methodName="MoveNext"/>
+                <kickoffMethod declaringType="C" methodName="Async_Lambda"/>
+                <await yield="0x6e" resume="0x88" declaringType="C+VB$StateMachine_1_Async_Lambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -386,7 +371,7 @@ End Class
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalHoistedAndNotCapture()
+        Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
     <file>
@@ -394,7 +379,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Public Class C
-    Private Async Function Async_NoLambda_Hoisted() As Task
+    Private Async Function Async_NoLambda() As Task
         Dim x As Integer = 1
         Dim y As Integer = 2
 
@@ -412,10 +397,10 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
-            compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda_Hoisted.MoveNext",
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_1_Async_NoLambda_Hoisted" name="MoveNext">
+        <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="27" offset="-1"/>
@@ -429,7 +414,7 @@ End Class
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xf" startLine="5" startColumn="5" endLine="5" endColumn="60" document="0"/>
+                <entry offset="0xf" startLine="5" startColumn="5" endLine="5" endColumn="52" document="0"/>
                 <entry offset="0x10" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
                 <entry offset="0x17" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
                 <entry offset="0x1e" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
@@ -455,17 +440,16 @@ End Class
                 </scope>
             </scope>
             <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_NoLambda_Hoisted"/>
-                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_1_Async_NoLambda_Hoisted" methodName="MoveNext"/>
+                <kickoffMethod declaringType="C" methodName="Async_NoLambda"/>
+                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_1_Async_NoLambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
 </symbols>)
         End Sub
 
-        '  Invalid method token '0x06000001' or version '1' (hresult = 0x80004005)
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalNotHoistedAndNotCaptured()
+        <Fact()>
+        Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
     <file>
@@ -473,11 +457,13 @@ Imports System
 Imports System.Threading.Tasks
 
 Public Class C
-    Private Async Function Async_NoLambda_NotHoisted() As Task
+    Private Async Function Async_NoLambda() As Task
         Dim x As Integer = 1
         Dim y As Integer = 2
 
         Await Console.Out.WriteAsync((x + y).ToString)
+        x.ToString()
+        y.ToString()
     End Function
 End Class
     </file>
@@ -486,52 +472,43 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                    TestOptions.DebugDll)
+                    TestOptions.ReleaseDll)
 
-            ' Goal: We're looking for the unmangled names "x" and "y".
-            compilation.VerifyPdb(
+            ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
+            compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_1_Async_NoLambda_NotHoisted" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
+        <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="0"/>
                 <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xf" startLine="5" startColumn="5" endLine="5" endColumn="63" document="0"/>
-                <entry offset="0x10" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x17" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x1e" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
-                <entry offset="0xa1" startLine="10" startColumn="5" endLine="10" endColumn="17" document="0"/>
-                <entry offset="0xa3" hidden="true" document="0"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
+                <entry offset="0x11" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
+                <entry offset="0x18" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
+                <entry offset="0x91" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
+                <entry offset="0x9d" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
+                <entry offset="0xa9" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
                 <entry offset="0xab" hidden="true" document="0"/>
-                <entry offset="0xc8" startLine="10" startColumn="5" endLine="10" endColumn="17" document="0"/>
-                <entry offset="0xd2" hidden="true" document="0"/>
+                <entry offset="0xb2" hidden="true" document="0"/>
+                <entry offset="0xcd" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
+                <entry offset="0xd7" hidden="true" document="0"/>
             </sequencePoints>
             <locals>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xa2" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xa2" attributes="0"/>
+                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xa" il_end="0xaa" attributes="0"/>
+                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xa" il_end="0xaa" attributes="0"/>
             </locals>
-            <scope startOffset="0x0" endOffset="0xdf">
+            <scope startOffset="0x0" endOffset="0xe3">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <scope startOffset="0xf" endOffset="0xa2">
-                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xa2" attributes="0"/>
-                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xa2" attributes="0"/>
+                <scope startOffset="0xa" endOffset="0xaa">
+                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xa" il_end="0xaa" attributes="0"/>
+                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xa" il_end="0xaa" attributes="0"/>
                 </scope>
             </scope>
             <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_NoLambda_NotHoisted"/>
-                <await yield="0x58" resume="0x74" declaringType="C+VB$StateMachine_1_Async_NoLambda_NotHoisted" methodName="MoveNext"/>
+                <kickoffMethod declaringType="C" methodName="Async_NoLambda"/>
+                <await yield="0x4f" resume="0x66" declaringType="C+VB$StateMachine_1_Async_NoLambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
