@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 if (left.DocumentId == null && right.DocumentId == null)
                 {
-                    return string.Compare(left.Message, right.Message, StringComparison.Ordinal);
+                    return string.Compare(left.Message, right.Message);
                 }
 
                 Contract.Requires(left.DocumentId != null && right.DocumentId != null);
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return column;
                 }
 
-                return string.Compare(left.Message, right.Message, StringComparison.Ordinal);
+                return string.Compare(left.Message, right.Message);
             }
 
             private int NullCompareTo(object left, object right)
