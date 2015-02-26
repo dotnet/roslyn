@@ -8301,6 +8301,7 @@ BC42356: This async method lacks 'Await' operators and so will run synchronously
             End Using
         End Sub
 
+        <WorkItem(863, "https://github.com/dotnet/roslyn")>
         <Fact()>
         Public Sub CatchInIteratorStateMachine()
             CompileAndVerify(
@@ -8337,6 +8338,7 @@ End Class
    at C.VB$StateMachine_2_M.MoveNext()")
         End Sub
 
+        <WorkItem(863, "https://github.com/dotnet/roslyn")>
         <Fact()>
         Public Sub CatchInAsyncStateMachine()
             CompileAndVerify(
