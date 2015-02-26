@@ -194,6 +194,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return assemblyName.Equals("windows", StringComparison.OrdinalIgnoreCase);
         }
 
+        internal static bool IsWindowsAssemblyIdentity(this AssemblyIdentity assemblyIdentity)
+        {
+            return IsWindowsAssemblyName(assemblyIdentity.Name) && 
+                assemblyIdentity.ContentType == System.Reflection.AssemblyContentType.WindowsRuntime;
+        }
+
         internal static LocalInfo<TTypeSymbol> GetLocalInfo<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
             this MetadataDecoder<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol> metadataDecoder,
                 byte[] signature)
