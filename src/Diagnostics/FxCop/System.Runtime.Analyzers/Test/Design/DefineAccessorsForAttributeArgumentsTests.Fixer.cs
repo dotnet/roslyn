@@ -86,8 +86,8 @@ public sealed class SetterOnlyTestAttribute : Attribute
     }
 
     public string Name 
-    { 
-        set { m_name = value }
+    {
+        internal set { m_name = value }
 
         get;
     }

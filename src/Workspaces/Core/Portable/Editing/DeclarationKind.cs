@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Editing
         Parameter,
         Variable,
         Attribute,
-        LambdaExpression
+        LambdaExpression,
+        GetAccessor,
+        SetAccessor,
+        AddAccessor,
+        RemoveAccessor,
+        RaiseAccessor
     }
 }
