@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
@@ -45,7 +42,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return Task.FromResult(ExecutionResult.Success);
         }
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
+        public Task<ExecutionResult> ResetAsync(ResetOptions options)
         {
             return Task.FromResult(ExecutionResult.Success);
         }
