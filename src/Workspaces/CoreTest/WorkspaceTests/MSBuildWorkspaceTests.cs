@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -397,6 +398,20 @@ class C1
 
             var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
             Assert.NotEmpty(project.OutputFilePath);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task Test_Respect_ReferenceOutputassembly_Flag()
+        {
+            const string top = @"VisualBasicProject_Circular_Top.vbproj";
+            const string target = @"VisualBasicProject_Circular_Target.vbproj";
+            var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(top, GetResourceText(top))
+                .WithFile(target, GetResourceText(target)));
+
+            var project = await MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(top)).ConfigureAwait(false);
+            Assert.Empty(project.ProjectReferences);
         }
 
         [Fact(Skip = "707107"), Trait(Traits.Feature, Traits.Features.Workspace)]
