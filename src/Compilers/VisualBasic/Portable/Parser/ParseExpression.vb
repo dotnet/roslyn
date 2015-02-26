@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' File: Parser.cpp
         ' Lines: 12312 - 12312
-        ' Expression* .Parser::ParseExpressionCore( [ OperatorPrecedence PendingPrecedence ] [ _Inout_ bool& ErrorInConstruct ] [ bool AllowArrayInitExpression ] )
+        ' Expression* .Parser::ParseExpression( [ OperatorPrecedence PendingPrecedence ] [ _Inout_ bool& ErrorInConstruct ] [ bool AllowArrayInitExpression ] )
         '        //EatLeadingNewLine: Indicates that the parser should
         '        //dig through a leading EOL token when it tries
         '        //to parse the expression.
