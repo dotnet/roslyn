@@ -47,18 +47,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' block that we are within has a finalizer state.  Initially true as we have the (trivial)
             ''' finalizer state of -1 at the top level.
             ''' </summary>
-            Protected HasFinalizerState As Boolean = True
+            Private HasFinalizerState As Boolean = True
 
             ''' <summary>
             ''' If hasFinalizerState is true, this is the state for finalization from anywhere in this try block.
             ''' Initially set to -1, representing the no-op finalization required at the top level.
             ''' </summary>
-            Protected CurrentFinalizerState As Integer = -1
+            Private CurrentFinalizerState As Integer = -1
 
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Protected Friend ReadOnly HoistedVariables As IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly HoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
             Private _nextFreeHoistedLocalSlot As Integer
@@ -329,26 +329,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.MaterializeProxy(node, Me.Proxies(Me.TopLevelMethod.MeParameter))
             End Function
 
+            Private Function TryRewriteLocal(local As LocalSymbol) As LocalSymbol
+                If NeedsProxy(local) Then
+                    ' no longer a local symbol
+                    Return Nothing
+                End If
+
+                Dim newLocal As LocalSymbol = Nothing
+                If Not LocalMap.TryGetValue(local, newLocal) Then
+                    Dim newType = VisitType(local.Type)
+                    If newType = local.Type Then
+                        ' keeping same local
+                        newLocal = local
+                    Else
+                        ' need a local of a different type
+                        newLocal = LocalSymbol.Create(local, newType)
+                        LocalMap.Add(local, newLocal)
+                    End If
+                End If
+
+                Return newLocal
+            End Function
+
             Public Overrides Function VisitCatchBlock(node As BoundCatchBlock) As BoundNode
-                ' Neither Async nor Iterator function allows await/yield in Catch block,
-                ' thus, it should not capture/hoist catch block local
+                ' Yield/Await aren't supported in Catch block, but we need to
+                ' rewrite the type of the variable owned by the catch block.
+                ' Note that this variable might be a closure frame reference.
                 Dim rewrittenCatchLocal As LocalSymbol = Nothing
 
                 Dim origLocal As LocalSymbol = node.LocalOpt
                 If origLocal IsNot Nothing Then
-                    ' local may be either the original local of a frame reference
-                    Debug.Assert(Not Me.Proxies.ContainsKey(origLocal), "captured local should not need rewriting")
-
-                    Dim newType = VisitType(origLocal.Type)
-                    If newType = origLocal.Type Then
-                        ' keeping same local
-                        rewrittenCatchLocal = origLocal
-
-                    Else
-                        ' need a local of a different type
-                        rewrittenCatchLocal = LocalSymbol.Create(origLocal, newType)
-                        Me.LocalMap.Add(origLocal, rewrittenCatchLocal)
-                    End If
+                    rewrittenCatchLocal = TryRewriteLocal(origLocal)
                 End If
 
                 Dim rewrittenExceptionVariable As BoundExpression = DirectCast(Me.Visit(node.ExceptionSourceOpt), BoundExpression)

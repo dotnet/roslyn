@@ -2310,8 +2310,8 @@ End Class"
         End Sub
 
         <WorkItem(1115030)>
-        <Fact>
-        Public Sub ExceptionInAsyncMethod()
+        <Fact(Skip:="1115030")>
+        Public Sub CatchInAsyncStateMachine()
             Const source =
 "Imports System
 Imports System.Threading.Tasks
@@ -2343,28 +2343,26 @@ End Class"
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
             Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
-            VerifyLocal(testData, typeName, locals(0), "<>m0", "e", expectedILOpt:=
-"{
-  // Code size        2 (0x2)
-  .maxstack  1
-  .locals init (Integer V_0, //e
-                System.Exception V_1,
-                System.Exception V_2,
-                System.Exception V_3)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_e$1 As Exception""
-  IL_0006:  ret
-}")
-            VerifyLocal(testData, typeName, locals(1), "<>m1", "o", expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "o", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (Integer V_0, //e
+  .locals init (Integer V_0,
                 System.Exception V_1,
-                System.Exception V_2,
-                System.Exception V_3)
+                System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_o$0 As Object""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "e", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Exception V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_e$1 As System.Exception""
   IL_0006:  ret
 }")
             locals.Free()

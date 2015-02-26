@@ -8300,6 +8300,78 @@ BC42356: This async method lacks 'Await' operators and so will run synchronously
 ]]></errors>)
             End Using
         End Sub
+
+        <Fact()>
+        Public Sub CatchInIteratorStateMachine()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections
+Class C
+    Shared Function F() As Object
+        Throw New ArgumentException()
+    End Function
+    Shared Iterator Function M() As IEnumerable
+        Dim o As Object
+        Try
+            o = F()
+        Catch e As Exception
+            o = e
+        End Try
+        Yield o
+    End Function
+    Shared Sub Main()
+        For Each o in M()
+            Console.WriteLine(o)
+        Next
+    End Sub
+End Class
+    </file>
+</compilation>,
+                options:=TestOptions.DebugExe,
+                useLatestFramework:=True,
+                expectedOutput:=
+"System.ArgumentException: Value does not fall within the expected range.
+   at C.F()
+   at C.VB$StateMachine_2_M.MoveNext()")
+        End Sub
+
+        <Fact()>
+        Public Sub CatchInAsyncStateMachine()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Shared Function F() As Object
+        Throw New ArgumentException()
+    End Function
+    Shared Async Function M() As Task(Of Object)
+        Dim o As Object
+        Try
+            o = F()
+        Catch e As Exception
+            o = e
+        End Try
+        Return o
+    End Function
+    Shared Sub Main()
+        Dim o = M().Result
+        Console.WriteLine(o)
+    End Sub
+End Class
+    </file>
+</compilation>,
+                options:=TestOptions.DebugExe,
+                useLatestFramework:=True,
+                expectedOutput:=
+"System.ArgumentException: Value does not fall within the expected range.
+   at C.F()
+   at C.VB$StateMachine_2_M.MoveNext()")
+        End Sub
+
     End Class
 End Namespace
 
