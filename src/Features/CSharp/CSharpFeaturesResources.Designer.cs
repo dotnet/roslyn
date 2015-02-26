@@ -188,26 +188,23 @@ namespace Microsoft.CodeAnalysis.CSharp {
         
         /// <summary>
         ///   Looks up a localized string similar to 
-        ///#region IDisposable Support
-        ///private bool disposedValue = false; // To detect redundant calls
+        ///    #region IDisposable Support
+        ///    private bool disposedValue = false; // To detect redundant calls
         ///
-        ///{0}void Dispose(bool disposing)
-        ///{{
-        ///    if (!disposedValue)
+        ///    {0}void Dispose(bool disposing)
         ///    {{
-        ///        if (disposing)
+        ///        if (!disposedValue)
         ///        {{
-        ///            // TODO: dispose managed state (managed objects).
-        ///        }}
-        /// 
-        ///        // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-        ///        // TODO: set large fields to null.
-        /// 
-        ///        disposedValue = true;
-        ///    }}
-        ///}}
+        ///            if (disposing)
+        ///            {{
+        ///                // TODO: dispose managed state (managed objects).
+        ///            }}
         ///
-        ///// TODO: override a finalizer only if Disp [rest of string was truncated]&quot;;.
+        ///            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+        ///            // TODO: set large fields to null.
+        ///
+        ///            disposedValue = true;
+        ///       [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DisposePattern {
             get {

@@ -1676,7 +1676,7 @@ class C : IDisposable
 class C : [|IDisposable|]",
 $@"using System;
 class C : IDisposable
-{{{DisposePatternWithIndentation("protected virtual ", "C", "public void ")}
+{{{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
 }}
 ", index: 1, compareTokens: false);
         }
@@ -1719,7 +1719,7 @@ class C : System.IDisposable
     class IDisposable
     {{
     }}
-{DisposePatternWithIndentation("protected virtual ", "C", "void System.IDisposable.")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void System.IDisposable.")}
 }}", index: 3, compareTokens: false);
         }
 
@@ -1769,7 +1769,7 @@ class C : IDisposable
             Test(
 @"class C : [|System.IDisposable|]",
 $@"class C : System.IDisposable
-{{{DisposePatternWithIndentation("protected virtual ", "C", "void System.IDisposable.")}
+{{{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void System.IDisposable.")}
 }}
 ", index: 3, compareTokens: false);
         }
@@ -1830,7 +1830,7 @@ class C : I
     {{
         throw new NotImplementedException();
     }}
-{DisposePatternWithIndentation("protected virtual ", "C", "public void ")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
 }}", index: 1, compareTokens: false);
         }
 
@@ -1858,7 +1858,7 @@ class C : I
     {{
         throw new NotImplementedException();
     }}
-{DisposePatternWithIndentation("protected virtual ", "C", "void IDisposable.")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void IDisposable.")}
 }}", index: 3, compareTokens: false);
         }
 
@@ -2295,7 +2295,7 @@ using System;
 
 class Program : IDisposable
 {{
-{DisposePatternWithIndentation("protected virtual ", "C", "public void ")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
 }}
 ", index: 1);
         }
@@ -2318,7 +2318,7 @@ using System;
 class Program : IDisposable
 {{
     private bool DisposedValue;
-{DisposePatternWithIndentation("protected virtual ", "Program", "void IDisposable.")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "Program", "void IDisposable.")}
 }}
 ", index: 3);
         }
@@ -2397,7 +2397,7 @@ using System;
 
 sealed class Program : IDisposable
 {{
-{DisposePatternWithIndentation("", "Program", "void IDisposable.")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "", "Program", "void IDisposable.")}
 }}
 ", index: 3);
         }
@@ -2522,7 +2522,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     {{
         throw new NotImplementedException();
     }}
-{DisposePatternWithIndentation("protected virtual ", "C", "public void ")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
 }}", index: 1, compareTokens: false);
         }
 
@@ -2569,21 +2569,12 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
     {{
         throw new NotImplementedException();
     }}
-{DisposePatternWithIndentation("protected virtual ", "C", "void IDisposable.")}
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void IDisposable.")}
 }}
 
 partial class C
 {{
 }}", index: 3, compareTokens: false);
-        }
-
-        private static string DisposePatternWithIndentation(string disposeMethodModifiers, string className, string interfaceMethodModifiers, string additionalIndentation = "    ")
-        {
-            var lines = string.Format(CSharpFeaturesResources.DisposePattern, disposeMethodModifiers, className, interfaceMethodModifiers)
-                .Split('\n')
-                .Select(line => line.TrimEnd())
-                .Select(line => line.Length > 0 ? additionalIndentation + line : line); // only indent lines with content
-            return string.Join("\r\n", lines);
         }
     }
 }
