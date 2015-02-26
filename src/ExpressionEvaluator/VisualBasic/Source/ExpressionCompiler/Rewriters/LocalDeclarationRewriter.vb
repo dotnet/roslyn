@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' CreateVariable(type As Type, name As String)
             Dim method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName)
             Dim type = New BoundGetType(syntax, New BoundTypeExpression(syntax, local.Type), typeType)
-            Dim name = New BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType)
+            Dim name = New BoundLiteral(syntax, ConstantValue.Create(PlaceholderLocalBinder.Canonicalize(local.Name)), stringType)
             Dim expr = New BoundCall(
                 syntax,
                 method,

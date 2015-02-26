@@ -87,7 +87,7 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("x", GetType(String)).Add("y", GetType(Integer)).Add("T", GetType(Object)).Add("D", "C").Add("F", GetType(Integer)),
+                InspectionContextFactory.Empty.Add("x", GetType(String)).Add("y", GetType(Integer)).Add("t", GetType(Object)).Add("d", "C").Add("f", GetType(Integer)),
                 "If(If(If(If(If(x, y), T), F), DirectCast(D, C).F), C.G)",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -111,19 +111,19 @@ End Class"
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0014
   IL_0009:  pop
-  IL_000a:  ldstr      ""T""
+  IL_000a:  ldstr      ""t""
   IL_000f:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0014:  dup
   IL_0015:  brtrue.s   IL_002c
   IL_0017:  pop
-  IL_0018:  ldstr      ""F""
+  IL_0018:  ldstr      ""f""
   IL_001d:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0022:  unbox.any  ""Integer""
   IL_0027:  box        ""Integer""
   IL_002c:  dup
   IL_002d:  brtrue.s   IL_0044
   IL_002f:  pop
-  IL_0030:  ldstr      ""D""
+  IL_0030:  ldstr      ""d""
   IL_0035:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_003a:  castclass  ""C""
   IL_003f:  ldfld      ""C.F As Object""
@@ -304,7 +304,7 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("Class", GetType(Object)),
+                InspectionContextFactory.Empty.Add("class", GetType(Object)),
                 "[Me] = [Class]",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -320,11 +320,11 @@ End Class"
   .maxstack  2
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
-  IL_000a:  ldstr      ""Me""
+  IL_000a:  ldstr      ""me""
   IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
-  IL_0014:  ldstr      ""Me""
+  IL_0014:  ldstr      ""me""
   IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
-  IL_001e:  ldstr      ""Class""
+  IL_001e:  ldstr      ""class""
   IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0028:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_002d:  stind.ref
@@ -785,6 +785,92 @@ End Module"
   IL_0033:  stind.ref
   IL_0034:  ret
 }")
+        End Sub
+
+        <WorkItem(1115044, "DevDiv")>
+        <Fact>
+        Public Sub CaseSensitivity()
+            Const source =
+"Class C
+    Shared Sub M()
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            Dim testData = New CompilationTestData()
+            Dim result = context.CompileExpression(
+                InspectionContextFactory.Empty.Add("x", GetType(String)),
+                "X",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData)
+            Assert.Empty(missingAssemblyIdentities)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldstr      ""x""
+  IL_0005:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_000a:  castclass  ""String""
+  IL_000f:  ret
+}
+")
+        End Sub
+
+        <WorkItem(1115044, "DevDiv")>
+        <Fact>
+        Public Sub CaseSensitivity_ImplicitDeclaration()
+            Const source =
+"Class C
+    Shared Sub M()
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim resultProperties As ResultProperties = Nothing
+            Dim errorMessage As String = Nothing
+            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+            Dim testData = New CompilationTestData()
+            Dim result = context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "x = X",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                resultProperties,
+                errorMessage,
+                missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData)
+            Assert.Empty(missingAssemblyIdentities)
+            Assert.Null(errorMessage) ' Use before initialization is allowed in the EE.
+            ' Note that all x's are lowercase (i.e. normalized).
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  ldtoken    ""Object""
+  IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""Sub <>x.<>CreateVariable(System.Type, String)""
+  IL_0014:  ldstr      ""x""
+  IL_0019:  call       ""Function <>x.<>GetVariableAddress(Of Object)(String) As Object""
+  IL_001e:  ldstr      ""x""
+  IL_0023:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0028:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+  IL_002d:  stind.ref
+  IL_002e:  ret
+}
+")
         End Sub
 
     End Class
