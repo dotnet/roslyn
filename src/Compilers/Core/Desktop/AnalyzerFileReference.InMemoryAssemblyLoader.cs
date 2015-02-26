@@ -148,6 +148,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Handles the <see cref="AppDomain.AssemblyResolve"/> event.
             /// </summary>
+            /// <remarks>
+            /// This handler catches and swallow any and all exceptions that
+            /// arise, and simply returns null when they do. Leaking an exception
+            /// from the event handler may interrupt the entire assembly
+            /// resolution process, which is undesirable.
+            /// </remarks>
             private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
             {
                 try
