@@ -76,14 +76,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typeChar As String = Nothing
             Dim specialType = GetSpecialTypeForTypeCharacter(identifier.GetTypeCharacter(), typeChar)
             Dim type = Compilation.GetSpecialType(If(specialType = SpecialType.None, SpecialType.System_Object, specialType))
-            ' NOTE: Don't create the local with the canonical name since we want it to have the user's text in diagnostic messages.
+            ' TODO (acasey): don't canonicalize name (GH #878)
+            Dim canonicalName = Canonicalize(identifier.GetIdentifierText())
             Dim local = LocalSymbol.Create(
                 _containingMethod,
                 Me,
                 identifier,
                 LocalDeclarationKind.ImplicitVariable,
-                type)
-            _implicitDeclarations.Add(Canonicalize(local.Name), local)
+                type,
+                canonicalName)
+            _implicitDeclarations.Add(canonicalName, local)
             If local.Name.StartsWith("$", StringComparison.Ordinal) Then
                 diagnostics.Add(ERRID.ERR_IllegalChar, identifier.GetLocation())
             End If
@@ -132,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Select
         End Function
 
-        Friend Shared Function Canonicalize(name As String) As String
+        Private Shared Function Canonicalize(name As String) As String
             Return CaseInsensitiveComparison.ToLower(name)
         End Function
 
