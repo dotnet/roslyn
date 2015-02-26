@@ -515,11 +515,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             history.Add(currentLanguageBuffer.CurrentSnapshot.GetExtent());
         }
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
+        public Task<ExecutionResult> ResetAsync(ResetOptions options)
         {
             if (!CheckAccess())
             {
-                return UIThread(() => ResetAsync(initialize));
+                return UIThread(() => ResetAsync(options));
             }
 
             Debug.Assert(CheckAccess());
@@ -534,7 +534,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // replace the task being interrupted by a "reset" task:
             isRunning = true;
             isResetting = true;
-            currentTask = engine.ResetAsync(initialize);
+            currentTask = engine.ResetAsync(options);
             currentTask.ContinueWith(FinishExecute, uiScheduler);
 
             return currentTask;
@@ -3106,7 +3106,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public Task<ExecutionResult> ResetAsync(bool initialize = true)
             {
-                return window.ResetAsync(initialize);
+                return window.ResetAsync((initialize ? ResetOptions.Initialize : ResetOptions.None) | ResetOptions.Print);
             }
 
             public bool Return()

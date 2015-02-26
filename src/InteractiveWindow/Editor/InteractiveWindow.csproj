@@ -139,6 +139,7 @@
     <Compile Include="PromptLineMapping.cs" />
     <Compile Include="ReplInput.cs" />
     <Compile Include="ReplSpanKind.cs" />
+    <Compile Include="ResetOptions.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />
     <Compile Include="SmartUpDownOption.cs" />

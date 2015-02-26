@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Debugging
             return ExecutionResult.Succeeded;
         }
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
+        public Task<ExecutionResult> ResetAsync(ResetOptions options)
         {
             return ExecutionResult.Succeeded;
         }

@@ -2,10 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
-using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -61,7 +58,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 return ExecutionResult.Failed;
             }
 
-            return ((InteractiveWindow)window).ResetAsync(init.Value);
+            return ((InteractiveWindow)window).ResetAsync(init.Value? ResetOptions.Initialize : ResetOptions.None);
         }
 
         internal static string BuildCommandLine(bool initialize)

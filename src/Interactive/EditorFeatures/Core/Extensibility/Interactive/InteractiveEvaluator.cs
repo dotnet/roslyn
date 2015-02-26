@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = GetInteractiveWindow();
             _interactiveHost.Output = window.OutputWriter;
             _interactiveHost.ErrorOutput = window.ErrorOutputWriter;
-            return ResetAsyncWorker();
+            return ResetAsyncWorker(initialize: true);
         }
 
         public void Dispose()
@@ -422,15 +422,20 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return false;
         }
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
+        public Task<ExecutionResult> ResetAsync(ResetOptions options)
         {
+            if ((options & ResetOptions.Print) != 0)
+            {
+                GetInteractiveWindow().WriteLine(_interactiveCommands.CommandPrefix + "reset");
+            }
+
             GetInteractiveWindow().WriteLine("Resetting execution engine.");
             GetInteractiveWindow().Flush();
 
-            return ResetAsyncWorker(initialize);
+            return ResetAsyncWorker(initialize: (options & ResetOptions.Initialize) != 0);
         }
 
-        private async Task<ExecutionResult> ResetAsyncWorker(bool initialize = true)
+        private async Task<ExecutionResult> ResetAsyncWorker(bool initialize)
         {
             try
             {
@@ -457,9 +462,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             try
             {
-                if (InteractiveCommands.InCommand)
+                if (_interactiveCommands.InCommand)
                 {
-                    var cmdResult = InteractiveCommands.TryExecuteCommand();
+                    var cmdResult = _interactiveCommands.TryExecuteCommand();
                     if (cmdResult != null)
                     {
                         return await cmdResult.ConfigureAwait(false);

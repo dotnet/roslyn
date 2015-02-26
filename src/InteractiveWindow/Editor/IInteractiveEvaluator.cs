@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
@@ -33,7 +31,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// a new interpreter.
         /// </summary>
         /// <returns>Task that completes reset and initialization of the new process.</returns>
-        Task<ExecutionResult> ResetAsync(bool initialize = true);
+        Task<ExecutionResult> ResetAsync(ResetOptions options);
 
         // Parsing and Execution
 
