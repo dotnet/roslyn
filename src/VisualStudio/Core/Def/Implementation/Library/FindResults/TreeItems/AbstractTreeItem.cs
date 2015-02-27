@@ -24,14 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
         }
 
-        public virtual bool CanGoToSource
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         protected static readonly SymbolDisplayFormat definitionDisplayFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
