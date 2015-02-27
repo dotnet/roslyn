@@ -6,7 +6,7 @@ using System.IO;
 using System.Security;
 using Microsoft.Build.Framework;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// General utilities.

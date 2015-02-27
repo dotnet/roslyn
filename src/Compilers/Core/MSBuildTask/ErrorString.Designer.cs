@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.CodeAnalysis.BuildTask {
+namespace Microsoft.CodeAnalysis.BuildTasks {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.BuildTask {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTask.ErrorString", typeof(ErrorString).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTasks.ErrorString", typeof(ErrorString).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
