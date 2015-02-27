@@ -79,9 +79,9 @@ class C
         S s5 = s4;
     }
 }");
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Equal("s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal("s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("s4", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
         }
 
         [Fact]

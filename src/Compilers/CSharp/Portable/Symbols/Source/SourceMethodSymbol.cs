@@ -569,11 +569,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(locations[0], this.DeclaringCompilation);
-        }
-
         /// <summary>
         /// Overridden by <see cref="SourceMemberMethodSymbol"/>, 
         /// which might return locations of partial methods.

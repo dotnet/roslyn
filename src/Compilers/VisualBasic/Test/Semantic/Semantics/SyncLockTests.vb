@@ -36,14 +36,14 @@ End Class
 </compilation>)
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(1, analysisControlflow.ExitPoints.Count())
@@ -70,14 +70,14 @@ End Class
 
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal("x1", GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal("x1", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("x1", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal("x1", GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal("x1", GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("x1", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(1, analysisControlflow.ExitPoints.Count())
@@ -103,14 +103,14 @@ End Class
 </compilation>)
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(0, analysisControlflow.ExitPoints.Count())
@@ -138,14 +138,14 @@ End Class
 </compilation>)
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(0, analysisControlflow.ExitPoints.Count())
@@ -171,14 +171,14 @@ lab1:
 End Class
     </file>
 </compilation>)
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal("Me, syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal("Me, syncroot", GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
         End Sub
 
@@ -199,14 +199,14 @@ Public Class Program
 End Class
     </file>
 </compilation>)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal("Me, syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal("Me, syncroot", GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
         End Sub
 

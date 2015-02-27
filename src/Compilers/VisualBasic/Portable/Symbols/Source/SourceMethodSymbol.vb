@@ -35,8 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Return type attributes. IsNull means not set. 
         Protected m_lazyReturnTypeCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
-
         ' The syntax references for the primary (non-partial) declarations.
         ' Nothing if there are only partial declarations.
         Protected ReadOnly m_syntaxReferenceOpt As SyntaxReference
@@ -833,12 +831,9 @@ lReportErrorOnTwoTokens:
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(If(m_syntaxReferenceOpt IsNot Nothing,
-                                              New LexicalSortKey(m_syntaxReferenceOpt, Me.DeclaringCompilation),
-                                              LexicalSortKey.NotInSource))
-            End If
-            Return m_lazyLexicalSortKey
+            Return If(m_syntaxReferenceOpt IsNot Nothing,
+                    New LexicalSortKey(m_syntaxReferenceOpt, Me.DeclaringCompilation),
+                    LexicalSortKey.NotInSource)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _variablesDeclared.IsDefault Then
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    DirectCast(VariablesDeclaredWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of ISymbol)).ToImmutableArray())
+                                    DirectCast(VariablesDeclaredWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of ISymbol)).Sorted())
                     ImmutableInterlocked.InterlockedCompareExchange(_variablesDeclared, result, Nothing)
                 End If
                 Return _variablesDeclared
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If _dataFlowsIn.IsDefault Then
                     Me._succeeded = Not Me._context.Failed
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    DirectCast(DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected), IEnumerable(Of ISymbol)).ToImmutableArray())
+                                    DirectCast(DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected), IEnumerable(Of ISymbol)).Sorted())
                     ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsIn, result.ToImmutableArray(), Nothing)
                 End If
                 Return _dataFlowsIn
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim discarded = DataFlowsIn
                 If _dataFlowsOut.IsDefault Then
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    DirectCast(DataFlowsOutWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _dataFlowsIn), IEnumerable(Of ISymbol)).ToImmutableArray())
+                                    DirectCast(DataFlowsOutWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _dataFlowsIn), IEnumerable(Of ISymbol)).Sorted())
                     ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsOut, result, Nothing)
                 End If
                 Return _dataFlowsOut
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _alwaysAssigned.IsDefault Then
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    DirectCast(AlwaysAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of ISymbol)).ToImmutableArray())
+                                    DirectCast(AlwaysAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of ISymbol)).Sorted())
                     ImmutableInterlocked.InterlockedCompareExchange(_alwaysAssigned, result, Nothing)
                 End If
                 Return _alwaysAssigned
@@ -180,11 +180,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     captured:=captured)
             End If
 
-            ImmutableInterlocked.InterlockedCompareExchange(Me._readInside, readInside, Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenInside, writtenInside, Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._readOutside, readOutside, Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenOutside, writtenOutside, Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._captured, captured, Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._readInside, readInside.Sorted(), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenInside, writtenInside.Sorted(), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._readOutside, readOutside.Sorted(), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenOutside, writtenOutside.Sorted(), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._captured, captured.Sorted(), Nothing)
         End Sub
 
         ''' <summary>
@@ -223,5 +223,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
     End Class
+
+    Friend Module Sorter
+        Class LexicalISymbolComparer
+            Implements IComparer(Of ISymbol)
+            Friend Shared Instance As LexicalISymbolComparer = New LexicalISymbolComparer()
+            Public Function Compare(x As ISymbol, y As ISymbol) As Integer Implements IComparer(Of ISymbol).Compare
+                Return LexicalOrderSymbolComparer.Instance.Compare(CType(x, Symbol), CType(y, Symbol))
+            End Function
+        End Class
+
+        <Runtime.CompilerServices.Extension>
+        Friend Function Sorted(data As IEnumerable(Of ISymbol)) As ImmutableArray(Of ISymbol)
+            Dim builder = ArrayBuilder(Of ISymbol).GetInstance()
+            builder.AddRange(data)
+            builder.Sort(LexicalISymbolComparer.Instance)
+            Return builder.ToImmutableAndFree()
+        End Function
+    End Module
 
 End Namespace
