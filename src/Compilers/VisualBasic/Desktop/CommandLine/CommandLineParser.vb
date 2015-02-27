@@ -134,7 +134,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default
 
                 ' Diagnostic ids specified via /nowarn /warnaserror must be processed in case-insensitive fashion.
-                Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+                Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+                Dim specificDiagnosticOptionsFromGeneralArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+                Dim specificDiagnosticOptionsFromSpecificArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+                Dim specificDiagnosticOptionsFromNoWarnArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
                 Dim keyFileSetting As String = Nothing
                 Dim keyContainerSetting As String = Nothing
                 Dim delaySignSetting As Boolean? = Nothing
@@ -157,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, diagnostics, unquoted, baseDirectory)
+                            generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptionsFromRuleSet, diagnostics, unquoted, baseDirectory)
                         End If
                     Next
                 End If
@@ -627,10 +630,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case "warnaserror", "warnaserror+"
                                 If value Is Nothing Then
                                     generalDiagnosticOption = ReportDiagnostic.Error
+
+                                    specificDiagnosticOptionsFromGeneralArguments.Clear()
+                                    For Each pair In specificDiagnosticOptionsFromRuleSet
+                                        If pair.Value = ReportDiagnostic.Warn Then
+                                            specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Error)
+                                        End If
+                                    Next
+
                                     Continue For
                                 End If
 
-                                AddWarnings(specificDiagnosticOptions, ReportDiagnostic.Error, ParseWarnings(value))
+                                AddWarnings(specificDiagnosticOptionsFromSpecificArguments, ReportDiagnostic.Error, ParseWarnings(value))
                                 Continue For
 
                             Case "warnaserror-"
@@ -638,19 +649,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     If generalDiagnosticOption <> ReportDiagnostic.Suppress Then
                                         generalDiagnosticOption = ReportDiagnostic.Default
                                     End If
+
+                                    specificDiagnosticOptionsFromGeneralArguments.Clear()
+
                                     Continue For
                                 End If
 
-                                AddWarnings(specificDiagnosticOptions, ReportDiagnostic.Default, ParseWarnings(value))
+                                For Each id In ParseWarnings(value)
+                                    Dim ruleSetValue As ReportDiagnostic
+                                    If specificDiagnosticOptionsFromRuleSet.TryGetValue(id, ruleSetValue) Then
+                                        specificDiagnosticOptionsFromSpecificArguments(id) = ruleSetValue
+                                    Else
+                                        specificDiagnosticOptionsFromSpecificArguments(id) = ReportDiagnostic.Default
+                                    End If
+                                Next
+
                                 Continue For
 
                             Case "nowarn"
                                 If value Is Nothing Then
                                     generalDiagnosticOption = ReportDiagnostic.Suppress
+
+                                    specificDiagnosticOptionsFromGeneralArguments.Clear()
+                                    For Each pair In specificDiagnosticOptionsFromRuleSet
+                                        If pair.Value <> ReportDiagnostic.Error Then
+                                            specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Suppress)
+                                        End If
+                                    Next
+
                                     Continue For
                                 End If
 
-                                AddWarnings(specificDiagnosticOptions, ReportDiagnostic.Suppress, ParseWarnings(value))
+                                AddWarnings(specificDiagnosticOptionsFromNoWarnArguments, ReportDiagnostic.Suppress, ParseWarnings(value))
                                 Continue For
 
                             Case "langversion"
@@ -981,6 +1011,20 @@ lVbRuntimePlus:
                     End If
 
                     AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
+                Next
+
+                Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, CaseInsensitiveComparison.Comparer)
+
+                For Each item In specificDiagnosticOptionsFromGeneralArguments
+                    specificDiagnosticOptions(item.Key) = item.Value
+                Next
+
+                For Each item In specificDiagnosticOptionsFromSpecificArguments
+                    specificDiagnosticOptions(item.Key) = item.Value
+                Next
+
+                For Each item In specificDiagnosticOptionsFromNoWarnArguments
+                    specificDiagnosticOptions(item.Key) = item.Value
                 Next
 
                 If Not IsInteractive AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
