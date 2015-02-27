@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly HostAnalyzerManager _workspaceAnalyzerManager;
+        private readonly HostAnalyzerManager _hostAnalyzerManager;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly IAsynchronousOperationListener _listener;
 
@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
-            _workspaceAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
+            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         // internal for testing purposes.
         internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
         {
-            _workspaceAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
+            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (projectOpt == null)
             {
-                return _workspaceAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
+                return _hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
             }
 
-            return _workspaceAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
+            return _hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            return _workspaceAnalyzerManager.GetDiagnosticDescriptors(analyzer);
+            return _hostAnalyzerManager.GetDiagnosticDescriptors(analyzer);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
