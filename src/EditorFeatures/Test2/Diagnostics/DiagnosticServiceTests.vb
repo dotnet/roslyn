@@ -720,8 +720,10 @@ public class B
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim analyzer = New CodeBlockAnalyzer()
-                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+
+                ' Test code block analyzer
+                Dim analyzer As DiagnosticAnalyzer = New CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer:=True)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
                 Dim diagnosticService = New DiagnosticAnalyzerService()
@@ -735,10 +737,96 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(6, diagnostics.Count())
-                Assert.Equal(3, diagnostics.Where(Function(d) d.Id = CodeBlockAnalyzer.Desciptor1.Id).Count)
-                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockAnalyzer.Desciptor4.Id).Count)
-                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockAnalyzer.Desciptor5.Id).Count)
-                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockAnalyzer.Desciptor6.Id).Count)
+                Assert.Equal(3, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor1.Id).Count)
+                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor4.Id).Count)
+                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor5.Id).Count)
+                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor6.Id).Count)
+            End Using
+        End Sub
+
+        <Fact, WorkItem(592)>
+        Private Sub TestSyntaxNodeAnalyzersForExpressionBody()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+public class B
+{
+    public int Property => 0;
+    public int Method() => 0;
+    public int this[int i] => 0;
+}
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test syntax node analyzer
+                Dim analyzer As DiagnosticAnalyzer = New CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer:=False)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New DiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+                Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+
+                Assert.Equal(3, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor4.Id).Count)
+                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor5.Id).Count)
+                Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Desciptor6.Id).Count)
+            End Using
+        End Sub
+
+        <Fact, WorkItem(592)>
+        Private Sub TestMethodSymbolAnalyzersForExpressionBody()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+public class B
+{
+    public int Property => 0;
+    public int Method() => 0;
+    public int this[int i] => 0;
+}
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test method symbol analyzer
+                Dim analyzer As DiagnosticAnalyzer = New MethodSymbolAnalyzer
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New DiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+                Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).
+                    WaitAndGetResult(CancellationToken.None).
+                    OrderBy(Function(d) d.TextSpan.Start).ToArray
+
+                Assert.Equal(3, diagnostics.Count)
+                Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Desciptor1.Id))
+                Assert.Equal("B.Property.get", diagnostics(0).Message)
+                Assert.Equal("B.Method()", diagnostics(1).Message)
+                Assert.Equal("B.this[int].get", diagnostics(2).Message)
             End Using
         End Sub
 
@@ -1135,8 +1223,10 @@ public class B
             End Class
         End Class
 
-        Private Class CodeBlockAnalyzer
+        Private Class CodeBlockOrSyntaxNodeAnalyzer
             Inherits DiagnosticAnalyzer
+
+            Private ReadOnly _isCodeBlockAnalyzer As Boolean
 
             Public Shared Desciptor1 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CodeBlockDiagnostic")
             Public Shared Desciptor2 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("EqualsValueDiagnostic")
@@ -1145,6 +1235,10 @@ public class B
             Public Shared Desciptor5 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("IndexerExpressionBodyDiagnostic")
             Public Shared Desciptor6 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("MethodExpressionBodyDiagnostic")
 
+            Public Sub New(isCodeBlockAnalyzer As Boolean)
+                _isCodeBlockAnalyzer = isCodeBlockAnalyzer
+            End Sub
+
             Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                 Get
                     Return ImmutableArray.Create(Desciptor1, Desciptor2, Desciptor3, Desciptor4, Desciptor5, Desciptor6)
@@ -1152,45 +1246,79 @@ public class B
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
-                context.RegisterCodeBlockStartAction(Of CodeAnalysis.CSharp.SyntaxKind)(AddressOf New NodeAnalyzer().Initialize)
-                context.RegisterCodeBlockEndAction(AddressOf OnCodeBlockEnded)
+                If _isCodeBlockAnalyzer Then
+                    context.RegisterCodeBlockStartAction(Of CodeAnalysis.CSharp.SyntaxKind)(AddressOf OnCodeBlockStarted)
+                    context.RegisterCodeBlockEndAction(AddressOf OnCodeBlockEnded)
+                Else
+                    Dim analyzer = New NodeAnalyzer
+                    analyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
+                End If
             End Sub
 
             Public Shared Sub OnCodeBlockEnded(context As CodeBlockEndAnalysisContext)
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None))
             End Sub
 
+            Public Shared Sub OnCodeBlockStarted(context As CodeBlockStartAnalysisContext(Of CodeAnalysis.CSharp.SyntaxKind))
+                Dim analyzer = New NodeAnalyzer
+                analyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
+            End Sub
+
             Protected Class NodeAnalyzer
-                Public Sub Initialize(analysisContext As CodeBlockStartAnalysisContext(Of CodeAnalysis.CSharp.SyntaxKind))
-                    analysisContext.RegisterSyntaxNodeAction(Sub(context)
-                                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None))
-                                                             End Sub, CodeAnalysis.CSharp.SyntaxKind.EqualsValueClause)
+                Public Sub Initialize(registerSyntaxNodeAction As Action(Of Action(Of SyntaxNodeAnalysisContext), ImmutableArray(Of CodeAnalysis.CSharp.SyntaxKind)))
+                    registerSyntaxNodeAction(Sub(context)
+                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None))
+                                             End Sub, ImmutableArray.Create(CodeAnalysis.CSharp.SyntaxKind.EqualsValueClause))
 
-                    analysisContext.RegisterSyntaxNodeAction(Sub(context)
-                                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None))
-                                                             End Sub, CodeAnalysis.CSharp.SyntaxKind.BaseConstructorInitializer)
+                    registerSyntaxNodeAction(Sub(context)
+                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None))
+                                             End Sub, ImmutableArray.Create(CodeAnalysis.CSharp.SyntaxKind.BaseConstructorInitializer))
 
-                    analysisContext.RegisterSyntaxNodeAction(Sub(context)
-                                                                 Dim descriptor As DiagnosticDescriptor
-                                                                 Select Case CodeAnalysis.CSharp.CSharpExtensions.Kind(context.Node.Parent)
-                                                                     Case CodeAnalysis.CSharp.SyntaxKind.PropertyDeclaration
-                                                                         descriptor = Desciptor4
-                                                                         Exit Select
+                    registerSyntaxNodeAction(Sub(context)
+                                                 Dim descriptor As DiagnosticDescriptor
+                                                 Select Case CodeAnalysis.CSharp.CSharpExtensions.Kind(context.Node.Parent)
+                                                     Case CodeAnalysis.CSharp.SyntaxKind.PropertyDeclaration
+                                                         descriptor = Desciptor4
+                                                         Exit Select
 
-                                                                     Case CodeAnalysis.CSharp.SyntaxKind.IndexerDeclaration
-                                                                         descriptor = Desciptor5
-                                                                         Exit Select
-                                                                     Case Else
+                                                     Case CodeAnalysis.CSharp.SyntaxKind.IndexerDeclaration
+                                                         descriptor = Desciptor5
+                                                         Exit Select
+                                                     Case Else
 
-                                                                         descriptor = Desciptor6
-                                                                         Exit Select
-                                                                 End Select
+                                                         descriptor = Desciptor6
+                                                         Exit Select
+                                                 End Select
 
-                                                                 context.ReportDiagnostic(Diagnostic.Create(descriptor, Location.None))
+                                                 context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Node.GetLocation))
 
-                                                             End Sub, CodeAnalysis.CSharp.SyntaxKind.ArrowExpressionClause)
+                                             End Sub, ImmutableArray.Create(CodeAnalysis.CSharp.SyntaxKind.ArrowExpressionClause))
                 End Sub
             End Class
+        End Class
+
+        Private Class MethodSymbolAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared Desciptor1 As DiagnosticDescriptor = New DiagnosticDescriptor("MethodSymbolDiagnostic",
+                                                                                        "MethodSymbolDiagnostic",
+                                                                                        "{0}",
+                                                                                        "MethodSymbolDiagnostic",
+                                                                                        DiagnosticSeverity.Warning,
+                                                                                        isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Desciptor1)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(Sub(ctxt)
+                                                 Dim method = (DirectCast(ctxt.Symbol, IMethodSymbol))
+                                                 ctxt.ReportDiagnostic(Diagnostic.Create(Desciptor1, method.Locations(0), method.ToDisplayString))
+                                             End Sub, SymbolKind.Method)
+            End Sub
         End Class
     End Class
 End Namespace
