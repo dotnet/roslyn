@@ -218,9 +218,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             /// <summary>
-            /// Get the unique state name for the given {type, provider} tuple.
+            /// Get the unique state name for the given {type, analyzer} tuple.
             /// Note that this name is used by the underlying persistence stream of the corresponding <see cref="DiagnosticState"/> to Read/Write diagnostic data into the stream.
-            /// If any two distinct {type, provider} tuples have the same diagnostic state name, we will end up sharing the persistence stream between them, leading to duplicate/missing/incorrect diagnostic data.
+            /// If any two distinct {type, analyzer} tuples have the same diagnostic state name, we will end up sharing the persistence stream between them, leading to duplicate/missing/incorrect diagnostic data.
             /// </summary>
             private static ValueTuple<string, VersionStamp> GetNameAndVersion(DiagnosticAnalyzer analyzer, StateType type)
             {
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 // Get the unique ID for given diagnostic analyzer.
                 // note that we also put version stamp so that we can detect changed analyzer.
-                var tuple = analyzer.GetUniqueIdForAnalyzer();
+                var tuple = analyzer.GetUniqueId();
                 return ValueTuple.Create(UserDiagnosticsPrefixTableName + "_" + type.ToString() + "_" + tuple.Item1, tuple.Item2);
             }
         }

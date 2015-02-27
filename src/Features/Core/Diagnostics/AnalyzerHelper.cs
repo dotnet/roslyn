@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static ValueTuple<string, VersionStamp> GetUniqueIdForAnalyzer(this DiagnosticAnalyzer analyzer)
+        public static ValueTuple<string, VersionStamp> GetUniqueId(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var type = analyzer.GetType();
-            return ValueTuple.Create(type.AssemblyQualifiedName, GetProviderVersion(type.Assembly.Location));
+            return ValueTuple.Create(type.AssemblyQualifiedName, GetAnalyzerVersion(type.Assembly.Location));
         }
 
         public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(this DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Project project)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return AnalyzerExecutor.Create(compilation, analyzerOptions, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
         }
 
-        private static VersionStamp GetProviderVersion(string path)
+        private static VersionStamp GetAnalyzerVersion(string path)
         {
             if (path == null || !File.Exists(path))
             {

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
                 // we remove whatever information we used to have on document open/close and re-calcuate diagnostics
-                // we had to do this since some diagnostic provider change its behavior based on whether the document is opend or not.
+                // we had to do this since some diagnostic analyzer change its behavior based on whether the document is opend or not.
                 // so we can't use cached information.
                 return ClearDocumentStatesAsync(document, _stateManger.GetStateSets(document.Project), cancellationToken);
             }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _memberRangeMap.Remove(document.Id);
 
                 // we remove whatever information we used to have on document open/close and re-calcuate diagnostics
-                // we had to do this since some diagnostic provider change its behavior based on whether the document is opend or not.
+                // we had to do this since some diagnostic analyzer change its behavior based on whether the document is opend or not.
                 // so we can't use cached information.
                 return ClearDocumentStatesAsync(document, _stateManger.GetStateSets(document.Project), cancellationToken);
             }
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Syntax, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunProviderForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds) &&
-                        (skipClosedFileChecks || ShouldRunProviderForClosedFile(openedDocument, stateSet.Analyzer)))
+                    else if (ShouldRunAnalyzerForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds) &&
+                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, stateSet.Analyzer)))
                     {
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunProviderForStateType(spanBasedDriver, stateSet.Analyzer, StateType.Document, out supportsSemanticInSpan))
+                    else if (ShouldRunAnalyzerForStateType(spanBasedDriver, stateSet.Analyzer, StateType.Document, out supportsSemanticInSpan))
                     {
                         var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
 
@@ -260,8 +260,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunProviderForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds) &&
-                        (skipClosedFileChecks || ShouldRunProviderForClosedFile(openedDocument, stateSet.Analyzer)))
+                    else if (ShouldRunAnalyzerForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds) &&
+                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, stateSet.Analyzer)))
                     {
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -313,8 +313,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await HandleSuppressedAnalyzerAsync(project, stateSet, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (ShouldRunProviderForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Project, diagnosticIds) &&
-                        (skipClosedFileChecks || ShouldRunProviderForClosedFile(openedDocument: false, analyzer: stateSet.Analyzer)))
+                    else if (ShouldRunAnalyzerForStateType(userDiagnosticDriver, stateSet.Analyzer, StateType.Project, diagnosticIds) &&
+                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument: false, analyzer: stateSet.Analyzer)))
                     {
                         var data = await _executor.GetProjectAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     bool supportsSemanticInSpan;
                     if (!spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer) &&
-                        ShouldRunProviderForStateType(spanBasedDriver, stateSet.Analyzer, stateType, out supportsSemanticInSpan))
+                        ShouldRunAnalyzerForStateType(spanBasedDriver, stateSet.Analyzer, stateType, out supportsSemanticInSpan))
                     {
                         var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
 
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private bool ShouldRunProviderForClosedFile(bool openedDocument, DiagnosticAnalyzer analyzer)
+        private bool ShouldRunAnalyzerForClosedFile(bool openedDocument, DiagnosticAnalyzer analyzer)
         {
             // we have opened document, doesnt matter
             if (openedDocument)
@@ -539,20 +539,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return _owner.GetDiagnosticDescriptors(analyzer).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
         }
 
-        private bool ShouldRunProviderForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer provider,
+        private bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer,
             StateType stateTypeId, ImmutableHashSet<string> diagnosticIds)
         {
             bool discarded;
-            return ShouldRunProviderForStateType(driver, provider, stateTypeId, out discarded, diagnosticIds, _owner.GetDiagnosticDescriptors);
+            return ShouldRunAnalyzerForStateType(driver, analyzer, stateTypeId, out discarded, diagnosticIds, _owner.GetDiagnosticDescriptors);
         }
 
-        private static bool ShouldRunProviderForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer provider, StateType stateTypeId,
+        private static bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer, StateType stateTypeId,
             out bool supportsSemanticInSpan, ImmutableHashSet<string> diagnosticIds = null, Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getDescriptor = null)
         {
-            Debug.Assert(!driver.IsAnalyzerSuppressed(provider));
+            Debug.Assert(!driver.IsAnalyzerSuppressed(analyzer));
 
             supportsSemanticInSpan = false;
-            if (diagnosticIds != null && getDescriptor(provider).All(d => !diagnosticIds.Contains(d.Id)))
+            if (diagnosticIds != null && getDescriptor(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
             {
                 return false;
             }
@@ -560,13 +560,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             switch (stateTypeId)
             {
                 case StateType.Syntax:
-                    return provider.SupportsSyntaxDiagnosticAnalysis(driver);
+                    return analyzer.SupportsSyntaxDiagnosticAnalysis(driver);
 
                 case StateType.Document:
-                    return provider.SupportsSemanticDiagnosticAnalysis(driver, out supportsSemanticInSpan);
+                    return analyzer.SupportsSemanticDiagnosticAnalysis(driver, out supportsSemanticInSpan);
 
                 case StateType.Project:
-                    return provider.SupportsProjectDiagnosticAnalysis(driver);
+                    return analyzer.SupportsProjectDiagnosticAnalysis(driver);
 
                 default:
                     throw ExceptionUtilities.Unreachable;

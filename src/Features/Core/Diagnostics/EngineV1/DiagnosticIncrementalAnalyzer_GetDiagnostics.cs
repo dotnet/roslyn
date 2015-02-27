@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     cancellationToken.ThrowIfCancellationRequested();
 
                     if (driver.IsAnalyzerSuppressed(stateSet.Analyzer) ||
-                        !this.Owner.ShouldRunProviderForStateType(driver, stateSet.Analyzer, stateType, this.DiagnosticIds))
+                        !this.Owner.ShouldRunAnalyzerForStateType(driver, stateSet.Analyzer, stateType, this.DiagnosticIds))
                     {
                         continue;
                     }

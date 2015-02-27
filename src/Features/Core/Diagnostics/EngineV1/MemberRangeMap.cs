@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // now update member range map
                 UpdateMemberRange_NoLock(data, document, newVersion, memberId, span, oldRanges.TextVersion);
 
-                // save provider version information
+                // save analyzer version information
                 Touch_NoLock(data, analyzer, document, newVersion);
 
                 ValidateMemberRangeMap(document, newVersion);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             ImmutableArray<TextSpan> range;
             if (!data.VersionMap.TryGetValue(analyzer, out version))
             {
-                // it is first time for this provider
+                // it is first time for this analyzer
                 Contract.ThrowIfFalse(document.TryGetSyntaxRoot(out root));
                 Contract.ThrowIfFalse(document.TryGetTextVersion(out version));
 
