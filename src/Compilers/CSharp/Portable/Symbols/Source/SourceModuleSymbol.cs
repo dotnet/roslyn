@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (diagnostics != null)
                                 {
-                                    _assemblySymbol.DeclaringCompilation.SemanticDiagnostics.AddRange(diagnostics);
+                                    _assemblySymbol.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
                                 }
 
                                 _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);

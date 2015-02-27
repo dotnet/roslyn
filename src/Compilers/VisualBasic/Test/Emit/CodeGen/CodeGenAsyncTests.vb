@@ -5132,7 +5132,7 @@ End Module
         Private Sub CheckFields(m As ModuleSymbol, typeName As String, methodName As String, expected As String)
             Dim TestCaseClass = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)(typeName)
             For Each member In TestCaseClass.GetTypeMembers()
-                If member.Name.IndexOf(methodName) >= 0 Then
+                If member.Name.IndexOf(methodName, StringComparison.Ordinal) >= 0 Then
                     Assert.Equal(expected, ArrayToSortedString(GetFieldSignatures(member)))
                     Return
                 End If

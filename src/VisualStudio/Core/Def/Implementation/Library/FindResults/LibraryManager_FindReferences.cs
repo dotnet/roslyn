@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -35,12 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             PresentObjectList(title, new ObjectList(CreateFindReferencesItems(solution, items), this));
         }
 
-        private IList<AbstractListItem> CreateFindReferencesItems(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        private IList<AbstractTreeItem> CreateFindReferencesItems(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
-            var list = new List<AbstractListItem>();
-            HashSet<ValueTuple<Document, TextSpan>> uniqueLocations = null;
+            var definitions = new List<AbstractTreeItem>();
+            var uniqueLocations = new HashSet<ValueTuple<Document, TextSpan>>();
+            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
             referencedSymbols = referencedSymbols.FilterUnreferencedSyntheticDefinitions().ToList();
+
             foreach (var referencedSymbol in referencedSymbols)
             {
                 if (!IncludeDefinition(referencedSymbol))
@@ -50,30 +51,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
                 var definition = referencedSymbol.Definition;
                 var locations = definition.Locations;
-                uniqueLocations = AddLocations(solution, list, uniqueLocations, locations, definition.GetGlyph());
-                uniqueLocations = AddLocations(solution, list, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location), Glyph.Reference);
 
-                string filePath;
-                int lineNumber, charOffset;
-                var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
+                foreach (var definitionLocation in definition.Locations)
+                {
+                    var definitionItem = ConvertToDefinitionItem(solution, referencedSymbol, uniqueLocations, definitionLocation, definition.GetGlyph());
+                    if (definitionItem != null)
+                    {
+                        definitions.Add(definitionItem);
+                        var referenceItems = CreateReferenceItems(solution, uniqueLocations, referencedSymbol.Locations.Select(loc => loc.Location), Glyph.Reference);
+                        definitionItem.Children.AddRange(referenceItems);
+                        (definitionItem as ITreeItemWithReferenceCount)?.SetReferenceCount(referenceItems.Count);
+                    }
+                }
 
                 // Add on any definition locations from third party language services
+                string filePath;
+                int lineNumber, charOffset;                
                 if (symbolNavigationService.WouldNavigateToSymbol(definition, solution, out filePath, out lineNumber, out charOffset))
                 {
-                    list.Add(new ExternalListItem(filePath, lineNumber, charOffset, definition.Name, definition.GetGlyph().GetGlyphIndex(), this.ServiceProvider));
+                    definitions.Add(new ExternalLanguageDefinitionTreeItem(filePath, lineNumber, charOffset, definition.Name, definition.GetGlyph().GetGlyphIndex(), this.ServiceProvider));
                 }
             }
 
-            return list;
+            return definitions;
         }
 
-        private HashSet<ValueTuple<Document, TextSpan>> AddLocations(
+        private AbstractTreeItem ConvertToDefinitionItem(
             Solution solution,
-            List<AbstractListItem> list,
+            ReferencedSymbol referencedSymbol,
             HashSet<ValueTuple<Document, TextSpan>> uniqueLocations,
-            IEnumerable<Location> locations,
+            Location location,
             Glyph glyph)
         {
+            if (!location.IsInSource)
+            {
+                return referencedSymbol.Locations.Any()
+                    ? new MetadataDefinitionTreeItem(
+                        solution.Workspace, 
+                        referencedSymbol.Definition, 
+                        referencedSymbol.Locations.First().Document.Project.Id,
+                        glyph.GetGlyphIndex())
+                    : null;
+            }
+
+            var document = solution.GetDocument(location.SourceTree);
+            var sourceSpan = location.SourceSpan;
+            if (!IsValidSourceLocation(document, sourceSpan) ||
+                !uniqueLocations.Add(new ValueTuple<Document, TextSpan>(document, sourceSpan)))
+            {
+                return null;
+            }
+
+            return new SourceDefinitionTreeItem(document, sourceSpan, referencedSymbol.Definition, glyph.GetGlyphIndex());
+        }
+
+        private IList<SourceReferenceTreeItem> CreateReferenceItems(Solution solution, HashSet<ValueTuple<Document, TextSpan>> uniqueLocations, IEnumerable<Location> locations, Glyph glyph)
+        {
+            var referenceItems = new List<SourceReferenceTreeItem>();
+
             foreach (var location in locations)
             {
                 if (!location.IsInSource)
@@ -88,15 +123,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     continue;
                 }
 
-                uniqueLocations = uniqueLocations ?? new HashSet<ValueTuple<Document, TextSpan>>();
-
                 if (uniqueLocations.Add(new ValueTuple<Document, TextSpan>(document, sourceSpan)))
                 {
-                    list.Add(new SourceListItem(document, sourceSpan, glyph.GetGlyphIndex()));
+                    referenceItems.Add(new SourceReferenceTreeItem(document, sourceSpan, glyph.GetGlyphIndex()));
                 }
             }
 
-            return uniqueLocations;
+            var linkedReferences = referenceItems.GroupBy(r => r.DisplayText.ToLowerInvariant()).Where(g => g.Count() > 1).SelectMany(g => g);
+            foreach (var linkedReference in linkedReferences)
+            {
+                linkedReference.AddProjectNameDisambiguator();
+            }
+
+            referenceItems.Sort();
+            return referenceItems;
         }
     }
 }

@@ -148,16 +148,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Handles the <see cref="AppDomain.AssemblyResolve"/> event.
             /// </summary>
+            /// <remarks>
+            /// This handler catches and swallow any and all exceptions that
+            /// arise, and simply returns null when they do. Leaking an exception
+            /// from the event handler may interrupt the entire assembly
+            /// resolution process, which is undesirable.
+            /// </remarks>
             private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
             {
-                if (args.RequestingAssembly == null)
+                try
                 {
-                    return ResolveForUnknownRequestor(args.Name);
+                    if (args.RequestingAssembly == null)
+                    {
+                        return ResolveForUnknownRequestor(args.Name);
+                    }
+                    else
+                    {
+                        return ResolveForKnownRequestor(args.Name, args.RequestingAssembly);
+                    }
                 }
-                else
-                {
-                    return ResolveForKnownRequestor(args.Name, args.RequestingAssembly);
-                }
+                catch { }
+
+                return null;
             }
 
             /// <summary>
@@ -247,6 +259,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
                     string assemblyFullPath = Path.Combine(directoryPath, assemblyIdentity.Name + ".dll");
+                    if (!File.Exists(assemblyFullPath))
+                    {
+                        return null;
+                    }
 
                     assembly = LoadCore(assemblyFullPath);
 

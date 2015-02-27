@@ -1421,7 +1421,7 @@ End Module
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
-            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("lambdaParam")).Parent
+            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("lambdaParam", StringComparison.Ordinal)).Parent
             Dim symbol = bindingsA.GetDeclaredSymbolFromSyntaxNode(node)
 
             Assert.NotNull(symbol)
@@ -1630,7 +1630,7 @@ Imports VB6 = Microsoft.VisualBasic
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
-            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("VB6")).Parent.Parent
+            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("VB6", StringComparison.Ordinal)).Parent.Parent
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
 
             Assert.Equal(SyntaxKind.SimpleImportsClause, node.Kind)
@@ -2131,7 +2131,7 @@ End Class
 
             Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
             Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("F(2)")).Parent
+            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("F(2)", StringComparison.Ordinal)).Parent
             Dim symbol = DirectCast(semanticModel.GetDeclaredSymbol(node), FieldSymbol)
             Assert.Equal("F", symbol.Name)
             Assert.Equal("System.Int32()", symbol.Type.ToTestDisplayString())
@@ -2494,22 +2494,22 @@ End Namespace
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
-            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate")).Parent
+            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.Kind)
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.FD", symbol.ToString())
 
-            node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 30)).Parent
+            node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 30, StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateSubStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.FD2", symbol.ToString())
 
-            node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 140)).Parent
+            node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 140, StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.C1.FD3", symbol.ToString())
 
-            node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 160)).Parent
+            node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 160, StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateSubStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.C1.FD4", symbol.ToString())
@@ -2536,7 +2536,7 @@ End Module
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
-            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("lambdaParam")).Parent
+            Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("lambdaParam", StringComparison.Ordinal)).Parent
             Dim symbol = bindingsA.GetDeclaredSymbolFromSyntaxNode(node)
 
             Assert.NotNull(symbol)

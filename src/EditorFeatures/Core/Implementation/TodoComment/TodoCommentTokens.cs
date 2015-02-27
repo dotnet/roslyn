@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Globalization;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
@@ -44,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                     continue;
                 }
 
-                var priority = 1;
-                if (!int.TryParse(pair[1], out priority))
+                int priority;
+                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out priority))
                 {
                     continue;
                 }

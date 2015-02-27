@@ -330,7 +330,7 @@ public class Test
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("foo", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -867,7 +867,7 @@ public class Z
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("bogus", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
         }
 
         [Fact]

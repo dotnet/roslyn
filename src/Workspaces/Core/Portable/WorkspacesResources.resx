@@ -453,4 +453,7 @@
   <data name="OpenDocumentNotSupported" xml:space="preserve">
     <value>This workspace does not support opening and closing documents.</value>
   </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Usage:</value>
+  </data>
 </root>

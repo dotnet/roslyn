@@ -323,8 +323,13 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             workList.AddWork(() => completionRoutine(new DkmEvaluateDebuggerDisplayStringAsyncResult(pooled.ToStringAndFree())));
         }
 
-        public DkmClrValue GetMemberValue(string MemberName, int MemberType, string ParentTypeName)
+        public DkmClrValue GetMemberValue(string MemberName, int MemberType, string ParentTypeName, DkmInspectionContext InspectionContext)
         {
+            if (InspectionContext == null)
+            {
+                throw new ArgumentNullException("inspectionContext");
+            }
+
             var runtime = this.Type.RuntimeInstance;
 
             var memberValue = runtime.GetMemberValue(this, MemberName);

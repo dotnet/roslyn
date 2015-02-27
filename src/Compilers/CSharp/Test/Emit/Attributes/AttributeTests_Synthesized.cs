@@ -39,7 +39,7 @@ class C
 
             var comp = CreateCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>")).Single();
+            var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)).Single();
 
             var expectedAttrs = new[] { "CompilerGeneratedAttribute" };
             var actualAttrs = GetAttributeNames(pid.GetAttributes());

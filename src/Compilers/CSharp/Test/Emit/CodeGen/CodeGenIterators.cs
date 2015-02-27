@@ -2330,7 +2330,7 @@ class Program
   IL_00ae:  ldloc.0
   IL_00af:  ret
 }");
-            Assert.True(expectedIL.IndexOf("<>_") < 0);
+            Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
@@ -100,6 +101,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 conversionKind,
                 type,
                 hasErrors:=Not Conversions.ConversionExists(conversionKind)).MakeCompilerGenerated()
+        End Function
+
+        Friend Shared Function GetIntrinsicMethod(compilation As VisualBasicCompilation, methodName As String) As MethodSymbol
+            Dim type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName)
+            Dim members = type.GetMembers(methodName)
+            Debug.Assert(members.Length = 1)
+            Return DirectCast(members(0), MethodSymbol)
         End Function
 
     End Class

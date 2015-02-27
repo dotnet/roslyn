@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 extern alias PDB;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -89,19 +89,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return reader.GetMetadataReader().GetModuleVersionId();
             }
-        }
-
-        /// <summary>
-        /// Helper method to write the bytes to a file.
-        /// </summary>
-        [Conditional("DEBUG")]
-        internal static void WriteBytes(this ImmutableArray<byte> bytes, string path = null)
-        {
-            if (path == null)
-            {
-                path = Path.Combine(Path.GetTempPath(), "__ee_temp.dll");
-            }
-            File.WriteAllBytes(path, bytes.ToArray());
         }
 
         internal static ImmutableArray<string> GetLocalNames(this ISymUnmanagedReader symReader, int methodToken, int methodVersion = 1)
@@ -315,7 +302,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             where TMethodSymbol : IMethodSymbol
         {
             Assert.Equal(expectedLocalName, localAndMethod.LocalName);
-            Assert.True(expectedMethodName.StartsWith(localAndMethod.MethodName), expectedMethodName + " does not start with " + localAndMethod.MethodName); // Expected name may include type arguments and parameters.
+            Assert.True(expectedMethodName.StartsWith(localAndMethod.MethodName, StringComparison.Ordinal), expectedMethodName + " does not start with " + localAndMethod.MethodName); // Expected name may include type arguments and parameters.
             Assert.Equal(expectedFlags, localAndMethod.Flags);
             var methodData = testData.GetMethodData(typeName + "." + expectedMethodName);
             verifyTypeParameters((TMethodSymbol)methodData.Method);
@@ -346,6 +333,61 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     { methodToken, new MethodDebugInfoBytes.Builder(new [] { importStrings }).Build() },
                 }.ToImmutableDictionary());
             }
+        }
+
+        internal static readonly MetadataReference IntrinsicAssemblyReference = GetIntrinsicAssemblyReference();
+
+        internal static ImmutableArray<MetadataReference> AddIntrinsicAssembly(this ImmutableArray<MetadataReference> references)
+        {
+            var builder = ArrayBuilder<MetadataReference>.GetInstance();
+            builder.AddRange(references);
+            builder.Add(IntrinsicAssemblyReference);
+            return builder.ToImmutableAndFree();
+        }
+
+        private static MetadataReference GetIntrinsicAssemblyReference()
+        {
+            var source =
+@".assembly extern mscorlib { }
+.class public Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods
+{
+  .method public static object GetObjectAtAddress(uint64 address)
+  {
+    ldnull
+    throw
+  }
+  .method public static class [mscorlib]System.Exception GetException()
+  {
+    ldnull
+    throw
+  }
+  .method public static class [mscorlib]System.Exception GetStowedException()
+  {
+    ldnull
+    throw
+  }
+  .method public static object GetReturnValue(int32 index)
+  {
+    ldnull
+    throw
+  }
+  .method public static void CreateVariable(class [mscorlib]System.Type 'type', string name)
+  {
+    ldnull
+    throw
+  }
+  .method public static object GetObjectByAlias(string name)
+  {
+    ldnull
+    throw
+  }
+  .method public static !!T& GetVariableAddress<T>(string name)
+  {
+    ldnull
+    throw
+  }
+}";
+            return CommonTestBase.CompileIL(source);
         }
 
         /// <summary>

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
                 {
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var diagnostics = DiagnosticBag.GetInstance();
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, MakeTypeParameters(diagnostics)))
                     {
-                        AddSemanticDiagnostics(diagnostics);
+                        AddDeclarationDiagnostics(diagnostics);
                     }
 
                     diagnostics.Free();

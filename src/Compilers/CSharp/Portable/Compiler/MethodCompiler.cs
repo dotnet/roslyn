@@ -1412,6 +1412,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerInvocation != null)
                 {
+                    var ctorCall = initializerInvocation as BoundCall;
+                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
+                    {
+                        // Detect and report indirect cycles in the ctor-initializer call graph.
+                        compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
+                    }
+
                     constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
                 }

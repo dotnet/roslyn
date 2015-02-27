@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             ValidateAttributeSemantics(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             var thisThreadCompleted = _state.NotePartComplete(CompletionPart.FinishAttributeChecks);
                             Debug.Assert(thisThreadCompleted);
                             diagnostics.Free();
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ReportNameCollisionDiagnosticsForAddedModules(this.GlobalNamespace, diagnostics);
 
-            _compilation.SemanticDiagnostics.AddRange(diagnostics);
+            _compilation.DeclarationDiagnostics.AddRange(diagnostics);
             diagnostics.Free();
         }
 
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Interlocked.CompareExchange(ref lazyNetModuleAttributesBag, netModuleAttributesBag, null) == null)
                 {
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
 
                 diagnostics.Free();

@@ -922,7 +922,7 @@ End Namespace
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
-                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C") + 4)
+                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
                 Assert.Equal(span.Length, "A.B".Length)
             End Using
         End Sub
@@ -956,7 +956,7 @@ End Module
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
-                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")"))
+                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")", StringComparison.Ordinal))
                 Assert.Equal(span.Length, "System".Length)
             End Using
         End Sub

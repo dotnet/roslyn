@@ -1548,7 +1548,7 @@ End Class
             comp.AssertNoDiagnostics()
 
             Dim accessor = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").GetMethod
-            Assert.True(accessor.MetadataName.StartsWith("_"))
+            Assert.True(accessor.MetadataName.StartsWith("_", StringComparison.Ordinal))
         End Sub
 
         <Fact>

@@ -2,7 +2,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -101,6 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 constantValueOpt: null,
                 type: type,
                 hasErrors: !conversion.IsValid);
+        }
+
+        internal static MethodSymbol GetIntrinsicMethod(CSharpCompilation compilation, string methodName)
+        {
+            var type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName);
+            var members = type.GetMembers(methodName);
+            Debug.Assert(members.Length == 1);
+            return (MethodSymbol)members[0];
         }
     }
 }

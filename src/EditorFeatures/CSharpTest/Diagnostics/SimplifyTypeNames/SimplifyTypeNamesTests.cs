@@ -509,7 +509,7 @@ class A
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]");
+                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 Test(newContent, expected, index: 0);
@@ -2413,7 +2413,7 @@ class Program
             {
                 var diagnosticAndFix = GetDiagnosticAndFix(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span.Start, expected.IndexOf(@"Generic.List<int>()"));
+                Assert.Equal(span.Start, expected.IndexOf(@"Generic.List<int>()", StringComparison.Ordinal));
                 Assert.Equal(span.Length, "System.Collections".Length);
             }
         }
@@ -2449,7 +2449,7 @@ class Program
             {
                 var diagnosticAndFix = GetDiagnosticAndFix(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span.Start, expected.IndexOf(@"Console.WriteLine(""foo"")"));
+                Assert.Equal(span.Start, expected.IndexOf(@"Console.WriteLine(""foo"")", StringComparison.Ordinal));
                 Assert.Equal(span.Length, "System".Length);
             }
         }
