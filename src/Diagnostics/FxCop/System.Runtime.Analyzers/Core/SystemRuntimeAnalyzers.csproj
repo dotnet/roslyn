@@ -61,14 +61,16 @@
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
     <Compile Include="DiagnosticCategory.cs" />
-    <Compile Include="Extensions\DiagnosticExtensions.cs" />
+    <Compile Include="Shared\DiagnosticExtensions.cs" />
     <Compile Include="DocumentChangeAction.cs" />
-    <Compile Include="Extensions\INamedTypeSymbolExtensions.cs" />
+    <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />
     <Compile Include="SystemRuntimeAnalyzersResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SystemRuntimeAnalyzersResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />
+    <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.cs" />
     <Compile Include="WellKnownTypes.cs" />
   </ItemGroup>
   <ItemGroup>

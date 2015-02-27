@@ -183,4 +183,13 @@
   <data name="MakeSetterNonPublic" xml:space="preserve">
     <value>Make the setter of the property non-public</value>
   </data>
+  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals" xml:space="preserve">
+    <value>Overload operator equals on overriding ValueType.Equals</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription" xml:space="preserve">
+    <value>Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator.</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals1" xml:space="preserve">
+    <value>Overload operator equals on overriding ValueType.Equals</value>
+  </data>
 </root>

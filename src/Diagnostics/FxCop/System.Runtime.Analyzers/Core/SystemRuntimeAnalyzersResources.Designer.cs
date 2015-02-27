@@ -242,6 +242,33 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals1 {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator..
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; owns disposable fields but is not disposable.
         /// </summary>
         internal static string TypeOwnsDisposableFieldButIsNotDisposable {

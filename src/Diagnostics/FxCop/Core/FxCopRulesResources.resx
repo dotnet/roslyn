@@ -120,9 +120,6 @@
   <data name="TypeOwnsDisposableFieldButIsNotDisposable" xml:space="preserve">
     <value>Type '{0}' owns disposable fields but is not disposable</value>
   </data>
-  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals" xml:space="preserve">
-    <value>Overload operator equals on overriding ValueType.Equals</value>
-  </data>
   <data name="TypeIsAbstractButHasPublicConstructors" xml:space="preserve">
     <value>Type '{0}' is abstract but has public constructors</value>
   </data>
@@ -305,9 +302,6 @@
   </data>
   <data name="MarkISerializableTypesWithAttributeDescription" xml:space="preserve">
     <value>The System.Runtime.Serialization.ISerializable interface allows the type to customize its serialization, while the Serializable attribute enables the runtime to recognize the type as being serializable.</value>
-  </data>
-  <data name="OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription" xml:space="preserve">
-    <value>Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator.</value>
   </data>
   <data name="RemoveEmptyFinalizersDescription" xml:space="preserve">
     <value>Finalizers should be avoided where possible, to avoid the additional performance overhead involved in tracking object lifetime.</value>

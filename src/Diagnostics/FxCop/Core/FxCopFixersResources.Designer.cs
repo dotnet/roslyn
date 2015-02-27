@@ -178,15 +178,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove empty finalizers.
         /// </summary>
         internal static string RemoveEmptyFinalizers {

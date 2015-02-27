@@ -484,24 +484,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator..
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to P/Invoke method &apos;{0}&apos; should not be visible.
         /// </summary>
         internal static string PInvokeMethodShouldNotBeVisible {
