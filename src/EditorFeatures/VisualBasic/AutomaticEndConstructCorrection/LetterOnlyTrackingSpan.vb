@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Else
                 ' something like punctuation is there
                 ' make tracking span to stick after the punctuation
-                Dim position = span.Start.Position + text.IndexOf(trimedText) + trimedText.Length
+                Dim position = span.Start.Position + text.IndexOf(trimedText, StringComparison.Ordinal) + trimedText.Length
                 Me._trackingSpan = snapshot.CreateTrackingSpan(position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
             End If
         End Sub

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (!map.TryGetValue(qualifiedMethodName + "()", out methodData))
                 {
                     // now try to match single method with any parameter list
-                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "("));
+                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "(", StringComparison.Ordinal));
                     if (keys.Count() == 1)
                     {
                         methodData = map[keys.First()];

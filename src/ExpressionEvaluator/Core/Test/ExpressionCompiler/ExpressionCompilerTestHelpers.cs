@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             where TMethodSymbol : IMethodSymbol
         {
             Assert.Equal(expectedLocalName, localAndMethod.LocalName);
-            Assert.True(expectedMethodName.StartsWith(localAndMethod.MethodName), expectedMethodName + " does not start with " + localAndMethod.MethodName); // Expected name may include type arguments and parameters.
+            Assert.True(expectedMethodName.StartsWith(localAndMethod.MethodName, StringComparison.Ordinal), expectedMethodName + " does not start with " + localAndMethod.MethodName); // Expected name may include type arguments and parameters.
             Assert.Equal(expectedFlags, localAndMethod.Flags);
             var methodData = testData.GetMethodData(typeName + "." + expectedMethodName);
             verifyTypeParameters((TMethodSymbol)methodData.Method);

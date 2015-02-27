@@ -95,7 +95,7 @@ End Module
     </file>
 </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression(".property2")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)

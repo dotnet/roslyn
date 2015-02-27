@@ -8,6 +8,8 @@ using Roslyn.Utilities;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -326,6 +328,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
                 Assert.Equal(false, doc.TryGetText(out currentText));
             }
+        }
+
+        [Fact]
+        public void TestGenerateUniqueName()
+        {
+            var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true);
+            Assert.True(a.StartsWith("ABC", StringComparison.Ordinal));
+            Assert.True(a.EndsWith(".txt", StringComparison.Ordinal));
+            Assert.False(a.EndsWith("..txt", StringComparison.Ordinal));
+
+            var b = NameGenerator.GenerateUniqueName("ABC", ".txt", _ => true);
+            Assert.True(b.StartsWith("ABC", StringComparison.Ordinal));
+            Assert.True(b.EndsWith(".txt", StringComparison.Ordinal));
+            Assert.False(b.EndsWith("..txt", StringComparison.Ordinal));
+
+            var c = NameGenerator.GenerateUniqueName("ABC", "\u0640.txt", _ => true);
+            Assert.True(c.StartsWith("ABC", StringComparison.Ordinal));
+            Assert.True(c.EndsWith(".\u0640.txt", StringComparison.Ordinal));
+            Assert.False(c.EndsWith("..txt", StringComparison.Ordinal));
         }
     }
 }

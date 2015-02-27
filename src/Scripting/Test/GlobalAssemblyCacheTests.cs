@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 string location = GlobalAssemblyCache.GetAssemblyLocation(name);
                 Assert.NotNull(location);
-                Assert.True(gacLocationsUpper.Any(gac => location.ToUpper().StartsWith(gac)), "Path within some GAC root");
+                Assert.True(gacLocationsUpper.Any(gac => location.StartsWith(gac, StringComparison.OrdinalIgnoreCase)), "Path within some GAC root");
                 Assert.Equal(Path.GetFullPath(location), location);
             }
         }

@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                            after As String,
                                            typedChar As Char,
                                            endCaretPos As Integer())
-            Dim caretPos = before.IndexOf("$$")
+            Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(beforeText, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)

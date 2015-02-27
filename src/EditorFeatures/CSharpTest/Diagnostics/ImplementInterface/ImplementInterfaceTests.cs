@@ -1399,7 +1399,7 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCastedOptionalParameter1()
         {
-            var code = @"
+            const string code = @"
 using System;
 interface I
 {
@@ -1410,7 +1410,7 @@ class C : [|I|]
 {
 }";
 
-            var expected = @"
+            const string expected = @"
 using System;
 interface I
 {

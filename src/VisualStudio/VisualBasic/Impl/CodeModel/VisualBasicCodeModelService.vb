@@ -800,7 +800,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetUnescapedName(name As String) As String
-            Return If(name IsNot Nothing AndAlso name.Length > 2 AndAlso name.StartsWith("[") AndAlso name.EndsWith("]"),
+            Return If(name IsNot Nothing AndAlso name.Length > 2 AndAlso name.StartsWith("[", StringComparison.Ordinal) AndAlso name.EndsWith("]", StringComparison.Ordinal),
                       name.Substring(1, name.Length - 2),
                       name)
         End Function
@@ -2110,7 +2110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             Dim textBuilder = New StringBuilder()
             For Each trivia In commentList
-                Debug.Assert(trivia.ToString().StartsWith("'"))
+                Debug.Assert(trivia.ToString().StartsWith("'", StringComparison.Ordinal))
                 Dim commentText = trivia.ToString().Substring(1)
 
                 textBuilder.AppendLine(commentText)
@@ -2363,7 +2363,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             For i = 1 To lines.Length - 1
                 Dim line = lines(i).TrimStart()
-                If line.StartsWith("'''") Then
+                If line.StartsWith("'''", StringComparison.Ordinal) Then
                     lines(i) = line.Substring(3)
                 End If
             Next
@@ -3863,7 +3863,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             ' If eventName starts with an unescaped keyword other than Me, MyBase or MyClass, we need to escape it.
-            If Not eventName.StartsWith("[") Then
+            If Not eventName.StartsWith("[", StringComparison.Ordinal) Then
                 Dim dotIndex = eventName.IndexOf("."c)
                 If dotIndex >= 0 Then
                     Return EscapeIfNotMeMyBaseOrMyClass(eventName.Substring(0, dotIndex)) & eventName.Substring(dotIndex)

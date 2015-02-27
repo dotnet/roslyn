@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var headerLines = new List<string>();
 
             var headerLine1 = GetNextNonEmptyLine(reader);
-            if (headerLine1 == null || !headerLine1.StartsWith("Microsoft Visual Studio Solution File"))
+            if (headerLine1 == null || !headerLine1.StartsWith("Microsoft Visual Studio Solution File", StringComparison.Ordinal))
             {
                 throw new Exception(string.Format(WorkspacesResources.MissingHeaderInSolutionFile, "Microsoft Visual Studio Solution File"));
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (reader.Peek() == 'V')
             {
                 visualStudioVersionLineOpt = GetNextNonEmptyLine(reader);
-                if (!visualStudioVersionLineOpt.StartsWith("VisualStudioVersion"))
+                if (!visualStudioVersionLineOpt.StartsWith("VisualStudioVersion", StringComparison.Ordinal))
                 {
                     throw new Exception(string.Format(WorkspacesResources.MissingHeaderInSolutionFile, "VisualStudioVersion"));
                 }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (reader.Peek() == 'M')
             {
                 minimumVisualStudioVersionLineOpt = GetNextNonEmptyLine(reader);
-                if (!minimumVisualStudioVersionLineOpt.StartsWith("MinimumVisualStudioVersion"))
+                if (!minimumVisualStudioVersionLineOpt.StartsWith("MinimumVisualStudioVersion", StringComparison.Ordinal))
                 {
                     throw new Exception(string.Format(WorkspacesResources.MissingHeaderInSolutionFile, "MinimumVisualStudioVersion"));
                 }

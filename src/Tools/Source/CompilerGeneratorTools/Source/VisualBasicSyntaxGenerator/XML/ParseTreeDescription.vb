@@ -193,7 +193,7 @@ Public Class ParseTree
             Return typeList
         End If
 
-        If typeString.StartsWith("@") Then
+        If typeString.StartsWith("@", StringComparison.Ordinal) Then
             Dim nodeTypeString = typeString.Substring(1)
             If Not NodeStructures.ContainsKey(nodeTypeString) Then
                 ReportError(referencingNode, "Unknown structure '@{0}'", nodeTypeString)

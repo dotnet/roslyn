@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            if (currentLineText.IndexOf(ExteriorTriviaText) != offset)
+            if (currentLineText.IndexOf(ExteriorTriviaText, StringComparison.Ordinal) != offset)
             {
                 nextHandler();
                 return;

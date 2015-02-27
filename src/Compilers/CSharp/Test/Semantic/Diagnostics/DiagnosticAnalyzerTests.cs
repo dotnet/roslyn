@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
                 var id = (IdentifierNameSyntax)context.Node;
-                if (id.Identifier.ValueText.StartsWith("x"))
+                if (id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal))
                 {
                     context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", id.Identifier.ValueText));
                 }

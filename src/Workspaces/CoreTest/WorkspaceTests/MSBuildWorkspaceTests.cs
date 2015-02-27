@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = document.GetSyntaxTreeAsync().Result;
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -229,7 +228,7 @@ class C1
             Assert.Equal(expectedFileName, tree.FilePath);
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -435,7 +434,7 @@ class C1
             Assert.Equal(true, documents.Contains(d => d.Name == "MainWindow.xaml.cs"));
 
             // prove no xaml files are documents
-            Assert.Equal(false, documents.Contains(d => d.Name.EndsWith(".xaml")));
+            Assert.Equal(false, documents.Contains(d => d.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase)));
 
             // prove that generated source files for xaml files are included in documents list
             Assert.Equal(true, documents.Contains(d => d.Name == "App.g.cs"));
@@ -1877,7 +1876,7 @@ class C1
                     Assert.Equal(1, proj.AnalyzerReferences.Count);
                     var analyzerReference = proj.AnalyzerReferences.First() as AnalyzerFileReference;
                     Assert.NotNull(analyzerReference);
-                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll"));
+                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll", StringComparison.OrdinalIgnoreCase));
                 }
 
                 // prove that project gets opened instead.
@@ -2335,7 +2334,7 @@ class C1
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);
 
             var cacheService = new WeakReference(sol.Workspace.CurrentSolution.Services.CacheService);
