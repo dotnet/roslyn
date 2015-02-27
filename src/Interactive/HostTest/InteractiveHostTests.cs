@@ -737,7 +737,7 @@ new D().Y
         ////");
 
         ////            initScript.WriteAllText(@"
-        ////using System.Console;
+        ////using static System.Console;
         ////using System.Linq.Expressions;
         ////WriteLine(Expression.Constant(123));
         ////");
@@ -785,7 +785,7 @@ new D().Y
         ////");
 
         ////            initScript.WriteAllText(@"
-        ////using System.Console;
+        ////using static System.Console;
         ////using System.Numerics;
         ////WriteLine(new Complex(12, 6).Real + C.Main());
         ////");
