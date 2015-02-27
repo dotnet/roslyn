@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Text
                         continue;
                     }
 
-                    switch(c)
+                    switch (c)
                     {
                         case '\r':
                             lastCr = index;

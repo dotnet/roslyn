@@ -163,5 +163,4 @@ namespace Microsoft.DiaSymReader
 
         #endregion  
     }
-
 }

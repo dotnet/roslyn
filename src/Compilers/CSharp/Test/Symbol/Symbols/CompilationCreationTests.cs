@@ -2622,7 +2622,7 @@ class Module1
 
         private sealed class Resolver : TestMetadataReferenceResolver
         {
-            private readonly string _data,_core,_system;
+            private readonly string _data, _core, _system;
 
             public Resolver(string data, string core, string system)
             {

@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
-            this._compilation = compilation;
-            this._analyzerOptions = analyzerOptions;
-            this._addDiagnostic = addDiagnostic;
-            this._onAnalyzerException = onAnalyzerException;
-            this._cancellationToken = cancellationToken;
+            _compilation = compilation;
+            _analyzerOptions = analyzerOptions;
+            _addDiagnostic = addDiagnostic;
+            _onAnalyzerException = onAnalyzerException;
+            _cancellationToken = cancellationToken;
         }
 
         internal Compilation Compilation { get { return _compilation; } }

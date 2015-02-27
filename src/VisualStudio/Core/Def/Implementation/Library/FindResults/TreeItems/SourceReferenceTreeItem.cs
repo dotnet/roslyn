@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         }
 
         public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
-            : this (document, sourceSpan, glyphIndex, includeProjectNameDisambiguator: false)
+            : this(document, sourceSpan, glyphIndex, includeProjectNameDisambiguator: false)
         {
         }
 
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 sourceSpan.Length,
                 projectNameDisambiguator: string.Empty);
         }
-        
+
         public void AddProjectNameDisambiguator()
         {
             SetDisplayProperties(

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static AnalyzerDriver Create(
             Compilation compilation, 
             ImmutableArray<DiagnosticAnalyzer> analyzers, 
-            AnalyzerOptions options,
+            AnalyzerOptions options, 
             AnalyzerManager analyzerManager, 
             Action<Diagnostic> addExceptionDiagnostic, 
             out Compilation newCompilation, 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (addExceptionDiagnostic != null)
                 {
                     addExceptionDiagnostic(diagnostic);
-                }
+        }
             };
             return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
         }
@@ -542,15 +542,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
         {
-            var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
-            if (filteredDiagnostic != null)
-            {
-                var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-                if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
+                var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
+                if (filteredDiagnostic != null)
                 {
+                    var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
+                if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
+                    {
                     return null;
+                    }
                 }
-            }
 
             return filteredDiagnostic;
         }

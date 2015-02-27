@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// pattern uniform - it's actually only used by one subtype.
         /// </remarks>
         public abstract int GetIndexOfTargetAssembly<TSymbol>(
-            ImmutableArray<TSymbol> assembliesAndModules, 
+            ImmutableArray<TSymbol> assembliesAndModules,
             AssemblyIdentityComparer assemblyIdentityComparer)
             where TSymbol : class, ISymbol;
     }

@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(EmitContext context)
-            =>StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
+            => StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
 
         public bool AcceptsExtraArguments => false;
 

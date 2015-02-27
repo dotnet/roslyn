@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         protected readonly int _mappedOffset;
 
         public AbstractSourceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex)
-            : base (glyphIndex)
+            : base(glyphIndex)
         {
             // We store the document ID, line and offset for navigation so that we
             // still provide reasonable navigation if the user makes changes elsewhere
@@ -50,7 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
             _mappedLineNumber = succeeded ? spanInPrimaryBuffer.iStartLine : _lineNumber;
             _mappedOffset = succeeded ? spanInPrimaryBuffer.iStartIndex : _offset;
-
         }
 
         public override int GoToSource()

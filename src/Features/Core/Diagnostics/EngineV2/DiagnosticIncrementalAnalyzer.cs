@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // REVIEW: this API is a bit strange. 
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
             var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
-            
+
             return dxs;
         }
 

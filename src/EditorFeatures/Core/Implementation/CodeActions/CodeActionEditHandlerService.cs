@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             if (_renameService.ActiveSession != null)
             {
                 workspace.Services.GetService<INotificationService>()?.SendNotification(
-                    EditorFeaturesResources.CannotApplyOperationWhileRenameSessionIsActive, 
+                    EditorFeaturesResources.CannotApplyOperationWhileRenameSessionIsActive,
                     severity: NotificationSeverity.Error);
                 return;
             }

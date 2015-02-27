@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
         }
     }
+}

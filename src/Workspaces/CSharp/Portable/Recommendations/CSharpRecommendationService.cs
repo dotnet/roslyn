@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // Script and interactive
                 return GetSymbolsForGlobalStatementContext(context, cancellationToken);
             }
-            else if (context.IsAnyExpressionContext || 
-                     context.IsStatementContext || 
+            else if (context.IsAnyExpressionContext ||
+                     context.IsStatementContext ||
                      context.SyntaxTree.IsDefiniteCastTypeContext(context.Position, context.LeftToken, cancellationToken))
             {
                 // GitHub #717: With automatic brace completion active, typing '(i' produces "(i)", which gets parsed as

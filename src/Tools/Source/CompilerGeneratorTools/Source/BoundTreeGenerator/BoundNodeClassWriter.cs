@@ -1451,7 +1451,7 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    return typeName.StartsWith("IList<", StringComparison.Ordinal) || 
+                    return typeName.StartsWith("IList<", StringComparison.Ordinal) ||
                            typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
                 case TargetLanguage.VB:
                     return typeName.StartsWith("IList(Of", StringComparison.OrdinalIgnoreCase) ||

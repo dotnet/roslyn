@@ -2,9 +2,10 @@
 
 using System;
 using System.Runtime.InteropServices;
- 
+
+
 namespace Microsoft.Internal.VisualStudio.Shell.Interop
-{    
+{
     internal enum __SolutionWorkingFolder
     {
         SlnWF_All = -1,

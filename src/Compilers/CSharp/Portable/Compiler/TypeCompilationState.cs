@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A graph of method->method references for this(...) constructor initializers.
         /// Used to detect and report initializer cycles.
         /// </summary>
-        SmallDictionary<MethodSymbol, MethodSymbol> _constructorInitializers;
+        private SmallDictionary<MethodSymbol, MethodSymbol> _constructorInitializers;
 
         public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {

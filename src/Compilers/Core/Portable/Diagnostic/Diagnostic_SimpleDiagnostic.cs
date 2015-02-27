@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(nameof(warningLevel));
                 }
 
-                if(descriptor == null)
+                if (descriptor == null)
                 {
                     throw new ArgumentNullException(nameof(descriptor));
                 }

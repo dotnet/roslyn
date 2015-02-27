@@ -485,7 +485,7 @@ namespace Microsoft.Cci
         {
             // VB scope ranges are end-inclusive
             bool endInclusive = this.Module.GenerateVisualBasicStylePdb;
-            
+
             // The order of OpenScope and CloseScope calls must follow the scope nesting.
             var scopeStack = ArrayBuilder<LocalScope>.GetInstance();
 

@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     var supportedDiagnosticsProperty = analyzer.GetMembers()
                         .OfType<IPropertySymbol>()
-                        .FirstOrDefault(p => p.OverriddenProperty != null && 
-                            p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));                    
+                        .FirstOrDefault(p => p.OverriddenProperty != null &&
+                            p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
                     if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
                     {
                         var syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();

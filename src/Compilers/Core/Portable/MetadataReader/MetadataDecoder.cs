@@ -1400,14 +1400,14 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
-            catch (Exception e) when(e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
                 namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
             }
 
             return false;
-            }
+        }
 
         internal bool GetCustomAttribute(CustomAttributeHandle handle, out TypeSymbol attributeClass, out MethodSymbol attributeCtor)
         {
@@ -1535,7 +1535,7 @@ namespace Microsoft.CodeAnalysis
                     throw new UnsupportedSignatureContent();
                 }
             }
-            catch (Exception e) when(e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
                 for (; paramIndex <= paramCount; paramIndex++)
                 {
@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return paramInfo;
-            }
+        }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private static void GetSignatureCountsOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int parameterCount, out int typeParameterCount)

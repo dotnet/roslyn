@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (CustomDebugInfoReader.TryParseCSharpImportString(importString, out alias, out externAlias, out targetString, out targetKind))
             {
                 record = new NativeImportRecord(
-                    targetKind, 
-                    externAlias, 
-                    alias, 
+                    targetKind,
+                    externAlias,
+                    alias,
                     targetString);
                 return true;
             }
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out targetString, out targetKind, out scope))
             {
                 record = new NativeImportRecord(
-                    targetKind, 
-                    externAlias: null, 
-                    alias: alias, 
+                    targetKind,
+                    externAlias: null,
+                    alias: alias,
                     targetString: targetString);
                 return true;
             }

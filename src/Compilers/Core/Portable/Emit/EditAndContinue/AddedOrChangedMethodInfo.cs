@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public AddedOrChangedMethodInfo(
             MethodDebugId methodId,
-            ImmutableArray<EncLocalInfo> locals, 
+            ImmutableArray<EncLocalInfo> locals,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             string stateMachineTypeNameOpt,

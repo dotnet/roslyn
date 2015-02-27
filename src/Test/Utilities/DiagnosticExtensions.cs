@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
             var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, newOnAnalyzerException, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
-            
+
             return (TCompilation)newCompilation; // note this is a new compilation
         }
 

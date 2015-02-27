@@ -295,13 +295,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         private sealed class NonPublicMembersExpansion : Expansion
         {
-            private readonly Type declaredType;
-            private readonly Expansion members;
+            private readonly Type _declaredType;
+            private readonly Expansion _members;
 
             internal NonPublicMembersExpansion(Type declaredType, Expansion members)
             {
-                this.declaredType = declaredType;
-                this.members = members;
+                _declaredType = declaredType;
+                _members = members;
             }
 
             internal override void GetRows(
@@ -320,16 +320,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     rows.Add(GetRow(
                         resultProvider,
                         inspectionContext,
-                        this.declaredType,
+                        _declaredType,
                         value,
-                        this.members,
+                        _members,
                         parent));
                 }
 
                 index++;
             }
 
-            private static readonly ReadOnlyCollection<string> HiddenFormatSpecifiers = new ReadOnlyCollection<string>(new[] { "hidden" });
+            private static readonly ReadOnlyCollection<string> s_hiddenFormatSpecifiers = new ReadOnlyCollection<string>(new[] { "hidden" });
 
             private static EvalResultDataItem GetRow(
                 ResultProvider resultProvider,
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     childShouldParenthesize: parent.ChildShouldParenthesize,
                     fullName: parent.FullNameWithoutFormatSpecifiers,
                     childFullNamePrefixOpt: parent.ChildFullNamePrefix,
-                    formatSpecifiers: HiddenFormatSpecifiers,
+                    formatSpecifiers: s_hiddenFormatSpecifiers,
                     category: DkmEvaluationResultCategory.Data,
                     flags: DkmEvaluationResultFlags.ReadOnly,
                     editableValue: null,
@@ -364,13 +364,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         private sealed class StaticMembersExpansion : Expansion
         {
-            private readonly Type declaredType;
-            private readonly Expansion members;
+            private readonly Type _declaredType;
+            private readonly Expansion _members;
 
             internal StaticMembersExpansion(Type declaredType, Expansion members)
             {
-                this.declaredType = declaredType;
-                this.members = members;
+                _declaredType = declaredType;
+                _members = members;
             }
 
             internal override void GetRows(
@@ -389,9 +389,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     rows.Add(GetRow(
                         resultProvider,
                         inspectionContext,
-                        this.declaredType,
+                        _declaredType,
                         value,
-                        this.members));
+                        _members));
                 }
 
                 index++;
