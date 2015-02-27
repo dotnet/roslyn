@@ -148,9 +148,10 @@ namespace Microsoft.CodeAnalysis
 
             var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
             if (onAnalyzerException != null)
             {
-                onAnalyzerException = (ex, analyzer, diagnostic) =>
+                newOnAnalyzerException = (ex, analyzer, diagnostic) =>
                 {
                     exceptionDiagnostics.Add(diagnostic);
                     onAnalyzerException(ex, analyzer, diagnostic);
@@ -159,11 +160,11 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
-                onAnalyzerException = RethrowAnalyzerException;
+                newOnAnalyzerException = RethrowAnalyzerException;
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, newOnAnalyzerException, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
             

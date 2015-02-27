@@ -197,20 +197,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var addDiagnostic = GetDiagnosticSinkWithSuppression(analyzerDriver.DiagnosticQueue.Enqueue, newCompilation);
 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
             if (onAnalyzerException != null)
             {
                 // Wrap onAnalyzerException to pass in filtered diagnostic.
                 var comp = newCompilation;
-                onAnalyzerException = (ex, analyzer, diagnostic) => 
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => 
                     onAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
             }
             else
             {
                 // Add exception diagnostic to regular diagnostic bag.
-                onAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
             }
 
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, onAnalyzerException, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, cancellationToken);
             
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
