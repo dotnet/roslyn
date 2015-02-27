@@ -123,7 +123,7 @@ class C
                 exceptions.Add(e);
             }
 
-            Assert.True(exceptions.Count == 1);
+            Assert.True(exceptions.Count == 0);
         }
 
         [Fact]
