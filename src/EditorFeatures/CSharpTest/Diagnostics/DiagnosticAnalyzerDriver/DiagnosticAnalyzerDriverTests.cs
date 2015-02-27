@@ -86,6 +86,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(759)]
         public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;

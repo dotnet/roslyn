@@ -1665,7 +1665,7 @@ End Module
   </file>
                 </compilation>)
 
-            Dim index = compilation.SyntaxTrees.First().GetCompilationUnitRoot().ToFullString().IndexOf("Catch ex As Exception")
+            Dim index = compilation.SyntaxTrees.First().GetCompilationUnitRoot().ToFullString().IndexOf("Catch ex As Exception", StringComparison.Ordinal)
             Dim statement = DirectCast(compilation.SyntaxTrees.First().GetCompilationUnitRoot().FindToken(index).Parent, StatementSyntax)
             Dim binding = compilation.GetSemanticModel(compilation.SyntaxTrees.First())
             Dim controlFlowAnalysisResults = binding.AnalyzeControlFlow(statement, statement)
@@ -1694,7 +1694,7 @@ End Module
   </file>
                 </compilation>)
 
-            Dim index = compilation.SyntaxTrees.First().GetCompilationUnitRoot().ToFullString().IndexOf("Finally")
+            Dim index = compilation.SyntaxTrees.First().GetCompilationUnitRoot().ToFullString().IndexOf("Finally", StringComparison.Ordinal)
             Dim statement = DirectCast(compilation.SyntaxTrees.First().GetCompilationUnitRoot().FindToken(index).Parent, StatementSyntax)
             Dim binding = compilation.GetSemanticModel(compilation.SyntaxTrees.First())
             Dim controlFlowAnalysisResults = binding.AnalyzeControlFlow(statement, statement)

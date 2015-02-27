@@ -290,7 +290,7 @@ Class GreenNodeFactoryWriter
         If (nodeStructure.IsTerminal OrElse
             nodeStructure.Name = "SkippedTokensTriviaSyntax" OrElse
             nodeStructure.Name = "DocumentationCommentTriviaSyntax" OrElse
-            nodeStructure.Name.EndsWith("DirectiveTriviaSyntax") OrElse
+            nodeStructure.Name.EndsWith("DirectiveTriviaSyntax", StringComparison.Ordinal) OrElse
             allFields.Count + allChildren.Count > 3) Then
 
             _writer.Write("            Return New {0}(", StructureTypeName(nodeStructure))

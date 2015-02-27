@@ -693,7 +693,6 @@
     <Compile Include="Shared\Extensions\TextSpanExtensions.cs" />
     <Compile Include="Shared\NormalizedTextSpanCollection.cs" />
     <Compile Include="Shared\Utilities\AliasSymbolCache.cs" />
-    <Compile Include="Shared\Utilities\BitArrayUtilities.cs" />
     <Compile Include="Shared\Utilities\BloomFilter.cs" />
     <Compile Include="Shared\Utilities\BloomFilter_Serialization.cs" />
     <Compile Include="Shared\Utilities\CommonFormattingHelpers.cs" />

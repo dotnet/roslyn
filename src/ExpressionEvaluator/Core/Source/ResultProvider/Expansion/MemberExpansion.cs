@@ -3,7 +3,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
@@ -21,6 +20,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal sealed class MemberExpansion : Expansion
     {
         internal static Expansion CreateExpansion(
+            DkmInspectionContext inspectionContext,
             Type declaredType,
             DkmClrValue value,
             ExpansionFlags flags,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Expand members. (Ideally, this should be done lazily.)
             var allMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
-            var hideNonPublic = (value.InspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
+            var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
             runtimeType.AppendTypeMembers(allMembers, predicate, declaredType, appDomain, includeInherited, hideNonPublic);
 
             foreach (var member in allMembers)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Include Results View if necessary.
             if ((flags & ExpansionFlags.IncludeResultsView) != 0)
             {
-                var resultsViewExpansion = ResultsViewExpansion.CreateExpansion(value, formatter);
+                var resultsViewExpansion = ResultsViewExpansion.CreateExpansion(inspectionContext, value, formatter);
                 if (resultsViewExpansion != null)
                 {
                     expansions.Add(resultsViewExpansion);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -217,33 +217,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index += _members.Length;
         }
 
-        private static DkmEvaluationResult GetMemberRow(
+        private static EvalResultDataItem GetMemberRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue value,
             MemberAndDeclarationInfo member,
             EvalResultDataItem parent)
         {
-            var memberValue = GetMemberValue(value, member);
-            var dataItem = CreateMemberDataItem(
+            var memberValue = GetMemberValue(value, member, inspectionContext);
+            return CreateMemberDataItem(
                 resultProvider,
                 inspectionContext,
                 member,
                 memberValue,
                 parent,
                 ExpansionFlags.All);
-            return resultProvider.GetResult(
-                dataItem,
-                memberValue.Type,
-                DkmClrType.Create(memberValue.Type.AppDomain, member.Type),
-                parent);
         }
 
-        private static DkmClrValue GetMemberValue(DkmClrValue container, MemberAndDeclarationInfo member)
+        private static DkmClrValue GetMemberValue(DkmClrValue container, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)
         {
             // Note: GetMemberValue() may return special value
             // when func-eval of properties is disabled.
-            return container.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName);
+            return container.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
         }
 
         private sealed class RootHiddenExpansion : Expansion
@@ -257,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             internal override void GetRows(
                 ResultProvider resultProvider,
-                ArrayBuilder<DkmEvaluationResult> rows,
+                ArrayBuilder<EvalResultDataItem> rows,
                 DkmInspectionContext inspectionContext,
                 EvalResultDataItem parent,
                 DkmClrValue value,
@@ -266,20 +261,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 bool visitAll,
                 ref int index)
             {
-                var memberValue = GetMemberValue(value, _member);
+                var memberValue = GetMemberValue(value, _member, inspectionContext);
                 if (memberValue.IsError())
                 {
                     if (InRange(startIndex, count, index))
                     {
-                        var row = DkmFailedEvaluationResult.Create(
-                            InspectionContext: value.InspectionContext,
-                            StackFrame: value.StackFrame,
-                            Name: Resources.ErrorName,
-                            FullName: null,
-                            ErrorMessage: (string)memberValue.HostObjectValue,
-                            Flags: DkmEvaluationResultFlags.None,
-                            Type: null,
-                            DataItem: null);
+                        var row = new EvalResultDataItem(Resources.ErrorName, errorMessage: (string)memberValue.HostObjectValue);
                         rows.Add(row);
                     }
                     index++;
@@ -319,7 +306,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             internal override void GetRows(
                 ResultProvider resultProvider,
-                ArrayBuilder<DkmEvaluationResult> rows,
+                ArrayBuilder<EvalResultDataItem> rows,
                 DkmInspectionContext inspectionContext,
                 EvalResultDataItem parent,
                 DkmClrValue value,
@@ -332,6 +319,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     rows.Add(GetRow(
                         resultProvider,
+                        inspectionContext,
                         this.declaredType,
                         value,
                         this.members,
@@ -343,18 +331,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             private static readonly ReadOnlyCollection<string> HiddenFormatSpecifiers = new ReadOnlyCollection<string>(new[] { "hidden" });
 
-            private static DkmEvaluationResult GetRow(
+            private static EvalResultDataItem GetRow(
                 ResultProvider resultProvider,
+                DkmInspectionContext inspectionContext,
                 Type declaredType,
                 DkmClrValue value,
                 Expansion expansion,
                 EvalResultDataItem parent)
             {
-                var dataItem = new EvalResultDataItem(
-                    name: null,
+                return new EvalResultDataItem(
+                    ExpansionKind.NonPublicMembers,
+                    name: Resources.NonPublicMembers,
                     typeDeclaringMember: null,
                     declaredType: declaredType,
+                    parent: null,
                     value: value,
+                    displayValue: null,
                     expansion: expansion,
                     childShouldParenthesize: parent.ChildShouldParenthesize,
                     fullName: parent.FullNameWithoutFormatSpecifiers,
@@ -362,13 +354,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers: HiddenFormatSpecifiers,
                     category: DkmEvaluationResultCategory.Data,
                     flags: DkmEvaluationResultFlags.ReadOnly,
-                    editableValue: null);
-                return ResultProvider.CreateEvaluationResult(
-                    value,
-                    Resources.NonPublicMembers,
-                    typeName: "",
-                    display: null,
-                    dataItem: dataItem);
+                    editableValue: null,
+                    inspectionContext: inspectionContext);
             }
         }
 
@@ -388,7 +375,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             internal override void GetRows(
                 ResultProvider resultProvider,
-                ArrayBuilder<DkmEvaluationResult> rows,
+                ArrayBuilder<EvalResultDataItem> rows,
                 DkmInspectionContext inspectionContext,
                 EvalResultDataItem parent,
                 DkmClrValue value,
@@ -401,6 +388,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     rows.Add(GetRow(
                         resultProvider,
+                        inspectionContext,
                         this.declaredType,
                         value,
                         this.members));
@@ -409,19 +397,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 index++;
             }
 
-            private static DkmEvaluationResult GetRow(
+            private static EvalResultDataItem GetRow(
                 ResultProvider resultProvider,
+                DkmInspectionContext inspectionContext,
                 Type declaredType,
                 DkmClrValue value,
                 Expansion expansion)
             {
                 var formatter = resultProvider.Formatter;
                 var fullName = formatter.GetTypeName(declaredType, escapeKeywordIdentifiers: true);
-                var dataItem = new EvalResultDataItem(
-                    name: null,
+                return new EvalResultDataItem(
+                    ExpansionKind.StaticMembers,
+                    name: formatter.StaticMembersString,
                     typeDeclaringMember: null,
                     declaredType: declaredType,
+                    parent: null,
                     value: value,
+                    displayValue: null,
                     expansion: expansion,
                     childShouldParenthesize: false,
                     fullName: fullName,
@@ -429,13 +421,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers: Formatter.NoFormatSpecifiers,
                     category: DkmEvaluationResultCategory.Class,
                     flags: DkmEvaluationResultFlags.ReadOnly,
-                    editableValue: null);
-                return ResultProvider.CreateEvaluationResult(
-                    value,
-                    formatter.StaticMembersString,
-                    typeName: "",
-                    display: null,
-                    dataItem: dataItem);
+                    editableValue: null,
+                    inspectionContext: inspectionContext);
             }
         }
 
@@ -451,11 +438,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string memberName;
             var typeDeclaringMember = member.GetExplicitlyImplementedInterface(out memberName) ?? member.DeclaringType;
             memberName = formatter.GetIdentifierEscapingPotentialKeywords(memberName);
-            // If the value is actually an exception that was thrown, we can't expect it to
-            // have any relation to the declared type of the value.  Therefore, we will
-            // pretend that the exception type was the declared type for the purposes
-            // of creating the full name and expansion.
-            var declaredType = memberValue.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown) ? memberValue.Type.GetLmrType() : member.Type;
             var fullName = MakeFullName(
                 formatter,
                 memberName,
@@ -467,7 +449,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 inspectionContext,
                 memberName,
                 typeDeclaringMember: (member.IncludeTypeInMemberName || typeDeclaringMember.IsInterface) ? typeDeclaringMember : null,
-                declaredType: declaredType,
+                declaredType: member.Type,
                 value: memberValue,
                 parent: parent,
                 expansionFlags: flags,

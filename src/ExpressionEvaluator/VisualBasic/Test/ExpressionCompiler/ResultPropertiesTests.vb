@@ -36,7 +36,7 @@ End Class
             Next
 
             Assert.Equal(DkmEvaluationResultCategory.Method, GetResultProperties(context, "M()").Category)
-            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "P").Category)
+            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "Me.P").Category)
         End Sub
 
         <Fact>

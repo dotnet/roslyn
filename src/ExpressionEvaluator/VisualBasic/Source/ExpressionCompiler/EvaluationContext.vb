@@ -586,6 +586,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
                 Case ERRID.ERR_XmlFeaturesNotAvailable
                     Return ImmutableArray.Create(SystemIdentity, SystemCoreIdentity, SystemXmlIdentity, SystemXmlLinqIdentity)
+                Case ERRID.ERR_MissingRuntimeHelper
+                    Return ImmutableArray.Create(MicrosoftVisualBasicIdentity)
             End Select
 
             Return Nothing

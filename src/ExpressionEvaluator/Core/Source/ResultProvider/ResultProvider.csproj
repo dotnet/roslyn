@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetNetFX20>true</TargetNetFX20>
+  </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
@@ -12,17 +15,6 @@
     <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    
-    <!--
-       This project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
-       Use the latest Framework toolset to build, but set msbuild properties below
-       so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-    -->
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
-    <NoStdLib>true</NoStdLib>
-    
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
@@ -75,7 +67,6 @@
     <Compile Include="SystemHelpers.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\Microsoft.NetFX20.1.0.0-rc2\lib\net20\mscorlib.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
   </ItemGroup>
@@ -101,6 +92,7 @@
     <Compile Include="Formatter.Values.cs" />
     <Compile Include="Formatter.cs" />
     <Compile Include="Helpers\ArrayBuilder.cs" />
+    <Compile Include="Helpers\DebuggerDisplayInfo.cs" />
     <Compile Include="Helpers\DkmClrValueFlagsExtensions.cs" />
     <Compile Include="Helpers\DkmEvaluationResultFlagsExtensions.cs" />
     <Compile Include="Helpers\EnumContextDataItem.cs" />

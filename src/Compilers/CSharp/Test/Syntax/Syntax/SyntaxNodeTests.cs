@@ -481,6 +481,44 @@ a + b";
             Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
         }
 
+        [Fact]
+        public void TestFindTokenInLargeList()
+        {
+            var identifier = SyntaxFactory.Identifier("x");
+            var missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
+            var name = SyntaxFactory.IdentifierName(identifier);
+            var missingName = SyntaxFactory.IdentifierName(missingIdentifier);
+            var comma = SyntaxFactory.Token(SyntaxKind.CommaToken);
+            var missingComma = SyntaxFactory.MissingToken(SyntaxKind.CommaToken);
+            var argument = SyntaxFactory.Argument(name);
+            var missingArgument = SyntaxFactory.Argument(missingName);
+
+            // make a large list that has lots of zero-length nodes (that shouldn't be found)
+            var nodesAndTokens = SyntaxFactory.NodeOrTokenList(
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                argument);
+
+            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
+            var invocation = SyntaxFactory.InvocationExpression(name, argumentList);
+            CheckFindToken(invocation);
+        }
+
+        private void CheckFindToken(SyntaxNode node)
+        {
+            for (int i = 0; i < node.FullSpan.End; i++)
+            {
+                var token = node.FindToken(i);
+                Assert.Equal(true, token.FullSpan.Contains(i));
+            }
+        }
+
         [WorkItem(755236, "DevDiv")]
         [Fact]
         public void TestFindNode()
@@ -2441,9 +2479,9 @@ class Base<T>
         [Fact]
         public void GetDiagnosticsOnMissingToken3()
         {
-            string code = @"class c2 4";
+            const string code = @"class c2 4";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("4"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf('4'));
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
             Assert.True(token.IsMissing);
@@ -2465,7 +2503,7 @@ public class Test1
 }
 }";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("using Lib;"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("using Lib;", StringComparison.Ordinal));
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
             Assert.True(token.IsMissing);
@@ -2484,7 +2522,7 @@ public class Test1
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(code);
-            var trivia = tree.GetCompilationUnitRoot().FindTrivia(code.IndexOf("#r")); // ReferenceDirective.
+            var trivia = tree.GetCompilationUnitRoot().FindTrivia(code.IndexOf("#r", StringComparison.Ordinal)); // ReferenceDirective.
 
             foreach (var diag in tree.GetDiagnostics(trivia))
             {

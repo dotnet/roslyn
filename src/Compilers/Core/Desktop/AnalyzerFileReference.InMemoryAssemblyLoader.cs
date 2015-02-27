@@ -2,8 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -143,23 +146,94 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             /// <summary>
-            /// Handles the <see cref="AppDomain.AssemblyResolve"/> event when the requesting
-            /// assembly is one that we've loaded.
-            /// 
-            /// We assume that an assembly's dependencies can be found next to it in the file
-            /// system.
+            /// Handles the <see cref="AppDomain.AssemblyResolve"/> event.
             /// </summary>
+            /// <remarks>
+            /// This handler catches and swallow any and all exceptions that
+            /// arise, and simply returns null when they do. Leaking an exception
+            /// from the event handler may interrupt the entire assembly
+            /// resolution process, which is undesirable.
+            /// </remarks>
             private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
             {
-                if (args.RequestingAssembly == null)
+                try
                 {
-                    // We don't know who is requesting the load; don't try to satisfy the request.
-                    return null;
+                    if (args.RequestingAssembly == null)
+                    {
+                        return ResolveForUnknownRequestor(args.Name);
+                    }
+                    else
+                    {
+                        return ResolveForKnownRequestor(args.Name, args.RequestingAssembly);
+                    }
                 }
+                catch { }
 
+                return null;
+            }
+
+            /// <summary>
+            /// Attempts to find and load an <see cref="Assembly"/> when the requesting <see cref="Assembly"/>
+            /// is unknown.
+            /// </summary>
+            /// <remarks>
+            /// In this case we simply look next to all the assemblies we have previously loaded for one with the
+            /// correct name and a matching <see cref="AssemblyIdentity"/>.
+            /// </remarks>
+            private static Assembly ResolveForUnknownRequestor(string requestedAssemblyName)
+            {
                 lock (s_guard)
                 {
-                    string requestingAssemblyName = args.RequestingAssembly.FullName;
+                    string requestedNameWithPolicyApplied = AppDomain.CurrentDomain.ApplyPolicy(requestedAssemblyName);
+
+                    Assembly assembly;
+                    if (s_assembliesFromNames.TryGetValue(requestedNameWithPolicyApplied, out assembly))
+                    {
+                        // We've already loaded an assembly by this name; use that.
+                        return assembly;
+                    }
+
+                    AssemblyIdentity requestedAssemblyIdentity;
+                    if (!AssemblyIdentity.TryParseDisplayName(requestedNameWithPolicyApplied, out requestedAssemblyIdentity))
+                    {
+                        return null;
+                    }
+
+                    foreach (string loadedAssemblyFullPath in s_assembliesFromFiles.Keys)
+                    {
+                        string directoryPath = Path.GetDirectoryName(loadedAssemblyFullPath);
+                        string candidateAssemblyFullPath = Path.Combine(directoryPath, requestedAssemblyIdentity.Name + ".dll");
+
+                        AssemblyIdentity candidateAssemblyIdentity = TryGetAssemblyIdentity(candidateAssemblyFullPath);
+
+                        if (requestedAssemblyIdentity.Equals(candidateAssemblyIdentity))
+                        {
+                            return LoadCore(candidateAssemblyFullPath);
+                        }
+                    }
+
+                    return null;
+                }
+            }
+
+            /// <summary>
+            /// Attempts to find and load an <see cref="Assembly"/> when the requesting <see cref="Assembly"/>
+            /// is known.
+            /// </summary>
+            /// <remarks>
+            /// This method differs from <see cref="ResolveForUnknownRequestor(string)"/> in a couple of ways.
+            /// First, we only attempt to handle the load if the requesting assembly is one we've loaded.
+            /// If it isn't one of ours, then presumably some other component is hooking <see cref="AppDomain.AssemblyResolve"/>
+            /// and will have a better idea of how to load the assembly.
+            /// Second, we only look immediately next to the requesting assembly, instead of next to all the assemblies
+            /// we've previously loaded. An analyzer needs to ship with all of its dependencies, and if it doesn't we don't
+            /// want to mask the problem.
+            /// </remarks>
+            private static Assembly ResolveForKnownRequestor(string requestedAssemblyName, Assembly requestingAssembly)
+            {
+                lock (s_guard)
+                {
+                    string requestingAssemblyName = requestingAssembly.FullName;
 
                     string requestingAssemblyFullPath;
                     if (!s_filesFromAssemblyNames.TryGetValue(requestingAssemblyName, out requestingAssemblyFullPath))
@@ -168,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return null;
                     }
 
-                    string nameWithPolicyApplied = AppDomain.CurrentDomain.ApplyPolicy(args.Name);
+                    string nameWithPolicyApplied = AppDomain.CurrentDomain.ApplyPolicy(requestedAssemblyName);
 
                     Assembly assembly;
                     if (s_assembliesFromNames.TryGetValue(nameWithPolicyApplied, out assembly))
@@ -185,6 +259,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     string directoryPath = Path.GetDirectoryName(requestingAssemblyFullPath);
                     string assemblyFullPath = Path.Combine(directoryPath, assemblyIdentity.Name + ".dll");
+                    if (!File.Exists(assemblyFullPath))
+                    {
+                        return null;
+                    }
 
                     assembly = LoadCore(assemblyFullPath);
 
@@ -192,6 +270,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return assembly;
                 }
+            }
+
+            private static AssemblyIdentity TryGetAssemblyIdentity(string filePath)
+            {
+                try
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        return null;
+                    }
+
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                    using (var peReader = new PEReader(stream))
+                    {
+                        var metadataReader = peReader.GetMetadataReader();
+
+                        AssemblyDefinition assemblyDefinition = metadataReader.GetAssemblyDefinition();
+
+                        string name = metadataReader.GetString(assemblyDefinition.Name);
+                        if (!MetadataHelpers.IsValidMetadataIdentifier(name))
+                        {
+                            return null;
+                        }
+
+                        Version version = assemblyDefinition.Version;
+
+                        StringHandle cultureHandle = assemblyDefinition.Culture;
+                        string cultureName = (!cultureHandle.IsNil) ? metadataReader.GetString(cultureHandle) : null;
+                        if (cultureName != null && !MetadataHelpers.IsValidMetadataIdentifier(cultureName))
+                        {
+                            return null;
+                        }
+
+                        AssemblyFlags flags = assemblyDefinition.Flags;
+
+                        bool hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
+                        BlobHandle publicKeyHandle = assemblyDefinition.PublicKey;
+                        ImmutableArray<byte> publicKeyOrToken = !publicKeyHandle.IsNil
+                            ? metadataReader.GetBlobBytes(publicKeyHandle).AsImmutableOrNull()
+                            : default(ImmutableArray<byte>);
+                        if (hasPublicKey)
+                        {
+                            if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                            {
+                                return null;
+                            }
+                        }
+
+                        return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey);
+                    }
+                }
+                catch { }
+
+                return null;
             }
         }
     }

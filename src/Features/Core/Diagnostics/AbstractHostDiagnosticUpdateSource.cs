@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// which may not be related to any given project/document in the solution.
     /// For example, these include diagnostics generated for exceptions from third party analyzers.
     /// </summary>
-    internal abstract partial class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
 
-        protected abstract Workspace Workspace { get; }
+        internal abstract Workspace Workspace { get; }
 
         public bool SupportGetDiagnostics
         {
@@ -44,22 +44,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void OnAnalyzerExceptionDiagnostic(object sender, WorkspaceAnalyzerExceptionDiagnosticArgs args)
+        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, Project project)
         {
-            if (this.Workspace != args.Workspace)
+            if (workspace != this.Workspace)
             {
                 return;
             }
 
-            Contract.ThrowIfFalse(AnalyzerDriverHelper.IsAnalyzerExceptionDiagnostic(args.Diagnostic));
-            
             bool raiseDiagnosticsUpdated = true;
-            var diagnosticData = args.ProjectOpt != null ?
-                DiagnosticData.Create(args.ProjectOpt, args.Diagnostic) :
-                DiagnosticData.Create(args.Workspace, args.Diagnostic);
+            var diagnosticData = project != null ?
+                DiagnosticData.Create(project, diagnostic) :
+                DiagnosticData.Create(this.Workspace, diagnostic);
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
-                args.FaultedAnalyzer,
+                analyzer,
                 ImmutableHashSet.Create(diagnosticData),
                 (a, existing) =>
                 {
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (raiseDiagnosticsUpdated)
             {
-                RaiseDiagnosticsUpdated(MakeArgs(args.FaultedAnalyzer, dxs, args.ProjectOpt));
+                RaiseDiagnosticsUpdated(MakeArgs(analyzer, dxs, project));
             }
         }
 

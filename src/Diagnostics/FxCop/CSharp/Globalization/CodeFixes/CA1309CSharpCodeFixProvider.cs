@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                     if (memberAccess != null)
                     {
                         // preserve the "IgnoreCase" suffix if present
-                        bool isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText);
+                        bool isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText, StringComparison.Ordinal);
                         var newOrdinalText = isIgnoreCase ? CA1309DiagnosticAnalyzer.OrdinalIgnoreCaseText : CA1309DiagnosticAnalyzer.OrdinalText;
                         var newIdentifier = syntaxFactoryService.IdentifierName(newOrdinalText);
                         var newMemberAccess = memberAccess.WithName((SimpleNameSyntax)newIdentifier).WithAdditionalAnnotations(Formatter.Annotation);

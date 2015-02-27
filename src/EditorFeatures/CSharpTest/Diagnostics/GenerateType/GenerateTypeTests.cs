@@ -1501,7 +1501,7 @@ index: 1);
         {
             TestSmartTagText(
 @"class C : [|Foo|]",
-"Generate class for 'Foo' in 'Global Namespace' (in new file)");
+string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace));
         }
 
         [WorkItem(543853)]
@@ -1568,8 +1568,13 @@ class Program
 }
 ";
 
-            TestExactActionSetOffered(
-code, new[] { "Generate class for 'Foo' in 'Global Namespace' (in new file)", "Generate class for 'Foo' in 'Program'", "Generate new type..." });
+            TestExactActionSetOffered(code,
+                new[]
+                {
+                    string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace),
+                    string.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"),
+                    FeaturesResources.GenerateNewType
+                });
 
             Test(code,
 @"

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance
 
                 ' First, validate the signature
                 If (symbol.IsStatic OrElse method.IsAbstract OrElse method.ReturnType.SpecialType <> SpecialType.System_Void OrElse
-                method.Parameters.Length <> 0 OrElse String.Compare(method.Name, "Finalize") <> 0) Then
+                method.Parameters.Length > 0 OrElse Not CaseInsensitiveComparison.Equals(method.Name, "Finalize")) Then
                     Return False
                 End If
 

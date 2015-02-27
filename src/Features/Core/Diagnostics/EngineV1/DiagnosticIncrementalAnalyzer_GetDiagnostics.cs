@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var provider = providerAndId.Key;
                     var providerId = providerAndId.Value;
 
-                    if (IsAnalyzerSuppressed(provider, project.CompilationOptions, driver) ||
+                    if (driver.IsAnalyzerSuppressed(provider) ||
                         !this.Owner.ShouldRunProviderForStateType(stateType, provider, driver, this.DiagnosticIds))
                     {
                         continue;
@@ -341,13 +341,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (document != null)
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    return new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this.DiagnosticLogAggregator, cancellationToken);
+                    return new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this.DiagnosticLogAggregator, this.Owner.HostDiagnosticUpdateSource, cancellationToken);
                 }
 
                 var project = documentOrProject as Project;
                 if (project != null)
                 {
-                    return new DiagnosticAnalyzerDriver(project, this.DiagnosticLogAggregator, cancellationToken);
+                    return new DiagnosticAnalyzerDriver(project, this.DiagnosticLogAggregator, this.Owner.HostDiagnosticUpdateSource, cancellationToken);
                 }
 
                 return Contract.FailWithReturn<DiagnosticAnalyzerDriver>("Can't reach here");

@@ -1859,7 +1859,7 @@ End Module
                 "End Class"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
 
-            Dim location = text.IndexOf("List(Of T)")
+            Dim location = text.IndexOf("List(Of T)", StringComparison.Ordinal)
             Dim openParenToken = CType(tree.GetRoot().FindToken(location + "List".Length), SyntaxToken)
 
             Assert.Equal(SyntaxKind.OpenParenToken, openParenToken.Kind)
@@ -2112,6 +2112,41 @@ End Class]]>
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(invalidSpan))
             ' Parent node's span.
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl.FindNode(root.FullSpan))
+        End Sub
+
+        <Fact>
+        Public Sub TestFindTokenInLargeList()
+            Dim identifier = SyntaxFactory.Identifier("x")
+            Dim missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)
+            Dim name = SyntaxFactory.IdentifierName(identifier)
+            Dim missingName = SyntaxFactory.IdentifierName(missingIdentifier)
+            Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken)
+            Dim missingComma = SyntaxFactory.MissingToken(SyntaxKind.CommaToken)
+            Dim argument = SyntaxFactory.SimpleArgument(name)
+            Dim missingArgument = SyntaxFactory.SimpleArgument(missingName)
+
+            '' make a large list that has lots of zero-length nodes (that shouldn't be found)
+            Dim nodesAndTokens = SyntaxFactory.NodeOrTokenList(
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                argument)
+
+            Dim argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(Of ArgumentSyntax)(SyntaxFactory.NodeOrTokenList(nodesAndTokens)))
+            Dim invocation = SyntaxFactory.InvocationExpression(name, argumentList)
+            CheckFindToken(invocation)
+        End Sub
+
+        Private Sub CheckFindToken(node As SyntaxNode)
+            For i As Integer = 1 To node.FullSpan.End - 1
+                Dim token = node.FindToken(i)
+                Assert.Equal(True, token.FullSpan.Contains(i))
+            Next
         End Sub
 
         <WorkItem(539940, "DevDiv")>

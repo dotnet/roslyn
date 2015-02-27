@@ -39,13 +39,13 @@
   .ver 1:0:0:0
 }
 .module Microsoft.VisualStudio.Debugger.Engine.dll
-// MVID: {6C44C082-16C7-4FDA-BDD9-290D72D500E8}
+// MVID: {F69E895E-D452-4E38-95BE-7B90DD70E62B}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x01010000
+// Image base: 0x018D0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -6979,6 +6979,7 @@
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_REMOTE_DISCONNECTED = int32(0x8EDE0011)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_REMOTE_NEW_VER_REQUIRED = int32(0x8EDE0024)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_SERVER_ONLY_METHOD = int32(0x8EDE0022)
+  .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_STA_THREADS_NOT_SUPPORTED = int32(0x8EDE0026)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_THREAD_ABORTED = int32(0x8EDE0003)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_UNAVAILABLE_OBJECT = int32(0x8EDE0005)
   .field public static literal valuetype Microsoft.VisualStudio.Debugger.DkmExceptionCode E_XAPI_WORKLIST_ALREADY_STARTED = int32(0x8EDE000B)
@@ -22082,7 +22083,8 @@
   } // end of method DkmInspectionContext::GetClrLocalVariableQuery
 
   .method public hidebysig instance string 
-          GetTypeName(class Microsoft.VisualStudio.Debugger.Clr.DkmClrType ClrType) cil managed
+          GetTypeName(class Microsoft.VisualStudio.Debugger.Clr.DkmClrType ClrType,
+                      class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> FormatSpecifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22667,23 +22669,28 @@
 .class interface public abstract auto ansi Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter
 {
   .method public hidebysig newslot abstract virtual 
-          instance string  GetValueString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue) cil managed
+          instance string  GetValueString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                          class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext,
+                                          class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> formatSpecifiers) cil managed
   {
   } // end of method IDkmClrFormatter::GetValueString
 
   .method public hidebysig newslot abstract virtual 
           instance string  GetTypeName(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext,
-                                       class Microsoft.VisualStudio.Debugger.Clr.DkmClrType clrType) cil managed
+                                       class Microsoft.VisualStudio.Debugger.Clr.DkmClrType clrType,
+                                       class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> formatSpecifiers) cil managed
   {
   } // end of method IDkmClrFormatter::GetTypeName
 
   .method public hidebysig newslot abstract virtual 
-          instance bool  HasUnderlyingString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue) cil managed
+          instance bool  HasUnderlyingString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                             class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrFormatter::HasUnderlyingString
 
   .method public hidebysig newslot abstract virtual 
-          instance string  GetUnderlyingString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue) cil managed
+          instance string  GetUnderlyingString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                               class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrFormatter::GetUnderlyingString
 
@@ -22696,13 +22703,21 @@
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 38 31 38 36 35 37 30 63 2D 32 35 32 39   // ..$8186570c-2529
                                                                                                   2D 65 64 62 35 2D 65 66 30 62 2D 34 65 34 38 35   // -edb5-ef0b-4e485
                                                                                                   66 39 30 32 65 38 39 00 00 )                      // f902e89..
-  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext 
-          get_InspectionContext() cil managed
+  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession 
+          get_InspectionSession() cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
-  } // end of method DkmClrValue::get_InspectionContext
+  } // end of method DkmClrValue::get_InspectionSession
+
+  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage 
+          get_Language() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmClrValue::get_Language
 
   .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Clr.DkmClrType 
           get_Type() cil managed
@@ -22711,14 +22726,6 @@
     .maxstack  8
     IL_0000:  ret
   } // end of method DkmClrValue::get_Type
-
-  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Clr.DkmClrType 
-          get_DeclaredType() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method DkmClrValue::get_DeclaredType
 
   .method public hidebysig specialname instance valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory 
           get_Category() cil managed
@@ -22832,30 +22839,6 @@
     IL_0000:  ret
   } // end of method DkmClrValue::get_UniqueId
 
-  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage 
-          get_Language() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method DkmClrValue::get_Language
-
-  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession 
-          get_InspectionSession() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method DkmClrValue::get_InspectionSession
-
-  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance 
-          get_RuntimeInstance() cil managed
-  {
-    // Code size       1 (0x1)
-    .maxstack  8
-    IL_0000:  ret
-  } // end of method DkmClrValue::get_RuntimeInstance
-
   .method public hidebysig instance void 
           Close() cil managed
   {
@@ -22865,9 +22848,9 @@
   } // end of method DkmClrValue::Close
 
   .method public hidebysig static class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
-          Create(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext,
+          Create(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession InspectionSession,
+                 class Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage Language,
                  class Microsoft.VisualStudio.Debugger.Clr.DkmClrType Type,
-                 class Microsoft.VisualStudio.Debugger.Clr.DkmClrType DeclaredType,
                  valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory Category,
                  valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultAccessType Access,
                  valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultStorageType StorageType,
@@ -22889,7 +22872,8 @@
   } // end of method DkmClrValue::Create
 
   .method public hidebysig instance string 
-          GetValueString() cil managed
+          GetValueString(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext,
+                         class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> FormatSpecifiers) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22897,7 +22881,7 @@
   } // end of method DkmClrValue::GetValueString
 
   .method public hidebysig instance bool 
-          HasUnderlyingString() cil managed
+          HasUnderlyingString(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22905,17 +22889,21 @@
   } // end of method DkmClrValue::HasUnderlyingString
 
   .method public hidebysig instance string 
-          GetUnderlyingString() cil managed
+          GetUnderlyingString(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
   } // end of method DkmClrValue::GetUnderlyingString
 
-  .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult 
-          GetResult(class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> FormatSpecifiers,
+  .method public hidebysig instance void 
+          GetResult(class Microsoft.VisualStudio.Debugger.DkmWorkList WorkList,
+                    class Microsoft.VisualStudio.Debugger.Clr.DkmClrType DeclaredType,
+                    class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext,
+                    class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> FormatSpecifiers,
                     string ResultName,
-                    string ResultFullName) cil managed
+                    string ResultFullName,
+                    class Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult> CompletionRoutine) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22923,15 +22911,19 @@
   } // end of method DkmClrValue::GetResult
 
   .method public hidebysig instance string 
-          EvaluateToString() cil managed
+          EvaluateToString(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
   } // end of method DkmClrValue::EvaluateToString
 
-  .method public hidebysig instance string 
-          EvaluateDebuggerDisplayString(string FormatString) cil managed
+  .method public hidebysig instance void 
+          EvaluateDebuggerDisplayString(class Microsoft.VisualStudio.Debugger.DkmWorkList WorkList,
+                                        class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext,
+                                        class Microsoft.VisualStudio.Debugger.Clr.DkmClrType TargetType,
+                                        string FormatString,
+                                        class Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult> CompletionRoutine) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22939,7 +22931,8 @@
   } // end of method DkmClrValue::EvaluateDebuggerDisplayString
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
-          InstantiateProxyType(class Microsoft.VisualStudio.Debugger.Clr.DkmClrType Type) cil managed
+          InstantiateProxyType(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext,
+                               class Microsoft.VisualStudio.Debugger.Clr.DkmClrType Type) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22947,7 +22940,8 @@
   } // end of method DkmClrValue::InstantiateProxyType
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
-          InstantiateResultsViewProxy(class Microsoft.VisualStudio.Debugger.Clr.DkmClrType EnumerableType) cil managed
+          InstantiateResultsViewProxy(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext,
+                                      class Microsoft.VisualStudio.Debugger.Clr.DkmClrType EnumerableType) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22957,7 +22951,8 @@
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
           GetMemberValue(string MemberName,
                          int32 MemberType,
-                         string ParentTypeName) cil managed
+                         string ParentTypeName,
+                         class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22965,7 +22960,8 @@
   } // end of method DkmClrValue::GetMemberValue
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
-          GetArrayElement(int32[] Index) cil managed
+          GetArrayElement(int32[] Index,
+                          class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -22973,7 +22969,7 @@
   } // end of method DkmClrValue::GetArrayElement
 
   .method public hidebysig instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
-          Dereference() cil managed
+          Dereference(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext) cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
@@ -23009,11 +23005,6 @@
   {
     .get instance valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue::get_Category()
   } // end of property DkmClrValue::Category
-  .property instance class Microsoft.VisualStudio.Debugger.Clr.DkmClrType
-          DeclaredType()
-  {
-    .get instance class Microsoft.VisualStudio.Debugger.Clr.DkmClrType Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue::get_DeclaredType()
-  } // end of property DkmClrValue::DeclaredType
   .property instance valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultFlags
           EvalFlags()
   {
@@ -23023,11 +23014,6 @@
   {
     .get instance object Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue::get_HostObjectValue()
   } // end of property DkmClrValue::HostObjectValue
-  .property instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext
-          InspectionContext()
-  {
-    .get instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue::get_InspectionContext()
-  } // end of property DkmClrValue::InspectionContext
   .property instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession
           InspectionSession()
   {
@@ -23042,11 +23028,6 @@
   {
     .get instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue::get_Language()
   } // end of property DkmClrValue::Language
-  .property instance class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance
-          RuntimeInstance()
-  {
-    .get instance class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue::get_RuntimeInstance()
-  } // end of property DkmClrValue::RuntimeInstance
   .property instance class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame
           StackFrame()
   {
@@ -23440,11 +23421,14 @@
 .class interface public abstract auto ansi Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider
 {
   .method public hidebysig newslot abstract virtual 
-          instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult 
-          GetResult(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
-                    class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> formatSpecifiers,
-                    string resultName,
-                    string resultFullName) cil managed
+          instance void  GetResult(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                   class Microsoft.VisualStudio.Debugger.DkmWorkList workList,
+                                   class Microsoft.VisualStudio.Debugger.Clr.DkmClrType declaredType,
+                                   class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext,
+                                   class [mscorlib]System.Collections.ObjectModel.ReadOnlyCollection`1<string> formatSpecifiers,
+                                   string resultName,
+                                   string resultFullName,
+                                   class Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult> completionRoutine) cil managed
   {
   } // end of method IDkmClrResultProvider::GetResult
 
@@ -23478,6 +23462,52 @@
   } // end of method IDkmClrResultProvider::GetUnderlyingString
 
 } // end of class Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider
+
+.class public auto ansi sealed Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult
+       extends [mscorlib]System.ValueType
+{
+  .method public hidebysig static valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult 
+          CreateErrorResult(class [mscorlib]System.Exception exception) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluationAsyncResult::CreateErrorResult
+
+  .method public hidebysig specialname instance int32 
+          get_ErrorCode() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluationAsyncResult::get_ErrorCode
+
+  .method public hidebysig specialname instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult 
+          get_Result() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluationAsyncResult::get_Result
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult Result) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluationAsyncResult::.ctor
+
+  .property instance int32 ErrorCode()
+  {
+    .get instance int32 Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult::get_ErrorCode()
+  } // end of property DkmEvaluationAsyncResult::ErrorCode
+  .property instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult
+          Result()
+  {
+    .get instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult::get_Result()
+  } // end of property DkmEvaluationAsyncResult::Result
+} // end of class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult
 
 .class public auto ansi sealed Microsoft.VisualStudio.Debugger.Evaluation.DkmGetChildrenAsyncResult
        extends [mscorlib]System.ValueType
@@ -24062,19 +24092,25 @@
   } // end of method IDkmClrValueInspectionCallback::GetEvalAttributes
 
   .method public hidebysig newslot abstract virtual 
-          instance string  EvaluateToString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue) cil managed
+          instance string  EvaluateToString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                            class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::EvaluateToString
 
   .method public hidebysig newslot abstract virtual 
-          instance string  EvaluateDebuggerDisplayString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
-                                                         string formatString) cil managed
+          instance void  EvaluateDebuggerDisplayString(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                                       class Microsoft.VisualStudio.Debugger.DkmWorkList workList,
+                                                       class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext,
+                                                       class Microsoft.VisualStudio.Debugger.Clr.DkmClrType targetType,
+                                                       string formatString,
+                                                       class Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::EvaluateDebuggerDisplayString
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
           InstantiateProxyType(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                               class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext,
                                class Microsoft.VisualStudio.Debugger.Clr.DkmClrType 'type') cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::InstantiateProxyType
@@ -24082,6 +24118,7 @@
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
           InstantiateResultsViewProxy(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                                      class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext,
                                       class Microsoft.VisualStudio.Debugger.Clr.DkmClrType enumerableType) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::InstantiateResultsViewProxy
@@ -24091,24 +24128,72 @@
           GetMemberValue(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
                          string memberName,
                          int32 memberType,
-                         string parentTypeName) cil managed
+                         string parentTypeName,
+                         class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::GetMemberValue
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
           GetArrayElement(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
-                          int32[] index) cil managed
+                          int32[] index,
+                          class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::GetArrayElement
 
   .method public hidebysig newslot abstract virtual 
           instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue 
-          Dereference(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue) cil managed
+          Dereference(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue clrValue,
+                      class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext) cil managed
   {
   } // end of method IDkmClrValueInspectionCallback::Dereference
 
 } // end of class Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback
+
+.class public auto ansi sealed Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult
+       extends [mscorlib]System.ValueType
+{
+  .method public hidebysig static valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult 
+          CreateErrorResult(class [mscorlib]System.Exception exception) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluateDebuggerDisplayStringAsyncResult::CreateErrorResult
+
+  .method public hidebysig specialname instance int32 
+          get_ErrorCode() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluateDebuggerDisplayStringAsyncResult::get_ErrorCode
+
+  .method public hidebysig specialname instance string 
+          get_Result() cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluateDebuggerDisplayStringAsyncResult::get_Result
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(string Result) cil managed
+  {
+    // Code size       1 (0x1)
+    .maxstack  8
+    IL_0000:  ret
+  } // end of method DkmEvaluateDebuggerDisplayStringAsyncResult::.ctor
+
+  .property instance int32 ErrorCode()
+  {
+    .get instance int32 Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult::get_ErrorCode()
+  } // end of property DkmEvaluateDebuggerDisplayStringAsyncResult::ErrorCode
+  .property instance string Result()
+  {
+    .get instance string Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult::get_Result()
+  } // end of property DkmEvaluateDebuggerDisplayStringAsyncResult::Result
+} // end of class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult
 
 .class interface public abstract auto ansi Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmCompiledInspectionQueryProcessor
 {

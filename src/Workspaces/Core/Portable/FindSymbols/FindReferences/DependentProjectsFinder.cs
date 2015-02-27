@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     var value = (string)typeNameConstant.Value;
-                    var commaIndex = value.IndexOf(",");
+                    var commaIndex = value.IndexOf(',');
                     var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
 
                     map.Add(assemblyName);
