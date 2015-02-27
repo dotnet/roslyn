@@ -11,8 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
-    using ProviderId = Int32;
-
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
@@ -61,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 this.Owner = owner;
             }
 
-            protected DiagnosticAnalyzersAndStates AnalyzersAndState
+            protected StateManager StateManager
             {
-                get { return this.Owner._analyzersAndState; }
+                get { return this.Owner._stateManger; }
             }
 
-            protected abstract Task AppendDiagnosticsFromKeyAsync(ProjectId projectId, object value, StateType stateType, string language, CancellationToken cancellationToken);
+            protected abstract Task AppendDiagnosticsFromKeyAsync(Project project, StateType stateType, object documentOrProject, CancellationToken cancellationToken);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
             {
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return SpecializedTasks.EmptyTask;
                 }
 
-                return AppendDiagnosticsFromKeyAsync(project.Id, project, StateType.Project, project.Language, cancellationToken);
+                return AppendDiagnosticsFromKeyAsync(project, StateType.Project, project, cancellationToken);
             }
 
             private async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
@@ -168,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return;
                 }
 
-                await AppendDiagnosticsFromKeyAsync(document.Project.Id, document, StateType.Syntax, document.Project.Language, cancellationToken).ConfigureAwait(false);
-                await AppendDiagnosticsFromKeyAsync(document.Project.Id, document, StateType.Document, document.Project.Language, cancellationToken).ConfigureAwait(false);
+                await AppendDiagnosticsFromKeyAsync(document.Project, StateType.Syntax, document, cancellationToken).ConfigureAwait(false);
+                await AppendDiagnosticsFromKeyAsync(document.Project, StateType.Document, document, cancellationToken).ConfigureAwait(false);
             }
 
             protected void AppendDiagnostics(IEnumerable<DiagnosticData> items)
@@ -246,7 +244,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var state = this.AnalyzersAndState.GetDiagnosticState(key.StateTypeId, key.ProviderId, projectId, project.Language);
+                var stateSet = this.StateManager.GetOrCreateStateSet(project, key.Analyzer);
+                if (stateSet == null)
+                {
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
+
+                var state = stateSet.GetState(key.StateTypeId);
                 if (state == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
@@ -269,21 +273,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return existingData.Items;
             }
 
-            protected override async Task AppendDiagnosticsFromKeyAsync(
-                ProjectId projectId, object value, StateType stateType, string language, CancellationToken cancellationToken)
+            protected override async Task AppendDiagnosticsFromKeyAsync(Project project, StateType stateType, object documentOrProject, CancellationToken cancellationToken)
             {
-                foreach (var stateProviderIdAndType in this.AnalyzersAndState.GetAllExistingDiagnosticStates(projectId, stateType, language))
+                foreach (var stateSet in this.StateManager.GetStateSets(project))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var state = stateProviderIdAndType.Item1;
-                    if (state == null)
-                    {
-                        continue;
-                    }
+                    var state = stateSet.GetState(stateType);
 
                     // for now, it just use wait and get result
-                    var existingData = await state.TryGetExistingDataAsync(value, cancellationToken).ConfigureAwait(false);
+                    var existingData = await state.TryGetExistingDataAsync(documentOrProject, cancellationToken).ConfigureAwait(false);
                     if (existingData == null)
                     {
                         continue;
@@ -303,34 +302,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 this.DiagnosticIds = diagnosticIds;
             }
 
-            protected abstract Task<AnalysisData> GetSpecificDiagnosticsAsync(Solution solution, DiagnosticAnalyzer provider, ProviderId providerId, StateType stateType, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver);
+            protected abstract Task<AnalysisData> GetSpecificDiagnosticsAsync(Solution solution, DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions);
             protected abstract void FilterDiagnostics(AnalysisData analysisData);
 
-            protected override async Task AppendDiagnosticsFromKeyAsync(
-                ProjectId projectId, object value, StateType stateType, string language, CancellationToken cancellationToken)
+            protected override async Task AppendDiagnosticsFromKeyAsync(Project project, StateType stateType, object documentOrProject, CancellationToken cancellationToken)
             {
-                var solution = GetSolution(value);
-                var project = solution.GetProject(projectId);
                 Contract.ThrowIfNull(project);
+                var solution = GetSolution(documentOrProject);
 
-                var driver = await GetDiagnosticAnalyzerDriverAsync(value, cancellationToken).ConfigureAwait(false);
-                var versions = await GetVersionsAsync(stateType, value, cancellationToken).ConfigureAwait(false);
+                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, cancellationToken).ConfigureAwait(false);
+                var versions = await GetVersionsAsync(stateType, documentOrProject, cancellationToken).ConfigureAwait(false);
 
-                foreach (var providerAndId in await this.AnalyzersAndState.GetAllProviderAndIdsAsync(project, cancellationToken).ConfigureAwait(false))
+                foreach (var stateSet in this.StateManager.GetOrCreateStateSets(project))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var provider = providerAndId.Key;
-                    var providerId = providerAndId.Value;
-
-                    if (driver.IsAnalyzerSuppressed(provider) ||
-                        !this.Owner.ShouldRunProviderForStateType(stateType, provider, driver, this.DiagnosticIds))
+                    if (driver.IsAnalyzerSuppressed(stateSet.Analyzer) ||
+                        !this.Owner.ShouldRunProviderForStateType(driver, stateSet.Analyzer, stateType, this.DiagnosticIds))
                     {
                         continue;
                     }
 
-                    var analysisData = await GetSpecificDiagnosticsAsync(solution, provider, providerId, stateType, versions, driver).ConfigureAwait(false);
-
+                    var analysisData = await GetSpecificDiagnosticsAsync(solution, driver, stateSet, stateType, versions).ConfigureAwait(false);
                     FilterDiagnostics(analysisData);
                 }
             }
@@ -430,16 +423,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             protected override async Task<AnalysisData> GetSpecificDiagnosticsAsync(
-                Solution solution, DiagnosticAnalyzer provider, int providerId, StateType stateType, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver)
+                Solution solution, DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions)
             {
                 // we don't care about result
                 switch (stateType)
                 {
                     case StateType.Syntax:
-                        await GetSyntaxDiagnosticsAsync(providerId, provider, analyzerDriver).ConfigureAwait(false);
+                        await GetSyntaxDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
                         break;
                     case StateType.Document:
-                        await GetSemanticDiagnosticsAsync(providerId, provider, analyzerDriver).ConfigureAwait(false);
+                        await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
                         break;
                     case StateType.Project:
                     default:
@@ -485,23 +478,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, cancellationToken).ConfigureAwait(false);
                 var versions = await GetVersionsAsync(key.StateTypeId, documentOrProject, cancellationToken).ConfigureAwait(false);
 
-                foreach (var providerAndId in await this.AnalyzersAndState.GetAllProviderAndIdsAsync(project, cancellationToken).ConfigureAwait(false))
+                var stateSet = this.StateManager.GetOrCreateStateSet(project, key.Analyzer);
+                if (stateSet == null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var provider = providerAndId.Key;
-                    var providerId = providerAndId.Value;
-
-                    if (key.ProviderId != providerId)
-                    {
-                        continue;
-                    }
-
-                    var analysisData = await GetSpecificDiagnosticsAsync(solution, provider, providerId, key.StateTypeId, versions, driver).ConfigureAwait(false);
-                    return analysisData.Items;
+                    return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                return ImmutableArray<DiagnosticData>.Empty;
+                var analysisData = await GetSpecificDiagnosticsAsync(solution, driver, stateSet, key.StateTypeId, versions).ConfigureAwait(false);
+                return analysisData.Items;
             }
 
             protected override void FilterDiagnostics(AnalysisData analysisData)
@@ -510,16 +494,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             protected override Task<AnalysisData> GetSpecificDiagnosticsAsync(
-                Solution solution, DiagnosticAnalyzer provider, ProviderId providerId, StateType stateType, VersionArgument versions, DiagnosticAnalyzerDriver analyzerDriver)
+                Solution solution, DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions)
             {
                 switch (stateType)
                 {
                     case StateType.Syntax:
-                        return this.AnalyzerExecutor.GetSyntaxAnalysisDataAsync(provider, providerId, versions, analyzerDriver);
+                        return this.AnalyzerExecutor.GetSyntaxAnalysisDataAsync(analyzerDriver, stateSet, versions);
                     case StateType.Document:
-                        return this.AnalyzerExecutor.GetDocumentAnalysisDataAsync(provider, providerId, versions, analyzerDriver);
+                        return this.AnalyzerExecutor.GetDocumentAnalysisDataAsync(analyzerDriver, stateSet, versions);
                     case StateType.Project:
-                        return this.AnalyzerExecutor.GetProjectAnalysisDataAsync(provider, providerId, versions, analyzerDriver);
+                        return this.AnalyzerExecutor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions);
                     default:
                         return Contract.FailWithReturn<Task<AnalysisData>>("Can't reach here");
                 }

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -17,16 +19,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly HostAnalyzerManager _workspaceAnalyzerManager;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
+        public DiagnosticAnalyzerService(
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
                    diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
                    SpecializedCollections.EmptyEnumerable<string>(),
                   hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
         {
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
         }
+
+        public IAsynchronousOperationListener Listener => _listener;
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
