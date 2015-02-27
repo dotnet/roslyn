@@ -20,7 +20,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The offset of the first operation outside of the scope, or the method body length.
         /// </summary>
-        public readonly int EndOffset;   
+        public readonly int EndOffset;
 
         private readonly ImmutableArray<ILocalDefinition> _constants;
         private readonly ImmutableArray<ILocalDefinition> _locals;
@@ -45,7 +45,7 @@ namespace Microsoft.Cci
         /// Returns zero or more local constant definitions that are local to the given scope.
         /// </summary>
         public ImmutableArray<ILocalDefinition> Constants => _constants.NullToEmpty();
-        
+
         /// <summary>
         /// Returns zero or more local variable definitions that are local to the given scope.
         /// </summary>
