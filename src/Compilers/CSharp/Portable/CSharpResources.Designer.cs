@@ -4760,6 +4760,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Constructor &apos;{0}&apos; cannot call itself through another constructor.
+        /// </summary>
+        internal static string ERR_IndirectRecursiveConstructorCall {
+            get {
+                return ResourceManager.GetString("ERR_IndirectRecursiveConstructorCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;in&apos; expected.
         /// </summary>
         internal static string ERR_InExpected {

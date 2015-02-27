@@ -540,7 +540,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInExpressionTree = 765,
         ERR_PartialMethodMustReturnVoid = 766,
         ERR_ExplicitImplCollisionOnRefOut = 767,
-        // unused 768-799
+        ERR_IndirectRecursiveConstructorCall = 768,
+
+        // unused 769-799
         //ERR_NoEmptyArrayRanges = 800,
         //ERR_IntegerSpecifierOnOneDimArrays = 801,
         //ERR_IntegerSpecifierMustBePositive = 802,

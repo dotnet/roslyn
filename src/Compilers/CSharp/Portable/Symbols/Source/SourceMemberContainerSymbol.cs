@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             CheckBase(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
                             diagnostics.Free();
                         }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             CheckInterfaces(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishInterfaces);
                             diagnostics.Free();
                         }
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var diagnostics = DiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                             var thisThreadCompleted = state.NotePartComplete(CompletionPart.FinishMemberChecks);
                             Debug.Assert(thisThreadCompleted);
                             diagnostics.Free();
@@ -1026,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyTypeMembers, MakeTypeMembers(diagnostics), null) == null)
                 {
-                    AddSemanticDiagnostics(diagnostics);
+                    AddDeclarationDiagnostics(diagnostics);
 
                     state.NotePartComplete(CompletionPart.TypeMembers);
                 }
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return alreadyKnown;
             }
 
-            AddSemanticDiagnostics(diagnostics);
+            AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
 
             return membersAndInitializers;
@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (Interlocked.CompareExchange(ref _lazyMembersDictionary, membersDictionary, null) == null)
                 {
                     MergePartialMethods(_lazyMembersDictionary, diagnostics);
-                    AddSemanticDiagnostics(diagnostics);
+                    AddDeclarationDiagnostics(diagnostics);
                     state.NotePartComplete(CompletionPart.Members);
                 }
 
@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);
