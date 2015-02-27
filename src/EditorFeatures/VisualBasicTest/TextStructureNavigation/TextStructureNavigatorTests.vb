@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 "Class Test : Dim str As String = "" () test  "" : End Class",
                 pos:=33,
                 isSignificant:=True,
-                start:=33, length:=12)
+                start:=33, length:=1)
 
             AssertExtent(
                 "Class Test : Dim str As String = "" () test  "" : End Class",
@@ -185,6 +185,39 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 pos:=44,
                 isSignificant:=True,
                 start:=44, length:=1)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        Public Sub InterpolatedString()
+            AssertExtent(
+                "Class Test : Dim str As String = $"" () test  "" : End Class",
+                pos:=33,
+                isSignificant:=True,
+                start:=33, length:=2)
+
+            AssertExtent(
+                "Class Test : Dim str As String = $"" () test  "" : End Class",
+                pos:=35,
+                isSignificant:=False,
+                start:=35, length:=1)
+
+            AssertExtent(
+                "Class Test : Dim str As String = $"" () test  "" : End Class",
+                pos:=36,
+                isSignificant:=True,
+                start:=36, length:=2)
+
+            AssertExtent(
+                "Class Test : Dim str As String = $"" () test  "" : End Class",
+                pos:=44,
+                isSignificant:=False,
+                start:=43, length:=2)
+
+            AssertExtent(
+                "Class Test : Dim str As String = "" () test  "" : End Class",
+                pos:=45,
+                isSignificant:=False,
+                start:=45, length:=1)
         End Sub
 
         Private Shared Sub AssertExtent(
