@@ -1738,9 +1738,9 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [WorkItem(912906)]
         [Fact]
-        public void Analyzers_CommandLineOverridesRuleset1a()
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
         {
             var dir = Temp.CreateDirectory();
 
@@ -1769,6 +1769,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -1801,6 +1802,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -1833,6 +1835,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
         {
             var dir = Temp.CreateDirectory();
@@ -1865,6 +1868,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_GeneralWarnAsErrorMinusResetsRules()
         {
             var dir = Temp.CreateDirectory();
@@ -1898,6 +1902,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_SpecificWarnAsErrorMinusResetsRules()
         {
             var dir = Temp.CreateDirectory();
@@ -1931,6 +1936,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
         public void RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
         {
             var dir = Temp.CreateDirectory();
