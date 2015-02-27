@@ -97,6 +97,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\MarkAllAssembliesWithComVisibleTests.cs" />
+    <Compile Include="Design\MarkAssembliesWithCLSCompliantAttributeTests.cs" />
+    <Compile Include="Design\MarkAssembliesWithAssemblyVersionAttributeTests.cs" />
     <Compile Include="Design\OverrideMethodsOnComparableTypesTests.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.Fixer.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArgumentsTests.cs" />

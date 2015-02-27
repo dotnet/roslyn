@@ -1,48 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class AssemblyAttributesDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        internal const string CA1016RuleName = "CA1016";
-        internal const string CA1014RuleName = "CA1014";
+        internal const string CA1016RuleId = "CA1016";
+        internal const string CA1014RuleId = "CA1014";
 
-        private static LocalizableString s_localizableMessageCA1016 = new LocalizableResourceString(nameof(FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        internal static DiagnosticDescriptor CA1016Rule = new DiagnosticDescriptor(CA1016RuleName,
+        private static LocalizableString s_localizableMessageCA1016 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        internal static DiagnosticDescriptor CA1016Rule = new DiagnosticDescriptor(CA1016RuleId,
                                                                          s_localizableMessageCA1016,
                                                                          s_localizableMessageCA1016,
-                                                                         FxCopDiagnosticCategory.Design,
+                                                                         DiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182155.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString s_localizableMessageCA1014 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA1014 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAssembliesWithCLSCompliantDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        internal static DiagnosticDescriptor CA1014Rule = new DiagnosticDescriptor(CA1014RuleName,
+        private static LocalizableString s_localizableMessageCA1014 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAssembliesWithCLSCompliantAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableDescriptionCA1014 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAssembliesWithCLSCompliantDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        internal static DiagnosticDescriptor CA1014Rule = new DiagnosticDescriptor(CA1014RuleId,
                                                                          s_localizableMessageCA1014,
                                                                          s_localizableMessageCA1014,
-                                                                         FxCopDiagnosticCategory.Design,
+                                                                         DiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          description: s_localizableDescriptionCA1014,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182156.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
-
-        private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = ImmutableArray.Create(CA1016Rule, CA1014Rule);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return s_supportedDiagnostics;
-            }
-        }
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
+        
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CA1016Rule, CA1014Rule);
 
         public override void Initialize(AnalysisContext analysisContext)
         {

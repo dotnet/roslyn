@@ -53,6 +53,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\AssemblyAttributesDiagnosticAnalyzer.cs" />
+    <Compile Include="Design\MarkAllAssembliesWithComVisible.cs" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.Fixer.cs" />
