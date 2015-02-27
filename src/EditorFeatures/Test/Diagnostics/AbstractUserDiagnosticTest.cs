@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Document document = null;
 
-            if (expectedText.TrimStart('\r', '\n', ' ').StartsWith(@"<Workspace>"))
+            if (expectedText.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal))
             {
                 using (var expectedWorkspace = TestWorkspaceFactory.CreateWorkspace(expectedText))
                 {

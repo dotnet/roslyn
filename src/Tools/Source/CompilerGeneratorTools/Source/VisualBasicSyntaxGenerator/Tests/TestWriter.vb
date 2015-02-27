@@ -173,10 +173,10 @@ Public Class TestWriter
                 '    first = False
                 'End If
 
-                If nodeKind.Name.EndsWith("LiteralToken") OrElse
-                   nodeKind.Name.EndsWith("XmlNameToken") OrElse
-                   nodeKind.Name.EndsWith("DocumentationCommentLineBreakToken") OrElse
-                   nodeKind.Name.Equals("InterpolatedStringTextToken") _
+                If nodeKind.Name.EndsWith("LiteralToken", StringComparison.Ordinal) OrElse
+                   nodeKind.Name.EndsWith("XmlNameToken", StringComparison.Ordinal) OrElse
+                   nodeKind.Name.EndsWith("DocumentationCommentLineBreakToken", StringComparison.Ordinal) OrElse
+                   nodeKind.Name = "InterpolatedStringTextToken" _
                 Then
                     If Not first Then callTokens.Add(", ")
                     callTokens.Add("String.Empty")

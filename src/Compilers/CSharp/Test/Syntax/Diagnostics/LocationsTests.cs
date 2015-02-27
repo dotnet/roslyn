@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private TextSpan GetSpanIn(SyntaxTree syntaxTree, string textToFind)
         {
             string s = syntaxTree.GetText().ToString();
-            int index = s.IndexOf(textToFind);
+            int index = s.IndexOf(textToFind, StringComparison.Ordinal);
             Assert.True(index >= 0, "textToFind not found in the tree");
             return new TextSpan(index, textToFind.Length);
         }
@@ -75,8 +75,8 @@ int x;
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
 
-            TextSpan xSpan = new TextSpan(sampleProgram.IndexOf("x;"), 2);
-            TextSpan xToCloseBraceSpan = new TextSpan(xSpan.Start, sampleProgram.IndexOf("}") - xSpan.Start + 1);
+            TextSpan xSpan = new TextSpan(sampleProgram.IndexOf("x;", StringComparison.Ordinal), 2);
+            TextSpan xToCloseBraceSpan = new TextSpan(xSpan.Start, sampleProgram.IndexOf('}') - xSpan.Start + 1);
             Location locX = new SourceLocation(syntaxTree, xSpan);
             Location locXToCloseBrace = new SourceLocation(syntaxTree, xToCloseBraceSpan);
 
@@ -378,7 +378,7 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\foo.cs");
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(sampleProgram.IndexOf("ct"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(sampleProgram.IndexOf("ct", StringComparison.Ordinal));
 
             // Get the diagnostics from the ExpressionStatement Syntax node which is the current token's Parent's Parent
             var expressionDiags = syntaxTree.GetDiagnostics(token.Parent.Parent);
@@ -412,8 +412,8 @@ class MainClass
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram);
 
-            TextSpan span1 = new TextSpan(sampleProgram.IndexOf("i;"), 2);
-            TextSpan span2 = new TextSpan(sampleProgram.IndexOf("c;"), 2);
+            TextSpan span1 = new TextSpan(sampleProgram.IndexOf("i;", StringComparison.Ordinal), 2);
+            TextSpan span2 = new TextSpan(sampleProgram.IndexOf("c;", StringComparison.Ordinal), 2);
             SourceLocation loc1 = new SourceLocation(syntaxTree, span1);
             SourceLocation loc2 = new SourceLocation(syntaxTree, span2);
             // GetDebuggerDisplay() is private

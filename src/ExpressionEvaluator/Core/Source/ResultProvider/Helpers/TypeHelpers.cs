@@ -284,22 +284,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.GetNullableTypeArgument() != null;
         }
 
-        internal static DkmClrValue GetFieldValue(this DkmClrValue value, string name)
+        internal static DkmClrValue GetFieldValue(this DkmClrValue value, string name, DkmInspectionContext inspectionContext)
         {
-            return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null);
+            return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
-        internal static DkmClrValue GetNullableValue(this DkmClrValue value)
+        internal static DkmClrValue GetNullableValue(this DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value.Type.GetLmrType().IsNullable());
 
-            var hasValue = value.GetFieldValue(InternalWellKnownMemberNames.NullableHasValue);
+            var hasValue = value.GetFieldValue(InternalWellKnownMemberNames.NullableHasValue, inspectionContext);
             if (object.Equals(hasValue.HostObjectValue, false))
             {
                 return null;
             }
 
-            return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue);
+            return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue, inspectionContext);
         }
 
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)

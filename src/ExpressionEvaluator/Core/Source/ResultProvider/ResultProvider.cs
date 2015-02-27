@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 Debug.Assert(value.Type.GetProxyType() == null);
 
-                var nullableValue = value.GetNullableValue();
+                var nullableValue = value.GetNullableValue(inspectionContext);
                 if (nullableValue == null)
                 {
                     Debug.Assert(declaredType.Equals(value.Type.GetLmrType()));

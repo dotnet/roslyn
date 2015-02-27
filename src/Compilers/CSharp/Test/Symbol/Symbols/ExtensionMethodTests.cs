@@ -2676,7 +2676,7 @@ class Program
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
-            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode")).Parent;
+            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
             var symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
             var methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));
@@ -2686,7 +2686,7 @@ class Program
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
             // Get the GenericNameSyntax node Cast<T1> for binding
-            node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>")).Parent;
+            node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>", StringComparison.Ordinal)).Parent;
             symbolInfo = model.GetSymbolInfo((GenericNameSyntax)node);
             methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));

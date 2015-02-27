@@ -11,12 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal partial class LibraryManager
     {
-        private IList<AbstractListItem> CreateGoToDefinitionItems(IEnumerable<INavigableItem> items)
+        private IList<AbstractTreeItem> CreateGoToDefinitionItems(IEnumerable<INavigableItem> items)
         {
             var sourceListItems =
                 from item in items
                 where IsValidSourceLocation(item.Document, item.SourceSpan)
-                select (AbstractListItem)new SourceListItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex());
+                select (AbstractTreeItem)new SourceReferenceTreeItem(item.Document, item.SourceSpan, item.Glyph.GetGlyphIndex());
 
             return sourceListItems.ToList();
         }

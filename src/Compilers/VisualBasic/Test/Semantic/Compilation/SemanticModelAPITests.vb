@@ -3820,7 +3820,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim position = tree.ToString().IndexOf("X")
+            Dim position = tree.ToString().IndexOf("X"c)
             Dim paramName = DirectCast(SyntaxFactory.ParseExpression("Y"), IdentifierNameSyntax)
 
             Dim speculativeModel As SemanticModel = Nothing
@@ -3948,7 +3948,7 @@ End Class
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim position = source.Value.IndexOf("Me")
+            Dim position = source.Value.IndexOf("Me", StringComparison.Ordinal)
             Dim statement = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax).Single()
             Dim newSyntax = SyntaxFactory.ParseExpression("Instance.GetList().OfType(Of D)().Any()")
             Dim newStatement = statement.ReplaceNode(statement.Declarators(0).Initializer.Value, newSyntax)

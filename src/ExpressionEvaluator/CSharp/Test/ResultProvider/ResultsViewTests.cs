@@ -1483,7 +1483,7 @@ class C
             {
                 var type = runtime.GetType("C");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C");
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", memberValue);
                 Verify(evalResult,
                     EvalFailedResult("o.P", "Function evaluation timed out", "System.Collections.ArrayList", "o.P"));
