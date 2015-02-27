@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _assemblyName = definition.ContainingAssembly.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             _symbolDefinition = definition.ToDisplayString(definitionDisplayFormat);
             this.DisplayText = $"[{_assemblyName}] {_symbolDefinition}";
-        }       
+        }
 
         public override int GoToSource()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (resolution.Symbol != null && referencingProject != null)
             {
                 var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                return navigationService.TryNavigateToSymbol(resolution.Symbol, referencingProject) 
+                return navigationService.TryNavigateToSymbol(resolution.Symbol, referencingProject)
                     ? VSConstants.S_OK
                     : VSConstants.E_FAIL;
             }

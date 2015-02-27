@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(classDecl.Identifier.ValueText,
-                        GetContainerDisplayName(node.Parent), 
+                        GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span);
                     return true;
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(enumMember.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent), 
+                        GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span);
                     return true;
                 case SyntaxKind.EventDeclaration:
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(WellKnownMemberNames.Indexer,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent), 
+                        GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span);
                     return true;
                 case SyntaxKind.InterfaceDeclaration:
@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(structDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent), 
+                        GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span);
                     return true;
                 case SyntaxKind.VariableDeclarator:
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         declaredSymbolInfo = new DeclaredSymbolInfo(variableDeclarator.Identifier.ValueText,
                         GetContainerDisplayName(fieldDeclaration.Parent),
-                        GetFullyQualifiedContainerName(fieldDeclaration.Parent), 
+                        GetFullyQualifiedContainerName(fieldDeclaration.Parent),
                         kind, variableDeclarator.Identifier.Span);
                         return true;
                     }
@@ -994,45 +994,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterListSyntax typeParameterList;
             switch (node.Kind())
             {
-            case SyntaxKind.ClassDeclaration:
-                var classDecl = (ClassDeclarationSyntax)node;
-                name = classDecl.Identifier.ValueText;
-                typeParameterList = classDecl.TypeParameterList;
-                break;
-            case SyntaxKind.CompilationUnit:
-                return string.Empty;
-            case SyntaxKind.DelegateDeclaration:
-                var delegateDecl = (DelegateDeclarationSyntax)node;
-                name = delegateDecl.Identifier.ValueText;
-                typeParameterList = delegateDecl.TypeParameterList;
-                break;
-            case SyntaxKind.EnumDeclaration:
-                return ((EnumDeclarationSyntax)node).Identifier.ValueText;
-            case SyntaxKind.IdentifierName:
-                return ((IdentifierNameSyntax)node).Identifier.ValueText;
-            case SyntaxKind.InterfaceDeclaration:
-                var interfaceDecl = (InterfaceDeclarationSyntax)node;
-                name = interfaceDecl.Identifier.ValueText;
-                typeParameterList = interfaceDecl.TypeParameterList;
-                break;
-            case SyntaxKind.MethodDeclaration:
-                var methodDecl = (MethodDeclarationSyntax)node;
-                name = methodDecl.Identifier.ValueText;
-                typeParameterList = methodDecl.TypeParameterList;
-                break;
-            case SyntaxKind.NamespaceDeclaration:
-                return GetNodeName(((NamespaceDeclarationSyntax)node).Name, includeTypeParameters: false);
-            case SyntaxKind.QualifiedName:
-                var qualified = (QualifiedNameSyntax)node;
-                return GetNodeName(qualified.Left, includeTypeParameters: false) + "." + GetNodeName(qualified.Right, includeTypeParameters: false);
-            case SyntaxKind.StructDeclaration:
-                var structDecl = (StructDeclarationSyntax)node;
-                name = structDecl.Identifier.ValueText;
-                typeParameterList = structDecl.TypeParameterList;
-                break;
-            default:
-                Debug.Assert(false, "Unexpected node type " + node.Kind());
-                return null;
+                case SyntaxKind.ClassDeclaration:
+                    var classDecl = (ClassDeclarationSyntax)node;
+                    name = classDecl.Identifier.ValueText;
+                    typeParameterList = classDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.CompilationUnit:
+                    return string.Empty;
+                case SyntaxKind.DelegateDeclaration:
+                    var delegateDecl = (DelegateDeclarationSyntax)node;
+                    name = delegateDecl.Identifier.ValueText;
+                    typeParameterList = delegateDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.EnumDeclaration:
+                    return ((EnumDeclarationSyntax)node).Identifier.ValueText;
+                case SyntaxKind.IdentifierName:
+                    return ((IdentifierNameSyntax)node).Identifier.ValueText;
+                case SyntaxKind.InterfaceDeclaration:
+                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
+                    name = interfaceDecl.Identifier.ValueText;
+                    typeParameterList = interfaceDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    var methodDecl = (MethodDeclarationSyntax)node;
+                    name = methodDecl.Identifier.ValueText;
+                    typeParameterList = methodDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.NamespaceDeclaration:
+                    return GetNodeName(((NamespaceDeclarationSyntax)node).Name, includeTypeParameters: false);
+                case SyntaxKind.QualifiedName:
+                    var qualified = (QualifiedNameSyntax)node;
+                    return GetNodeName(qualified.Left, includeTypeParameters: false) + "." + GetNodeName(qualified.Right, includeTypeParameters: false);
+                case SyntaxKind.StructDeclaration:
+                    var structDecl = (StructDeclarationSyntax)node;
+                    name = structDecl.Identifier.ValueText;
+                    typeParameterList = structDecl.TypeParameterList;
+                    break;
+                default:
+                    Debug.Assert(false, "Unexpected node type " + node.Kind());
+                    return null;
             }
 
             return name + (includeTypeParameters ? ExpandTypeParameterList(typeParameterList) : "");

@@ -17,8 +17,8 @@ namespace Microsoft.DiaSymReader
         /// </summary>
         [PreserveSig]
         int GetFileNameFromOffset(
-            int offset, 
-            int bufferLength, 
+            int offset,
+            int bufferLength,
             out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] name);
 
@@ -31,11 +31,11 @@ namespace Microsoft.DiaSymReader
         /// </remarks>
         [PreserveSig]
         int GetLineFromOffset(
-            int offset, 
-            out int startLine, 
-            out int startColumn, 
-            out int endLine, 
-            out int endColumn, 
+            int offset,
+            out int startLine,
+            out int startColumn,
+            out int endLine,
+            out int endColumn,
             out int sequencePointOffset);
 
         /// <summary>

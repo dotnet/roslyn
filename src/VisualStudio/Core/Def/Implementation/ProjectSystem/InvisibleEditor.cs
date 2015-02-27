@@ -141,14 +141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when(FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.Report(ex))
             {
             }
-            }
+        }
 
-            ~InvisibleEditor()
+        ~InvisibleEditor()
         {
-                Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
-            }
+            Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
         }
     }
+}

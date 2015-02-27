@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -256,7 +258,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
         {
             get
             {
-
                 string platform = this.Platform;
                 if ((String.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && this.Prefer32Bit)
                 {
@@ -564,11 +565,11 @@ namespace Microsoft.CodeAnalysis.BuildTask
             set;
         }
 
-        private bool hostCompilerSupportsAllParameters;
+        private bool _hostCompilerSupportsAllParameters;
         protected bool HostCompilerSupportsAllParameters
         {
-            get { return this.hostCompilerSupportsAllParameters; }
-            set { this.hostCompilerSupportsAllParameters = value; }
+            get { return _hostCompilerSupportsAllParameters; }
+            set { _hostCompilerSupportsAllParameters = value; }
         }
 
         /// <summary>
@@ -587,7 +588,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             if (!resultFromHostObjectSetOperation)
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "General.ParameterUnsupportedOnHostCompiler", parameterName);
-                this.hostCompilerSupportsAllParameters = false;
+                _hostCompilerSupportsAllParameters = false;
             }
         }
 
@@ -647,12 +648,10 @@ namespace Microsoft.CodeAnalysis.BuildTask
             {
                 if (String.IsNullOrEmpty(win32Manifest) && String.IsNullOrEmpty(this.Win32Resource))
                 {
-
                     // We only want to consider the default.win32manifest if this is an executable
                     if (!String.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase)
                        && !String.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
                     {
-
                         // We need to compute the path to the default win32 manifest
                         string pathToDefaultManifest = ToolLocationHelper.GetPathToDotNetFrameworkFile
                                                        (

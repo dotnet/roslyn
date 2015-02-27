@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             private readonly object _gate = new object();
             private readonly AbstractCompletionService _completionService;
-            private readonly Dictionary<string, PatternMatcher> patternMatcherMap = new Dictionary<string, PatternMatcher>();
+            private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
 
             public CompletionRules(AbstractCompletionService completionService)
             {
@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 lock (_gate)
                 {
                     PatternMatcher patternMatcher;
-                    if (!patternMatcherMap.TryGetValue(value, out patternMatcher))
+                    if (!_patternMatcherMap.TryGetValue(value, out patternMatcher))
                     {
                         patternMatcher = new PatternMatcher(value, verbatimIdentifierPrefixIsWordCharacter: true);
-                        patternMatcherMap.Add(value, patternMatcher);
+                        _patternMatcherMap.Add(value, patternMatcher);
                     }
 
                     return patternMatcher;

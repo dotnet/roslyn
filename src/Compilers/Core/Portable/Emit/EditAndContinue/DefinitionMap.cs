@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         protected readonly TSymbolMatcher mapToMetadata;
         protected readonly TSymbolMatcher mapToPrevious;
-        
+
         protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits, TSymbolMatcher mapToMetadata, TSymbolMatcher mapToPrevious)
             : base(module, edits)
         {
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
             MethodDebugId methodId;
-             
+
             // Check if method has changed previously. If so, we already have a map.
             AddedOrChangedMethodInfo addedOrChangedMethod;
             if (baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out addedOrChangedMethod))
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private static void MakeLambdaAndClosureMaps(
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
-            out IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMap, 
+            out IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMap,
             out IReadOnlyDictionary<int, int> closureMap)
         {
             var lambdas = new Dictionary<int, KeyValuePair<int, int>>(lambdaDebugInfo.Length);

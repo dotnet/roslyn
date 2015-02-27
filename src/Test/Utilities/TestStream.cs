@@ -7,7 +7,7 @@ namespace Roslyn.Test.Utilities
 {
     public class TestStream : Stream
     {
-        private readonly bool _canRead,_canSeek,_canWrite;
+        private readonly bool _canRead, _canSeek, _canWrite;
 
         public TestStream(bool canRead = false, bool canSeek = false, bool canWrite = false)
         {

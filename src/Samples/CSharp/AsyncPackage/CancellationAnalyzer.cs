@@ -80,9 +80,9 @@ namespace AsyncPackage
                         if (!passedToken)
                         {
                             context.ReportDiagnostic(Diagnostic.Create(CancellationAnalyzer.Rule, context.Node.GetLocation()));
+                        }
                     }
                 }
-            }
             }
         }
     }

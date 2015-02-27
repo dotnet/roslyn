@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         // case a.
                                         var closingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
                                         var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
-                                        pSpan[0].iEndIndex = vsClosingSpans.iStartIndex; 
+                                        pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                     }
                                 }
                                 else if (matchingSpan.Value.End > position) // caret is at open parenthesis

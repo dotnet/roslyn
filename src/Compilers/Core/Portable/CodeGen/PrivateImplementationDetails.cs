@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _block = block;
             _name = name;
         }
-        
+
         public override string ToString() => $"{_type} {_containingType}.{this.Name}";
 
         public Cci.IMetadataConstant GetCompileTimeValue(EmitContext context) => null;

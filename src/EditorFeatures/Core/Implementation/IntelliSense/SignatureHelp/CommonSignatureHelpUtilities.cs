@@ -149,10 +149,10 @@ namespace Microsoft.CodeAnalysis.Editor.SignatureHelp
                 expression = null;
                 return false;
             }
-            catch (NullReferenceException e) when(FatalError.Report(e))
+            catch (NullReferenceException e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
         }
     }
+}

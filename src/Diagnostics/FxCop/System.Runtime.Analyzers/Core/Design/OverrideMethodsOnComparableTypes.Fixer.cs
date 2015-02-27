@@ -58,7 +58,7 @@ namespace System.Runtime.Analyzers
                                         returnType: generator.TypeExpression(SpecialType.System_Boolean),
                                         accessibility: Accessibility.Public,
                                         modifiers: DeclarationModifiers.Override,
-                                        statements: new[] { generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException")))});
+                                        statements: new[] { generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException"))) });
                 editor.AddMember(declaration, equalsMethod);
             }
 

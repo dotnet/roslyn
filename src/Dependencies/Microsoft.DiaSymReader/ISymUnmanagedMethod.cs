@@ -51,8 +51,8 @@ namespace Microsoft.DiaSymReader
         /// </summary>
         [PreserveSig]
         int GetParameters(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] parameters);
 
         [PreserveSig]

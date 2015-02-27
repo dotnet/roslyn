@@ -15,9 +15,9 @@ namespace RunTests
         private readonly IEnumerable<string> _outputLines;
         private readonly IEnumerable<string> _errorLines;
 
-        public int ExitCode 
-        { 
-            get { return _exitCode; } 
+        public int ExitCode
+        {
+            get { return _exitCode; }
         }
 
         public IEnumerable<string> OutputLines
@@ -153,7 +153,7 @@ namespace RunTests
         }
 
         private static ProcessStartInfo CreateProcessStartInfo(
-            string executable, 
+            string executable,
             string arguments,
             string workingDirectory,
             bool captureOutput,

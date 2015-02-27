@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool _ignoreDynamic,_ignoreCustomModifiers;
+            private readonly bool _ignoreDynamic, _ignoreCustomModifiers;
 
             public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiers)
             {

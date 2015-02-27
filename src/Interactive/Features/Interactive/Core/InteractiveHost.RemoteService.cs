@@ -67,18 +67,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                             }
                         }
                     }
-                    catch (Exception e) when(FatalError.Report(e))
+                    catch (Exception e) when (FatalError.Report(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                    };
+                };
 
-                    // hook the even only once per process:
-                    if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
-                    {
-                        Process.Exited += localHandler;
-                    }
+                // hook the even only once per process:
+                if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
+                {
+                    Process.Exited += localHandler;
                 }
+            }
 
             private void ReadOutput(bool error)
             {

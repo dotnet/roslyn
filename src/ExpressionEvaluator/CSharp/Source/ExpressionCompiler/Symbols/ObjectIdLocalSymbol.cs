@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal override BoundExpression GetValue(BoundPseudoVariable variable, DiagnosticBag diagnostics)
             {
-                var method = GetIntrinsicMethod(this._compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
+                var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
                 var local = variable.LocalSymbol;
                 var expr = InvokeGetMethod(method, variable.Syntax, local.Name);
                 return ConvertToLocalType(_compilation, expr, local.Type, diagnostics);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal override BoundExpression GetAddress(BoundPseudoVariable variable)
             {
-                var method = GetIntrinsicMethod(this._compilation, ExpressionCompilerConstants.GetVariableAddressMethodName);
+                var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableAddressMethodName);
                 // Currently the MetadataDecoder does not support byref return types
                 // so the return type of GetVariableAddress(Of T)(name As String)
                 // is an error type. Since the method is only used for emit, an

@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestQualifyWithThis()
         {
-            var original =  @"
+            var original = @"
 class C
 {
     int Sign;
@@ -277,7 +277,7 @@ class C
 }";
             var oldTree = SyntaxFactory.ParseSyntaxTree(original);
             var root = oldTree.GetRoot();
-            
+
             var indexText = "Sign +";
 
             // Expected behavior: Qualifying identifier 'Sign' with 'this.' and doing a diff between trees 
