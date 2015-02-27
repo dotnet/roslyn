@@ -86,7 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (!location.IsInSource)
             {
                 return referencedSymbol.Locations.Any()
-                    ? new MetadataDefinitionTreeItem(referencedSymbol.Definition, glyph.GetGlyphIndex())
+                    ? new MetadataDefinitionTreeItem(
+                        solution.Workspace, 
+                        referencedSymbol.Definition, 
+                        referencedSymbol.Locations.First().Document.Project.Id,
+                        glyph.GetGlyphIndex())
                     : null;
             }
 
