@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, string rootNamespace = null)
+        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, string rootNamespace = null)
         {
             using (var workspace = CreateWorkspaceFromFile(source, language, rootNamespace))
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
                 {
-                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, donotCatchAnalyzerExceptions: continueOnAnalyzerException == null));
+                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, donotCatchAnalyzerExceptions: onAnalyzerException == null));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);

@@ -34,43 +34,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Project project)
-        {
-            return diagnostic =>
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project.Solution.Workspace, project);
-        }
-
-        public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Workspace workspace)
-        {
-            return diagnostic =>
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, workspace, null);
-        }
-
-        public static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
-            DiagnosticAnalyzer analyzer, 
+        internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
+            DiagnosticAnalyzer analyzer,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, hostDiagnosticUpdateSource?.Workspace);
-
             // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
+                OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
+
+            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, cancellationToken);
         }
-        
-        public static AnalyzerExecutor GetAnalyzerExecutor(
-            DiagnosticAnalyzer analyzer, 
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, 
-            Project project, 
-            Compilation compilation, 
-            Action<Diagnostic> addDiagnostic,
-            AnalyzerOptions analyzerOptions,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
+
+        internal static void OnAnalyzerException_NoTelemetryLogging(
+            Exception e,
+            DiagnosticAnalyzer analyzer,
+            Diagnostic diagnostic,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Project projectOpt = null,
+            bool testOnly_RethrowAnalyzerException = false)
         {
-            var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, project);
-            return AnalyzerExecutor.Create(compilation, analyzerOptions, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            if (diagnostic != null)
+            {
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
+            }
+
+            if (testOnly_RethrowAnalyzerException)
+            {
+                throw e;
+            }
+
+            if (IsBuiltInAnalyzer(analyzer))
+            {
+                FatalError.ReportWithoutCrashUnlessCanceled(e);
+            }
         }
     }
 }

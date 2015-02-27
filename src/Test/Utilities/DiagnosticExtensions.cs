@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis
     public static class DiagnosticExtensions
     {
         private const int EN_US = 1033;
-        public static Func<Exception, DiagnosticAnalyzer, bool> AlwaysCatchAnalyzerExceptions = (e, a) => true;
-        public static Func<Exception, DiagnosticAnalyzer, bool> DonotCatchAnalyzerExceptions = (e, a) => e is OperationCanceledException;
+        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> AlwaysCatchAnalyzerException = (e, a, d) => { };
+        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> RethrowAnalyzerException = (e, a, d) => { if (!(e is OperationCanceledException)) throw e; };
 
         /// <summary>
         /// This is obsolete. Use Verify instead.
@@ -100,27 +100,39 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
-        public static void VerifyAnalyzerOccurrenceCount<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, int expectedCount, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static void VerifyAnalyzerOccurrenceCount<TCompilation>(
+            this TCompilation c, 
+            DiagnosticAnalyzer[] analyzers, 
+            int expectedCount, 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
-            Assert.Equal(expectedCount, c.GetAnalyzerDiagnostics(analyzers, null, continueOnAnalyzerException).Length);
+            Assert.Equal(expectedCount, c.GetAnalyzerDiagnostics(analyzers, null, onAnalyzerException).Length);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+                this TCompilation c, 
+                DiagnosticAnalyzer[] analyzers, 
+                AnalyzerOptions options = null, 
+                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, 
+                params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = c.GetAnalyzerDiagnostics(analyzers, options, continueOnAnalyzerException, diagnostics: out diagnostics);
+            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, diagnostics: out diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
 
-        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
+            this TCompilation c, 
+            DiagnosticAnalyzer[] analyzers, 
+            AnalyzerOptions options = null, 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, analyzers, options, continueOnAnalyzerException, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, out diagnostics);
             return diagnostics;
         }
 
@@ -128,19 +140,30 @@ namespace Microsoft.CodeAnalysis
                 this TCompilation c,
                 DiagnosticAnalyzer[] analyzers,
                 AnalyzerOptions options,
-                Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
                 out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
-            // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
-            continueOnAnalyzerException = continueOnAnalyzerException ?? DonotCatchAnalyzerExceptions;
             var analyzersArray = analyzers.ToImmutableArray();
 
             var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-            Action<Diagnostic> addExceptionDiagnostic = d => exceptionDiagnostics.Add(d);
+
+            if (onAnalyzerException != null)
+            {
+                onAnalyzerException = (ex, analyzer, diagnostic) =>
+                {
+                    exceptionDiagnostics.Add(diagnostic);
+                    onAnalyzerException(ex, analyzer, diagnostic);
+                };
+            }
+            else
+            {
+                // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
+                onAnalyzerException = RethrowAnalyzerException;
+            }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, addExceptionDiagnostic, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
             
@@ -165,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
-            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
+            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly ISyntaxFactsService _syntaxFacts;
         private readonly IGeneratedCodeRecognitionService _generatedCodeService;
         private readonly IAnalyzerDriverService _analyzerDriverService;
-        private readonly bool _testOnly_DonotCatchAnalyzerExceptions;
+        private readonly bool _testOnly_RethrowAnalyzerException;
 
         private LogAggregator _logAggregator;
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             ISyntaxNodeAnalyzerService syntaxNodeAnalyzerService,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             CancellationToken cancellationToken,
-            bool testOnly_DonotCatchAnalyzerExceptions = false)
+            bool testOnly_RethrowAnalyzerException = false)
         {
             _document = document;
             _span = span;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _generatedCodeService = document.Project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             _analyzerDriverService = document.Project.LanguageServices.GetService<IAnalyzerDriverService>();
             _analyzerOptions = new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace);
-            _testOnly_DonotCatchAnalyzerExceptions = testOnly_DonotCatchAnalyzerExceptions;
+            _testOnly_RethrowAnalyzerException = testOnly_RethrowAnalyzerException;
         }
 
         // internal for testing purposes
@@ -260,14 +260,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         await documentAnalyzer.AnalyzeSyntaxAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
                         return diagnostics.ToImmutableArrayOrEmpty();
                     }
-                    catch (Exception e) when (CatchAnalyzerException(e, analyzer))
+                    catch (Exception e)
                     {
-                        var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                        if (exceptionDiagnostic != null)
-                        {
-                            ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
-                        }
-
+                        OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
                     }
                 }
@@ -312,47 +307,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagsFilteredByLocation, compilation);
         }
 
-        internal void ReportAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic exceptionDiagnostic, Compilation compilation)
+        internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
         {
-            Contract.ThrowIfFalse(AnalyzerManager.IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
-
-            if (_hostDiagnosticUpdateSource == null)
-            {
-                return;
-            }
+            var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, ex, _cancellationToken);
 
             if (compilation != null)
             {
-                var effectiveDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
-                if (effectiveDiagnostic == null)
-                {
-                    return;
-                }
-                else
-                {
-                    exceptionDiagnostic = effectiveDiagnostic;
-                }
+                exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
             }
 
-            _hostDiagnosticUpdateSource.ReportAnalyzerDiagnostic(analyzer, exceptionDiagnostic, this.Project.Solution.Workspace, this.Project);
-        }
-
-        private Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer)
-        {
-            return AnalyzerHelper.GetAddExceptionDiagnosticDelegate(analyzer, _hostDiagnosticUpdateSource, _project);
-        }
-
-        private AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(DiagnosticAnalyzer analyzer)
-        {
-            // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
-            // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            return AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource, CatchAnalyzerException_NoTelemetryLogging, _cancellationToken);
+            OnAnalyzerException(ex, analyzer, exceptionDiagnostic);
         }
 
         private AnalyzerExecutor GetAnalyzerExecutor(DiagnosticAnalyzer analyzer, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
-            return AnalyzerHelper.GetAnalyzerExecutor(analyzer, _hostDiagnosticUpdateSource, _project,
-                compilation, addDiagnostic, _analyzerOptions, CatchAnalyzerException, _cancellationToken);
+            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, OnAnalyzerException, _cancellationToken);
         }
 
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
@@ -370,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return false;
             }
 
-            var analyzerExecutor = GetAnalyzerExecutorForSupportedDiagnostics(analyzer);
+            var analyzerExecutor = AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource);
             return AnalyzerManager.Instance.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerHelper.IsCompilerAnalyzer, analyzerExecutor);
         }
 
@@ -406,14 +375,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await documentAnalyzer.AnalyzeSemanticsAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (CatchAnalyzerException(e, analyzer))
+                    catch (Exception e)
                     {
-                        var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                        if (exceptionDiagnostic != null)
-                        {
-                            ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
-                        }
-
+                        OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
                     }
                 }
@@ -487,14 +451,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (CatchAnalyzerException(e, analyzer))
+            catch (Exception e)
             {
-                var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, e, _cancellationToken);
-                if (exceptionDiagnostic != null)
-                {
-                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                    ReportAnalyzerExceptionDiagnostic(analyzer, exceptionDiagnostic, compilation);
-                }
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                OnAnalyzerException(e, analyzer, compilation);
             }
         }
 
@@ -544,41 +504,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return canceled != null && canceled.CancellationToken == cancellationToken;
         }
 
-        private bool CatchAnalyzerException(Exception e, DiagnosticAnalyzer analyzer)
+        private void OnAnalyzerException(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
-            return CatchAnalyzerException(e, analyzer, _testOnly_DonotCatchAnalyzerExceptions);
+            OnAnalyzerException(e, analyzer, diagnostic, _testOnly_RethrowAnalyzerException);
         }
 
-        private bool CatchAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer)
+        private void OnAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
-            return CatchAnalyzerException_NoTelemetryLogging(e, analyzer, _testOnly_DonotCatchAnalyzerExceptions);
+            AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(e, analyzer, diagnostic, _hostDiagnosticUpdateSource, _project, _testOnly_RethrowAnalyzerException);
         }
 
-        internal bool CatchAnalyzerExceptionHandler(Exception e, DiagnosticAnalyzer analyzer)
-        {
-            return CatchAnalyzerException(e, analyzer, testOnly_DonotCatchAnalyzerExceptions: false);
-        }
-
-        private bool CatchAnalyzerException(Exception e, DiagnosticAnalyzer analyzer, bool testOnly_DonotCatchAnalyzerExceptions)
+        private void OnAnalyzerException(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic, bool testOnly_RethrowAnalyzerException)
         {
             DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, e, _logAggregator);
 
-            return CatchAnalyzerException_NoTelemetryLogging(e, analyzer, testOnly_DonotCatchAnalyzerExceptions);
-        }
-
-        internal static bool CatchAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer, bool testOnly_DonotCatchAnalyzerExceptions)
-        {
-            if (testOnly_DonotCatchAnalyzerExceptions)
-            {
-                return false;
-            }
-
-            if (AnalyzerHelper.IsBuiltInAnalyzer(analyzer))
-            {
-                return FatalError.ReportWithoutCrashUnlessCanceled(e);
-            }
-
-            return true;
+            AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(e, analyzer, diagnostic, _hostDiagnosticUpdateSource, _project, testOnly_RethrowAnalyzerException);
         }
     }
 }

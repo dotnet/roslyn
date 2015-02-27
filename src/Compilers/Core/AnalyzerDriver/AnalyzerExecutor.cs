@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _analyzerOptions;
         private readonly Action<Diagnostic> _addDiagnostic;
-        private readonly Action<Diagnostic> _addExceptionDiagnostic;
-        private readonly Func<Exception, DiagnosticAnalyzer, bool> _continueOnAnalyzerException;
+        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -32,45 +31,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilation">Compilation to be used in the analysis.</param>
         /// <param name="analyzerOptions">Analyzer options.</param>
         /// <param name="addDiagnostic">Delegate to add analyzer diagnostics.</param>
-        /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for handled exceptions from third party analyzers.</param>
-        /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
-        /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
-        /// Otherwise if it returns false, then the exception is not handled by the executor.
-        /// If null, then the executor always handles the exception.
+        /// <param name="onAnalyzerException">
+        /// Optional delegate which is invoked when an analyzer throws an exception.
+        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor Create(
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
-            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, cancellationToken);
         }
 
         /// <summary>
         /// Creates AnalyzerActionsExecutor to fetch <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>.
         /// </summary>
-        /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for handled exceptions from third party analyzers.</param>
-        /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
-        /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
-        /// Otherwise if it returns false, then the exception is not handled by the executor.
-        /// If null, then the executor always handles the exception.
+        /// <param name="onAnalyzerException">
+        /// Optional delegate which is invoked when an analyzer throws an exception.
+        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
             return new AnalyzerExecutor(
                 compilation: null,
                 analyzerOptions: null, 
                 addDiagnostic: null, 
-                addExceptionDiagnostic: addExceptionDiagnostic, 
-                continueOnAnalyzerException: continueOnAnalyzerException,
+                onAnalyzerException: onAnalyzerException,
                 cancellationToken: cancellationToken);
         }
 
@@ -78,15 +70,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
             this._compilation = compilation;
             this._analyzerOptions = analyzerOptions;
             this._addDiagnostic = addDiagnostic;
-            this._addExceptionDiagnostic = addExceptionDiagnostic;
-            this._continueOnAnalyzerException = continueOnAnalyzerException;
+            this._onAnalyzerException = onAnalyzerException;
             this._cancellationToken = cancellationToken;
         }
 
@@ -450,34 +440,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
         {
-            ExecuteAndCatchIfThrows(analyzer, analyze, _addExceptionDiagnostic, _continueOnAnalyzerException, _cancellationToken);
+            ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
         }
 
         private static void ExecuteAndCatchIfThrows(
             DiagnosticAnalyzer analyzer,
             Action analyze,
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
             try
             {
                 analyze();
             }
-            catch (OperationCanceledException oce) when (continueOnAnalyzerException(oce, analyzer))
+            catch (OperationCanceledException oce)
             {
                 if (oce.CancellationToken != cancellationToken)
                 {
-                    // Add diagnostic for analyzer exception.
+                    // Diagnostic for analyzer exception.
                     var diagnostic = GetAnalyzerDiagnostic(analyzer, oce);
-                    addExceptionDiagnostic(diagnostic);
+                    onAnalyzerException(oce, analyzer, diagnostic);
                 }
             }
-            catch (Exception e) when (continueOnAnalyzerException(e, analyzer))
+            catch (Exception e)
             {
-                // Add diagnostic for analyzer exception.
+                // Diagnostic for analyzer exception.
                 var diagnostic = GetAnalyzerDiagnostic(analyzer, e);
-                addExceptionDiagnostic(diagnostic);
+                onAnalyzerException(e, analyzer, diagnostic);
             }
         }
 

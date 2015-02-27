@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     syntaxNodeAnalyzerService: nodeInBodyAnalyzerService,
                     hostDiagnosticUpdateSource: exceptionDiagnosticsSource,
                     cancellationToken: CancellationToken.None, 
-                    testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
+                    testOnly_RethrowAnalyzerException: donotCatchAnalyzerExceptions);
                 var diagnosticAnalyzerCategory = analyzer.GetDiagnosticAnalyzerCategory(driver);
                 bool supportsSemanticInSpan = (diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
                 if (supportsSemanticInSpan)
