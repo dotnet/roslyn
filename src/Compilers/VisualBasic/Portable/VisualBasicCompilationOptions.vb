@@ -29,6 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _embedVbCoreRuntime As Boolean
         Private _parseOptions As VisualBasicParseOptions
 
+        ' The assemblies emitted by the expression compiler should never contain embedded declarations -
+        ' those should come from the user's code.
+        Private _suppressEmbeddedDeclarations As Boolean
+
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
         ''' </summary>
@@ -108,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 concurrentBuild,
+                suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
@@ -141,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
             concurrentBuild As Boolean,
+            suppressEmbeddedDeclarations As Boolean,
             extendedCustomDebugInformation As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
@@ -181,7 +187,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _optionExplicit = optionExplicit
             _optionCompareText = optionCompareText
             _embedVbCoreRuntime = embedVbCoreRuntime
+            _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
             _parseOptions = parseOptions
+
+            Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
+                         "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
         End Sub
 
         Private Sub New(other As VisualBasicCompilationOptions)
@@ -198,6 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionCompareText:=other.OptionCompareText,
                 parseOptions:=other.ParseOptions,
                 embedVbCoreRuntime:=other.EmbedVbCoreRuntime,
+                suppressEmbeddedDeclarations:=other.SuppressEmbeddedDeclarations,
                 optimizationLevel:=other.OptimizationLevel,
                 checkOverflow:=other.CheckOverflow,
                 cryptoKeyContainer:=other.CryptoKeyContainer,
@@ -298,6 +309,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property EmbedVbCoreRuntime As Boolean
             Get
                 Return _embedVbCoreRuntime
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the embedded declaration suppression setting.
+        ''' </summary>
+        ''' <returns>
+        ''' The embedded declaration suppression setting.
+        ''' </returns>
+        Friend ReadOnly Property SuppressEmbeddedDeclarations As Boolean
+            Get
+                Return _suppressEmbeddedDeclarations
             End Get
         End Property
 
@@ -510,6 +533,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.ExtendedCustomDebugInformation_internal_protected_set = extendedCustomDebugInformation}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with different embedded declaration suppression setting specified.
+        ''' </summary>
+        ''' <param name="suppressEmbeddedDeclarations">The embedded declaration suppression setting. </param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the embedded declaration suppression setting is different; otherwise current instance.</returns>
+        ''' <remarks>Only expected to be called from the expression compiler.</remarks>
+        Friend Function WithSuppressEmbeddedDeclarations(suppressEmbeddedDeclarations As Boolean) As VisualBasicCompilationOptions
+            If suppressEmbeddedDeclarations = _suppressEmbeddedDeclarations Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {._suppressEmbeddedDeclarations = suppressEmbeddedDeclarations}
         End Function
 
         ''' <summary>
@@ -805,6 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Me.OptionExplicit = other.OptionExplicit AndAlso
                    Me.OptionCompareText = other.OptionCompareText AndAlso
                    Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
+                   Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
                    If(Me.ParseOptions Is Nothing, other.ParseOptions Is Nothing, Me.ParseOptions.Equals(other.ParseOptions))
         End Function
 
@@ -831,7 +869,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.OptionExplicit,
                    Hash.Combine(Me.OptionCompareText,
                    Hash.Combine(Me.EmbedVbCoreRuntime,
-                   Hash.Combine(Me.ParseOptions, 0)))))))))
+                   Hash.Combine(Me.SuppressEmbeddedDeclarations,
+                   Hash.Combine(Me.ParseOptions, 0))))))))))
         End Function
     End Class
 End Namespace
