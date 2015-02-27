@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
-            DiagnosticAnalyzer analyzer, 
+            DiagnosticAnalyzer analyzer,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, hostDiagnosticUpdateSource?.Workspace);
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
             return AnalyzerExecutor.CreateForSupportedDiagnostics(addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
         }
-        
+
         public static AnalyzerExecutor GetAnalyzerExecutor(
-            DiagnosticAnalyzer analyzer, 
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, 
-            Project project, 
-            Compilation compilation, 
+            DiagnosticAnalyzer analyzer,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Project project,
+            Compilation compilation,
             Action<Diagnostic> addDiagnostic,
             AnalyzerOptions analyzerOptions,
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,

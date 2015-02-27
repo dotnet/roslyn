@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e) when(extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
-            }
+        }
 
         public static T PerformFunction<T>(
             this IExtensionManager extensionManager,
@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e) when(extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
 
             return defaultValue;
-            }
+        }
 
         public static async Task PerformActionAsync(
             this IExtensionManager extensionManager,
@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e) when(extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
-            }
+        }
 
         public static async Task<T> PerformFunctionAsync<T>(
             this IExtensionManager extensionManager,
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e) when(extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
 
             return defaultValue;
-            }
+        }
 
         public static Func<SyntaxNode, List<TExtension>> CreateNodeExtensionGetter<TExtension>(
             this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, IEnumerable<Type>> nodeTypeGetter)

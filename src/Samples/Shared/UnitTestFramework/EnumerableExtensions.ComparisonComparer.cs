@@ -9,16 +9,16 @@ namespace Roslyn.UnitTestFramework
     {
         private class ComparisonComparer<T> : Comparer<T>
         {
-            private readonly Comparison<T> compare;
+            private readonly Comparison<T> _compare;
 
             public ComparisonComparer(Comparison<T> compare)
             {
-                this.compare = compare;
+                _compare = compare;
             }
 
             public override int Compare(T x, T y)
             {
-                return compare(x, y);
+                return _compare(x, y);
             }
         }
     }

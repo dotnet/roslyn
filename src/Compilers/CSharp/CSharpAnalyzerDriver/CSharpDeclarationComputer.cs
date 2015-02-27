@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static DeclarationInfo GetExpressionBodyDeclarationInfo(
-            BasePropertyDeclarationSyntax declarationWithExpressionBody, 
+            BasePropertyDeclarationSyntax declarationWithExpressionBody,
             ArrowExpressionClauseSyntax expressionBody,
             SemanticModel model,
             bool getSymbol,

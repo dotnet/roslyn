@@ -1422,11 +1422,11 @@ class X
                 TestExtractMethod(code, expected);
             }
 
-			[WorkItem(859493)]
-			[Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-			public void ExpressionInYieldReturnStatement()
-			{
-				var code = @"using System;
+            [WorkItem(859493)]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionInYieldReturnStatement()
+            {
+                var code = @"using System;
 using System.Collections.Generic;
 
 public class Test<T> 
@@ -1448,7 +1448,7 @@ public class Test<T>
         }
     }
 }";
-				var expected = @"using System;
+                var expected = @"using System;
 using System.Collections.Generic;
 
 public class Test<T> 
@@ -1475,9 +1475,8 @@ public class Test<T>
         return _localCurrent._item;
     }
 }";
-				TestExtractMethod(code, expected);
-			}
-
-		}
-	}
+                TestExtractMethod(code, expected);
+            }
+        }
+    }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal static class NavigateToSymbolFinder
     {
-        private static readonly char[] DotArray = new char[] { '.' };
+        private static readonly char[] s_dotArray = new char[] { '.' };
 
         internal static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(Project project, string pattern, CancellationToken cancellationToken)
         {

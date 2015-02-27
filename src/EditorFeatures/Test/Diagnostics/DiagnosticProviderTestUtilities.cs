@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var driver = new DiagnosticAnalyzerDriver(document, spanToTest, root,
                     syntaxNodeAnalyzerService: nodeInBodyAnalyzerService,
                     hostDiagnosticUpdateSource: exceptionDiagnosticsSource,
-                    cancellationToken: CancellationToken.None, 
+                    cancellationToken: CancellationToken.None,
                     testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
                 var diagnosticAnalyzerCategory = analyzer.GetDiagnosticAnalyzerCategory(driver);
                 bool supportsSemanticInSpan = (diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;

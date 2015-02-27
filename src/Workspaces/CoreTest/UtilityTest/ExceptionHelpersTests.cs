@@ -60,21 +60,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     a();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
 
                 Assert.True(false, "Should not get here because an exception should be thrown before this point.");
-                }
-                catch (OperationCanceledException)
-                {
-                    Assert.True(finallyExecuted);
-                    return;
-                }
-
-                Assert.True(false, "Should have returned in the catch block before this point.");
             }
+            catch (OperationCanceledException)
+            {
+                Assert.True(finallyExecuted);
+                return;
+            }
+
+            Assert.True(false, "Should have returned in the catch block before this point.");
+        }
         [Fact]
         public void TestExecuteWithErrorReportingWithSuppressFailFast()
         {
@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     {
                         a();
                     }
-                    catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
 
                     Assert.True(false, "Should not get here because an exception should be thrown before this point.");
-                    }
                 }
+            }
             catch (ArgumentOutOfRangeException)
             {
                 Assert.True(finallyExecuted);

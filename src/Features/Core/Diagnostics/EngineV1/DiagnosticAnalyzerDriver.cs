@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         // internal for testing purposes
         internal DiagnosticAnalyzerDriver(
-            Project project, 
-            ISyntaxNodeAnalyzerService syntaxNodeAnalyzerService, 
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, 
+            Project project,
+            ISyntaxNodeAnalyzerService syntaxNodeAnalyzerService,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             CancellationToken cancellationToken)
         {
             _project = project;
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             Contract.ThrowIfNull(_project);
             Contract.ThrowIfFalse(_document == null);
-            
+
             using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
             {
                 if (_project.SupportsCompilation)

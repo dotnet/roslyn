@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
     public struct DkmEvaluateDebuggerDisplayStringAsyncResult
     {
         private readonly string _result;
-         
+
         public DkmEvaluateDebuggerDisplayStringAsyncResult(string result)
         {
             if (result == null)

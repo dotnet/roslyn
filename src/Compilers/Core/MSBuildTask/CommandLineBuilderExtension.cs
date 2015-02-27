@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
@@ -218,7 +220,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
                             if ((metadataValue != null) && (metadataValue.Length > 0))
                             {
-
                                 // Treat attribute as a boolean flag?
                                 if (treatAsFlags == null || treatAsFlags[i] == false)
                                 {
