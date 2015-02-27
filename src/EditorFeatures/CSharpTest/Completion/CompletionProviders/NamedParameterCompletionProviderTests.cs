@@ -362,7 +362,7 @@ class Class1
 }
 ";
             VerifyItemExists(markup, "obj:",
-                expectedDescriptionOrNull: "(parameter) Class1 obj = default(Class1)");
+                expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) Class1 obj = default(Class1)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

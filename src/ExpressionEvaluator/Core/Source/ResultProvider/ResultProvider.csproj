@@ -92,6 +92,7 @@
     <Compile Include="Formatter.Values.cs" />
     <Compile Include="Formatter.cs" />
     <Compile Include="Helpers\ArrayBuilder.cs" />
+    <Compile Include="Helpers\DebuggerDisplayInfo.cs" />
     <Compile Include="Helpers\DkmClrValueFlagsExtensions.cs" />
     <Compile Include="Helpers\DkmEvaluationResultFlagsExtensions.cs" />
     <Compile Include="Helpers\EnumContextDataItem.cs" />

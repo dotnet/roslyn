@@ -595,7 +595,8 @@ class B
     bool f;
     internal A P { get { return new A(); } }
     internal A Q { get { while(f) { } return new A(); } }
-}";
+}
+";
             DkmClrRuntimeInstance runtime = null;
             GetMemberValueDelegate getMemberValue = (v, m) => (m == "Q") ? CreateErrorValue(runtime.GetType("A"), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
@@ -610,6 +611,25 @@ class B
                     EvalFailedResult("Q", "Function evaluation timed out", "A", "o.Q"),
                     EvalResult("f", "false", "bool", "o.f", DkmEvaluationResultFlags.Boolean));
             }
+        }
+
+        [Fact]
+        public void Exception()
+        {
+            var source =
+@"using System.Diagnostics;
+[DebuggerDisplay(""Value}"")]
+class A
+{
+    internal int Value;
+}
+";
+            var assembly = GetAssembly(source);
+            var typeA = assembly.GetType("A");
+            var instanceA = typeA.Instantiate();
+            var result = FormatResult("a", CreateDkmClrValue(instanceA));
+            Verify(result,
+                EvalFailedResult("a", "Unmatched closing brace in 'Value}'", null, null, DkmEvaluationResultFlags.None));
         }
 
         private IReadOnlyList<DkmEvaluationResult> DepthFirstSearch(DkmEvaluationResult root, int maxDepth)

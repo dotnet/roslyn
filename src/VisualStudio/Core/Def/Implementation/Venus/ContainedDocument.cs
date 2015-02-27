@@ -629,17 +629,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private static string GetReplacementStrings(string leftText, string rightText, string initialReplacement)
         {
-            if (leftText.IndexOf(initialReplacement) < 0 && rightText.IndexOf(initialReplacement) < 0)
+            if (leftText.IndexOf(initialReplacement, StringComparison.Ordinal) < 0 && rightText.IndexOf(initialReplacement, StringComparison.Ordinal) < 0)
             {
                 return initialReplacement;
             }
 
             // okay, there is already one in the given text.
-            var format = "{{|{0}|{1}|{0}|}}";
+            const string format = "{{|{0}|{1}|{0}|}}";
             for (var i = 0; true; i++)
             {
                 var replacement = string.Format(format, i.ToString(), initialReplacement);
-                if (leftText.IndexOf(replacement) < 0 && rightText.IndexOf(replacement) < 0)
+                if (leftText.IndexOf(replacement, StringComparison.Ordinal) < 0 && rightText.IndexOf(replacement, StringComparison.Ordinal) < 0)
                 {
                     return replacement;
                 }

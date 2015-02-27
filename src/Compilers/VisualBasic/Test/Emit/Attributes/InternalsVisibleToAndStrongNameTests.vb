@@ -344,7 +344,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, Err.Arguments.Count)
         Assert.Equal("foo", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)"))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -495,7 +495,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)"))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
     End Sub
 
     <Fact>
@@ -1437,7 +1437,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyFileFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(KeyPairFile, DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80131423)"))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80131423)", StringComparison.Ordinal))
     End Sub
 
     <Fact>

@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalyzerExecutor
     {
-        internal const string DiagnosticId = "AD0001";
+        private const string AnalyzerExceptionDiagnosticId = "AD0001";
+        private const string DescriptorExceptionDiagnosticId = "AD0002";        
         private const string DiagnosticCategory = "Compiler";
 
         private readonly Compilation _compilation;
@@ -472,18 +473,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static Diagnostic GetAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {
-            return Diagnostic.Create(GetDiagnosticDescriptor(analyzer.GetType().ToString(), e.Message), Location.None);
-        }
-
-        internal static DiagnosticDescriptor GetDiagnosticDescriptor(string analyzerName, string message)
-        {
-            return new DiagnosticDescriptor(DiagnosticId,
+            var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
                 AnalyzerDriverResources.AnalyzerFailure,
-                string.Format(AnalyzerDriverResources.AnalyzerThrows, analyzerName, message),
+                AnalyzerDriverResources.AnalyzerThrows,
                 category: DiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
+            return Diagnostic.Create(descriptor, Location.None, analyzer.GetType().ToString(), e.Message);
+        }
+
+        internal static Diagnostic GetDescriptorDiagnostic(string faultedDescriptorId, Exception e)
+        {
+            var descriptor = new DiagnosticDescriptor(DescriptorExceptionDiagnosticId,
+                AnalyzerDriverResources.AnalyzerFailure,
+                AnalyzerDriverResources.DiagnosticDescriptorThrows,
+                category: DiagnosticCategory,
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.AnalyzerException);
+            return Diagnostic.Create(descriptor, Location.None, faultedDescriptorId, e.Message);
+        }
+
+        internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
+        {
+            if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == DescriptorExceptionDiagnosticId)
+            {
+#pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
+                foreach (var tag in diagnostic.Descriptor.CustomTags)
+#pragma warning restore RS0013
+                {
+                    if (tag == WellKnownDiagnosticTags.AnalyzerException)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

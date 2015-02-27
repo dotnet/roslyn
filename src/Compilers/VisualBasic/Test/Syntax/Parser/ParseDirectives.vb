@@ -1230,10 +1230,10 @@ End Module]]>,
 
         Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), options, "")
 
-        Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2"))
+        Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2", StringComparison.Ordinal))
         Assert.Equal(SyntaxKind.ClassKeyword, tk.Kind)
 
-        tk = tree.GetRoot().FindToken(text.IndexOf("class c1"))
+        tk = tree.GetRoot().FindToken(text.IndexOf("class c1", StringComparison.Ordinal))
         Assert.Equal(260, tk.FullWidth)
 
     End Sub

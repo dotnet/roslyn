@@ -2669,7 +2669,7 @@ class Viewable
 
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
-            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
+            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004", StringComparison.Ordinal));
 
             pdb.Dispose();
             result = compilation.Emit(output, pdb);
@@ -2679,7 +2679,7 @@ class Viewable
 
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
-            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
+            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004", StringComparison.Ordinal));
         }
     }
 }

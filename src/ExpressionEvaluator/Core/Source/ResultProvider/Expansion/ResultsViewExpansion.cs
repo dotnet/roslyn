@@ -10,17 +10,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class ResultsViewExpansion : Expansion
     {
-        internal static ResultsViewExpansion CreateExpansion(DkmClrValue value, Formatter formatter)
+        internal static ResultsViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, Formatter formatter)
         {
             var enumerableType = GetEnumerableType(value);
             if (enumerableType == null)
             {
                 return null;
             }
-            return CreateExpansion(value, enumerableType, formatter);
+            return CreateExpansion(inspectionContext, value, enumerableType, formatter);
         }
 
-        internal static DkmEvaluationResult CreateResultsOnly(
+        internal static EvalResultDataItem CreateResultsOnlyRow(
+            DkmInspectionContext inspectionContext,
             string name,
             DkmClrType declaredType,
             DkmClrValue value,
@@ -41,10 +42,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var enumerableType = GetEnumerableType(value);
                 if (enumerableType != null)
                 {
-                    var expansion = CreateExpansion(value, enumerableType, formatter);
+                    var expansion = CreateExpansion(inspectionContext, value, enumerableType, formatter);
                     if (expansion != null)
                     {
-                        return expansion.CreateEvaluationResult(name, parent, formatter);
+                        return expansion.CreateResultsViewRow(inspectionContext, name, parent, formatter);
                     }
                     errorMessage = Resources.ResultsViewNoSystemCore;
                 }
@@ -55,15 +56,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             Debug.Assert(errorMessage != null);
-            return DkmFailedEvaluationResult.Create(
-                InspectionContext: value.InspectionContext,
-                StackFrame: value.StackFrame,
-                Name: name,
-                FullName: null,
-                ErrorMessage: errorMessage,
-                Flags: DkmEvaluationResultFlags.None,
-                Type: null,
-                DataItem: null);
+            return new EvalResultDataItem(name, errorMessage);
         }
 
         private static DkmClrType GetEnumerableType(DkmClrValue value)
@@ -92,9 +85,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return DkmClrType.Create(value.Type.AppDomain, enumerableType);
         }
 
-        private static ResultsViewExpansion CreateExpansion(DkmClrValue value, DkmClrType enumerableType, Formatter formatter)
+        private static ResultsViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType enumerableType, Formatter formatter)
         {
-            var proxyValue = value.InstantiateResultsViewProxy(enumerableType);
+            var proxyValue = value.InstantiateResultsViewProxy(inspectionContext, enumerableType);
             // InstantiateResultsViewProxy may return null
             // (if assembly is missing for instance).
             if (proxyValue == null)
@@ -103,6 +96,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var proxyMembers = MemberExpansion.CreateExpansion(
+                inspectionContext,
                 proxyValue.Type.GetLmrType(),
                 proxyValue,
                 ExpansionFlags.None,
@@ -125,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -136,14 +130,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (InRange(startIndex, count, index))
             {
-                var evalResult = CreateEvaluationResult(Resources.ResultsView, parent, resultProvider.Formatter);
-                rows.Add(evalResult);
+                rows.Add(CreateResultsViewRow(inspectionContext, Resources.ResultsView, parent, resultProvider.Formatter));
             }
 
             index++;
         }
 
-        private DkmEvaluationResult CreateEvaluationResult(string name, EvalResultDataItem parent, Formatter formatter)
+        private EvalResultDataItem CreateResultsViewRow(DkmInspectionContext inspectionContext, string name, EvalResultDataItem parent, Formatter formatter)
         {
             var proxyType = _proxyValue.Type.GetLmrType();
             string fullName;
@@ -165,11 +158,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var childFullNamePrefix = (fullName == null) ?
                 null :
                 formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), fullName);
-            var dataItem = new EvalResultDataItem(
-                name: name,
+            return new EvalResultDataItem(
+                ExpansionKind.ResultsView,
+                name,
                 typeDeclaringMember: null,
                 declaredType: proxyType,
+                parent: null,
                 value: _proxyValue,
+                displayValue: Resources.ResultsViewValueWarning,
                 expansion: _proxyMembers,
                 childShouldParenthesize: childShouldParenthesize,
                 fullName: fullName,
@@ -177,13 +173,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: Formatter.AddFormatSpecifier(formatSpecifiers, "results"),
                 category: DkmEvaluationResultCategory.Method,
                 flags: DkmEvaluationResultFlags.ReadOnly,
-                editableValue: null);
-            return ResultProvider.CreateEvaluationResult(
-                value: _proxyValue,
-                name: name,
-                typeName: string.Empty,
-                display: Resources.ResultsViewValueWarning,
-                dataItem: dataItem);
+                editableValue: null,
+                inspectionContext: inspectionContext);
         }
     }
 }

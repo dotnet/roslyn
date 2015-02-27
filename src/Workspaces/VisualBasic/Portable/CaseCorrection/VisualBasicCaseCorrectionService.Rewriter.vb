@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                     ' For character literals, we case correct the type character to "c".
                     Dim actualText = token.ToString()
 
-                    If actualText.EndsWith("C") Then
+                    If actualText.EndsWith("C", StringComparison.Ordinal) Then
                         Dim expectedText = actualText.Substring(0, actualText.Length - 1) & "c"
                         Return SyntaxFactory.ParseToken(expectedText).WithLeadingTrivia(token.LeadingTrivia).WithTrailingTrivia(token.TrailingTrivia)
                     End If

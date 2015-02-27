@@ -748,7 +748,7 @@ End Class
             comp.VerifyDiagnostics()
 
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Class")
-            AssertEx.None(type.GetMembersUnordered().AsEnumerable(), Function(symbol) symbol.Name.StartsWith("_VtblGap"))
+            AssertEx.None(type.GetMembersUnordered().AsEnumerable(), Function(symbol) symbol.Name.StartsWith("_VtblGap", StringComparison.Ordinal))
 
             ' Dropped entirely.
             Assert.Equal(0, type.GetMembers("_VtblGap1_1").Length)

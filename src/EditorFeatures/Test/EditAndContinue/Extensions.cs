@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             int i = 0;
             while (true)
             {
-                int eoln = str.IndexOf(LineSeparator, i);
+                int eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
                 if (eoln < 0)
                 {
                     yield return str.Substring(i);

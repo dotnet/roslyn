@@ -1002,7 +1002,7 @@ using System;
                 Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
                 Assert.False(methodDispose.IsExplicitInterfaceImplementation);
 
-                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Where(d => d.ExplicitInterfaceSpecifier != null).Single();
+                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
                 var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
                 var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
                 Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);

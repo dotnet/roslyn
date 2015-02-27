@@ -447,4 +447,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
     <value>Assembly '{0}' used by analyzer '{1}' and assembly '{2}' used by analyzer '{3}' have the same identity but different contents. These analyzers may not run correctly.</value>
   </data>
+  <data name="ReferenceCountPlural" xml:space="preserve">
+    <value>{0} references</value>
+  </data>
+  <data name="ReferenceCountSingular" xml:space="preserve">
+    <value>{0} reference</value>
+  </data>
 </root>

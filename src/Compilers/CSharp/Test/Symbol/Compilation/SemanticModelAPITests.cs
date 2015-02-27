@@ -2863,7 +2863,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("return");
+            var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
 
             SemanticModel speculativeModel;
@@ -2898,7 +2898,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("return");
+            var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
 
             SemanticModel speculativeModel;
@@ -2928,7 +2928,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("int");
+            var position = source.IndexOf("int", StringComparison.Ordinal);
             var typeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.IEnumerable<C[]>");
 
             SemanticModel speculativeModel;
@@ -2967,7 +2967,7 @@ struct S
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("struct");
+            var position = source.IndexOf("struct", StringComparison.Ordinal);
             var attributeSyntax = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Category"));
 
             SemanticModel speculativeModel;

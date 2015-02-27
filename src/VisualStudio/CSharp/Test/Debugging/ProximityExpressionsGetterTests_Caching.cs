@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
                 for (var i = 0; i < expectedArray.Length; i++)
                 {
                     int position;
-                    var key = spans.Keys.FirstOrDefault(k => k.StartsWith(i + "-"));
+                    var key = spans.Keys.FirstOrDefault(k => k.StartsWith(i + "-", StringComparison.Ordinal));
                     if (key != null)
                     {
                         var parts = key.Split('-');

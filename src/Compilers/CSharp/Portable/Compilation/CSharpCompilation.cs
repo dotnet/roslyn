@@ -1872,21 +1872,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The bag in which semantic analysis should deposit its diagnostics.
         /// </summary>
-        internal DiagnosticBag SemanticDiagnostics
+        internal DiagnosticBag DeclarationDiagnostics
         {
             get
             {
-                if (_lazySemanticDiagnostics == null)
+                // We should only be placing diagnostics in this bag until
+                // we are done gathering declaration diagnostics. Assert that is
+                // the case. But since we have bugs (see https://github.com/dotnet/roslyn/issues/846)
+                // we disable the assertion until they are fixed.
+                Debug.Assert(!_declarationDiagnosticsFrozen || true);
+                if (_lazyDeclarationDiagnostics == null)
                 {
                     var diagnostics = new DiagnosticBag();
-                    Interlocked.CompareExchange(ref _lazySemanticDiagnostics, diagnostics, null);
+                    Interlocked.CompareExchange(ref _lazyDeclarationDiagnostics, diagnostics, null);
                 }
 
-                return _lazySemanticDiagnostics;
+                return _lazyDeclarationDiagnostics;
             }
         }
 
-        private DiagnosticBag _lazySemanticDiagnostics;
+        private IEnumerable<Diagnostic> FreezeDeclarationDiagnostics()
+        {
+            _declarationDiagnosticsFrozen = true;
+            var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
+            return result;
+        }
+
+        private DiagnosticBag _lazyDeclarationDiagnostics;
+        private bool _declarationDiagnosticsFrozen = false;
 
         /// <summary>
         /// A bag in which diagnostics that should be reported after code gen can be deposited.
@@ -2136,7 +2149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Assembly.ForceComplete(location, cancellationToken);
 
-            var result = this.SemanticDiagnostics.AsEnumerable().Concat(
+            var result = this.FreezeDeclarationDiagnostics().Concat(
                 ((SourceModuleSymbol)this.SourceModule).Diagnostics);
 
             if (locationFilterOpt != null)

@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class SyntaxFormatter : CSharpSyntaxRewriter
     {
+        private readonly TextSpan _consideredSpan;
+        private readonly int _initialDepth;
         private readonly string _indentWhitespace;
         private readonly bool _useElasticTrivia;
 
@@ -26,19 +28,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // of the values between indentations[0] and indentations[initialDepth] (exclusive).
         private ArrayBuilder<SyntaxTrivia> _indentations;
 
-        private SyntaxFormatter(string indentWhitespace, bool useElasticTrivia)
+        private SyntaxFormatter(TextSpan consideredSpan, int initialDepth, string indentWhitespace, bool useElasticTrivia)
             : base(visitIntoStructuredTrivia: true)
         {
+            _consideredSpan = consideredSpan;
+            _initialDepth = initialDepth;
             _indentWhitespace = indentWhitespace;
             _useElasticTrivia = useElasticTrivia;
-
             _afterLineBreak = true;
         }
 
         internal static TNode Format<TNode>(TNode node, string indentWhitespace, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {
-            var formatter = new SyntaxFormatter(indentWhitespace, useElasticTrivia);
+            var formatter = new SyntaxFormatter(node.FullSpan, GetDeclarationDepth(node), indentWhitespace, useElasticTrivia);
             var result = (TNode)formatter.Visit(node);
             formatter.Free();
             return result;
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxToken Format(SyntaxToken token, string indentWhitespace, bool useElasticTrivia = false)
         {
-            var formatter = new SyntaxFormatter(indentWhitespace, useElasticTrivia);
+            var formatter = new SyntaxFormatter(token.FullSpan, GetDeclarationDepth(token), indentWhitespace, useElasticTrivia);
             var result = formatter.VisitToken(token);
             formatter.Free();
             return result;
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxTriviaList Format(SyntaxTriviaList trivia, string indentWhitespace, bool useElasticTrivia = false)
         {
-            var formatter = new SyntaxFormatter(indentWhitespace, useElasticTrivia);
+            var formatter = new SyntaxFormatter(trivia.FullSpan, GetDeclarationDepth(trivia.Token), indentWhitespace, useElasticTrivia);
             var result = formatter.RewriteTrivia(
                 trivia,
                 GetDeclarationDepth((SyntaxToken)trivia.ElementAt(0).Token),
@@ -98,8 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     mustHaveSeparator: false,
                     lineBreaksAfter: lineBreaksAfter));
 
-                // get next token, skipping zero width tokens except for end-of-directive tokens
-                var nextToken = token.GetNextToken(t => SyntaxToken.NonZeroWidth(t) || t.Kind() == SyntaxKind.EndOfDirectiveToken, t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
+                var nextToken = this.GetNextRelevantToken(token);
 
                 _afterLineBreak = EndsInLineBreak(token);
                 _afterIndentation = false;
@@ -127,8 +129,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
+        private SyntaxToken GetNextRelevantToken(SyntaxToken token)
+        {
+            // get next token, skipping zero width tokens except for end-of-directive tokens
+            var nextToken = token.GetNextToken(
+                t => SyntaxToken.NonZeroWidth(t) || t.Kind() == SyntaxKind.EndOfDirectiveToken, 
+                t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
+
+            if (_consideredSpan.Contains(nextToken.FullSpan))
+            {
+                return nextToken;
+            }
+            else
+            {
+                return default(SyntaxToken);
+            }
+        }
+
         private SyntaxTrivia GetIndentation(int count)
         {
+            count = Math.Max(count - _initialDepth, 0);
+
             int capacity = count + 1;
             if (_indentations == null)
             {

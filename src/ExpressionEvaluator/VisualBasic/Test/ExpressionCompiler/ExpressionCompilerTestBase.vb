@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             compilation.EmitAndGetReferences(exeBytes, pdbBytes, references)
             Return CreateRuntimeInstance(
                 ExpressionCompilerUtilities.GenerateUniqueName(),
-                references,
+                references.AddIntrinsicAssembly(),
                 exeBytes,
                 If(includeSymbols, New SymReader(pdbBytes), Nothing))
         End Function

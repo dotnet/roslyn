@@ -1108,6 +1108,9 @@ End Class
         [Fact]
         public void SuppressDuplicateAnalyzerExceptionDiagnostics()
         {
+            var expected = Diagnostic("AD0001", null).WithLocation(1, 1);
+            expected = WithArguments(expected, "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer", "ThrowExceptionAnalyzer exception");
+
             VerifyCSharp(@"
 public class C
 {
@@ -1121,10 +1124,15 @@ public class C2
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
                 DiagnosticExtensions.AlwaysCatchAnalyzerException,
-                Diagnostic("AD0001", null).WithLocation(1, 1));
+                expected);
         }
 
         #endregion
+
+        protected virtual DiagnosticDescription WithArguments(DiagnosticDescription d, params string[] arguments)
+        {
+            return d.WithArguments(arguments);
+        }
 
         protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {

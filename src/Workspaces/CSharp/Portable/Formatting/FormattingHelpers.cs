@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // indent is the spaces/tabs between last new line (if there is one) and end of trivia
             var indent = precedingTrivia.AsString();
-            int lastNewLinePos = indent.LastIndexOf(NewLine);
+            int lastNewLinePos = indent.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos != -1)
             {
                 int start = lastNewLinePos + NewLine.Length;
@@ -33,15 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static string ContentBeforeLastNewLine(this IEnumerable<SyntaxTrivia> trivia)
         {
             var leading = trivia.AsString();
-            int lastNewLinePos = leading.LastIndexOf(NewLine);
+            int lastNewLinePos = leading.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos == -1)
             {
                 return string.Empty;
             }
-            else
-            {
-                return leading.Substring(0, lastNewLinePos);
-            }
+
+            return leading.Substring(0, lastNewLinePos);
         }
 
         public static ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(this SyntaxNode node)

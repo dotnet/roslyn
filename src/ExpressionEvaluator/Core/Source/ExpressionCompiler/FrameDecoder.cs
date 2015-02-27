@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.CallStack;
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // return a constructed method symbol, but it seems unwise to call GetClrGenericParameters
             // for all frames (as this call requires a round-trip to the debuggee process).
             var instructionAddress = (DkmClrInstructionAddress)frame.InstructionAddress;
-            var compilation = _instructionDecoder.GetCompilation(instructionAddress);
+            var compilation = _instructionDecoder.GetCompilation(instructionAddress.ModuleInstance);
             var method = _instructionDecoder.GetMethod(compilation, instructionAddress);
             var typeParameters = _instructionDecoder.GetAllTypeParameters(method);
             if (!typeParameters.IsEmpty)

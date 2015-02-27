@@ -2371,5 +2371,33 @@ class Derived2 : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("Derived.x").WithLocation(8, 17)
                 );
         }
+
+        [WorkItem(612, "https://github.com/dotnet/roslyn/issues/612")]
+        [Fact]
+        public void CascadedUnreachableCode()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        string k;
+        switch (1)
+        {
+        case 1:
+        }
+        string s = k;
+    }
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
+                //         case 1:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(8, 9),
+                // (10,20): error CS0165: Use of unassigned local variable 'k'
+                //         string s = k;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k").WithLocation(10, 20)
+                );
+        }
     }
 }
