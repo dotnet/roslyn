@@ -1123,7 +1123,7 @@ public class C2
 }
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
-                DiagnosticExtensions.AlwaysCatchAnalyzerException,
+                DiagnosticExtensions.CatchAndIgnoreAnalyzerException,
                 expected);
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
                 {
-                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, donotCatchAnalyzerExceptions: onAnalyzerException == null));
+                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, onAnalyzerException));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);

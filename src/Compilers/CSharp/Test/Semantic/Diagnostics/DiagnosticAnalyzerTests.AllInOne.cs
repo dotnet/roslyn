@@ -87,7 +87,7 @@ public class C
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null, CodeAnalysis.DiagnosticExtensions.AlwaysCatchAnalyzerException));
+                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null, CodeAnalysis.DiagnosticExtensions.CatchAndIgnoreAnalyzerException));
         }
 
         [Fact]

@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis
     public static class DiagnosticExtensions
     {
         private const int EN_US = 1033;
-        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> AlwaysCatchAnalyzerException = (e, a, d) => { };
-        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> RethrowAnalyzerException = (e, a, d) => { if (!(e is OperationCanceledException)) throw e; };
+
+        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> CatchAndIgnoreAnalyzerException = (e, a, d) => { };
+        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> FailFastOnAnalyzerException = (e, a, d) => FailFast.OnFatalException(e);
 
         /// <summary>
         /// This is obsolete. Use Verify instead.
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
-                newOnAnalyzerException = RethrowAnalyzerException;
+                newOnAnalyzerException = FailFastOnAnalyzerException;
             }
 
             Compilation newCompilation;

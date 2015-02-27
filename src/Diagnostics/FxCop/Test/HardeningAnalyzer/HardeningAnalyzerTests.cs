@@ -44,7 +44,7 @@ public class Class6<TTypeParameter>
 ";
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var documentsAndSpan = GetDocumentsAndSpans(new[] { source }, LanguageNames.CSharp);
-            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, onAnalyzerException: DiagnosticExtensions.AlwaysCatchAnalyzerException);
+            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, onAnalyzerException: DiagnosticExtensions.CatchAndIgnoreAnalyzerException);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
             Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "The method or operation is not implemented."),

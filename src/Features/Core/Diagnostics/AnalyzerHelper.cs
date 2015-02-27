@@ -37,14 +37,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
             DiagnosticAnalyzer analyzer,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
                 OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
 
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, cancellationToken);
+            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, cancellationToken);
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(
@@ -52,17 +53,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Diagnostic diagnostic,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Project projectOpt = null,
-            bool testOnly_RethrowAnalyzerException = false)
+            Project projectOpt = null)
         {
             if (diagnostic != null)
             {
                 hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
-            }
-
-            if (testOnly_RethrowAnalyzerException)
-            {
-                throw e;
             }
 
             if (IsBuiltInAnalyzer(analyzer))
