@@ -397,11 +397,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                     return newToken;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private RenameActionAnnotation GetAnnotationForInvocationExpression(InvocationExpressionSyntax invocationExpression)
             {
@@ -853,11 +853,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 return conflicts;
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private static async Task<ISymbol> GetVBPropertyFromAccessorOrAnOverrideAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
@@ -882,11 +882,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 return null;
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private void AddSymbolSourceSpans(List<Location> conflicts, IEnumerable<ISymbol> symbols, IDictionary<Location, Location> reverseMappedLocations)
         {

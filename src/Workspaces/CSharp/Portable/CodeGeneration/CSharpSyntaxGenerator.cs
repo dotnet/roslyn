@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             SyntaxNode baseType,
-            IEnumerable<SyntaxNode> interfaceTypes,            
+            IEnumerable<SyntaxNode> interfaceTypes,
             IEnumerable<SyntaxNode> members)
         {
             baseType = this.ClearTrivia(baseType);
@@ -1385,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static DeclarationModifiers s_classModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
         private static DeclarationModifiers s_structModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
         private static DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
-        private static DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;            
+        private static DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
 
         private DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
@@ -2657,7 +2657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             BlockSyntax body = CreateBlock(statements);
             BlockSyntax somebody = statements != null ? body : null;
-            SyntaxToken semicolon = statements == null ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken); 
+            SyntaxToken semicolon = statements == null ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken);
 
             switch (declaration.Kind())
             {

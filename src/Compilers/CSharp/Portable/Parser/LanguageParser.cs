@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 try
                 {
                     bool shouldHaveName = false;
-                    tryAgain:
+                tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -2476,7 +2476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
                 }
 
-                parse_member_name:;
+            parse_member_name:;
                 // Check here for operators
                 // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
                 if (IsOperatorKeyword())
@@ -3877,7 +3877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind != closeKind)
                 {
-                    tryAgain:
+                tryAgain:
                     int mustBeLastIndex = -1;
                     bool mustBeLastHadParams = false;
                     bool hasParams = false;
@@ -4991,7 +4991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                tryAgain:
+            tryAgain:
 
                 if (this.IsPossibleEnumMemberDeclaration() || this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
@@ -7449,7 +7449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                tryAgain:
+            tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -8735,7 +8735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
-                    tryAgain:
+                tryAgain:
                     if (list.IsNull)
                     {
                         list = _pool.AllocateSeparated<ArgumentSyntax>();
@@ -9295,7 +9295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                tryAgain:
+            tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -9524,7 +9524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                tryAgain:
+            tryAgain:
                 if (this.IsInitializerMember() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // We have at least one initializer expression.
@@ -9665,7 +9665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                tryAgain:
+            tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -9755,7 +9755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    tryAgain:
+                tryAgain:
                     if (this.IsPossibleVariableInitializer(false) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         list.Add(this.ParseVariableInitializer(false));
@@ -9943,7 +9943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                 {
-                    tryAgain:
+                tryAgain:
                     if (this.IsPossibleLambdaParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class AnalyzerExecutor
     {
         private const string AnalyzerExceptionDiagnosticId = "AD0001";
-        private const string DescriptorExceptionDiagnosticId = "AD0002";        
+        private const string DescriptorExceptionDiagnosticId = "AD0002";
         private const string DiagnosticCategory = "Compiler";
 
         private readonly Compilation _compilation;
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return new AnalyzerExecutor(
                 compilation: null,
-                analyzerOptions: null, 
-                addDiagnostic: null, 
-                addExceptionDiagnostic: addExceptionDiagnostic, 
+                analyzerOptions: null,
+                addDiagnostic: null,
+                addExceptionDiagnostic: addExceptionDiagnostic,
                 continueOnAnalyzerException: continueOnAnalyzerException,
                 cancellationToken: cancellationToken);
         }
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            this._compilation = compilation;
-            this._analyzerOptions = analyzerOptions;
-            this._addDiagnostic = addDiagnostic;
-            this._addExceptionDiagnostic = addExceptionDiagnostic;
-            this._continueOnAnalyzerException = continueOnAnalyzerException;
-            this._cancellationToken = cancellationToken;
+            _compilation = compilation;
+            _analyzerOptions = analyzerOptions;
+            _addDiagnostic = addDiagnostic;
+            _addExceptionDiagnostic = addExceptionDiagnostic;
+            _continueOnAnalyzerException = continueOnAnalyzerException;
+            _cancellationToken = cancellationToken;
         }
 
         internal Compilation Compilation { get { return _compilation; } }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var startAction in actions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                ExecuteAndCatchIfThrows(startAction.Analyzer, 
+                ExecuteAndCatchIfThrows(startAction.Analyzer,
                     () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken)));
             }
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var endAction in compilationEndActions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                ExecuteAndCatchIfThrows(endAction.Analyzer, 
+                ExecuteAndCatchIfThrows(endAction.Analyzer,
                     () => endAction.Action(new CompilationEndAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, _cancellationToken)));
             }
         }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (kinds.Contains(symbol.Kind))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    ExecuteAndCatchIfThrows(symbolAction.Analyzer, 
+                    ExecuteAndCatchIfThrows(symbolAction.Analyzer,
                         () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic, _cancellationToken)));
                 }
             }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 // Catch Exception from action.
-                ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, 
+                ExecuteAndCatchIfThrows(semanticModelAction.Analyzer,
                     () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
             }
         }
@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="semanticModel">SemanticModel to be used in the analysis.</param>
         /// <param name="getKind">Delegate to compute language specific syntax kind for a syntax node.</param>
         public void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-            AnalyzerActions actions, 
-            IEnumerable<SyntaxNode> nodes, 
+            AnalyzerActions actions,
+            IEnumerable<SyntaxNode> nodes,
             SemanticModel semanticModel,
             Func<SyntaxNode, TLanguageKindEnum> getKind)
             where TLanguageKindEnum : struct
@@ -277,8 +277,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
-            SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction, 
-            SyntaxNode node, 
+            SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction,
+            SyntaxNode node,
             SemanticModel semanticModel)
             where TLanguageKindEnum : struct
         {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ExecuteAndCatchIfThrows(da.Analyzer, () =>
                 {
                     var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
-                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(da.Analyzer, 
+                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(da.Analyzer,
                         codeBlockScope, declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _cancellationToken);
                     da.Action(blockStartContext);
                     endedActions.AddAll(codeBlockScope.CodeBlockEndActions);
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Execute code block end actions.
             foreach (var endedAction in endedActions)
             {
-                ExecuteAndCatchIfThrows(endedAction.Analyzer, 
+                ExecuteAndCatchIfThrows(endedAction.Analyzer,
                     () => endedAction.Action(new CodeBlockEndAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
             }
 

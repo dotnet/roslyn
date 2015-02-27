@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private unsafe static void UncompressLambdaMap(
             ImmutableArray<byte> compressedLambdaMap,
             out int methodOrdinal,
-            out ImmutableArray<ClosureDebugInfo> closures, 
+            out ImmutableArray<ClosureDebugInfo> closures,
             out ImmutableArray<LambdaDebugInfo> lambdas)
         {
             methodOrdinal = MethodDebugId.UndefinedOrdinal;

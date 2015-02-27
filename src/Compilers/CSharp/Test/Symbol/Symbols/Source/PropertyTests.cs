@@ -2650,13 +2650,13 @@ public interface IA
              {
                  var validator = getValidator(expected);
 
-                // We should see the same members from both source and metadata
-                var verifier = CompileAndVerify(
-                     libSrc,
-                     emitOptions: TestEmitters.RefEmitBug,
-                     sourceSymbolValidator: validator,
-                     symbolValidator: validator,
-                     options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
+                 // We should see the same members from both source and metadata
+                 var verifier = CompileAndVerify(
+                      libSrc,
+                      emitOptions: TestEmitters.RefEmitBug,
+                      sourceSymbolValidator: validator,
+                      symbolValidator: validator,
+                      options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
                  verifier.VerifyDiagnostics();
              };
 

@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray.Create(
-                new ClosureDebugInfo(-100), 
+                new ClosureDebugInfo(-100),
                 new ClosureDebugInfo(10),
                 new ClosureDebugInfo(-200));
 

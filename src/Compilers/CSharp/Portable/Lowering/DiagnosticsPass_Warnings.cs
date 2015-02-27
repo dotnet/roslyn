@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    if (this._compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
+                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
                     {
                         if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
                         {

@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return references;
-            }
+        }
 
         #endregion
 

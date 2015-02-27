@@ -665,7 +665,7 @@ public class C : B
 {
     public C() : base(x: 10) {}
 }";
-            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer: true)};
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer: true) };
 
             CreateCompilationWithMscorlib45(baseCtorSource)
                 .VerifyDiagnostics()
@@ -891,10 +891,10 @@ public class B
             {
                 public void Initialize(Action<Action<SyntaxNodeAnalysisContext>, ImmutableArray<SyntaxKind>> registerSyntaxNodeAction)
                 {
-                    registerSyntaxNodeAction(context => { context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None)); }, 
+                    registerSyntaxNodeAction(context => { context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None)); },
                         ImmutableArray.Create(SyntaxKind.EqualsValueClause));
 
-                    registerSyntaxNodeAction(context => { context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None)); }, 
+                    registerSyntaxNodeAction(context => { context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None)); },
                         ImmutableArray.Create(SyntaxKind.BaseConstructorInitializer));
 
                     registerSyntaxNodeAction(context =>
@@ -904,7 +904,7 @@ public class B
                         {
                             case SyntaxKind.PropertyDeclaration:
                                 descriptor = Desciptor4;
-                                break; 
+                                break;
                             case SyntaxKind.IndexerDeclaration:
                                 descriptor = Desciptor5;
                                 break;
@@ -914,7 +914,6 @@ public class B
                         }
 
                         context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, Location.None));
-
                     }, ImmutableArray.Create(SyntaxKind.ArrowExpressionClause));
                 }
             }
