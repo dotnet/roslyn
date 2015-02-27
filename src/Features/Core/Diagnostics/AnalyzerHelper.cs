@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -50,18 +49,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static void OnAnalyzerException_NoTelemetryLogging(
             Exception e,
-            DiagnosticAnalyzer analyzer, 
+            DiagnosticAnalyzer analyzer,
             Diagnostic diagnostic,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             Project projectOpt = null)
         {
             if (diagnostic != null)
-        {
+            {
                 hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
-        }
-        
+            }
+
             if (IsBuiltInAnalyzer(analyzer))
-        {
+            {
                 FatalError.ReportWithoutCrashUnlessCanceled(e);
             }
         }

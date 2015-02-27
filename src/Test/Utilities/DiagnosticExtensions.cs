@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -102,9 +101,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static void VerifyAnalyzerOccurrenceCount<TCompilation>(
-            this TCompilation c, 
-            DiagnosticAnalyzer[] analyzers, 
-            int expectedCount, 
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            int expectedCount,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
@@ -112,10 +111,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c, 
-                DiagnosticAnalyzer[] analyzers, 
-                AnalyzerOptions options = null, 
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, 
+                this TCompilation c,
+                DiagnosticAnalyzer[] analyzers,
+                AnalyzerOptions options = null,
+                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
                 params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
@@ -126,9 +125,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
-            this TCompilation c, 
-            DiagnosticAnalyzer[] analyzers, 
-            AnalyzerOptions options = null, 
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options = null,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
