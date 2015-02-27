@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Module RenameTestHelpers
@@ -108,6 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace.ExportProvider.GetExport(Of ITextUndoHistoryRegistry)().Value,
                 workspace.ExportProvider.GetExport(Of IWaitIndicator)().Value,
                 workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
+                workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
                 SpecializedCollections.SingletonEnumerable(New MockRefactorNotifyService()),
                 DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))))
 

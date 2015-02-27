@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -12,10 +14,10 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly ITextBuffer _buffer;
+            private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
             private int _refCount;
 
@@ -39,12 +42,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public event Action TrackingSessionUpdated = delegate { };
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
 
-            public StateMachine(ITextBuffer buffer, IInlineRenameService inlineRenameService, IAsynchronousOperationListener asyncListener)
+            public StateMachine(
+                ITextBuffer buffer, 
+                IInlineRenameService inlineRenameService, 
+                IAsynchronousOperationListener asyncListener, 
+                IDiagnosticAnalyzerService diagnosticAnalyzerService)
             {
                 _buffer = buffer;
                 _buffer.Changed += Buffer_Changed;
                 _inlineRenameService = inlineRenameService;
                 _asyncListener = asyncListener;
+                _diagnosticAnalyzerService = diagnosticAnalyzerService;
             }
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -204,6 +212,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
                 {
+                    var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
+                    {
+                        // When rename tracking is dismissed via escape, we no longer wish to
+                        // provide a diagnostic/codefix, but nothing has changed in the workspace
+                        // to trigger the diagnostic system to reanalyze, so we trigger it 
+                        // manually.
+
+                        _diagnosticAnalyzerService?.Reanalyze(
+                            document.Project.Solution.Workspace, 
+                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                    }
+
                     // Disallow the existing TrackingSession from triggering IdentifierFound.
                     var previousTrackingSession = this.TrackingSession;
                     this.TrackingSession = null;

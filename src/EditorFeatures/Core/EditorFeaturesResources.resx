@@ -727,4 +727,7 @@ Do you want to proceed?</value>
   <data name="CannotApplyOperationWhileRenameSessionIsActive" xml:space="preserve">
     <value>Cannot apply operation while a rename session is active.</value>
   </data>
+  <data name="TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable" xml:space="preserve">
+    <value>The rename tracking session was cancelled and is no longer available.</value>
+  </data>
 </root>

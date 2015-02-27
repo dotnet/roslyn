@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
@@ -35,12 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IWaitIndicator _waitIndicator;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
         public RenameTrackingTaggerProvider(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IWaitIndicator waitIndicator,
             IInlineRenameService inlineRenameService,
+            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
@@ -48,12 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
             _refactorNotifyServices = refactorNotifyServices;
+            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(buffer, _inlineRenameService, _asyncListener));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
             return new Tagger(stateMachine, _undoHistoryRegistry, _waitIndicator, _refactorNotifyServices) as ITagger<T>;
         }
 
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         internal static CodeAction CreateCodeAction(
             Document document,
@@ -179,6 +183,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
                 return false;
             }
+        }
+
+        internal static bool CanInvokeRename(Document document)
+        {
+            SourceText text;
+            StateMachine stateMachine;
+            ITextBuffer textBuffer;
+            TrackingSession unused;
+
+            if (document == null || !document.TryGetText(out text))
+            {
+                return false;
             }
+
+            textBuffer = text.Container.TryGetTextBuffer();
+            return textBuffer != null &&
+                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) && 
+                stateMachine.CanInvokeRename(out unused);
         }
     }
+}
