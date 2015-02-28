@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            public async Task<AnalysisData> GetDocumentAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDrvier, StateSet stateSet, VersionArgument versions)
+            public async Task<AnalysisData> GetDocumentAnalysisDataAsync(DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, VersionArgument versions)
             {
                 try
                 {
-                    var document = analyzerDrvier.Document;
-                    var cancellationToken = analyzerDrvier.CancellationToken;
+                    var document = analyzerDriver.Document;
+                    var cancellationToken = analyzerDriver.CancellationToken;
 
                     var state = stateSet.GetState(StateType.Document);
                     var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return existingData;
                     }
 
-                    var diagnosticData = await GetSemanticDiagnosticsAsync(analyzerDrvier, stateSet.Analyzer).ConfigureAwait(false);
+                    var diagnosticData = await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
