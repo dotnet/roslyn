@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -44,43 +43,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ValueTuple.Create(type.AssemblyQualifiedName, GetAnalyzerVersion(type.Assembly.Location));
         }
 
-        public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(this DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Project project)
-        {
-            return diagnostic =>
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project.Solution.Workspace, project);
-        }
-
-        public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(this DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Workspace workspace)
-        {
-            return diagnostic =>
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, workspace, null);
-        }
-
-        public static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
-            this DiagnosticAnalyzer analyzer, 
+        internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
+            DiagnosticAnalyzer analyzer,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
-            CancellationToken cancellationToken)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            var addExceptionDiagnostic = analyzer.GetAddExceptionDiagnosticDelegate(hostDiagnosticUpdateSource, hostDiagnosticUpdateSource?.Workspace);
-
             // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
+                OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
+            
+            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, cancellationToken);
         }
-        
-        public static AnalyzerExecutor GetAnalyzerExecutor(
-            this DiagnosticAnalyzer analyzer, 
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, 
-            Project project, 
-            Compilation compilation, 
-            Action<Diagnostic> addDiagnostic,
-            AnalyzerOptions analyzerOptions,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
+
+        internal static void OnAnalyzerException_NoTelemetryLogging(
+            Exception e,
+            DiagnosticAnalyzer analyzer,
+            Diagnostic diagnostic,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Project projectOpt = null)
         {
-            var addExceptionDiagnostic = analyzer.GetAddExceptionDiagnosticDelegate(hostDiagnosticUpdateSource, project);
-            return AnalyzerExecutor.Create(compilation, analyzerOptions, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            if (diagnostic != null)
+        {
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
+        }
+
+            if (IsBuiltInAnalyzer(analyzer))
+        {
+                FatalError.ReportWithoutCrashUnlessCanceled(e);
+            }
         }
 
         private static VersionStamp GetAnalyzerVersion(string path)

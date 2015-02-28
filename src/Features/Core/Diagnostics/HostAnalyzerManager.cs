@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => !analyzer.IsBuiltInAnalyzer();
-            var analyzerExecutor = analyzer.GetAnalyzerExecutorForSupportedDiagnostics(_hostDiagnosticUpdateSource, continueOnAnalyzerException, CancellationToken.None);
+            var analyzerExecutor = AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource);
             return AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
         }
 

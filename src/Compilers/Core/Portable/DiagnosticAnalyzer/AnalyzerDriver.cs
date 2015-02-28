@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CancellationTokenRegistration _queueRegistration;
         protected readonly AnalyzerManager analyzerManager;
-
+        
         // Lazy fields initialized in Initialize() API
         private Compilation _compilation;
         protected AnalyzerExecutor analyzerExecutor;
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(
-            Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalyzerOptions options,
-            AnalyzerManager analyzerManager,
-            Action<Diagnostic> addExceptionDiagnostic,
-            out Compilation newCompilation,
+            Compilation compilation, 
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            AnalyzerOptions options, 
+            AnalyzerManager analyzerManager, 
+            Action<Diagnostic> addExceptionDiagnostic, 
+            out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
             if (compilation == null)
@@ -171,31 +171,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            return Create(compilation, analyzers, options, analyzerManager, addExceptionDiagnostic, out newCompilation, continueOnAnalyzerException: null, cancellationToken: cancellationToken);
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, analyzer, diagnostic) =>
+            {
+                if (addExceptionDiagnostic != null)
+                {
+                    addExceptionDiagnostic(diagnostic);
+        }
+            };
+            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
         internal static AnalyzerDriver Create(
             Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalyzerOptions options,
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            AnalyzerOptions options, 
             AnalyzerManager analyzerManager,
-            Action<Diagnostic> addExceptionDiagnostic,
-            out Compilation newCompilation,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
             options = options ?? AnalyzerOptions.Empty;
             AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, analyzerManager, cancellationToken);
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
 
-            continueOnAnalyzerException = continueOnAnalyzerException ?? ((exception, analyzer) => true);
             var addDiagnostic = GetDiagnosticSinkWithSuppression(analyzerDriver.DiagnosticQueue.Enqueue, newCompilation);
-            addExceptionDiagnostic = addExceptionDiagnostic != null ?
-                GetDiagnosticSinkWithSuppression(addExceptionDiagnostic, newCompilation) :
-                addDiagnostic;
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
+            if (onAnalyzerException != null)
+            {
+                // Wrap onAnalyzerException to pass in filtered diagnostic.
+                var comp = newCompilation;
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => 
+                    onAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
+            }
+            else
+            {
+                // Add exception diagnostic to regular diagnostic bag.
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
+            }
+
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, cancellationToken);
+            
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
             return analyzerDriver;
@@ -475,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzerExecutor.ExecuteSemanticModelActions(analyzerAndActions.Value, semanticModel);
                     }, cancellationToken);
 
-                    tasks.Add(task);
+                    tasks.Add(task); 
                 }
 
                 return Task.WhenAll(tasks.ToArrayAndFree());
@@ -515,16 +532,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return diagnostic =>
             {
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                if (filteredDiagnostic != null)
+                {
+                    addDiagnosticCore(filteredDiagnostic);
+                }
+            };
+        }
+
+        private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
+        {
                 var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
                 if (filteredDiagnostic != null)
                 {
                     var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-                    if (!suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
+                if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
                     {
-                        addDiagnosticCore(filteredDiagnostic);
+                    return null;
                     }
                 }
-            };
+
+            return filteredDiagnostic;
         }
 
         private static Task<AnalyzerActions> GetAnalyzerActionsAsync(
@@ -831,7 +859,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             return;
                         }
-
+                        
                         break;
                     }
 
