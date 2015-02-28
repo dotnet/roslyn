@@ -113,7 +113,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim duplicateProjectAnalyzersReference = New AnalyzerImageReference(duplicateProjectAnalyzers)
                 project = project.WithAnalyzerReferences({duplicateProjectAnalyzersReference})
 
-                ' Verify no duplicate descriptors or diagnsotics.
+                ' Verify duplicate descriptors or diagnsotics.
+                ' We don't do de-duplication of analyzer that belong to different layer (host and project)
                 descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                 Assert.Equal(2, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
@@ -123,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
                                                                     document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
                                                                     CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(2, diagnostics.Count())
             End Using
         End Sub
 

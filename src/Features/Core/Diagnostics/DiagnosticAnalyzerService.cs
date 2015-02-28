@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,29 +17,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
+        private readonly HostAnalyzerManager _hostAnalyzerManager;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public DiagnosticAnalyzerService([Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
+        public DiagnosticAnalyzerService(
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(workspaceAnalyzerAssemblies: diagnosticAnalyzerProviderService != null ?
                    diagnosticAnalyzerProviderService.GetWorkspaceAnalyzerAssemblies() :
                    SpecializedCollections.EmptyEnumerable<string>(),
                   hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
         {
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
         }
+
+        public IAsynchronousOperationListener Listener => _listener;
 
         private DiagnosticAnalyzerService(IEnumerable<string> workspaceAnalyzerAssemblies, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
+            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzerAssemblies, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
         // internal for testing purposes.
         internal DiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> workspaceAnalyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null) : this()
         {
-            _workspaceAnalyzerManager = new WorkspaceAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
+            _hostAnalyzerManager = new HostAnalyzerManager(workspaceAnalyzers, hostDiagnosticUpdateSource);
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
@@ -45,15 +53,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (projectOpt == null)
             {
-                return _workspaceAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
+                return _hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
             }
 
-            return _workspaceAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
+            return _hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            return _workspaceAnalyzerManager.GetDiagnosticDescriptors(analyzer);
+            return _hostAnalyzerManager.GetDiagnosticDescriptors(analyzer);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)

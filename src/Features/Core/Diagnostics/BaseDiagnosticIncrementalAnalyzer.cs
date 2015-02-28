@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
         #endregion
 
-        public Workspace Workspace { get; private set; }
+        protected Workspace Workspace { get; private set; }
         protected AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
 
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
