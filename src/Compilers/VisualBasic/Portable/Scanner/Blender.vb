@@ -62,18 +62,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Sub PushReverseTerminal(stack As Stack(Of GreenNode), tk As SyntaxToken)
             Dim trivia = tk.GetTrailingTrivia
-
-            If trivia IsNot Nothing Then
-                PushChildReverse(stack, trivia)
-            End If
-
+            If trivia IsNot Nothing Then PushChildReverse(stack, trivia)
             PushChildReverse(stack, DirectCast(tk.WithLeadingTrivia(Nothing).WithTrailingTrivia(Nothing), SyntaxToken))
-
             trivia = tk.GetLeadingTrivia
-
-            If trivia IsNot Nothing Then
-                PushChildReverse(stack, trivia)
-            End If
+            If trivia IsNot Nothing Then PushChildReverse(stack, trivia)
         End Sub
 
         Private Shared Sub PushChildReverse(stack As Stack(Of GreenNode), child As GreenNode)
@@ -94,22 +86,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim fullSpan = New TextSpan(0, root.FullWidth)
             Dim start = NearestStatementThatContainsPosition(root, span.Start, fullSpan)
             Debug.Assert(start.Start <= span.Start)
-            If span.Length = 0 Then
-                Return start
-            Else
-                Dim [end] = NearestStatementThatContainsPosition(root, span.End - 1, fullSpan)
-                Debug.Assert([end].End >= span.End)
-                Return TextSpan.FromBounds(start.Start, [end].End)
-            End If
+            If span.Length = 0 Then Return start
+            Dim [end] = NearestStatementThatContainsPosition(root, span.End - 1, fullSpan)
+            Debug.Assert([end].End >= span.End)
+            Return TextSpan.FromBounds(start.Start, [end].End)
         End Function
 
         ''' <remarks>
         ''' Not guaranteed to return the span of a StatementSyntax.
         ''' </remarks>
-        Private Shared Function NearestStatementThatContainsPosition(
-            node As SyntaxNode,
-            position As Integer,
-            rootFullSpan As TextSpan) As TextSpan
+        Private Shared Function NearestStatementThatContainsPosition( node As SyntaxNode, position As Integer, rootFullSpan As TextSpan) As TextSpan
 
             If Not node.FullSpan.Contains(position) Then
                 Debug.Assert(node.FullSpan.End = position)
@@ -119,9 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If node.Kind = SyntaxKind.CompilationUnit OrElse IsStatementLike(node) Then
                 Do
                     Dim child = node.ChildThatContainsPosition(position).AsNode()
-                    If child Is Nothing OrElse Not IsStatementLike(child) Then
-                        Return node.FullSpan
-                    End If
+                    If child Is Nothing OrElse Not IsStatementLike(child) Then Return node.FullSpan
                     node = child
                 Loop
             End If
@@ -161,31 +145,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Move to the left by the look ahead required by the Scanner.
                 For i As Integer = 0 To Scanner.MaxTokensLookAheadBeyondEOL
                     Dim node = root.FindTokenInternal(start)
-                    If node.Kind = SyntaxKind.None Then
-                        Exit For
-                    Else
-                        start = node.Position
-                        If start = 0 Then
-                            Exit For
-                        Else
-                            start -= 1
-                        End If
-                    End If
+                    If node.Kind = SyntaxKind.None Then Exit For
+                    start = node.Position
+                    If start = 0 Then Exit For
+                    start -= 1
                 Next
             End If
 
             ' Allow for look behind of some number of characters.
-            If [end] < fullWidth Then
-                [end] += Scanner.MaxCharsLookBehind
-            End If
-
+            If [end] < fullWidth Then [end] += Scanner.MaxCharsLookBehind
+ 
             Return TextSpan.FromBounds(start, [end])
         End Function
 
-        Friend Sub New(newText As SourceText,
-                       changes As TextChangeRange(),
-                       baseTreeRoot As SyntaxTree,
-                       options As VisualBasicParseOptions)
+        Friend Sub New(newText As SourceText, changes As TextChangeRange(), baseTreeRoot As SyntaxTree, options As VisualBasicParseOptions)
 
             MyBase.New(newText, options)
 
@@ -200,9 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             TryCrumbleOnce()
 
-            If _currentNode Is Nothing Then
-                Return  ' tree seems to be empty
-            End If
+            If _currentNode Is Nothing Then Return  ' tree seems to be empty
 
             _change = TextChangeRange.Collapse(changes)
 
@@ -217,21 +188,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Parser requires look ahead of some number of tokens
             ' beyond EOL and some number of characters back.
             ' Expand the change range to accomodate look ahead/behind.
-            Dim span = ExpandToNearestStatements(
-                _baseTreeRoot,
-                ExpandByLookAheadAndBehind(_baseTreeRoot, _change.Span))
+            Dim span = ExpandToNearestStatements( _baseTreeRoot, ExpandByLookAheadAndBehind(_baseTreeRoot, _change.Span))
             _affectedRange = New TextChangeRange(span, span.Length - _change.Span.Length + _change.NewLength)
         End Sub
 
         Private Function MapNewPositionToOldTree(position As Integer) As Integer
-            If position < _change.Span.Start Then
-                Return position
-            End If
-
-            If position >= _change.Span.Start + _change.NewLength Then
-                Return position - _change.NewLength + _change.Span.Length
-            End If
-
+            If position < _change.Span.Start Then Return position
+            If position >= _change.Span.Start + _change.NewLength Then  Return position - _change.NewLength + _change.Span.Length
             Return -1
         End Function
 
@@ -247,9 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _curNodeLength = node.FullWidth
 
                 ' move blender preprocessor state forward if possible
-                If _nextPreprocessorStateGetter.Valid Then
-                    _currentPreprocessorState = _nextPreprocessorStateGetter.State()
-                End If
+                If _nextPreprocessorStateGetter.Valid Then _currentPreprocessorState = _nextPreprocessorStateGetter.State()
 
                 _nextPreprocessorStateGetter = New NextPreprocessorStateGetter(_currentPreprocessorState, DirectCast(node, VisualBasicSyntaxNode))
 
@@ -265,23 +226,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Returns false if current node cannot be crumbled.
         ''' </summary>
         Friend Overrides Function TryCrumbleOnce() As Boolean
-            If _currentNode Is Nothing Then
-                Return False
-            End If
+            If _currentNode Is Nothing Then Return False
 
             If _currentNode.SlotCount = 0 Then
-                If Not _currentNode.ContainsStructuredTrivia Then
-                    ' terminal with no structured trivia is not interesting
-                    Return False
-                End If
-
+                If Not _currentNode.ContainsStructuredTrivia Then Return False ' terminal with no structured trivia is not interesting
                 ' try reusing structured trivia (in particular XML)
                 PushReverseTerminal(_nodeStack, DirectCast(_currentNode, SyntaxToken))
             Else
-                If Not ShouldCrumble(_currentNode) Then
-                    Return False
-                End If
-
+                If Not ShouldCrumble(_currentNode) Then Return False
                 PushReverseNonterminal(_nodeStack, _currentNode)
             End If
 
@@ -335,37 +287,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(_currentNode IsNot Nothing)
 
             Dim mappedPosition = MapNewPositionToOldTree(position)
-
-            If mappedPosition = -1 Then
-                Return Nothing
-            End If
-
+            If mappedPosition = -1 Then Return Nothing
             Do
                 ' too far ahead
-                If _curNodeStart > mappedPosition Then
-                    Return Nothing
-                End If
+                If _curNodeStart > mappedPosition Then Return Nothing
 
                 ' node ends before or on the mappedPosition
                 ' whole node is unusable, move to the next node
                 If (_curNodeStart + _curNodeLength) <= mappedPosition Then
-                    If TryPopNode() Then
-                        Continue Do
-                    Else
-                        Return Nothing
-                    End If
-                End If
-
-                If _curNodeStart = mappedPosition AndAlso CanReuseNode(_currentNode) Then
-                    ' have some node
-                    Exit Do
-                End If
-
-                ' current node spans the position or node is not usable
-                ' try crumbling and look through children
-                If Not TryCrumbleOnce() Then
+                    If TryPopNode() Then Continue Do
                     Return Nothing
                 End If
+
+                If _curNodeStart = mappedPosition AndAlso CanReuseNode(_currentNode) Then Exit Do ' have some node
+                ' current node spans the position or node is not usable
+                ' try crumbling and look through children
+                If Not TryCrumbleOnce() Then Return Nothing
             Loop
 
             ' zero-length nodes are ambiguous when given a particular position
@@ -379,18 +316,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overrides Function GetCurrentSyntaxNode() As VisualBasicSyntaxNode
             ' not going to get any nodes if there is no current node.
-            If _currentNode Is Nothing Then
-                Return Nothing
-            End If
+            If _currentNode Is Nothing Then Return Nothing
 
             ' node must start where the current token starts.
             Dim start = _currentToken.Position
 
             ' position is in affected range - no point trying.
             Dim range = New TextSpan(_affectedRange.Span.Start, _affectedRange.NewLength)
-            If range.Contains(start) Then
-                Return Nothing
-            End If
+            If range.Contains(start) Then Return Nothing
 
             Dim nonterminal = GetCurrentNode(start)
             Return nonterminal
@@ -401,58 +334,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The reasons for it not be usable are typically that it intersects affected range.
         ''' </summary>
         Private Function CanReuseNode(node As VisualBasicSyntaxNode) As Boolean
-            If node Is Nothing Then
-                Return False
-            End If
-
-            If node.SlotCount = 0 Then
-                Return False
-            End If
-
+            If node Is Nothing    Then Return False
+            If node.SlotCount = 0 Then Return False
             ' TODO: This is a temporary measure to get around contextual errors.
             ' The problem is that some errors are contextual, but get attached to inner nodes.
             ' as a result in a case when an edit changes the context the error may be invalidated
             ' but since the node with actual error did not change the error will stay.
-            If node.ContainsDiagnostics Then
-                Return False
-            End If
-
+            If node.ContainsDiagnostics Then Return False
             ' As of 2013/03/14, the compiler never attempts to incrementally parse a tree containing
             ' annotations.  Our goal in instituting this restriction is to prevent API clients from
             ' taking a depedency on the survival of annotations.
-            If node.ContainsAnnotations Then
-                Return False
-            End If
+            If node.ContainsAnnotations Then Return False
 
             ' If the node is an If statement, we need to determine whether it is a
             ' single-line or multi-line If. That requires the scanner to be positioned
             ' correctly relative to the end of line terminator if any, and currently we
             ' do not guarantee that. (See bug #16557.) For now, for simplicity, we
             ' do not reuse If statements.
-            If node.Kind = SyntaxKind.IfStatement Then
-                Return False
-            End If
+            If node.Kind = SyntaxKind.IfStatement Then Return False
 
             Dim _curNodeSpan = New TextSpan(_curNodeStart, _curNodeLength)
             ' TextSpan.OverlapsWith does not handle empty spans so
             ' empty spans need to be handled explicitly.
             Debug.Assert(_curNodeSpan.Length > 0)
             If _affectedRange.Span.Length = 0 Then
-                If _curNodeSpan.Contains(_affectedRange.Span.Start) Then
-                    Return False
-                End If
+                If _curNodeSpan.Contains(_affectedRange.Span.Start) Then Return False 
             Else
-                If _curNodeSpan.OverlapsWith(_affectedRange.Span) Then
-                    Return False
-                End If
+                If _curNodeSpan.OverlapsWith(_affectedRange.Span) Then Return False
             End If
 
             ' we cannot use nodes that contain directives since we need to process
             ' directives individually.
             ' We however can use individual directives.
-            If node.ContainsDirectives AndAlso Not TypeOf node Is DirectiveTriviaSyntax Then
-                Return _scannerPreprocessorState.IsEquivalentTo(_currentPreprocessorState)
-            End If
+            If node.ContainsDirectives AndAlso Not TypeOf node Is DirectiveTriviaSyntax Then Return _scannerPreprocessorState.IsEquivalentTo(_currentPreprocessorState)
 
             ' sometimes nodes contain linebreaks in leading trivia
             ' if we are in VBAllowLeadingMultilineTrivia state (common case), it is ok.
@@ -463,9 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            If _currentNode.IsMissing Then
-                Return Nothing
-            End If
+            If _currentNode.IsMissing Then Return Nothing
 
             Return True
         End Function
@@ -473,16 +385,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ContainsLeadingLineBreaks(node As VisualBasicSyntaxNode) As Boolean
             Dim lt = node.GetLeadingTrivia
             If lt IsNot Nothing Then
-                If lt.Kind = SyntaxKind.EndOfLineTrivia Then
-                    Return True
-                End If
+                If lt.Kind = SyntaxKind.EndOfLineTrivia Then Return True
 
                 Dim asList = TryCast(lt, SyntaxList)
                 If asList IsNot Nothing Then
                     For i As Integer = 0 To asList.SlotCount - 1
-                        If lt.GetSlot(i).RawKind = SyntaxKind.EndOfLineTrivia Then
-                            Return True
-                        End If
+                        If lt.GetSlot(i).RawKind = SyntaxKind.EndOfLineTrivia Then Return True
                     Next
                 End If
             End If
@@ -491,9 +399,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Overrides Sub MoveToNextSyntaxNode()
-            If _currentNode Is Nothing Then
-                Return
-            End If
+            If _currentNode Is Nothing Then Return
+
 
             Debug.Assert(CanReuseNode(_currentNode), "this node could not have been used.")
             Debug.Assert(_nextPreprocessorStateGetter.Valid, "we should have _nextPreprocessorState")
@@ -528,9 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Friend Overrides Sub MoveToNextSyntaxNodeInTrivia()
-            If _currentNode Is Nothing Then
-                Return
-            End If
+            If _currentNode Is Nothing Then Return
 
             Debug.Assert(CanReuseNode(_currentNode), "this node could not have been used.")
 
@@ -563,10 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Public Function State() As PreprocessorState
-                If _nextState Is Nothing Then
-                    _nextState = ApplyDirectives(Me._state, Me._node)
-                End If
-
+                If _nextState Is Nothing Then  _nextState = ApplyDirectives(Me._state, Me._node)
                 Return _nextState
             End Function
         End Structure

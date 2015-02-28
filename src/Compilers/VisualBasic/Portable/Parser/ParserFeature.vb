@@ -51,30 +51,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension>
         Friend Function GetResourceId(feature As Feature) As ERRID
             Select Case feature
-                Case Feature.AutoProperties
-                    Return ERRID.FEATURE_AutoProperties
-                Case Feature.LineContinuation
-                    Return ERRID.FEATURE_LineContinuation
-                Case Feature.StatementLambdas
-                    Return ERRID.FEATURE_StatementLambdas
-                Case Feature.CoContraVariance
-                    Return ERRID.FEATURE_CoContraVariance
-                Case Feature.CollectionInitializers
-                    Return ERRID.FEATURE_CollectionInitializers
-                Case Feature.SubLambdas
-                    Return ERRID.FEATURE_SubLambdas
-                Case Feature.ArrayLiterals
-                    Return ERRID.FEATURE_ArrayLiterals
-                Case Feature.AsyncExpressions
-                    Return ERRID.FEATURE_AsyncExpressions
-                Case Feature.Iterators
-                    Return ERRID.FEATURE_Iterators
-                Case Feature.GlobalNamespace
-                    Return ERRID.FEATURE_GlobalNamespace
-                Case Feature.NullPropagatingOperator
-                    Return ERRID.FEATURE_NullPropagatingOperator
-                Case Feature.NameOfExpressions
-                    Return ERRID.FEATURE_NameOfExpressions
+                Case Feature.AutoProperties          : Return ERRID.FEATURE_AutoProperties
+                Case Feature.LineContinuation        : Return ERRID.FEATURE_LineContinuation
+                Case Feature.StatementLambdas        : Return ERRID.FEATURE_StatementLambdas
+                Case Feature.CoContraVariance        : Return ERRID.FEATURE_CoContraVariance
+                Case Feature.CollectionInitializers  : Return ERRID.FEATURE_CollectionInitializers
+                Case Feature.SubLambdas              : Return ERRID.FEATURE_SubLambdas
+                Case Feature.ArrayLiterals           : Return ERRID.FEATURE_ArrayLiterals
+                Case Feature.AsyncExpressions        : Return ERRID.FEATURE_AsyncExpressions
+                Case Feature.Iterators               : Return ERRID.FEATURE_Iterators
+                Case Feature.GlobalNamespace         : Return ERRID.FEATURE_GlobalNamespace
+                Case Feature.NullPropagatingOperator : Return ERRID.FEATURE_NullPropagatingOperator
+                Case Feature.NameOfExpressions       : Return ERRID.FEATURE_NameOfExpressions
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

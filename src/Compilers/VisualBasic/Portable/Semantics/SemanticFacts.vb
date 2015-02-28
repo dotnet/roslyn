@@ -37,13 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As NamedTypeSymbol,
                                                   Optional throughTypeOpt As NamedTypeSymbol = Nothing) As Boolean
-            If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
-            End If
-
-            If within Is Nothing Then
-                Throw New ArgumentNullException("within")
-            End If
+            If symbol Is Nothing Then Throw New ArgumentNullException("symbol")
+            If within Is Nothing Then Throw New ArgumentNullException("within")
 
             Return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, useSiteDiagnostics:=Nothing)
         End Function
@@ -57,14 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>True if symbol is acessible. False otherwise.</returns>
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As AssemblySymbol) As Boolean
-            If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
-            End If
-
-            If within Is Nothing Then
-                Throw New ArgumentNullException("within")
-            End If
-
+            If symbol Is Nothing Then Throw New ArgumentNullException("symbol")
+            If within Is Nothing Then Throw New ArgumentNullException("within")
             Return AccessCheck.IsSymbolAccessible(symbol, within, useSiteDiagnostics:=Nothing)
         End Function
 

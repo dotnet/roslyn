@@ -28,14 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
         Friend Function HexToUTF16(pwcText As StringBuilder) As Scanner.XmlCharResult
             Debug.Assert(pwcText IsNot Nothing)
-
             Dim ulCode As UInteger
-            If TryHexToUnicode(pwcText, ulCode) Then
-
-                If ValidateXmlChar(ulCode) Then
-                    Return UnicodeToUTF16(ulCode)
-                End If
-            End If
+            If TryHexToUnicode(pwcText, ulCode) AndAlso ValidateXmlChar(ulCode) Then Return UnicodeToUTF16(ulCode)
             Return Nothing
         End Function
 
@@ -49,26 +43,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             For i = 0 To n
 
                 wch = pwcText(i)
-
-                If XmlCharType.InRange(wch, "0"c, "9"c) Then
-                    ulCode = (ulCode * 16UI) + CUInt(AscW(wch)) - CUInt(AscW("0"c))
-
-                ElseIf XmlCharType.InRange(wch, "a"c, "f"c) Then
-                    ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(AscW("a"c))
-
-                ElseIf XmlCharType.InRange(wch, "A"c, "F"c) Then
-                    ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(AscW("A"c))
-                Else
-                    Return False
-                End If
-
-                If ulCode > &H10FFFF Then
-                    ' // overflow
-                    Return False
-                End If
-
+                Select Case True
+                    Case XmlCharType.InRange(wch, "0"c, "9"c) : ulCode = (ulCode * 16UI) + CUInt(AscW(wch)) - CUInt(AscW("0"c))
+                    Case XmlCharType.InRange(wch, "a"c, "f"c) : ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(AscW("a"c))
+                    Case XmlCharType.InRange(wch, "A"c, "F"c) : ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(AscW("A"c))
+                    Case Else
+                        Return False
+                End Select
+                If ulCode > &H10FFFF Then Return False ' // overflow
             Next
-
             pulCode = CUInt(ulCode)
             Return True
         End Function
@@ -76,19 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function DecToUTF16(pwcText As StringBuilder) As Scanner.XmlCharResult
             Debug.Assert(pwcText IsNot Nothing)
             Dim ulCode As UShort
-
-            If TryDecToUnicode(pwcText, ulCode) Then
-                If ValidateXmlChar(ulCode) Then
-                    Return UnicodeToUTF16(ulCode)
-                End If
-            End If
+            If TryDecToUnicode(pwcText, ulCode) AndAlso ValidateXmlChar(ulCode) Then Return UnicodeToUTF16(ulCode)
             Return Nothing
         End Function
 
-        Friend Function TryDecToUnicode(
-            pwcText As StringBuilder,
-            ByRef pulCode As UShort
-        ) As Boolean
+        Friend Function TryDecToUnicode( pwcText As StringBuilder, ByRef pulCode As UShort ) As Boolean
             Debug.Assert(pwcText IsNot Nothing)
 
             Dim ulCode As Integer = 0
@@ -96,20 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim n = pwcText.Length - 1
             For i = 0 To n
-
                 wch = pwcText(i)
-
-                If XmlCharType.InRange(wch, "0"c, "9"c) Then
-                    ulCode = (ulCode * 10) + AscW(wch) - AscW("0"c)
-                Else
-                    Return False
-                End If
-
-                If ulCode > &H10FFFF Then
-                    ' // overflow
-
-                    Return False
-                End If
+                If Not XmlCharType.InRange(wch, "0"c, "9"c) Then Return False
+                ulCode = (ulCode * 10) + AscW(wch) - AscW("0"c)
+                If ulCode > &H10FFFF Then Return False' // overflow
             Next
 
             pulCode = CUShort(ulCode)
@@ -128,15 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function UnicodeToUTF16(ulCode As UInteger) As Scanner.XmlCharResult
-            If ulCode > &HFFFF Then
-
-                Return New Scanner.XmlCharResult( _
-                    Convert.ToChar(&HD7C0US + (ulCode >> 10US)), _
-                    Convert.ToChar(&HDC00US Or (ulCode And &H3FFUS)) _
-                    )
-            Else
-                Return New Scanner.XmlCharResult(Convert.ToChar(ulCode))
-            End If
+            If ulCode <= &HFFFF Then Return New Scanner.XmlCharResult(Convert.ToChar(ulCode))
+            Return New Scanner.XmlCharResult(Convert.ToChar(&HD7C0US + (ulCode >> 10US)), Convert.ToChar(&HDC00US Or (ulCode And &H3FFUS)) )
         End Function
 
         Friend Function UTF16ToUnicode(ch As Scanner.XmlCharResult) As Integer

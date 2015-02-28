@@ -37,16 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="symbols">An ImmutableArray of KeyValue pairs representing existing symbols.</param>
         ''' <returns>Array of symbols that include VBC_VER and TARGET.</returns>
         Public Function AddPredefinedPreprocessorSymbols(kind As OutputKind, symbols As ImmutableArray(Of KeyValuePair(Of String, Object))) As ImmutableArray(Of KeyValuePair(Of String, Object))
-            If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException("kind")
-            End If
+            If Not kind.IsValid Then Throw New ArgumentOutOfRangeException("kind")
 
             Const CompilerVersionSymbol = "VBC_VER"
             Const TargetSymbol = "TARGET"
 
-            If symbols.IsDefault Then
-                symbols = ImmutableArray(Of KeyValuePair(Of String, Object)).Empty
-            End If
+            If symbols.IsDefault Then symbols = ImmutableArray(Of KeyValuePair(Of String, Object)).Empty
 
             If symbols.FirstOrDefault(Function(entry) IdentifierComparison.Equals(entry.Key, CompilerVersionSymbol)).Key Is Nothing Then
                 ' This number should always line up with the current version of the compilerString
@@ -62,24 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function GetTargetString(kind As OutputKind) As String
             Select Case kind
-                Case OutputKind.ConsoleApplication
-                    Return "exe"
-
-                Case OutputKind.DynamicallyLinkedLibrary
-                    Return "library"
-
-                Case OutputKind.NetModule
-                    Return "module"
-
-                Case OutputKind.WindowsApplication
-                    Return "winexe"
-
-                Case OutputKind.WindowsRuntimeApplication
-                    Return "appcontainerexe"
-
-                Case OutputKind.WindowsRuntimeMetadata
-                    Return "winmdobj"
-
+                Case OutputKind.ConsoleApplication : Return "exe"
+                Case OutputKind.DynamicallyLinkedLibrary  : Return "library"
+                Case OutputKind.NetModule                 : Return "module"
+                Case OutputKind.WindowsApplication        : Return "winexe"
+                Case OutputKind.WindowsRuntimeApplication : Return "appcontainerexe"
+                Case OutputKind.WindowsRuntimeMetadata    : Return "winmdobj"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
             End Select

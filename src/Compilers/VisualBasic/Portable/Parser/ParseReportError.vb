@@ -113,14 +113,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As SyntaxList(Of AttributeListSyntax), modifiers As SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
-            If modifiers.Any Then
-                keyword = keyword.AddLeadingSyntax(modifiers.Node, errorId)
-            End If
-
-            If attributes.Any Then
-                keyword = keyword.AddLeadingSyntax(attributes.Node, errorId)
-            End If
-
+            If  modifiers.Any Then keyword = keyword.AddLeadingSyntax(modifiers.Node, errorId)
+            If attributes.Any Then keyword = keyword.AddLeadingSyntax(attributes.Node, errorId)
             Return keyword
         End Function
 
@@ -142,12 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' // A FEATUREID_* constant defined in errors.inc
         ' // the string for the version that /LangVersion is targeting
         ' .Parser::ReportSyntaxErrorForLanguageFeature( [ unsigned Errid ] [ _In_ Token* Start ] [ unsigned Feature ] [ _In_opt_z_ const WCHAR* wszVersion ] )
-        Private Sub ReportSyntaxErrorForLanguageFeature(
-            Errid As ERRID,
-            Start As SyntaxToken,
-            Feature As UInteger,
-            wszVersion As String
-        )
+        Private Sub ReportSyntaxErrorForLanguageFeature( Errid As ERRID, Start As SyntaxToken, Feature As UInteger, wszVersion As String)
 #If UNDONE Then 'davidsch
             m_ErrorCount += 1
 

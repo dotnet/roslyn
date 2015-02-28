@@ -208,11 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetLocation(syntaxReference As SyntaxReference) As Location
             Dim tree = TryCast(syntaxReference.SyntaxTree, VisualBasicSyntaxTree)
             If syntaxReference.SyntaxTree IsNot Nothing Then
-                If tree.IsEmbeddedSyntaxTree Then
-                    Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, syntaxReference.Span)
-                ElseIf tree.IsMyTemplate Then
-                    Return New MyTemplateLocation(tree, syntaxReference.Span)
-                End If
+                If tree.IsEmbeddedSyntaxTree Then Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, syntaxReference.Span)
+                If tree.IsMyTemplate Then Return New MyTemplateLocation(tree, syntaxReference.Span)
             End If
             Return New SourceLocation(syntaxReference)
         End Function

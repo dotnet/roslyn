@@ -945,6 +945,7 @@
     <Compile Include="VisualBasicCompilationOptions.vb" />
     <Compile Include="VisualBasicExtensions.vb" />
     <Compile Include="VisualBasicParseOptions.vb" />
+    <Compile Include="_Exts\Char.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\VbCoreSourceText.vb" />
