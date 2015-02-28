@@ -33,7 +33,7 @@ namespace AsyncPackage
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
-       
+
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var method = context.SemanticModel.GetEnclosingSymbol(context.Node.SpanStart) as IMethodSymbol;

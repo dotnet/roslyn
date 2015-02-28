@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
         public DiagnosticIncrementalAnalyzer(
-            DiagnosticAnalyzerService owner,
-            int correlationId,
-            Workspace workspace,
+            DiagnosticAnalyzerService owner, 
+            int correlationId, 
+            Workspace workspace, 
             HostAnalyzerManager analyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(workspace, hostDiagnosticUpdateSource)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _memberRangeMap = new MemberRangeMap();
             _executor = new AnalyzerExecutor(this);
             _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
-
+            
             _stateManger = new StateManager(analyzerManager);
             _stateManger.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-
+                
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
                     bool supportsSemanticInSpan;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 bool openedDocument = document.IsOpen();
-
+                
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
                     if (userDiagnosticDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-
+                
                 var versions = new VersionArgument(VersionStamp.Default, semanticVersion, projectVersion);
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(project))
                 {
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             _stateManger.RemoveStateSet(projectId);
-        }
+            }
 
         public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // Share the diagnostic analyzer driver across all analyzers.
                 var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-
+                
                 foreach (var stateSet in _stateManger.GetOrCreateStateSets(document.Project))
                 {
                     bool supportsSemanticInSpan;
@@ -494,18 +494,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // but this shouldn't create analyzer that doesnt belong to this project (language)
                 var state = stateSet.GetState(stateType);
 
-                // see whether we can use existing info
-                var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
-                if (existingData != null && versionCheck(existingData.TextVersion, existingData.DataVersion))
-                {
-                    if (existingData.Items == null)
+                    // see whether we can use existing info
+                    var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (existingData != null && versionCheck(existingData.TextVersion, existingData.DataVersion))
                     {
+                        if (existingData.Items == null)
+                        {
+                            return true;
+                        }
+
+                        diagnostics.AddRange(existingData.Items.Where(shouldInclude));
                         return true;
                     }
-
-                    diagnostics.AddRange(existingData.Items.Where(shouldInclude));
-                    return true;
-                }
 
                 // check whether we want up-to-date document wide diagnostics
                 if (stateType == StateType.Document && !supportsSemanticInSpan && !requireUpToDateDocumentDiagnostic)

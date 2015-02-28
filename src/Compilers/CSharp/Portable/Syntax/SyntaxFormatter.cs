@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             // get next token, skipping zero width tokens except for end-of-directive tokens
             var nextToken = token.GetNextToken(
-                t => SyntaxToken.NonZeroWidth(t) || t.Kind() == SyntaxKind.EndOfDirectiveToken, 
+                t => SyntaxToken.NonZeroWidth(t) || t.Kind() == SyntaxKind.EndOfDirectiveToken,
                 t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
 
             if (_consideredSpan.Contains(nextToken.FullSpan))

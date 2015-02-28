@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private GlobalSuppressions _lazyGlobalSuppressions;
         private ConcurrentDictionary<ISymbol, ImmutableArray<string>> _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableArray<string>>();
         private ISymbol _lazySuppressMessageAttribute;
-        
+
         private class GlobalSuppressions
         {
             private readonly HashSet<string> _compilationWideSuppressions = new HashSet<string>();

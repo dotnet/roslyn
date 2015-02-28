@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,52 +24,52 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private static readonly Stopwatch stopwatch;
+        private static readonly Stopwatch s_stopwatch;
 
-        private readonly InteractiveWindow window;
-        private readonly DispatcherTimer timer;
-        private readonly object mutex;
+        private readonly InteractiveWindow _window;
+        private readonly DispatcherTimer _timer;
+        private readonly object _mutex;
 
-        private Entry firstEntry;
-        private Entry lastEntry;
+        private Entry _firstEntry;
+        private Entry _lastEntry;
 
-        private long lastFlushTimeMilliseconds;
+        private long _lastFlushTimeMilliseconds;
 
         // the number of characters written to the buffer that trigger an auto-flush
-        private int flushThreshold;
+        private int _flushThreshold;
 
         // the number of characters written to the buffer that haven't been flushed yet
-        private int unflushedLength;
+        private int _unflushedLength;
 
         // the number of characters written to the output (doesn't reset on flush)
-        private int totalLength;
+        private int _totalLength;
 
         private const int InitialFlushThreshold = 1024;
         private const int AutoFlushMilliseconds = 100;
 
         static OutputBuffer()
         {
-            stopwatch = new Stopwatch();
-            stopwatch.Start();
+            s_stopwatch = new Stopwatch();
+            s_stopwatch.Start();
         }
 
         public OutputBuffer(InteractiveWindow window)
         {
             Reset();
 
-            this.mutex = new object();
-            this.window = window;
+            _mutex = new object();
+            _window = window;
 
-            this.timer = new DispatcherTimer();
-            this.timer.Tick += (sender, args) => Flush();
-            this.timer.Interval = TimeSpan.FromMilliseconds(AutoFlushMilliseconds);
+            _timer = new DispatcherTimer();
+            _timer.Tick += (sender, args) => Flush();
+            _timer.Interval = TimeSpan.FromMilliseconds(AutoFlushMilliseconds);
         }
 
         internal void Reset()
         {
-            firstEntry = lastEntry = null;
-            totalLength = unflushedLength = 0;
-            flushThreshold = InitialFlushThreshold;
+            _firstEntry = _lastEntry = null;
+            _totalLength = _unflushedLength = 0;
+            _flushThreshold = InitialFlushThreshold;
         }
 
         /// <summary>
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <returns>Returns the position where this text is inserted relative to the buffer start.</returns>
         public int Write(string text)
         {
-            int result = totalLength;
+            int result = _totalLength;
 
             if (string.IsNullOrEmpty(text))
             {
@@ -85,14 +87,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             bool needsFlush = false;
-            lock (mutex)
+            lock (_mutex)
             {
                 AddEntry(text);
 
-                needsFlush = unflushedLength > flushThreshold;
-                if (!needsFlush && !timer.IsEnabled)
+                needsFlush = _unflushedLength > _flushThreshold;
+                if (!needsFlush && !_timer.IsEnabled)
                 {
-                    timer.IsEnabled = true;
+                    _timer.IsEnabled = true;
                 }
             }
 
@@ -112,41 +114,41 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Entry firstEntryToFlush = null;
             int flushLength = 0;
 
-            lock (mutex)
+            lock (_mutex)
             {
                 // if we're rapidly outputting grow the threshold
-                long curTime = stopwatch.ElapsedMilliseconds;
-                if (curTime - lastFlushTimeMilliseconds < 1000)
+                long curTime = s_stopwatch.ElapsedMilliseconds;
+                if (curTime - _lastFlushTimeMilliseconds < 1000)
                 {
-                    if (flushThreshold < 1024 * 1024)
+                    if (_flushThreshold < 1024 * 1024)
                     {
-                        flushThreshold *= 2;
+                        _flushThreshold *= 2;
                     }
                 }
 
-                lastFlushTimeMilliseconds = stopwatch.ElapsedMilliseconds;
+                _lastFlushTimeMilliseconds = s_stopwatch.ElapsedMilliseconds;
 
-                if (unflushedLength > 0)
+                if (_unflushedLength > 0)
                 {
                     // normalize line breaks - the editor isn't happy about projections that cut "\r\n" line break in half:
-                    if (lastEntry.Text[lastEntry.Text.Length - 1] == '\r')
+                    if (_lastEntry.Text[_lastEntry.Text.Length - 1] == '\r')
                     {
                         AddEntry("\n");
                     }
 
-                    firstEntryToFlush = firstEntry;
-                    flushLength = unflushedLength;
+                    firstEntryToFlush = _firstEntry;
+                    flushLength = _unflushedLength;
 
-                    firstEntry = lastEntry = null;
-                    unflushedLength = 0;
+                    _firstEntry = _lastEntry = null;
+                    _unflushedLength = 0;
                 }
 
-                timer.IsEnabled = false;
+                _timer.IsEnabled = false;
             }
 
             if (firstEntryToFlush != null)
             {
-                window.UIThread(() => window.AppendOutput(GetEntries(firstEntryToFlush), flushLength));
+                _window.UIThread(() => _window.AppendOutput(GetEntries(firstEntryToFlush), flushLength));
             }
         }
 
@@ -154,18 +156,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             var entry = new Entry(text);
 
-            if (firstEntry == null)
+            if (_firstEntry == null)
             {
-                firstEntry = lastEntry = entry;
+                _firstEntry = _lastEntry = entry;
             }
             else
             {
-                lastEntry.Next = entry;
-                lastEntry = entry;
+                _lastEntry.Next = entry;
+                _lastEntry = entry;
             }
 
-            totalLength += text.Length;
-            unflushedLength += text.Length;
+            _totalLength += text.Length;
+            _unflushedLength += text.Length;
         }
 
         private IEnumerable<string> GetEntries(Entry entry)
@@ -179,7 +181,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public void Dispose()
         {
-            timer.IsEnabled = false;
+            _timer.IsEnabled = false;
         }
     }
 }

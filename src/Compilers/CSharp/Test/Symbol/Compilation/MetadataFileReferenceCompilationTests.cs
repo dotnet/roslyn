@@ -1,4 +1,6 @@
-﻿#pragma warning disable CS0618 // MetadataFileReference to be removed
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#pragma warning disable CS0618 // MetadataFileReference to be removed
 using System;
 using System.Collections.Immutable;
 using System.IO;

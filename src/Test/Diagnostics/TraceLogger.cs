@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         public static readonly TraceLogger Instance = new TraceLogger();
 
-        private readonly Func<FunctionId, bool> loggingChecker;
+        private readonly Func<FunctionId, bool> _loggingChecker;
 
         public TraceLogger()
             : this((Func<FunctionId, bool>)null)
@@ -27,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public TraceLogger(Func<FunctionId, bool> loggingChecker)
         {
-            this.loggingChecker = loggingChecker;
+            _loggingChecker = loggingChecker;
         }
 
         public bool IsEnabled(FunctionId functionId)
         {
-            return this.loggingChecker == null || this.loggingChecker(functionId);
+            return _loggingChecker == null || _loggingChecker(functionId);
         }
 
         public void Log(FunctionId functionId, LogMessage logMessage)

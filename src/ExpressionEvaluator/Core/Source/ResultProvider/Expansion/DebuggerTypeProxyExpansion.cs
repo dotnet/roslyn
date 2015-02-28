@@ -82,17 +82,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return null;
         }
 
-        private readonly EvalResultDataItem proxyItem;
-        private readonly string name;
-        private readonly Type typeDeclaringMemberOpt;
+        private readonly EvalResultDataItem _proxyItem;
+        private readonly string _name;
+        private readonly Type _typeDeclaringMemberOpt;
         private readonly Type _declaredType;
-        private readonly DkmClrValue value;
-        private readonly bool childShouldParenthesize;
-        private readonly string fullName;
-        private readonly string childFullNamePrefix;
-        private readonly ReadOnlyCollection<string> formatSpecifiers;
-        private readonly DkmEvaluationResultFlags flags;
-        private readonly string editableValue;
+        private readonly DkmClrValue _value;
+        private readonly bool _childShouldParenthesize;
+        private readonly string _fullName;
+        private readonly string _childFullNamePrefix;
+        private readonly ReadOnlyCollection<string> _formatSpecifiers;
+        private readonly DkmEvaluationResultFlags _flags;
+        private readonly string _editableValue;
 
         private DebuggerTypeProxyExpansion(
             DkmInspectionContext inspectionContext,
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var proxyMemberFullNamePrefix = (childFullNamePrefix == null) ?
                     null :
                     formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), childFullNamePrefix);
-                this.proxyItem = new EvalResultDataItem(
+                _proxyItem = new EvalResultDataItem(
                     ExpansionKind.Default,
                     name: string.Empty,
                     typeDeclaringMember: null,
@@ -142,16 +142,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     inspectionContext: inspectionContext);
             }
 
-            this.name = name;
-            this.typeDeclaringMemberOpt = typeDeclaringMemberOpt;
+            _name = name;
+            _typeDeclaringMemberOpt = typeDeclaringMemberOpt;
             _declaredType = declaredType;
-            this.value = value;
-            this.childShouldParenthesize = childShouldParenthesize;
-            this.fullName = fullName;
-            this.childFullNamePrefix = childFullNamePrefix;
-            this.formatSpecifiers = formatSpecifiers;
-            this.flags = flags;
-            this.editableValue = editableValue;
+            _value = value;
+            _childShouldParenthesize = childShouldParenthesize;
+            _fullName = fullName;
+            _childFullNamePrefix = childFullNamePrefix;
+            _formatSpecifiers = formatSpecifiers;
+            _flags = flags;
+            _editableValue = editableValue;
         }
 
         internal override void GetRows(
@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
-            if (this.proxyItem != null)
+            if (_proxyItem != null)
             {
-                this.proxyItem.Expansion.GetRows(resultProvider, rows, inspectionContext, this.proxyItem, this.proxyItem.Value, startIndex, count, visitAll, ref index);
+                _proxyItem.Expansion.GetRows(resultProvider, rows, inspectionContext, _proxyItem, _proxyItem.Value, startIndex, count, visitAll, ref index);
             }
 
             if (InRange(startIndex, count, index))
@@ -184,20 +184,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return new EvalResultDataItem(
                 ExpansionKind.RawView,
-                this.name,
-                this.typeDeclaringMemberOpt,
+                _name,
+                _typeDeclaringMemberOpt,
                 _declaredType,
                 parent: null,
-                value: this.value,
+                value: _value,
                 displayValue: null,
-                expansion: CreateRawView(resultProvider, inspectionContext, _declaredType, this.value),
-                childShouldParenthesize: this.childShouldParenthesize,
-                fullName: this.fullName,
-                childFullNamePrefixOpt: this.childFullNamePrefix,
-                formatSpecifiers: Formatter.AddFormatSpecifier(this.formatSpecifiers, "raw"),
+                expansion: CreateRawView(resultProvider, inspectionContext, _declaredType, _value),
+                childShouldParenthesize: _childShouldParenthesize,
+                fullName: _fullName,
+                childFullNamePrefixOpt: _childFullNamePrefix,
+                formatSpecifiers: Formatter.AddFormatSpecifier(_formatSpecifiers, "raw"),
                 category: DkmEvaluationResultCategory.Data,
-                flags: this.flags | DkmEvaluationResultFlags.ReadOnly,
-                editableValue: this.editableValue,
+                flags: _flags | DkmEvaluationResultFlags.ReadOnly,
+                editableValue: _editableValue,
                 inspectionContext: inspectionContext);
         }
 

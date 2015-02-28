@@ -395,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
 
         private void GetLiveProjectAndDocumentErrors(
-            out IDictionary<ProjectId, IList<DiagnosticData>> projectErrors, 
+            out IDictionary<ProjectId, IList<DiagnosticData>> projectErrors,
             out IDictionary<DocumentId, IList<DiagnosticData>> documentErrors)
         {
             projectErrors = null;

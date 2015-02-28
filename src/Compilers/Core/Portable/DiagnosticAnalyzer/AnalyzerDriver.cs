@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CancellationTokenRegistration _queueRegistration;
         protected readonly AnalyzerManager analyzerManager;
-        
+
         // Lazy fields initialized in Initialize() API
         private Compilation _compilation;
         protected AnalyzerExecutor analyzerExecutor;
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(
-            Compilation compilation, 
-            ImmutableArray<DiagnosticAnalyzer> analyzers, 
-            AnalyzerOptions options, 
-            AnalyzerManager analyzerManager, 
-            Action<Diagnostic> addExceptionDiagnostic, 
-            out Compilation newCompilation, 
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerOptions options,
+            AnalyzerManager analyzerManager,
+            Action<Diagnostic> addExceptionDiagnostic,
+            out Compilation newCompilation,
             CancellationToken cancellationToken)
         {
             if (compilation == null)
@@ -177,12 +177,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing purposes
         internal static AnalyzerDriver Create(
             Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers, 
-            AnalyzerOptions options, 
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerOptions options,
             AnalyzerManager analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
-            out Compilation newCompilation, 
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
+            out Compilation newCompilation,
+            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             options = options ?? AnalyzerOptions.Empty;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 GetDiagnosticSinkWithSuppression(addExceptionDiagnostic, newCompilation) :
                 addDiagnostic;
             var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
-            
+
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
             return analyzerDriver;
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzerExecutor.ExecuteSemanticModelActions(analyzerAndActions.Value, semanticModel);
                     }, cancellationToken);
 
-                    tasks.Add(task); 
+                    tasks.Add(task);
                 }
 
                 return Task.WhenAll(tasks.ToArrayAndFree());
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             return;
                         }
-                        
+
                         break;
                     }
 
