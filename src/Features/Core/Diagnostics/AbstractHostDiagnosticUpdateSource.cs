@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
-            var id = WorkspaceAnalyzerManager.GetUniqueIdForAnalyzer(analyzer);
+            var id = analyzer.GetUniqueId();
 
             return new DiagnosticsUpdatedArgs(
                 id: Tuple.Create(this, id, project?.Id),

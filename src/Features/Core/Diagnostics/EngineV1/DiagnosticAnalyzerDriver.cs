@@ -339,19 +339,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerHelper.GetAddExceptionDiagnosticDelegate(analyzer, _hostDiagnosticUpdateSource, _project);
+            return analyzer.GetAddExceptionDiagnosticDelegate(_hostDiagnosticUpdateSource, _project);
         }
 
         private AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
             // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            return AnalyzerHelper.GetAnalyzerExecutorForSupportedDiagnostics(analyzer, _hostDiagnosticUpdateSource, CatchAnalyzerException_NoTelemetryLogging, _cancellationToken);
+            return analyzer.GetAnalyzerExecutorForSupportedDiagnostics(_hostDiagnosticUpdateSource, CatchAnalyzerException_NoTelemetryLogging, _cancellationToken);
         }
 
         private AnalyzerExecutor GetAnalyzerExecutor(DiagnosticAnalyzer analyzer, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
-            return AnalyzerHelper.GetAnalyzerExecutor(analyzer, _hostDiagnosticUpdateSource, _project,
+            return analyzer.GetAnalyzerExecutor(_hostDiagnosticUpdateSource, _project,
                 compilation, addDiagnostic, _analyzerOptions, CatchAnalyzerException, _cancellationToken);
         }
 
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return false;
             }
 
-            if (AnalyzerHelper.IsBuiltInAnalyzer(analyzer))
+            if (analyzer.IsBuiltInAnalyzer())
             {
                 return FatalError.ReportWithoutCrashUnlessCanceled(e);
             }
