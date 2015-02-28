@@ -1108,8 +1108,7 @@ End Class
         [Fact]
         public void SuppressDuplicateAnalyzerExceptionDiagnostics()
         {
-            var expected = Diagnostic("AD0001", null).WithLocation(1, 1);
-            expected = WithArguments(expected, "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer", "ThrowExceptionAnalyzer exception");
+            var exceptionDiagnostics = new HashSet<Diagnostic>();
 
             VerifyCSharp(@"
 public class C
@@ -1123,16 +1122,13 @@ public class C2
 }
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
-                DiagnosticExtensions.CatchAndIgnoreAnalyzerException,
-                expected);
+                onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
+
+            exceptionDiagnostics.Verify(
+                Diagnostic("AD0001", null).WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer", "ThrowExceptionAnalyzer exception").WithLocation(1, 1));
         }
 
         #endregion
-
-        protected virtual DiagnosticDescription WithArguments(DiagnosticDescription d, params string[] arguments)
-        {
-            return d.WithArguments(arguments);
-        }
 
         protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
@@ -1142,6 +1138,11 @@ public class C2
         protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
         {
             Verify(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException);
+        }
+
+        protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionsAsDiagnostics, params DiagnosticDescription[] diagnostics)
+        {
+            Verify(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionsAsDiagnostics);
         }
 
         protected void VerifyTokenDiagnosticsCSharp(string markup, params DiagnosticDescription[] diagnostics)
@@ -1165,16 +1166,21 @@ public class C2
             Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException);
         }
 
+        protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionAsDiagnostics, params DiagnosticDescription[] diagnostics)
+        {
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
+        }
+
         protected void VerifyTokenDiagnosticsBasic(string markup, params DiagnosticDescription[] diagnostics)
         {
             VerifyTokenDiagnostics(markup, LanguageNames.VisualBasic, diagnostics);
         }
 
-        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, string rootNamespace = null)
+        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, string rootNamespace = null)
         {
             Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
             var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
-            compilation.VerifyAnalyzerDiagnostics(analyzers, onAnalyzerException: onAnalyzerException, expected: diagnostics);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics, expected: diagnostics);
         }
 
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed

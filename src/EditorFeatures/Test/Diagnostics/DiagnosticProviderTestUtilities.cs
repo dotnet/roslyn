@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzer = analyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
 
             // If the test is not configured with a custom onAnalyzerException handler AND has not requested exceptions to be handled and logged as diagnostics, then FailFast on exceptions.
-            if (onAnalyzerException != null && !logAnalyzerExceptionAsDiagnostics)
+            if (onAnalyzerException == null && !logAnalyzerExceptionAsDiagnostics)
             {
                 onAnalyzerException = DiagnosticExtensions.FailFastOnAnalyzerException;
             }

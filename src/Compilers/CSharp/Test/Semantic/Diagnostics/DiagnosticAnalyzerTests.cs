@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -211,7 +211,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //     int x3 = x1 + x2;
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -271,7 +271,7 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"))
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -304,7 +304,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -387,7 +387,7 @@ public class C { }";
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null, false,
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
                     // Syntax diagnostics
@@ -669,7 +669,7 @@ public class C : B
 
             CreateCompilationWithMscorlib45(baseCtorSource)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                     Diagnostic("ConstructorInitializerDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"));
@@ -689,7 +689,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
@@ -712,7 +712,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                     Diagnostic("PropertyExpressionBodyDiagnostic"),
                     Diagnostic("IndexerExpressionBodyDiagnostic"),
                     Diagnostic("MethodExpressionBodyDiagnostic"));
@@ -732,7 +732,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                     Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.Property.get").WithLocation(4, 28),
                     Diagnostic("MethodSymbolDiagnostic", "Method").WithArguments("B.Method()").WithLocation(5, 16),
                     Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.this[int].get").WithLocation(6, 31));
@@ -775,7 +775,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
@@ -793,7 +793,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                      Diagnostic("MyFieldDiagnostic", @"public string field1, field2;").WithLocation(4, 5),
                      Diagnostic("MyFieldDiagnostic", @"public int field3 = 0, field4 = 1;").WithLocation(5, 5),
                      Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));

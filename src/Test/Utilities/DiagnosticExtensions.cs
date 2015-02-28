@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis
     {
         private const int EN_US = 1033;
 
-        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> CatchAndIgnoreAnalyzerException = (e, a, d) => { };
         public static Action<Exception, DiagnosticAnalyzer, Diagnostic> FailFastOnAnalyzerException = (e, a, d) => FailFast.OnFatalException(e);
 
         /// <summary>
@@ -115,11 +114,12 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticAnalyzer[] analyzers,
                 AnalyzerOptions options = null,
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+                bool logAnalyzerExceptionAsDiagnostics = true,
                 params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, diagnostics: out diagnostics);
+            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, diagnostics: out diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
@@ -128,11 +128,12 @@ namespace Microsoft.CodeAnalysis
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, out diagnostics);
             return diagnostics;
         }
 
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticAnalyzer[] analyzers,
                 AnalyzerOptions options,
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+                bool logAnalyzerExceptionAsDiagnostics,
                 out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
@@ -148,23 +150,24 @@ namespace Microsoft.CodeAnalysis
 
             var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
-            if (onAnalyzerException != null)
+            if (onAnalyzerException == null)
             {
-                newOnAnalyzerException = (ex, analyzer, diagnostic) =>
+                if (logAnalyzerExceptionAsDiagnostics)
                 {
-                    exceptionDiagnostics.Add(diagnostic);
-                    onAnalyzerException(ex, analyzer, diagnostic);
-                };
-            }
-            else
-            {
-                // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
-                newOnAnalyzerException = FailFastOnAnalyzerException;
+                    onAnalyzerException = (ex, analyzer, diagnostic) =>
+                    {
+                        exceptionDiagnostics.Add(diagnostic);
+                    };
+                }
+                else
+                {
+                    // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
+                    onAnalyzerException = FailFastOnAnalyzerException;
+                }
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, newOnAnalyzerException, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
 
