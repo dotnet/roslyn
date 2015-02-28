@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var anonymousTypes = _lazyAnonymousTypeTemplates;
             if (anonymousTypes != null)
             {
-                foreach (var template in anonymousTypes.Values)
+                foreach (var template in from kv in anonymousTypes orderby kv.Key select kv.Value)
                 {
                     // NOTE: in interactive scenarios the cache may contain templates 
                     //       from other compilation, those should be discarded here

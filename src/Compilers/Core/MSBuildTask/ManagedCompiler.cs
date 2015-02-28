@@ -20,7 +20,7 @@ using Microsoft.Build.Shared;
 using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
@@ -193,8 +193,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
             get { return (ITaskItem[])_store["ResponseFiles"]; }
         }
 
-
-
         public ITaskItem[] Sources
         {
             set
@@ -279,6 +277,18 @@ namespace Microsoft.CodeAnalysis.BuildTask
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns the command line switch used by the tool executable to specify the response file
+        /// Will only be called if the task returned a non empty string from GetResponseFileCommands
+        /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
+        /// </summary>
+        override protected string GenerateResponseFileCommands()
+        {
+            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+            AddResponseFileCommands(commandLineBuilder);
+            return commandLineBuilder.ToString();
+        }
 
         protected override string GenerateCommandLineCommands()
         {

@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             cache As ConcurrentDictionary(Of String, T))
 
             If cache IsNot Nothing Then
-                For Each template In cache.Values
+                For Each template In From kv In cache Order By kv.Key Select kv.Value
                     If template.Manager Is Me Then
                         builder.Add(template)
                     End If

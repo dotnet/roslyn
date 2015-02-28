@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     internal class PropertyDictionary : Dictionary<string, object>
     {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                 return this.TryGetValue(name, out value)
                     ? value : null;
             }
-            set { this[name] = value; }
+            set { base[name] = value; }
         }
     }
 }
