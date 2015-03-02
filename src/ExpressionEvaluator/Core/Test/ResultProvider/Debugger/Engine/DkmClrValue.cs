@@ -330,6 +330,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException("inspectionContext");
             }
 
+            if (this.IsError())
+            {
+                throw new InvalidOperationException();
+            }
+
             var runtime = this.Type.RuntimeInstance;
 
             var memberValue = runtime.GetMemberValue(this, MemberName);

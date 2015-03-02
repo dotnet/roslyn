@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private string GetUnderlyingStringImpl(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
+            Debug.Assert(!value.IsError());
+
             if (value.IsNull)
             {
                 return null;
@@ -167,22 +169,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else if (!IsPredefinedType(lmrType))
             {
                 // Check for special cased non-primitives that have underlying strings
-                if (string.Equals(lmrType.FullName, "System.Data.SqlTypes.SqlString", StringComparison.Ordinal))
+                if (lmrType.IsType("System.Data.SqlTypes", "SqlString"))
                 {
                     var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.SqlStringValue, inspectionContext);
                     return fieldValue.HostObjectValue as string;
                 }
-
-                do
+                else if (lmrType.IsOrInheritsFrom("System.Xml.Linq", "XNode"))
                 {
-                    if (string.Equals(lmrType.FullName, "System.Xml.Linq.XNode", StringComparison.Ordinal))
-                    {
-                        return value.EvaluateToString(inspectionContext);
-                    }
-
-                    lmrType = lmrType.BaseType;
+                    return value.EvaluateToString(inspectionContext);
                 }
-                while (lmrType != null);
             }
 
             return null;
