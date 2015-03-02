@@ -47,18 +47,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' block that we are within has a finalizer state.  Initially true as we have the (trivial)
             ''' finalizer state of -1 at the top level.
             ''' </summary>
-            Private HasFinalizerState As Boolean = True
+            Private _hasFinalizerState As Boolean = True
 
             ''' <summary>
             ''' If hasFinalizerState is true, this is the state for finalization from anywhere in this try block.
             ''' Initially set to -1, representing the no-op finalization required at the top level.
             ''' </summary>
-            Private CurrentFinalizerState As Integer = -1
+            Private _currentFinalizerState As Integer = -1
 
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Private ReadOnly HoistedVariables As IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
             Private _nextFreeHoistedLocalSlot As Integer
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.F = F
                 Me.StateField = stateField
                 Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
-                Me.HoistedVariables = hoistedVariables
+                Me._hoistedVariables = hoistedVariables
                 Me._synthesizedLocalOrdinals = synthesizedLocalOrdinals
                 Me._nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
 
@@ -148,15 +148,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.Dispatches = New Dictionary(Of LabelSymbol, List(Of Integer))()
                 End If
 
-                If Not Me.HasFinalizerState Then
-                    Me.CurrentFinalizerState = Me.NextState
+                If Not Me._hasFinalizerState Then
+                    Me._currentFinalizerState = Me.NextState
                     Me.NextState += 1
-                    Me.HasFinalizerState = True
+                    Me._hasFinalizerState = True
                 End If
 
                 Dim resumeLabel As GeneratedLabelSymbol = Me.F.GenerateLabel(ResumeLabelName)
                 Me.Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
-                Me.FinalizerStateMap.Add(stateNumber, Me.CurrentFinalizerState)
+                Me.FinalizerStateMap.Add(stateNumber, Me._currentFinalizerState)
 
                 Return New StateInfo(stateNumber, resumeLabel)
             End Function
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function NeedsProxy(localOrParameter As Symbol) As Boolean
                 Debug.Assert(localOrParameter.Kind = SymbolKind.Local OrElse localOrParameter.Kind = SymbolKind.Parameter)
-                Return HoistedVariables.Contains(localOrParameter)
+                Return _hoistedVariables.Contains(localOrParameter)
             End Function
 
             Friend MustOverride Sub AddProxyFieldsForStateMachineScope(proxy As TProxy, proxyFields As ArrayBuilder(Of FieldSymbol))
@@ -254,22 +254,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
 
                 Dim oldDispatches As Dictionary(Of LabelSymbol, List(Of Integer)) = Me.Dispatches
-                Dim oldFinalizerState As Integer = Me.CurrentFinalizerState
-                Dim oldHasFinalizerState As Boolean = Me.HasFinalizerState
+                Dim oldFinalizerState As Integer = Me._currentFinalizerState
+                Dim oldHasFinalizerState As Boolean = Me._hasFinalizerState
 
                 Me.Dispatches = Nothing
-                Me.CurrentFinalizerState = -1
-                Me.HasFinalizerState = False
+                Me._currentFinalizerState = -1
+                Me._hasFinalizerState = False
 
                 Dim tryBlock As BoundBlock = Me.F.Block(DirectCast(Me.Visit(node.TryBlock), BoundStatement))
                 Dim dispatchLabel As GeneratedLabelSymbol = Nothing
                 If Me.Dispatches IsNot Nothing Then
                     dispatchLabel = Me.F.GenerateLabel("tryDispatch")
 
-                    If Me.HasFinalizerState Then
+                    If Me._hasFinalizerState Then
                         ' cause the current finalizer state to arrive here and then "return false"
                         Dim finalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("finalizer")
-                        Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me.CurrentFinalizerState})
+                        Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
 
                         Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
                         tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(),
@@ -293,8 +293,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     oldDispatches.Add(dispatchLabel, New List(Of Integer)(From kv In Dispatches.Values From n In kv Order By n Select n))
                 End If
 
-                Me.HasFinalizerState = oldHasFinalizerState
-                Me.CurrentFinalizerState = oldFinalizerState
+                Me._hasFinalizerState = oldHasFinalizerState
+                Me._currentFinalizerState = oldFinalizerState
 
                 Me.Dispatches = oldDispatches
 
