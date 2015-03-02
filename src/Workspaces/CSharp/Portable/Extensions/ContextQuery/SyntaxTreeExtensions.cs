@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -1420,6 +1419,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return false;
+            }
+
+            var expressionBody = containingMember.GetExpressionBody();
+            if (expressionBody != null)
+            {
+                return TextSpan.FromBounds(expressionBody.ArrowToken.Span.End, expressionBody.FullSpan.End).IntersectsWith(position);
             }
 
             // Must be a property or something method-like.
