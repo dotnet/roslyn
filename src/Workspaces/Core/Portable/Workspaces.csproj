@@ -914,9 +914,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\..\..\..\..\CSharpEssentials\Binaries\Release\CSharpEssentials\CSharpEssentials.dll" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config">
       <SubType>Designer</SubType>
