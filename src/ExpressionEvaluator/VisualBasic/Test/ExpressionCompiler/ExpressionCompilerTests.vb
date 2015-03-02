@@ -1694,7 +1694,8 @@ End Class
             Assert.Equal(DkmEvaluationResultStorageType.None, resultProperties.StorageType)
         End Sub
 
-        <Fact>
+        <WorkItem(964, "GitHub")>
+        <Fact(Skip:="964")>
         Public Sub EvaluateXmlMemberAccess()
             Dim source =
 "Class C
@@ -1721,6 +1722,7 @@ End Class"
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression("x.@a", resultProperties, errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       22 (0x16)
@@ -3119,7 +3121,8 @@ End Module
         End Sub
 
         <WorkItem(1042918)>
-        <Fact>
+        <WorkItem(964, "GitHub")>
+        <Fact(Skip:="964")>
         Public Sub ConditionalAccessExpressionType()
             Dim source =
 "Class C
@@ -3179,6 +3182,7 @@ End Class"
 
             testData = New CompilationTestData()
             result = context.CompileExpression("Me?.X.@a", resultProperties, errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Assert.Null(errorMessage)
             methodData = testData.GetMethodData("<>x.<>m0")
             Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.SpecialType, SpecialType.System_String)
             methodData.VerifyIL(

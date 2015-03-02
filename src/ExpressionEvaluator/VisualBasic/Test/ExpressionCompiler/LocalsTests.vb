@@ -2414,6 +2414,59 @@ End Class"
             locals.Free()
         End Sub
 
+        <WorkItem(947)>
+        <Fact>
+        Public Sub DuplicateEditorBrowsableAttributes()
+            Const libSource = "
+Namespace System.ComponentModel
+
+    Public Enum EditorBrowsableState
+        Always = 0
+        Never = 1
+        Advanced = 2
+    End Enum
+
+    <AttributeUsage(AttributeTargets.All)>
+    Friend NotInheritable Class EditorBrowsableAttribute
+        Inherits Attribute
+    
+        Public Sub New(state As EditorBrowsableState)
+        End Sub
+    End Class
+
+End Namespace
+"
+
+            Const source = "
+<System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim libRef = CreateCompilationWithMscorlib({libSource}, compOptions:=TestOptions.DebugDll).EmitToImageReference()
+            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, SystemRef}, TestOptions.DebugDll)
+
+            Dim exeBytes As Byte() = Nothing
+            Dim pdbBytes As Byte() = Nothing
+            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
+            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
+            Assert.True(result)
+
+            ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
+            ' and it depends on EditorBrowsableAttribute.
+            Dim runtimeReferences = ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef)
+            Dim runtime = CreateRuntimeInstance(GetUniqueName(), runtimeReferences, exeBytes, New SymReader(pdbBytes))
+
+            Dim typeName As String = Nothing
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim testData As CompilationTestData = Nothing
+            GetLocals(runtime, "C.M", argumentsOnly:=False, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            Assert.Equal("Me", locals.Single().LocalName)
+            locals.Free()
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
             testData = New CompilationTestData()
