@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis
                     var exceptionDiagnostic = AnalyzerExecutor.GetDescriptorDiagnostic(diag.Id, ex);
                     consoleOutput.WriteLine(DiagnosticFormatter.Format(exceptionDiagnostic, this.Culture));
                 }
-                
+
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
                     hasErrors = true;
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
                     var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-                    
+
                     if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {
                         return Failed;

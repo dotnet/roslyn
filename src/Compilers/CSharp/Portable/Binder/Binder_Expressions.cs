@@ -2687,7 +2687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
                                         constructor);
 
-                        hasErrors = true; //will prevent recursive constructor from being emitted
+                        hasErrors = true; // prevent recursive constructor from being emitted
                     }
                     else if (resultMember.HasUnsafeParameter())
                     {

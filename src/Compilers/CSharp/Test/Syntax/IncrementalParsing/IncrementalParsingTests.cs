@@ -2319,8 +2319,8 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(text);
 
             var text2 = text.WithChanges(
-                new TextChange(new TextSpan(str.IndexOf(" abc", StringComparison.Ordinal), 0), "//"), 
-                new TextChange(new TextSpan(str.IndexOf(" 123", StringComparison.Ordinal), 0), "//"), 
+                new TextChange(new TextSpan(str.IndexOf(" abc", StringComparison.Ordinal), 0), "//"),
+                new TextChange(new TextSpan(str.IndexOf(" 123", StringComparison.Ordinal), 0), "//"),
                 new TextChange(new TextSpan(str.IndexOf(" def", StringComparison.Ordinal), 0), "//"));
 
             var parsedTree = SyntaxFactory.ParseSyntaxTree(text2);

@@ -472,14 +472,14 @@ using U.V.W;
 class A { void M() {  } }
 ";
             var compilation2 = CreateCompilationWithMscorlib(
-                source2, 
+                source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
-                    // first unaliased reference 
-                    compilation1.ToMetadataReference(),
-                    // second aliased reference
-                    compilation1.ToMetadataReference(ImmutableArray.Create("X"))
+                // first unaliased reference 
+                compilation1.ToMetadataReference(),
+                // second aliased reference
+                compilation1.ToMetadataReference(ImmutableArray.Create("X"))
                 });
 
             compilation2.VerifyPdb("A.M", @"
@@ -525,10 +525,10 @@ class A { void M() {  } }
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
-                    // first aliased reference
-                    compilation1.ToMetadataReference(ImmutableArray.Create("X")),
-                    // second unaliased reference 
-                    compilation1.ToMetadataReference(),
+                // first aliased reference
+                compilation1.ToMetadataReference(ImmutableArray.Create("X")),
+                // second unaliased reference 
+                compilation1.ToMetadataReference(),
                 });
 
             compilation2.VerifyPdb("A.M", @"

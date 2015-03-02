@@ -316,6 +316,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
+        public static ArrowExpressionClauseSyntax GetExpressionBody(this MemberDeclarationSyntax memberDeclaration)
+        {
+            switch (memberDeclaration?.Kind())
+            {
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.OperatorDeclaration:
+                    return ((OperatorDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return ((ConversionOperatorDeclarationSyntax)memberDeclaration).ExpressionBody;
+                default:
+                    return null;
+            }
+        }
+
         public static MemberDeclarationSyntax WithBody(
             this MemberDeclarationSyntax memberDeclaration,
             BlockSyntax body)

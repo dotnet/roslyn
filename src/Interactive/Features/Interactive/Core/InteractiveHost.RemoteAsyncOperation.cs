@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     return _completion.Task;
                 }
-                catch (RemotingException) when(!_remoteService.Process.IsAlive())
+                catch (RemotingException) when (!_remoteService.Process.IsAlive())
                 {
                     // the operation might have terminated the process:
                     ProcessExited();
                     return _completion.Task;
                 }
-                }
+            }
 
             /// <summary>
             /// Might be called remotely from the service.

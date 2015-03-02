@@ -127,15 +127,15 @@ namespace Roslyn.Utilities
                 {
                     return continuationFunction(t);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                };
+            };
 
-                // This is the only place in the code where we're allowed to call ContinueWith.
-                return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
-            }
+            // This is the only place in the code where we're allowed to call ContinueWith.
+            return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
+        }
 
         public static Task<TResult> SafeContinueWith<TResult>(
             this Task task,

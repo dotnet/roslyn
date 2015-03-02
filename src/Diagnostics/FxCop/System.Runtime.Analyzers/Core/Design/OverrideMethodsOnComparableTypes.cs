@@ -49,7 +49,7 @@ namespace System.Runtime.Analyzers
                 compilationContext.RegisterSymbolAction(context =>
                 {
                     AnalyzeSymbol((INamedTypeSymbol)context.Symbol, comparableType, genericComparableType, context.ReportDiagnostic);
-                }, 
+                },
                 SymbolKind.NamedType);
             });
         }
@@ -61,7 +61,7 @@ namespace System.Runtime.Analyzers
                 return;
             }
 
-            if (namedTypeSymbol.AllInterfaces.Any(t => t.Equals(comparableType) || 
+            if (namedTypeSymbol.AllInterfaces.Any(t => t.Equals(comparableType) ||
                                                       (t.ConstructedFrom?.Equals(genericComparableType) ?? false)))
             {
                 if (!(DoesOverrideEquals(namedTypeSymbol) && IsEqualityOperatorImplemented(namedTypeSymbol)))

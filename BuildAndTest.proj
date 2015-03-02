@@ -28,7 +28,7 @@
   <Target Name="Build" DependsOnTargets="RestorePackages">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Build"/>
   </Target>
 
@@ -42,7 +42,7 @@
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Rebuild"/>
   </Target>
 

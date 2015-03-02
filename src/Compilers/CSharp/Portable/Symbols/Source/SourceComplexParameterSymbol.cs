@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var diagnostics = DiagnosticBag.GetInstance();
                     if (Interlocked.CompareExchange(ref _lazyDefaultSyntaxValue, MakeDefaultExpression(diagnostics), ConstantValue.Unset) == ConstantValue.Unset)
                     {
-                        AddSemanticDiagnostics(diagnostics);
+                        AddDeclarationDiagnostics(diagnostics);
                     }
 
                     diagnostics.Free();

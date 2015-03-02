@@ -225,11 +225,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Property MyTemplate As SyntaxTree
             Get
                 If m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy Then
-                    If Me.Options.EmbedVbCoreRuntime Then
+                    Dim compilationOptions = Me.Options
+                    If compilationOptions.EmbedVbCoreRuntime OrElse compilationOptions.SuppressEmbeddedDeclarations Then
                         m_lazyMyTemplate = Nothing
                     Else
                         ' first see whether we can use one from global cache
-                        Dim parseOptions = If(Me.Options.ParseOptions, VisualBasicParseOptions.Default)
+                        Dim parseOptions = If(compilationOptions.ParseOptions, VisualBasicParseOptions.Default)
 
                         Dim tree As SyntaxTree = Nothing
                         If s_myTemplateCache.TryGetValue(parseOptions, tree) Then
@@ -1108,7 +1109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' In new flavors of the framework, types, that XML helpers depend upon, are
             ' defined in assemblies with different names. Let's not hardcode these names, 
             ' let's check for presence of types instead.
-            Return InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Linq_Enumerable) AndAlso
+            Return Not Me.Options.SuppressEmbeddedDeclarations AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Linq_Enumerable) AndAlso
                    InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XElement) AndAlso
                    InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XName) AndAlso
                    InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XAttribute) AndAlso

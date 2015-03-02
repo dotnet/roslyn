@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static readonly char[] DotCharacterArray = new[] { '.' };
+        private static readonly char[] s_dotCharacterArray = new[] { '.' };
 
         private readonly object _gate = new object();
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _compareInfo = culture.CompareInfo;
 
             _fullPatternSegment = new Segment(pattern, verbatimIdentifierPrefixIsWordCharacter);
-            _dotSeparatedSegments = pattern.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
+            _dotSeparatedSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
                                             .Select(text => new Segment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter))
                                             .ToArray();
             _invalidPattern = _dotSeparatedSegments.Length == 0 || _dotSeparatedSegments.Any(s => s.IsInvalid);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             dottedContainer = dottedContainer ?? string.Empty;
-            var containerParts = dottedContainer.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+            var containerParts = dottedContainer.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
 
             // -1 because the last part was checked against the name, and only the rest
             // of the parts are checked against the container.
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     {
                         if (PartStartsWith(candidate, span, chunk.Text, CompareOptions.IgnoreCase))
                         {
-                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, 
+                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
                                 isCaseSensitive: PartStartsWith(candidate, span, chunk.Text, CompareOptions.None));
                         }
                     }

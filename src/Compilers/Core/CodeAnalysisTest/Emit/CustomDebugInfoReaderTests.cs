@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
+
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray.Create(
-                new ClosureDebugInfo(-100), 
+                new ClosureDebugInfo(-100),
                 new ClosureDebugInfo(10),
                 new ClosureDebugInfo(-200));
 

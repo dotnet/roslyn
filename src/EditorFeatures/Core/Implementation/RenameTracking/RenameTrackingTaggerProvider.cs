@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 return SpecializedCollections.EmptyEnumerable<Diagnostic>();
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         internal static CodeAction CreateCodeAction(
             Document document,
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             var renameToResourceString = showPreview ? EditorFeaturesResources.RenameToWithPreview : EditorFeaturesResources.RenameTo;
             var message = string.Format(
-                renameToResourceString, 
-                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey], 
+                renameToResourceString,
+                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 
             return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry, showPreview);
@@ -173,12 +173,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
-            catch (AggregateException e) when(e.InnerException is OperationCanceledException)
+            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
             {
                 // We passed in a different cancellationToken, so if there's a race and 
                 // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
                 return false;
             }
-            }
         }
     }
+}

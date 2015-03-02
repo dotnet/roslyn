@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         workspace, document.Project.Id),
                     new DiagnosticData(
                         "test3", "Test", "test3 message", "test3 message format",
-                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2, 
+                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2,
                         ImmutableArray.Create<string>("Test3", "Test3_2"), ImmutableDictionary<string, string>.Empty.Add("p2Key", "p2Value").Add("p1Key", "p1Value"),
                         workspace, document.Project.Id, description: "test3 description", helpLink: "http://test3link"),
                 };

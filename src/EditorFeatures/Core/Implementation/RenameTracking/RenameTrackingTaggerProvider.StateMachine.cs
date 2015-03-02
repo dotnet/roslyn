@@ -267,11 +267,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                     return SpecializedCollections.EmptyEnumerable<Diagnostic>();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             public void RestoreTrackingSession(TrackingSession trackingSession)
             {

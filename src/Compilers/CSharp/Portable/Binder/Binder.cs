@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)member == null
                     ? null
                     : member.Kind == SymbolKind.NamedType
-                        ? (NamedTypeSymbol)member 
+                        ? (NamedTypeSymbol)member
                         : member.ContainingType;
             }
         }

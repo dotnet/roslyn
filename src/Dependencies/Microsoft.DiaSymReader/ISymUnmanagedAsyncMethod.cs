@@ -28,9 +28,9 @@ namespace Microsoft.DiaSymReader
 
         [PreserveSig]
         int GetAsyncStepInfo(
-            int bufferLength, 
-            out int count, 
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] yieldOffsets, 
+            int bufferLength,
+            out int count,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] yieldOffsets,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] breakpointOffset,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] breakpointMethod);
     }

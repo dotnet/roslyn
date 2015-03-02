@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -18,7 +20,7 @@ using Microsoft.Build.Shared;
 using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
@@ -191,8 +193,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
             get { return (ITaskItem[])_store["ResponseFiles"]; }
         }
 
-
-
         public ITaskItem[] Sources
         {
             set
@@ -256,7 +256,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
         {
             get
             {
-
                 string platform = this.Platform;
                 if ((String.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && this.Prefer32Bit)
                 {
@@ -278,6 +277,18 @@ namespace Microsoft.CodeAnalysis.BuildTask
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns the command line switch used by the tool executable to specify the response file
+        /// Will only be called if the task returned a non empty string from GetResponseFileCommands
+        /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
+        /// </summary>
+        override protected string GenerateResponseFileCommands()
+        {
+            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+            AddResponseFileCommands(commandLineBuilder);
+            return commandLineBuilder.ToString();
+        }
 
         protected override string GenerateCommandLineCommands()
         {
@@ -564,11 +575,11 @@ namespace Microsoft.CodeAnalysis.BuildTask
             set;
         }
 
-        private bool hostCompilerSupportsAllParameters;
+        private bool _hostCompilerSupportsAllParameters;
         protected bool HostCompilerSupportsAllParameters
         {
-            get { return this.hostCompilerSupportsAllParameters; }
-            set { this.hostCompilerSupportsAllParameters = value; }
+            get { return _hostCompilerSupportsAllParameters; }
+            set { _hostCompilerSupportsAllParameters = value; }
         }
 
         /// <summary>
@@ -587,7 +598,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             if (!resultFromHostObjectSetOperation)
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "General.ParameterUnsupportedOnHostCompiler", parameterName);
-                this.hostCompilerSupportsAllParameters = false;
+                _hostCompilerSupportsAllParameters = false;
             }
         }
 
@@ -647,12 +658,10 @@ namespace Microsoft.CodeAnalysis.BuildTask
             {
                 if (String.IsNullOrEmpty(win32Manifest) && String.IsNullOrEmpty(this.Win32Resource))
                 {
-
                     // We only want to consider the default.win32manifest if this is an executable
                     if (!String.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase)
                        && !String.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
                     {
-
                         // We need to compute the path to the default win32 manifest
                         string pathToDefaultManifest = ToolLocationHelper.GetPathToDotNetFrameworkFile
                                                        (

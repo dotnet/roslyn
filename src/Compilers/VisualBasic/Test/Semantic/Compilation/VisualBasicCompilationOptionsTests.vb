@@ -495,6 +495,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionExplicit",
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
+                "SuppressEmbeddedDeclarations",
                 "ParseOptions")
         End Sub
 

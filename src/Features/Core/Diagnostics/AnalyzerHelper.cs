@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -12,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
         private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
 
-        public static bool IsBuiltInAnalyzer(DiagnosticAnalyzer analyzer)
+        public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
-            return analyzer is IBuiltInAnalyzer || analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || IsCompilerAnalyzer(analyzer);
+            return analyzer is IBuiltInAnalyzer || analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool IsCompilerAnalyzer(DiagnosticAnalyzer analyzer)
+        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
         {
             // TODO: find better way.
             var typeString = analyzer.GetType().ToString();
@@ -34,43 +35,54 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Project project)
+        public static ValueTuple<string, VersionStamp> GetUniqueId(this DiagnosticAnalyzer analyzer)
         {
-            return diagnostic =>
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project.Solution.Workspace, project);
+            // Get the unique ID for given diagnostic analyzer.
+            // note that we also put version stamp so that we can detect changed analyzer.
+            var type = analyzer.GetType();
+            return ValueTuple.Create(type.AssemblyQualifiedName, GetAnalyzerVersion(type.Assembly.Location));
         }
 
-        public static Action<Diagnostic> GetAddExceptionDiagnosticDelegate(DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Workspace workspace)
-        {
-            return diagnostic =>
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, workspace, null);
-        }
-
-        public static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
-            DiagnosticAnalyzer analyzer, 
+        internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
+            DiagnosticAnalyzer analyzer,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
-            CancellationToken cancellationToken)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, hostDiagnosticUpdateSource?.Workspace);
-
             // Skip telemetry logging if the exception is thrown as we are computing supported diagnostics and
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
+                OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
+            
+            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, cancellationToken);
         }
-        
-        public static AnalyzerExecutor GetAnalyzerExecutor(
-            DiagnosticAnalyzer analyzer, 
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, 
-            Project project, 
-            Compilation compilation, 
-            Action<Diagnostic> addDiagnostic,
-            AnalyzerOptions analyzerOptions,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
+
+        internal static void OnAnalyzerException_NoTelemetryLogging(
+            Exception e,
+            DiagnosticAnalyzer analyzer,
+            Diagnostic diagnostic,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Project projectOpt = null)
         {
-            var addExceptionDiagnostic = GetAddExceptionDiagnosticDelegate(analyzer, hostDiagnosticUpdateSource, project);
-            return AnalyzerExecutor.Create(compilation, analyzerOptions, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            if (diagnostic != null)
+        {
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
+        }
+
+            if (IsBuiltInAnalyzer(analyzer))
+        {
+                FatalError.ReportWithoutCrashUnlessCanceled(e);
+            }
+        }
+
+        private static VersionStamp GetAnalyzerVersion(string path)
+        {
+            if (path == null || !File.Exists(path))
+            {
+                return VersionStamp.Default;
+            }
+
+            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
     }
 }

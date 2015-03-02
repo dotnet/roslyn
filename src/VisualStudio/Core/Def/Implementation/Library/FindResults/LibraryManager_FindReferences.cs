@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
                 // Add on any definition locations from third party language services
                 string filePath;
-                int lineNumber, charOffset;                
+                int lineNumber, charOffset;
                 if (symbolNavigationService.WouldNavigateToSymbol(definition, solution, out filePath, out lineNumber, out charOffset))
                 {
                     definitions.Add(new ExternalLanguageDefinitionTreeItem(filePath, lineNumber, charOffset, definition.Name, definition.GetGlyph().GetGlyphIndex(), this.ServiceProvider));
@@ -86,7 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (!location.IsInSource)
             {
                 return referencedSymbol.Locations.Any()
-                    ? new MetadataDefinitionTreeItem(referencedSymbol.Definition, glyph.GetGlyphIndex())
+                    ? new MetadataDefinitionTreeItem(
+                        solution.Workspace,
+                        referencedSymbol.Definition,
+                        referencedSymbol.Locations.First().Document.Project.Id,
+                        glyph.GetGlyphIndex())
                     : null;
             }
 

@@ -526,5 +526,97 @@ class C
     {
         var c = new C { x = 2, y = 3, $$");
         }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void InExpressionBodiedMembersProperty()
+        {
+            VerifyKeyword(@"
+class C
+{
+    int x;
+    int M => $$
+    int p;
+}");
+        }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void InExpressionBodiedMembersMethod()
+        {
+            VerifyKeyword(@"
+class C
+{
+    int x;
+    int give() => $$");
+        }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void InExpressionBodiedMembersIndexer()
+        {
+            VerifyKeyword(@"
+class C
+{
+    int x;
+    public object this[int i] => $$");
+        }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void NotInExpressionBodiedMembers_Static()
+        {
+            VerifyAbsence(@"
+class C
+{
+    int x;
+    static int M => $$");
+        }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void NotInExpressionBodiedMembersOperator()
+        {
+            VerifyAbsence(@"
+class C
+{
+    int x;
+    public static C operator - (C c1) => $$");
+        }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void NotInExpressionBodiedMembersConversionOperator()
+        {
+            VerifyAbsence(@"
+class F
+{
+}
+
+class C
+{
+    int x;
+    public static explicit operator F(C c1) => $$");
+        }
+
+        [WorkItem(725, "https://github.com/dotnet/roslyn/issues/725")]
+        [WorkItem(1107414)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void OutsideExpressionBodiedMember()
+        {
+            VerifyAbsence(@"
+class C
+{
+    int x;
+    int M => this.x;$$
+    int p;
+}");
+        }
     }
 }

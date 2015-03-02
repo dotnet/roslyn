@@ -1900,7 +1900,7 @@ static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.Diagnosti
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, params object[] messageArgs)
 static Microsoft.CodeAnalysis.Diagnostic.Create(string id, string category, Microsoft.CodeAnalysis.LocalizableString message, Microsoft.CodeAnalysis.DiagnosticSeverity severity, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, int warningLevel, Microsoft.CodeAnalysis.LocalizableString title = null, Microsoft.CodeAnalysis.LocalizableString description = null, string helpLink = null, Microsoft.CodeAnalysis.Location location = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations = null, System.Collections.Generic.IEnumerable<string> customTags = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null)
 static Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetEffectiveDiagnostics(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Microsoft.CodeAnalysis.Compilation compilation)
-static Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer, Microsoft.CodeAnalysis.CompilationOptions options, System.Func<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, bool> continueOnAnalyzerException)
+static Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer, Microsoft.CodeAnalysis.CompilationOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException = null)
 static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 static Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray<byte> compressedSlotMap, System.Collections.Immutable.ImmutableArray<byte> compressedLambdaMap)
 static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation> debugInformationProvider)
@@ -2017,8 +2017,8 @@ static Microsoft.CodeAnalysis.Text.LinePosition.operator >=(Microsoft.CodeAnalys
 static Microsoft.CodeAnalysis.Text.LinePositionSpan.operator !=(Microsoft.CodeAnalysis.Text.LinePositionSpan left, Microsoft.CodeAnalysis.Text.LinePositionSpan right)
 static Microsoft.CodeAnalysis.Text.LinePositionSpan.operator ==(Microsoft.CodeAnalysis.Text.LinePositionSpan left, Microsoft.CodeAnalysis.Text.LinePositionSpan right)
 static Microsoft.CodeAnalysis.Text.SourceText.CalculateChecksum(byte[] buffer, int offset, int count, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm algorithmId)
-static Microsoft.CodeAnalysis.Text.SourceText.From(byte[] buffer, int length, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false)
 static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false)
+static Microsoft.CodeAnalysis.Text.SourceText.From(byte[] buffer, int length, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false)
 static Microsoft.CodeAnalysis.Text.SourceText.From(string text, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1)
 static Microsoft.CodeAnalysis.Text.TextChange.implicit operator Microsoft.CodeAnalysis.Text.TextChangeRange(Microsoft.CodeAnalysis.Text.TextChange change)
 static Microsoft.CodeAnalysis.Text.TextChange.operator !=(Microsoft.CodeAnalysis.Text.TextChange left, Microsoft.CodeAnalysis.Text.TextChange right)
@@ -2067,8 +2067,8 @@ virtual Microsoft.CodeAnalysis.Location.MetadataModule.get
 virtual Microsoft.CodeAnalysis.Location.SourceSpan.get
 virtual Microsoft.CodeAnalysis.Location.SourceTree.get
 virtual Microsoft.CodeAnalysis.MetadataReference.Display.get
-virtual Microsoft.CodeAnalysis.SemanticModel.IgnoresAccessibility.get
 virtual Microsoft.CodeAnalysis.SemanticModel.GetTopmostNodeForDiagnosticAnalysis(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.SyntaxNode declaringSyntax)
+virtual Microsoft.CodeAnalysis.SemanticModel.IgnoresAccessibility.get
 virtual Microsoft.CodeAnalysis.SymbolVisitor.DefaultVisit(Microsoft.CodeAnalysis.ISymbol symbol)
 virtual Microsoft.CodeAnalysis.SymbolVisitor.Visit(Microsoft.CodeAnalysis.ISymbol symbol)
 virtual Microsoft.CodeAnalysis.SymbolVisitor.VisitAlias(Microsoft.CodeAnalysis.IAliasSymbol symbol)

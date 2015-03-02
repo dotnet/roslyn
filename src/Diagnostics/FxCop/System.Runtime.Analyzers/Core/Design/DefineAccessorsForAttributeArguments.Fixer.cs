@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -19,7 +21,7 @@ namespace System.Runtime.Analyzers
             var generator = SyntaxGenerator.GetGenerator(context.Document);
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(context.Span);
-            
+
             // We cannot have multiple overlapping diagnostics of this id.
             var diagnostic = context.Diagnostics.Single();
             string fixCase;
@@ -75,7 +77,7 @@ namespace System.Runtime.Analyzers
             // Add a new property
             if (propertySymbol == null)
             {
-                await symbolEditor.EditOneDeclarationAsync(typeSymbol, 
+                await symbolEditor.EditOneDeclarationAsync(typeSymbol,
                                                            parameter.GetLocation(), // edit the partial declaration that has this parameter symbol.
                                                            (editor, typeDeclaration) =>
                                                            {
@@ -87,8 +89,6 @@ namespace System.Runtime.Analyzers
                                                                editor.AddMember(typeDeclaration, newProperty);
                                                            },
                                                            cancellationToken).ConfigureAwait(false);
-
-
             }
             else
             {
@@ -119,7 +119,7 @@ namespace System.Runtime.Analyzers
 
         private class MyCodeAction : DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

@@ -598,8 +598,8 @@ namespace Microsoft.CodeAnalysis.Emit
             if (symbolOpt != null && _changes.IsAdded(symbolOpt))
             {
                 this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
-                    this.messageProvider.ERR_EncReferenceToAddedMember, 
-                    GetSymbolLocation(symbolOpt), 
+                    this.messageProvider.ERR_EncReferenceToAddedMember,
+                    GetSymbolLocation(symbolOpt),
                     symbolOpt.Name,
                     symbolOpt.ContainingAssembly.Name));
             }
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var info = new AddedOrChangedMethodInfo(
                     new MethodDebugId(body.MethodOrdinal, this.Generation),
-                    encInfos.ToImmutable(), 
+                    encInfos.ToImmutable(),
                     body.LambdaDebugInfo,
                     body.ClosureDebugInfo,
                     body.StateMachineTypeName,
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncLocalInfo(localDef.SlotInfo, localDef.Type, localDef.Constraints, signature);
         }
-        
+
         protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed

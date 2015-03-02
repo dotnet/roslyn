@@ -463,11 +463,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lineEdits.AsImmutable(),
                     hasSemanticErrors: false);
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ArrayBuilder<Match<SyntaxNode>> lambdaBodyMatches = null;
             int currentLambdaBodyMatch = -1;
             Match<SyntaxNode> currentBodyMatch = bodyMatch;
-            
+
             while (true)
             {
                 foreach (var pair in currentBodyMatch.Matches)
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (IsLambda(oldLambda))
                     {
                         Debug.Assert(IsLambda(newLambda));
-                       
+
                         if (TryGetLambdaBodies(oldLambda, out oldLambdaBody1, out oldLambdaBody2))
                         {
                             if (lambdaBodyMatches == null)
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Body match of a lambda whose body is an expression has the lambda as a root.
                     // The lambda has already been included when enumerating parent body matches.
                     Debug.Assert(
-                        !result.ContainsKey(pair.Value) || 
+                        !result.ContainsKey(pair.Value) ||
                         pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key));
 
                     // reverse
@@ -1493,9 +1493,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editMap.TryGetValue(node, out parentEdit) && parentEdit == editKind;
         }
 
-#endregion
+        #endregion
 
-#region Rude Edits around Active Statement 
+        #region Rude Edits around Active Statement 
 
         protected void AddRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, SyntaxNode newActiveStatement)
         {
@@ -1707,9 +1707,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#endregion
+        #endregion
 
-#region Trivia Analysis
+        #region Trivia Analysis
 
         // internal for testing
         internal void AnalyzeTrivia(
@@ -1837,9 +1837,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return x.OldLine.CompareTo(y.OldLine);
         }
 
-#endregion
+        #endregion
 
-#region Semantic Analysis
+        #region Semantic Analysis
 
         // internal for testing
         internal void AnalyzeSemantics(
@@ -2142,7 +2142,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#region Type Layout Update Validation 
+        #region Type Layout Update Validation 
 
         internal void ReportTypeLayoutUpdateRudeEdits(
             List<RudeEditDiagnostic> diagnostics,
@@ -2248,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-#endregion
+        #endregion
 
         private static IMethodSymbol AsParameterlessConstructor(ISymbol symbol)
         {
@@ -2420,9 +2420,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             };
         }
 
-#endregion
+        #endregion
 
-#region Helpers 
+        #region Helpers 
 
         private static SyntaxNode TryGetNode(SyntaxNode root, int position)
         {
@@ -2443,6 +2443,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-#endregion
+        #endregion
     }
 }

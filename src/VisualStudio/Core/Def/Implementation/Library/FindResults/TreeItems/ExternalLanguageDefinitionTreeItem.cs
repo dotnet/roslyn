@@ -28,12 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _serviceProvider = serviceProvider;
 
             SetDisplayProperties(
-                filePath, 
-                lineNumber, 
-                offset, 
-                offset, 
-                GetSourceLine(filePath, lineNumber, serviceProvider), 
-                symbolName.Length, 
+                filePath,
+                lineNumber,
+                offset,
+                offset,
+                GetSourceLine(filePath, lineNumber, serviceProvider),
+                symbolName.Length,
                 projectNameDisambiguator: string.Empty);
         }
 
