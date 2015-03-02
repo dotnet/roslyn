@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.TextSpan = textSpan;
             }
 
-            public TextSpan TextSpan { get; private set; }
+            public TextSpan TextSpan { get; }
             public abstract int Indentation { get; }
         }
 
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.InseparableRegionSpan = TextSpan.FromBounds(inseparableRegionSpanStart, textSpan.End);
             }
 
-            public TextSpan InseparableRegionSpan { get; private set; }
-            public IndentBlockOperation Operation { get; private set; }
+            public TextSpan InseparableRegionSpan { get; }
+            public IndentBlockOperation Operation { get; }
 
             public SyntaxToken EndToken
             {
