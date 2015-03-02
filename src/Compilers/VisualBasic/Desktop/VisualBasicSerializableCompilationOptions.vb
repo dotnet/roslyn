@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Const OptionExplicitString = "OptionExplicit"
         Private Const OptionCompareTextString = "OptionCompareText"
         Private Const EmbedVbCoreRuntimeString = "EmbedVbCoreRuntime"
-        Private Const SuppressEmbeddedDeclarations = "SuppressEmbeddedDeclarations"
+        Private Const SuppressEmbeddedDeclarationsString = "SuppressEmbeddedDeclarations"
         Private Const ParseOptionsString = "ParseOptions"
 
         Sub New(options As VisualBasicCompilationOptions)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionExplicit:=info.GetBoolean(OptionExplicitString),
                 optionCompareText:=info.GetBoolean(OptionCompareTextString),
                 embedVbCoreRuntime:=info.GetBoolean(EmbedVbCoreRuntimeString),
-                suppressEmbeddedDeclarations:=info.GetBoolean(SuppressEmbeddedDeclarations),
+                suppressEmbeddedDeclarations:=info.GetBoolean(SuppressEmbeddedDeclarationsString),
                 parseOptions:=If(serializableOptions IsNot Nothing, serializableOptions.Options, Nothing))
         End Sub
 
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             info.AddValue(OptionExplicitString, _options.OptionExplicit)
             info.AddValue(OptionCompareTextString, _options.OptionCompareText)
             info.AddValue(EmbedVbCoreRuntimeString, _options.EmbedVbCoreRuntime)
-            info.AddValue(SuppressEmbeddedDeclarations, _options.SuppressEmbeddedDeclarations)
+            info.AddValue(SuppressEmbeddedDeclarationsString, _options.SuppressEmbeddedDeclarations)
             info.AddValue(ParseOptionsString, If(_options.ParseOptions IsNot Nothing, New VisualBasicSerializableParseOptions(_options.ParseOptions), Nothing))
         End Sub
 
