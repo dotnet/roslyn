@@ -297,8 +297,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 Debug.Assert(value.Type.GetProxyType() == null);
 
-                var nullableValue = value.GetNullableValue(inspectionContext);
-                if (nullableValue == null)
+                DkmClrValue nullableValue;
+                if (value.IsError())
+                {
+                    expansion = null;
+                }
+                else if ((nullableValue = value.GetNullableValue(inspectionContext)) == null)
                 {
                     Debug.Assert(declaredType.Equals(value.Type.GetLmrType()));
                     // No expansion of "null".

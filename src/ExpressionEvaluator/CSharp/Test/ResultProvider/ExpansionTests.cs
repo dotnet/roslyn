@@ -2152,5 +2152,36 @@ class B : A
             // Also need to check Access, StorageType, and TypeModifierFlags fields.
             // ...
         }
+
+        [WorkItem(1130978)]
+        [Fact]
+        public void NullableValue_Error()
+        {
+            var source =
+@"class C
+{
+    bool F() { return false; }
+    int? P
+    {
+        get
+        {
+            while (!F()) { }
+            return null;
+        }
+    }
+}";
+            DkmClrRuntimeInstance runtime = null;
+            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
+                var evalResult = FormatResult("o.P", memberValue);
+                Verify(evalResult,
+                    EvalFailedResult("o.P", "Function evaluation timed out", "int?", "o.P"));
+            }
+        }
     }
 }
