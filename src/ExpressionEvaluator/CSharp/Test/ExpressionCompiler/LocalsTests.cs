@@ -2392,6 +2392,56 @@ class C
             locals.Free();
         }
 
+        [WorkItem(947)]
+        [Fact]
+        public void DuplicateEditorBrowsableAttributes()
+        {
+            const string libSource = @"
+namespace System.ComponentModel
+{
+    public enum EditorBrowsableState
+    {
+        Always = 0,
+        Never = 1,
+        Advanced = 2
+    }
+
+    [AttributeUsage(AttributeTargets.All)]
+    internal sealed class EditorBrowsableAttribute : Attribute
+    {
+        public EditorBrowsableAttribute(EditorBrowsableState state) { }
+    }
+}
+";
+
+            const string source = @"
+[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+class C
+{
+    void M()
+    {
+    }
+}
+";
+            var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef }, TestOptions.DebugDll);
+
+            byte[] exeBytes;
+            byte[] pdbBytes;
+            ImmutableArray<MetadataReference> unusedReferences;
+            var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
+            Assert.True(result);
+
+            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef), exeBytes, new SymReader(pdbBytes));
+
+            string typeName;
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            CompilationTestData testData;
+            GetLocals(runtime, "C.M", argumentsOnly: false, locals: locals, count: 1, typeName: out typeName, testData: out testData);
+            Assert.Equal("this", locals.Single().LocalName);
+            locals.Free();
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);
