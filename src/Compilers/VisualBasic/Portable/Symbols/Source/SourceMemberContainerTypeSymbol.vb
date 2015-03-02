@@ -3292,7 +3292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared Function GetInitializersInSourceTree(tree As SyntaxTree, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of FieldOrPropertyInitializer)
             Dim builder = ArrayBuilder(Of FieldOrPropertyInitializer).GetInstance()
-            For Each siblingInitializers In initializers
+            For Each siblingInitializers As ImmutableArray(Of FieldOrPropertyInitializer) In initializers
                 If (siblingInitializers.First().Syntax.SyntaxTree Is tree) Then
                     builder.AddRange(siblingInitializers)
                 End If

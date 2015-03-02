@@ -437,6 +437,144 @@ End Module
                 Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
+        <WorkItem(1067140)>
+        <Fact>
+        Public Sub AnonymousDelegates()
+            Dim sources0a = <compilation>
+                                <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim s = Sub() Return
+        Dim t = Sub(o As C) o.M() 
+    End Sub
+    Shared Sub N()
+        Dim x = New With {.P = 0}
+        Dim s = Function(o As Object) o
+        Dim t = Sub(o As Object) Return
+        Dim u = Sub(c As C) c.GetHashCode() 
+    End Sub
+End Class
+]]></file>
+                            </compilation>
+            Dim sources1a = <compilation>
+                                <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim s = Sub() Return
+        Dim t = Sub(o As C) o.M() 
+    End Sub
+    Shared Sub N()
+        Dim x = New With {.Q = 1}
+        Dim s = Function(c As Object) c
+        Dim t = Sub(c as Object) Return
+        Dim u = Sub(c As C) c.GetHashCode() 
+    End Sub
+End Class
+]]></file>
+                            </compilation>
+
+            Dim source0 = MarkedSource("
+Class C
+    Sub M()
+        Dim s = Sub() Return
+        Dim t = Sub(o As C) o.M() 
+    End Sub
+    Shared Sub N()
+        Dim x = <N:0>New With {.P = 0}</N:0>
+        Dim s = <N:1>Function(o As Object) o</N:1>
+        Dim t = <N:2>Sub(o As Object) Return</N:2>
+        Dim u = <N:3>Sub(c As C) c.GetHashCode()</N:3>
+    End Sub
+End Class
+")
+
+            Dim source1 = MarkedSource("
+Class C
+    Sub M()
+        Dim s = Sub() Return
+        Dim t = Sub(o As C) o.M() 
+    End Sub
+    Shared Sub N()
+        Dim x = <N:0>New With {.Q = 1}</N:0>
+        Dim s = <N:1>Function(c As Object) c</N:1>
+        Dim t = <N:2>Sub(c as Object) Return</N:2>
+        Dim u = <N:3>Sub(c As C) c.GetHashCode()</N:3>
+    End Sub
+End Class
+")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.N")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.N")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreatePdbInfoProvider().GetEncMethodDebugInfo(handle))
+            Dim reader0 = md0.MetadataReader
+            CheckNamesSorted({reader0}, reader0.GetTypeDefNames(), "_Closure$__", "<Module>", "C", "VB$AnonymousDelegate_0", "VB$AnonymousDelegate_1`1", "VB$AnonymousDelegate_2`2", "VB$AnonymousDelegate_3`1", "VB$AnonymousType_0`1")
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            CheckNamesSorted({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousDelegate_4`2", "VB$AnonymousType_1`1")
+            diff1.VerifyIL("C.N", <![CDATA[
+{
+  // Code size      124 (0x7c)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                [unchanged] V_2,
+                [unchanged] V_3,
+                VB$AnonymousType_1(Of Integer) V_4, //x
+                VB$AnonymousDelegate_4(Of Object, Object) V_5, //s
+                VB$AnonymousDelegate_3(Of Object) V_6, //t
+                VB$AnonymousDelegate_3(Of C) V_7) //u
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     "Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)"
+  IL_0007:  stloc.s    V_4
+  IL_0009:  ldsfld     "C._Closure$__.$I2-0 As <generated method>"
+  IL_000e:  brfalse.s  IL_0017
+  IL_0010:  ldsfld     "C._Closure$__.$I2-0 As <generated method>"
+  IL_0015:  br.s       IL_002d
+  IL_0017:  ldsfld     "C._Closure$__.$I As C._Closure$__"
+  IL_001c:  ldftn      "Function C._Closure$__._Lambda$__2-0(Object) As Object"
+  IL_0022:  newobj     "Sub VB$AnonymousDelegate_4(Of Object, Object)..ctor(Object, System.IntPtr)"
+  IL_0027:  dup
+  IL_0028:  stsfld     "C._Closure$__.$I2-0 As <generated method>"
+  IL_002d:  stloc.s    V_5
+  IL_002f:  ldsfld     "C._Closure$__.$I2-1 As <generated method>"
+  IL_0034:  brfalse.s  IL_003d
+  IL_0036:  ldsfld     "C._Closure$__.$I2-1 As <generated method>"
+  IL_003b:  br.s       IL_0053
+  IL_003d:  ldsfld     "C._Closure$__.$I As C._Closure$__"
+  IL_0042:  ldftn      "Sub C._Closure$__._Lambda$__2-1(Object)"
+  IL_0048:  newobj     "Sub VB$AnonymousDelegate_3(Of Object)..ctor(Object, System.IntPtr)"
+  IL_004d:  dup
+  IL_004e:  stsfld     "C._Closure$__.$I2-1 As <generated method>"
+  IL_0053:  stloc.s    V_6
+  IL_0055:  ldsfld     "C._Closure$__.$I2-2 As <generated method>"
+  IL_005a:  brfalse.s  IL_0063
+  IL_005c:  ldsfld     "C._Closure$__.$I2-2 As <generated method>"
+  IL_0061:  br.s       IL_0079
+  IL_0063:  ldsfld     "C._Closure$__.$I As C._Closure$__"
+  IL_0068:  ldftn      "Sub C._Closure$__._Lambda$__2-2(C)"
+  IL_006e:  newobj     "Sub VB$AnonymousDelegate_3(Of C)..ctor(Object, System.IntPtr)"
+  IL_0073:  dup
+  IL_0074:  stsfld     "C._Closure$__.$I2-2 As <generated method>"
+  IL_0079:  stloc.s    V_7
+  IL_007b:  ret
+}
+]]>.Value)
+        End Sub
+
         <Fact>
         Public Sub PartialClass()
             Dim source0 = MarkedSource("

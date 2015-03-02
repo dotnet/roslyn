@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
 
                     ' associate the frame with the the first lambda that caused it to exist. 
-                    ' we need to associate this with somme syntax.
+                    ' we need to associate this with some syntax.
                     ' unfortunately either containing method or containing class could be synthetic
                     ' therefore could have no syntax.
                     Dim syntax = lambda.Syntax
