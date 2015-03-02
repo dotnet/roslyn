@@ -472,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Exit While
                     ElseIf typeIsQualifiedName Then
                         currTypeSyntax = DirectCast(currTypeSyntax, QualifiedNameSyntax).Left
-                        currDiagName = currDiagName.Substring(0, currDiagName.LastIndexOf("."))
+                        currDiagName = currDiagName.Substring(0, currDiagName.LastIndexOf("."c))
                     Else
                         Exit While
                     End If
@@ -495,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' NOTE: unlike in C#, this method searches for type forwarders case-insensitively.
             ''' </remarks>
             Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, ByRef encounteredCycle As Boolean) As AssemblySymbol
-                Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity))
+                Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity, StringComparison.Ordinal))
 
                 encounteredCycle = False
 

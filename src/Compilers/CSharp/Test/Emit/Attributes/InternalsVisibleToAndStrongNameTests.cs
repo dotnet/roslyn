@@ -180,7 +180,6 @@ public class Test
                 // error CS7027: Error signing output with public key from file '..\KeyPair_6187d0d6-f691-47fd-985b-03570bc0668d.snk' -- aaa.dll not found.
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("..\\" + keyFileName, "aaa.dll not found.").WithLocation(1, 1)
             );
-
         }
 
         [Fact]
@@ -330,7 +329,7 @@ public class Test
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("foo", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -867,7 +866,7 @@ public class Z
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("bogus", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -1614,7 +1613,7 @@ bebd207fe9963cbbe995f66bb227ac4c0cfd91c3dce095617a66ce0e9d0b9e8eae9b25965c514278
 e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c72818100000c85fc49900080000", filePath: "Signed.dll");
 
             var compilation = CreateCompilationWithMscorlib(
-                "interface IDerived : ISigned { }", 
+                "interface IDerived : ISigned { }",
                 references: new[] { signed },
                 options: TestOptions.ReleaseDll
                     .WithGeneralDiagnosticOption(ReportDiagnostic.Error)

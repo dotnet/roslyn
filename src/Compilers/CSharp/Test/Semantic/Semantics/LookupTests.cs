@@ -583,7 +583,7 @@ class Test
             var comp = CreateCompilationWithMscorlib(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var position = testSrc.IndexOf("return");
+            var position = testSrc.IndexOf("return", StringComparison.Ordinal);
             var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(position);
             var lookupResult = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1553,7 +1553,7 @@ class Test
             Assert.Equal(propertyLP, model.GetSymbolInfo(syntaxes[0]).Symbol);
             Assert.Equal(propertyRQ, model.GetSymbolInfo(syntaxes[1]).Symbol);
 
-            int position = source.IndexOf("return");
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
             // We do the right thing with diamond inheritance (i.e. member is hidden along all paths
             // if it is hidden along any path) because we visit base interfaces in topological order.
@@ -1580,7 +1580,7 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            int position = source.IndexOf("return");
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
             var symbols = model.LookupNamespacesAndTypes(position, name: "M");
             Assert.Equal(0, symbols.Length);
@@ -1611,7 +1611,7 @@ public class C<T>
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            int position = source.IndexOf("return");
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
             var symbols = model.LookupSymbols(position, name: "T");
             Assert.Equal(methodT, symbols.Single()); // Hides type parameter.
@@ -1643,7 +1643,7 @@ public class Outer
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            int position = source.IndexOf("return");
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
             var symbols = model.LookupSymbols(position, name: "M");
             Assert.Equal(2, symbols.Length);

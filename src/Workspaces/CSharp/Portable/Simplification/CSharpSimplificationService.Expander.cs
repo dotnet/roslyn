@@ -430,10 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         symbol = symbol.ContainingType;
                         var name = symbol.Name;
 
-                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText));
+                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal));
 
                         // if the user already used the Attribute suffix in the attribute, we'll maintain it.
-                        if (identifier.ValueText == name && name.EndsWith("Attribute"))
+                        if (identifier.ValueText == name && name.EndsWith("Attribute", StringComparison.Ordinal))
                         {
                             identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
                         }

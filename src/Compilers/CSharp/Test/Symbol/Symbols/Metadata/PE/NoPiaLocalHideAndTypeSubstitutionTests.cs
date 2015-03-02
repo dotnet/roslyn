@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             MethodSymbol methodSymbol = classLocalType.GetMembers("Test1").OfType<MethodSymbol>().Single();
 
-            Assert.Equal(SymbolKind.NamedType, methodSymbol.Parameters.Where(arg => arg.Name == "arg").Single().Type.Kind);
+            Assert.Equal(SymbolKind.NamedType, methodSymbol.Parameters.Single(arg => arg.Name == "arg").Type.Kind);
         }
 
         [Fact]

@@ -2009,7 +2009,7 @@ TryResync:
             beginXmlEmbedded = TransitionFromXmlToVB(beginXmlEmbedded)
             TryEatNewLine(ScannerState.VB)
 
-            Dim value = ParseExpression()
+            Dim value = ParseExpressionCore()
 
             Dim endXmlEmbedded As PunctuationSyntax = Nothing
             If Not TryEatNewLineAndGetToken(SyntaxKind.PercentGreaterThanToken, endXmlEmbedded, createIfMissing:=False, state:=enclosingState) Then

@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Assert.Equal(1, result.Items.Count)
                 Assert.Equal("String [from metadata]", result(0).DisplayInfo.Label)
                 Assert.Equal("String [from metadata]", result(0).DisplayInfo.Title)
-                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String"))
+                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String", StringComparison.Ordinal))
             End Using
         End Sub
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Assert.Equal(1, result.Items.Count)
                 Assert.Equal("Enumerable [from metadata]", result(0).DisplayInfo.Label)
                 Assert.Equal("Enumerable [from metadata]", result(0).DisplayInfo.Title)
-                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("Distinct"))
+                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("Distinct", StringComparison.Ordinal))
             End Using
         End Sub
 
@@ -94,7 +94,7 @@ End Class
                 Assert.Equal(1, result.Items.Count)
                 Assert.Equal("SerializableAttribute [from metadata]", result(0).DisplayInfo.Label)
                 Assert.Equal("SerializableAttribute [from metadata]", result(0).DisplayInfo.Title)
-                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()")) ' Navigates to constructor
+                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()", StringComparison.Ordinal)) ' Navigates to constructor
             End Using
         End Sub
 

@@ -210,7 +210,7 @@ namespace Roslyn.Utilities
         internal static string NormalizeRelativePath(string path, string basePath, string baseDirectory)
         {
             // Does this look like a URI at all or does it have any invalid path characters? If so, just use it as is.
-            if (path.IndexOf("://") >= 0 || path.IndexOfAny(s_invalidPathChars) >= 0)
+            if (path.IndexOf("://", StringComparison.Ordinal) >= 0 || path.IndexOfAny(s_invalidPathChars) >= 0)
             {
                 return null;
             }

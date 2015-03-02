@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 .Select(partners => new MatchingPair { Old = partners.Key.ToString().Replace("\r\n", " "), New = partners.Value.ToString().Replace("\r\n", " ") }));
         }
 
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K,V>(IEnumerable<KeyValuePair<V, K>> mapping)
+        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
         {
             foreach (var pair in mapping)
             {

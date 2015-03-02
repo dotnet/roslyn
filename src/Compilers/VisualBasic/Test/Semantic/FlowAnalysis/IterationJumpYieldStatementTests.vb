@@ -1365,7 +1365,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim stmtNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Next")).Parent, NextStatementSyntax)
+            Dim stmtNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Next", StringComparison.Ordinal)).Parent, NextStatementSyntax)
             Dim analysis = model.AnalyzeControlFlow(stmtNode, stmtNode)
 
             Assert.False(analysis.Succeeded)

@@ -8,11 +8,11 @@ namespace Roslyn.Test.PdbUtilities
 {
     public sealed class TempPdbReader : IDisposable
     {
-        private ISymUnmanagedReader rawReader;
+        private ISymUnmanagedReader _rawReader;
 
         private TempPdbReader(ISymUnmanagedReader rawReader)
         {
-            this.rawReader = rawReader;
+            _rawReader = rawReader;
         }
 
         public static object CreateUnmanagedReader(Stream pdb)
@@ -34,20 +34,20 @@ namespace Roslyn.Test.PdbUtilities
         {
             // If the underlying symbol reader supports an explicit dispose interface to release
             // it's resources, then call it.
-            (rawReader as ISymUnmanagedDispose)?.Destroy();
-            this.rawReader = null;
+            (_rawReader as ISymUnmanagedDispose)?.Destroy();
+            _rawReader = null;
         }
 
         internal ISymUnmanagedReader SymbolReader
         {
-            get 
+            get
             {
-                if (rawReader == null)
+                if (_rawReader == null)
                 {
                     throw new ObjectDisposedException("SymReader");
                 }
 
-                return rawReader; 
+                return _rawReader;
             }
         }
     }

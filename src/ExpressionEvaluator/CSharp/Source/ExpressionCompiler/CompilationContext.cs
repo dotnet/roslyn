@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     if (!_hoistedParameterNames.IsEmpty)
                     {
                         int localIndex = 0;
-                        foreach(var local in _localsForBinding)
+                        foreach (var local in _localsForBinding)
                         {
                             // Since we are showing hoisted method parameters first, the parameters may appear out of order
                             // in the Locals window if only some of the parameters are hoisted.  This is consistent with the
@@ -799,118 +799,118 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 switch (importRecord.TargetKind)
                 {
                     case ImportTargetKind.Type:
-                    {
-                        var portableImportRecord = importRecord as PortableImportRecord;
-
-                        TypeSymbol typeSymbol = portableImportRecord != null
-                                ? portableImportRecord.GetTargetType(metadataDecoder)
-                                : metadataDecoder.GetTypeSymbolForSerializedType(importRecord.TargetString);
-                        Debug.Assert((object)typeSymbol != null);
-
-                        if (typeSymbol.IsErrorType())
                         {
-                            // Type is unrecognized. The import may have been
-                            // valid in the original source but unnecessary.
-                            continue; // Don't add anything for this import.
-                        }
-                        else if (importRecord.Alias == null && !typeSymbol.IsStatic)
-                        {
-                            // Only static types can be directly imported.
-                            continue;
-                        }
+                            var portableImportRecord = importRecord as PortableImportRecord;
 
-                        if (!TryAddImport(importRecord.Alias, typeSymbol, usingsBuilder, usingAliases, binder, importRecord))
-                        {
-                            continue;
-                        }
+                            TypeSymbol typeSymbol = portableImportRecord != null
+                                    ? portableImportRecord.GetTargetType(metadataDecoder)
+                                    : metadataDecoder.GetTypeSymbolForSerializedType(importRecord.TargetString);
+                            Debug.Assert((object)typeSymbol != null);
 
-                        break;
-                    }
-                    case ImportTargetKind.Namespace:
-                    {
-                        var namespaceName = importRecord.TargetString;
-                        NameSyntax targetSyntax;
-                        if (!SyntaxHelpers.TryParseDottedName(namespaceName, out targetSyntax))
-                        {
-                            // DevDiv #999086: Some previous version of VS apparently generated type aliases as "UA{alias} T{alias-qualified type name}". 
-                            // Neither Roslyn nor Dev12 parses such imports.  However, Roslyn discards them, rather than interpreting them as "UA{alias}"
-                            // (which will rarely work and never be correct).
-                            Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid target '{importRecord.TargetString}'");
-                            continue;
-                        }
-
-                        NamespaceSymbol namespaceSymbol;
-                        var portableImportRecord = importRecord as PortableImportRecord;
-                        if (portableImportRecord != null)
-                        {
-                            var targetAssembly = portableImportRecord.GetTargetAssembly<ModuleSymbol, AssemblySymbol>(module, module.Module);
-                            if ((object)targetAssembly == null)
+                            if (typeSymbol.IsErrorType())
                             {
-                                namespaceSymbol = BindNamespace(namespaceName, compilation.GlobalNamespace);
+                                // Type is unrecognized. The import may have been
+                                // valid in the original source but unnecessary.
+                                continue; // Don't add anything for this import.
                             }
-                            else if (targetAssembly.IsMissing)
+                            else if (importRecord.Alias == null && !typeSymbol.IsStatic)
                             {
-                                Debug.WriteLine($"Import record '{importRecord}' has invalid assembly reference '{targetAssembly.Identity}'");
+                                // Only static types can be directly imported.
                                 continue;
+                            }
+
+                            if (!TryAddImport(importRecord.Alias, typeSymbol, usingsBuilder, usingAliases, binder, importRecord))
+                            {
+                                continue;
+                            }
+
+                            break;
+                        }
+                    case ImportTargetKind.Namespace:
+                        {
+                            var namespaceName = importRecord.TargetString;
+                            NameSyntax targetSyntax;
+                            if (!SyntaxHelpers.TryParseDottedName(namespaceName, out targetSyntax))
+                            {
+                                // DevDiv #999086: Some previous version of VS apparently generated type aliases as "UA{alias} T{alias-qualified type name}". 
+                                // Neither Roslyn nor Dev12 parses such imports.  However, Roslyn discards them, rather than interpreting them as "UA{alias}"
+                                // (which will rarely work and never be correct).
+                                Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid target '{importRecord.TargetString}'");
+                                continue;
+                            }
+
+                            NamespaceSymbol namespaceSymbol;
+                            var portableImportRecord = importRecord as PortableImportRecord;
+                            if (portableImportRecord != null)
+                            {
+                                var targetAssembly = portableImportRecord.GetTargetAssembly<ModuleSymbol, AssemblySymbol>(module, module.Module);
+                                if ((object)targetAssembly == null)
+                                {
+                                    namespaceSymbol = BindNamespace(namespaceName, compilation.GlobalNamespace);
+                                }
+                                else if (targetAssembly.IsMissing)
+                                {
+                                    Debug.WriteLine($"Import record '{importRecord}' has invalid assembly reference '{targetAssembly.Identity}'");
+                                    continue;
+                                }
+                                else
+                                {
+                                    namespaceSymbol = BindNamespace(namespaceName, targetAssembly.GlobalNamespace);
+                                }
                             }
                             else
                             {
-                                namespaceSymbol = BindNamespace(namespaceName, targetAssembly.GlobalNamespace);
-                            }
-                        }
-                        else
-                        {
-                            var globalNamespace = compilation.GlobalNamespace;
+                                var globalNamespace = compilation.GlobalNamespace;
 
-                            var externAlias = ((NativeImportRecord)importRecord).ExternAlias;
-                            if (externAlias != null)
+                                var externAlias = ((NativeImportRecord)importRecord).ExternAlias;
+                                if (externAlias != null)
+                                {
+                                    IdentifierNameSyntax externAliasSyntax = null;
+                                    if (!TryParseIdentifierNameSyntax(externAlias, out externAliasSyntax))
+                                    {
+                                        Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid extern alias '{externAlias}'");
+                                        continue;
+                                    }
+
+                                    var unusedDiagnostics = DiagnosticBag.GetInstance();
+                                    var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, unusedDiagnostics);
+                                    unusedDiagnostics.Free();
+
+                                    if ((object)aliasSymbol == null)
+                                    {
+                                        Debug.WriteLine($"Import record '{importRecord}' requires unknown extern alias '{externAlias}'");
+                                        continue;
+                                    }
+
+                                    globalNamespace = (NamespaceSymbol)aliasSymbol.Target;
+                                }
+
+                                namespaceSymbol = BindNamespace(namespaceName, globalNamespace);
+                            }
+
+                            if ((object)namespaceSymbol == null)
                             {
-                                IdentifierNameSyntax externAliasSyntax = null;
-                                if (!TryParseIdentifierNameSyntax(externAlias, out externAliasSyntax))
-                                {
-                                    Debug.WriteLine($"Import record '{importRecord}' has syntactically invalid extern alias '{externAlias}'");
-                                    continue;
-                                }
-
-                                var unusedDiagnostics = DiagnosticBag.GetInstance();
-                                var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, unusedDiagnostics);
-                                unusedDiagnostics.Free();
-
-                                if ((object)aliasSymbol == null)
-                                {
-                                    Debug.WriteLine($"Import record '{importRecord}' requires unknown extern alias '{externAlias}'");
-                                    continue;
-                                }
-
-                                globalNamespace = (NamespaceSymbol)aliasSymbol.Target;
+                                // Namespace is unrecognized. The import may have been
+                                // valid in the original source but unnecessary.
+                                continue; // Don't add anything for this import.
                             }
 
-                            namespaceSymbol = BindNamespace(namespaceName, globalNamespace);
-                        }
+                            if (!TryAddImport(importRecord.Alias, namespaceSymbol, usingsBuilder, usingAliases, binder, importRecord))
+                            {
+                                continue;
+                            }
 
-                        if ((object)namespaceSymbol == null)
-                        {
-                            // Namespace is unrecognized. The import may have been
-                            // valid in the original source but unnecessary.
-                            continue; // Don't add anything for this import.
+                            break;
                         }
-
-                        if (!TryAddImport(importRecord.Alias, namespaceSymbol, usingsBuilder, usingAliases, binder, importRecord))
-                        {
-                            continue;
-                        }
-
-                        break;
-                    }
                     case ImportTargetKind.Assembly:
-                    {
-                        // Handled in first pass (above).
-                        break;
-                    }
+                        {
+                            // Handled in first pass (above).
+                            break;
+                        }
                     default:
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(importRecord.TargetKind);
-                    }
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(importRecord.TargetKind);
+                        }
                 }
             }
 

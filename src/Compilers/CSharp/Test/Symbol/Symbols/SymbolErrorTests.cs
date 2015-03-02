@@ -17191,8 +17191,8 @@ public class B : A
     Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "B").WithArguments("B.B()").WithLocation(8, 17)
                                 );
 
-            Assert.True(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("A..ctor")));
-            Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor"))); // Haven't tried to emit it
+            Assert.True(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
+            Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
         }
 
         [WorkItem(1084682, "DevDiv"), WorkItem(1036359, "DevDiv"), WorkItem(386, "CodePlex")]

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                         Dim memberAccess = TryCast(argument.Expression, MemberAccessExpressionSyntax)
                         If memberAccess IsNot Nothing Then
                             ' preserve the "IgnoreCase" suffix if present
-                            Dim isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText)
+                            Dim isIgnoreCase = memberAccess.Name.GetText().ToString().EndsWith(CA1309DiagnosticAnalyzer.IgnoreCaseText, StringComparison.Ordinal)
                             Dim newOrdinalText = If(isIgnoreCase, CA1309DiagnosticAnalyzer.OrdinalIgnoreCaseText, CA1309DiagnosticAnalyzer.OrdinalText)
                             Dim newIdentifier = syntaxFactoryService.IdentifierName(newOrdinalText)
                             Dim newMemberAccess = memberAccess.WithName(CType(newIdentifier, SimpleNameSyntax)).WithAdditionalAnnotations(Formatter.Annotation)

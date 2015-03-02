@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -125,7 +126,7 @@ public sealed class CSharpArgumentInfo
             sb.AppendLine(excludeArgumentInfoFlags ? "public enum CSharpArgumentInfoFlags { A }" : CSharpArgumentInfoFlagsSource);
             sb.AppendLine(CSharpArgumentInfoSource);
 
-            foreach (var src in excludeBinder == null ? _binderFactoriesSource : _binderFactoriesSource.Where(src => src.IndexOf(excludeBinder) == -1))
+            foreach (var src in excludeBinder == null ? _binderFactoriesSource : _binderFactoriesSource.Where(src => src.IndexOf(excludeBinder, StringComparison.Ordinal) == -1))
             {
                 sb.AppendFormat("public partial class Binder {{ public static {0} {{ return null; }} }}", src);
                 sb.AppendLine();

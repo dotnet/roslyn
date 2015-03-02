@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void ParseInterpolationStart(out SyntaxToken openBraceToken, out ExpressionSyntax expr, out SyntaxToken commaToken, out ExpressionSyntax alignmentExpression)
         {
             openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
-            expr = this.ParseExpression();
+            expr = this.ParseExpressionCore();
             if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
                 commaToken = this.EatToken(SyntaxKind.CommaToken);
-                alignmentExpression = ConsumeUnexpectedTokens(this.ParseExpression());
+                alignmentExpression = ConsumeUnexpectedTokens(this.ParseExpressionCore());
             }
             else
             {

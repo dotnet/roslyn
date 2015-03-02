@@ -134,7 +134,7 @@ End Module
             ' Change "End Module" to "End module".
             Dim oldTree = compilation.SyntaxTrees(0)
             Dim oldText = oldTree.GetText()
-            Dim position = oldText.ToString().LastIndexOf("Module")
+            Dim position = oldText.ToString().LastIndexOf("Module", StringComparison.Ordinal)
             Dim newText = oldText.Replace(start:=position, length:=1, newText:="m")
             Dim newTree = oldTree.WithChangedText(newText)
             compilation = compilation.ReplaceSyntaxTree(oldTree, newTree)

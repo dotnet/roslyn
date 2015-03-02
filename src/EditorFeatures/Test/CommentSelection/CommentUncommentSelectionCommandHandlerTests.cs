@@ -618,7 +618,7 @@ class Foo
 
         private static int FindAndRemoveMarker(ITextView textView, string marker)
         {
-            var index = textView.TextSnapshot.GetText().IndexOf(marker);
+            var index = textView.TextSnapshot.GetText().IndexOf(marker, StringComparison.Ordinal);
             if (index >= 0)
             {
                 textView.TextBuffer.Delete(new Span(index, marker.Length));

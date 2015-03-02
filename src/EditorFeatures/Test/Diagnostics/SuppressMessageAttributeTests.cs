@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, string rootNamespace = null)
+        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
         {
             using (var workspace = CreateWorkspaceFromFile(source, language, rootNamespace))
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
                 {
-                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, donotCatchAnalyzerExceptions: continueOnAnalyzerException == null));
+                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);
@@ -44,13 +44,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
             }
-        }
-
-        protected override DiagnosticDescription WithArguments(DiagnosticDescription d, params string[] arguments)
-        {
-            // TODO: Round tripping between Diagnostic and DiagnosticData seems to cause us to lose the arguments info.
-            //       For now return just the original diagnostic, we need to clean this up to handle this scenario better.
-            return d;
         }
     }
 }

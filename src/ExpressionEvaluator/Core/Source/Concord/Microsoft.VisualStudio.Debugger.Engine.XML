@@ -6884,7 +6884,7 @@
              [Out] The local variables query.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext.GetTypeName(Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext.GetTypeName(Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.Collections.ObjectModel.ReadOnlyCollection{System.String})">
              <summary>
              Gets the type name string to display in the UI for the given DkmClrType.
             
@@ -6895,6 +6895,10 @@
              </summary>
              <param name="ClrType">
              [In] The type to get the name for.
+             </param>
+             <param name="FormatSpecifiers">
+             [In,Optional] The optional format specifier(s) to use when formatting this
+             result.
              </param>
              <returns>
              [Out] The type name string.
@@ -9460,9 +9464,18 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InspectionContext">
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InspectionSession">
              <summary>
-             Inspection context used to create this interpreted result.
+             The InspectionSession allows the various components which examine data in the
+             target process to store private data with the same lifetime. Inspection sessions
+             are closed when the user attempts to continue the process.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Language">
+             <summary>
+             The language being used.
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
@@ -9471,13 +9484,6 @@
              <summary>
              [Optional] The runtime type of this node.  System.String, for example. This value
              is null when the value is invalid AND the type cannot be determined.
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-        </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.DeclaredType">
-             <summary>
-             [Optional] The declared type if it is different from the runtime type.
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
@@ -9588,29 +9594,6 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Language">
-             <summary>
-             Language used to perform inspections.
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-        </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InspectionSession">
-             <summary>
-             The InspectionSession allows the various components which examine data in the
-             target process to store private data with the same lifetime. Inspection sessions
-             are closed when the user attempts to continue the process.
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-        </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.RuntimeInstance">
-             <summary>
-             Indicates which runtime monitor will be used to perform this evaluation.
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Close">
              <summary>
              Closes the CLR value to release resources associated with it.  This method must
@@ -9626,7 +9609,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Create(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultAccessType,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultStorageType,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultTypeModifierFlags,System.Boolean,System.Object,Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmClrValueFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmDataAddress,System.String,System.Collections.ObjectModel.ReadOnlyCollection{System.Int32},System.Collections.ObjectModel.ReadOnlyCollection{System.Int32},Microsoft.VisualStudio.Debugger.DkmDataItem)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Create(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession,Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultAccessType,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultStorageType,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultTypeModifierFlags,System.Boolean,System.Object,Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmClrValueFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmDataAddress,System.String,System.Collections.ObjectModel.ReadOnlyCollection{System.Int32},System.Collections.ObjectModel.ReadOnlyCollection{System.Int32},Microsoft.VisualStudio.Debugger.DkmDataItem)">
              <summary>
              Create a new DkmClrValue object instance.
             
@@ -9635,15 +9618,17 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
-             <param name="InspectionContext">
-             [In] Inspection context used to create this interpreted result.
+             <param name="InspectionSession">
+             [In] The InspectionSession allows the various components which examine data in
+             the target process to store private data with the same lifetime. Inspection
+             sessions are closed when the user attempts to continue the process.
+             </param>
+             <param name="Language">
+             [In] The language being used.
              </param>
              <param name="Type">
              [In,Optional] The runtime type of this node.  System.String, for example. This
              value is null when the value is invalid AND the type cannot be determined.
-             </param>
-             <param name="DeclaredType">
-             [In,Optional] The declared type if it is different from the runtime type.
              </param>
              <param name="Category">
              [In] The category (ex: Data, Method, etc) of this evaluation result.
@@ -9702,7 +9687,7 @@
              [Out] Result of this method call.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetValueString">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetValueString(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String})">
              <summary>
              Get the value string to display in the UI for the given DkmClrValue.
             
@@ -9711,11 +9696,18 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In] The inspection context for this evaluation.
+             </param>
+             <param name="FormatSpecifiers">
+             [In,Optional] The optional format specifier(s) to use when formatting this
+             result.
+             </param>
              <returns>
              [Out] The value string.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.HasUnderlyingString">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.HasUnderlyingString(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
              Determines if this value has an underlying string representation. If this method
              returns true, the user can use string visualizers to view this value in the
@@ -9726,32 +9718,52 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In] The inspection context for this evaluation.
+             </param>
              <returns>
              [Out] True if this value has and underlying string representation.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetUnderlyingString">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetUnderlyingString(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
-             Get the underlying string representation of this value.
+             Get the underlying string representation of the value.
             
              Location constraint: API must be called from a Monitor component (component level
              &lt; 100,000).
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In] The inspection context for this evaluation.
+             </param>
              <returns>
              [Out] The underlying string representation.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetResult(System.Collections.ObjectModel.ReadOnlyCollection{System.String},System.String,System.String)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetResult(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String},System.String,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult})">
              <summary>
              Format a DkmClrValue and return a DkmEvaluationResult.
+            
+             This method will append a new work item to the specified work list, and return
+             once the work item has been appended. The actual processing of the work item is
+             asynchronous. The caller will be notified that the request is complete through
+             the completion routine.
             
              Location constraint: API must be called from a Monitor component (component level
              &lt; 100,000).
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="WorkList">
+             WorkList to append the new work item to.
+             </param>
+             <param name="DeclaredType">
+             [In,Optional] The declared type if it is different from the runtime type.
+             </param>
+             <param name="InspectionContext">
+             [In] The inspection context for this evaluation.
+             </param>
              <param name="FormatSpecifiers">
              [In,Optional] The optional format specifier(s) to use when formatting this
              result.
@@ -9764,11 +9776,13 @@
              [In] The full name of this result.  This is the expression added to the Watch
              window if the user selects "Add to Watch".
              </param>
-             <returns>
-             [Out] The formatted DkmEvaluationResult.
-             </returns>
+             <param name="CompletionRoutine">
+             Routine to fire when the request is complete. If the request is successfully
+             appended to the work list, this will always fire (including when the operation is
+             canceled). This will never fire if appending the work item fails.
+             </param>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.EvaluateToString">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.EvaluateToString(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
              Execute the ToString override on an object represented by the given DkmClrValue.
              If the value is of type object or does not override ToString, this method will
@@ -9782,31 +9796,49 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
              <returns>
              [Out,Optional] The result of calling ToString on the object represented by this
              DkmClrValue.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.EvaluateDebuggerDisplayString(System.String)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.EvaluateDebuggerDisplayString(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult})">
              <summary>
              Gets the string to display in the debugger UI for a CLR value given a
              DebuggerDisplay attribute string.
+            
+             This method will append a new work item to the specified work list, and return
+             once the work item has been appended. The actual processing of the work item is
+             asynchronous. The caller will be notified that the request is complete through
+             the completion routine.
             
              Location constraint: API must be called from a Monitor component (component level
              &lt; 100,000).
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="WorkList">
+             WorkList to append the new work item to.
+             </param>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
+             <param name="TargetType">
+             [In] The type to use when evaluating debugger display attributes.
+             </param>
              <param name="FormatString">
              [In] The format string to be evaluated by the debugger.  For example "Count =
              {Count}".
              </param>
-             <returns>
-             [Out] The formatted value to display in the debugger UI.  For example "Count =
-             5".
-             </returns>
+             <param name="CompletionRoutine">
+             Routine to fire when the request is complete. If the request is successfully
+             appended to the work list, this will always fire (including when the operation is
+             canceled). This will never fire if appending the work item fails.
+             </param>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InstantiateProxyType(Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InstantiateProxyType(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
              <summary>
              Instantiate a proxy class for a DkmClrValue with an associated DebuggerTypeProxy
              attribute.
@@ -9816,6 +9848,9 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
              <param name="Type">
              [In] The type of the proxy to instantiate.  The proxy type should have a
              constructor taking a single parameter. The debugger will pass the instance of the
@@ -9825,7 +9860,7 @@
              [Out] A value representing the instantiated type proxy.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InstantiateResultsViewProxy(Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.InstantiateResultsViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
              <summary>
              Instantiate the proxy class to use for iterating an IEnumerable value.
             
@@ -9834,6 +9869,9 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
              <param name="EnumerableType">
              [In] The interface type (IEnumerable or IEnumerable&lt;T&gt;) to construct the
              the results view proxy for. This is needed because a class may implement several
@@ -9844,7 +9882,7 @@
              method returns null in case of failure instantiating the results view proxy.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetMemberValue(System.String,System.Int32,System.String)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetMemberValue(System.String,System.Int32,System.String,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
              Gets the value of a field or property as a DkmClrValue.
             
@@ -9866,11 +9904,14 @@
              for. If ParentTypeName value is null, this method will look for the member in the
              runtime type.
              </param>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
              <returns>
              [Out] The DkmClrValue for the given member.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetArrayElement(System.Int32[])">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetArrayElement(System.Int32[],Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
              Get an array element.  This method may only be used if the DkmClrValue represents
              an array value.
@@ -9883,11 +9924,14 @@
              <param name="Index">
              [In] The index or indices of the array element to get.
              </param>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
              <returns>
              [Out] The element value.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Dereference">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.Dereference(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
              <summary>
              Dereference this pointer value to get the underlying value.  This method may only
              be used if the DkmClrValue represents a Pointer value.
@@ -9897,6 +9941,9 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+             <param name="InspectionContext">
+             [In,Optional] The inspection context for this evaluation.
+             </param>
              <returns>
              [Out] The dereferenced value.
              </returns>
@@ -10264,6 +10311,118 @@
             </summary>
             <param name="pNativeObject">Native object</param>
             <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult">
+            <summary>
+            Result of an asynchronous DkmClrValue.EvaluateDebuggerDisplayString call.
+            </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.CreateErrorResult(System.Exception)">
+            <summary>
+            Creates a new result structure to hold the error from a failed call to DkmClrValue.EvaluateDebuggerDisplayString.
+            </summary>
+            <param name="exception">
+            [In] exception object containing the error
+            </param>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.ErrorCode">
+            <summary>
+            HRESULT code returned from the caller. This will be
+            DkmExceptionCode.COR_E_OPERATIONCANCELED (0x8013153B) if the operation was
+            canceled before processing was complete.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.Result">
+             <summary>
+             The formatted value to display in the debugger UI.  For example "Count = 5".
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.#ctor(System.String)">
+            <summary>
+            Creates a new result structure to hold the output from a successful call to
+            DkmClrValue.EvaluateDebuggerDisplayString.
+            </summary>
+            <param name="Result">
+            [In] The formatted value to display in the debugger UI.  For example "Count = 5".
+            </param>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Marshal a native struct to managed
+            </summary>
+            <param name="pNativeStruct">Pointer to native struct.</param>
+            <returns>Managed object.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.ManagedToNative(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native.
+            </summary>
+            <param name="call">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult.Validate(System.String[])">
+            <summary>
+            Validate the fields of this structure
+            </summary>
+            <param name="scope">Path to this structure (ex: {"myArgument", ".StructField"})</param>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult">
+            <summary>
+            Result of an asynchronous DkmClrValue.GetResult call.
+            </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.CreateErrorResult(System.Exception)">
+            <summary>
+            Creates a new result structure to hold the error from a failed call to DkmClrValue.GetResult.
+            </summary>
+            <param name="exception">
+            [In] exception object containing the error
+            </param>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.ErrorCode">
+            <summary>
+            HRESULT code returned from the caller. This will be
+            DkmExceptionCode.COR_E_OPERATIONCANCELED (0x8013153B) if the operation was
+            canceled before processing was complete.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.Result">
+             <summary>
+             The formatted DkmEvaluationResult.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.#ctor(Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult)">
+            <summary>
+            Creates a new result structure to hold the output from a successful call to
+            DkmClrValue.GetResult.
+            </summary>
+            <param name="Result">
+            [In] The formatted DkmEvaluationResult.
+            </param>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Marshal a native struct to managed
+            </summary>
+            <param name="pNativeStruct">Pointer to native struct.</param>
+            <returns>Managed object.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.ManagedToNative(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native.
+            </summary>
+            <param name="call">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult.Validate(System.String[])">
+            <summary>
+            Validate the fields of this structure
+            </summary>
+            <param name="scope">Path to this structure (ex: {"myArgument", ".StructField"})</param>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmExecuteAsyncResult">
             <summary>
@@ -24340,12 +24499,12 @@
             
              Implementations of this interface may restrict when they are called using a filter
              defined in their component configuration. The following properties may be used:
-             CompilerVendorId, EngineId, LanguageId, RuntimeId.
+             CompilerVendorId, LanguageId.
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetValueString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetValueString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String})">
             <summary>
             Get the value string to display in the UI for the given DkmClrValue.
             </summary>
@@ -24353,11 +24512,18 @@
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
             </param>
+            <param name="inspectionContext">
+            [In] The inspection context for this evaluation.
+            </param>
+            <param name="formatSpecifiers">
+            [In,Optional] The optional format specifier(s) to use when formatting this
+            result.
+            </param>
             <returns>
             [Out] The value string.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetTypeName(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetTypeName(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.Collections.ObjectModel.ReadOnlyCollection{System.String})">
             <summary>
             Gets the type name string to display in the UI for the given DkmClrType.
             </summary>
@@ -24367,11 +24533,15 @@
             <param name="clrType">
             [In] The type to get the name for.
             </param>
+            <param name="formatSpecifiers">
+            [In,Optional] The optional format specifier(s) to use when formatting this
+            result.
+            </param>
             <returns>
             [Out] The type name string.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.HasUnderlyingString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.HasUnderlyingString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
             Determines if this value has an underlying string representation. If this method
             returns true, the user can use string visualizers to view this value in the
@@ -24381,17 +24551,23 @@
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
             </param>
+            <param name="inspectionContext">
+            [In] The inspection context for this evaluation.
+            </param>
             <returns>
             [Out] True if this value has and underlying string representation.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetUnderlyingString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetUnderlyingString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
-            Get the underlying string representation of this value.
+            Get the underlying string representation of the value.
             </summary>
             <param name="clrValue">
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
+            </param>
+            <param name="inspectionContext">
+            [In] The inspection context for this evaluation.
             </param>
             <returns>
             [Out] The underlying string representation.
@@ -24404,18 +24580,29 @@
             
              Implementations of this interface may restrict when they are called using a filter
              defined in their component configuration. The following properties may be used:
-             CompilerVendorId, EngineId, LanguageId, RuntimeId.
+             CompilerVendorId, LanguageId.
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider.GetResult(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.Collections.ObjectModel.ReadOnlyCollection{System.String},System.String,System.String)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider.GetResult(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String},System.String,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult})">
             <summary>
             Format a DkmClrValue and return a DkmEvaluationResult.
             </summary>
             <param name="clrValue">
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
+            </param>
+            <param name="workList">
+            WorkList which is currently being processed. This value can be used to check for
+            cancelation or to append additional work. New work items will not begin executing
+            until after this function returns.
+            </param>
+            <param name="declaredType">
+            [In,Optional] The declared type if it is different from the runtime type.
+            </param>
+            <param name="inspectionContext">
+            [In] The inspection context for this evaluation.
             </param>
             <param name="formatSpecifiers">
             [In,Optional] The optional format specifier(s) to use when formatting this
@@ -24429,9 +24616,11 @@
             [In] The full name of this result.  This is the expression added to the Watch
             window if the user selects "Add to Watch".
             </param>
-            <returns>
-            [Out] The formatted DkmEvaluationResult.
-            </returns>
+            <param name="completionRoutine">
+            Routine to fire when the request is complete. This will be implicitly fired if
+            the implementation returns failure from this interface method. The implementation
+            must fire this method in all other scenarios.
+            </param>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider.GetClrValue(Microsoft.VisualStudio.Debugger.Evaluation.DkmSuccessEvaluationResult)">
             <summary>
@@ -31719,9 +31908,9 @@
              <summary>
              Interface implemented to allow inspection of CLR values represented by DkmClrValues.
             
-             Implementations of this interface may restrict when they are called using a filter
-             defined in their component configuration. The following properties may be used:
-             EngineId, RuntimeId.
+             Implementations of this interface are always called (no filtering is supported). To
+             reduce memory impact, it is suggested that this interface be implemented in a small
+             dll, or that the implementation is configured with 'CallOnlyWhenLoaded="true"'.
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
@@ -31738,7 +31927,7 @@
             [Out] A list of attributes that apply to this type or its members.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.EvaluateToString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.EvaluateToString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
             Execute the ToString override on an object represented by the given DkmClrValue.
             If the value is of type object or does not override ToString, this method will
@@ -31751,12 +31940,15 @@
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
             </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
+            </param>
             <returns>
             [Out,Optional] The result of calling ToString on the object represented by this
             DkmClrValue.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.EvaluateDebuggerDisplayString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.String)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.EvaluateDebuggerDisplayString(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluateDebuggerDisplayStringAsyncResult})">
             <summary>
             Gets the string to display in the debugger UI for a CLR value given a
             DebuggerDisplay attribute string.
@@ -31765,16 +31957,28 @@
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
             </param>
+            <param name="workList">
+            WorkList which is currently being processed. This value can be used to check for
+            cancelation or to append additional work. New work items will not begin executing
+            until after this function returns.
+            </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
+            </param>
+            <param name="targetType">
+            [In] The type to use when evaluating debugger display attributes.
+            </param>
             <param name="formatString">
             [In] The format string to be evaluated by the debugger.  For example "Count =
             {Count}".
             </param>
-            <returns>
-            [Out] The formatted value to display in the debugger UI.  For example "Count =
-            5".
-            </returns>
+            <param name="completionRoutine">
+            Routine to fire when the request is complete. This will be implicitly fired if
+            the implementation returns failure from this interface method. The implementation
+            must fire this method in all other scenarios.
+            </param>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.InstantiateProxyType(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.InstantiateProxyType(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
             <summary>
             Instantiate a proxy class for a DkmClrValue with an associated DebuggerTypeProxy
             attribute.
@@ -31782,6 +31986,9 @@
             <param name="clrValue">
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
+            </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
             </param>
             <param name="type">
             [In] The type of the proxy to instantiate.  The proxy type should have a
@@ -31792,13 +31999,16 @@
             [Out] A value representing the instantiated type proxy.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.InstantiateResultsViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.InstantiateResultsViewProxy(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType)">
             <summary>
             Instantiate the proxy class to use for iterating an IEnumerable value.
             </summary>
             <param name="clrValue">
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
+            </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
             </param>
             <param name="enumerableType">
             [In] The interface type (IEnumerable or IEnumerable&lt;T&gt;) to construct the
@@ -31810,7 +32020,7 @@
             method returns null in case of failure instantiating the results view proxy.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.GetMemberValue(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.String,System.Int32,System.String)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.GetMemberValue(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.String,System.Int32,System.String,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
             Gets the value of a field or property as a DkmClrValue.
             </summary>
@@ -31831,11 +32041,14 @@
             for. If ParentTypeName value is null, this method will look for the member in the
             runtime type.
             </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
+            </param>
             <returns>
             [Out] The DkmClrValue for the given member.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.GetArrayElement(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.Int32[])">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.GetArrayElement(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,System.Int32[],Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
             Get an array element.  This method may only be used if the DkmClrValue represents
             an array value.
@@ -31847,11 +32060,14 @@
             <param name="index">
             [In] The index or indices of the array element to get.
             </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
+            </param>
             <returns>
             [Out] The element value.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.Dereference(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrValueInspectionCallback.Dereference(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
             <summary>
             Dereference this pointer value to get the underlying value.  This method may only
             be used if the DkmClrValue represents a Pointer value.
@@ -31859,6 +32075,9 @@
             <param name="clrValue">
             [In] A value resulting from a CLR inspection query.  These values are used by a
             Result Formatter to generate DkmEvaluationResults.
+            </param>
+            <param name="inspectionContext">
+            [In,Optional] The inspection context for this evaluation.
             </param>
             <returns>
             [Out] The dereferenced value.
@@ -58421,6 +58640,11 @@
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_XAPI_CALL_EXCEPTION_THROWN">
             <summary>
             An exception was thrown from a debugger component.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_XAPI_STA_THREADS_NOT_SUPPORTED">
+            <summary>
+            STA threads are not supported in the remote debugger.
             </summary>
         </member>
         <member name="M:CustomActions.GetTimeStamp">

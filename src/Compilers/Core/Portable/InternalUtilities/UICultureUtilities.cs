@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
     {
         // TODO (DevDiv 1117307): Replace with CultureInfo.CurrentUICulture.set when available.
         private const string currentUICultureName = "CurrentUICulture";
-        private readonly static Action<CultureInfo> _setCurrentUICulture;
+        private readonly static Action<CultureInfo> s_setCurrentUICulture;
 
         private static bool TryGetCurrentUICultureSetter(out Action<CultureInfo> setter)
         {
@@ -86,7 +86,8 @@ namespace Roslyn.Utilities
                     return false;
                 }
 
-                setter = culture => {
+                setter = culture =>
+                {
                     currentUICultureSetter.Invoke(currentThreadGetter.Invoke(null, null), new[] { culture });
                 };
                 return true;
@@ -100,33 +101,34 @@ namespace Roslyn.Utilities
 
         static UICultureUtilities()
         {
-            if (!TryGetCurrentUICultureSetter(out _setCurrentUICulture) &&
-                !TryGetCurrentThreadUICultureSetter(out _setCurrentUICulture))
+            if (!TryGetCurrentUICultureSetter(out s_setCurrentUICulture) &&
+                !TryGetCurrentThreadUICultureSetter(out s_setCurrentUICulture))
             {
-                _setCurrentUICulture = null;
+                s_setCurrentUICulture = null;
             }
         }
 
         public static Action WithCurrentUICulture(Action action)
         {
-            if (_setCurrentUICulture == null)
+            if (s_setCurrentUICulture == null)
             {
                 return action;
             }
 
             var savedCulture = CultureInfo.CurrentUICulture;
-            return () => {
+            return () =>
+            {
                 var currentCulture = CultureInfo.CurrentUICulture;
                 if (currentCulture != savedCulture)
                 {
-                    _setCurrentUICulture(savedCulture);
+                    s_setCurrentUICulture(savedCulture);
                     try
                     {
                         action();
                     }
                     finally
                     {
-                        _setCurrentUICulture(currentCulture);
+                        s_setCurrentUICulture(currentCulture);
                     }
                 }
                 else
@@ -138,24 +140,25 @@ namespace Roslyn.Utilities
 
         public static Action<T> WithCurrentUICulture<T>(Action<T> action)
         {
-            if (_setCurrentUICulture == null)
+            if (s_setCurrentUICulture == null)
             {
                 return action;
             }
 
             var savedCulture = CultureInfo.CurrentUICulture;
-            return param => {
+            return param =>
+            {
                 var currentCulture = CultureInfo.CurrentUICulture;
                 if (currentCulture != savedCulture)
                 {
-                    _setCurrentUICulture(savedCulture);
+                    s_setCurrentUICulture(savedCulture);
                     try
                     {
                         action(param);
                     }
                     finally
                     {
-                        _setCurrentUICulture(currentCulture);
+                        s_setCurrentUICulture(currentCulture);
                     }
                 }
                 else
@@ -167,24 +170,25 @@ namespace Roslyn.Utilities
 
         public static Func<T> WithCurrentUICulture<T>(Func<T> func)
         {
-            if (_setCurrentUICulture == null)
+            if (s_setCurrentUICulture == null)
             {
                 return func;
             }
 
             var savedCulture = CultureInfo.CurrentUICulture;
-            return () => {
+            return () =>
+            {
                 var currentCulture = CultureInfo.CurrentUICulture;
                 if (currentCulture != savedCulture)
                 {
-                    _setCurrentUICulture(savedCulture);
+                    s_setCurrentUICulture(savedCulture);
                     try
                     {
                         return func();
                     }
                     finally
                     {
-                        _setCurrentUICulture(currentCulture);
+                        s_setCurrentUICulture(currentCulture);
                     }
                 }
                 else

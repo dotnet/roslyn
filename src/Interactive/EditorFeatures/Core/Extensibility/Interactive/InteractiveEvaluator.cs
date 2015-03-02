@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias WORKSPACES;
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -447,11 +449,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         public async Task<ExecutionResult> ExecuteTextAsync(string text)
         {
@@ -475,11 +477,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         public async Task<ExecutionResult> LoadCommandAsync(string path)
         {
@@ -503,11 +505,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private void SubmissionSuccessfullyExecuted(RemoteExecutionResult result)
         {

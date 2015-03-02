@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
                         Return False
                     End If
 
-                    If position = token.Span.End AndAlso token.Text.EndsWith("""") Then
+                    If position = token.Span.End AndAlso token.Text.EndsWith("""", StringComparison.Ordinal) Then
                         Return False
                     End If
 

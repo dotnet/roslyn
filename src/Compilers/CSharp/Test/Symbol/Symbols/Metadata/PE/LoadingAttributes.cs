@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var sub1 = (MethodSymbol)c1.GetMember("Sub1");
             sub1.GetAttributes().First().VerifyValue(0, TypedConstantKind.Primitive, "Sub1");
 
-            var sub1P1 = sub1.Parameters.Where(p => p.Name == "p1").Single();
+            var sub1P1 = sub1.Parameters.Single(p => p.Name == "p1");
             sub1P1.GetAttributes().First().VerifyValue(0, TypedConstantKind.Primitive, "p1");
 
             var function1 = (MethodSymbol)c1.GetMember("Function1");

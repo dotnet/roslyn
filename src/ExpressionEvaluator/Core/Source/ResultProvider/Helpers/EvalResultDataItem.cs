@@ -154,7 +154,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected override void OnClose()
         {
-            Value.Close();
+            // If we have an expansion, there's a danger that more than one data item is 
+            // referring to the same DkmClrValue (e.g. if it's an AggregateExpansion).
+            // To be safe, we'll only call Close when there's no expansion.  Since this
+            // is only an optimization (the debugger will eventually close the value
+            // anyway), a conservative approach is acceptable.
+            if (this.Expansion == null)
+            {
+                Value.Close();
+            }
         }
     }
 }

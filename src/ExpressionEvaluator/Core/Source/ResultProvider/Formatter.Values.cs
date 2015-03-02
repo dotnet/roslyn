@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// NOTE: no curlies for enum values.
         /// </remarks>
 #pragma warning restore RS0010
-        private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName, DkmInspectionContext  inspectionContext)
+        private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(lmrType.IsEnum);
             Debug.Assert(value != null);

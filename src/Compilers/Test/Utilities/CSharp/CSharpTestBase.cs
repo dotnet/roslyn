@@ -682,12 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // =================
             // Get Binding Text
             string text = tree.GetRoot().ToFullString();
-            int start = text.IndexOf(startTag);
+            int start = text.IndexOf(startTag, StringComparison.Ordinal);
             if (start < 0)
                 return null;
 
             start += startTag.Length;
-            int end = text.IndexOf(endTag);
+            int end = text.IndexOf(endTag, StringComparison.Ordinal);
             Assert.True(end > start, "Bind Pos: end > start");
             // get rid of white spaces if any
             var bindText = text.Substring(start, end - start).Trim();

@@ -838,7 +838,7 @@ End Class
                 Diagnostic(ERRID.ERR_UndefinedType1, "ns.ms.nope").WithArguments("ns.ms.nope"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "ns.ms.ls.nope").WithArguments("ns.ms.ls.nope"))
 
-            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System") AndAlso Not ns.StartsWith("Microsoft"))
+            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System", StringComparison.Ordinal) AndAlso Not ns.StartsWith("Microsoft", StringComparison.Ordinal))
             Dim expectedNamespaces = {"Ns", "Ns.Ms"}
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer(Of String).Default))
         End Sub
@@ -896,7 +896,7 @@ End Namespace
                 Diagnostic(ERRID.ERR_UndefinedType1, "n2.n3.t").WithArguments("n2.n3.t"),
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "n1.n2.n3.t").WithArguments("n1.n2.n3.t", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
 
-            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System") AndAlso Not ns.StartsWith("Microsoft"))
+            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System", StringComparison.Ordinal) AndAlso Not ns.StartsWith("Microsoft", StringComparison.Ordinal))
             Dim expectedNamespaces = {"N1", "N1.N2", "N1.N2.N3"}
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer(Of String).Default))
         End Sub

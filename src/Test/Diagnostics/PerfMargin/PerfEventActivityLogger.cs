@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
@@ -9,11 +11,11 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
     // running as admin, so we need to add our logic to the logger instead.
     internal class PerfEventActivityLogger : ILogger
     {
-        private readonly DataModel model;
+        private readonly DataModel _model;
 
         public PerfEventActivityLogger(DataModel model)
         {
-            this.model = model;
+            _model = model;
         }
 
         public bool IsEnabled(FunctionId functionId)
@@ -28,12 +30,12 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-            model.BlockStart(functionId);
+            _model.BlockStart(functionId);
         }
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
-            model.BlockDisposed(functionId);
+            _model.BlockDisposed(functionId);
         }
     }
 }

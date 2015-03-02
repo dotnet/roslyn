@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract override int GetHashCode();
         public abstract bool Equals(LocalizableString other);
-        
+
         public override bool Equals(object other)
         {
             return Equals(other as LocalizableString);

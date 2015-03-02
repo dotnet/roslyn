@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If symbol.IsConstructor() AndAlso symbol.ContainingType.IsAttribute() Then
                         symbol = symbol.ContainingType
                         Dim name = symbol.Name
-                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText))
+                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal))
 
                         ' Note, VB can't escape attribute names like C#, so we actually need to expand to the symbol name
                         ' without a suffix, see http://msdn.microsoft.com/en-us/library/aa711866(v=vs.71).aspx

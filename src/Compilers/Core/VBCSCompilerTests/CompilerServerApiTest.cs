@@ -3,23 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CompilerServer;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Win32;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.IO.Pipes;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {

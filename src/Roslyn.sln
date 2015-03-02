@@ -13,6 +13,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "Compilers\Core\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompilerTests", "Compilers\Core\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D874349C-8BB3-4BDC-8535-2D52CCCA1198} = {D874349C-8BB3-4BDC-8535-2D52CCCA1198}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{A41D1B99-F489-4C43-BBDF-96D61B19A6B9}"
 EndProject

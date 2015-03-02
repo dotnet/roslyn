@@ -9,14 +9,17 @@ using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
-    internal class ExternalListItem : AbstractListItem
+    internal class ExternalLanguageDefinitionTreeItem : AbstractTreeItem
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly string _filePath;
         private readonly int _lineNumber;
         private readonly int _charOffset;
 
-        public ExternalListItem(string filePath, int lineNumber, int offset, string symbolName, ushort glyphIndex, IServiceProvider serviceProvider)
+        /// <summary>
+        /// A definition from an external language service (e.g. xaml).
+        /// </summary>
+        public ExternalLanguageDefinitionTreeItem(string filePath, int lineNumber, int offset, string symbolName, ushort glyphIndex, IServiceProvider serviceProvider)
             : base(glyphIndex)
         {
             _filePath = filePath;
@@ -24,7 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             _charOffset = offset;
             _serviceProvider = serviceProvider;
 
-            SetDisplayProperties(filePath, lineNumber, offset, lineNumber, offset, GetSourceLine(filePath, lineNumber, serviceProvider), symbolName.Length);
+            SetDisplayProperties(
+                filePath,
+                lineNumber,
+                offset,
+                offset,
+                GetSourceLine(filePath, lineNumber, serviceProvider),
+                symbolName.Length,
+                projectNameDisambiguator: string.Empty);
         }
 
         private static string GetSourceLine(string filePath, int lineNumber, IServiceProvider serviceProvider)

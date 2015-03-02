@@ -841,6 +841,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} references.
+        /// </summary>
+        internal static string ReferenceCountPlural {
+            get {
+                return ResourceManager.GetString("ReferenceCountPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} reference.
+        /// </summary>
+        internal static string ReferenceCountSingular {
+            get {
+                return ResourceManager.GetString("ReferenceCountSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The following references were not found. {0}Please locate and add them manually..
         /// </summary>
         internal static string ReferencesNotFound {

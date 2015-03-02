@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +11,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CommonCommandLineParserTests : TestBase
     {
-        private const int EN_US = 1033;
-
         private void VerifyCommandLineSplitter(string commandLine, string[] expected, bool removeHashComments = false)
         {
             var actual = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments).ToArray();
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void VerifyRuleSetError(string source, Func<string> messageFormatter, bool locSpecific = true, params string[] otherSources)
         {
-            CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            CultureInfo saveUICulture = Thread.CurrentThread.CurrentUICulture;
 
             if (locSpecific)
             {
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    System.Threading.Thread.CurrentThread.CurrentUICulture = preferred;
+                    Thread.CurrentThread.CurrentUICulture = preferred;
                 }
             }
 
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 if (locSpecific)
                 {
-                    System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                    Thread.CurrentThread.CurrentUICulture = saveUICulture;
                 }
             }
 
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             VerifyCommandLineSplitter("", new string[0]);
             VerifyCommandLineSplitter("   \t   ", new string[0]);
-            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new string[] { "abc", "def", "baz", "quuz" });
+            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new[] { "abc", "def", "baz", "quuz" });
             VerifyCommandLineSplitter(@"  ""abc def""  fi""ddle dee de""e  ""hi there ""dude  he""llo there""  ",
                                         new string[] { @"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there""" });
             VerifyCommandLineSplitter(@"  ""abc def \"" baz quuz"" ""\""straw berry"" fi\""zz \""buzz fizzbuzz",

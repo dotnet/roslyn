@@ -1691,8 +1691,8 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim operatorPos = source.IndexOf("+")
-            Dim parenPos = source.IndexOf("(")
+            Dim operatorPos = source.IndexOf("+"c)
+            Dim parenPos = source.IndexOf("("c)
 
             Dim comp = CreateCompilationWithMscorlib({Parse(source)})
             Dim Symbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single()

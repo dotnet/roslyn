@@ -902,6 +902,32 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
+        /// Gets the accessors for the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the accessor of the specified kind for the declaration.
+        /// </summary>
+        public SyntaxNode GetAccessor(SyntaxNode declaration, DeclarationKind kind)
+        {
+            return this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the accessors inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertAccessors(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> accessors);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the accessors added.
+        /// </summary>
+        public SyntaxNode AddAccessors(SyntaxNode declaration, IEnumerable<SyntaxNode> accessors)
+        {
+            return this.InsertAccessors(declaration, this.GetAccessors(declaration).Count, accessors);
+        }
+
+        /// <summary>
         /// Gets the statements for the body of the get-accessor of the declaration.
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetGetAccessorStatements(SyntaxNode declaration);

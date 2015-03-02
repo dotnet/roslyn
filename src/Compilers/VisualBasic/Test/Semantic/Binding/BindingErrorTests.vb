@@ -24308,7 +24308,7 @@ BC30002: Type 'Settings' is not defined.
                        ~~~~~~~~
 ]]></expected>)
 
-            Dim tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("a.vb")).Single
+            Dim tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("a.vb", StringComparison.Ordinal)).Single
             Dim model = comp.GetSemanticModel(tree)
 
             AssertTheseDiagnostics(model.GetDiagnostics(),
@@ -24318,7 +24318,7 @@ BC30002: Type 'Settings' is not defined.
                      ~~~~~~~~
 ]]></expected>)
 
-            tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("b.vb")).Single
+            tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("b.vb", StringComparison.Ordinal)).Single
             model = comp.GetSemanticModel(tree)
             AssertTheseDiagnostics(model.GetDiagnostics(),
 <expected><![CDATA[

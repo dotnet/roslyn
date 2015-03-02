@@ -355,13 +355,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                                     .ToImmutableDictionaryOrEmpty()));
         }
 
-        protected static void AnalyzeDocumentCore(DiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        protected static void AnalyzeDocumentCore(DiagnosticAnalyzer analyzer, Document document, Action<Diagnostic> addDiagnostic, TextSpan? span = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true)
         {
             var semanticModel = document.GetSemanticModelAsync().Result;
             var compilation = semanticModel.Compilation;
             compilation = EnableAnalyzer(analyzer, compilation);
 
-            var diagnostics = compilation.GetAnalyzerDiagnostics(new[] { analyzer }, continueOnAnalyzerException: continueOnAnalyzerException);
+            var diagnostics = compilation.GetAnalyzerDiagnostics(new[] { analyzer }, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
             foreach (var diagnostic in diagnostics)
             {
                 if (!span.HasValue ||
