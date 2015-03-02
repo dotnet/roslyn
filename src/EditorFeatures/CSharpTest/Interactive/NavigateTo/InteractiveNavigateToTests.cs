@@ -282,18 +282,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WorkItem(634774)]
-        [Fact(Skip = "Bug 634774"), Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindDestructor()
-        {
-            using (var workspace = SetupWorkspace("class Foo { ~Foo(){} }"))
-            {
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
-                var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method);
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "~Foo()", $"{EditorFeaturesResources.Type}Foo");
-            }
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPartialMethods()
         {
