@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly IProjectCacheHostService _projectCacheService;
                 private readonly ProjectId _cacheKey;
 
-                object ICachedObjectOwner.CachedObject { get; }
+                object ICachedObjectOwner.CachedObject { get; set; }
 
                 private RecoverableSyntaxTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, CompilationUnitSyntax root, SyntaxTreeInfo info)
                 {
