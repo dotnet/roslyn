@@ -2332,6 +2332,66 @@ class C<T>
             locals.Free();
         }
 
+        [WorkItem(1115030)]
+        [Fact(Skip = "1115030")]
+        public void CatchInAsyncStateMachine()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static object F()
+    {
+        throw new ArgumentException();
+    }
+    static async Task M()
+    {
+        object o;
+        try
+        {
+            o = F();
+        }
+        catch (Exception e)
+        {
+#line 999
+            o = e;
+        }
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.<M>d__1.MoveNext",
+                atLineNumber: 999);
+            var testData = new CompilationTestData();
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object C.<M>d__1.<o>5__1""
+  IL_0006:  ret
+}");
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "e", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""System.Exception C.<M>d__1.<e>5__2""
+  IL_0006:  ret
+}");
+            locals.Free();
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);
