@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 {
     internal class MemberInsertionCompletionItem : CompletionItem
     {
-        public DeclarationModifiers Modifiers { get; private set; }
-        public int Line { get; private set; }
-        public SymbolKey SymbolId { get; private set; }
-        public SyntaxToken Token { get; private set; }
+        public DeclarationModifiers Modifiers { get; }
+        public int Line { get; }
+        public SymbolKey SymbolId { get; }
+        public SyntaxToken Token { get; }
 
         public MemberInsertionCompletionItem(
             ICompletionProvider provider,

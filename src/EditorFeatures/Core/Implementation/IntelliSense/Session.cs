@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         where TPresenterSession : IIntelliSensePresenterSession
         where TController : IController<TModel>
     {
-        public TController Controller { get; private set; }
-        public ModelComputation<TModel> Computation { get; private set; }
+        public TController Controller { get; }
+        public ModelComputation<TModel> Computation { get; }
 
         // The presenter session for the computation we've got going.  It's lifetime is tied 1:1 with
         // the computation.  When the computation starts we make a presenter (note: this does not

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly RenameLocationSet _renameLocationSet;
             private readonly SymbolInlineRenameInfo _renameInfo;
 
-            public IList<InlineRenameLocation> Locations { get; private set; }
+            public IList<InlineRenameLocation> Locations { get; }
 
             public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, RenameLocationSet renameLocationSet)
             {

@@ -7,14 +7,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
     internal sealed class NavigationBarModel
     {
-        public IList<NavigationBarItem> Types { get; private set; }
+        public IList<NavigationBarItem> Types { get; }
 
         /// <summary>
         /// The VersionStamp of the project when this model was computed.
         /// </summary>
-        public VersionStamp SemanticVersionStamp { get; private set; }
+        public VersionStamp SemanticVersionStamp { get; }
 
-        public INavigationBarItemService ItemService { get; private set; }
+        public INavigationBarItemService ItemService { get; }
 
         public NavigationBarModel(IList<NavigationBarItem> types, VersionStamp semanticVersionStamp, INavigationBarItemService itemService)
         {
