@@ -188,27 +188,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Return AddPredefinedPreprocessorSymbols(kind, defines.AsImmutableOrEmpty())
         End Function
 
-        Private Shared Function GetWarningOptions(options As VBCompilerOptions) As Dictionary(Of String, ReportDiagnostic)
-            Dim dictionary As New Dictionary(Of String, ReportDiagnostic)
-            UpdateDictionaryForWarning(dictionary, options.wszWarningsAsErrors, ReportDiagnostic.Error)
-            UpdateDictionaryForWarning(dictionary, options.wszWarningsNotAsErrors, ReportDiagnostic.Default)
-            UpdateDictionaryForWarning(dictionary, options.wszDisabledWarnings, ReportDiagnostic.Suppress)
-
-            Return dictionary
-        End Function
-
-        Private Shared Sub UpdateDictionaryForWarning(dictionary As Dictionary(Of String, ReportDiagnostic), warnings As String, reportDiagnostic As ReportDiagnostic)
+        Private Shared Iterator Function ParseWarningCodes(warnings As String) As IEnumerable(Of String)
             If warnings IsNot Nothing Then
                 For Each warning In warnings.Split(New String() {" ", ",", ";"}, StringSplitOptions.RemoveEmptyEntries)
                     Dim warningId As Integer
                     If Integer.TryParse(warning, warningId) Then
-                        dictionary("BC" + warning) = reportDiagnostic
+                        Yield "BC" + warning
                     Else
-                        dictionary(warning) = reportDiagnostic
+                        Yield warning
                     End If
                 Next
             End If
-        End Sub
+        End Function
 
         Private Shared Function DetermineGeneralDiagnosticOption(level As WarningLevel, ruleSetGeneralDiagnosticOption As ReportDiagnostic?) As ReportDiagnostic
             'If no option was supplied in the project file, but there is one in the ruleset file, use that one.
@@ -222,18 +213,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Private Shared Function DetermineSpecificDiagnosticOptions(options As VBCompilerOptions, ruleSetSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As IReadOnlyDictionary(Of String, ReportDiagnostic)
-            Dim diagnosticOptions As Dictionary(Of String, ReportDiagnostic)
-            Dim diagnosticOptionsFromCompilerOptions = GetWarningOptions(options)
-
-            If ruleSetSpecificDiagnosticOptions IsNot Nothing Then
-                diagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(ruleSetSpecificDiagnosticOptions)
-
-                For Each kvp In diagnosticOptionsFromCompilerOptions
-                    diagnosticOptions(kvp.Key) = kvp.Value
-                Next
-            Else
-                diagnosticOptions = diagnosticOptionsFromCompilerOptions
+            If ruleSetSpecificDiagnosticOptions Is Nothing Then
+                ruleSetSpecificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)
             End If
+
+            ' Start with the rule set options
+            Dim diagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(ruleSetSpecificDiagnosticOptions)
+
+            ' Update the specific options based on the general settings
+            If options.WarningLevel = WarningLevel.WARN_AsError Then
+                For Each pair In ruleSetSpecificDiagnosticOptions
+                    If pair.Value = ReportDiagnostic.Warn Then
+                        diagnosticOptions(pair.Key) = ReportDiagnostic.Error
+                    End If
+                Next
+            ElseIf options.WarningLevel = WarningLevel.WARN_None
+                For Each pair In ruleSetSpecificDiagnosticOptions
+                    If pair.Value <> ReportDiagnostic.Error Then
+                        diagnosticOptions(pair.Key) = ReportDiagnostic.Suppress
+                    End If
+                Next
+            End If
+
+            ' Update the specific options based on the specific settings
+            For Each diagnosticID In ParseWarningCodes(options.wszWarningsAsErrors)
+                diagnosticOptions(diagnosticID) = ReportDiagnostic.Error
+            Next
+
+            For Each diagnosticID In ParseWarningCodes(options.wszWarningsNotAsErrors)
+                Dim ruleSetOption As ReportDiagnostic
+                If ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, ruleSetOption) Then
+                    diagnosticOptions(diagnosticID) = ruleSetOption
+                Else
+                    diagnosticOptions(diagnosticID) = ReportDiagnostic.Default
+                End If
+            Next
+
+            For Each diagnosticID In ParseWarningCodes(options.wszDisabledWarnings)
+                diagnosticOptions(diagnosticID) = ReportDiagnostic.Suppress
+            Next
 
             Return New ReadOnlyDictionary(Of String, ReportDiagnostic)(diagnosticOptions)
         End Function

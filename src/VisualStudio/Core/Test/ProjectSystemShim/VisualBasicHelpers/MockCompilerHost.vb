@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
 
         Private ReadOnly _sdkPath As String
 
-        Private Sub New(sdkPath As String)
+        Public Sub New(sdkPath As String)
             _sdkPath = sdkPath
         End Sub
 
