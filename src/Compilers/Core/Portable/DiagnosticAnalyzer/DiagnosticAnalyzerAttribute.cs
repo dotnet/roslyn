@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// The source languages to which this analyzer applies.  See <see cref="LanguageNames"/>.
         /// </summary>
-        public string[] Languages { get; private set; }
+        public string[] Languages { get; }
 
         /// <summary>
         /// Attribute constructor used to specify automatic application of a diagnostic analyzer.

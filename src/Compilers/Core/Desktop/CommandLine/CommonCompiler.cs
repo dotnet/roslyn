@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ObjectPool<MemoryStream> _memoryStreamPool = new ObjectPool<MemoryStream>(() => new MemoryStream(), 4);
 
-        public CommonMessageProvider MessageProvider { get; private set; }
-        public CommandLineArguments Arguments { get; private set; }
+        public CommonMessageProvider MessageProvider { get; }
+        public CommandLineArguments Arguments { get; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
         private readonly string _tempPath;

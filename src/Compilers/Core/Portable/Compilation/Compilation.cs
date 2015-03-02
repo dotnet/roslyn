@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis
         /// Unless <see cref="CompilationOptions.ModuleName"/> specifies otherwise the module name
         /// written to metadata is <see cref="AssemblyName"/> with an extension based upon <see cref="CompilationOptions.OutputKind"/>.
         /// </remarks>
-        public string AssemblyName { get; private set; }
+        public string AssemblyName { get; }
 
         internal static void CheckAssemblyName(string assemblyName)
         {
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type object that represents the type of submission result the host requested.
         /// </summary>
-        internal Type SubmissionReturnType { get; private set; }
+        internal Type SubmissionReturnType { get; }
 
         internal static bool IsValidSubmissionReturnType(Type type)
         {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type of the host object or null if not specified for this compilation.
         /// </summary>
-        internal Type HostObjectType { get; private set; }
+        internal Type HostObjectType { get; }
 
         internal static bool IsValidHostObjectType(Type type)
         {
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Metadata references passed to the compilation constructor.
         /// </summary>
-        public ImmutableArray<MetadataReference> ExternalReferences { get; private set; }
+        public ImmutableArray<MetadataReference> ExternalReferences { get; }
 
         /// <summary>
         /// Unique metadata references specified via #r directive in the source code of this compilation.

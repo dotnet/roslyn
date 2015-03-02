@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.Compilation = compilation;
         }
 
-        public Compilation Compilation { get; private set; }
+        public Compilation Compilation { get; }
 
         /// <summary>
         /// Flush any cached data in this <see cref="CompilationEvent"/> to minimize space usage (at the possible expense of time later).
