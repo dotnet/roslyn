@@ -658,9 +658,6 @@
       <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\..\..\..\..\CSharpEssentials\Binaries\Release\CSharpEssentials\CSharpEssentials.dll" />
-  </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
