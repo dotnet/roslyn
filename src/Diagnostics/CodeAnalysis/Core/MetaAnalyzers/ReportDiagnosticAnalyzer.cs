@@ -139,21 +139,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 descriptorFields = default(ImmutableArray<IFieldSymbol>);
 
-                var supportedDiagnosticsProperty = analyzer.GetMembers()
-                    .OfType<IPropertySymbol>()
-                    .SingleOrDefault(p => p.OverriddenProperty != null &&
-                        p.OverriddenProperty.Equals(this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).Single()));
-                if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
+                var supportedDiagnosticBaseProperty = this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).FirstOrDefault() as IPropertySymbol;
+                if (supportedDiagnosticBaseProperty != null)
                 {
-                    var syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
-                    if (syntaxRef != null)
+                    var supportedDiagnosticsProperty = analyzer.GetMembers()
+                        .OfType<IPropertySymbol>()
+                        .FirstOrDefault(p => p.OverriddenProperty != null &&
+                            p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
+                    if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
                     {
-                        var syntax = syntaxRef.GetSyntax(cancellationToken);
-                        syntax = GetPropertyGetterBlockSyntax(syntax);
-                        if (syntax != null)
+                        var syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
+                        if (syntaxRef != null)
                         {
-                            var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                            descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                            var syntax = syntaxRef.GetSyntax(cancellationToken);
+                            syntax = GetPropertyGetterBlockSyntax(syntax);
+                            if (syntax != null)
+                            {
+                                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                                descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                            }
                         }
                     }
                 }

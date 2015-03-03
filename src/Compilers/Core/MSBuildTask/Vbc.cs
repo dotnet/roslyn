@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
@@ -8,7 +10,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// This class defines the "Vbc" XMake task, which enables building assemblies from VB
@@ -20,17 +22,17 @@ namespace Microsoft.CodeAnalysis.BuildTask
     /// </summary>
     public class Vbc : ManagedCompiler
     {
-        bool useHostCompilerIfAvailable = false;
+        private bool _useHostCompilerIfAvailable = false;
 
         // The following 1 fields are used, set and re-set in LogEventsFromTextOutput()
         /// <summary>
         /// This stores the origional lines and error priority together in the order in which they were recieved.
         /// </summary>
-        private Queue<VBError> vbErrorLines = new Queue<VBError>();
+        private Queue<VBError> _vbErrorLines = new Queue<VBError>();
 
         // Used when parsing vbc output to determine the column number of an error
-        private bool isDoneOutputtingErrorMessage = false;
-        private int numberOfLinesInErrorMessage = 0;
+        private bool _isDoneOutputtingErrorMessage = false;
+        private int _numberOfLinesInErrorMessage = 0;
 
         #region Properties
 
@@ -156,7 +158,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
         {
             set { _store["SdkPath"] = value; }
             get { return (string)_store["SdkPath"]; }
-
         }
 
         /// <summary>
@@ -186,15 +187,14 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
         public bool UseHostCompilerIfAvailable
         {
-            set { this.useHostCompilerIfAvailable = value; }
-            get { return this.useHostCompilerIfAvailable; }
+            set { _useHostCompilerIfAvailable = value; }
+            get { return _useHostCompilerIfAvailable; }
         }
 
         public string VBRuntimePath
         {
             set { _store["VBRuntimePath"] = value; }
             get { return (string)_store["VBRuntimePath"]; }
-
         }
 
         public string Verbosity
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                         File.Move(actualPdbInfo.FullName, desiredLocation);
                     }
                 }
-            } 
+            }
             catch (Exception e) when (Utilities.IsIoRelatedException(e))
             {
                 Log.LogErrorWithCodeFromResources("VBC.RenamePDB", PdbFile, e.Message);
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             }
         }
 
-        void AddReferencesToCommandLine(CommandLineBuilderExtension commandLine)
+        private void AddReferencesToCommandLine(CommandLineBuilderExtension commandLine)
         {
             if ((this.References == null) || (this.References.Length == 0))
             {
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
             // We can also return immediately if the current string is not a warning or error
             // and we have not seen a warning or error yet. 'Error' and 'Warning' are not localized.
-            if (vbErrorLines.Count == 0 &&
+            if (_vbErrorLines.Count == 0 &&
                 singleLine.IndexOf("warning", StringComparison.OrdinalIgnoreCase) == -1 &&
                 singleLine.IndexOf("error", StringComparison.OrdinalIgnoreCase) == -1)
             {
@@ -643,17 +643,17 @@ namespace Microsoft.CodeAnalysis.BuildTask
         internal void ParseVBErrorOrWarning(string singleLine, MessageImportance messageImportance)
         {
             // if this string is empty then we haven't seen the first line of an error yet
-            if (vbErrorLines.Count > 0)
+            if (_vbErrorLines.Count > 0)
             {
                 // vbc separates the error message from the source text with an empty line, so
                 // we can check for an empty line to see if vbc finished outputting the error message
-                if (!isDoneOutputtingErrorMessage && singleLine.Length == 0)
+                if (!_isDoneOutputtingErrorMessage && singleLine.Length == 0)
                 {
-                    isDoneOutputtingErrorMessage = true;
-                    numberOfLinesInErrorMessage = vbErrorLines.Count;
+                    _isDoneOutputtingErrorMessage = true;
+                    _numberOfLinesInErrorMessage = _vbErrorLines.Count;
                 }
 
-                vbErrorLines.Enqueue(new VBError(singleLine, messageImportance));
+                _vbErrorLines.Enqueue(new VBError(singleLine, messageImportance));
 
                 // We are looking for the line that indicates the column (contains the '~'),
                 // which vbc outputs 3 lines below the error message:
@@ -662,8 +662,8 @@ namespace Microsoft.CodeAnalysis.BuildTask
                 // <blank line>
                 // <line with the source text>
                 // <line with the '~'>
-                if (isDoneOutputtingErrorMessage &&
-                    vbErrorLines.Count == numberOfLinesInErrorMessage + 3)
+                if (_isDoneOutputtingErrorMessage &&
+                    _vbErrorLines.Count == _numberOfLinesInErrorMessage + 3)
                 {
                     // Once we have the 4th line (error line + 3), then parse it for the first ~
                     // which will correspond to the column of the token with the error because
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
                     // The +1 is to translate the index into user columns which are 1 based.
 
-                    VBError originalVBError = vbErrorLines.Dequeue();
+                    VBError originalVBError = _vbErrorLines.Dequeue();
                     string originalVBErrorString = originalVBError.Message;
 
                     int column = singleLine.IndexOf('~') + 1;
@@ -684,12 +684,12 @@ namespace Microsoft.CodeAnalysis.BuildTask
                     {
                         // we need to output all of the original lines we ate.
                         Log.LogMessageFromText(originalVBErrorString, originalVBError.MessageImportance);
-                        foreach (VBError vberror in vbErrorLines)
+                        foreach (VBError vberror in _vbErrorLines)
                         {
                             base.LogEventsFromTextOutput(vberror.Message, vberror.MessageImportance);
                         }
 
-                        vbErrorLines.Clear();
+                        _vbErrorLines.Clear();
                         return;
                     }
 
@@ -698,12 +698,12 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
                     // Output all of the lines of the error, but with the modified first line as well.
                     Log.LogMessageFromText(newLine, originalVBError.MessageImportance);
-                    foreach (VBError vberror in vbErrorLines)
+                    foreach (VBError vberror in _vbErrorLines)
                     {
                         base.LogEventsFromTextOutput(vberror.Message, vberror.MessageImportance);
                     }
 
-                    vbErrorLines.Clear();
+                    _vbErrorLines.Clear();
                 }
             }
             else
@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.BuildTask
                     if (parts.line != CanonicalError.Parts.numberNotSpecified)
                     {
                         // If we got here, then this is a standard VBC error or warning.
-                        vbErrorLines.Enqueue(new VBError(singleLine, messageImportance));
-                        isDoneOutputtingErrorMessage = false;
-                        numberOfLinesInErrorMessage = 0;
+                        _vbErrorLines.Enqueue(new VBError(singleLine, messageImportance));
+                        _isDoneOutputtingErrorMessage = false;
+                        _numberOfLinesInErrorMessage = 0;
                     }
                     else
                     {

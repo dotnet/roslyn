@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())
                 {
-                        // remove any suppression operation
-                        list.RemoveAll(s_predicate);
-                    }
+                    // remove any suppression operation
+                    list.RemoveAll(s_predicate);
+                }
             }
         }
     }

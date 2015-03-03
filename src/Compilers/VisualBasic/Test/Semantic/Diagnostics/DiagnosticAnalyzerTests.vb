@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim id = CType(context.Node, IdentifierNameSyntax)
-                If id.Identifier.ValueText.StartsWith("x") Then
+                If id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal) Then
                     context.ReportDiagnostic(New TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.GetLocation(), "Use of variable whose name starts with 'x': '{0}'", False, id.Identifier.ValueText))
                 End If
             End Sub
@@ -419,7 +419,7 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
         End Sub
 
@@ -465,7 +465,7 @@ End Class
             Assert.NotNull(MyTemplate)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
 
@@ -515,7 +515,7 @@ End Namespace
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[N]]>),
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
@@ -582,7 +582,7 @@ End Class
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
         End Sub
 
         <Fact, WorkItem(1096600)>
@@ -637,50 +637,99 @@ End Class
                 Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
             End Sub
+        End Class
 
-            <Fact, WorkItem(1109126)>
-            Sub TestFieldSymbolAnalyzer_EnumField()
-                Dim analyzer = New FieldSymbolAnalyzer()
-                Dim sources = <compilation>
-                                  <file name="c.vb">
-                                      <![CDATA[
+        <Fact, WorkItem(1109126)>
+        Sub TestFieldSymbolAnalyzer_EnumField()
+            Dim analyzer = New FieldSymbolAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
 Public Enum E
     X = 0
 End Enum
 ]]>
-                                  </file>
-                              </compilation>
+                              </file>
+                          </compilation>
 
-                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
-                compilation.VerifyDiagnostics()
-                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
-            End Sub
+        End Sub
 
-            <Fact, WorkItem(1111667)>
-            Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
-                Dim analyzer = New FieldSymbolAnalyzer()
-                Dim sources = <compilation>
-                                  <file name="c.vb">
-                                      <![CDATA[
+        <Fact, WorkItem(1111667)>
+        Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
+            Dim analyzer = New FieldSymbolAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
 Public Class TestClass
     Public Field As System.IntPtr
 End Class
 ]]>
-                                  </file>
-                              </compilation>
+                              </file>
+                          </compilation>
 
-                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
-                compilation.VerifyDiagnostics()
-                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
+        End Sub
+
+        Class FieldDeclarationAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared desc1 As New DiagnosticDescriptor("FieldDeclarationDiagnostic", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(desc1)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.FieldDeclaration)
+            End Sub
+
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim sourceLoc = DirectCast(context.Node, FieldDeclarationSyntax).GetLocation
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
             End Sub
         End Class
+
+        <Fact, WorkItem(565)>
+        Sub TestFieldDeclarationAnalyzer()
+            Dim analyzer = New FieldDeclarationAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class C
+    Dim x, y As Integer
+    Dim z As Integer
+    Dim x2 = 0, y2 = 0
+    Dim z2 = 0
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x, y As Integer]]>),
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
+        End Sub
     End Class
 End Namespace

@@ -2622,7 +2622,7 @@ class Module1
 
         private sealed class Resolver : TestMetadataReferenceResolver
         {
-            private readonly string _data,_core,_system;
+            private readonly string _data, _core, _system;
 
             public Resolver(string data, string core, string system)
             {
@@ -2748,7 +2748,7 @@ System.Diagnostics.Process.GetCurrentProcess();
         {
             public override string ResolveReference(string reference, string baseFilePath)
             {
-                return reference.EndsWith("-resolve") ? s_resolvedPath : reference;
+                return reference.EndsWith("-resolve", StringComparison.Ordinal) ? s_resolvedPath : reference;
             }
         }
 

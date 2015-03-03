@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Same(Boxes.BoxedInt32Zero, Boxes.Box(0));
             Assert.Same(Boxes.BoxedInt32One, Boxes.Box(1));
             Assert.NotSame(Boxes.Box(3), Boxes.Box(3));
-            
+
             // UInt32
             Assert.Same(Boxes.Box(0u), Boxes.Box(0u));
             Assert.NotSame(Boxes.Box(3u), Boxes.Box(3u));
@@ -70,6 +72,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Same(Boxes.Box('0'), Boxes.Box('0'));
             Assert.NotSame(Boxes.Box('\u1234'), Boxes.Box('\u1234')); // non ASCII
         }
-
     }
 }

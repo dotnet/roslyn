@@ -3343,7 +3343,7 @@ class Outer
             var typeOuter = global.GetMember<NamedTypeSymbol>("Outer");
             var typeInner = typeOuter.GetMember<NamedTypeSymbol>("Inner");
 
-            int position = source.IndexOf("{U}");
+            int position = source.IndexOf("{U}", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString),
                 // Implicit type parameter

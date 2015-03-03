@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         internal static bool EndsWithQuote(string quotedPath)
         {
-            return quotedPath.Length >= 2 && quotedPath.EndsWith("\"");
+            return quotedPath.Length >= 2 && quotedPath[quotedPath.Length - 1] == '"';
         }
 
         /// <summary>

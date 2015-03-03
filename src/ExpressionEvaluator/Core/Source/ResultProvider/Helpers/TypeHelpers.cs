@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -283,22 +284,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.GetNullableTypeArgument() != null;
         }
 
-        internal static DkmClrValue GetFieldValue(this DkmClrValue value, string name)
+        internal static DkmClrValue GetFieldValue(this DkmClrValue value, string name, DkmInspectionContext inspectionContext)
         {
-            return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null);
+            return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
-        internal static DkmClrValue GetNullableValue(this DkmClrValue value)
+        internal static DkmClrValue GetNullableValue(this DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value.Type.GetLmrType().IsNullable());
 
-            var hasValue = value.GetFieldValue(InternalWellKnownMemberNames.NullableHasValue);
+            var hasValue = value.GetFieldValue(InternalWellKnownMemberNames.NullableHasValue, inspectionContext);
             if (object.Equals(hasValue.HostObjectValue, false))
             {
                 return null;
             }
 
-            return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue);
+            return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue, inspectionContext);
         }
 
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)
@@ -368,16 +369,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Extracts information from the first <see cref="DebuggerDisplayAttribute"/> on the runtime type of <paramref name="value"/>, if there is one.
         /// </summary>
-        internal static void GetDebuggerDisplayStrings(this DkmClrValue value, out string nameString, out string valueString, out string typeString)
+        internal static bool TryGetDebuggerDisplayInfo(this DkmClrValue value, out DebuggerDisplayInfo displayInfo)
         {
+            displayInfo = default(DebuggerDisplayInfo);
+
             // The native EE does not consider DebuggerDisplayAttribute
             // on null or error instances.
             if (value.IsError() || value.IsNull)
             {
-                nameString = null;
-                valueString = null;
-                typeString = null;
-                return;
+                return false;
             }
 
             var clrType = value.Type;
@@ -386,16 +386,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrDebuggerDisplayAttribute attribute;
             if (clrType.TryGetEvalAttribute(out attributeTarget, out attribute)) // First, as in dev12.
             {
-                nameString = EvaluateDebuggerDisplayString(value, attribute.Name);
-                valueString = EvaluateDebuggerDisplayString(value, attribute.Value);
-                typeString = EvaluateDebuggerDisplayString(value, attribute.TypeName);
+                displayInfo = new DebuggerDisplayInfo(attributeTarget, attribute);
+                return true;
             }
-            else
-            {
-                nameString = null;
-                valueString = null;
-                typeString = null;
-            }
+
+            return false;
         }
 
         /// <summary>
@@ -439,9 +434,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        private static string EvaluateDebuggerDisplayString(DkmClrValue value, string str)
+        internal static void EvaluateDebuggerDisplayStringAndContinue(this DkmClrValue value, DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string str, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
         {
-            return str == null ? null : value.EvaluateDebuggerDisplayString(str);
+            if (str == null)
+            {
+                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
+            }
+            else
+            {
+                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
+            }
         }
 
         internal static DkmClrType GetProxyType(this DkmClrType type)
@@ -593,11 +595,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsType(@namespace, name) /*&& type.Assembly.IsMscorlib()*/;
         }
 
-        private static bool IsType(this Type type, string @namespace, string name)
+        internal static bool IsOrInheritsFrom(this Type type, string @namespace, string name)
+        {
+            do
+            {
+                if (type.IsType(@namespace, name))
+                {
+                    return true;
+                }
+                type = type.BaseType;
+            }
+            while (type != null);
+            return false;
+        }
+
+        internal static bool IsType(this Type type, string @namespace, string name)
         {
             Debug.Assert((@namespace == null) || (@namespace.Length > 0)); // Type.Namespace is null not empty.
             Debug.Assert(!string.IsNullOrEmpty(name));
-            return (type.Namespace == @namespace) && (type.Name == name);
+            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
+                string.Equals(type.Name, name, StringComparison.Ordinal);
         }
     }
 }

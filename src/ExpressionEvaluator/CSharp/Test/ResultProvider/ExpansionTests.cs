@@ -885,17 +885,15 @@ class D
 
             // Non-null value.
             var value = CreateDkmClrValue(Activator.CreateInstance(type),
-                type: type,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            var evalResult = FormatResult("o", value);
+                type: type);
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.None));
 
             // Null value.
             value = CreateDkmClrValue(null,
-                type: type,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            evalResult = FormatResult("o", value);
+                type: type);
+            evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("o", "null", "C", "o", DkmEvaluationResultFlags.None));
 
@@ -940,9 +938,8 @@ internal class P
             var assembly = GetAssembly(source);
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(Activator.CreateInstance(type),
-                type: type,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            var evalResult = FormatResult("o", value);
+                type: type);
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.None));
 
@@ -961,9 +958,8 @@ internal class P
         [Fact]
         public void NoExpansion_Array()
         {
-            var value = CreateDkmClrValue(new[] { 1, 2, 3 },
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
-            var evalResult = FormatResult("a", value);
+            var value = CreateDkmClrValue(new[] { 1, 2, 3 });
+            var evalResult = FormatResult("a", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(evalResult,
                 EvalResult("a", "{int[3]}", "int[]", "a", DkmEvaluationResultFlags.None));
         }
@@ -1677,8 +1673,8 @@ class E : System.Exception
                 EvalResult("c", "4660 '\u1234'", "char", "c", editableValue: "'\u1234'"));
 
             // This char is not printable, so we expect the EditableValue to be the unicode escape representation.
-            value = CreateDkmClrValue('\u0007', typeof(char), inspectionContext: CreateDkmInspectionContext(radix: 16));
-            evalResult = FormatResult("c", value);
+            value = CreateDkmClrValue('\u0007', typeof(char));
+            evalResult = FormatResult("c", value, inspectionContext: CreateDkmInspectionContext(radix: 16));
             Verify(evalResult,
                 EvalResult("c", "0x0007 '\u0007'", "char", "c", editableValue: "'\\u0007'"));
         }
@@ -2155,6 +2151,37 @@ class B : A
 
             // Also need to check Access, StorageType, and TypeModifierFlags fields.
             // ...
+        }
+
+        [WorkItem(1130978)]
+        [Fact]
+        public void NullableValue_Error()
+        {
+            var source =
+@"class C
+{
+    bool F() { return false; }
+    int? P
+    {
+        get
+        {
+            while (!F()) { }
+            return null;
+        }
+    }
+}";
+            DkmClrRuntimeInstance runtime = null;
+            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
+                var evalResult = FormatResult("o.P", memberValue);
+                Verify(evalResult,
+                    EvalFailedResult("o.P", "Function evaluation timed out", "int?", "o.P"));
+            }
         }
     }
 }

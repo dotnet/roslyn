@@ -29,18 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 
-            Dim method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetReturnValueMethodName,
-                Function(c, n, s)
-                    Dim parameterType = compilation.GetSpecialType(SpecialType.System_Int32)
-                    Dim returnType = compilation.GetSpecialType(SpecialType.System_Object)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(m, parameterType, ordinal:=0, isByRef:=False)))
-                End Function)
+            Dim method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName)
             Dim argument As New BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),

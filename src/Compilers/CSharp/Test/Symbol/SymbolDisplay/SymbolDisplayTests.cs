@@ -2321,7 +2321,7 @@ namespace N1 {
                 findSymbol,
                 format,
                 "Foo.C1.C2",
-                text.IndexOf("namespace"),
+                text.IndexOf("namespace", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.AliasName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2357,7 +2357,7 @@ namespace N1 {
                 findSymbol,
                 format,
                 "Foo.C2",
-                text.IndexOf("namespace"),
+                text.IndexOf("namespace", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.AliasName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2387,7 +2387,7 @@ namespace N1 {
                 findSymbol,
                 format,
                 "C1",
-                text.IndexOf("class Foo"),
+                text.IndexOf("class Foo", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.ClassName);
         }
@@ -2412,7 +2412,7 @@ namespace N1 {
 
             TestSymbolDescription(text, findSymbol, format,
                 "N1.N2.N3",
-                text.IndexOf("N1"),
+                text.IndexOf("N1", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2422,7 +2422,7 @@ namespace N1 {
 
             TestSymbolDescription(text, findSymbol, format,
                 "N2.N3",
-                text.IndexOf("N2"),
+                text.IndexOf("N2", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2430,19 +2430,19 @@ namespace N1 {
 
             TestSymbolDescription(text, findSymbol, format,
                 "N3",
-                text.IndexOf("N3"),
+                text.IndexOf("N3", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.NamespaceName);
 
             TestSymbolDescription(text, findSymbol, format,
                 "N3",
-                text.IndexOf("C1"),
+                text.IndexOf("C1", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.NamespaceName);
 
             TestSymbolDescription(text, findSymbol, format,
                 "N3",
-                text.IndexOf("C2"),
+                text.IndexOf("C2", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.NamespaceName);
         }
@@ -2531,7 +2531,7 @@ class C1 {
 
             TestSymbolDescription(text, findSymbol, format,
                 "IDictionary<IList<int>, string>",
-                text.IndexOf("foo"),
+                text.IndexOf("foo", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.InterfaceName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2968,7 +2968,7 @@ class C1 {
                 findSymbol,
                 format,
                 "global::System.Action",
-                text.IndexOf("global::System.Action"),
+                text.IndexOf("global::System.Action", StringComparison.Ordinal),
                 true /* minimal */,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
@@ -3022,7 +3022,7 @@ class C1 {
                 findSymbol,
                 format,
                 "System.Action",
-                text.IndexOf("global::System.Action"),
+                text.IndexOf("global::System.Action", StringComparison.Ordinal),
                 true /* minimal */,
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Punctuation,
@@ -3074,7 +3074,7 @@ class C1 {
                 findSymbol,
                 format,
                 "System.Action",
-                text.IndexOf("System.Action"),
+                text.IndexOf("System.Action", StringComparison.Ordinal),
                 true /* minimal */,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,

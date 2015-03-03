@@ -13,12 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class WinRTCollectionTests : CSharpTestBase
     {
-        public static MetadataReference[] LegacyRefs { get; } =
+        public static MetadataReference[] LegacyRefs
+        { get; }
+        =
         {
             AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"),
             AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore")
         };
-        
+
 
         [Fact, WorkItem(762316, "DevDiv")]
         public void InheritFromTypeWithProjections()

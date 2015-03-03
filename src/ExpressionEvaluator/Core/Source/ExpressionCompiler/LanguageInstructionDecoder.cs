@@ -1,12 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Text;
 using System.Diagnostics;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VisualStudio.Debugger;
-using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -44,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
 
                 var instructionAddress = (DkmClrInstructionAddress)languageInstructionAddress.Address;
-                var compilation = _instructionDecoder.GetCompilation(instructionAddress);
+                var compilation = _instructionDecoder.GetCompilation(instructionAddress.ModuleInstance);
                 var method = _instructionDecoder.GetMethod(compilation, instructionAddress);
                 var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
                 var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);

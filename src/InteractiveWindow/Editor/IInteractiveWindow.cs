@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -159,7 +161,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         event Action ReadyForInput;
 
         event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
-        
+
         /// <summary>
         /// True if there is currently an input being executed.
         /// </summary>
@@ -210,7 +212,5 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             get;
         }
-
-
     }
 }

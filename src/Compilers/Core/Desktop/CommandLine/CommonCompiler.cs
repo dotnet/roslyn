@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -199,7 +198,6 @@ namespace Microsoft.CodeAnalysis
             return diagnosticInfo;
         }
 
-
         internal bool PrintErrors(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput)
         {
             bool hasErrors = false;
@@ -223,7 +221,16 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                // Catch exceptions from diagnostic formatter as diagnostic descriptors for analyzer diagnostics can throw an exception while formatting diagnostic message.
+                try
+                {
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                }
+                catch (Exception ex)
+                {
+                    var exceptionDiagnostic = AnalyzerExecutor.GetDescriptorDiagnostic(diag.Id, ex);
+                    consoleOutput.WriteLine(DiagnosticFormatter.Format(exceptionDiagnostic, this.Culture));
+                }
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -270,7 +277,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
-            var saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            var saveUICulture = Thread.CurrentThread.CurrentUICulture;
 
             try
             {
@@ -450,7 +457,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
                     var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-                    
+
                     if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
                     {
                         return Failed;

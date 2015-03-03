@@ -154,7 +154,7 @@ class C
 
             Test(input, expected, isLine: false, compareTokens: false);
         }
-        
+
         #endregion
     }
 }

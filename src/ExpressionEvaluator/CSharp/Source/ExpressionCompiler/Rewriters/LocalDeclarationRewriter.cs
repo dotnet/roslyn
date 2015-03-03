@@ -57,22 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             declaredLocals.Add(local);
 
-            var voidType = compilation.GetSpecialType(SpecialType.System_Void);
-            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
-            // <>CreateVariable(Type type, string name)
-            var method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.CreateVariableMethodName,
-                (c, n, s) => new PlaceholderMethodSymbol(
-                    c,
-                    s,
-                    n,
-                    voidType,
-                    m => ImmutableArray.Create<ParameterSymbol>(
-                        new SynthesizedParameterSymbol(m, typeType, ordinal: 0, refKind: RefKind.None),
-                        new SynthesizedParameterSymbol(m, stringType, ordinal: 1, refKind: RefKind.None))));
+            // CreateVariable(Type type, string name)
+            var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
             var call = BoundCall.Synthesized(

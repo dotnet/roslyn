@@ -1420,7 +1420,7 @@ label1:
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
-            var symbols = model.LookupLabels(source.ToString().IndexOf("label1;"));
+            var symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
             Assert.True(symbols.IsEmpty);
         }
 

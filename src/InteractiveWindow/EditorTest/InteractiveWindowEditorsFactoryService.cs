@@ -4,9 +4,8 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Roslyn.InteractiveWindow.UnitTests
+namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     [Export(typeof(IInteractiveWindowEditorFactoryService))]
     internal class InteractiveWindowEditorsFactoryService : IInteractiveWindowEditorFactoryService

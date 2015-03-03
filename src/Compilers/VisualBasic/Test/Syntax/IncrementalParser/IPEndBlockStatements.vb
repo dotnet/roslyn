@@ -50,7 +50,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" 1") + 4, 0),
+        .changeSpan = New TextSpan(code.IndexOf(" 1", StringComparison.Ordinal) + 4, 0),
         .changeType = ChangeType.Insert})
     End Sub
 
@@ -72,7 +72,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" Sub()") + 8, 0),
+        .changeSpan = New TextSpan(code.IndexOf(" Sub()", StringComparison.Ordinal) + 8, 0),
         .changeType = ChangeType.Insert})
     End Sub
 
@@ -94,7 +94,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("End Function"), change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("End Function", StringComparison.Ordinal), change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -116,7 +116,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" 1") + 4, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf(" 1", StringComparison.Ordinal) + 4, change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -139,7 +139,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" Sub()") + 8, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf(" Sub()", StringComparison.Ordinal) + 8, change.Length),
         .changeType = ChangeType.Remove})
     End Sub
 
@@ -181,7 +181,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" 1") + 4, 0),
+        .changeSpan = New TextSpan(code.IndexOf(" 1", StringComparison.Ordinal) + 4, 0),
         .changeType = ChangeType.Insert})
 
     End Sub
@@ -204,7 +204,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" Function()") + 13, 0),
+        .changeSpan = New TextSpan(code.IndexOf(" Function()", StringComparison.Ordinal) + 13, 0),
         .changeType = ChangeType.Insert})
     End Sub
 
@@ -225,7 +225,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("End Sub"), change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("End Sub", StringComparison.Ordinal), change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -250,7 +250,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" 1") + 4, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf(" 1", StringComparison.Ordinal) + 4, change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -276,7 +276,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("= Function()") + 14, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("= Function()", StringComparison.Ordinal) + 14, change.Length),
         .changeType = ChangeType.Remove})
     End Sub
 
@@ -322,7 +322,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" True") + 7, 0),
+        .changeSpan = New TextSpan(code.IndexOf(" True", StringComparison.Ordinal) + 7, 0),
         .changeType = ChangeType.Insert})
     End Sub
 
@@ -346,7 +346,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" Then") + 7, 0),
+        .changeSpan = New TextSpan(code.IndexOf(" Then", StringComparison.Ordinal) + 7, 0),
         .changeType = ChangeType.Insert})
     End Sub
 
@@ -369,7 +369,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("End If"), change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("End If", StringComparison.Ordinal), change.Length),
         .changeType = ChangeType.Remove})
     End Sub
 
@@ -395,7 +395,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" True") + 7, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf(" True", StringComparison.Ordinal) + 7, change.Length),
         .changeType = ChangeType.Remove})
     End Sub
 
@@ -421,7 +421,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf(" Then") + 7, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf(" Then", StringComparison.Ordinal) + 7, change.Length),
         .changeType = ChangeType.Remove})
     End Sub
 
@@ -470,7 +470,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("Select el ") + 12, 0),
+        .changeSpan = New TextSpan(code.IndexOf("Select el ", StringComparison.Ordinal) + 12, 0),
         .changeType = ChangeType.Insert})
 
     End Sub
@@ -495,7 +495,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("End Select"), change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("End Select", StringComparison.Ordinal), change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -523,7 +523,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("Select el ") + 12, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("Select el ", StringComparison.Ordinal) + 12, change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -574,7 +574,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("New Integer ") + 14, 0),
+        .changeSpan = New TextSpan(code.IndexOf("New Integer ", StringComparison.Ordinal) + 14, 0),
         .changeType = ChangeType.Insert})
 
     End Sub
@@ -601,7 +601,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("End With") + 4, 4),
+        .changeSpan = New TextSpan(code.IndexOf("End With", StringComparison.Ordinal) + 4, 4),
         .changeType = ChangeType.Replace})
 
     End Sub
@@ -624,7 +624,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("New"), change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("New", StringComparison.Ordinal), change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub
@@ -652,7 +652,7 @@ Public Class IPEndBlockStatements
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
-        .changeSpan = New TextSpan(code.IndexOf("Select el ") + 12, change.Length),
+        .changeSpan = New TextSpan(code.IndexOf("Select el ", StringComparison.Ordinal) + 12, change.Length),
         .changeType = ChangeType.Remove})
 
     End Sub

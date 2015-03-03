@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,12 +19,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     {
         private const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
-        private readonly IStandardClassificationService registry;
+        private readonly IStandardClassificationService _registry;
 
         [ImportingConstructor]
         public ResetCommand(IStandardClassificationService registry)
         {
-            this.registry = registry;
+            _registry = registry;
         }
 
         public override string Description
@@ -79,7 +81,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
             if (noConfigStart >= 0)
             {
-                yield return new ClassificationSpan(new SnapshotSpan(snapshot, Span.FromBounds(argumentsSpan.Start + noConfigStart, argumentsSpan.Start + noConfigEnd)), registry.Keyword);
+                yield return new ClassificationSpan(new SnapshotSpan(snapshot, Span.FromBounds(argumentsSpan.Start + noConfigStart, argumentsSpan.Start + noConfigEnd)), _registry.Keyword);
             }
         }
 

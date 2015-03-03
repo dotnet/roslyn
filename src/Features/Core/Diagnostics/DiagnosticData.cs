@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string description = null,
             string helpLink = null) :
                 this(
-                    id, category, message, messageFormat, 
-                    severity, severity, isEnabledByDefault, warningLevel, 
+                    id, category, message, messageFormat,
+                    severity, severity, isEnabledByDefault, warningLevel,
                     ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                     workspace, projectId, documentId, span,
-                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn, 
+                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                     originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
                     title, description, helpLink)
         {

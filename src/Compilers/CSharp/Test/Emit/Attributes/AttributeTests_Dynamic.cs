@@ -112,11 +112,11 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         {
             private readonly SourceAssemblySymbol _srcAssembly;
             private readonly CSharpCompilation _comp;
-            private readonly MethodSymbol _dynamicAttributeCtorNoArgs,_dynamicAttributeCtorTransformFlags;
-            private readonly NamedTypeSymbol _base0Class,_base1Class,_base2Class,_derivedClass;
-            private readonly NamedTypeSymbol _outerClass,_innerClass,_innerInnerClass;
-            private readonly NamedTypeSymbol _outer2Class,_inner2Class,_innerInner2Class;
-            private readonly NamedTypeSymbol _outer3Class,_inner3Class;
+            private readonly MethodSymbol _dynamicAttributeCtorNoArgs, _dynamicAttributeCtorTransformFlags;
+            private readonly NamedTypeSymbol _base0Class, _base1Class, _base2Class, _derivedClass;
+            private readonly NamedTypeSymbol _outerClass, _innerClass, _innerInnerClass;
+            private readonly NamedTypeSymbol _outer2Class, _inner2Class, _innerInner2Class;
+            private readonly NamedTypeSymbol _outer3Class, _inner3Class;
             private readonly NamedTypeSymbol _unsafeClass;
             private readonly NamedTypeSymbol _structType;
             private readonly NamedTypeSymbol _synthesizedMyDelegateType;

@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     projectDirectory += Path.DirectorySeparatorChar
                 End If
 
-                Return sources.Where(Function(s) Not System.IO.Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_")) _
+                Return sources.Where(Function(s) Not System.IO.Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal)) _
                          .Select(Function(s) New DocumentFileInfo(GetDocumentFilePath(s), GetDocumentLogicalPath(s, projectDirectory), IsDocumentLinked(s), IsDocumentGenerated(s))).ToImmutableArray()
             End Function
 

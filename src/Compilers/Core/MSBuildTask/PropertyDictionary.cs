@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.BuildTask
+using System.Collections.Generic;
+
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     internal class PropertyDictionary : Dictionary<string, object>
     {
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                 return this.TryGetValue(name, out value)
                     ? value : null;
             }
-            set { this[name] = value; }
+            set { base[name] = value; }
         }
     }
 }

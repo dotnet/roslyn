@@ -2309,6 +2309,164 @@ End Class"
             locals.Free()
         End Sub
 
+        <WorkItem(1115044, "DevDiv")>
+        <Fact>
+        Public Sub CaseSensitivity()
+            Const source = "
+Class C
+    Shared Sub M(p As Integer)
+        Dim s As String
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.M")
+
+            Dim errorMessage As String = Nothing
+            Dim testData As CompilationTestData
+
+            testData = New CompilationTestData()
+            context.CompileExpression("P", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (String V_0) //s
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+")
+
+            testData = New CompilationTestData()
+            context.CompileExpression("S", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL("
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (String V_0) //s
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}
+")
+        End Sub
+
+        <WorkItem(1115030)>
+        <Fact(Skip:="1115030")>
+        Public Sub CatchInAsyncStateMachine()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+    Shared Function F() As Object
+        Throw New ArgumentException()
+    End Function
+    Shared Async Function M() As Task
+        Dim o As Object
+        Try
+            o = F()
+        Catch e As Exception
+#ExternalSource(""test"", 999)
+            o = e
+#End ExternalSource
+        End Try
+    End Function
+End Class"
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_2_M.MoveNext",
+                atLineNumber:=999)
+            Dim testData = New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "o", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Exception V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_o$0 As Object""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "e", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Exception V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_e$1 As System.Exception""
+  IL_0006:  ret
+}")
+            locals.Free()
+        End Sub
+
+        <WorkItem(947)>
+        <Fact>
+        Public Sub DuplicateEditorBrowsableAttributes()
+            Const libSource = "
+Namespace System.ComponentModel
+
+    Public Enum EditorBrowsableState
+        Always = 0
+        Never = 1
+        Advanced = 2
+    End Enum
+
+    <AttributeUsage(AttributeTargets.All)>
+    Friend NotInheritable Class EditorBrowsableAttribute
+        Inherits Attribute
+    
+        Public Sub New(state As EditorBrowsableState)
+        End Sub
+    End Class
+
+End Namespace
+"
+
+            Const source = "
+<System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim libRef = CreateCompilationWithMscorlib({libSource}, compOptions:=TestOptions.DebugDll).EmitToImageReference()
+            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, SystemRef}, TestOptions.DebugDll)
+
+            Dim exeBytes As Byte() = Nothing
+            Dim pdbBytes As Byte() = Nothing
+            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
+            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
+            Assert.True(result)
+
+            ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
+            ' and it depends on EditorBrowsableAttribute.
+            Dim runtimeReferences = ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef)
+            Dim runtime = CreateRuntimeInstance(GetUniqueName(), runtimeReferences, exeBytes, New SymReader(pdbBytes))
+
+            Dim typeName As String = Nothing
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim testData As CompilationTestData = Nothing
+            GetLocals(runtime, "C.M", argumentsOnly:=False, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            Assert.Equal("Me", locals.Single().LocalName)
+            locals.Free()
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
             testData = New CompilationTestData()

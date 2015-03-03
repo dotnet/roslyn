@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract ImmutableArray<TTypeParameterSymbol> GetAllTypeParameters(TMethodSymbol method);
 
-        internal abstract TCompilation GetCompilation(DkmClrInstructionAddress instructionAddress);
+        internal abstract TCompilation GetCompilation(DkmClrModuleInstance moduleInstance);
 
         internal abstract TMethodSymbol GetMethod(TCompilation compilation, DkmClrInstructionAddress instructionAddress);
 

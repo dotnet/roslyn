@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
         /// if the stream contains invalid UTF-8 bytes.
         /// </summary>
-        private static readonly Encoding FallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        private static readonly Encoding s_fallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
         /// Initializes an instance of <see cref="SourceText"/> from the provided stream. This version differs
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 try
                 {
-                    return Decode(stream, FallbackEncoding, checksumAlgorithm, throwIfBinaryDetected: false);
+                    return Decode(stream, s_fallbackEncoding, checksumAlgorithm, throwIfBinaryDetected: false);
                 }
                 catch (DecoderFallbackException)
                 {

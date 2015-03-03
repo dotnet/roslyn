@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (string arg in flattenedArgs)
                 {
-                    Debug.Assert(!arg.StartsWith("@"));
+                    Debug.Assert(!arg.StartsWith("@", StringComparison.Ordinal));
 
                     string name, value;
                     if (!TryParseOption(arg, out name, out value))
@@ -1477,19 +1477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             {
                                                 // Use FileShare.ReadWrite because the file could be opened by the current process.
                                                 // For example, it is an XML doc file produced by the build.
-                                                var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-                                                // Lock the entire content to prevent others from modifying it while we are reading.
-                                                try
-                                                {
-                                                    stream.Lock(0, long.MaxValue);
-                                                    return stream;
-                                                }
-                                                catch
-                                                {
-                                                    stream.Dispose();
-                                                    throw;
-                                                }
+                                                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                                             };
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
         }

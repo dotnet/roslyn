@@ -28,7 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _inspectionContext = inspectionContext
             _typeNameDecoder = typeNameDecoder
             _containingMethod = containingMethod
-            _implicitDeclarations = If(allowImplicitDeclarations, New Dictionary(Of String, LocalSymbol), Nothing)
+            ' TODO (acasey): pass comparer (GH #878).  Until then, there is no need for a comparer,
+            ' since we're going to canonicalize all names.
+            _implicitDeclarations = If(allowImplicitDeclarations, New Dictionary(Of String, LocalSymbol)(), Nothing)
         End Sub
 
         Friend Overrides Sub LookupInSingleBinder(
@@ -43,13 +45,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return
             End If
 
+            ' TODO (acasey): use name (GH #878)
+            Dim canonicalName = Canonicalize(name)
+
             Dim local As LocalSymbol = Nothing
             If _implicitDeclarations IsNot Nothing Then
-                _implicitDeclarations.TryGetValue(name, local)
+                _implicitDeclarations.TryGetValue(canonicalName, local)
             End If
 
             If local Is Nothing Then
-                local = LookupPlaceholder(name)
+                local = LookupPlaceholder(canonicalName)
                 If local Is Nothing Then
                     Return
                 End If
@@ -71,13 +76,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typeChar As String = Nothing
             Dim specialType = GetSpecialTypeForTypeCharacter(identifier.GetTypeCharacter(), typeChar)
             Dim type = Compilation.GetSpecialType(If(specialType = SpecialType.None, SpecialType.System_Object, specialType))
+            ' TODO (acasey): don't canonicalize name (GH #878)
+            Dim canonicalName = Canonicalize(identifier.GetIdentifierText())
             Dim local = LocalSymbol.Create(
                 _containingMethod,
                 Me,
                 identifier,
                 LocalDeclarationKind.ImplicitVariable,
-                type)
-            _implicitDeclarations.Add(local.Name, local)
+                type,
+                canonicalName)
+            _implicitDeclarations.Add(canonicalName, local)
             If local.Name.StartsWith("$", StringComparison.Ordinal) Then
                 diagnostics.Add(ERRID.ERR_IllegalChar, identifier.GetLocation())
             End If
@@ -88,13 +96,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Throw New NotImplementedException()
         End Sub
 
-        Private Function LookupPlaceholder(name As String) As PlaceholderLocalSymbol
+        Private Function LookupPlaceholder(canonicalName As String) As PlaceholderLocalSymbol
+            Debug.Assert(canonicalName = Canonicalize(canonicalName))
+
             Dim kind = PseudoVariableKind.None
             Dim id As String = Nothing
             Dim index = 0
-            If Not PseudoVariableUtilities.TryParseVariableName(name, caseSensitive:=False, kind:=kind, id:=id, index:=index) Then
+            If Not PseudoVariableUtilities.TryParseVariableName(canonicalName, caseSensitive:=False, kind:=kind, id:=id, index:=index) Then
                 Return Nothing
             End If
+
+            Debug.Assert(id = Canonicalize(id)) ' Since we started from a canonical name.
 
             Dim typeName = PseudoVariableUtilities.GetTypeName(_inspectionContext, kind, id, index)
             If typeName Is Nothing Then
@@ -107,8 +119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(type IsNot Nothing)
 
             Select Case kind
-                Case PseudoVariableKind.Exception, PseudoVariableKind.StowedException
-                    Return New ExceptionLocalSymbol(_containingMethod, id, type)
+                Case PseudoVariableKind.Exception
+                    Return New ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName)
+                Case PseudoVariableKind.StowedException
+                    Return New ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
                 Case PseudoVariableKind.ReturnValue
                     Return New ReturnValueLocalSymbol(_containingMethod, id, type, index)
                 Case PseudoVariableKind.ObjectId
@@ -118,6 +132,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
             End Select
+        End Function
+
+        Private Shared Function Canonicalize(name As String) As String
+            Return CaseInsensitiveComparison.ToLower(name)
         End Function
 
     End Class

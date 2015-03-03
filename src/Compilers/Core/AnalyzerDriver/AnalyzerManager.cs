@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache =
             new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
-        
+
         private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
-            DiagnosticAnalyzer analyzer, 
+            DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
@@ -87,12 +87,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-
             }
         }
 
         private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
-            DiagnosticAnalyzer analyzer, 
+            DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
             Func<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> getTask = a =>
@@ -244,24 +243,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (customTag == WellKnownDiagnosticTags.NotConfigurable)
                 {
                     return true;
-                }
-            }
-
-            return false;
-        }
-
-        internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
-        {
-            if (diagnostic.Id == AnalyzerExecutor.DiagnosticId)
-            {
-#pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
-#pragma warning restore RS0013
-                {
-                    if (tag == WellKnownDiagnosticTags.AnalyzerException)
-                    {
-                        return true;
-                    }
                 }
             }
 

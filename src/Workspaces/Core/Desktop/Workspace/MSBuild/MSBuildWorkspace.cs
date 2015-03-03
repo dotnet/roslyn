@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (!string.IsNullOrEmpty(solutionFilePath))
                 {
                     string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                    if (!solutionDirectory.EndsWith("\\"))
+                    if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
                     {
-                        solutionDirectory += "\\";
+                        solutionDirectory += @"\";
                     }
 
                     if (Directory.Exists(solutionDirectory))

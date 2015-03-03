@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     variableSlotAllocatorOpt: null,
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
-                    importChainOpt: null, 
+                    importChainOpt: null,
                     generateDebugInfo: false);
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody);
@@ -298,11 +298,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamespace(symbol);
                     }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-            }), _cancellationToken);
+                }), _cancellationToken);
         }
 
         private void CompileNamespace(NamespaceSymbol symbol)
@@ -344,11 +344,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamedType(symbol);
                     }
-            catch (Exception e) when(FatalError.Report(e))
+                    catch (Exception e) when (FatalError.Report(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-            }), _cancellationToken);
+                }), _cancellationToken);
         }
 
         private void CompileNamedType(NamedTypeSymbol symbol)
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 submissionCtorOrdinal = memberOrdinal;
                                 continue;
                             }
-                                
+
                             if (IsFieldLikeEventAccessor(method))
                             {
                                 continue;
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Do not emit initializers if we are invoking another constructor of this class.
 
                     SourceMemberContainerTypeSymbol container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
-                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && 
+                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol);
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, _generateDebugInfo, out importChain);
@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from the first field initializer.
                 if (_generateDebugInfo)
                 {
-                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) && 
+                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) &&
                         methodSymbol.IsImplicitlyDeclared && body == null)
                     {
                         // There was no body to bind, so we didn't get anything from BindMethodBody.
@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
             int methodOrdinal,
-            BoundStatement block, 
+            BoundStatement block,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             StateMachineTypeSymbol stateMachineTypeOpt,
@@ -1350,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void GetStateMachineSlotDebugInfo(
-            IEnumerable<Cci.IFieldDefinition> fieldDefs, 
+            IEnumerable<Cci.IFieldDefinition> fieldDefs,
             out ImmutableArray<EncHoistedLocalInfo> hoistedVariableSlots,
             out ImmutableArray<Cci.ITypeReference> awaiterSlots)
         {
@@ -1412,6 +1412,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerInvocation != null)
                 {
+                    var ctorCall = initializerInvocation as BoundCall;
+                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
+                    {
+                        // Detect and report indirect cycles in the ctor-initializer call graph.
+                        compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
+                    }
+
                     constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
                 }

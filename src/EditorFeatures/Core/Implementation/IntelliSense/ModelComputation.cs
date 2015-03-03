@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         private readonly IController<TModel> _controller;
         private readonly TaskScheduler __taskScheduler;
 
-		private TaskScheduler _taskScheduler
-		{
-			get
-			{
-				AssertIsForeground();
-				return __taskScheduler;
-			}
-		}
+        private TaskScheduler _taskScheduler
+        {
+            get
+            {
+                AssertIsForeground();
+                return __taskScheduler;
+            }
+        }
 
         private readonly CancellationTokenSource _stopTokenSource;
 

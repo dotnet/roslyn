@@ -94,7 +94,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), donotCatchAnalyzerExceptions: false));
+                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics: true));
             }
         }
 
@@ -123,7 +123,7 @@ class C
                 exceptions.Add(e);
             }
 
-            Assert.True(exceptions.Count == 1);
+            Assert.True(exceptions.Count == 0);
         }
 
         [Fact]

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
@@ -9,9 +11,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal sealed class InteractiveSmartIndenter : ISmartIndent
     {
-        private readonly IContentType contentType;
-        private readonly ITextView view;
-        private readonly ISmartIndent indenter;
+        private readonly IContentType _contentType;
+        private readonly ITextView _view;
+        private readonly ISmartIndent _indenter;
 
         internal static InteractiveSmartIndenter Create(
             IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> smartIndenterProviders,
@@ -24,16 +26,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private InteractiveSmartIndenter(IContentType contentType, ITextView view, ISmartIndentProvider provider)
         {
-            this.contentType = contentType;
-            this.view = view;
-            this.indenter = provider.CreateSmartIndent(view);
+            _contentType = contentType;
+            _view = view;
+            _indenter = provider.CreateSmartIndent(view);
         }
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
         {
             // get point at the subject buffer
-            var mappingPoint = this.view.BufferGraph.CreateMappingPoint(line.Start, PointTrackingMode.Negative);
-            var point = mappingPoint.GetInsertionPoint(b => b.ContentType.IsOfType(this.contentType.TypeName));
+            var mappingPoint = _view.BufferGraph.CreateMappingPoint(line.Start, PointTrackingMode.Negative);
+            var point = mappingPoint.GetInsertionPoint(b => b.ContentType.IsOfType(_contentType.TypeName));
             if (!point.HasValue)
             {
                 return null;
@@ -43,12 +45,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // solely on subject buffer's information and doesn't consider spaces
             // in interactive window itself. Note: This means the ITextBuffer passed
             // to ISmartIndent.GetDesiredIndentation is not this.view.TextBuffer.
-            return this.indenter.GetDesiredIndentation(point.Value.GetContainingLine());
+            return _indenter.GetDesiredIndentation(point.Value.GetContainingLine());
         }
 
         public void Dispose()
         {
-            this.indenter.Dispose();
+            _indenter.Dispose();
         }
 
         // Returns the provider that supports the most derived content type.

@@ -171,7 +171,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            return Create(compilation, analyzers, options, analyzerManager, addExceptionDiagnostic, out newCompilation, continueOnAnalyzerException: null, cancellationToken: cancellationToken);
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, analyzer, diagnostic) =>
+            {
+                if (addExceptionDiagnostic != null)
+                {
+                    addExceptionDiagnostic(diagnostic);
+        }
+            };
+            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -180,21 +187,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers, 
             AnalyzerOptions options, 
             AnalyzerManager analyzerManager,
-            Action<Diagnostic> addExceptionDiagnostic,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             out Compilation newCompilation, 
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, 
             CancellationToken cancellationToken)
         {
             options = options ?? AnalyzerOptions.Empty;
             AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, analyzerManager, cancellationToken);
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
 
-            continueOnAnalyzerException = continueOnAnalyzerException ?? ((exception, analyzer) => true);
             var addDiagnostic = GetDiagnosticSinkWithSuppression(analyzerDriver.DiagnosticQueue.Enqueue, newCompilation);
-            addExceptionDiagnostic = addExceptionDiagnostic != null ?
-                GetDiagnosticSinkWithSuppression(addExceptionDiagnostic, newCompilation) :
-                addDiagnostic;
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
+            if (onAnalyzerException != null)
+            {
+                // Wrap onAnalyzerException to pass in filtered diagnostic.
+                var comp = newCompilation;
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => 
+                    onAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
+            }
+            else
+            {
+                // Add exception diagnostic to regular diagnostic bag.
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
+            }
+
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, cancellationToken);
             
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
@@ -515,16 +532,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return diagnostic =>
             {
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                if (filteredDiagnostic != null)
+                {
+                    addDiagnosticCore(filteredDiagnostic);
+                }
+            };
+        }
+
+        private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
+        {
                 var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
                 if (filteredDiagnostic != null)
                 {
                     var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-                    if (!suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
+                if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
                     {
-                        addDiagnosticCore(filteredDiagnostic);
+                    return null;
                     }
                 }
-            };
+
+            return filteredDiagnostic;
         }
 
         private static Task<AnalyzerActions> GetAnalyzerActionsAsync(
@@ -823,15 +851,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (declInNode.DeclaredNode != declaredNode)
                 {
                     // Might be a field declaration statement with multiple fields declared.
-                    // Adjust syntax node for analysis to be just the field (except for the first field so that we don't skip nodes common to all fields).
+                    // If so, we execute syntax node analysis for entire field declaration (and its descendants)
+                    // if we processing the first field and skip syntax actions for remaining fields in the declaration.
                     if (declInNode.DeclaredSymbol == declaredSymbol)
                     {
                         if (!first)
                         {
-                            declaredNode = declInNode.DeclaredNode;
+                            return;
                         }
-
-                        continue;
+                        
+                        break;
                     }
 
                     // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.
@@ -861,6 +890,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal static string AnalyzerFailure => CodeAnalysisResources.CompilerAnalyzerFailure;
         internal static string AnalyzerThrows => CodeAnalysisResources.CompilerAnalyzerThrows;
+        internal static string DiagnosticDescriptorThrows => CodeAnalysisResources.DiagnosticDescriptorThrows;
         internal static string ArgumentElementCannotBeNull => CodeAnalysisResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => CodeAnalysisResources.ArgumentCannotBeEmpty;
     }

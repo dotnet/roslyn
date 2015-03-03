@@ -2615,7 +2615,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim exprSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("{4, 5}")).Parent, CollectionInitializerSyntax)
+            Dim exprSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("{4, 5}", StringComparison.Ordinal)).Parent, CollectionInitializerSyntax)
             Dim analysis = model.AnalyzeDataFlow(exprSyntaxNode)
 
             Assert.False(analysis.Succeeded)
@@ -2638,7 +2638,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim exprSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("{4, 5}")).Parent, CollectionInitializerSyntax)
+            Dim exprSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("{4, 5}", StringComparison.Ordinal)).Parent, CollectionInitializerSyntax)
             Dim analysis = model.AnalyzeDataFlow(exprSyntaxNode)
 
             Assert.False(analysis.Succeeded)
@@ -2661,7 +2661,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim exprSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("{4, 5}")).Parent, CollectionInitializerSyntax)
+            Dim exprSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("{4, 5}", StringComparison.Ordinal)).Parent, CollectionInitializerSyntax)
             Dim analysis = model.AnalyzeDataFlow(exprSyntaxNode)
 
             Assert.True(analysis.Succeeded)
@@ -2686,7 +2686,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim stmtSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("If False")).Parent, IfStatementSyntax)
+            Dim stmtSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("If False", StringComparison.Ordinal)).Parent, IfStatementSyntax)
             Dim analysis = model.AnalyzeControlFlow(stmtSyntaxNode, stmtSyntaxNode)
 
             Assert.False(analysis.Succeeded)
@@ -2713,7 +2713,7 @@ End Module
 
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim stmtSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Else")).Parent, ElseStatementSyntax)
+            Dim stmtSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Else", StringComparison.Ordinal)).Parent, ElseStatementSyntax)
             Dim analysis = model.AnalyzeControlFlow(stmtSyntaxNode, stmtSyntaxNode)
 
             Assert.False(analysis.Succeeded)
@@ -4816,7 +4816,7 @@ End Module
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
-            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Return")).Parent, StatementSyntax)
+            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Return", StringComparison.Ordinal)).Parent, StatementSyntax)
             Dim dataFlowAnalysis = model.AnalyzeDataFlow(node, node)
             Assert.True(dataFlowAnalysis.Succeeded)
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysis.VariablesDeclared))
@@ -4848,7 +4848,7 @@ End Module
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
-            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Return")).Parent, StatementSyntax)
+            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Return", StringComparison.Ordinal)).Parent, StatementSyntax)
             Dim dataFlowAnalysis = model.AnalyzeDataFlow(node, node)
             Assert.True(dataFlowAnalysis.Succeeded)
             Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysis.VariablesDeclared))
@@ -4882,7 +4882,7 @@ End Module
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
-            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Static")).Parent, StatementSyntax)
+            Dim node = DirectCast(root.FindToken(root.ToFullString().IndexOf("Static", StringComparison.Ordinal)).Parent, StatementSyntax)
             Dim dataFlowAnalysis = model.AnalyzeDataFlow(node, node)
             Assert.True(dataFlowAnalysis.Succeeded)
             Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysis.VariablesDeclared))

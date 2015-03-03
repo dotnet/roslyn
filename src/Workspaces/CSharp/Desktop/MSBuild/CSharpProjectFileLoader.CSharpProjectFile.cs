@@ -65,20 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateProjectFileInfo(compilerInputs, executedProject);
             }
 
-            protected override IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
+            protected override ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
             {
-                return this.GetProjectReferencesCore(executedProject);
-            }
+                var filePath = reference.EvaluatedInclude;
+                var aliases = GetAliases(reference);
 
-            private IEnumerable<ProjectFileReference> GetProjectReferencesCore(ProjectInstance executedProject)
-            {
-                foreach (var projectReference in GetProjectReferenceItems(executedProject))
-                {
-                    var filePath = projectReference.EvaluatedInclude;
-                    var aliases = GetAliases(projectReference);
-
-                    yield return new ProjectFileReference(filePath, aliases);
-                }
+                return new ProjectFileReference(filePath, aliases);
             }
 
             private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)

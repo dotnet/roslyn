@@ -2954,7 +2954,7 @@ class A { }
             var error = tree.GetDiagnostics().Single();
             Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
             string errorString = error.ToString();
-            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf("("));
+            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf('('));
             Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
         }
 

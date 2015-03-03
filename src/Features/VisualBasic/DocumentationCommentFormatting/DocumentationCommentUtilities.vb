@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting
             Dim splitLines = docComment.Split(newLineStrings, StringSplitOptions.None)
 
             For i = 0 To splitLines.Length - 1
-                If splitLines(i).StartsWith("'''") Then
+                If splitLines(i).StartsWith("'''", StringComparison.Ordinal) Then
                     splitLines(i) = splitLines(i).Substring(3)
                 End If
             Next
