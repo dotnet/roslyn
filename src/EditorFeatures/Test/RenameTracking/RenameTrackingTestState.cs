@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             // There should be two actions
             Assert.Equal(2, actions.Count);
 
-            Assert.Equal(string.Format("Rename '{0}' to '{1}'", expectedFromName, expectedToName), actions[0].Title);
-            Assert.Equal(string.Format("Rename '{0}' to '{1}' with preview...", expectedFromName, expectedToName), actions[1].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.RenameToWithPreview, expectedFromName, expectedToName), actions[1].Title);
 
             if (invokeAction)
             {

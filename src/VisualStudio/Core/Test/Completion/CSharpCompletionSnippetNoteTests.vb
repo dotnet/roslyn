@@ -26,7 +26,7 @@ class C
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
-                    "Note: Tab twice to insert the 'interface' snippet.")
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface"))
             End Using
         End Sub
 
@@ -36,8 +36,8 @@ class C
             Using state = CreateCSharpSnippetExpansionNoteTestState(markup, "intErfaCE")
                 state.SendTypeChars("interfac")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="interface Keyword
-Note: Tab twice to insert the 'interface' snippet.")
+                state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources.Keyword, "interface")}
+{String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface")}")
             End Using
         End Sub
 
@@ -49,7 +49,7 @@ Note: Tab twice to insert the 'interface' snippet.")
                 state.AssertCompletionSession()
                 state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
-                    "Note: Tab twice to insert the 'interfac' snippet.")
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interfac"))
             End Using
         End Sub
 
@@ -59,7 +59,7 @@ Note: Tab twice to insert the 'interface' snippet.")
             Using state = CreateCSharpSnippetExpansionNoteTestState(markup, "interfaces")
                 state.SendTypeChars("interfac")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="interface Keyword")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "interface"))
             End Using
         End Sub
 
@@ -70,7 +70,7 @@ Note: Tab twice to insert the 'interface' snippet.")
 
                 state.SendTypeChars("DisplayTex")
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem(description:="Note: Tab twice to insert the 'InsertionText' snippet.")
+                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
             End Using
         End Sub
 

@@ -1374,7 +1374,7 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage, "  Await foo()")
+            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {VBFeaturesResources.Await} foo()")
 
             TestFromXml(markup,
                  MainDescription(description), Usage(doc))
@@ -1789,7 +1789,7 @@ End Class
                          </Workspace>.ToString()
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= FeaturesResources.PrefixTextForAwaitKeyword %> Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
-            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & "TResult is Integer"))
+            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.Is} Integer"))
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>

@@ -848,8 +848,8 @@ End Class
 
                 VerifyTagsAreCorrect(workspace, "BarFoo")
                 Assert.True(previewService.Called)
-                Assert.Equal("Preview Changes - Rename", previewService.Title)
-                Assert.Equal("Rename 'Foo' to 'BarFoo':", previewService.Description)
+                Assert.Equal(String.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), previewService.Title)
+                Assert.Equal(String.Format(EditorFeaturesResources.RenameToTitle, "Foo", "BarFoo"), previewService.Description)
                 Assert.Equal("Foo", previewService.TopLevelName)
                 Assert.Equal(Glyph.ClassInternal, previewService.TopLevelGlyph)
             End Using

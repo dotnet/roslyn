@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+Imports Microsoft.VisualStudio.LanguageServices.SolutionExplorer
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
@@ -41,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single())
                 Dim browseObject = DirectCast(analyzer.GetBrowseObject(), AnalyzerItem.BrowseObject)
 
-                Assert.Equal(expected:="Analyzer Properties", actual:=browseObject.GetClassName())
+                Assert.Equal(expected:=SolutionExplorerShim.AnalyzerItem_PropertyWindowClassName, actual:=browseObject.GetClassName())
                 Assert.Equal(expected:="Foo", actual:=browseObject.GetComponentName())
                 Assert.Equal(expected:="Foo", actual:=browseObject.Name)
                 Assert.Equal(expected:="C:\Users\Bill\Documents\Analyzers\Foo.dll", actual:=browseObject.Path)

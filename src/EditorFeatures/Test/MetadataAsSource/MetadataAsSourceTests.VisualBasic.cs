@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting;
-using Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,9 +18,9 @@ Module M
     Public Class D
     End Class
 End Module";
-                GenerateAndVerifySource(metadataSource, "M+D", LanguageNames.VisualBasic, @"
-#Region ""Assembly ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
-' <in-memory assembly>
+                GenerateAndVerifySource(metadataSource, "M+D", LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Friend Module M
@@ -37,7 +34,7 @@ End Module");
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public void BracketedIdentifierSimplicationTest()
             {
-                var expected = @"#Region ""Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+                var expected = $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
 ' mscorlib.v4_0_30319_17626.dll
 #End Region
 Imports System.Runtime
