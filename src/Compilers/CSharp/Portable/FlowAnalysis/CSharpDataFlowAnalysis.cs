@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_variablesDeclared.IsDefault)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<ISymbol>)VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).Sorted()
+                        ? Sort(VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _variablesDeclared, result);
                 }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _succeeded = !_context.Failed;
                     var result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
-                        ((IEnumerable<ISymbol>)DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded)).Sorted();
+                        Sort(DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded));
                     ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsIn, result);
                 }
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_dataFlowsOut == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<ISymbol>)DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn)).Sorted()
+                        ? Sort(DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsOut, result);
                 }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_alwaysAssigned == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<ISymbol>)AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).Sorted()
+                        ? Sort(AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _alwaysAssigned, result);
                 }
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AnalyzeReadWrite()
         {
-            ImmutableArray<ISymbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
+            ImmutableArray<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
             if (Succeeded)
             {
                 ReadWriteWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
@@ -213,15 +213,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<ISymbol>.Empty;
+                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<Symbol>.Empty;
             }
 
-            ImmutableInterlocked.InterlockedInitialize(ref _readInside, readInside.Sorted());
-            ImmutableInterlocked.InterlockedInitialize(ref _writtenInside, writtenInside.Sorted());
-            ImmutableInterlocked.InterlockedInitialize(ref _readOutside, readOutside.Sorted());
-            ImmutableInterlocked.InterlockedInitialize(ref _writtenOutside, writtenOutside.Sorted());
-            ImmutableInterlocked.InterlockedInitialize(ref _captured, captured.Sorted());
-            ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, unsafeAddressTaken.Sorted());
+            ImmutableInterlocked.InterlockedInitialize(ref _readInside, Sort(readInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenInside, Sort(writtenInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _readOutside, Sort(readOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenOutside, Sort(writtenOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _captured, Sort(captured));
+            ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, Sort(unsafeAddressTaken));
         }
 
         /// <summary>
@@ -293,25 +293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _succeeded.Value;
             }
         }
-    }
 
-    static class Sorter
-    {
-        class LexicalISymbolComparer : IComparer<ISymbol>
+        internal static ImmutableArray<ISymbol> Sort(IEnumerable<Symbol> data)
         {
-            internal static LexicalISymbolComparer Instance = new LexicalISymbolComparer();
-            public int Compare(ISymbol x, ISymbol y)
-            {
-                return LexicalOrderSymbolComparer.Instance.Compare((Symbol)x, (Symbol)y);
-            }
-        }
-
-        internal static ImmutableArray<ISymbol> Sorted(this IEnumerable<ISymbol> data)
-        {
-            var builder = ArrayBuilder<ISymbol>.GetInstance();
+            var builder = ArrayBuilder<Symbol>.GetInstance();
             builder.AddRange(data);
-            builder.Sort(LexicalISymbolComparer.Instance);
-            return builder.ToImmutableAndFree();
+            builder.Sort(LexicalOrderSymbolComparer.Instance);
+            return builder.ToImmutableAndFree().As<ISymbol>();
         }
     }
 }
