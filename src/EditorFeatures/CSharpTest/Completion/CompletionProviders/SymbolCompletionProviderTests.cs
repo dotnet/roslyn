@@ -6340,7 +6340,7 @@ class Program
         $$
     }
 }";
-            VerifyItemExists(markup, "foo", $"[{CSharpFeaturesResources.Deprecated}] void Program.foo()");
+            VerifyItemExists(markup, "foo", $"[{CSharpFeaturesResources.Obsolete}] void Program.foo()");
         }
 
         [WorkItem(568986)]

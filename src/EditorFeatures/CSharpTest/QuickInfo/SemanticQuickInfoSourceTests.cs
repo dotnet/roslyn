@@ -3174,7 +3174,7 @@ class Program
         fo$$o();
     }
 }";
-            Test(markup, MainDescription($"[{CSharpFeaturesResources.Deprecated}] void Program.foo()"));
+            Test(markup, MainDescription($"[{CSharpFeaturesResources.Obsolete}] void Program.foo()"));
         }
 
         [WorkItem(751070)]
