@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        foreach (var descendant in childNode.DescendantNodesAndTokens(SyntaxUtilities.IsNotLambda))
+                        foreach (var descendant in childNode.DescendantNodes(descendIntoChildren: SyntaxUtilities.IsNotLambda))
                         {
-                            if (EnumerateExpressionDescendant(descendant.Kind()))
+                            if (EnumerateExpressionDescendant(descendant))
                             {
-                                yield return descendant.AsNode();
+                                yield return descendant;
                             }
                         }
                     }
@@ -89,19 +89,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else
             {
-                foreach (var descendant in childNode.DescendantNodesAndTokens(SyntaxUtilities.IsNotLambda))
+                foreach (var descendant in childNode.DescendantNodes(descendIntoChildren: SyntaxUtilities.IsNotLambda))
                 {
-                    if (EnumerateExpressionDescendant(descendant.Kind()))
+                    if (EnumerateExpressionDescendant(descendant))
                     {
-                        yield return descendant.AsNode();
+                        yield return descendant;
                     }
                 }
             }
         }
 
-        private static bool EnumerateExpressionDescendant(SyntaxKind kind)
+        private static bool EnumerateExpressionDescendant(SyntaxNode node)
         {
-            return SyntaxUtilities.IsLambda(kind) || kind == SyntaxKind.VariableDeclarator || kind == SyntaxKind.AwaitExpression;
+            return 
+                node.IsKind(SyntaxKind.VariableDeclarator) || 
+                node.IsKind(SyntaxKind.AwaitExpression) ||
+                SyntaxUtilities.IsLambda(node);
         }
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
@@ -118,14 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 node = descendantNode;
             }
 
-            foreach (var descendant in node.DescendantNodesAndTokens(
+            foreach (var descendant in node.DescendantNodes(
                 descendIntoChildren: NonRootHasChildren,
                 descendIntoTrivia: false))
             {
-                var descendantNode = descendant.AsNode();
-                if (descendantNode != null && GetLabel(descendantNode) != IgnoredNode)
+                if (GetLabel(descendant) != IgnoredNode)
                 {
-                    yield return descendantNode;
+                    yield return descendant;
                 }
             }
         }
