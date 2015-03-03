@@ -1399,7 +1399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)containing != null &&
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
-                        fieldSymbol.ContainingType == containing.ContainingType)
+                        (Compilation.FeatureStrictEnabled
+                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
