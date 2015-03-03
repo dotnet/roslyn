@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ChangeStableState(stable: true);
         }
 
-        protected void OnDataAddedOrChanged(object key, TArgs data)
+        protected void OnDataAddedOrChanged(object key, TArgs data, int itemCount)
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            factory.OnUpdated();
+            factory.OnUpdated(itemCount);
 
             for (var i = 0; i < snapshot.Length; i++)
             {
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _map.Remove(key);
             }
 
-            factory.OnUpdated();
+            factory.OnUpdated(0);
 
             // let table manager know that we want to clear the entries
             for (var i = 0; i < snapshot.Length; i++)
@@ -144,6 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 foreach (var factory in factories)
                 {
+                    factory.OnRefreshed();
+
                     snapshot[i].AddOrUpdate(factory, newFactory: false);
                 }
             }
