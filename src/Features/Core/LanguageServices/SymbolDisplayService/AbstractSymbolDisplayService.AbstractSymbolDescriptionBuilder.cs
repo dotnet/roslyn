@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract void AddAwaitablePrefix();
             protected abstract void AddAwaitableExtensionPrefix();
             protected abstract void AddDeprecatedPrefix();
+            protected abstract void AddObsoletePrefix();
             protected abstract Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 if (symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute"))
                 {
-                    AddDeprecatedPrefix();
+                    AddObsoletePrefix();
                 }
 
                 if (symbol is IDynamicTypeSymbol)
