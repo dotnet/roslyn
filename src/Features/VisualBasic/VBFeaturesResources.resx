@@ -331,8 +331,7 @@
     <value>&amp;Remove Unnecessary Imports</value>
   </data>
   <data name="DisposePattern" xml:space="preserve">
-    <value>
-#Region "IDisposable Support"
+    <value>#Region "IDisposable Support"
     Private disposedValue As Boolean ' To detect redundant calls
 
     ' IDisposable
