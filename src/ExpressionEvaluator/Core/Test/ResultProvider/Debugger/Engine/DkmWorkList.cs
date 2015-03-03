@@ -35,6 +35,11 @@ namespace Microsoft.VisualStudio.Debugger
             _workList.Enqueue(item);
         }
 
+        internal int Length
+        {
+            get { return _workList.Count; }
+        }
+
         public void Execute()
         {
             while (_workList.Count > 0)
