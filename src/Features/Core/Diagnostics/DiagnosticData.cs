@@ -284,6 +284,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
         {
+            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
@@ -304,15 +306,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Project project, Diagnostic diagnostic)
         {
-            if (diagnostic.Location.IsInSource)
-            {
-                // Project diagnostic reported at a document location (e.g. compilation end action diagnostics).
-                var document = project.GetDocument(diagnostic.Location.SourceTree);
-                if (document != null)
-                {
-                    return Create(document, diagnostic);
-                }
-            }
+            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,

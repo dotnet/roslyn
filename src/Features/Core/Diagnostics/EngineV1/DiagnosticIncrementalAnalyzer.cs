@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
-        private static readonly ImmutableArray<StateType> s_documentScopeStateTypes = ImmutableArray.Create<StateType>(StateType.Syntax, StateType.Document);
-
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerService _owner;
         private readonly MemberRangeMap _memberRangeMap;
@@ -35,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private DiagnosticLogAggregator _diagnosticLogAggregator;
 
         public DiagnosticIncrementalAnalyzer(
-            DiagnosticAnalyzerService owner, 
-            int correlationId, 
-            Workspace workspace, 
+            DiagnosticAnalyzerService owner,
+            int correlationId,
+            Workspace workspace,
             HostAnalyzerManager analyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(workspace, hostDiagnosticUpdateSource)
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _memberRangeMap = new MemberRangeMap();
             _executor = new AnalyzerExecutor(this);
             _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
-            
+
             _stateManger = new StateManager(analyzerManager);
             _stateManger.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
@@ -151,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var state = stateSet.GetState(StateType.Syntax);
                         await state.PersistAsync(document, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
 
-                        RaiseDiagnosticsUpdatedIfNeeded(StateType.Syntax, document, stateSet.Analyzer, data.OldItems, data.Items);
+                        RaiseDocumentDiagnosticsUpdatedIfNeeded(StateType.Syntax, document, stateSet.Analyzer, data.OldItems, data.Items);
                     }
                 }
             }
@@ -207,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-                
+
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
                     bool supportsSemanticInSpan;
@@ -234,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             continue;
                         }
 
-                        RaiseDiagnosticsUpdatedIfNeeded(StateType.Document, document, stateSet.Analyzer, data.OldItems, data.Items);
+                        RaiseDocumentDiagnosticsUpdatedIfNeeded(StateType.Document, document, stateSet.Analyzer, data.OldItems, data.Items);
                     }
                 }
             }
@@ -253,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 bool openedDocument = document.IsOpen();
-                
+
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
                     if (userDiagnosticDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
@@ -278,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var state = stateSet.GetState(StateType.Document);
                         await state.PersistAsync(document, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
 
-                        RaiseDiagnosticsUpdatedIfNeeded(StateType.Document, document, stateSet.Analyzer, data.OldItems, data.Items);
+                        RaiseDocumentDiagnosticsUpdatedIfNeeded(StateType.Document, document, stateSet.Analyzer, data.OldItems, data.Items);
                     }
                 }
             }
@@ -305,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(project, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-                
+
                 var versions = new VersionArgument(VersionStamp.Default, semanticVersion, projectVersion);
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(project))
                 {
@@ -319,20 +317,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetProjectAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet.Analyzer, new SolutionArgument(project), data.Items);
+                            RaiseProjectDiagnosticsUpdated(project, stateSet.Analyzer, data.Items);
                             continue;
                         }
 
                         var state = stateSet.GetState(StateType.Project);
-                        await state.PersistAsync(project, data.ToPersistData(), cancellationToken).ConfigureAwait(false);
+                        await PersistProjectData(project, state, data).ConfigureAwait(false);
 
-                        RaiseDiagnosticsUpdatedIfNeeded(project, stateSet.Analyzer, data.OldItems, data.Items);
+                        RaiseProjectDiagnosticsUpdatedIfNeeded(project, stateSet.Analyzer, data.OldItems, data.Items);
                     }
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static async Task PersistProjectData(Project project, DiagnosticState state, AnalysisData data)
+        {
+            if (data.Items.Length == 0)
+            {
+                await state.PersistAsync(project, new AnalysisData(data.TextVersion, data.DataVersion, ImmutableArray<DiagnosticData>.Empty), CancellationToken.None).ConfigureAwait(false);
+                return;
+            }
+
+            // TODO: cancellation is not allowed here to prevent data inconsistency. but there is still a possibility of data inconsistency due to
+            //       things like exception. for now, I am letting it go and let v2 engine take care of it properly. if v2 doesnt come online soon enough
+            //       more refactoring is required on project state.
+            var group = data.Items.GroupBy(d => d.DocumentId);
+
+            foreach (var kv in group)
+            {
+                if (kv.Key == null)
+                {
+                    await state.PersistAsync(project, new AnalysisData(data.TextVersion, data.DataVersion, kv.ToImmutableArrayOrEmpty()), CancellationToken.None).ConfigureAwait(false);
+                }
+
+                await state.PersistAsync(project.GetDocument(kv.Key), new AnalysisData(data.TextVersion, data.DataVersion, kv.ToImmutableArrayOrEmpty()), CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -347,9 +369,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     stateSet.Remove(documentId);
 
                     var solutionArgs = new SolutionArgument(null, documentId.ProjectId, documentId);
-                    foreach (var stateType in s_documentScopeStateTypes)
+                    for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                     {
-                        RaiseDiagnosticsUpdated(stateType, documentId, stateSet.Analyzer, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+                        RaiseDiagnosticsUpdated((StateType)stateType, documentId, stateSet.Analyzer, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
                     }
                 }
             }
@@ -369,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             _stateManger.RemoveStateSet(projectId);
-            }
+        }
 
         public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
@@ -454,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // Share the diagnostic analyzer driver across all analyzers.
                 var spanBasedDriver = new DiagnosticAnalyzerDriver(document, range, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
                 var documentBasedDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, _diagnosticLogAggregator, HostDiagnosticUpdateSource, cancellationToken);
-                
+
                 foreach (var stateSet in _stateManger.GetOrCreateStateSets(document.Project))
                 {
                     bool supportsSemanticInSpan;
@@ -494,18 +516,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // but this shouldn't create analyzer that doesnt belong to this project (language)
                 var state = stateSet.GetState(stateType);
 
-                    // see whether we can use existing info
-                    var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
-                    if (existingData != null && versionCheck(existingData.TextVersion, existingData.DataVersion))
+                // see whether we can use existing info
+                var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
+                if (existingData != null && versionCheck(existingData.TextVersion, existingData.DataVersion))
+                {
+                    if (existingData.Items == null)
                     {
-                        if (existingData.Items == null)
-                        {
-                            return true;
-                        }
-
-                        diagnostics.AddRange(existingData.Items.Where(shouldInclude));
                         return true;
                     }
+
+                    diagnostics.AddRange(existingData.Items.Where(shouldInclude));
+                    return true;
+                }
 
                 // check whether we want up-to-date document wide diagnostics
                 if (stateType == StateType.Document && !supportsSemanticInSpan && !requireUpToDateDocumentDiagnostic)
@@ -621,35 +643,84 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return project.CanReusePersistedDependentSemanticVersion(versions.ProjectVersion, versions.DataVersion, existingData.DataVersion);
         }
 
-        private void RaiseDiagnosticsUpdatedIfNeeded(
+        private void RaiseDocumentDiagnosticsUpdatedIfNeeded(
             StateType type, Document document, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> existingItems, ImmutableArray<DiagnosticData> newItems)
         {
             var noItems = existingItems.Length == 0 && newItems.Length == 0;
-            if (!noItems)
+            if (noItems)
             {
-                RaiseDiagnosticsUpdated(type, document.Id, analyzer, new SolutionArgument(document), newItems);
+                return;
             }
+
+            RaiseDiagnosticsUpdated(type, document.Id, analyzer, new SolutionArgument(document), newItems);
         }
 
-        private void RaiseDiagnosticsUpdatedIfNeeded(
+        private void RaiseProjectDiagnosticsUpdatedIfNeeded(
             Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> existingItems, ImmutableArray<DiagnosticData> newItems)
         {
             var noItems = existingItems.Length == 0 && newItems.Length == 0;
-            if (!noItems)
+            if (noItems)
             {
-                RaiseDiagnosticsUpdated(StateType.Project, project.Id, analyzer, new SolutionArgument(project), newItems);
+                return;
             }
+
+            RaiseProjectDiagnosticsRemovedIfNeeded(project, analyzer, existingItems, newItems);
+            RaiseProjectDiagnosticsUpdated(project, analyzer, newItems);
+        }
+
+        private void RaiseProjectDiagnosticsRemovedIfNeeded(
+            Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> existingItems, ImmutableArray<DiagnosticData> newItems)
+        {
+            if (existingItems.Length == 0)
+            {
+                return;
+            }
+
+            var removedItems = existingItems.GroupBy(d => d.DocumentId).Select(g => g.Key).Except(newItems.GroupBy(d => d.DocumentId).Select(g => g.Key));
+            foreach (var documentId in removedItems)
+            {
+                if (documentId == null)
+                {
+                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, analyzer, new SolutionArgument(project), ImmutableArray<DiagnosticData>.Empty);
+                    continue;
+                }
+
+                var document = project.GetDocument(documentId);
+                var argument = documentId == null ? new SolutionArgument(null, documentId.ProjectId, documentId) : new SolutionArgument(document);
+                RaiseDiagnosticsUpdated(StateType.Project, documentId, analyzer, argument, ImmutableArray<DiagnosticData>.Empty);
+            }
+        }
+
+        private void RaiseProjectDiagnosticsUpdated(Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            var group = diagnostics.GroupBy(d => d.DocumentId);
+            foreach (var kv in group)
+            {
+                if (kv.Key == null)
+                {
+                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, analyzer, new SolutionArgument(project), kv.ToImmutableArrayOrEmpty());
+                }
+
+                RaiseDiagnosticsUpdated(StateType.Project, kv.Key, analyzer, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty());
+            }
+        }
+
+        private static ImmutableArray<DiagnosticData> GetDiagnosticData(ILookup<DocumentId, DiagnosticData> lookup, DocumentId documentId)
+        {
+            return lookup.Contains(documentId) ? lookup[documentId].ToImmutableArrayOrEmpty() : ImmutableArray<DiagnosticData>.Empty;
         }
 
         private void RaiseDiagnosticsUpdated(
             StateType type, object key, DiagnosticAnalyzer analyzer, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics)
         {
-            if (_owner != null)
+            if (_owner == null)
             {
-                var id = new ArgumentKey(analyzer, type, key);
-                _owner.RaiseDiagnosticsUpdated(this,
-                    new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
+                return;
             }
+
+            var id = new ArgumentKey(analyzer, type, key);
+            _owner.RaiseDiagnosticsUpdated(this,
+                new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
         }
 
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(
@@ -750,14 +821,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 helpLink: diagnostic.HelpLink);
         }
 
-        private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, TextSpan? span, IEnumerable<Diagnostic> diagnostics)
+        private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, SyntaxTree tree, TextSpan? span, IEnumerable<Diagnostic> diagnostics)
         {
-            return diagnostics != null ? diagnostics.Where(dx => ShouldIncludeDiagnostic(dx, span)).Select(d => DiagnosticData.Create(document, d)) : null;
+            return diagnostics != null ? diagnostics.Where(dx => ShouldIncludeDiagnostic(dx, tree, span)).Select(d => DiagnosticData.Create(document, d)) : null;
         }
 
-        private static bool ShouldIncludeDiagnostic(Diagnostic diagnostic, TextSpan? span)
+        private static bool ShouldIncludeDiagnostic(Diagnostic diagnostic, SyntaxTree tree, TextSpan? span)
         {
             if (diagnostic == null)
+            {
+                return false;
+            }
+
+            if (diagnostic.Location == null || diagnostic.Location == Location.None)
+            {
+                return false;
+            }
+
+            if (diagnostic.Location.SourceTree != tree)
             {
                 return false;
             }
@@ -767,17 +848,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return true;
             }
 
-            if (diagnostic.Location == null)
-            {
-                return false;
-            }
-
             return span.Value.Contains(diagnostic.Location.SourceSpan);
         }
 
         private static IEnumerable<DiagnosticData> GetDiagnosticData(Project project, IEnumerable<Diagnostic> diagnostics)
         {
-            return diagnostics != null ? diagnostics.Select(d => DiagnosticData.Create(project, d)) : null;
+            if (diagnostics == null)
+            {
+                yield break;
+            }
+
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Location == null || diagnostic.Location == Location.None)
+                {
+                    yield return DiagnosticData.Create(project, diagnostic);
+                    continue;
+                }
+
+                var document = project.GetDocument(diagnostic.Location.SourceTree);
+                if (document == null)
+                {
+                    continue;
+                }
+
+                yield return DiagnosticData.Create(document, diagnostic);
+            }
         }
 
         private static async Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzerDriver userDiagnosticDriver, DiagnosticAnalyzer analyzer)
@@ -788,8 +884,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     Contract.ThrowIfNull(analyzer);
 
+                    var tree = await userDiagnosticDriver.Document.GetSyntaxTreeAsync(userDiagnosticDriver.CancellationToken).ConfigureAwait(false);
                     var diagnostics = await userDiagnosticDriver.GetSyntaxDiagnosticsAsync(analyzer).ConfigureAwait(false);
-                    return GetDiagnosticData(userDiagnosticDriver.Document, userDiagnosticDriver.Span, diagnostics);
+                    return GetDiagnosticData(userDiagnosticDriver.Document, tree, userDiagnosticDriver.Span, diagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -806,8 +903,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     Contract.ThrowIfNull(analyzer);
 
+                    var tree = await userDiagnosticDriver.Document.GetSyntaxTreeAsync(userDiagnosticDriver.CancellationToken).ConfigureAwait(false);
                     var diagnostics = await userDiagnosticDriver.GetSemanticDiagnosticsAsync(analyzer).ConfigureAwait(false);
-                    return GetDiagnosticData(userDiagnosticDriver.Document, userDiagnosticDriver.Span, diagnostics);
+
+                    return GetDiagnosticData(userDiagnosticDriver.Document, tree, userDiagnosticDriver.Span, diagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -841,9 +940,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // Compiler + User diagnostics
                 foreach (var state in states)
                 {
-                    foreach (var stateType in s_documentScopeStateTypes)
+                    for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                     {
-                        await ClearDocumentStateAsync(document, state.Analyzer, stateType, state.GetState(stateType), cancellationToken).ConfigureAwait(false);
+                        await ClearDocumentStateAsync(document, state.Analyzer, (StateType)stateType, state.GetState((StateType)stateType), cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -864,12 +963,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 await state.PersistAsync(document, AnalysisData.Empty, cancellationToken).ConfigureAwait(false);
 
                 // raise diagnostic updated event
-                var documentId = type == StateType.Project ? null : document.Id;
-                var projectId = document.Project.Id;
-                var key = documentId ?? (object)projectId;
-                var solutionArgs = new SolutionArgument(document.Project.Solution, projectId, documentId);
+                var documentId = document.Id;
+                var solutionArgs = new SolutionArgument(document);
 
-                RaiseDiagnosticsUpdated(type, key, analyzer, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+                RaiseDiagnosticsUpdated(type, document.Id, analyzer, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

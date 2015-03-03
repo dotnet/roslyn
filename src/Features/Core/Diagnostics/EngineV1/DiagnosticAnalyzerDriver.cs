@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return diagnostics.ToImmutableArrayOrEmpty();
                     }
                     catch (Exception e)
-                        {
+                    {
                         OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
                     }
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             if (compilation != null)
             {
                 exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
-                }
+            }
 
             _onAnalyzerException(ex, analyzer, exceptionDiagnostic);
         }
@@ -458,10 +458,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
             catch (Exception e)
             {
-                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 OnAnalyzerException(e, analyzer, compilation);
-                }
             }
+        }
 
         private async Task GetCompilationDiagnosticsAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics, Action<Project, DiagnosticAnalyzer, CancellationToken> forceAnalyzeAllDocuments)
         {
