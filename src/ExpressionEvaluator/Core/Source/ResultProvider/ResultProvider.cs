@@ -608,20 +608,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             wl.Execute();
         }
 
-        private void StoreResultAndContinue(DkmEvaluationResult result, ArrayBuilder<EvalResultDataItem> rows, DkmEvaluationResult[] results, int index, int numRows, WorkList workList, DkmInspectionContext inspectionContext, DkmStackWalkFrame stackFrame, CompletionRoutine completionRoutine)
-        {
-            results[index] = result;
-            index++;
-            if (index < numRows)
-            {
-                workList.ContinueWith(() => GetEvaluationResultsAndContinue(rows, results, index, numRows, workList, inspectionContext, stackFrame, completionRoutine));
-            }
-            else
-            {
-                completionRoutine();
-            }
-        }
-
         private void GetEvaluationResultsAndContinue(ArrayBuilder<EvalResultDataItem> rows, DkmEvaluationResult[] results, int index, int numRows, WorkList workList, DkmInspectionContext inspectionContext, DkmStackWalkFrame stackFrame, CompletionRoutine completionRoutine)
         {
             if (index >= numRows)
@@ -633,24 +619,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 CreateEvaluationResultAndContinue(rows[index], workList, inspectionContext, stackFrame,
                     result =>
                     {
-                        try
+                        // Assignment operations should not throw exceptions.
+                        results[index] = result;
+                        if (index == numRows - 1)
                         {
-                            StoreResultAndContinue(result, rows, results, index, numRows, workList, inspectionContext, stackFrame, completionRoutine);
-                        }
-                        catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
-                        {
-                            // If we fail to store a result, just stop enumerating rows (rather than attempting to store
-                            // an error message in the current row, etc).  This is because it may have been the act of
-                            // indexing into the results store that threw (so it would just throw again here).  The user
-                            // experience is less than ideal (there's no real indication that something went wrong),
-                            // however, it seems like it's better to enumerate/display some rows than none.  We will
-                            // receive a non-fatal Watson report in this case, so the problem won't go unnoticed.
                             completionRoutine();
+                        }
+                        else
+                        {
+                            workList.ContinueWith(() => GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine));
                         }
                     });
             }
         }
-
 
         internal Expansion GetTypeExpansion(DkmInspectionContext inspectionContext, Type declaredType, DkmClrValue value, ExpansionFlags flags)
         {
