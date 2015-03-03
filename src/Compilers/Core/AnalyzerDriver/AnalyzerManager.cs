@@ -182,6 +182,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from analyzer.SupportedDiagnostics
                 analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
+                // Set the exception handler for exceptions from lazily evaluated localizable strings in the descriptors.
+                foreach (var descriptor in supportedDiagnostics)
+                {
+                    descriptor.SetOnLocalizableStringException(analyzer, analyzerExecutor.OnAnalyzerException);
+                }
+
                 return supportedDiagnostics;
             });
 

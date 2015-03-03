@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,7 +8,7 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract class LocalizableString : IFormattable, IEquatable<LocalizableString>
+    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>, IExceptionSafeLocalizableString
     {
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis
 
         public static implicit operator LocalizableString(string fixedResource)
         {
-            return new FixedLocalizableString(fixedResource);
+            return FixedLocalizableString.Create(fixedResource);
         }
 
         public sealed override string ToString()
@@ -45,29 +43,61 @@ namespace Microsoft.CodeAnalysis
             return Equals(other as LocalizableString);
         }
 
-        private sealed class FixedLocalizableString : LocalizableString
+        internal LocalizableString MakeExceptionSafe()
         {
-            private readonly string _fixedString;
-
-            public FixedLocalizableString(string fixedResource)
+            if (this is FixedLocalizableString || this is LocalizableResourceString)
             {
-                _fixedString = fixedResource;
+                // These are already sealed types which have exception safe implementations.
+                return this;
             }
 
-            public override string ToString(IFormatProvider formatProvider)
+            // Wrap the localizableString within an ExceptionSafeLocalizableString.
+            return new ExceptionSafeLocalizableString(this);
+        }
+
+        void IExceptionSafeLocalizableString.SetOnException(Action<Exception> onException)
+        {
+            if (this is FixedLocalizableString)
             {
-                return _fixedString;
+                // FixedLocalizableString can't throw.
+                return;
             }
 
-            public override bool Equals(LocalizableString other)
+            var localizableResourceString = this as LocalizableResourceString;
+            if (localizableResourceString != null)
             {
-                var fixedStr = other as FixedLocalizableString;
-                return fixedStr != null && string.Equals(_fixedString, fixedStr.ToString());
+                localizableResourceString.OnException = onException;
+                return;
             }
 
-            public override int GetHashCode()
+            // Must be a wrapped ExceptionSafeLocalizableString.
+            var exceptionSafeLocalizableString = (ExceptionSafeLocalizableString)this;
+            exceptionSafeLocalizableString.OnException = onException;
+        }
+
+        internal static T ExecuteAndCatchIfThrows<T>(Func<T> action, T defaulValueOnException, Action<Exception> onLocalizableStringException)
+        {
+            try
             {
-                return _fixedString == null ? 0 : _fixedString.GetHashCode();
+                return action();
+            }
+            catch (Exception ex)
+            {
+                onLocalizableStringException?.Invoke(ex);
+                return defaulValueOnException;
+            }
+        }
+
+        internal static T ExecuteAndCatchIfThrows<U, T>(Func<U, T> action, U argument, T defaulValueOnException, Action<Exception> onLocalizableStringException)
+        {
+            try
+            {
+                return action(argument);
+            }
+            catch (Exception ex)
+            {
+                onLocalizableStringException?.Invoke(ex);
+                return defaulValueOnException;
             }
         }
     }

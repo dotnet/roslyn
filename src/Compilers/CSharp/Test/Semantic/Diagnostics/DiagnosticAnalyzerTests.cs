@@ -936,6 +936,6 @@ public class B
                     ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, method.Locations[0], method.ToDisplayString()));
                 }, SymbolKind.Method);
             }
-        }
+        } 
     }
 }

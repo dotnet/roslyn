@@ -6,6 +6,9 @@ using Xunit;
 using System.Resources;
 using System.Globalization;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -225,6 +228,147 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 {
                     throw new NotImplementedException();
                 }
+            }
+        }
+
+        [Fact, WorkItem(887)]
+        public void TestDescriptorIsExceptionSafe()
+        {
+            // Test descriptor with LocalizableResourceString fields that can throw.
+            var descriptor1 = GetDescriptorWithLocalizableResourceStringsThatThrow();
+            TestDescriptorIsExceptionSafeCore(descriptor1);
+
+            // Test descriptor with Custom implemented LocalizableString fields that can throw.
+            var descriptor2 = GetDescriptorWithCustomLocalizableStringsThatThrow();
+            TestDescriptorIsExceptionSafeCore(descriptor2);
+
+            // Also verify exceptions from Equals and GetHashCode don't go unhandled.
+            var unused1 = descriptor2.Title.GetHashCode();
+            var unused2 = descriptor2.Equals(descriptor1);
+        }
+
+        private static void TestDescriptorIsExceptionSafeCore(DiagnosticDescriptor descriptor)
+        {
+            var localizableTitle = descriptor.Title;
+            var localizableMessage = descriptor.MessageFormat;
+            var localizableDescription = descriptor.Description;
+
+            // Verify exceptions from LocalizableResourceString don't go unhandled.
+            var title = localizableTitle.ToString();
+            var message = localizableMessage.ToString();
+            var description = localizableDescription.ToString();
+
+            // Verify exceptions from LocalizableResourceString are raised if OnException is set.
+            var exceptions = new List<Exception>();
+            Action<Exception> onException = ex => exceptions.Add(ex);
+            ((IExceptionSafeLocalizableString)localizableTitle).SetOnException(onException);
+            ((IExceptionSafeLocalizableString)localizableMessage).SetOnException(onException);
+            ((IExceptionSafeLocalizableString)localizableDescription).SetOnException(onException);
+
+            // Access and evaluate localizable fields.
+            var unused1 = localizableTitle.ToString();
+            var unused2 = localizableMessage.ToString();
+            var unused3 = localizableDescription.ToString();
+
+            Assert.Equal(3, exceptions.Count);
+
+            // Verify DiagnosticAnalyzer.SupportedDiagnostics is also exception safe.
+            var analyzer = new MyAnalyzer(descriptor);
+            var exceptionDiagnostics = new List<Diagnostic>();
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, CancellationToken.None);
+            var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+
+            Assert.Equal(1, descriptors.Length);
+            Assert.Equal(descriptor.Id, descriptors[0].Id);
+
+            // Access and evaluate localizable fields.
+            unused1 = descriptors[0].Title.ToString();
+            unused2 = descriptors[0].MessageFormat.ToString();
+            unused3 = descriptors[0].Description.ToString();
+
+            // Verify logged analyzer exception diagnostics.
+            Assert.Equal(3, exceptionDiagnostics.Count);
+            Assert.True(exceptionDiagnostics.TrueForAll(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic));
+        }
+
+        private static DiagnosticDescriptor GetDescriptorWithLocalizableResourceStringsThatThrow()
+        {
+            var resourceManager = GetTestResourceManagerInstance();
+            var enCulture = CultureInfo.CreateSpecificCulture("en-US");
+            var arCulture = CultureInfo.CreateSpecificCulture("ar-SA");
+            var enResourceSet = resourceManager.GetResourceSet(enCulture, false, false);
+            var arResourceSet = resourceManager.GetResourceSet(arCulture, false, false);
+
+            // Test localizable title that throws.
+            var localizableTitle = new LocalizableResourceString("NonExistentTitleResourceName", resourceManager, typeof(CustomResourceManager));
+            var localizableMessage = new LocalizableResourceString("NonExistentMessageResourceName", resourceManager, typeof(CustomResourceManager));
+            var localizableDescription = new LocalizableResourceString("NonExistentDescriptionResourceName", resourceManager, typeof(CustomResourceManager));
+
+            return new DiagnosticDescriptor(
+                "Id",
+                localizableTitle,
+                localizableMessage,
+                "Category",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                description: localizableDescription);
+        }
+
+        private static DiagnosticDescriptor GetDescriptorWithCustomLocalizableStringsThatThrow()
+        {
+            // Test localizable title that throws.
+            var localizableTitle = new ThrowingLocalizableString();
+            var localizableMessage = new ThrowingLocalizableString();
+            var localizableDescription = new ThrowingLocalizableString();
+
+            return new DiagnosticDescriptor(
+                "Id",
+                localizableTitle,
+                localizableMessage,
+                "Category",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                description: localizableDescription);
+        }
+
+        private class MyAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly DiagnosticDescriptor _descriptor;
+
+            public MyAnalyzer(DiagnosticDescriptor descriptor)
+            {
+                _descriptor = descriptor;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(_descriptor);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+            }
+        }
+
+        private class ThrowingLocalizableString : LocalizableString
+        {
+            public override bool Equals(LocalizableString other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int GetHashCode()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string ToString(IFormatProvider formatProvider)
+            {
+                throw new NotImplementedException();
             }
         }
     }

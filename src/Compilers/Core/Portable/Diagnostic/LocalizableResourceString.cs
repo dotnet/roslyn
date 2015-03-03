@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis
         private readonly ResourceManager _resourceManager;
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
+
+        internal Action<Exception> OnException { get; set; }
 
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
@@ -63,6 +66,7 @@ namespace Microsoft.CodeAnalysis
             _nameOfLocalizableResource = nameOfLocalizableResource;
             _resourceSource = resourceSource;
             _formatArguments = formatArguments;
+            OnException = null;
         }
 
         private LocalizableResourceString(ObjectReader reader)
@@ -107,6 +111,11 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString(IFormatProvider formatProvider)
         {
+            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty, OnException);
+        }
+
+        private string ToStringCore(IFormatProvider formatProvider)
+        {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
             return resourceString != null ?
@@ -115,6 +124,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override bool Equals(LocalizableString other)
+        {
+            return ExecuteAndCatchIfThrows(EqualsCore, other, false, OnException);
+        }
+
+        private bool EqualsCore(LocalizableString other)
         {
             var otherResourceString = other as LocalizableResourceString;
             return other != null &&
@@ -125,6 +139,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override int GetHashCode()
+        {
+            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0, OnException);
+        }
+
+        private int GetHashCodeCore()
         {
             return Hash.Combine(_nameOfLocalizableResource.GetHashCode(),
                 Hash.Combine(_resourceManager.GetHashCode(),
