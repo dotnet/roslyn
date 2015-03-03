@@ -10,10 +10,34 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
     public abstract class DkmEvaluationResult : DkmDataContainer
     {
-        public string FullName { get; internal set; }
-        public string Name { get; internal set; }
-        public DkmInspectionContext InspectionContext { get; internal set; }
-        public DkmStackWalkFrame StackFrame { get; internal set; }
+        public readonly DkmInspectionContext InspectionContext;
+        public readonly DkmStackWalkFrame StackFrame;
+        public readonly string Name;
+        public readonly string FullName;
+        public readonly DkmEvaluationResultFlags Flags;
+        public readonly string Type;
+
+        internal DkmEvaluationResult(
+            DkmInspectionContext InspectionContext,
+            DkmStackWalkFrame StackFrame,
+            string Name,
+            string FullName,
+            DkmEvaluationResultFlags Flags,
+            string Type,
+            DkmDataItem DataItem)
+        {
+            this.InspectionContext = InspectionContext;
+            this.StackFrame = StackFrame;
+            this.Name = Name;
+            this.FullName = FullName;
+            this.Flags = Flags;
+            this.Type = Type;
+
+            if (DataItem != null)
+            {
+                this.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
+            }
+        }
 
         public virtual void GetChildren(DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {

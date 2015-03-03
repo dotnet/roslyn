@@ -30,7 +30,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             string alias,
             IDkmClrFormatter formatter,
             DkmEvaluationResultFlags evalFlags,
-            DkmClrValueFlags valueFlags)
+            DkmClrValueFlags valueFlags,
+            DkmEvaluationResultCategory category = default(DkmEvaluationResultCategory),
+            DkmEvaluationResultAccessType access = default(DkmEvaluationResultAccessType))
         {
             Debug.Assert(!type.GetLmrType().IsTypeVariables() || (valueFlags == DkmClrValueFlags.Synthetic));
             Debug.Assert((alias == null) || evalFlags.Includes(DkmEvaluationResultFlags.HasObjectId));
@@ -44,6 +46,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             this.Alias = alias;
             this.EvalFlags = evalFlags;
             this.ValueFlags = valueFlags;
+            this.Category = category;
+            this.Access = access;
         }
 
         public readonly DkmEvaluationResultFlags EvalFlags;
@@ -61,6 +65,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
         private readonly IDkmClrFormatter _formatter;
         private readonly object _rawValue;
+
+        public void Close()
+        {
+        }
 
         public DkmClrValue Dereference(DkmInspectionContext inspectionContext)
         {
@@ -95,7 +103,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 alias: null,
                 formatter: _formatter,
                 evalFlags: evalFlags,
-                valueFlags: valueFlags);
+                valueFlags: valueFlags,
+                category: DkmEvaluationResultCategory.Other,
+                access: DkmEvaluationResultAccessType.None);
         }
 
         public bool IsNull
@@ -366,7 +376,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         alias: null,
                         formatter: _formatter,
                         evalFlags: DkmEvaluationResultFlags.None,
-                        valueFlags: DkmClrValueFlags.None);
+                        valueFlags: DkmClrValueFlags.None,
+                        category: DkmEvaluationResultCategory.Property,
+                        access: DkmEvaluationResultAccessType.Public);
                 }
                 else if (MemberName == InternalWellKnownMemberNames.NullableValue)
                 {
@@ -381,13 +393,17 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         alias: null,
                         formatter: _formatter,
                         evalFlags: DkmEvaluationResultFlags.None,
-                        valueFlags: DkmClrValueFlags.None);
+                        valueFlags: DkmClrValueFlags.None,
+                        category: DkmEvaluationResultCategory.Property,
+                        access: DkmEvaluationResultAccessType.Public);
                 }
             }
 
             Type declaredType;
             object value;
             var evalFlags = DkmEvaluationResultFlags.None;
+            var category = DkmEvaluationResultCategory.Other;
+            var access = DkmEvaluationResultAccessType.None;
 
             const BindingFlags bindingFlags =
                 BindingFlags.DeclaredOnly |
@@ -401,6 +417,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 case MemberTypes.Field:
                     var field = declaringType.GetField(MemberName, bindingFlags);
                     declaredType = field.FieldType;
+                    category = DkmEvaluationResultCategory.Data;
+                    access = GetFieldAccess(field);
                     if (field.Attributes.HasFlag(FieldAttributes.Literal) || field.Attributes.HasFlag(FieldAttributes.InitOnly))
                     {
                         evalFlags |= DkmEvaluationResultFlags.ReadOnly;
@@ -419,12 +437,16 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             alias: null,
                             formatter: _formatter,
                             evalFlags: evalFlags | DkmEvaluationResultFlags.ExceptionThrown,
-                            valueFlags: DkmClrValueFlags.None);
+                            valueFlags: DkmClrValueFlags.None,
+                            category: category,
+                            access: access);
                     }
                     break;
                 case MemberTypes.Property:
                     var property = declaringType.GetProperty(MemberName, bindingFlags);
                     declaredType = property.PropertyType;
+                    category = DkmEvaluationResultCategory.Property;
+                    access = GetPropertyAccess(property);
                     if (property.GetSetMethod(nonPublic: true) == null)
                     {
                         evalFlags |= DkmEvaluationResultFlags.ReadOnly;
@@ -443,7 +465,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             alias: null,
                             formatter: _formatter,
                             evalFlags: evalFlags | DkmEvaluationResultFlags.ExceptionThrown,
-                            valueFlags: DkmClrValueFlags.None);
+                            valueFlags: DkmClrValueFlags.None,
+                            category: category,
+                            access: access);
                     }
                     break;
                 default:
@@ -482,7 +506,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 alias: null,
                 formatter: _formatter,
                 evalFlags: evalFlags,
-                valueFlags: DkmClrValueFlags.None);
+                valueFlags: DkmClrValueFlags.None,
+                category: category,
+                access: access);
         }
 
         public DkmClrValue GetArrayElement(int[] indices, DkmInspectionContext inspectionContext)
@@ -676,8 +702,49 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             }
         }
 
-        public void Close()
+        private static DkmEvaluationResultAccessType GetFieldAccess(Microsoft.VisualStudio.Debugger.Metadata.FieldInfo field)
         {
+            if (field.IsPrivate)
+            {
+                return DkmEvaluationResultAccessType.Private;
+            }
+            else if (field.IsFamily)
+            {
+                return DkmEvaluationResultAccessType.Protected;
+            }
+            else if (field.IsAssembly)
+            {
+                return DkmEvaluationResultAccessType.Internal;
+            }
+            else
+            {
+                return DkmEvaluationResultAccessType.Public;
+            }
+        }
+
+        private static DkmEvaluationResultAccessType GetPropertyAccess(Microsoft.VisualStudio.Debugger.Metadata.PropertyInfo property)
+        {
+            return GetMethodAccess(property.GetGetMethod() ?? property.GetSetMethod());
+        }
+
+        private static DkmEvaluationResultAccessType GetMethodAccess(Microsoft.VisualStudio.Debugger.Metadata.MethodBase method)
+        {
+            if (method.IsPrivate)
+            {
+                return DkmEvaluationResultAccessType.Private;
+            }
+            else if (method.IsFamily)
+            {
+                return DkmEvaluationResultAccessType.Protected;
+            }
+            else if (method.IsAssembly)
+            {
+                return DkmEvaluationResultAccessType.Internal;
+            }
+            else
+            {
+                return DkmEvaluationResultAccessType.Public;
+            }
         }
     }
 }

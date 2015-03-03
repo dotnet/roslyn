@@ -9,28 +9,41 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
     public class DkmFailedEvaluationResult : DkmEvaluationResult
     {
-        public string ErrorMessage { get; private set; }
-        public DkmEvaluationResultFlags Flags { get; private set; }
-        public string Type { get; private set; }
+        public readonly string ErrorMessage;
 
-        public static DkmFailedEvaluationResult Create(DkmInspectionContext InspectionContext, DkmStackWalkFrame StackFrame, string Name, string FullName, string ErrorMessage, DkmEvaluationResultFlags Flags, string Type, DkmDataItem DataItem)
+        private DkmFailedEvaluationResult(
+            DkmInspectionContext inspectionContext,
+            DkmStackWalkFrame stackFrame,
+            string name,
+            string fullName,
+            string errorMessage,
+            DkmEvaluationResultFlags flags,
+            string type,
+            DkmDataItem dataItem) :
+            base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
         {
-            DkmFailedEvaluationResult result = new DkmFailedEvaluationResult
-            {
-                InspectionContext = InspectionContext,
-                Name = Name,
-                FullName = FullName,
-                ErrorMessage = ErrorMessage,
-                Flags = Flags,
-                Type = Type
-            };
+            this.ErrorMessage = errorMessage;
+        }
 
-            if (DataItem != null)
-            {
-                result.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
-            }
-
-            return result;
+        public static DkmFailedEvaluationResult Create(
+            DkmInspectionContext InspectionContext,
+            DkmStackWalkFrame StackFrame,
+            string Name,
+            string FullName,
+            string ErrorMessage,
+            DkmEvaluationResultFlags Flags,
+            string Type,
+            DkmDataItem DataItem)
+        {
+            return new DkmFailedEvaluationResult(
+                InspectionContext,
+                StackFrame,
+                Name,
+                FullName,
+                ErrorMessage,
+                Flags,
+                Type,
+                DataItem);
         }
     }
 }
