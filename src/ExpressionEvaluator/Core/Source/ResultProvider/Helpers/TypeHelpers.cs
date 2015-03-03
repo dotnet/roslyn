@@ -434,18 +434,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        internal static void EvaluateDebuggerDisplayStringAndContinue(this DkmClrValue value, DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string str, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
-        {
-            if (str == null)
-            {
-                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
-            }
-            else
-            {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
-            }
-        }
-
         internal static DkmClrType GetProxyType(this DkmClrType type)
         {
             DkmClrType attributeTarget;
