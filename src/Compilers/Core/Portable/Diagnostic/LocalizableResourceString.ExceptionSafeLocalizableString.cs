@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis
         private sealed class ExceptionSafeLocalizableString : LocalizableString
         {
             private readonly LocalizableString _innerLocalizableString;
-            internal Action<Exception> OnException { get; set; }
+            private readonly Action<Exception> _onException;
 
-            public ExceptionSafeLocalizableString(LocalizableString innerLocalizableString)
+            public ExceptionSafeLocalizableString(LocalizableString innerLocalizableString, Action<Exception> onException = null)
             {
                 _innerLocalizableString = innerLocalizableString;
-                OnException = null;
+                _onException = onException;
             }
 
             public override bool Equals(LocalizableString other)
@@ -25,17 +25,27 @@ namespace Microsoft.CodeAnalysis
                     other = otherExceptionSafe._innerLocalizableString;
                 }
 
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.Equals, other, false, OnException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.Equals, other, false, _onException);
             }
 
             public override int GetHashCode()
             {
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.GetHashCode, 0, OnException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.GetHashCode, 0, _onException);
             }
 
             public override string ToString(IFormatProvider formatProvider)
             {
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.ToString, formatProvider, string.Empty, OnException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.ToString, formatProvider, string.Empty, _onException);
+            }
+
+            internal override LocalizableString WithOnException(Action<Exception> onException)
+            {
+                if (onException == _onException)
+                {
+                    return this;
+                }
+
+                return new ExceptionSafeLocalizableString(_innerLocalizableString, onException);
             }
         }
     }

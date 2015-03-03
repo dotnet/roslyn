@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis
             {
                 return _fixedString != null ? _fixedString.GetHashCode() : 0;
             }
+
+            internal override LocalizableString WithOnException(Action<Exception> onException)
+            {
+                // FixedLocalizableString can't throw.
+                return this;
+            }
         }
     }
 }

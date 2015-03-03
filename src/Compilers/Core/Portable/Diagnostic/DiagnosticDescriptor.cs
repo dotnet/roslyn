@@ -207,5 +207,26 @@ namespace Microsoft.CodeAnalysis
         {
             return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
+
+        /// <summary>
+        /// Hooks up a delegate to be invoked when the descriptor or any of it's fields throw an unhandled exception.
+        /// </summary>
+        /// <param name="onException"></param>
+        /// <returns></returns>
+        public DiagnosticDescriptor WithOnException(Action<Exception> onException)
+        {
+            var title = Title.WithOnException(onException);
+            var messageFormat = MessageFormat.WithOnException(onException);
+            var description = Description.WithOnException(onException);
+
+            if (ReferenceEquals(title, Title) &&
+                ReferenceEquals(messageFormat, MessageFormat) &&
+                ReferenceEquals(description, Description))
+            {
+                return this;
+            }
+
+            return new DiagnosticDescriptor(Id, title, messageFormat, Category, DefaultSeverity, IsEnabledByDefault, description, HelpLinkUri, (ImmutableArray<string>)CustomTags);
+        }
     }
 }

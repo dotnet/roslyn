@@ -183,15 +183,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
                 // Set the exception handler for exceptions from lazily evaluated localizable strings in the descriptors.
-                foreach (var descriptor in supportedDiagnostics)
-                {
-                    descriptor.SetOnLocalizableStringException(analyzer, analyzerExecutor.OnAnalyzerException);
-                }
-
-                return supportedDiagnostics;
+                return WithOnException(supportedDiagnostics, analyzer, analyzerExecutor.OnAnalyzerException);
             });
 
             return (ImmutableArray<DiagnosticDescriptor>)descriptors;
+        }
+
+        private static ImmutableArray<DiagnosticDescriptor> WithOnException(
+            ImmutableArray<DiagnosticDescriptor> descriptors,
+            DiagnosticAnalyzer analyzer,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException)
+        {
+            Action<Exception> onException = ex =>
+            {
+                var diagnostic = AnalyzerExecutor.GetAnalyzerDiagnostic(analyzer, ex);
+                onAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+            };
+
+            var builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();
+
+            foreach (var descriptor in descriptors)
+            {
+                var newDescriptor = descriptor.WithOnException(onException);
+                builder.Add(newDescriptor);
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>

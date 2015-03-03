@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -8,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>, IExceptionSafeLocalizableString
+    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>
     {
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
@@ -55,24 +56,10 @@ namespace Microsoft.CodeAnalysis
             return new ExceptionSafeLocalizableString(this);
         }
 
-        void IExceptionSafeLocalizableString.SetOnException(Action<Exception> onException)
+        internal virtual LocalizableString WithOnException(Action<Exception> onException)
         {
-            if (this is FixedLocalizableString)
-            {
-                // FixedLocalizableString can't throw.
-                return;
-            }
-
-            var localizableResourceString = this as LocalizableResourceString;
-            if (localizableResourceString != null)
-            {
-                localizableResourceString.OnException = onException;
-                return;
-            }
-
-            // Must be a wrapped ExceptionSafeLocalizableString.
-            var exceptionSafeLocalizableString = (ExceptionSafeLocalizableString)this;
-            exceptionSafeLocalizableString.OnException = onException;
+            // Should only be invoked for our internal LocalizableString implementations.
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal static T ExecuteAndCatchIfThrows<T>(Func<T> action, T defaulValueOnException, Action<Exception> onLocalizableStringException)
