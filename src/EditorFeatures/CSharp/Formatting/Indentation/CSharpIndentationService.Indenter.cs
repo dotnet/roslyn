@@ -136,8 +136,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
 
                 // special cases
-                // if token belongs to verbatim token literal
-                if (token.IsVerbatimStringLiteral())
+                // case 1: token belongs to verbatim token literal
+                // case 2: $@"$${0}"
+                // case 3: $@"Comment$$ inbetween{0}"
+                // case 4: $@"{0}$$"
+                if (token.IsVerbatimStringLiteral() ||
+                    token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken) ||
+                    token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
+                    (token.IsKind(SyntaxKind.CloseBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation)))
                 {
                     return IndentFromStartOfLine(0);
                 }
