@@ -5559,21 +5559,27 @@ class Foo<T>
         Console.Write(i);
         return default(T); // returns value of unconstrained type parameter type
     }
-    public void M1() => this?.Method(4);
-    public async void M2() => this?.Method(5);
-    public async Task M3() => this?.Method(6);
+    public void M1(Foo<T> x) => x?.Method(4);
+    public async void M2(Foo<T> x) => x?.Method(5);
+    public async Task M3(Foo<T> x) => x?.Method(6);
     public async Task M4() {
         Foo<T> a = new Foo<T>();
         Foo<T> b = null;
-        Action f1 = async () => this?.Method(1);
+
+        Action f1 = async () => a?.Method(1);
         f1();
+        f1 = async () => b?.Method(0);
+        f1();
+
         Func<Task> f2 = async () => a?.Method(2);
         await f2();
         Func<Task> f3 = async () => b?.Method(3);
         await f3();
-        M1();
-        M2();
-        await M3();
+
+        M1(a); M1(b);
+        M2(a); M2(b);
+        await M3(a);
+        await M3(b);
     }
 }
 class Program
