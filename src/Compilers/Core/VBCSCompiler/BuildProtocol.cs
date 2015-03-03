@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
+using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 
 // This file describes data structures about the protocol from client program to server that is 
 // used. The basic protocol is this.
@@ -55,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                             BuildProtocolConstants.RequestLanguage language,
                             ImmutableArray<Argument> arguments)
         {
-            this.ProtocolVersion = protocolVersion;
-            this.Language = language;
+            ProtocolVersion = protocolVersion;
+            Language = language;
 
             if (arguments.Length > ushort.MaxValue)
             {
@@ -64,7 +67,37 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     "Too many arguments: maximum of "
                     + ushort.MaxValue + " arguments allowed.");
             }
-            this.Arguments = arguments;
+            Arguments = arguments;
+        }
+
+        public static BuildRequest Create(RequestLanguage language,
+                                          string workingDirectory,
+                                          string tempPath,
+                                          IList<string> args,
+                                          string libDirectory = null)
+        {
+            Log("Creating BuildRequest");
+            Log($"Working directory: {workingDirectory}");
+            Log($"Lib directory: {libDirectory ?? "null"}");
+
+            var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
+            var requestArgs = ImmutableArray.CreateBuilder<Argument>(requestLength);
+
+            requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
+
+            requestArgs.Add(new Argument(ArgumentId.TempPath, 0, tempPath));
+
+            if (libDirectory != null)
+                requestArgs.Add(new Argument(ArgumentId.LibEnvVariable, 0, libDirectory));
+
+            for (int i = 0; i < args.Count; ++i)
+            {
+                var arg = args[i];
+                Log($"argument[{i}] = {arg}");
+                requestArgs.Add(new Argument(ArgumentId.CommandLineArgument, i, arg));
+            }
+
+            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, requestArgs.ToImmutable());
         }
 
         /// <summary>
@@ -77,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             // Read the length of the request
             var lengthBuffer = new byte[4];
-            CompilerServerLogger.Log("Reading length of request");
-            await BuildProtocolConstants.ReadAllAsync(inStream,
+            Log("Reading length of request");
+            await ReadAllAsync(inStream,
                                                       lengthBuffer,
                                                       4,
                                                       cancellationToken).ConfigureAwait(false);
@@ -87,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Back out if the request is > 1MB
             if (length > 0x100000)
             {
-                CompilerServerLogger.Log("Request is over 1MB in length, cancelling read.");
+                Log("Request is over 1MB in length, cancelling read.");
                 return null;
             }
 
@@ -95,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // Read the full request
             var responseBuffer = new byte[length];
-            await BuildProtocolConstants.ReadAllAsync(inStream,
+            await ReadAllAsync(inStream,
                                                       responseBuffer,
                                                       length,
                                                       cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            CompilerServerLogger.Log("Parsing request");
+            Log("Parsing request");
             // Parse the request into the Request data structure.
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {
@@ -132,11 +165,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             using (var writer = new BinaryWriter(new MemoryStream(), Encoding.Unicode))
             {
                 // Format the request.
-                CompilerServerLogger.Log("Formatting request");
-                writer.Write(this.ProtocolVersion);
-                writer.Write((uint)this.Language);
-                writer.Write(this.Arguments.Length);
-                foreach (Argument arg in this.Arguments)
+                Log("Formatting request");
+                writer.Write(ProtocolVersion);
+                writer.Write((uint)Language);
+                writer.Write(Arguments.Length);
+                foreach (Argument arg in Arguments)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     arg.WriteToBinaryWriter(writer);
@@ -155,16 +188,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Back out if the request is > 1 MB
                 if (stream.Length > 0x100000)
                 {
-                    CompilerServerLogger.Log("Request is over 1MB in length, cancelling write");
+                    Log("Request is over 1MB in length, cancelling write");
                     throw new ArgumentOutOfRangeException();
                 }
 
                 // Send the request to the server
-                CompilerServerLogger.Log("Writing length of request.");
+                Log("Writing length of request.");
                 await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,
                                            cancellationToken).ConfigureAwait(false);
 
-                CompilerServerLogger.Log("Writing request of size {0}", length);
+                Log("Writing request of size {0}", length);
                 // Write the request
                 await outStream.WriteAsync(stream.GetBuffer(), 0, length,
                                            cancellationToken).ConfigureAwait(false);
@@ -186,32 +219,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public struct Argument
         {
-            public readonly BuildProtocolConstants.ArgumentId ArgumentId;
-            public readonly uint ArgumentIndex;
+            public readonly ArgumentId ArgumentId;
+            public readonly int ArgumentIndex;
             public readonly string Value;
 
-            public Argument(BuildProtocolConstants.ArgumentId argumentId,
-                            uint argumentIndex,
+            public Argument(ArgumentId argumentId,
+                            int argumentIndex,
                             string value)
             {
-                this.ArgumentId = argumentId;
-                this.ArgumentIndex = argumentIndex;
-                this.Value = value;
+                ArgumentId = argumentId;
+                ArgumentIndex = argumentIndex;
+                Value = value;
             }
 
             public static Argument ReadFromBinaryReader(BinaryReader reader)
             {
-                var argId = (BuildProtocolConstants.ArgumentId)reader.ReadUInt32();
-                var argIndex = reader.ReadUInt32();
-                string value = BuildProtocolConstants.ReadLengthPrefixedString(reader);
+                var argId = (ArgumentId)reader.ReadInt32();
+                var argIndex = reader.ReadInt32();
+                string value = ReadLengthPrefixedString(reader);
                 return new Argument(argId, argIndex, value);
             }
 
             public void WriteToBinaryWriter(BinaryWriter writer)
             {
-                writer.Write((uint)this.ArgumentId);
-                writer.Write(this.ArgumentIndex);
-                BuildProtocolConstants.WriteLengthPrefixedString(writer, this.Value);
+                writer.Write((int)ArgumentId);
+                writer.Write(ArgumentIndex);
+                WriteLengthPrefixedString(writer, Value);
             }
         }
     }
@@ -245,10 +278,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             using (var writer = new BinaryWriter(new MemoryStream(), Encoding.Unicode))
             {
                 // Format the response
-                CompilerServerLogger.Log("Formatting Response");
-                writer.Write((int)this.Type);
+                Log("Formatting Response");
+                writer.Write((int)Type);
 
-                this.AddResponseBody(writer);
+                AddResponseBody(writer);
                 writer.Flush();
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -260,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var stream = (MemoryStream)writer.BaseStream;
                 // Write the length of the response
                 uint length = (uint)stream.Length;
-                CompilerServerLogger.Log("Writing response length");
+                Log("Writing response length");
                 // There is no way to know the number of bytes written to
                 // the pipe stream. We just have to assume all of them are written.
                 await outStream.WriteAsync(BitConverter.GetBytes(length),
@@ -269,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                                            cancellationToken).ConfigureAwait(false);
 
                 // Write the response
-                CompilerServerLogger.Log("Writing response of size {0}", length);
+                Log("Writing response of size {0}", length);
                 // There is no way to know the number of bytes written to
                 // the pipe stream. We just have to assume all of them are written.
                 await outStream.WriteAsync(stream.GetBuffer(),
@@ -289,19 +322,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <returns></returns>
         public static async Task<BuildResponse> ReadAsync(Stream stream, CancellationToken cancellationToken)
         {
-            CompilerServerLogger.Log("Reading response length");
+            Log("Reading response length");
             // Read the response length
             var lengthBuffer = new byte[4];
-            await BuildProtocolConstants.ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
+            await ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToUInt32(lengthBuffer, 0);
 
             // Read the response
-            CompilerServerLogger.Log("Reading response of length {0}", length);
+            Log("Reading response of length {0}", length);
             var responseBuffer = new byte[length];
-            await BuildProtocolConstants.ReadAllAsync(stream,
-                                                      responseBuffer,
-                                                      responseBuffer.Length,
-                                                      cancellationToken).ConfigureAwait(false);
+            await ReadAllAsync(stream,
+                               responseBuffer,
+                               responseBuffer.Length,
+                               cancellationToken).ConfigureAwait(false);
 
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {
@@ -312,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     case ResponseType.Completed:
                         return CompletedBuildResponse.Create(reader);
                     case ResponseType.MismatchedVersion:
-                        return MismatchedVersionBuildResponse.Create(reader);
+                        return new MismatchedVersionBuildResponse();
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -346,10 +379,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                                       string output,
                                       string errorOutput)
         {
-            this.ReturnCode = returnCode;
-            this.Utf8Output = utf8output;
-            this.Output = output;
-            this.ErrorOutput = errorOutput;
+            ReturnCode = returnCode;
+            Utf8Output = utf8output;
+            Output = output;
+            ErrorOutput = errorOutput;
         }
 
         public override ResponseType Type { get { return ResponseType.Completed; } }
@@ -358,29 +391,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var returnCode = reader.ReadInt32();
             var utf8Output = reader.ReadBoolean();
-            var output = BuildProtocolConstants.ReadLengthPrefixedString(reader);
-            var errorOutput = BuildProtocolConstants.ReadLengthPrefixedString(reader);
+            var output = ReadLengthPrefixedString(reader);
+            var errorOutput = ReadLengthPrefixedString(reader);
 
             return new CompletedBuildResponse(returnCode, utf8Output, output, errorOutput);
         }
 
         protected override void AddResponseBody(BinaryWriter writer)
         {
-            writer.Write(this.ReturnCode);
-            writer.Write(this.Utf8Output);
-            BuildProtocolConstants.WriteLengthPrefixedString(writer, this.Output);
-            BuildProtocolConstants.WriteLengthPrefixedString(writer, this.ErrorOutput);
+            writer.Write(ReturnCode);
+            writer.Write(Utf8Output);
+            WriteLengthPrefixedString(writer, Output);
+            WriteLengthPrefixedString(writer, ErrorOutput);
         }
     }
 
     internal class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
-
-        public static MismatchedVersionBuildResponse Create(BinaryReader reader)
-        {
-            return new MismatchedVersionBuildResponse();
-        }
 
         /// <summary>
         /// MismatchedVersion has no body.
@@ -460,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             int totalBytesRead = 0;
             do
             {
-                CompilerServerLogger.Log("Attempting to read {0} bytes from the stream",
+                Log("Attempting to read {0} bytes from the stream",
                     count - totalBytesRead);
                 int bytesRead = await stream.ReadAsync(buffer,
                                                        totalBytesRead,
@@ -468,13 +496,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                                                        cancellationToken).ConfigureAwait(false);
                 if (bytesRead == 0)
                 {
-                    CompilerServerLogger.Log("Unexpected -- read 0 bytes from the stream.");
+                    Log("Unexpected -- read 0 bytes from the stream.");
                     throw new EndOfStreamException("Reached end of stream before end of read.");
                 }
-                CompilerServerLogger.Log("Read {0} bytes", bytesRead);
+                Log("Read {0} bytes", bytesRead);
                 totalBytesRead += bytesRead;
             } while (totalBytesRead < count);
-            CompilerServerLogger.Log("Finished read");
+            Log("Finished read");
         }
     }
 }

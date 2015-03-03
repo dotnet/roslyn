@@ -268,6 +268,7 @@ End Module")
         private void KillCompilerServer()
         {
             KillProcess(_compilerServerExecutable);
+            KillProcess(s_compilerServerExecutableSrc);
         }
 
         private ProcessResult RunCommandLineCompiler(
@@ -2058,7 +2059,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Missing argument for '/keepalive' option", result.Output.Trim());
+            Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2069,7 +2070,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not an integer", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2080,7 +2081,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid", result.Output.Trim());
+            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2091,7 +2092,7 @@ class Hello
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' is out of 32-bit integer range", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
@@ -2148,7 +2149,7 @@ class Hello
         }
 
         [Fact]
-        public void ExecuteCscBuildTask()
+        public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
             csc.ToolPath = _compilerDirectory;
@@ -2160,6 +2161,9 @@ class Hello
             csc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
             csc.NoLogo = true;
             csc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            csc.ToolPath = "";
+            csc.ToolExe = "";
+            csc.UseSharedCompilation = true;
 
             csc.Execute();
 
@@ -2175,7 +2179,7 @@ class Hello
         }
 
         [Fact]
-        public void ExecuteVbcBuildTask()
+        public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
             vbc.ToolPath = _compilerDirectory;
@@ -2187,6 +2191,9 @@ class Hello
             vbc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
             vbc.NoLogo = true;
             vbc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            vbc.ToolPath = "";
+            vbc.ToolExe = "";
+            vbc.UseSharedCompilation = true;
 
             vbc.Execute();
 
