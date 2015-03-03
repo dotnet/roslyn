@@ -53,7 +53,22 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
         {
-            return expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>() != null;
+            // walk up until we find a nearest enclosing block or arrow expression.
+            for (SyntaxNode node = expression; node != null; node = node.GetParent())
+            {
+                // If we are in an expression bodied member and if the expression has a block body, then,
+                // act as if we're in a block context and not in an expression body context at all.
+                if (node.IsKind(SyntaxKind.Block))
+                {
+                    return false;
+                }
+                else if (node.IsKind(SyntaxKind.ArrowExpressionClause))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected override bool IsInAttributeArgumentInitializer(ExpressionSyntax expression)

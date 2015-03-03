@@ -195,10 +195,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             var oldBody = expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
             var oldParentingNode = oldBody.Parent;
+            var leadingTrivia = oldBody.GetLeadingTrivia()
+                                       .AddRange(oldBody.ArrowToken.TrailingTrivia);
 
             var newStatement = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
             var newBody = SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(newStatement))
-                                       .WithLeadingTrivia(oldBody.GetLeadingTrivia())
+                                       .WithLeadingTrivia(leadingTrivia)
                                        .WithTrailingTrivia(oldBody.GetTrailingTrivia())
                                        .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (oldParentingNode is BasePropertyDeclarationSyntax)
             {
                 var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
-                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new AccessorDeclarationSyntax[] { getAccessor }));
+                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new[] { getAccessor }));
 
                 newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
 

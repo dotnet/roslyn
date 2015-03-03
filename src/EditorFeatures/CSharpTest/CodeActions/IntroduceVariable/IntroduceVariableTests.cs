@@ -1791,7 +1791,7 @@ class B
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethod()
         {
@@ -1818,7 +1818,7 @@ class T
             Test(code, expected, index: 2, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceFieldInExpressionBodiedMethod()
         {
@@ -1842,7 +1842,7 @@ class T
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedOperator()
         {
@@ -1879,7 +1879,7 @@ class Complex
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceFieldInExpressionBodiedOperator()
         {
@@ -1913,7 +1913,7 @@ class Complex
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceFieldInExpressionBodiedConversionOperator()
         {
@@ -1951,7 +1951,7 @@ public struct DBBool
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceFieldInExpressionBodiedProperty()
         {
@@ -1974,7 +1974,7 @@ class T
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedProperty()
         {
@@ -2002,7 +2002,7 @@ class T
             Test(code, expected, index: 2, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceFieldInExpressionBodiedIndexer()
         {
@@ -2026,7 +2026,7 @@ class SampleCollection<T>
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedIndexer()
         {
@@ -2056,7 +2056,7 @@ class SampleCollection<T>
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [WorkItem(528, "github.com/dotnet/roslyn/issues/528")]
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestTrailingTriviaOnExpressionBodiedMethodRewrites()
         {
@@ -2082,6 +2082,243 @@ class T
 
     // rewrite should preserve newline above this.
     void Cat() { }
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestLeadingTriviaOnExpressionBodiedMethodRewrites()
+        {
+            var code =
+    @"using System;
+class T
+{
+    /*not moved*/
+    int M1() => 1 + 2 + /*not moved*/ [|3|];
+}";
+
+            var expected =
+    @"using System;
+class T
+{
+    /*not moved*/
+    int M1()
+    {
+        const int {|Rename:V|} = 3;
+        return 1 + 2 + /*not moved*/ V;
+    }
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestTriviaAroundArrowTokenInExpressionBodiedMemberSyntax()
+        {
+            var code =
+    @"using System;
+class T
+{
+    // comment
+    int M1() /*c1*/ => /*c2*/ 1 + 2 + /*c3*/ [|3|];
+}";
+
+            var expected =
+    @"using System;
+class T
+{
+    // comment
+    int M1() /*c1*/  /*c2*/
+    {
+        const int {|Rename:V|} = 3;
+        return 1 + 2 + /*c3*/ V;
+    }
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        return [|9|];
+    };
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        const int {|Rename:V|} = 9;
+        return V;
+    };
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { return [|9|]; };
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { const int {|Rename:V|} = 9; return V; };
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f =>
+    {
+        return f * [|9|];
+    };
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f =>
+    {
+        const int {|Rename:V|} = 9;
+        return f * V;
+    };
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f => f * [|9|];
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y()
+    {
+        const int {|Rename:V|} = 9;
+        return f => f * V;
+    }
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) =>
+    {
+        return f * [|9|];
+    };
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) =>
+    {
+        const int {|Rename:V|} = 9;
+        return f * V;
+    };
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) => f * [|9|];
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    Func<int, int> Y()
+    {
+        const int {|Rename:V|} = 9;
+        return (f) => f * V;
+    }
+}";
+
+            Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
+        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    public int Prop => Method1(delegate()
+    {
+        return [|8|];
+    });
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    public int Prop => Method1(delegate()
+    {
+        const int {|Rename:V|} = 8;
+        return V;
+    });
 }";
 
             Test(code, expected, index: 2, compareTokens: false);
