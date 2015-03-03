@@ -455,9 +455,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 CompletionRoutine<Exception> onException =
                     e => completionRoutine(CreateEvaluationResultFromException(e, dataItem, inspectionContext));
 
-                EvaluateDebuggerDisplayStringAndContinue(value, workList.InnerWorkList, inspectionContext, targetType, attribute.Name,
-                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, workList.InnerWorkList, inspectionContext, targetType, attribute.Value,
-                        displayValue => EvaluateDebuggerDisplayStringAndContinue(value, workList.InnerWorkList, inspectionContext, targetType, attribute.TypeName,
+                EvaluateDebuggerDisplayStringAndContinue(value, workList, inspectionContext, targetType, attribute.Name,
+                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, workList, inspectionContext, targetType, attribute.Value,
+                        displayValue => EvaluateDebuggerDisplayStringAndContinue(value, workList, inspectionContext, targetType, attribute.TypeName,
                             displayType =>
                             {
                                 completionRoutine(GetResult(inspectionContext, dataItem, declaredType, displayName.Result, displayValue.Result, displayType.Result, parent));
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static void EvaluateDebuggerDisplayStringAndContinue(
             DkmClrValue value,
-            DkmWorkList workList,
+            WorkList workList,
             DkmInspectionContext inspectionContext,
             DkmClrType targetType,
             string str,
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else
             {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
+                value.EvaluateDebuggerDisplayString(workList.InnerWorkList, inspectionContext, targetType, str, completionRoutine);
             }
         }
 
@@ -617,19 +617,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else
             {
                 CreateEvaluationResultAndContinue(rows[index], workList, inspectionContext, stackFrame,
-                    result =>
-                    {
-                        // Assignment operations should not throw exceptions.
-                        results[index] = result;
-                        if (index == numRows - 1)
+                    result => workList.ContinueWith(
+                        () =>
                         {
-                            completionRoutine();
-                        }
-                        else
-                        {
-                            workList.ContinueWith(() => GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine));
-                        }
-                    });
+                            results[index] = result;
+                            if (index == numRows - 1)
+                            {
+                                completionRoutine();
+                            }
+                            else
+                            {
+                                GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine);
+                            }
+                        }));
             }
         }
 
