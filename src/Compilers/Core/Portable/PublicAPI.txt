@@ -222,7 +222,6 @@ Microsoft.CodeAnalysis.DiagnosticDescriptor.Id.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.IsEnabledByDefault.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.MessageFormat.get
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Title.get
-Microsoft.CodeAnalysis.DiagnosticDescriptor.WithOnException(System.Action<System.Exception> onException)
 Microsoft.CodeAnalysis.DiagnosticFormatter
 Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.DiagnosticSeverity.Error = 3

@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis
         private sealed class ExceptionSafeLocalizableString : LocalizableString
         {
             private readonly LocalizableString _innerLocalizableString;
-            private readonly Action<Exception> _onException;
+            internal Action<Exception> OnException { get; set; }
 
-            public ExceptionSafeLocalizableString(LocalizableString innerLocalizableString, Action<Exception> onException = null)
+            public ExceptionSafeLocalizableString(LocalizableString innerLocalizableString)
             {
                 _innerLocalizableString = innerLocalizableString;
-                _onException = onException;
+                OnException = null;
             }
 
             public override bool Equals(LocalizableString other)
@@ -25,27 +25,17 @@ namespace Microsoft.CodeAnalysis
                     other = otherExceptionSafe._innerLocalizableString;
                 }
 
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.Equals, other, false, _onException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.Equals, other, false, OnException);
             }
 
             public override int GetHashCode()
             {
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.GetHashCode, 0, _onException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.GetHashCode, 0, OnException);
             }
 
             public override string ToString(IFormatProvider formatProvider)
             {
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.ToString, formatProvider, string.Empty, _onException);
-            }
-
-            internal override LocalizableString WithOnException(Action<Exception> onException)
-            {
-                if (onException == _onException)
-                {
-                    return this;
-                }
-
-                return new ExceptionSafeLocalizableString(_innerLocalizableString, onException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.ToString, formatProvider, string.Empty, OnException);
             }
         }
     }

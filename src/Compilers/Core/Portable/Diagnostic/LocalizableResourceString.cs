@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis
         private readonly ResourceManager _resourceManager;
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
-        private readonly Action<Exception> _onException;
+
+        internal Action<Exception> OnException { get; set; }
 
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
@@ -40,7 +41,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="resourceSource">Type handling assembly's resource management. Typically, this is the static class generated for the resources file from which resources are accessed.</param>
         /// <param name="formatArguments">Optional arguments for formatting the localizable resource string.</param>
         public LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource, params string[] formatArguments)
-            : this(nameOfLocalizableResource, resourceManager, resourceSource, onAnalyzerException: null, formatArguments: formatArguments)
         {
             if (nameOfLocalizableResource == null)
             {
@@ -61,15 +61,12 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new ArgumentNullException(nameof(formatArguments));
             }
-        }
 
-        private LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource, Action<Exception> onAnalyzerException, params string[] formatArguments)
-        {
             _resourceManager = resourceManager;
             _nameOfLocalizableResource = nameOfLocalizableResource;
             _resourceSource = resourceSource;
-            _onException = onAnalyzerException;
             _formatArguments = formatArguments;
+            OnException = null;
         }
 
         private LocalizableResourceString(ObjectReader reader)
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString(IFormatProvider formatProvider)
         {
-            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty, _onException);
+            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty, OnException);
         }
 
         private string ToStringCore(IFormatProvider formatProvider)
@@ -128,7 +125,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(LocalizableString other)
         {
-            return ExecuteAndCatchIfThrows(EqualsCore, other, false, _onException);
+            return ExecuteAndCatchIfThrows(EqualsCore, other, false, OnException);
         }
 
         private bool EqualsCore(LocalizableString other)
@@ -143,7 +140,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0, _onException);
+            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0, OnException);
         }
 
         private int GetHashCodeCore()
@@ -152,16 +149,6 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(_resourceManager.GetHashCode(),
                 Hash.Combine(_resourceSource.GetHashCode(),
                 Hash.CombineValues(_formatArguments))));
-        }
-
-        internal override LocalizableString WithOnException(Action<Exception> onException)
-        {
-            if (onException == _onException)
-            {
-                return this;
-            }
-
-            return new LocalizableResourceString(_nameOfLocalizableResource, _resourceManager, _resourceSource, onException, _formatArguments);
         }
     }
 }
