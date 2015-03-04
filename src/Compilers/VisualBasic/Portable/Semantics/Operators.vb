@@ -1954,7 +1954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conversionKinds = ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)).GetInstance()
             conversionKinds.ZeroInit(opSet.Count)
 
-            Dim applicable = BitArray.Create(opSet.Count)
+            Dim applicable = BitVector.Create(opSet.Count)
             Dim bestMatch As MethodSymbol = Nothing
 
             If DetermineMostSpecificWideningConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteDiagnostics:=useSiteDiagnostics) Then
@@ -2026,7 +2026,7 @@ Done:
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
             conversionKinds As ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)),
-            <[In]()> ByRef applicable As BitArray,
+            <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
@@ -2248,7 +2248,7 @@ Done:
 
         Private Shared Function ChooseMostSpecificConversionOperator(
             opSet As ArrayBuilder(Of MethodSymbol),
-            applicable As BitArray,
+            applicable As BitVector,
             mostSpecificSourceType As TypeSymbol,
             mostSpecificTargetType As TypeSymbol,
             <Out()> ByRef bestMatchIsAmbiguous As Boolean
@@ -2360,7 +2360,7 @@ Done:
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
             conversionKinds As ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)),
-            <[In]()> ByRef applicable As BitArray,
+            <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
@@ -2785,11 +2785,11 @@ Next_i:
             Dim result As Integer = 0
             Dim definition As MethodSymbol = method.OriginalDefinition
 
-            If DetectReferencesToGenericParameters(definition.Parameters(0).Type, TypeParameterKind.Type, BitArray.Null) <> TypeParameterKind.None Then
+            If DetectReferencesToGenericParameters(definition.Parameters(0).Type, TypeParameterKind.Type, BitVector.Null) <> TypeParameterKind.None Then
                 result += 1
             End If
 
-            If DetectReferencesToGenericParameters(definition.ReturnType, TypeParameterKind.Type, BitArray.Null) <> TypeParameterKind.None Then
+            If DetectReferencesToGenericParameters(definition.ReturnType, TypeParameterKind.Type, BitVector.Null) <> TypeParameterKind.None Then
                 result += 1
             End If
 
