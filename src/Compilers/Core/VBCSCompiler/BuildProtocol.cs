@@ -85,8 +85,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
 
-            requestArgs.Add(new Argument(ArgumentId.TempPath, 0, tempPath));
-
             if (libDirectory != null)
                 requestArgs.Add(new Argument(ArgumentId.LibEnvVariable, 0, libDirectory));
 
@@ -455,8 +453,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             LibEnvVariable,
             // Request a longer keep alive time for the server
             KeepAlive,
-            // Path of the directory designated for temporary files.
-            TempPath
         }
 
         /// <summary>

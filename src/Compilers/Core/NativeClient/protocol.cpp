@@ -68,11 +68,6 @@ void Request::AddLibEnvVariable(wstring&& value)
     arguments.emplace_back(ArgumentId::LIBENVVARIABLE, 0, move(value));
 }
 
-void Request::AddTempPath(wstring&& value)
-{
-    arguments.emplace_back(ArgumentId::TEMPPATH, 0, move(value));
-}
-
 void Request::AddKeepAlive(wstring&& value)
 {
     arguments.emplace_back(ArgumentId::KEEPALIVE, 0, move(value));

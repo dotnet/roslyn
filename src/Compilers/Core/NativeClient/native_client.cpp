@@ -235,8 +235,6 @@ bool TryCompile(HANDLE pipeHandle,
         request.AddKeepAlive(wstring(keepAlive));
     }
 
-    request.AddTempPath(GetTempPath());
-
     RealPipe wrapper(pipeHandle);
     if (!request.WriteToPipe(wrapper))
     {

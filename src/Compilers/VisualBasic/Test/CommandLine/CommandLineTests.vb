@@ -3350,7 +3350,7 @@ End Class
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.True(outWriter.ToString().Trim().StartsWith("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ", StringComparison.Ordinal)) ' Cannot create a file when that file already exists.
+            Assert.True(outWriter.ToString().Contains("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
@@ -5504,21 +5504,6 @@ Imports System
 
             Assert.True(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
-
-        <Fact()>
-        Public Sub TestTempFileCreationFail()
-            Dim comp = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/out:foo", "/t:library", "/res:foo"})
-            AddHandler comp.OnCreateTempFile, Sub(fileName, stream)
-                                                  stream.Dispose()
-                                                  File.Delete(fileName)
-                                                  Throw New IOException("Ronnie James Dio")
-                                              End Sub
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim result = comp.Run(outWriter, Nothing)
-            Assert.Contains("BC30138", outWriter.ToString())
-            Assert.Contains("Ronnie James Dio", outWriter.ToString())
-        End Sub
-
 
         <Fact(Skip:="972948")>
         Public Sub DefaultResponseFileNoConfig()

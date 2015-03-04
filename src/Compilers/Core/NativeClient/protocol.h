@@ -36,8 +36,6 @@ enum ArgumentId
     LIBENVVARIABLE,
     // How long to extend compiler server lifetime
     KEEPALIVE,
-    // Path of the directory designated for temporary files.
-    TEMPPATH
 };
 
 enum KeepAlive 
@@ -98,7 +96,6 @@ public:
 
     void AddCommandLineArguments(_In_ const list<wstring>& commandLineArgs);
     void AddLibEnvVariable(wstring&& value);
-    void AddTempPath(wstring&& value);
     void AddKeepAlive(wstring&& keepAlive);
 
     // Write the request buffer to the pipe, prefixed by its length.
