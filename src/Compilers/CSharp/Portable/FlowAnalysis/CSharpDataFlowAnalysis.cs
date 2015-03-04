@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AnalyzeReadWrite()
         {
-            ImmutableArray<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
+            IEnumerable<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
             if (Succeeded)
             {
                 ReadWriteWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<Symbol>.Empty;
+                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
             }
 
             ImmutableInterlocked.InterlockedInitialize(ref _readInside, Sort(readInside));

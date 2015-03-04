@@ -15,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractRegionDataFlowPass
 
         Friend Overloads Shared Sub Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                            ByRef readInside As ImmutableArray(Of Symbol),
-                                            ByRef writtenInside As ImmutableArray(Of Symbol),
-                                            ByRef readOutside As ImmutableArray(Of Symbol),
-                                            ByRef writtenOutside As ImmutableArray(Of Symbol),
-                                            ByRef captured As ImmutableArray(Of Symbol))
+                                            ByRef readInside As IEnumerable(Of Symbol),
+                                            ByRef writtenInside As IEnumerable(Of Symbol),
+                                            ByRef readOutside As IEnumerable(Of Symbol),
+                                            ByRef writtenOutside As IEnumerable(Of Symbol),
+                                            ByRef captured As IEnumerable(Of Symbol))
 
             Dim walker = New ReadWriteWalker(info, region)
             Try
                 If walker.Analyze() Then
-                    readInside = walker.readInside.ToImmutableArray()
-                    writtenInside = walker.writtenInside.ToImmutableArray()
-                    readOutside = walker.readOutside.ToImmutableArray()
-                    writtenOutside = walker.writtenOutside.ToImmutableArray()
-                    captured = walker.captured.ToImmutableArray()
+                    readInside = walker.readInside
+                    writtenInside = walker.writtenInside
+                    readOutside = walker.readOutside
+                    writtenOutside = walker.writtenOutside
+                    captured = walker.captured
                 Else
-                    readInside = ImmutableArray(Of Symbol).Empty
+                    readInside = Enumerable.Empty(Of Symbol)()
                     writtenInside = readInside
                     readOutside = readInside
                     writtenOutside = readInside

@@ -157,14 +157,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub AnalyzeReadWrite()
-            Dim readInside As ImmutableArray(Of Symbol) = Nothing
-            Dim writtenInside As ImmutableArray(Of Symbol) = Nothing
-            Dim readOutside As ImmutableArray(Of Symbol) = Nothing
-            Dim writtenOutside As ImmutableArray(Of Symbol) = Nothing
-            Dim captured As ImmutableArray(Of Symbol) = Nothing
+            Dim readInside As IEnumerable(Of Symbol) = Nothing
+            Dim writtenInside As IEnumerable(Of Symbol) = Nothing
+            Dim readOutside As IEnumerable(Of Symbol) = Nothing
+            Dim writtenOutside As IEnumerable(Of Symbol) = Nothing
+            Dim captured As IEnumerable(Of Symbol) = Nothing
 
             If Not Me.Succeeded Then
-                readInside = ImmutableArray(Of Symbol).Empty
+                readInside = Enumerable.Empty(Of Symbol)()
                 writtenInside = readInside
                 readOutside = readInside
                 writtenOutside = readInside

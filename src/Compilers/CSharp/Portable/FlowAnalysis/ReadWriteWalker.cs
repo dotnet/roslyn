@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static void Analyze(
             CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes,
-            out ImmutableArray<Symbol> readInside,
-            out ImmutableArray<Symbol> writtenInside,
-            out ImmutableArray<Symbol> readOutside,
-            out ImmutableArray<Symbol> writtenOutside,
-            out ImmutableArray<Symbol> captured,
-            out ImmutableArray<Symbol> unsafeAddressTaken)
+            out IEnumerable<Symbol> readInside,
+            out IEnumerable<Symbol> writtenInside,
+            out IEnumerable<Symbol> readOutside,
+            out IEnumerable<Symbol> writtenOutside,
+            out IEnumerable<Symbol> captured,
+            out IEnumerable<Symbol> unsafeAddressTaken)
         {
             var walker = new ReadWriteWalker(compilation, member, node, firstInRegion, lastInRegion, unassignedVariableAddressOfSyntaxes);
             try
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    readInside = walker._readInside.ToImmutableArray();
-                    writtenInside = walker._writtenInside.ToImmutableArray();
-                    readOutside = walker._readOutside.ToImmutableArray();
-                    writtenOutside = walker._writtenOutside.ToImmutableArray();
+                    readInside = walker._readInside;
+                    writtenInside = walker._writtenInside;
+                    readOutside = walker._readOutside;
+                    writtenOutside = walker._writtenOutside;
 
-                    captured = walker.GetCaptured().ToImmutableArray();
-                    unsafeAddressTaken = walker.GetUnsafeAddressTaken().ToImmutableArray();
+                    captured = walker.GetCaptured();
+                    unsafeAddressTaken = walker.GetUnsafeAddressTaken();
                 }
             }
             finally
