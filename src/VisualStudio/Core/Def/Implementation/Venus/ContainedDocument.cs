@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HTML = "HTML";
         private const string Razor = "Razor";
+        private const string XOML = "XOML";
 
         private const char RazorExplicit = '@';
 
@@ -117,14 +116,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private HostType GetHostType()
         {
-            if (_containedLanguage.DataBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML)))
+            var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
+            if (projectionBuffer != null)
             {
-                return HostType.HTML;
-            }
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML)))
+                {
+                    return HostType.HTML;
+                }
 
-            if (_containedLanguage.DataBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                {
+                    return HostType.Razor;
+                }
+            }
+            else
             {
-                return HostType.Razor;
+                // XOML is set up differently. For XOML, the secondary buffer (i.e. SubjectBuffer)
+                // is a projection buffer, while the primary buffer (i.e. DataBuffer) is not. Instead,
+                // the primary buffer is a regular unprojected ITextBuffer with the HTML content type.
+                if (_containedLanguage.DataBuffer.CurrentSnapshot.ContentType.IsOfType(HTML))
+                {
+                    return HostType.XOML;
+                }
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -707,11 +720,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public IEnumerable<TextSpan> GetEditorVisibleSpans()
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
-            return _containedLanguage.DataBuffer.CurrentSnapshot
-                       .GetSourceSpans()
-                       .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
-                       .Select(s => s.Span.ToTextSpan())
-                       .OrderBy(s => s.Start);
+
+            var projectionDataBuffer = _containedLanguage as IProjectionBuffer;
+            if (projectionDataBuffer != null)
+            {
+                return projectionDataBuffer.CurrentSnapshot
+                           .GetSourceSpans()
+                           .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
+                           .Select(s => s.Span.ToTextSpan())
+                           .OrderBy(s => s.Start);
+            }
+            else
+            {
+                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+            }
         }
 
         private static void ApplyChanges(
@@ -911,6 +933,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         out indentSize,
                         out useTabs,
                         out tabSize));
+
                 if (!string.IsNullOrEmpty(baseIndentationString))
                 {
                     return baseIndentationString.GetColumnFromLineOffset(baseIndentationString.Length, editorOptions.GetTabSize()) + additionalIndentation;
@@ -1031,7 +1054,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
             var subjectSnapshot = subjectBuffer.CurrentSnapshot;
-            var surfaceSnapshot = _containedLanguage.DataBuffer.CurrentSnapshot;
+            var surfaceSnapshot = ((IProjectionBuffer)_containedLanguage.DataBuffer).CurrentSnapshot;
 
             var surfacePoint = surfaceSnapshot.MapFromSourceSnapshot(new SnapshotPoint(subjectSnapshot, position), PositionAffinity.Predecessor);
             if (!surfacePoint.HasValue)
@@ -1153,7 +1176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private enum HostType
         {
             HTML,
-            Razor
+            Razor,
+            XOML
         }
     }
 }

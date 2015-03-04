@@ -541,11 +541,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost as IVsContainedLanguageHostInternal;
-            foreach (var importClause in memberImportsNamespaces)
+            if (containedLanguageHost != null)
             {
-                if (containedLanguageHost.InsertImportsDirective(importClause) != VSConstants.S_OK)
+                foreach (var importClause in memberImportsNamespaces)
                 {
-                    return false;
+                    if (containedLanguageHost.InsertImportsDirective(importClause) != VSConstants.S_OK)
+                    {
+                        return false;
+                    }
                 }
             }
 
