@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -1052,6 +1053,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private RazorCodeBlockType GetRazorCodeBlockType(int position)
         {
+            Debug.Assert(_hostType == HostType.Razor);
+
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
             var subjectSnapshot = subjectBuffer.CurrentSnapshot;
             var surfaceSnapshot = ((IProjectionBuffer)_containedLanguage.DataBuffer).CurrentSnapshot;
