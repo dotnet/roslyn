@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The system generated unique id.
         /// </summary>
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         private ProjectId(string debugName)
         {

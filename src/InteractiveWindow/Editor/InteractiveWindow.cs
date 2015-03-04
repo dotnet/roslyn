@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private IIntellisenseSessionStack _sessionStack; // TODO: remove
 
-        public PropertyCollection Properties { get; private set; }
+        public PropertyCollection Properties { get; }
 
         ////
         //// Buffer composition.

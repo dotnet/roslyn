@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class MetadataReference
     {
-        public MetadataReferenceProperties Properties { get; private set; }
+        public MetadataReferenceProperties Properties { get; }
 
         internal MetadataReference(MetadataReferenceProperties properties)
         {

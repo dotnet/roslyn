@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     internal class LanguageMetadata : ILanguageMetadata
     {
-        public string Language { get; private set; }
+        public string Language { get; }
 
         public LanguageMetadata(IDictionary<string, object> data)
         {

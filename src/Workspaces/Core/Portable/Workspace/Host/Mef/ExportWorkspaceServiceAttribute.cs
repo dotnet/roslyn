@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// The assembly qualified name of the service's type.
         /// </summary>
-        public string ServiceType { get; private set; }
+        public string ServiceType { get; }
 
         /// <summary>
         /// The layer that the service is specified for; ServiceLayer.Default, etc.
         /// </summary>
-        public string Layer { get; private set; }
+        public string Layer { get; }
 
         /// <summary>
         /// Declares a <see cref="IWorkspaceService"/> implementation for inclusion in a MEF-based workspace.

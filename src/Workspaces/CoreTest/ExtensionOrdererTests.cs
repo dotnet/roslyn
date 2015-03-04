@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class ExtensionMetadata : IOrderableMetadata
         {
-            public string Name { get; private set; }
-            public IEnumerable<string> Before { get; private set; }
-            public IEnumerable<string> After { get; private set; }
+            public string Name { get; }
+            public IEnumerable<string> Before { get; }
+            public IEnumerable<string> After { get; }
 
             public ExtensionMetadata(string name = null, IEnumerable<string> before = null, IEnumerable<string> after = null)
             {

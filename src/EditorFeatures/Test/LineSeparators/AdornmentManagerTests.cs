@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
             private Mock<IMappingSpan> _mappingSpan;
             private readonly Mock<IAdornmentLayer> _adornmentLayer;
 
-            public AdornmentManager<Tag> Manager { get; private set; }
+            public AdornmentManager<Tag> Manager { get; }
 
             private SnapshotSpan MySnapshotSpan
             {

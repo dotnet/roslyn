@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class OrderableContentTypeMetadata : OrderableMetadata, IContentTypeMetadata
     {
-        public IEnumerable<string> ContentTypes { get; private set; }
+        public IEnumerable<string> ContentTypes { get; }
 
         public OrderableContentTypeMetadata(IDictionary<string, object> data)
             : base(data)

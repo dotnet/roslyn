@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class ContentTypeLanguageMetadata : LanguageMetadata
     {
-        public string DefaultContentType { get; private set; }
+        public string DefaultContentType { get; }
 
         public ContentTypeLanguageMetadata(IDictionary<string, object> data)
             : base(data)

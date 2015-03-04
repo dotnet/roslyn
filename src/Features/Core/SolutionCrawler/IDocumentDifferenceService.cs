@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal class DocumentDifferenceResult
     {
-        public InvocationReasons ChangeType { get; private set; }
-        public SyntaxNode ChangedMember { get; private set; }
+        public InvocationReasons ChangeType { get; }
+        public SyntaxNode ChangedMember { get; }
 
         public DocumentDifferenceResult(InvocationReasons changeType, SyntaxNode changedMember = null)
         {

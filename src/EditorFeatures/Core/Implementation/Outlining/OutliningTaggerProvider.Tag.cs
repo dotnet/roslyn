@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
             private readonly ITrackingSpan _hintSpan;
 
-            public bool IsDefaultCollapsed { get; private set; }
-            public bool IsImplementation { get; private set; }
-            public object CollapsedForm { get; private set; }
+            public bool IsDefaultCollapsed { get; }
+            public bool IsImplementation { get; }
+            public object CollapsedForm { get; }
 
             public Tag(
                 ITextBuffer subjectBuffer,

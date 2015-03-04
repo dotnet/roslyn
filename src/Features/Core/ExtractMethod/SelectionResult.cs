@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public abstract SyntaxNode GetContainingScope();
         public abstract ITypeSymbol GetContainingScopeType();
 
-        public OperationStatus Status { get; private set; }
-        public TextSpan OriginalSpan { get; private set; }
-        public TextSpan FinalSpan { get; private set; }
-        public OptionSet Options { get; private set; }
-        public bool SelectionInExpression { get; private set; }
+        public OperationStatus Status { get; }
+        public TextSpan OriginalSpan { get; }
+        public TextSpan FinalSpan { get; }
+        public OptionSet Options { get; }
+        public bool SelectionInExpression { get; }
         public SemanticDocument SemanticDocument { get; private set; }
-        public SyntaxAnnotation FirstTokenAnnotation { get; private set; }
-        public SyntaxAnnotation LastTokenAnnotation { get; private set; }
+        public SyntaxAnnotation FirstTokenAnnotation { get; }
+        public SyntaxAnnotation LastTokenAnnotation { get; }
 
         public SelectionResult With(SemanticDocument document)
         {

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// The kind of this tagger event, likely a member of <see cref="PredefinedChangedEventKinds" />.
         /// </summary>
-        internal string Kind { get; private set; }
+        internal string Kind { get; }
 
         /// <summary>
         /// They amount of time to wait before the <see cref="AsynchronousTaggerProvider{TTag}"/>
         /// checks for new tags and updates the user interface.
         /// </summary>
-        public TaggerDelay Delay { get; private set; }
-        internal TextContentChangedEventArgs TextChangeEventArgs { get; private set; }
+        public TaggerDelay Delay { get; }
+        internal TextContentChangedEventArgs TextChangeEventArgs { get; }
 
         /// <summary>
         /// Creates a new <see cref="TaggerEventArgs"/>

@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis
     internal class OrderableMetadata : IOrderableMetadata
     {
         [DefaultValue(new string[] { })]
-        public object After { get; private set; }
+        public object After { get; }
 
         [DefaultValue(new string[] { })]
-        public object Before { get; private set; }
+        public object Before { get; }
 
         internal IEnumerable<string> AfterTyped { get; set; }
         internal IEnumerable<string> BeforeTyped { get; set; }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
         IEnumerable<string> IOrderableMetadata.After
         {

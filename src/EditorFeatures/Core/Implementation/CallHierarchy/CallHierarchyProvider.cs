@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     internal partial class CallHierarchyProvider
     {
         private readonly IAsynchronousOperationListener _asyncListener;
-        public IGlyphService GlyphService { get; private set; }
+        public IGlyphService GlyphService { get; }
 
         [ImportingConstructor]
         public CallHierarchyProvider(
