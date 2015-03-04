@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ActionCache<TArgument> : IActionHolder<TArgument>
     {
-        public Action<int, List<TArgument>, SyntaxNode, NextAction<TArgument>> NextOperation { get; private set; }
-        public Action<int, List<TArgument>, SyntaxNode, IActionHolder<TArgument>> Continuation { get; private set; }
+        public Action<int, List<TArgument>, SyntaxNode, NextAction<TArgument>> NextOperation { get; }
+        public Action<int, List<TArgument>, SyntaxNode, IActionHolder<TArgument>> Continuation { get; }
 
         public ActionCache(
             Action<int, List<TArgument>, SyntaxNode, NextAction<TArgument>> nextOperation,

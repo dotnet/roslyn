@@ -9,7 +9,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
     internal class DataModel
     {
-        public ActivityLevel RootNode { get; private set; }
+        public ActivityLevel RootNode { get; }
 
         private readonly ActivityLevel[] _activities;
 

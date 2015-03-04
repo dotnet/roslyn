@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The unique id of the solution.
         /// </summary>
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         private string _debugName;
 

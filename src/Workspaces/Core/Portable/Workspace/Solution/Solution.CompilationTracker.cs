@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
 
-            public ProjectState ProjectState { get; private set; }
+            public ProjectState ProjectState { get; }
 
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.

@@ -43,7 +43,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         public event EventHandler IsActiveChanged;
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public bool IsActive
         {

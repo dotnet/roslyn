@@ -208,9 +208,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TreeDumperNode(string text) : this(text, null, null) { }
-        public object Value { get; private set; }
-        public string Text { get; private set; }
-        public IEnumerable<TreeDumperNode> Children { get; private set; }
+        public object Value { get; }
+        public string Text { get; }
+        public IEnumerable<TreeDumperNode> Children { get; }
         public TreeDumperNode this[string child]
         {
             get

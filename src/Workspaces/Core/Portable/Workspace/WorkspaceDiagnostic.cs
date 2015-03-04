@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public class WorkspaceDiagnostic
     {
-        public WorkspaceDiagnosticKind Kind { get; private set; }
-        public string Message { get; private set; }
+        public WorkspaceDiagnosticKind Kind { get; }
+        public string Message { get; }
 
         public WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
         {

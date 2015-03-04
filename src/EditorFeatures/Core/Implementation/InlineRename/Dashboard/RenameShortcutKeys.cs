@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameShortcutKey
     {
-        public static string RenameOverloads { get; private set; }
-        public static string SearchInStrings { get; private set; }
-        public static string SearchInComments { get; private set; }
-        public static string PreviewChanges { get; private set; }
-        public static string Apply { get; private set; }
+        public static string RenameOverloads { get; }
+        public static string SearchInStrings { get; }
+        public static string SearchInComments { get; }
+        public static string PreviewChanges { get; }
+        public static string Apply { get; }
 
         static RenameShortcutKey()
         {

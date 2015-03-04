@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
     internal class ExtractInterfaceTestState : IDisposable
     {
         private TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; private set; }
-        public Document ExtractFromDocument { get; private set; }
-        public AbstractExtractInterfaceService ExtractInterfaceService { get; private set; }
-        public Solution OriginalSolution { get; private set; }
+        public TestWorkspace Workspace { get; }
+        public Document ExtractFromDocument { get; }
+        public AbstractExtractInterfaceService ExtractInterfaceService { get; }
+        public Solution OriginalSolution { get; }
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 

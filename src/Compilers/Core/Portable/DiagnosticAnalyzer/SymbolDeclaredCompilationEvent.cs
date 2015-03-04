@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _lazySemanticModel = lazySemanticModel;
         }
-        public ISymbol Symbol { get; private set; }
+        public ISymbol Symbol { get; }
 
         // At most one of these should be non-null.
         private Lazy<SemanticModel> _lazySemanticModel;

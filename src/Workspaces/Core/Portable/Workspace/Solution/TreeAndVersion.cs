@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The syntax tree
         /// </summary>
-        public SyntaxTree Tree { get; private set; }
+        public SyntaxTree Tree { get; }
 
         /// <summary>
         /// The version of the top level signature of the tree
         /// </summary>
-        public VersionStamp Version { get; private set; }
+        public VersionStamp Version { get; }
 
         private TreeAndVersion(SyntaxTree tree, VersionStamp version)
         {

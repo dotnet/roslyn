@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     /// </remarks>
     internal class FeatureMetadata
     {
-        public string FeatureName { get; private set; }
+        public string FeatureName { get; }
 
         public FeatureMetadata(IDictionary<string, object> data)
         {
