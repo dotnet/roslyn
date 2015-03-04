@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// symbols.
     /// 
     /// Options are provided to tweak the above slightly.  For example, by default, symbols are
-    /// equivalent only if they come from the same assembly.  However, one can ask if two symbols are
-    /// equivalent even if their assemblies differ.
+    /// equivalent only if they come from the same assembly or different assemblies of the same simple name.
+    /// However, one can ask if two symbols are equivalent even if their assemblies differ.
     /// </summary>
     internal partial class SymbolEquivalenceComparer :
         IEqualityComparer<ISymbol>
@@ -45,17 +46,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(assembliesCanDiffer: false);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assembliesCanDiffer: true);
+        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null);
 
-        private readonly bool _assembliesCanDiffer;
+        private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; private set; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; private set; }
 
-        private SymbolEquivalenceComparer(bool assembliesCanDiffer)
+        internal SymbolEquivalenceComparer(IEqualityComparer<IAssemblySymbol> assemblyComparerOpt)
         {
-            _assembliesCanDiffer = assembliesCanDiffer;
+            _assemblyComparerOpt = assemblyComparerOpt;
+
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
 
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so
         // that method type parameters are just compared by index and nothing else.
         private EquivalenceVisitor GetEquivalenceVisitor(
-            bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
+            bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false)
         {
             int visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
             return _equivalenceVisitors[visitorIndex];
@@ -124,6 +126,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
+        public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies = null)
+        {
+            return GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
+        }
+
         /// <summary>
         /// Compares given symbols <paramref name="x"/> and <paramref name="y"/> for equivalence.
         /// </summary>
@@ -140,14 +147,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <remarks>This API is only supported for <see cref="SymbolEquivalenceComparer.IgnoreAssembliesInstance"/>.</remarks>
         public bool Equals(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
         {
-            Contract.ThrowIfFalse(_assembliesCanDiffer);
+            Debug.Assert(_assemblyComparerOpt == null);
             return EqualsCore(x, y, equivalentTypesWithDifferingAssemblies);
         }
 
         private bool EqualsCore(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
         {
-            return GetEquivalenceVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false)
-                .AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
+            return GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
         }
 
         public int GetHashCode(ISymbol x)
