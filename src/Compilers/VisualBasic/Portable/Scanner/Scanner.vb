@@ -401,6 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
             Return i = n
         End Function
+
         Private Function CanGetChar() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
