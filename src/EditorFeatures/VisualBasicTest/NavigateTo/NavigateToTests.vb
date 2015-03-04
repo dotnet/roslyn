@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             Using worker = SetupWorkspace("Class A(Of T)", "Class B", "Structure C(Of U)", "Sub M()", "End Sub", "End Structure", "End Class", "End Class")
                 SetupVerifableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 Dim item = _aggregator.GetItems("M").Single
-                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName:="M()", additionalInfo:="type A(Of T).B.C(Of U)")
+                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName:="M()", additionalInfo:=$"{EditorFeaturesResources.Type}A(Of T).B.C(Of U)")
             End Using
         End Sub
 

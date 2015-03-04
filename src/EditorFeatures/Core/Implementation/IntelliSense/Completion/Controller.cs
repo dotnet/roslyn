@@ -113,6 +113,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return this.TextView.Caret.Position.BufferPosition;
         }
 
+        private SnapshotPoint GetCaretPointInSubjectBuffer()
+        {
+            AssertIsForeground();
+            return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
+        }
+
         internal override void OnModelUpdated(Model modelOpt)
         {
             AssertIsForeground();

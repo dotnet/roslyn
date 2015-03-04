@@ -2,27 +2,27 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class CA1017DiagnosticAnalyzer : DiagnosticAnalyzer
+    public sealed class MarkAllAssembliesWithComVisibleAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1017";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllAssembliesWithComVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllAssembliesWithComVisibleDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAllAssembliesWithComVisible), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAllAssembliesWithComVisibleDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                                       s_localizableTitle,
                                                                                       "{0}",
-                                                                                      FxCopDiagnosticCategory.Design,
+                                                                                      DiagnosticCategory.Design,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: false,
                                                                                       description: s_localizableDescription,
                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182157.aspx",
-                                                                                      customTags: DiagnosticCustomTags.Microsoft);
+                                                                                      customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         attributeInstance.ConstructorArguments[0].Value.Equals(true))
                     {
                         // Has the attribute, with the value 'true'.
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(FxCopRulesResources.CA1017_AttributeTrue, context.Compilation.Assembly.Name)));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(SystemRuntimeAnalyzersResources.CA1017_AttributeTrue, context.Compilation.Assembly.Name)));
                     }
                 }
                 else
                 {
                     // No ComVisible attribute at all.
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(FxCopRulesResources.CA1017_NoAttribute, context.Compilation.Assembly.Name)));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(SystemRuntimeAnalyzersResources.CA1017_NoAttribute, context.Compilation.Assembly.Name)));
                 }
             }
 

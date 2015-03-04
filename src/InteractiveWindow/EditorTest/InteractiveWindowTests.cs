@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             foreach (var name in commandNames)
             {
                 var mock = new Mock<IInteractiveWindowCommand>();
-                mock.Setup(m => m.Name).Returns(name);
+                mock.Setup(m => m.Names).Returns(new[] { name });
                 yield return mock.Object;
             }
         }
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertEx.Equal(commands.GetCommands(), commandList);
 
             var cmdBar = commandList[1];
-            Assert.Equal("bar", cmdBar.Name);
+            Assert.Equal("bar", cmdBar.Names.First());
 
             Assert.Equal("%", commands.CommandPrefix);
             commands.CommandPrefix = "#";
@@ -166,9 +166,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             var commands = interactiveCommands.GetCommands();
 
             Assert.NotEmpty(commands);
-            Assert.NotNull(commands.Where(n => n.Name == "cls").SingleOrDefault());
-            Assert.NotNull(commands.Where(n => n.Name == "help").SingleOrDefault());
-            Assert.NotNull(commands.Where(n => n.Name == "reset").SingleOrDefault());
+            Assert.NotNull(commands.Where(n => n.Names.First() == "cls").SingleOrDefault());
+            Assert.NotNull(commands.Where(n => n.Names.First() == "help").SingleOrDefault());
+            Assert.NotNull(commands.Where(n => n.Names.First() == "reset").SingleOrDefault());
         }
     }
 }

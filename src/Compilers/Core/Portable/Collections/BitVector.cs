@@ -3,19 +3,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Word = System.UInt32;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct BitArray : IEquatable<BitArray>
+    internal struct BitVector : IEquatable<BitVector>
     {
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
         private static Word[] s_emptyArray = SpecializedCollections.EmptyArray<Word>();
-        private static readonly BitArray s_nullValue = new BitArray(0, null, 0);
-        private static readonly BitArray s_emptyValue = new BitArray(0, s_emptyArray, 0);
+        private static readonly BitVector s_nullValue = new BitVector(0, null, 0);
+        private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
 
         private const int Log2BitsPerWord = 5;
         internal const int BitsPerWord = 1 << Log2BitsPerWord;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         private Word[] _bits;
         private int _capacity;
 
-        private BitArray(Word bits0, Word[] bits, int capacity)
+        private BitVector(Word bits0, Word[] bits, int capacity)
         {
             int requiredWords = WordsForCapacity(capacity);
             Debug.Assert(requiredWords == 0 || requiredWords <= bits.Length);
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             Check();
         }
 
-        public bool Equals(BitArray other)
+        public bool Equals(BitVector other)
         {
             // Bit arrays only equal if their underlying sets are of the same size.
             return _capacity == other._capacity
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            return obj is BitArray && Equals((BitArray)obj);
+            return obj is BitVector && Equals((BitVector)obj);
         }
 
         public override int GetHashCode()
@@ -146,11 +145,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create BitArray with at least the specified number of bits.
         /// </summary>
-        public static BitArray Create(int capacity)
+        public static BitVector Create(int capacity)
         {
             int requiredWords = WordsForCapacity(capacity);
             Word[] bits = (requiredWords == 0) ? s_emptyArray : new Word[requiredWords];
-            return new BitArray(0, bits, capacity);
+            return new BitVector(0, bits, capacity);
         }
 
         /// <summary>
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="capacity"></param>
         /// <returns></returns>
-        public static BitArray AllSet(int capacity)
+        public static BitVector AllSet(int capacity)
         {
             int requiredWords = WordsForCapacity(capacity);
             Word[] bits = (requiredWords == 0) ? s_emptyArray : new Word[requiredWords];
@@ -185,16 +184,16 @@ namespace Microsoft.CodeAnalysis
                 bits[lastWord] = ~ZeroWord;
             }
 
-            return new BitArray(bits0, bits, capacity);
+            return new BitVector(bits0, bits, capacity);
         }
 
         /// <summary>
         /// Maky a copy of a bit array.
         /// </summary>
         /// <returns></returns>
-        public BitArray Clone()
+        public BitVector Clone()
         {
-            return new BitArray(_bits0, (_bits == null) ? null : (_bits.Length == 0) ? s_emptyArray : (Word[])_bits.Clone(), _capacity);
+            return new BitVector(_bits0, (_bits == null) ? null : (_bits.Length == 0) ? s_emptyArray : (Word[])_bits.Clone(), _capacity);
         }
 
         /// <summary>
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static BitArray Null
+        public static BitVector Null
         {
             get
             {
@@ -216,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static BitArray Empty
+        public static BitVector Empty
         {
             get
             {
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis
         /// For the purposes of the intersection, any bits beyond the current length will be treated as zeroes.
         /// Return true if any changes were made to the bits of this bit vector.
         /// </summary>
-        public bool IntersectWith(BitArray other)
+        public bool IntersectWith(BitVector other)
         {
             bool anyChanged = false;
             int otherLength = other._bits.Length;
@@ -279,7 +278,7 @@ namespace Microsoft.CodeAnalysis
         /// Modify this bit vector by '|'ing each element with the other bit vector.
         /// </summary>
         /// <param name="other"></param>
-        public void UnionWith(BitArray other)
+        public void UnionWith(BitVector other)
         {
             int l = other._bits.Length;
             if (l > _bits.Length)

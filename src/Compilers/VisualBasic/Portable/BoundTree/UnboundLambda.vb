@@ -133,9 +133,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Class TargetSignature
             Public ReadOnly ParameterTypes As ImmutableArray(Of TypeSymbol)
             Public ReadOnly ReturnType As TypeSymbol
-            Private ReadOnly m_isByRef As BitArray
+            Private ReadOnly m_isByRef As BitVector
 
-            Public Sub New(parameterTypes As ImmutableArray(Of TypeSymbol), isByRef As BitArray, returnType As TypeSymbol)
+            Public Sub New(parameterTypes As ImmutableArray(Of TypeSymbol), isByRef As BitVector, returnType As TypeSymbol)
                 Debug.Assert(Not parameterTypes.IsDefault)
                 Debug.Assert(Not isByRef.IsNull)
                 Debug.Assert(returnType IsNot Nothing)
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not params.IsDefault)
                 Debug.Assert(returnType IsNot Nothing)
 
-                Dim isByRef = BitArray.Empty
+                Dim isByRef = BitVector.Empty
 
                 If params.Length = 0 Then
                     Me.ParameterTypes = ImmutableArray(Of TypeSymbol).Empty
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.New(method.Parameters, method.ReturnType)
             End Sub
 
-            Public ReadOnly Property IsByRef As BitArray
+            Public ReadOnly Property IsByRef As BitVector
                 Get
                     Return m_isByRef
                 End Get
