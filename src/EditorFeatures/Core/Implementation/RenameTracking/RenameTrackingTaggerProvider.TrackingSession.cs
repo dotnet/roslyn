@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly CancellationToken _cancellationToken;
             private readonly IAsynchronousOperationListener _asyncListener;
 
-            private Task<bool> _newIdentifierBindsTask = Task.FromResult(false);
+            private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
             private readonly string _originalName;
             public string OriginalName { get { return _originalName; } }
