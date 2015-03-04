@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function AreInternalsVisibleToThisAssembly(other As AssemblySymbol) As Boolean
+        Friend Overrides Function HasInternalAccessTo(potentialGiverOfAccess As AssemblySymbol) As Boolean
             Return False
         End Function
 

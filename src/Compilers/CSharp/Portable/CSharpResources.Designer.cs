@@ -4940,6 +4940,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{1}&apos; may not be used in the base clause of &apos;{0}&apos; because it has the InternalImplementationOnly attribute..
+        /// </summary>
+        internal static string ERR_InternalImplementationOnly {
+            get {
+                return ResourceManager.GetString("ERR_InternalImplementationOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Embedded interop method &apos;{0}&apos; contains a body..
         /// </summary>
         internal static string ERR_InteropMethodWithBody {

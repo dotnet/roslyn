@@ -5577,6 +5577,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The type &apos;{1}&apos; may not be used in the base clause of &apos;{0}&apos; because it has the InternalImplementationOnly attribute..
+        '''</summary>
+        Friend ReadOnly Property ERR_InternalImplementationOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_InternalImplementationOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Embedded interop method &apos;{0}&apos; contains a body..
         '''</summary>
         Friend ReadOnly Property ERR_InteropMethodWithBody1() As String

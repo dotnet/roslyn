@@ -79,6 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsWindowsRuntimeImport As Boolean
             Get
                 Return False

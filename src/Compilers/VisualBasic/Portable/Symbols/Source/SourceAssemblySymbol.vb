@@ -1514,7 +1514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
+        Friend Overrides Function HasInternalAccessTo(potentialGiverOfAccess As AssemblySymbol) As Boolean
             ' Ensure that optimistic IVT access is only granted to requests that originated on the thread
             ' that is trying to compute the assembly identity. This gives us deterministic behavior when
             ' two threads are checking IVT access but only one of them is in the process of computing identity.

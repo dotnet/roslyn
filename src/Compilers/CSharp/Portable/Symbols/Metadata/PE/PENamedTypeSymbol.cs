@@ -1835,6 +1835,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return diagnostic;
         }
 
+        internal sealed override bool HasInternalImplementationOnlyAttribute
+            => this.ContainingPEModule.Module.HasInternalImplementationOnlyAttribute(_handle);
+
         internal string DefaultMemberName
         {
             get

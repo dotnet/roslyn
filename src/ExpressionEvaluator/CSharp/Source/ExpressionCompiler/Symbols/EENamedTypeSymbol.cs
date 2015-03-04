@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
+        internal sealed override bool HasInternalImplementationOnlyAttribute => false;
+
         internal override bool IsComImport
         {
             get { return false; }

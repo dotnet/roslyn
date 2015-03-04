@@ -163,6 +163,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend MustOverride ReadOnly Property HasSpecialName As Boolean
 
         ''' <summary>
+        '''  True if this symbol has an InternalImplementationOnly attribute applied to it.
+        ''' </summary>
+        Friend MustOverride ReadOnly Property HasInteralImplementationOnlyAttribute As Boolean
+
+        ''' <summary>
         '''  True if this type is considered serializable (metadata flag Serializable is set).
         ''' </summary>
         Friend MustOverride ReadOnly Property IsSerializable As Boolean

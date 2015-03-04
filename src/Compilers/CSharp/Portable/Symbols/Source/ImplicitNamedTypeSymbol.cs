@@ -112,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override bool HasInternalImplementationOnlyAttribute => false;
+
         internal override bool ShouldAddWinRTMembers
         {
             get { return false; }

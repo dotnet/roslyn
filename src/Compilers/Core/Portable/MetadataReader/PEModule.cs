@@ -1060,6 +1060,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.RequiredAttributeAttribute).HasValue;
         }
 
+        internal bool HasInternalImplementationOnlyAttribute(Handle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.InternalImplementationOnlyAttribute).HasValue;
+        }
+
         internal bool HasAttribute(Handle token, AttributeDescription description)
         {
             return FindTargetAttribute(token, description).HasValue;

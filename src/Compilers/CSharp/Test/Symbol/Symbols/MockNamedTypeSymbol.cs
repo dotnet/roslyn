@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { throw new NotImplementedException(); }
         }
 
+        internal override bool HasInternalImplementationOnlyAttribute
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override IEnumerable<string> MemberNames
         {
             get
