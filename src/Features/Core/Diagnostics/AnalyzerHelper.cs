@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we can't determine if any descriptors support getting telemetry without having the descriptors.
             Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
                 OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
-            
+
             return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, cancellationToken);
         }
 
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Project projectOpt = null)
         {
             if (diagnostic != null)
-        {
+            {
                 hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectOpt);
-        }
+            }
 
             if (IsBuiltInAnalyzer(analyzer))
-        {
+            {
                 FatalError.ReportWithoutCrashUnlessCanceled(e);
             }
         }

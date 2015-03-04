@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a property rather than metadata. We expect it to be cheap and immutable, but we can't force them to be so, we cache them
         /// and ask only once.
         /// </summary>
-        private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache =
-            new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
+        private readonly ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>> _descriptorCache =
+            new ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>();
 
         private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             DiagnosticAnalyzer analyzer,
@@ -182,10 +182,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from analyzer.SupportedDiagnostics
                 analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
-                return supportedDiagnostics;
+                var handler = new EventHandler<Exception>((sender, ex) =>
+                    {
+                        var diagnostic = AnalyzerExecutor.GetAnalyzerDiagnostic(analyzer, ex);
+                        analyzerExecutor.OnAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+                    });
+
+                // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
+                foreach (var descriptor in supportedDiagnostics)
+                {
+                    descriptor.Title.OnException += handler;
+                    descriptor.MessageFormat.OnException += handler;
+                    descriptor.Description.OnException += handler;
+                }
+
+                return Tuple.Create(supportedDiagnostics, handler);
             });
 
-            return (ImmutableArray<DiagnosticDescriptor>)descriptors;
+            return descriptors.Item1;
+        }
+
+        internal void ClearAnalyzerExceptionHandlers(DiagnosticAnalyzer analyzer)
+        {
+            // Host is disposing the analyzer instance, unsubscribe analyzer exception handlers.
+            Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
+            if (_descriptorCache.TryGetValue(analyzer, out value))
+            {
+                var descriptors = value.Item1;
+                var handler = value.Item2;
+                foreach (var descriptor in descriptors)
+                {
+                    descriptor.Title.OnException -= handler;
+                    descriptor.MessageFormat.OnException -= handler;
+                    descriptor.Description.OnException -= handler;
+                }
+            }
         }
 
         /// <summary>

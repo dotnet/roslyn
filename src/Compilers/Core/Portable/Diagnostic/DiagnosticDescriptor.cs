@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.Id = id;
-            this.Title = title;
+            this.Title = title.MakeExceptionSafe();
             this.Category = category;
-            this.MessageFormat = messageFormat;
+            this.MessageFormat = messageFormat.MakeExceptionSafe();
             this.DefaultSeverity = defaultSeverity;
             this.IsEnabledByDefault = isEnabledByDefault;
-            this.Description = description ?? string.Empty;
+            this.Description = (description ?? string.Empty).MakeExceptionSafe();
             this.HelpLinkUri = helpLinkUri ?? string.Empty;
             this.CustomTags = customTags.AsImmutableOrEmpty();
         }

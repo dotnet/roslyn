@@ -590,6 +590,7 @@ Microsoft.CodeAnalysis.LocalizableResourceString
 Microsoft.CodeAnalysis.LocalizableResourceString.LocalizableResourceString(string nameOfLocalizableResource, System.Resources.ResourceManager resourceManager, System.Type resourceSource)
 Microsoft.CodeAnalysis.LocalizableResourceString.LocalizableResourceString(string nameOfLocalizableResource, System.Resources.ResourceManager resourceManager, System.Type resourceSource, params string[] formatArguments)
 Microsoft.CodeAnalysis.LocalizableString
+Microsoft.CodeAnalysis.LocalizableString.OnException
 Microsoft.CodeAnalysis.Location
 Microsoft.CodeAnalysis.Location.IsInMetadata.get
 Microsoft.CodeAnalysis.Location.IsInSource.get
