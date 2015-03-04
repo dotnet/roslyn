@@ -2356,7 +2356,7 @@ End Class
         End Sub
 
         <WorkItem(1115030)>
-        <Fact(Skip:="1115030")>
+        <Fact>
         Public Sub CatchInAsyncStateMachine()
             Const source =
 "Imports System
@@ -2406,6 +2406,66 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0,
                 System.Exception V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_e$1 As System.Exception""
+  IL_0006:  ret
+}")
+            locals.Free()
+        End Sub
+
+        <WorkItem(1115030)>
+        <Fact>
+        Public Sub CatchInIteratorStateMachine()
+            Const source =
+"Imports System
+Imports System.Collections
+Class C
+    Shared Function F() As Object
+        Throw New ArgumentException()
+    End Function
+    Shared Iterator Function M() As IEnumerable
+        Dim o As Object
+        Try
+            o = F()
+        Catch e As Exception
+#ExternalSource(""test"", 999)
+            o = e
+#End ExternalSource
+        End Try
+        Yield o
+    End Function
+End Class"
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C.VB$StateMachine_2_M.MoveNext",
+                atLineNumber:=999)
+            Dim testData = New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "o", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Boolean V_0,
+                Integer V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_o$0 As Object""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "e", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Boolean V_0,
+                Integer V_1,
                 System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_e$1 As System.Exception""
