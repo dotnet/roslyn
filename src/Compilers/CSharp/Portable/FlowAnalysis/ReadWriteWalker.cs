@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion);
                 if (badRegion)
                 {
-                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = ImmutableArray<Symbol>.Empty;
+                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
                 }
                 else
                 {
