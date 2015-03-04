@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     /// 
     /// This interface is a MEF contract and can be implemented and exported to add commands to the REPL window.
     /// </summary>
-    public abstract class InteractiveWindowCommand : IInteractiveWindowCommand
+    internal abstract class InteractiveWindowCommand : IInteractiveWindowCommand
     {
         public virtual IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return null; }
         }
 
-        public virtual string Name
+        public virtual IEnumerable<string> Names
         {
             get { return null; }
         }

@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+Imports Microsoft.VisualStudio.LanguageServices.SolutionExplorer
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
@@ -23,13 +23,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info)
             Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), DiagnosticItem.BrowseObject)
 
-            Assert.Equal(expected:="Diagnostic Properties", actual:=browseObject.GetClassName())
+            Assert.Equal(expected:=SolutionExplorerShim.DiagnosticItem_PropertyWindowClassName, actual:=browseObject.GetClassName())
             Assert.Equal(expected:="TST0001", actual:=browseObject.GetComponentName())
             Assert.Equal(expected:="TST0001", actual:=browseObject.Id)
             Assert.Equal(expected:="A test diagnostic", actual:=browseObject.Title)
             Assert.Equal(expected:="Test", actual:=browseObject.Category)
-            Assert.Equal(expected:="Error", actual:=browseObject.DefaultSeverity)
-            Assert.Equal(expected:="Info", actual:=browseObject.EffectiveSeverity)
+            Assert.Equal(expected:=SolutionExplorerShim.Severity_Error, actual:=browseObject.DefaultSeverity)
+            Assert.Equal(expected:=SolutionExplorerShim.Severity_Info, actual:=browseObject.EffectiveSeverity)
             Assert.Equal(expected:=True, actual:=browseObject.EnabledByDefault)
 
         End Sub

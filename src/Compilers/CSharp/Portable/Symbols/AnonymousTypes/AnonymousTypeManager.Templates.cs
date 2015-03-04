@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private struct SynthesizedDelegateKey : IEquatable<SynthesizedDelegateKey>
         {
-            private readonly BitArray _byRefs;
+            private readonly BitVector _byRefs;
             private readonly ushort _parameterCount;
             private readonly byte _returnsVoid;
 
-            public SynthesizedDelegateKey(int parameterCount, BitArray byRefs, bool returnsVoid)
+            public SynthesizedDelegateKey(int parameterCount, BitVector byRefs, bool returnsVoid)
             {
                 _parameterCount = (ushort)parameterCount;
                 _returnsVoid = (byte)(returnsVoid ? 1 : 0);
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitArray byRefParameters, bool returnsVoid)
+        internal SynthesizedDelegateSymbol SynthesizeDelegate(int parameterCount, BitVector byRefParameters, bool returnsVoid)
         {
             // parameterCount doesn't include return type
             Debug.Assert(byRefParameters.IsNull || parameterCount == byRefParameters.Capacity);

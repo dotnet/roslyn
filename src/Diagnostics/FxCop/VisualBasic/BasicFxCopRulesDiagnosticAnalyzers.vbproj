@@ -111,7 +111,6 @@
     <Compile Include="Usage\BasicCA2213DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2214DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\CodeFixes\CA2213BasicCodeFixProvider.vb" />
-    <Compile Include="Usage\CodeFixes\CA2231BasicCodeFixProvider.vb" />
     <Compile Include="Usage\CodeFixes\CA2235BasicCodeFixProvider.vb" />
   </ItemGroup>
   <ItemGroup>

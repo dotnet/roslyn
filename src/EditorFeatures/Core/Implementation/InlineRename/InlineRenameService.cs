@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.PreviousSession = previousSession;
             }
 
-            public InlineRenameSession PreviousSession { get; private set; }
+            public InlineRenameSession PreviousSession { get; }
         }
     }
 }

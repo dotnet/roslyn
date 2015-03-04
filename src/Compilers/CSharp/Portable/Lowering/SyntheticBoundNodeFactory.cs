@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Diagnostic = error;
             }
 
-            public Diagnostic Diagnostic { get; private set; }
+            public Diagnostic Diagnostic { get; }
         }
 
         public CSharpCompilation Compilation { get { return CompilationState.Compilation; } }
         public CSharpSyntaxNode Syntax { get; set; }
         public PEModuleBuilder ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
-        public DiagnosticBag Diagnostics { get; private set; }
-        public TypeCompilationState CompilationState { get; private set; }
+        public DiagnosticBag Diagnostics { get; }
+        public TypeCompilationState CompilationState { get; }
 
         // Current enclosing type, or null if not available.
         private NamedTypeSymbol _currentType;

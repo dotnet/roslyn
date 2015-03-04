@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///    #region IDisposable Support
+        ///   Looks up a localized string similar to     #region IDisposable Support
         ///    private bool disposedValue = false; // To detect redundant calls
         ///
         ///    {0}void Dispose(bool disposing)
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///            // TODO: set large fields to null.
         ///
         ///            disposedValue = true;
-        ///       [rest of string was truncated]&quot;;.
+        ///         [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DisposePattern {
             get {

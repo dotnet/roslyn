@@ -18,29 +18,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
         public ITextSnapshot TriggerSnapshot { get { return _disconnectedBufferGraph.SubjectBufferSnapshot; } }
 
-        public IList<CompletionItem> TotalItems { get; private set; }
-        public IList<CompletionItem> FilteredItems { get; private set; }
+        public IList<CompletionItem> TotalItems { get; }
+        public IList<CompletionItem> FilteredItems { get; }
 
-        public CompletionItem SelectedItem { get; private set; }
-        public bool IsHardSelection { get; private set; }
-        public bool IsUnique { get; private set; }
+        public CompletionItem SelectedItem { get; }
+        public bool IsHardSelection { get; }
+        public bool IsUnique { get; }
 
         // The CompletionItem the model will use to represent selecting
         // and interacting with the builder. This CompletionItem includes
         // the language specific default tracking span for completion
         // as determined by CompletionUtilites for that language.
         // All models always have a DefaultBuilder set.
-        public CompletionItem DefaultBuilder { get; private set; }
+        public CompletionItem DefaultBuilder { get; }
 
         // The builder, if any, provided by the model's completionproviders.
-        public CompletionItem Builder { get; private set; }
-        public CompletionTriggerInfo TriggerInfo { get; private set; }
-        public bool UseSuggestionCompletionMode { get; private set; }
+        public CompletionItem Builder { get; }
+        public CompletionTriggerInfo TriggerInfo { get; }
+        public bool UseSuggestionCompletionMode { get; }
 
         // When committing a completion item, the span replaced ends at this point.
-        public ITrackingPoint CommitTrackingSpanEndPoint { get; private set; }
+        public ITrackingPoint CommitTrackingSpanEndPoint { get; }
 
-        public bool DismissIfEmpty { get; private set; }
+        public bool DismissIfEmpty { get; }
 
         private Model(
             DisconnectedBufferGraph disconnectedBufferGraph,

@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e);
+                OnDataAddedOrChanged(e.DocumentId, e, e.TaskItems.Length);
             }
 
             protected override AbstractTableEntriesFactory<TodoTaskItem> CreateTableEntryFactory(object key, TaskListEventArgs data)

@@ -9,22 +9,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         /// <summary>
         /// The span of text to collapse.
         /// </summary>
-        public TextSpan TextSpan { get; private set; }
+        public TextSpan TextSpan { get; }
 
         /// <summary>
         /// The span of text to display in the hint on mouse hover.
         /// </summary>
-        public TextSpan HintSpan { get; private set; }
+        public TextSpan HintSpan { get; }
 
         /// <summary>
         /// The text to display inside the collapsed region.
         /// </summary>
-        public string BannerText { get; private set; }
+        public string BannerText { get; }
 
         /// <summary>
         /// Whether or not this region should be automatically collapsed when the 'Collapse to Definitions' command is invoked.
         /// </summary>
-        public bool AutoCollapse { get; private set; }
+        public bool AutoCollapse { get; }
 
         public OutliningSpan(TextSpan textSpan, TextSpan hintSpan, string bannerText, bool autoCollapse)
         {

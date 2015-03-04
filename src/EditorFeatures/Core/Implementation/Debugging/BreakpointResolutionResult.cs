@@ -7,10 +7,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
 {
     internal class BreakpointResolutionResult
     {
-        public Document Document { get; private set; }
-        public TextSpan TextSpan { get; private set; }
-        public string LocationNameOpt { get; private set; }
-        public bool IsLineBreakpoint { get; private set; }
+        public Document Document { get; }
+        public TextSpan TextSpan { get; }
+        public string LocationNameOpt { get; }
+        public bool IsLineBreakpoint { get; }
 
         private BreakpointResolutionResult(Document document, TextSpan textSpan, string locationNameOpt, bool isLineBreakpoint)
         {

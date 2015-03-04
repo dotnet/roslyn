@@ -946,6 +946,7 @@ class C$$
             }
         }
 
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenDeclaringEnumMembersEvenAfterCancellation()
         {
@@ -961,6 +962,29 @@ End Enum";
                 state.SendEscape();
                 state.EditorOperations.InsertText("c");
                 state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
+        {
+           var code = @"
+class C$$
+{
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+                state.AssertTag("C", "Cat");
+
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+
+                state.SendEscape();
+                state.AssertNoTag();
+
+                Assert.Empty(state.GetDocumentDiagnostics());
             }
         }
     }

@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.Notification
 {
     internal class GlobalOperationEventArgs : EventArgs
     {
-        public IReadOnlyList<string> Operations { get; private set; }
-        public bool Cancelled { get; private set; }
+        public IReadOnlyList<string> Operations { get; }
+        public bool Cancelled { get; }
 
         public GlobalOperationEventArgs(IReadOnlyList<string> operations, bool cancelled)
         {

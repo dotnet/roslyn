@@ -62,8 +62,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                                             assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
         End Function
 
-        Public Overrides Function CanExecuteText(text As String) As Boolean
-            If MyBase.CanExecuteText(text) Then
+        Public Overrides Function CanExecuteCode(text As String) As Boolean
+            If MyBase.CanExecuteCode(text) Then
                 Return True
             End If
 

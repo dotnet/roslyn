@@ -93,7 +93,7 @@
     <Compile Include="CodeGen\Win32Res.cs" />
     <Compile Include="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="Collections\ArrayElement.cs" />
-    <Compile Include="Collections\BitArray.cs" />
+    <Compile Include="Collections\BitVector.cs" />
     <Compile Include="Collections\Boxes.cs" />
     <Compile Include="Collections\ByteSequenceComparer.cs" />
     <Compile Include="Collections\CachingDictionary.cs" />
@@ -113,6 +113,8 @@
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
+    <Compile Include="Diagnostic\LocalizableResourceString.ExceptionSafeLocalizableString.cs" />
+    <Compile Include="Diagnostic\LocalizableResourceString.FixedLocalizableString.cs" />
     <Compile Include="Diagnostic\LocalizableString.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
     <Compile Include="Emit\EditAndContinue\AddedOrChangedMethodInfo.cs" />

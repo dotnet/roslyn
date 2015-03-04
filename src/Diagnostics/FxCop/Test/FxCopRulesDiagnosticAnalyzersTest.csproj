@@ -83,9 +83,6 @@
     <Compile Include="Design\CA1003Tests.cs" />
     <Compile Include="Design\CA1008Tests.cs" />
     <Compile Include="Design\CA1012Tests.cs" />
-    <Compile Include="Design\CA1014Tests.cs" />
-    <Compile Include="Design\CA1016Tests.cs" />
-    <Compile Include="Design\CA1017Tests.cs" />
     <Compile Include="Design\CA1024Tests.cs" />
     <Compile Include="Design\CA1052Tests.cs" />
     <Compile Include="Design\CA1053Tests.cs" />
@@ -110,12 +107,10 @@
     <Compile Include="Usage\CA2213Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
     <Compile Include="Usage\CA2229Tests.cs" />
-    <Compile Include="Usage\CA2231Tests.cs" />
     <Compile Include="Usage\CA2235Tests.cs" />
     <Compile Include="Usage\CA2237Tests.cs" />
     <Compile Include="Usage\CodeFixes\CA2213FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2229FixerTests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2231FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2235FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2237FixerTests.cs" />
   </ItemGroup>

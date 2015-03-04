@@ -123,4 +123,7 @@
   <data name="DuplicateCommand" xml:space="preserve">
     <value>A command with the name '{0}' has already been registered.</value>
   </data>
+  <data name="MissingCommandName" xml:space="preserve">
+    <value>The command of type '{0}' has no command names.</value>
+  </data>
 </root>

@@ -112,6 +112,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return expression.GetAncestorOrThis(Of EqualsValueSyntax)().IsParentKind(SyntaxKind.Parameter)
         End Function
 
+        Protected Overrides Function IsInExpressionBodiedMember(expression As ExpressionSyntax) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function CanReplace(expression As ExpressionSyntax) As Boolean
             If expression.CheckParent(Of RangeArgumentSyntax)(Function(n) n.LowerBound Is expression) Then
                 Return False

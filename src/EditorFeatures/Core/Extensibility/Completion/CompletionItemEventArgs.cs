@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionItemEventArgs : EventArgs
     {
-        public CompletionItem CompletionItem { get; private set; }
+        public CompletionItem CompletionItem { get; }
 
         public CompletionItemEventArgs(CompletionItem completionItem)
         {

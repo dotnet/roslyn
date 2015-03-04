@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,8 +8,14 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract class LocalizableString : IFormattable, IEquatable<LocalizableString>
+    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>
     {
+        /// <summary>
+        /// Fired when an exception is raised by any of the public methods of <see cref="LocalizableString"/>.
+        /// If the exception handler itself throwns an exception, that exception is ignored.
+        /// </summary>
+        public event EventHandler<Exception> OnException;
+
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
         /// </summary>
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         public static implicit operator LocalizableString(string fixedResource)
         {
-            return new FixedLocalizableString(fixedResource);
+            return FixedLocalizableString.Create(fixedResource);
         }
 
         public sealed override string ToString()
@@ -45,29 +49,53 @@ namespace Microsoft.CodeAnalysis
             return Equals(other as LocalizableString);
         }
 
-        private sealed class FixedLocalizableString : LocalizableString
+        internal LocalizableString MakeExceptionSafe()
         {
-            private readonly string _fixedString;
-
-            public FixedLocalizableString(string fixedResource)
+            if (this is FixedLocalizableString || this is LocalizableResourceString)
             {
-                _fixedString = fixedResource;
+                // These are already sealed types which have exception safe implementations.
+                return this;
             }
 
-            public override string ToString(IFormatProvider formatProvider)
-            {
-                return _fixedString;
-            }
+            // Wrap the localizableString within an ExceptionSafeLocalizableString.
+            return new ExceptionSafeLocalizableString(this);
+        }
 
-            public override bool Equals(LocalizableString other)
+        internal T ExecuteAndCatchIfThrows<T>(Func<T> action, T defaulValueOnException)
+        {
+            try
             {
-                var fixedStr = other as FixedLocalizableString;
-                return fixedStr != null && string.Equals(_fixedString, fixedStr.ToString());
+                return action();
             }
-
-            public override int GetHashCode()
+            catch (Exception ex)
             {
-                return _fixedString == null ? 0 : _fixedString.GetHashCode();
+                RaiseOnException(ex);
+                return defaulValueOnException;
+            }
+        }
+
+        internal T ExecuteAndCatchIfThrows<U, T>(Func<U, T> action, U argument, T defaulValueOnException)
+        {
+            try
+            {
+                return action(argument);
+            }
+            catch (Exception ex)
+            {
+                RaiseOnException(ex);
+                return defaulValueOnException;
+            }
+        }
+
+        private void RaiseOnException(Exception ex)
+        {
+            try
+            {
+                OnException?.Invoke(this, ex);
+            }
+            catch
+            {
+                // Ignore exceptions from the exception handlers themselves.
             }
         }
     }

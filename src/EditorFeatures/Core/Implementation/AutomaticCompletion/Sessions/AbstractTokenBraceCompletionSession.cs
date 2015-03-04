@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
     {
         private readonly ISyntaxFactsService _syntaxFactsService;
 
-        protected int OpeningTokenKind { get; private set; }
-        protected int ClosingTokenKind { get; private set; }
+        protected int OpeningTokenKind { get; }
+        protected int ClosingTokenKind { get; }
 
         protected AbstractTokenBraceCompletionSession(
             ISyntaxFactsService syntaxFactsService,

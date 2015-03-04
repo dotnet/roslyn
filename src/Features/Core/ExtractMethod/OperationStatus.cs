@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return Create(this, data);
         }
 
-        public OperationStatusFlag Flag { get; private set; }
-        public IEnumerable<string> Reasons { get; private set; }
+        public OperationStatusFlag Flag { get; }
+        public IEnumerable<string> Reasons { get; }
     }
 }

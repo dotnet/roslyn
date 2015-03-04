@@ -256,8 +256,7 @@
     <value>&amp;Organize Usings</value>
   </data>
   <data name="DisposePattern" xml:space="preserve">
-    <value>
-    #region IDisposable Support
+    <value>    #region IDisposable Support
     private bool disposedValue = false; // To detect redundant calls
 
     {0}void Dispose(bool disposing)
