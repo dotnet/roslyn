@@ -285,7 +285,7 @@ class C
                     }
                 }
 
-                public void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
+                public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
                 {
                 }
 

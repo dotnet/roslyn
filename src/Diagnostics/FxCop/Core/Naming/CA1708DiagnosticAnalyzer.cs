@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
         {
             base.Initialize(analysisContext);
 
-            analysisContext.RegisterCompilationEndAction(AnalyzeCompilation);
+            analysisContext.RegisterCompilationAction(AnalyzeCompilation);
         }
 
-        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        private void AnalyzeCompilation(CompilationAnalysisContext context)
         {
             var globalNamespaces = context.Compilation.GlobalNamespace.GetNamespaceMembers()
                 .Where(item => item.ContainingAssembly == context.Compilation.Assembly);

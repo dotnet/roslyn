@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             public override void Initialize(AnalysisContext analysisContext)
             {
-                analysisContext.RegisterCompilationEndAction(
+                analysisContext.RegisterCompilationAction(
                     (context) =>
                         {
                             context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, Location.None, messageArgs: Id));

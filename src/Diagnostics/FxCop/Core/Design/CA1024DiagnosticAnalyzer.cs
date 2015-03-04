@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 suppress = true;
             }
 
-            public void AnalyzeCodeBlock(CodeBlockEndAnalysisContext context)
+            public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
                 if (!suppress)
                 {

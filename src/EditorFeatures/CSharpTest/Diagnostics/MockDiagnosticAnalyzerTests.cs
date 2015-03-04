@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
                 context.RegisterCompilationEndAction(AnalyzeCompilation);
             }
 
-            public void AnalyzeCompilation(CompilationEndAnalysisContext context)
+            public void AnalyzeCompilation(CompilationAnalysisContext context)
             {
             }
         }
