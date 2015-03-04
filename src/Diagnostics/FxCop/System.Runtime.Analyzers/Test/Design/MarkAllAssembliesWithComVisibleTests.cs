@@ -1,23 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public class CA1017Tests : DiagnosticAnalyzerTestBase
+    public class MarkAllAssembliesWithComVisibleTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new CA1017DiagnosticAnalyzer();
+            return new MarkAllAssembliesWithComVisibleAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CA1017DiagnosticAnalyzer();
+            return new MarkAllAssembliesWithComVisibleAnalyzer();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -118,12 +117,12 @@ internal class C
 
         private static DiagnosticResult GetExposeIndividualTypesResult()
         {
-            return GetGlobalResult(CA1017DiagnosticAnalyzer.RuleId, string.Format(FxCopRulesResources.CA1017_AttributeTrue, "TestProject"));
+            return GetGlobalResult(MarkAllAssembliesWithComVisibleAnalyzer.RuleId, string.Format(SystemRuntimeAnalyzersResources.CA1017_AttributeTrue, "TestProject"));
         }
 
         private static DiagnosticResult GetAddComVisibleFalseResult()
         {
-            return GetGlobalResult(CA1017DiagnosticAnalyzer.RuleId, string.Format(FxCopRulesResources.CA1017_NoAttribute, "TestProject"));
+            return GetGlobalResult(MarkAllAssembliesWithComVisibleAnalyzer.RuleId, string.Format(SystemRuntimeAnalyzersResources.CA1017_NoAttribute, "TestProject"));
         }
     }
 }
