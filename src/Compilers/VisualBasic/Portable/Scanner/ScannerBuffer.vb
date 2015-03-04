@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Private Function PeekAheadChar(skip As Integer) As Char
+        Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGetCharAtOffset(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 

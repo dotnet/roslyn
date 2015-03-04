@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 ' // Don't break up surrogate pairs
                 Dim c = PeekChar()
-                Dim length = If(IsHighSurrogate(c) AndAlso CanGetCharAtOffset(1) AndAlso IsLowSurrogate(PeekAheadChar(1)), 2, 1)
+                Dim length = If(IsHighSurrogate(c) AndAlso CanGetCharAtOffset(1) AndAlso IsLowSurrogate(Peek(1)), 2, 1)
                 token = MakeBadToken(leadingTrivia, length, ERRID.ERR_IllegalChar)
             End If
 
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CanGetCharAtOffset(offset + n) Then
                 Do
                     i += 1
-                Loop While i < n AndAlso chars(i) = PeekAheadChar(offset + i)
+                Loop While i < n AndAlso chars(i) = Peek(offset + i)
             End If
             Return i = n
         End Function
@@ -468,11 +468,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CanGetCharAtOffset(here))
             Debug.Assert(IsNewLine(StartCharacter))
 
-            Debug.Assert(StartCharacter = PeekAheadChar(here))
+            Debug.Assert(StartCharacter = Peek(here))
 
             If StartCharacter = CARRIAGE_RETURN AndAlso
                 CanGetCharAtOffset(here + 1) AndAlso
-                PeekAheadChar(here + 1) = LINE_FEED Then
+                Peek(here + 1) = LINE_FEED Then
 
                 Return 2
             End If
@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Here = 1
             While CanGetCharAtOffset(Here)
-                ch = PeekAheadChar(Here)
+                ch = Peek(Here)
                 If IsWhitespace(ch) Then
                     Here += 1
                 Else
@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' include the new line and any additional spaces as trivia.
                 If startComment = 0 AndAlso
                     CanGetCharAtOffset(Here) AndAlso
-                    Not IsNewLine(PeekAheadChar(Here)) Then
+                    Not IsNewLine(Peek(Here)) Then
 
                     tList.Add(MakeEndOfLineTrivia(GetText(newLine)))
                     If spaces > 0 Then
@@ -659,23 +659,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function StartsXmlDoc(Here As Integer) As Boolean
             Return _options.DocumentationMode >= DocumentationMode.Parse AndAlso
                 CanGetCharAtOffset(Here + 3) AndAlso
-                IsSingleQuote(PeekAheadChar(Here)) AndAlso
-                IsSingleQuote(PeekAheadChar(Here + 1)) AndAlso
-                IsSingleQuote(PeekAheadChar(Here + 2)) AndAlso
-                Not IsSingleQuote(PeekAheadChar(Here + 3))
+                IsSingleQuote(Peek(Here)) AndAlso
+                IsSingleQuote(Peek(Here + 1)) AndAlso
+                IsSingleQuote(Peek(Here + 2)) AndAlso
+                Not IsSingleQuote(Peek(Here + 3))
         End Function
 
         ' check for #
         Private Function StartsDirective(Here As Integer) As Boolean
             If CanGetCharAtOffset(Here) Then
-                Dim ch = PeekAheadChar(Here)
+                Dim ch = Peek(Here)
                 Return IsHash(ch)
             End If
             Return False
         End Function
 
         Private Function IsAtNewLine() As Boolean
-            Return _lineBufferOffset = 0 OrElse IsNewLine(PeekAheadChar(-1))
+            Return _lineBufferOffset = 0 OrElse IsNewLine(Peek(-1))
         End Function
 
         Private Function IsAfterWhitespace() As Boolean
@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return True
             End If
 
-            Dim prevChar = PeekAheadChar(-1)
+            Dim prevChar = Peek(-1)
             Return IsWhitespace(prevChar)
         End Function
 
@@ -832,7 +832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Exit Do
                         End If
 
-                        ch = PeekAheadChar(len)
+                        ch = Peek(len)
                         If Not IsColonAndNotColonEquals(ch, offset:=len) Then
                             Exit Do
                         End If
@@ -868,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetWhitespaceLength(len As Integer) As Integer
             ' eat until linebreak or nonwhitespace
-            While CanGetCharAtOffset(len) AndAlso IsWhitespace(PeekAheadChar(len))
+            While CanGetCharAtOffset(len) AndAlso IsWhitespace(Peek(len))
                 len += 1
             End While
             Return len
@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetXmlWhitespaceLength(len As Integer) As Integer
             ' eat until linebreak or nonwhitespace
-            While CanGetCharAtOffset(len) AndAlso IsXmlWhitespace(PeekAheadChar(len))
+            While CanGetCharAtOffset(len) AndAlso IsXmlWhitespace(Peek(len))
                 len += 1
             End While
             Return len
@@ -913,18 +913,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function PeekStartComment(i As Integer) As Integer
 
             If CanGetCharAtOffset(i) Then
-                Dim ch = PeekAheadChar(i)
+                Dim ch = Peek(i)
 
                 If IsSingleQuote(ch) Then
                     Return 1
                 ElseIf MatchOneOrAnotherOrFullwidth(ch, "R"c, "r"c) AndAlso
-                    CanGetCharAtOffset(i + 2) AndAlso MatchOneOrAnotherOrFullwidth(PeekAheadChar(i + 1), "E"c, "e"c) AndAlso
-                    MatchOneOrAnotherOrFullwidth(PeekAheadChar(i + 2), "M"c, "m"c) Then
+                    CanGetCharAtOffset(i + 2) AndAlso MatchOneOrAnotherOrFullwidth(Peek(i + 1), "E"c, "e"c) AndAlso
+                    MatchOneOrAnotherOrFullwidth(Peek(i + 2), "M"c, "m"c) Then
 
-                    If Not CanGetCharAtOffset(i + 3) OrElse IsNewLine(PeekAheadChar(i + 3)) Then
+                    If Not CanGetCharAtOffset(i + 3) OrElse IsNewLine(Peek(i + 3)) Then
                         ' have only 'REM'
                         Return 3
-                    ElseIf Not IsIdentifierPartCharacter(PeekAheadChar(i + 3)) Then
+                    ElseIf Not IsIdentifierPartCharacter(Peek(i + 3)) Then
                         ' have 'REM '
                         Return 4
                     End If
@@ -943,7 +943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' eat all chars until EoL
                 While CanGetCharAtOffset(length) AndAlso
-                    Not IsNewLine(PeekAheadChar(length))
+                    Not IsNewLine(Peek(length))
 
                     length += 1
                 End While
@@ -1020,7 +1020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "&"c
-                    If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(Peek(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     End If
 
@@ -1100,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return MakeExclamationToken(precedingTrivia, False)
 
                 Case "."c
-                    If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(Peek(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     Else
                         Return MakeDotToken(precedingTrivia, False)
@@ -1165,13 +1165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "_"c
-                    If CanGetCharAtOffset(1) AndAlso IsIdentifierPartCharacter(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso IsIdentifierPartCharacter(Peek(1)) Then
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
                     Dim err As ERRID = ERRID.ERR_ExpectedIdentifier
                     Dim len = GetWhitespaceLength(1)
-                    If Not CanGetCharAtOffset(len) OrElse IsNewLine(PeekAheadChar(len)) OrElse PeekStartComment(len) > 0 Then
+                    If Not CanGetCharAtOffset(len) OrElse IsNewLine(Peek(len)) OrElse PeekStartComment(len) > 0 Then
                         err = ERRID.ERR_LineContWithCommentOrNoPrecSpace
                     End If
 
@@ -1186,12 +1186,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "%"c
                     If CanGetCharAtOffset(1) AndAlso
-                        PeekAheadChar(1) = ">"c Then
+                        Peek(1) = ">"c Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
 
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
-                    If CanGetCharAtOffset(1) AndAlso IsDoubleQuote(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso IsDoubleQuote(Peek(1)) Then
                         Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
                     End If
 
@@ -1252,7 +1252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "&"c
-                    If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso BeginsBaseLiteral(Peek(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     End If
 
@@ -1332,7 +1332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return MakeExclamationToken(precedingTrivia, True)
 
                 Case "."c
-                    If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso IsDecimalDigit(Peek(1)) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     Else
                         Return MakeDotToken(precedingTrivia, True)
@@ -1391,13 +1391,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "_"c
-                    If CanGetCharAtOffset(1) AndAlso IsIdentifierPartCharacter(PeekAheadChar(1)) Then
+                    If CanGetCharAtOffset(1) AndAlso IsIdentifierPartCharacter(Peek(1)) Then
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
                     Dim err As ERRID = ERRID.ERR_ExpectedIdentifier
                     Dim len = GetWhitespaceLength(1)
-                    If Not CanGetCharAtOffset(len) OrElse IsNewLine(PeekAheadChar(len)) OrElse PeekStartComment(len) > 0 Then
+                    If Not CanGetCharAtOffset(len) OrElse IsNewLine(Peek(len)) OrElse PeekStartComment(len) > 0 Then
                         err = ERRID.ERR_LineContWithCommentOrNoPrecSpace
                     End If
 
@@ -1412,7 +1412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "%"c
                     If CanGetCharAtOffset(1) AndAlso
-                        PeekAheadChar(1) = ">"c Then
+                        Peek(1) = ">"c Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
 
@@ -1437,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim eq As Char
 
             While CanGetCharAtOffset(Here)
-                eq = PeekAheadChar(Here)
+                eq = Peek(Here)
                 Here += 1
                 If Not IsWhitespace(eq) Then
                     If eq = "="c OrElse eq = FULLWIDTH_EQUALS_SIGN Then
@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             length = GetWhitespaceLength(length)
 
             If CanGetCharAtOffset(length) Then
-                Dim c As Char = PeekAheadChar(length)
+                Dim c As Char = Peek(length)
 
                 If c = "="c OrElse c = FULLWIDTH_EQUALS_SIGN Then
                     length += 1
@@ -1486,13 +1486,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Check for XML tokens
             If Not charIsFullWidth AndAlso CanGetCharAtOffset(length) Then
-                Dim c As Char = PeekAheadChar(length)
+                Dim c As Char = Peek(length)
                 Select Case c
                     Case "!"c
                         If CanGetCharAtOffset(length + 2) Then
-                            Select Case (PeekAheadChar(length + 1))
+                            Select Case (Peek(length + 1))
                                 Case "-"c
-                                    If CanGetCharAtOffset(length + 3) AndAlso PeekAheadChar(length + 2) = "-"c Then
+                                    If CanGetCharAtOffset(length + 3) AndAlso Peek(length + 2) = "-"c Then
                                         Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
                                     End If
                                 Case "["c
@@ -1515,7 +1515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             length = GetWhitespaceLength(length)
 
             If CanGetCharAtOffset(length) Then
-                Dim c As Char = PeekAheadChar(length)
+                Dim c As Char = Peek(length)
 
                 If c = "="c OrElse c = FULLWIDTH_EQUALS_SIGN Then
                     length += 1
@@ -1527,7 +1527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     length += 1
 
                     If CanGetCharAtOffset(length) Then
-                        c = PeekAheadChar(length)
+                        c = Peek(length)
 
                         'if the second "<" is a part of "<%" - like in "<<%" , we do not want to use it.
                         If c <> "%"c AndAlso c <> FULLWIDTH_PERCENT_SIGN Then
@@ -1580,7 +1580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim ch = PeekChar()
             If CanGetCharAtOffset(1) Then
-                Dim ch1 = PeekAheadChar(1)
+                Dim ch1 = Peek(1)
                 If IsConnectorPunctuation(ch) AndAlso Not IsIdentifierPartCharacter(ch1) Then
                     Return MakeBadToken(precedingTrivia, 1, ERRID.ERR_ExpectedIdentifier)
                 End If
@@ -1592,7 +1592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // < 128 test is inline here. (This loop gets a *lot* of traffic.)
             ' TODO: make sure we get good perf here
             While CanGetCharAtOffset(len)
-                ch = PeekAheadChar(len)
+                ch = Peek(len)
 
                 Dim code = Convert.ToUInt16(ch)
                 If code < 128 AndAlso IsNarrowIdentifierCharacter(code) OrElse
@@ -1607,14 +1607,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             'Check for a type character
             Dim TypeCharacter As TypeCharacter = TypeCharacter.None
             If CanGetCharAtOffset(len) Then
-                ch = PeekAheadChar(len)
+                ch = Peek(len)
 
 FullWidthRepeat:
                 Select Case ch
                     Case "!"c
                         ' // If the ! is followed by an identifier it is a dictionary lookup operator, not a type character.
                         If CanGetCharAtOffset(len + 1) Then
-                            Dim NextChar As Char = PeekAheadChar(len + 1)
+                            Dim NextChar As Char = Peek(len + 1)
 
                             If IsIdentifierStartCharacter(NextChar) OrElse
                                 MatchOneOrAnotherOrFullwidth(NextChar, "["c, "]"c) Then
@@ -1704,20 +1704,20 @@ FullWidthRepeat:
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_MissingEndBrack)
             End If
 
-            Dim ch = PeekAheadChar(Here)
+            Dim ch = Peek(Here)
 
             ' check if we can start an ident.
             If Not IsIdentifierStartCharacter(ch) OrElse
                 (IsConnectorPunctuation(ch) AndAlso
                     Not (CanGetCharAtOffset(Here + 1) AndAlso
-                         IsIdentifierPartCharacter(PeekAheadChar(Here + 1)))) Then
+                         IsIdentifierPartCharacter(Peek(Here + 1)))) Then
 
                 InvalidIdentifier = True
             End If
 
             ' check ident until ]
             While CanGetCharAtOffset(Here)
-                Dim [Next] As Char = PeekAheadChar(Here)
+                Dim [Next] As Char = Peek(Here)
 
                 If [Next] = "]"c OrElse [Next] = FULLWIDTH_RIGHT_SQUARE_BRACKET Then
                     Dim IdStringLength As Integer = Here - IdStart
@@ -1782,7 +1782,7 @@ FullWidthRepeat:
             Dim ch = PeekChar()
             If ch = "&"c OrElse ch = FULLWIDTH_AMPERSAND Then
                 Here += 1
-                ch = If(CanGetCharAtOffset(Here), PeekAheadChar(Here), ChrW(0))
+                ch = If(CanGetCharAtOffset(Here), Peek(Here), ChrW(0))
 
 FullWidthRepeat:
                 Select Case ch
@@ -1792,7 +1792,7 @@ FullWidthRepeat:
                         Base = LiteralBase.Hexadecimal
 
                         While CanGetCharAtOffset(Here)
-                            ch = PeekAheadChar(Here)
+                            ch = Peek(Here)
                             If Not IsHexDigit(ch) Then
                                 Exit While
                             End If
@@ -1805,7 +1805,7 @@ FullWidthRepeat:
                         Base = LiteralBase.Octal
 
                         While CanGetCharAtOffset(Here)
-                            ch = PeekAheadChar(Here)
+                            ch = Peek(Here)
                             If Not IsOctalDigit(ch) Then
                                 Exit While
                             End If
@@ -1824,7 +1824,7 @@ FullWidthRepeat:
                 ' no base specifier - just go through decimal digits.
                 IntegerLiteralStart = Here
                 While CanGetCharAtOffset(Here)
-                    ch = PeekAheadChar(Here)
+                    ch = Peek(Here)
                     If Not IsDecimalDigit(ch) Then
                         Exit While
                     End If
@@ -1839,16 +1839,16 @@ FullWidthRepeat:
             ' // read the rest of a float literal.
             If Base = LiteralBase.Decimal AndAlso CanGetCharAtOffset(Here) Then
                 ' // First read a '.' followed by a sequence of one or more digits.
-                ch = PeekAheadChar(Here)
+                ch = Peek(Here)
                 If (ch = "."c Or ch = FULLWIDTH_FULL_STOP) AndAlso
                         CanGetCharAtOffset(Here + 1) AndAlso
-                        IsDecimalDigit(PeekAheadChar(Here + 1)) Then
+                        IsDecimalDigit(Peek(Here + 1)) Then
 
                     Here += 2   ' skip dot and first digit
 
                     ' all following decimal digits belong to the literal (fractional part)
                     While CanGetCharAtOffset(Here)
-                        ch = PeekAheadChar(Here)
+                        ch = Peek(Here)
                         If Not IsDecimalDigit(ch) Then
                             Exit While
                         End If
@@ -1859,21 +1859,21 @@ FullWidthRepeat:
 
                 ' // Read an exponent symbol followed by an optional sign and a sequence of
                 ' // one or more digits.
-                If CanGetCharAtOffset(Here) AndAlso BeginsExponent(PeekAheadChar(Here)) Then
+                If CanGetCharAtOffset(Here) AndAlso BeginsExponent(Peek(Here)) Then
                     Here += 1
 
                     If CanGetCharAtOffset(Here) Then
-                        ch = PeekAheadChar(Here)
+                        ch = Peek(Here)
 
                         If MatchOneOrAnotherOrFullwidth(ch, "+"c, "-"c) Then
                             Here += 1
                         End If
                     End If
 
-                    If CanGetCharAtOffset(Here) AndAlso IsDecimalDigit(PeekAheadChar(Here)) Then
+                    If CanGetCharAtOffset(Here) AndAlso IsDecimalDigit(Peek(Here)) Then
                         Here += 1
                         While CanGetCharAtOffset(Here)
-                            ch = PeekAheadChar(Here)
+                            ch = Peek(Here)
                             If Not IsDecimalDigit(ch) Then
                                 Exit While
                             End If
@@ -1896,7 +1896,7 @@ FullWidthRepeat:
             Dim TypeCharacter As TypeCharacter = TypeCharacter.None
 
             If CanGetCharAtOffset(Here) Then
-                ch = PeekAheadChar(Here)
+                ch = Peek(Here)
 
 FullWidthRepeat2:
                 Select Case ch
@@ -1973,7 +1973,7 @@ FullWidthRepeat2:
 
                             ' check if this was not attempt to use obsolete exponent
                             If CanGetCharAtOffset(Here + 1) Then
-                                ch = PeekAheadChar(Here + 1)
+                                ch = Peek(Here + 1)
 
                                 If IsDecimalDigit(ch) OrElse MatchOneOrAnotherOrFullwidth(ch, "+"c, "-"c) Then
                                     Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_ObsoleteExponent)
@@ -1985,7 +1985,7 @@ FullWidthRepeat2:
 
                     Case "U"c, "u"c
                         If literalKind <> NumericLiteralKind.Float AndAlso CanGetCharAtOffset(Here + 1) Then
-                            Dim NextChar As Char = PeekAheadChar(Here + 1)
+                            Dim NextChar As Char = Peek(Here + 1)
 
                             'unsigned suffixes - US, UL, UI
                             If MatchOneOrAnotherOrFullwidth(NextChar, "S"c, "s"c) Then
@@ -2021,12 +2021,12 @@ FullWidthRepeat2:
                 If IntegerLiteralStart = IntegerLiteralEnd Then
                     Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_Syntax)
                 Else
-                    IntegralValue = IntegralLiteralCharacterValue(PeekAheadChar(IntegerLiteralStart))
+                    IntegralValue = IntegralLiteralCharacterValue(Peek(IntegerLiteralStart))
 
                     If Base = LiteralBase.Decimal Then
                         ' Init For loop
                         For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
-                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(PeekAheadChar(LiteralCharacter))
+                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(Peek(LiteralCharacter))
 
                             If IntegralValue < 1844674407370955161UL OrElse
                               (IntegralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
@@ -2051,7 +2051,7 @@ FullWidthRepeat2:
                                 Overflows = True
                             End If
 
-                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(PeekAheadChar(LiteralCharacter))
+                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(Peek(LiteralCharacter))
                         Next
                     End If
 
@@ -2093,7 +2093,7 @@ FullWidthRepeat2:
                 ' // Copy the text of the literal to deal with fullwidth 
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
-                    Dim curCh = PeekAheadChar(i)
+                    Dim curCh = Peek(i)
                     scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
                 Next
                 Dim LiteralSpelling = GetScratchTextInterned(scratch)
@@ -2167,7 +2167,7 @@ FullWidthRepeat2:
                 Return False
             End If
 
-            Dim ch = PeekAheadChar(Here)
+            Dim ch = Peek(Here)
             If Not IsDecimalDigit(ch) Then
                 Return False
             End If
@@ -2176,7 +2176,7 @@ FullWidthRepeat2:
             Here += 1
 
             While CanGetCharAtOffset(Here)
-                ch = PeekAheadChar(Here)
+                ch = Peek(Here)
 
                 If Not IsDecimalDigit(ch) Then
                     Exit While
@@ -2231,7 +2231,7 @@ FullWidthRepeat2:
 
             ' // If we see a /, then it's a date
 
-            If CanGetCharAtOffset(Here) AndAlso IsDateSeparatorCharacter(PeekAheadChar(Here)) Then
+            If CanGetCharAtOffset(Here) AndAlso IsDateSeparatorCharacter(Peek(Here)) Then
                 Dim FirstDateSeparator As Integer = Here
 
                 ' // We've got a date
@@ -2251,10 +2251,10 @@ FullWidthRepeat2:
                     End If
 
                     ' Do we have a day value?
-                    If CanGetCharAtOffset(Here) AndAlso IsDateSeparatorCharacter(PeekAheadChar(Here)) Then
+                    If CanGetCharAtOffset(Here) AndAlso IsDateSeparatorCharacter(Peek(Here)) Then
                         ' // Check to see they used a consistent separator
 
-                        If PeekAheadChar(Here) <> PeekAheadChar(FirstDateSeparator) Then
+                        If Peek(Here) <> Peek(FirstDateSeparator) Then
                             GoTo baddate
                         End If
 
@@ -2277,10 +2277,10 @@ FullWidthRepeat2:
 
                     ' // Do we have a year value?
 
-                    If CanGetCharAtOffset(Here) AndAlso IsDateSeparatorCharacter(PeekAheadChar(Here)) Then
+                    If CanGetCharAtOffset(Here) AndAlso IsDateSeparatorCharacter(Peek(Here)) Then
                         ' // Check to see they used a consistent separator
 
-                        If PeekAheadChar(Here) <> PeekAheadChar(FirstDateSeparator) Then
+                        If Peek(Here) <> Peek(FirstDateSeparator) Then
                             GoTo baddate
                         End If
 
@@ -2320,7 +2320,7 @@ FullWidthRepeat2:
             If HaveTimeValue Then
                 ' // Do we see a :?
 
-                If CanGetCharAtOffset(Here) AndAlso IsColon(PeekAheadChar(Here)) Then
+                If CanGetCharAtOffset(Here) AndAlso IsColon(Peek(Here)) Then
                     Here += 1
 
                     ' // Now let's get the minute value
@@ -2333,7 +2333,7 @@ FullWidthRepeat2:
 
                     ' // Do we have a second value?
 
-                    If CanGetCharAtOffset(Here) AndAlso IsColon(PeekAheadChar(Here)) Then
+                    If CanGetCharAtOffset(Here) AndAlso IsColon(Peek(Here)) Then
                         ' // Yes.
                         HaveSecondValue = True
                         Here += 1
@@ -2349,14 +2349,14 @@ FullWidthRepeat2:
                 ' // Check AM/PM
 
                 If CanGetCharAtOffset(Here) Then
-                    If PeekAheadChar(Here) = "A"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
-                        PeekAheadChar(Here) = "a"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_SMALL_LETTER_A Then
+                    If Peek(Here) = "A"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
+                        Peek(Here) = "a"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_A Then
 
                         HaveAM = True
                         Here += 1
 
-                    ElseIf PeekAheadChar(Here) = "P"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
-                           PeekAheadChar(Here) = "p"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_SMALL_LETTER_P Then
+                    ElseIf Peek(Here) = "P"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
+                           Peek(Here) = "p"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_P Then
 
                         HavePM = True
                         Here += 1
@@ -2364,8 +2364,8 @@ FullWidthRepeat2:
                     End If
 
                     If CanGetCharAtOffset(Here) AndAlso (HaveAM OrElse HavePM) Then
-                        If PeekAheadChar(Here) = "M"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
-                           PeekAheadChar(Here) = "m"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_SMALL_LETTER_M Then
+                        If Peek(Here) = "M"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
+                           Peek(Here) = "m"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_M Then
 
                             Here = GetWhitespaceLength(Here + 1)
 
@@ -2382,7 +2382,7 @@ FullWidthRepeat2:
                 End If
             End If
 
-            If Not CanGetCharAtOffset(Here) OrElse Not IsHash(PeekAheadChar(Here)) Then
+            If Not CanGetCharAtOffset(Here) OrElse Not IsHash(Peek(Here)) Then
                 GoTo baddate
             End If
 
@@ -2489,18 +2489,18 @@ baddate:
             ' // otherwise, it's not a date
 
             While CanGetCharAtOffset(Here)
-                Dim ch As Char = PeekAheadChar(Here)
+                Dim ch As Char = Peek(Here)
                 If IsHash(ch) OrElse IsNewLine(ch) Then
                     Exit While
                 End If
                 Here += 1
             End While
 
-            If Not CanGetCharAtOffset(Here) OrElse IsNewLine(PeekAheadChar(Here)) Then
+            If Not CanGetCharAtOffset(Here) OrElse IsNewLine(Peek(Here)) Then
                 ' // No closing #
                 Return Nothing
             Else
-                Debug.Assert(IsHash(PeekAheadChar(Here)))
+                Debug.Assert(IsHash(Peek(Here)))
                 Here += 1  ' consume trailing #
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
             End If
@@ -2517,25 +2517,25 @@ baddate:
             ' // Check for a Char literal, which can be of the form:
             ' // """"c or "<anycharacter-except-">"c
 
-            If CanGetCharAtOffset(3) AndAlso IsDoubleQuote(PeekAheadChar(2)) Then
-                If IsDoubleQuote(PeekAheadChar(1)) Then
-                    If IsDoubleQuote(PeekAheadChar(3)) AndAlso
+            If CanGetCharAtOffset(3) AndAlso IsDoubleQuote(Peek(2)) Then
+                If IsDoubleQuote(Peek(1)) Then
+                    If IsDoubleQuote(Peek(3)) AndAlso
                        CanGetCharAtOffset(4) AndAlso
-                       IsLetterC(PeekAheadChar(4)) Then
+                       IsLetterC(Peek(4)) Then
 
                         ' // Double-quote Char literal: """"c
                         Return MakeCharacterLiteralToken(precedingTrivia, """"c, 5)
                     End If
 
-                ElseIf IsLetterC(PeekAheadChar(3)) Then
+                ElseIf IsLetterC(Peek(3)) Then
                     ' // Char literal.  "x"c
-                    Return MakeCharacterLiteralToken(precedingTrivia, PeekAheadChar(1), 4)
+                    Return MakeCharacterLiteralToken(precedingTrivia, Peek(1), 4)
                 End If
             End If
 
             If CanGetCharAtOffset(2) AndAlso
-               IsDoubleQuote(PeekAheadChar(1)) AndAlso
-               IsLetterC(PeekAheadChar(2)) Then
+               IsDoubleQuote(Peek(1)) AndAlso
+               IsLetterC(Peek(2)) Then
 
                 ' // Error. ""c is not a legal char constant
                 Return MakeBadToken(precedingTrivia, 3, ERRID.ERR_IllegalCharConstant)
@@ -2543,11 +2543,11 @@ baddate:
 
             Dim scratch = GetScratch()
             While CanGetCharAtOffset(length)
-                ch = PeekAheadChar(length)
+                ch = Peek(length)
 
                 If IsDoubleQuote(ch) Then
                     If CanGetCharAtOffset(length + 1) Then
-                        ch = PeekAheadChar(length + 1)
+                        ch = Peek(length + 1)
 
                         If IsDoubleQuote(ch) Then
                             ' // An escaped double quote

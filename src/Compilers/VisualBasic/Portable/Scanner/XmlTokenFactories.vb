@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeBeginEndElementToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "/"c)
+            Debug.Assert(Peek(1) = "/"c)
 
             AdvanceChar(2)
             Dim followingTrivia = scanTrailingTrivia()
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndEmptyElementToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Debug.Assert(PeekChar() = "/"c)
-            Debug.Assert(PeekAheadChar(1) = ">"c)
+            Debug.Assert(Peek(1) = ">"c)
 
             AdvanceChar(2)
             Return MakePunctuationToken(SyntaxKind.SlashGreaterThanToken, "/>", precedingTrivia, Nothing)
@@ -316,8 +316,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "EmbeddedToken"
         Private Function XmlMakeBeginEmbeddedToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "%"c)
-            Debug.Assert(PeekAheadChar(2) = "="c)
+            Debug.Assert(Peek(1) = "%"c)
+            Debug.Assert(Peek(2) = "="c)
 
             AdvanceChar(3)
             Return MakePunctuationToken(SyntaxKind.LessThanPercentEqualsToken, "<%=", precedingTrivia, Nothing)
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndEmbeddedToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(PeekChar() = "%"c OrElse PeekChar() = FULLWIDTH_PERCENT_SIGN)
-            Debug.Assert(PeekAheadChar(1) = ">"c)
+            Debug.Assert(Peek(1) = ">"c)
 
             Dim spelling As String
             If PeekChar() = "%"c Then
@@ -344,21 +344,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "DTD"
         Private Function XmlMakeBeginDTDToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As BadTokenSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "!"c)
-            Debug.Assert(PeekAheadChar(2) = "D"c)
-            Debug.Assert(PeekAheadChar(3) = "O"c)
-            Debug.Assert(PeekAheadChar(4) = "C"c)
-            Debug.Assert(PeekAheadChar(5) = "T"c)
-            Debug.Assert(PeekAheadChar(6) = "Y"c)
-            Debug.Assert(PeekAheadChar(7) = "P"c)
-            Debug.Assert(PeekAheadChar(8) = "E"c)
+            Debug.Assert(Peek(1) = "!"c)
+            Debug.Assert(Peek(2) = "D"c)
+            Debug.Assert(Peek(3) = "O"c)
+            Debug.Assert(Peek(4) = "C"c)
+            Debug.Assert(Peek(5) = "T"c)
+            Debug.Assert(Peek(6) = "Y"c)
+            Debug.Assert(Peek(7) = "P"c)
+            Debug.Assert(Peek(8) = "E"c)
 
             Return XmlMakeBadToken(SyntaxSubKind.BeginDocTypeToken, precedingTrivia, 9, ERRID.ERR_DTDNotSupported)
         End Function
 
         Private Function XmlLessThanExclamationToken(state As ScannerState, precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As BadTokenSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "!"c)
+            Debug.Assert(Peek(1) = "!"c)
 
             Return XmlMakeBadToken(SyntaxSubKind.LessThanExclamationToken, precedingTrivia, 2, If(state = ScannerState.DocType, ERRID.ERR_DTDNotSupported, ERRID.ERR_Syntax))
         End Function
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeBeginProcessingInstructionToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "?"c)
+            Debug.Assert(Peek(1) = "?"c)
 
             AdvanceChar(2)
             Dim followingTrivia = scanTrailingTrivia()
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndProcessingInstructionToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Debug.Assert(PeekChar() = "?"c)
-            Debug.Assert(PeekAheadChar(1) = ">"c)
+            Debug.Assert(Peek(1) = ">"c)
 
             AdvanceChar(2)
             Return MakePunctuationToken(SyntaxKind.QuestionGreaterThanToken, "?>", precedingTrivia, Nothing)
@@ -409,9 +409,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeBeginCommentToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "!"c)
-            Debug.Assert(PeekAheadChar(2) = "-"c)
-            Debug.Assert(PeekAheadChar(3) = "-"c)
+            Debug.Assert(Peek(1) = "!"c)
+            Debug.Assert(Peek(2) = "-"c)
+            Debug.Assert(Peek(3) = "-"c)
 
             AdvanceChar(4)
             Dim followingTrivia = scanTrailingTrivia()
@@ -429,8 +429,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndCommentToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Debug.Assert(PeekChar() = "-"c)
-            Debug.Assert(PeekAheadChar(1) = "-"c)
-            Debug.Assert(PeekAheadChar(2) = ">"c)
+            Debug.Assert(Peek(1) = "-"c)
+            Debug.Assert(Peek(2) = ">"c)
 
             AdvanceChar(3)
             Return MakePunctuationToken(SyntaxKind.MinusMinusGreaterThanToken, "-->", precedingTrivia, Nothing)
@@ -441,14 +441,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "CData"
         Private Function XmlMakeBeginCDataToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(PeekChar() = "<"c)
-            Debug.Assert(PeekAheadChar(1) = "!"c)
-            Debug.Assert(PeekAheadChar(2) = "["c)
-            Debug.Assert(PeekAheadChar(3) = "C"c)
-            Debug.Assert(PeekAheadChar(4) = "D"c)
-            Debug.Assert(PeekAheadChar(5) = "A"c)
-            Debug.Assert(PeekAheadChar(6) = "T"c)
-            Debug.Assert(PeekAheadChar(7) = "A"c)
-            Debug.Assert(PeekAheadChar(8) = "["c)
+            Debug.Assert(Peek(1) = "!"c)
+            Debug.Assert(Peek(2) = "["c)
+            Debug.Assert(Peek(3) = "C"c)
+            Debug.Assert(Peek(4) = "D"c)
+            Debug.Assert(Peek(5) = "A"c)
+            Debug.Assert(Peek(6) = "T"c)
+            Debug.Assert(Peek(7) = "A"c)
+            Debug.Assert(Peek(8) = "["c)
 
             AdvanceChar(9)
             Dim followingTrivia = scanTrailingTrivia()
@@ -461,8 +461,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndCDataToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Debug.Assert(PeekChar() = "]"c)
-            Debug.Assert(PeekAheadChar(1) = "]"c)
-            Debug.Assert(PeekAheadChar(2) = ">"c)
+            Debug.Assert(Peek(1) = "]"c)
+            Debug.Assert(Peek(2) = ">"c)
 
             AdvanceChar(3)
             Return MakePunctuationToken(SyntaxKind.EndCDataToken, "]]>", precedingTrivia, Nothing)
