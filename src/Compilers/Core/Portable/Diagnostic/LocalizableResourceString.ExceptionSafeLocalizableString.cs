@@ -9,12 +9,10 @@ namespace Microsoft.CodeAnalysis
         private sealed class ExceptionSafeLocalizableString : LocalizableString
         {
             private readonly LocalizableString _innerLocalizableString;
-            internal Action<Exception> OnException { get; set; }
-
+            
             public ExceptionSafeLocalizableString(LocalizableString innerLocalizableString)
             {
                 _innerLocalizableString = innerLocalizableString;
-                OnException = null;
             }
 
             public override bool Equals(LocalizableString other)
@@ -25,17 +23,17 @@ namespace Microsoft.CodeAnalysis
                     other = otherExceptionSafe._innerLocalizableString;
                 }
 
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.Equals, other, false, OnException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.Equals, other, false);
             }
 
             public override int GetHashCode()
             {
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.GetHashCode, 0, OnException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.GetHashCode, 0);
             }
 
             public override string ToString(IFormatProvider formatProvider)
             {
-                return ExecuteAndCatchIfThrows(_innerLocalizableString.ToString, formatProvider, string.Empty, OnException);
+                return ExecuteAndCatchIfThrows(_innerLocalizableString.ToString, formatProvider, string.Empty);
             }
         }
     }

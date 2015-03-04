@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
 
-        internal Action<Exception> OnException { get; set; }
-
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
         /// </summary>
@@ -66,7 +64,6 @@ namespace Microsoft.CodeAnalysis
             _nameOfLocalizableResource = nameOfLocalizableResource;
             _resourceSource = resourceSource;
             _formatArguments = formatArguments;
-            OnException = null;
         }
 
         private LocalizableResourceString(ObjectReader reader)
@@ -111,7 +108,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString(IFormatProvider formatProvider)
         {
-            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty, OnException);
+            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty);
         }
 
         private string ToStringCore(IFormatProvider formatProvider)
@@ -125,7 +122,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(LocalizableString other)
         {
-            return ExecuteAndCatchIfThrows(EqualsCore, other, false, OnException);
+            return ExecuteAndCatchIfThrows(EqualsCore, other, false);
         }
 
         private bool EqualsCore(LocalizableString other)
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0, OnException);
+            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0);
         }
 
         private int GetHashCodeCore()

@@ -15,8 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalysisContextHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticAnalyzerAction.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticStartAnalysisScope.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IExceptionSafeLocalizableString.cs" />
   </ItemGroup>
 </Project>

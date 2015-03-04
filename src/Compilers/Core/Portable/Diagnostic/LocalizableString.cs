@@ -8,8 +8,14 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>, IExceptionSafeLocalizableString
+    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>
     {
+        /// <summary>
+        /// Fired when an exception is raised by any of the public methods of <see cref="LocalizableString"/>.
+        /// If the exception handler itself throwns an exception, that exception is ignored.
+        /// </summary>
+        public event EventHandler<Exception> OnException;
+
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
         /// </summary>
@@ -55,27 +61,7 @@ namespace Microsoft.CodeAnalysis
             return new ExceptionSafeLocalizableString(this);
         }
 
-        void IExceptionSafeLocalizableString.SetOnException(Action<Exception> onException)
-        {
-            if (this is FixedLocalizableString)
-            {
-                // FixedLocalizableString can't throw.
-                return;
-            }
-
-            var localizableResourceString = this as LocalizableResourceString;
-            if (localizableResourceString != null)
-            {
-                localizableResourceString.OnException = onException;
-                return;
-            }
-
-            // Must be a wrapped ExceptionSafeLocalizableString.
-            var exceptionSafeLocalizableString = (ExceptionSafeLocalizableString)this;
-            exceptionSafeLocalizableString.OnException = onException;
-        }
-
-        internal static T ExecuteAndCatchIfThrows<T>(Func<T> action, T defaulValueOnException, Action<Exception> onLocalizableStringException)
+        internal T ExecuteAndCatchIfThrows<T>(Func<T> action, T defaulValueOnException)
         {
             try
             {
@@ -83,12 +69,12 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception ex)
             {
-                onLocalizableStringException?.Invoke(ex);
+                RaiseOnException(ex);
                 return defaulValueOnException;
             }
         }
 
-        internal static T ExecuteAndCatchIfThrows<U, T>(Func<U, T> action, U argument, T defaulValueOnException, Action<Exception> onLocalizableStringException)
+        internal T ExecuteAndCatchIfThrows<U, T>(Func<U, T> action, U argument, T defaulValueOnException)
         {
             try
             {
@@ -96,8 +82,20 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception ex)
             {
-                onLocalizableStringException?.Invoke(ex);
+                RaiseOnException(ex);
                 return defaulValueOnException;
+            }
+        }
+
+        private void RaiseOnException(Exception ex)
+        {
+            try
+            {
+                OnException?.Invoke(this, ex);
+            }
+            catch
+            {
+                // Ignore exceptions from the exception handlers themselves.
             }
         }
     }

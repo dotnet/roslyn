@@ -260,10 +260,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             // Verify exceptions from LocalizableResourceString are raised if OnException is set.
             var exceptions = new List<Exception>();
-            Action<Exception> onException = ex => exceptions.Add(ex);
-            ((IExceptionSafeLocalizableString)localizableTitle).SetOnException(onException);
-            ((IExceptionSafeLocalizableString)localizableMessage).SetOnException(onException);
-            ((IExceptionSafeLocalizableString)localizableDescription).SetOnException(onException);
+            var handler = new EventHandler<Exception>((sender, ex) => exceptions.Add(ex));
+            localizableTitle.OnException += handler;
+            localizableMessage.OnException += handler;
+            localizableDescription.OnException += handler;
 
             // Access and evaluate localizable fields.
             var unused1 = localizableTitle.ToString();

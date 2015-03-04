@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analyzerReference.GetAnalyzers(language))
             {
                 ClearAnalyzerDiagnostics(analyzer, projectId);
+                AnalyzerManager.Instance.ClearAnalyzerExceptionHandlers(analyzer);
             }
         }
 
