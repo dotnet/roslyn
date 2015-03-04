@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new WeakReference<ITableEntriesSnapshot>(null);
 
         private int _lastVersion = 0;
+        private int _lastItemCount = 0;
 
         protected abstract ImmutableArray<TData> GetItems();
         protected abstract ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TData> items);
@@ -45,7 +46,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return lastSnapshot;
                 }
 
-                return CreateSnapshot(version, GetItems());
+                var itemCount = _lastItemCount;
+                var items = GetItems();
+
+                if (items.Length != itemCount)
+                {
+                    _lastItemCount = items.Length;
+                }
+
+                return CreateSnapshot(version, items);
             }
         }
 
@@ -65,11 +74,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return null;
                 }
 
-                return CreateSnapshot(version, GetItems());
+                // version between error list and diagnostic service is different. 
+                // so even if our version is same, diagnostic service version might be different.
+                //
+                // this is a kind of sanity check to reduce number of times we return wrong snapshot.
+                // but the issue will quickly fixed up since diagnostic service will drive error list to latest snapshot.
+                var items = GetItems();
+                if (items.Length != _lastItemCount)
+                {
+                    return null;
+                }
+
+                return CreateSnapshot(version, items);
             }
         }
 
-        public void OnUpdated()
+        public void OnUpdated(int count)
+        {
+            lock (_gate)
+            {
+                _lastVersion++;
+                _lastItemCount = count;
+            }
+        }
+
+        public void OnRefreshed()
         {
             lock (_gate)
             {
