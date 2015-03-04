@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -64,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IVsTextLines primaryTextLines;
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out primaryTextLines));
             var primaryVsTextBuffer = (IVsTextBuffer)primaryTextLines;
-            var dataBuffer = (IProjectionBuffer)_editorAdaptersFactoryService.GetDataBuffer(primaryVsTextBuffer);
+            var dataBuffer = _editorAdaptersFactoryService.GetDataBuffer(primaryVsTextBuffer);
             SetDataBuffer(dataBuffer);
 
             this.ContainedDocument = new ContainedDocument(

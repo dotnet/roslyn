@@ -33,17 +33,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
                     if (containedDocument != null)
                     {
-                        var hresult = containedDocument.ContainedLanguage.ContainedLanguageHost.OnRenamed(
-                            GetRenameType(symbol), symbol.ToDisplayString(s_qualifiedDisplayFormat), newName);
-                        if (hresult < 0)
+                        var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost;
+                        if (containedLanguageHost != null)
                         {
-                            if (throwOnFailure)
+                            var hresult = containedLanguageHost.OnRenamed(
+                                GetRenameType(symbol), symbol.ToDisplayString(s_qualifiedDisplayFormat), newName);
+                            if (hresult < 0)
                             {
-                                Marshal.ThrowExceptionForHR(hresult);
-                            }
-                            else
-                            {
-                                return false;
+                                if (throwOnFailure)
+                                {
+                                    Marshal.ThrowExceptionForHR(hresult);
+                                }
+                                else
+                                {
+                                    return false;
+                                }
                             }
                         }
                     }
