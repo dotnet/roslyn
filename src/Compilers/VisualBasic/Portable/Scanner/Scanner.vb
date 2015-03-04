@@ -389,6 +389,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
 #Region "Buffer helpers"
+
+        Private Function NextAre(offset As Integer, chars As String) As Boolean
+            Debug.Assert(Not String.IsNullOrEmpty(chars))
+            Dim n = chars.Length
+            Dim i = -1
+            If CanGetCharAtOffset(offset + n) Then
+                Do
+                    i += 1
+                Loop While i < n AndAlso chars(i) = PeekAheadChar(offset + i)
+            End If
+            Return i = n
+        End Function
         Private Function CanGetChar() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
@@ -1109,9 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanStringLiteral(precedingTrivia)
 
                 Case "A"c
-                    If CanGetCharAtOffset(2) AndAlso
-                       PeekAheadChar(1) = "s"c AndAlso
-                       PeekAheadChar(2) = " "c Then
+                    If NextAre(1, "s ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "As"
@@ -1122,10 +1132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "E"c
-                    If CanGetCharAtOffset(3) AndAlso
-                        PeekAheadChar(1) = "n"c AndAlso
-                        PeekAheadChar(2) = "d"c AndAlso
-                        PeekAheadChar(3) = " "c Then
+                    If NextAre(1, "nd ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "End"
@@ -1136,9 +1143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "I"c
-                    If CanGetCharAtOffset(2) AndAlso
-                                           PeekAheadChar(1) = "f"c AndAlso
-                                           PeekAheadChar(2) = " "c Then
+                    If NextAre(1, "f ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "If"
@@ -1151,6 +1156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c,
                         "m"c, "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c,
                         "y"c, "z"c
+
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
@@ -1347,9 +1353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanStringLiteral(precedingTrivia)
 
                 Case "A"c
-                    If CanGetCharAtOffset(2) AndAlso
-                       PeekAheadChar(1) = "s"c AndAlso
-                       PeekAheadChar(2) = " "c Then
+                    If NextAre(1, "s ") Then
 
                         Dim spelling = GetText(2)
                         Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
@@ -1358,10 +1362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "E"c
-                    If CanGetCharAtOffset(3) AndAlso
-                        PeekAheadChar(1) = "n"c AndAlso
-                        PeekAheadChar(2) = "d"c AndAlso
-                        PeekAheadChar(3) = " "c Then
+                    If NextAre(1, "nd ") Then
 
                         Dim spelling = GetText(3)
                         Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
@@ -1370,9 +1371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "I"c
-                    If CanGetCharAtOffset(2) AndAlso
-                                           PeekAheadChar(1) = "f"c AndAlso
-                                           PeekAheadChar(2) = " "c Then
+                    If NextAre(1, "f ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = GetText(2)
@@ -1496,13 +1495,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
                                     End If
                                 Case "["c
-                                    If CanGetCharAtOffset(length + 8) AndAlso
-                                        PeekAheadChar(length + 2) = "C"c AndAlso
-                                        PeekAheadChar(length + 3) = "D"c AndAlso
-                                        PeekAheadChar(length + 4) = "A"c AndAlso
-                                        PeekAheadChar(length + 5) = "T"c AndAlso
-                                        PeekAheadChar(length + 6) = "A"c AndAlso
-                                        PeekAheadChar(length + 7) = "["c Then
+
+                                    If NextAre(length + 2, "CDATA[") Then
 
                                         Return XmlMakeBeginCDataToken(precedingTrivia, scanTrailingTrivia)
                                     End If
