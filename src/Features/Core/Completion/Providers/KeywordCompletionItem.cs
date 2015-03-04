@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             this.IsIntrinsic = isIntrinsic;
         }
 
-        public bool IsIntrinsic { get; private set; }
+        public bool IsIntrinsic { get; }
     }
 }

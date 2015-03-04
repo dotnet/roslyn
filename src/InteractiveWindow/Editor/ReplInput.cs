@@ -8,8 +8,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     internal sealed class ReplSpan
     {
         // ITrackingSpan or string
-        public object Span { get; private set; }
-        public ReplSpanKind Kind { get; private set; }
+        public object Span { get; }
+        public ReplSpanKind Kind { get; }
 
         public ReplSpan(CustomTrackingSpan span, ReplSpanKind kind)
         {

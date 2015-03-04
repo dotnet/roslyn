@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         /// <summary>
         /// The name of the command. May not contain any whitespace characters.
         /// </summary>
-        string Name
+        IEnumerable<string> Names
         {
             get;
         }

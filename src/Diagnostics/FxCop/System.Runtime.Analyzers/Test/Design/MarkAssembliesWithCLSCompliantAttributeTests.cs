@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public class CA1014Tests : DiagnosticAnalyzerTestBase
+    public class MarkAssembliesWithCLSCompliantAttributeTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
@@ -189,14 +190,14 @@ class Program
 
         private static DiagnosticResult s_diagnosticCA1014 = new DiagnosticResult
         {
-            Id = AssemblyAttributesDiagnosticAnalyzer.CA1014RuleName,
+            Id = AssemblyAttributesDiagnosticAnalyzer.CA1014RuleId,
             Severity = DiagnosticSeverity.Warning,
             Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageFormat.ToString()
         };
 
         private static DiagnosticResult s_diagnosticCA1016 = new DiagnosticResult
         {
-            Id = AssemblyAttributesDiagnosticAnalyzer.CA1016RuleName,
+            Id = AssemblyAttributesDiagnosticAnalyzer.CA1016RuleId,
             Severity = DiagnosticSeverity.Warning,
             Message = AssemblyAttributesDiagnosticAnalyzer.CA1016Rule.MessageFormat.ToString()
         };

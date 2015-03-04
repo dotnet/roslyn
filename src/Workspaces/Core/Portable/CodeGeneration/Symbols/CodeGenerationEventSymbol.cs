@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationEventSymbol : CodeGenerationSymbol, IEventSymbol
     {
-        public ITypeSymbol Type { get; private set; }
+        public ITypeSymbol Type { get; }
 
         public bool IsWindowsRuntimeEvent
         {
@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; private set; }
+        public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public IMethodSymbol AddMethod { get; private set; }
-        public IMethodSymbol RemoveMethod { get; private set; }
-        public IMethodSymbol RaiseMethod { get; private set; }
-        public IList<IParameterSymbol> ParameterList { get; private set; }
+        public IMethodSymbol AddMethod { get; }
+        public IMethodSymbol RemoveMethod { get; }
+        public IMethodSymbol RaiseMethod { get; }
+        public IList<IParameterSymbol> ParameterList { get; }
 
         public CodeGenerationEventSymbol(
             INamedTypeSymbol containingType,

@@ -76,7 +76,6 @@
     <Compile Include="CommandIds.cs" />
     <Compile Include="ContentTypeMetadata.cs" />
     <Compile Include="Guids.cs" />
-    <Compile Include="IVsInteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="VsInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="InteractiveWindowPackage.cs" />
     <Compile Include="IVsInteractiveWindow.cs" />
@@ -87,6 +86,7 @@
     <Compile Include="Utils.cs" />
     <Compile Include="VsInteractiveWindow.cs" />
     <Compile Include="VsInteractiveWindowCommandFilter.cs" />
+    <Compile Include="VsInteractiveWindowExtensions.cs" />
     <Compile Include="VsInteractiveWindowFactory.cs" />
     <Compile Include="VSInteractiveWindowResources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportCompletionProviderAttribute : ExportAttribute
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public ExportCompletionProviderAttribute(string name, string language)
             : base(typeof(ICompletionProvider))

@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal struct AnonymousTypeDisplayInfo
     {
-        public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; private set; }
-        public IList<SymbolDisplayPart> AnonymousTypesParts { get; private set; }
+        public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
+        public IList<SymbolDisplayPart> AnonymousTypesParts { get; }
 
         public AnonymousTypeDisplayInfo(
             IDictionary<INamedTypeSymbol, string> anonymousTypeToName,

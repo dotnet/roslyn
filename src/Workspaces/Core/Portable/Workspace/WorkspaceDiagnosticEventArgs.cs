@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     public class WorkspaceDiagnosticEventArgs : EventArgs
     {
-        public WorkspaceDiagnostic Diagnostic { get; private set; }
+        public WorkspaceDiagnostic Diagnostic { get; }
 
         public WorkspaceDiagnosticEventArgs(WorkspaceDiagnostic diagnostic)
         {

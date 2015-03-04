@@ -450,9 +450,9 @@ End Class
 
 Module Module1
     Sub Main
-#Disable Warning BC40008 ' {WRN_UseOfObsoleteSymbol2_Title}
+#Disable Warning BC40008 ' {WRN_UseOfObsoleteSymbolNoMessage1_Title}
         C
-#Enable Warning BC40008 ' {WRN_UseOfObsoleteSymbol2_Title}
+#Enable Warning BC40008 ' {WRN_UseOfObsoleteSymbolNoMessage1_Title}
     End Sub
 End Module"
 

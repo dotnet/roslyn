@@ -1676,7 +1676,8 @@ class C : IDisposable
 class C : [|IDisposable|]",
 $@"using System;
 class C : IDisposable
-{{{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
+{{
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "public void ")}
 }}
 ", index: 1, compareTokens: false);
         }
@@ -1769,7 +1770,8 @@ class C : IDisposable
             Test(
 @"class C : [|System.IDisposable|]",
 $@"class C : System.IDisposable
-{{{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void System.IDisposable.")}
+{{
+{string.Format(CSharpFeaturesResources.DisposePattern, "protected virtual ", "C", "void System.IDisposable.")}
 }}
 ", index: 3, compareTokens: false);
         }

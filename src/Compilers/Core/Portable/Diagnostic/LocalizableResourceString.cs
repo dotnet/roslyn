@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -107,6 +108,11 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString(IFormatProvider formatProvider)
         {
+            return ExecuteAndCatchIfThrows(ToStringCore, formatProvider, string.Empty);
+        }
+
+        private string ToStringCore(IFormatProvider formatProvider)
+        {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
             return resourceString != null ?
@@ -115,6 +121,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override bool Equals(LocalizableString other)
+        {
+            return ExecuteAndCatchIfThrows(EqualsCore, other, false);
+        }
+
+        private bool EqualsCore(LocalizableString other)
         {
             var otherResourceString = other as LocalizableResourceString;
             return other != null &&
@@ -125,6 +136,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override int GetHashCode()
+        {
+            return ExecuteAndCatchIfThrows(GetHashCodeCore, 0);
+        }
+
+        private int GetHashCodeCore()
         {
             return Hash.Combine(_nameOfLocalizableResource.GetHashCode(),
                 Hash.Combine(_resourceManager.GetHashCode(),

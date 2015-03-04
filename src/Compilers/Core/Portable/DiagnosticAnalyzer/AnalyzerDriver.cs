@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public AsyncQueue<CompilationEvent> CompilationEventQueue
         {
-            get; private set;
+            get;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public AsyncQueue<Diagnostic> DiagnosticQueue
         {
-            get; private set;
+            get;
         }
 
         /// <summary>

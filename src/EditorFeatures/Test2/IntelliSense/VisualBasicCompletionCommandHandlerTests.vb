@@ -24,9 +24,9 @@ Class C
 End Class
                               </Document>)
                 state.SendTypeChars("on")
-                state.AssertSelectedCompletionItem("On Error GoTo", description:="On Error GoTo Keyword" + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
+                state.AssertSelectedCompletionItem("On Error GoTo", description:=String.Format(FeaturesResources.Keyword, "On Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
                 state.SendTypeChars(" ")
-                state.AssertSelectedCompletionItem("Error GoTo", description:="Error GoTo Keyword" + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
+                state.AssertSelectedCompletionItem("Error GoTo", description:=String.Format(FeaturesResources.Keyword, "Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
             End Using
         End Sub
 
@@ -43,7 +43,7 @@ End Class
                               </Document>)
 
                 state.SendTypeChars("next")
-                state.AssertSelectedCompletionItem("On Error Resume Next", description:="On Error Resume Next Keyword" + vbCrLf + VBFeaturesResources.OnErrorResumeNextKeywordToolTip)
+                state.AssertSelectedCompletionItem("On Error Resume Next", description:=String.Format(FeaturesResources.Keyword, "On Error Resume Next") + vbCrLf + VBFeaturesResources.OnErrorResumeNextKeywordToolTip)
                 state.SendTypeChars(" ")
                 state.AssertNoCompletionSession()
             End Using
@@ -1346,7 +1346,7 @@ End Class
 
                 state.SendBackspace()
                 state.AssertCompletionSession()
-                state.AssertSelectedCompletionItem("End", description:="End Keyword" + vbCrLf + VBFeaturesResources.EndKeywordToolTip)
+                state.AssertSelectedCompletionItem("End", description:=String.Format(FeaturesResources.Keyword, "End") + vbCrLf + VBFeaturesResources.EndKeywordToolTip)
             End Using
         End Sub
 
@@ -1772,9 +1772,9 @@ End Class
                               </Document>)
 
                 state.SendTypeChars("GetType")
-                state.AssertSelectedCompletionItem("GetType", "GetType function" + vbCrLf +
-                    "Returns a System.Type object for the specified type name." + vbCrLf +
-                    "GetType(<typeName>) As Type")
+                state.AssertSelectedCompletionItem("GetType", VBFeaturesResources.GettypeFunction + vbCrLf +
+                    ReturnsSystemTypeObject + vbCrLf +
+                    $"GetType({Typename}) As Type")
             End Using
         End Sub
 

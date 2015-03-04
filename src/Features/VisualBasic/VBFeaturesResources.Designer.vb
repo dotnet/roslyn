@@ -582,8 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''#Region &quot;IDisposable Support&quot;
+        '''  Looks up a localized string similar to #Region &quot;IDisposable Support&quot;
         '''    Private disposedValue As Boolean &apos; To detect redundant calls
         '''
         '''    &apos; IDisposable
@@ -596,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''            &apos; TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
         '''            &apos; TODO: set large fields to null.
         '''        End If
-        '''        Me.disposedValu [rest of string was truncated]&quot;;.
+        '''        Me.disposedValue  [rest of string was truncated]&quot;;.
         '''</summary>
         Friend ReadOnly Property DisposePattern() As String
             Get

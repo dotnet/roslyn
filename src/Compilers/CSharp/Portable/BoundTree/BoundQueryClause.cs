@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The bound expression that invokes the operation of the query clause.
         /// </summary>
-        public BoundExpression Operation { get; private set; }
+        public BoundExpression Operation { get; }
 
         /// <summary>
         /// The bound expression that is the invocation of a "Cast" method specified by the query translation.
         /// </summary>
-        public BoundExpression Cast { get; private set; }
+        public BoundExpression Cast { get; }
 
         /// <summary>
         /// The bound expression that is the query expression in "unoptimized" form.  Specifically, a final ".Select"
         /// invocation that is omitted by the specification is included here.
         /// </summary>
-        public BoundExpression UnoptimizedForm { get; private set; }
+        public BoundExpression UnoptimizedForm { get; }
 
         public BoundQueryClause(
             CSharpSyntaxNode syntax,

@@ -211,6 +211,7 @@
     <Compile Include="Classification\ClassificationTestHelper.cs" />
     <Compile Include="CodeActions\AbstractCodeActionTest.cs" />
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
+    <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationTests.cs" />
     <Compile Include="CodeGeneration\CodeGenerationTests.cs" />

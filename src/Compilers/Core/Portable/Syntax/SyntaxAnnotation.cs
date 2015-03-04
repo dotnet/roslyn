@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
         private static long s_nextId;
 
         // use a value identity instead of object identity so a deserialized instance matches the original instance.
-        public string Kind { get; private set; }
-        public string Data { get; private set; }
+        public string Kind { get; }
+        public string Data { get; }
 
         public SyntaxAnnotation()
         {

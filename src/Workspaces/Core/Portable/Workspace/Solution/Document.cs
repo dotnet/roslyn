@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             // immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return Task.FromResult<SyntaxTree>(null);
+                return SpecializedTasks.Default<SyntaxTree>();
             }
 
             if (_syntaxTreeResultTask != null)

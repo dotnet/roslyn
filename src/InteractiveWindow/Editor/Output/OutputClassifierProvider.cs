@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             return new Classifier(
                 textBuffer,
-                _classificationRegistry.GetClassificationType(FormatDefinitions.Output.Name),
                 _classificationRegistry.GetClassificationType(FormatDefinitions.ErrorOutput.Name));
         }
 
@@ -51,12 +50,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private sealed class Classifier : IClassifier
         {
             private readonly ITextBuffer _buffer;
-            private readonly IClassificationType _outputType;
             private readonly IClassificationType _errorOutputType;
 
-            public Classifier(ITextBuffer buffer, IClassificationType outputType, IClassificationType errorOutputType)
+            public Classifier(ITextBuffer buffer, IClassificationType errorOutputType)
             {
-                _outputType = outputType;
                 _errorOutputType = errorOutputType;
                 _buffer = buffer;
             }
@@ -70,14 +67,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 List<ClassificationSpan> classifications = new List<ClassificationSpan>();
-                classifications.Add(new ClassificationSpan(span, _outputType));
 
                 foreach (var overlap in errorSpans.GetOverlap(span.Span))
                 {
                     classifications.Add(new ClassificationSpan(new SnapshotSpan(span.Snapshot, overlap), _errorOutputType));
                 }
 
-                return classifications ?? (IList<ClassificationSpan>)SpecializedCollections.EmptyList<ClassificationSpan>();
+                return classifications;
             }
 
             public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged
@@ -94,29 +90,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             [Name(Name)]
             [DisplayName(Name)]
             [UserVisible(true)]
-            internal sealed class Output : ClassificationFormatDefinition
-            {
-                public const string Name = "Roslyn - Interactive Window Output";
-
-                [Export]
-                [Name(Name)]
-                [BaseDefinition(PredefinedClassificationTypeNames.NaturalLanguage)]
-                internal static readonly ClassificationTypeDefinition Definition = null;
-
-                public Output()
-                {
-                    this.ForegroundColor = Color.FromRgb(0, 0, 0);
-                }
-            }
-
-            [Export(typeof(EditorFormatDefinition))]
-            [ClassificationType(ClassificationTypeNames = Name)]
-            [Name(Name)]
-            [DisplayName(Name)]
-            [UserVisible(true)]
             internal sealed class ErrorOutput : ClassificationFormatDefinition
             {
-                public const string Name = "Roslyn - Interactive Window Error Output";
+                public const string Name = "Interactive Window Error Output";
 
                 [Export]
                 [Name(Name)]

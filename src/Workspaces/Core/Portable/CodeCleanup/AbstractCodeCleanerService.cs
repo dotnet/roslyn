@@ -616,14 +616,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             /// <summary>
             /// Indicates the current marker type
             /// </summary>
-            public SpanMarkerType Type { get; private set; }
+            public SpanMarkerType Type { get; }
 
             /// <summary>
             /// Indicates how to find the other side of the span marker if it is missing
             /// </summary>
-            public SpanMarkerType OppositeMarkerType { get; private set; }
+            public SpanMarkerType OppositeMarkerType { get; }
 
-            public SyntaxAnnotation Annotation { get; private set; }
+            public SyntaxAnnotation Annotation { get; }
 
             public static readonly string AnnotationId = "SpanMarker";
 

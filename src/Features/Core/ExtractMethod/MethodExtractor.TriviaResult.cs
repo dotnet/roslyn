@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode methodDefinition);
             protected abstract TriviaResolver GetTriviaResolver(SyntaxNode methodDefinition);
 
-            public SemanticDocument SemanticDocument { get; private set; }
+            public SemanticDocument SemanticDocument { get; }
 
             public async Task<OperationStatus<SemanticDocument>> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
             {

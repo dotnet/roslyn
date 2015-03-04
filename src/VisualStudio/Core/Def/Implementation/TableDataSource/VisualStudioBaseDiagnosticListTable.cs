@@ -168,13 +168,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                if (e.Diagnostics.Length == 0 || !e.Diagnostics.Any(ShouldInclude))
+                if (e.Diagnostics.Length == 0)
                 {
                     OnDataRemoved(e.Id);
                     return;
                 }
 
-                OnDataAddedOrChanged(e.Id, e);
+                var count = e.Diagnostics.Where(ShouldInclude).Count();
+                if (count <= 0)
+                {
+                    OnDataRemoved(e.Id);
+                    return;
+                }
+
+                OnDataAddedOrChanged(e.Id, e, count);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)

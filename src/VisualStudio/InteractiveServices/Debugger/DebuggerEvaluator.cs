@@ -43,14 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Debugging
             set { _errorOutput = value; }
         }
 
-        public IContentType ContentType
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         public IInteractiveWindow CurrentWindow
         {
             get
@@ -79,12 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Debugging
             return ExecutionResult.Succeeded;
         }
 
-        public bool CanExecuteText(string text)
+        public bool CanExecuteCode(string text)
         {
             return true;
         }
 
-        public Task<ExecutionResult> ExecuteTextAsync(string text)
+        public Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
             bool success = this.Execute(text);
             return Task.FromResult(new ExecutionResult(success));
@@ -95,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Debugging
             return null;
         }
 
-        public void AbortCommand()
+        public void AbortExecution()
         {
         }
 

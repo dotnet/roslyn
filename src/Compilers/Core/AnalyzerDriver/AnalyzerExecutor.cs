@@ -81,8 +81,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _cancellationToken = cancellationToken;
         }
 
-        internal Compilation Compilation { get { return _compilation; } }
-        internal CancellationToken CancellationToken { get { return _cancellationToken; } }
+        internal Compilation Compilation => _compilation;
+        internal CancellationToken CancellationToken => _cancellationToken;
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.

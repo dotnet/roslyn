@@ -382,14 +382,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         if (project == null)
                         {
                             data.AsyncToken.Dispose();
-                            return Task.FromResult(true);
+                            return SpecializedTasks.EmptyTask;
                         }
 
                         if (!data.NeedDependencyTracking)
                         {
                             EnqueueWorkItem(project);
                             data.AsyncToken.Dispose();
-                            return Task.FromResult(true);
+                            return SpecializedTasks.EmptyTask;
                         }
 
                         // do dependency tracking here with current solution
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         data.AsyncToken.Dispose();
-                        return Task.FromResult(true);
+                        return SpecializedTasks.EmptyTask;
                     }
 
                     private Data Dequeue()
