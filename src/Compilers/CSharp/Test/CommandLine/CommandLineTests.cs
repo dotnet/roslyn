@@ -5945,115 +5945,80 @@ class Program
         }
 
         [Fact]
-        public void IOFailure_OpenAssemblyTemp()
+        public void IOFailure_OpenOutputFile()
         {
             string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", sourcePath);
-            string tempFilePath = null;
-
-            csc.FileOpen = (path, mode, access, share) =>
+            string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", $"/out:{exePath}", sourcePath });
+            csc.FileOpen = (file, mode, access, share) =>
             {
-                tempFilePath = path;
-                throw new IOException(path);
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            var expectedOutput = string.Format("error CS1619: Cannot create temporary file -- {0}", tempFilePath);
-            Assert.Equal(expectedOutput, outWriter.ToString().Trim());
-
-            Assert.NotEqual(0, exitCode);
-            Assert.Equal(0, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-        }
-
-        [Fact]
-        public void IOFailure_OpenPdbTemp()
-        {
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", "/debug", sourcePath);
-            string tempFilePath = null;
-
-            csc.FileOpen = (path, mode, access, share) =>
-            {
-                if (tempFilePaths.Count == 1)
-                {
-                    tempFilePath = path;
-                    throw new IOException(path);
-                }
-                else
-                {
-                    return File.Open(path, mode, access, share);
-                }
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            var expectedOutput = string.Format("error CS1619: Cannot create temporary file -- {0}", tempFilePath);
-            Assert.Equal(expectedOutput, outWriter.ToString().Trim());
-
-            Assert.NotEqual(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-        }
-
-        [Fact]
-        public void IOFailure_MoveAssemblyTemp()
-        {
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", sourcePath);
-            csc.FileMove = (source, dest) =>
-            {
-                throw new IOException();
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            var expectedOutput = string.Format("error CS2012: Cannot open '{0}' for writing -- 'I/O error occurred.'", Path.ChangeExtension(sourcePath, ".exe"));
-            Assert.Equal(expectedOutput, outWriter.ToString().Trim());
-
-            Assert.NotEqual(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-        }
-
-        [Fact]
-        public void IOFailure_MovePdbTemp()
-        {
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/debug", "/preferreduilang:en", sourcePath);
-            csc.FileMove = (source, dest) =>
-            {
-                if (dest.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
+                if (file == exePath)
                 {
                     throw new IOException();
                 }
-                else
-                {
-                    File.Move(source, dest);
-                }
+
+                return File.Open(file, mode, access, share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, csc.Run(outWriter));
+            Assert.Contains($"error CS2012: Cannot open '{exePath}' for writing", outWriter.ToString());
 
-            var expectedOutput = string.Format("error CS2012: Cannot open '{0}' for writing -- 'I/O error occurred.'", Path.ChangeExtension(sourcePath, ".pdb"));
-            Assert.Equal(expectedOutput, outWriter.ToString().Trim());
+            System.IO.File.Delete(sourcePath);
+            System.IO.File.Delete(exePath);
+            CleanupAllGeneratedFiles(sourcePath);
+        }
 
-            Assert.NotEqual(0, exitCode);
-            Assert.Equal(2, tempFilePaths.Count);
+        [Fact]
+        public void IOFailure_OpenPdbFile()
+        {
+            string sourcePath = MakeTrivialExe();
+            string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
+            string pdbPath = Path.ChangeExtension(exePath, ".pdb");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/debug+", $"/out:{exePath}", sourcePath });
+            csc.FileOpen = (file, mode, access, share) =>
+            {
+                if (file == pdbPath)
+                {
+                    throw new IOException();
+                }
 
-            tempFilePaths.Free();
+                return File.Open(file, mode, access, share);
+            };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(1, csc.Run(outWriter));
+            Assert.Contains($"error CS2012: Cannot open '{pdbPath}' for writing", outWriter.ToString());
+
+            System.IO.File.Delete(sourcePath);
+            System.IO.File.Delete(exePath);
+            System.IO.File.Delete(pdbPath);
+            CleanupAllGeneratedFiles(sourcePath);
+        }
+
+        [Fact]
+        public void IOFailure_OpenPdbFileNotCalled()
+        {
+            string sourcePath = MakeTrivialExe();
+            string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
+            string pdbPath = Path.ChangeExtension(exePath, ".pdb");
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/debug-", $"/out:{exePath}", sourcePath });
+            csc.FileOpen = (file, mode, access, share) =>
+            {
+                if (file == pdbPath)
+                {
+                    throw new IOException();
+                }
+
+                return File.Open(file, mode, access, share);
+            };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            Assert.Equal(0, csc.Run(outWriter));
+
+            System.IO.File.Delete(sourcePath);
+            System.IO.File.Delete(exePath);
+            System.IO.File.Delete(pdbPath);
             CleanupAllGeneratedFiles(sourcePath);
         }
 
@@ -6062,8 +6027,7 @@ class Program
         {
             string sourcePath = MakeTrivialExe();
             string xmlPath = Path.Combine(_baseDirectory, "Test.xml");
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", "/doc:" + xmlPath, sourcePath);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/doc:" + xmlPath, sourcePath });
             csc.FileOpen = (file, mode, access, share) =>
             {
                 if (file == xmlPath)
@@ -6083,172 +6047,6 @@ class Program
             Assert.Equal(expectedOutput, outWriter.ToString().Trim());
 
             Assert.NotEqual(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-
-            System.IO.File.Delete(xmlPath);
-            System.IO.File.Delete(sourcePath);
-            CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [Fact]
-        public void IOFailure_DeleteExistingAssembly()
-        {
-            string existingExePath = Temp.CreateFile(prefix: "", extension: ".exe").Path;
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", "/out:" + existingExePath, sourcePath);
-            csc.FileDelete = (path) =>
-            {
-                if (path == existingExePath)
-                {
-                    throw new IOException();
-                }
-                else
-                {
-                    File.Delete(path);
-                }
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            var expectedOutput = string.Format("error CS0016: Could not write to output file '{0}' -- 'I/O error occurred.'", existingExePath);
-            Assert.Equal(expectedOutput, outWriter.ToString().Trim());
-
-            Assert.NotEqual(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-
-            CleanupAllGeneratedFiles(existingExePath);
-            CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [Fact]
-        public void IOFailure_DeleteExistingPdb()
-        {
-            string existingPdbPath = Temp.CreateFile(prefix: "", extension: ".pdb").Path;
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/preferreduilang:en", "/debug", "/pdb:" + existingPdbPath, sourcePath);
-            csc.FileDelete = (path) =>
-            {
-                if (path == existingPdbPath)
-                {
-                    throw new IOException();
-                }
-                else
-                {
-                    File.Delete(path);
-                }
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            var expectedOutput = string.Format("error CS0016: Could not write to output file '{0}' -- 'I/O error occurred.'", existingPdbPath);
-            Assert.Equal(expectedOutput, outWriter.ToString().Trim());
-
-            Assert.NotEqual(0, exitCode);
-            Assert.Equal(2, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-
-            CleanupAllGeneratedFiles(existingPdbPath);
-            CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [Fact]
-        public void IOFailure_DeleteTempAssembly()
-        {
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", sourcePath);
-            csc.FileDelete = (path) =>
-            {
-                if (path == tempFilePaths[0])
-                {
-                    throw new IOException();
-                }
-                else
-                {
-                    File.Delete(path);
-                }
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            Assert.Equal("", outWriter.ToString().Trim());
-
-            Assert.Equal(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-
-            CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [Fact]
-        public void IOFailure_DeleteTempPdb()
-        {
-            string sourcePath = MakeTrivialExe();
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/debug", sourcePath);
-            csc.FileDelete = (path) =>
-            {
-                if (path == tempFilePaths[1])
-                {
-                    throw new IOException();
-                }
-                else
-                {
-                    File.Delete(path);
-                }
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            Assert.Equal("", outWriter.ToString().Trim());
-
-            Assert.Equal(0, exitCode);
-            Assert.Equal(2, tempFilePaths.Count);
-
-            tempFilePaths.Free();
-            CleanupAllGeneratedFiles(sourcePath);
-        }
-
-        [Fact]
-        public void IOFailure_DeleteTempXml()
-        {
-            string sourcePath = MakeTrivialExe();
-            string xmlPath = Path.Combine(_baseDirectory, "Test.xml");
-            ArrayBuilder<string> tempFilePaths = ArrayBuilder<string>.GetInstance();
-            MockCSharpCompiler csc = MakeTrackingCsc(tempFilePaths, "/nologo", "/doc:" + xmlPath, sourcePath);
-            csc.FileDelete = (path) =>
-            {
-                if (path == tempFilePaths[1])
-                {
-                    throw new IOException();
-                }
-                else
-                {
-                    File.Delete(path);
-                }
-            };
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = csc.Run(outWriter);
-
-            Assert.Equal("", outWriter.ToString().Trim());
-
-            Assert.Equal(0, exitCode);
-            Assert.Equal(1, tempFilePaths.Count);
-
-            tempFilePaths.Free();
 
             System.IO.File.Delete(xmlPath);
             System.IO.File.Delete(sourcePath);
@@ -6262,21 +6060,6 @@ class Program
 {
     public static void Main() { }
 } ").Path;
-        }
-
-        /// <summary>
-        /// Every time the returned Csc requests a temp file path, it is added to the
-        /// provided array builder.
-        /// </summary>
-        private MockCSharpCompiler MakeTrackingCsc(ArrayBuilder<string> tempFilePaths, params string[] args)
-        {
-            var result = new MockCSharpCompiler(null, _baseDirectory, args);
-
-            result.OnCreateTempFile += (path, stream) =>
-                                        {
-                                            tempFilePaths.Add(path);
-                                        };
-            return result;
         }
 
         [Fact, WorkItem(546452, "DevDiv")]
@@ -6526,22 +6309,6 @@ public class C { }
             string stringStart = "foo(1,7,1,8)";
 
             Assert.Equal(stringStart, text.Substring(0, stringStart.Length));
-        }
-
-        [Fact]
-        public void TestTempFileCreationFail()
-        {
-            var comp = new MockCSharpCompiler(null, _baseDirectory, new[] { "/out:foo", "/t:library" });
-            comp.OnCreateTempFile += (path, stream) =>
-                                        {
-                                            stream.Dispose();
-                                            File.Delete(path);
-                                            throw new IOException("Ronnie James Dio");
-                                        };
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var result = comp.Run(outWriter);
-            Assert.Contains("CS1619", outWriter.ToString(), StringComparison.Ordinal);
-            Assert.Contains("Ronnie James Dio", outWriter.ToString(), StringComparison.Ordinal);
         }
 
         [Fact]
