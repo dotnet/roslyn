@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol intPtrType,
             TypeSymbol voidReturnTypeOpt,
             int parameterCount,
-            BitArray byRefParameters)
+            BitVector byRefParameters)
             : base(name, parameterCount, returnsVoid: (object)voidReturnTypeOpt != null)
         {
             _containingSymbol = containingSymbol;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly TypeSymbol _containingType;
             private readonly TypeSymbol _returnType;
 
-            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitArray byRefParameters, TypeSymbol voidReturnTypeOpt)
+            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitVector byRefParameters, TypeSymbol voidReturnTypeOpt)
             {
                 var typeParams = containingType.TypeParameters;
 

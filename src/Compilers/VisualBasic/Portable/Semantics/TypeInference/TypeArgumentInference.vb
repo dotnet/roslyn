@@ -29,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef allFailedInferenceIsDueToObject As Boolean,
             ByRef someInferenceFailed As Boolean,
             ByRef inferenceErrorReasons As InferenceErrorReasons,
-            <Out> ByRef inferredTypeByAssumption As BitArray,
+            <Out> ByRef inferredTypeByAssumption As BitVector,
             <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
             ByRef diagnostic As DiagnosticBag,
-            Optional inferTheseTypeParameters As BitArray = Nothing
+            Optional inferTheseTypeParameters As BitVector = Nothing
         ) As Boolean
             Debug.Assert(candidate Is candidate.ConstructedFrom)
 
@@ -711,12 +711,12 @@ HandleAsAGeneralExpression:
                 ByRef allFailedInferenceIsDueToObject As Boolean,
                 ByRef someInferenceFailed As Boolean,
                 ByRef inferenceErrorReasons As InferenceErrorReasons,
-                <Out> ByRef inferredTypeByAssumption As BitArray,
+                <Out> ByRef inferredTypeByAssumption As BitVector,
                 <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
                 <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                 ByRef diagnostic As DiagnosticBag,
-                inferTheseTypeParameters As BitArray
+                inferTheseTypeParameters As BitVector
             ) As Boolean
                 Dim graph As New InferenceGraph(diagnostic, candidate, arguments, parameterToArgumentMap, paramArrayItems,
                                                 delegateReturnType, delegateReturnTypeReferenceBoundNode, asyncLambdaSubToFunctionMismatch,
@@ -896,7 +896,7 @@ HandleAsAGeneralExpression:
 
                     If typeParameterNode.InferredTypeByAssumption Then
                         If inferredTypeByAssumption.IsNull Then
-                            inferredTypeByAssumption = BitArray.Create(arity)
+                            inferredTypeByAssumption = BitVector.Create(arity)
                         End If
                         inferredTypeByAssumption(i) = True
                     End If
@@ -1051,7 +1051,7 @@ HandleAsAGeneralExpression:
                 node As ArgumentNode,
                 isOutgoingEdge As Boolean
             )
-                AddTypeToGraph(node.ParameterType, node, isOutgoingEdge, BitArray.Create(m_TypeParameterNodes.Length))
+                AddTypeToGraph(node.ParameterType, node, isOutgoingEdge, BitVector.Create(m_TypeParameterNodes.Length))
             End Sub
 
             Private Function FindTypeParameterNode(typeParameter As TypeParameterSymbol) As TypeParameterNode
@@ -1070,7 +1070,7 @@ HandleAsAGeneralExpression:
                 parameterType As TypeSymbol,
                 argNode As ArgumentNode,
                 isOutgoingEdge As Boolean,
-                ByRef haveSeenTypeParameters As BitArray
+                ByRef haveSeenTypeParameters As BitVector
             )
                 Select Case parameterType.Kind
                     Case SymbolKind.TypeParameter
@@ -1124,7 +1124,7 @@ HandleAsAGeneralExpression:
                 Debug.Assert(argNode.Expression.Kind = BoundKind.AddressOfOperator)
 
                 If parameterType.IsTypeParameter() Then
-                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitArray.Create(m_TypeParameterNodes.Length))
+                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitVector.Create(m_TypeParameterNodes.Length))
 
                 ElseIf parameterType.IsDelegateType() Then
                     Dim delegateType As NamedTypeSymbol = DirectCast(parameterType, NamedTypeSymbol)
@@ -1132,7 +1132,7 @@ HandleAsAGeneralExpression:
 
                     If invoke IsNot Nothing AndAlso invoke.GetUseSiteErrorInfo() Is Nothing AndAlso delegateType.IsGenericType Then
 
-                        Dim haveSeenTypeParameters = BitArray.Create(m_TypeParameterNodes.Length)
+                        Dim haveSeenTypeParameters = BitVector.Create(m_TypeParameterNodes.Length)
                         AddTypeToGraph(invoke.ReturnType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=haveSeenTypeParameters) ' outgoing (name->type) edge
 
                         haveSeenTypeParameters.Clear()
@@ -1158,7 +1158,7 @@ HandleAsAGeneralExpression:
             )
                 If parameterType.IsTypeParameter() Then
                     ' Lambda is bound to a generic typeParam, just infer anonymous delegate
-                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitArray.Create(m_TypeParameterNodes.Length))
+                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitVector.Create(m_TypeParameterNodes.Length))
 
                 ElseIf parameterType.IsDelegateType() Then
                     Dim delegateType As NamedTypeSymbol = DirectCast(parameterType, NamedTypeSymbol)
@@ -1180,7 +1180,7 @@ HandleAsAGeneralExpression:
                                 Throw ExceptionUtilities.UnexpectedValue(argNode.Expression.Kind)
                         End Select
 
-                        Dim haveSeenTypeParameters = BitArray.Create(m_TypeParameterNodes.Length)
+                        Dim haveSeenTypeParameters = BitVector.Create(m_TypeParameterNodes.Length)
 
                         For i As Integer = 0 To Math.Min(delegateParemeters.Length, lambdaParameters.Length) - 1 Step 1
                             If lambdaParameters(i).Type IsNot Nothing Then

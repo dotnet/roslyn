@@ -69,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Extension method type parameters that were fixed during currying, if any.
             ''' If none were fixed, BitArray.Null should be returned. 
             ''' </summary>
-            Overridable ReadOnly Property FixedTypeParameters As BitArray
+            Overridable ReadOnly Property FixedTypeParameters As BitVector
                 Get
-                    Return BitArray.Null
+                    Return BitVector.Null
                 End Get
             End Property
 
@@ -230,16 +230,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public NotInheritable Class ExtensionMethodCandidate
             Inherits MethodCandidate
 
-            Private m_FixedTypeParameters As BitArray
+            Private m_FixedTypeParameters As BitVector
 
             Public Sub New(method As MethodSymbol)
                 Me.New(method, GetFixedTypeParameters(method))
             End Sub
 
             ' TODO: Consider building this bitmap lazily, on demand.
-            Private Shared Function GetFixedTypeParameters(method As MethodSymbol) As BitArray
+            Private Shared Function GetFixedTypeParameters(method As MethodSymbol) As BitVector
                 If method.FixedTypeParameters.Length > 0 Then
-                    Dim fixedTypeParameters = BitArray.Create(method.ReducedFrom.Arity)
+                    Dim fixedTypeParameters = BitVector.Create(method.ReducedFrom.Arity)
 
                     For Each fixed As KeyValuePair(Of TypeParameterSymbol, TypeSymbol) In method.FixedTypeParameters
                         fixedTypeParameters(fixed.Key.Ordinal) = True
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Private Sub New(method As MethodSymbol, fixedTypeParameters As BitArray)
+            Private Sub New(method As MethodSymbol, fixedTypeParameters As BitVector)
                 MyBase.New(method)
 
                 Debug.Assert(method.ReducedFrom IsNot Nothing)
@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property FixedTypeParameters As BitArray
+            Public Overrides ReadOnly Property FixedTypeParameters As BitVector
                 Get
                     Return m_FixedTypeParameters
                 End Get
@@ -699,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public NotInferredTypeArguments As BitArray
+            Public NotInferredTypeArguments As BitVector
 
             Public TypeArgumentInferenceDiagnosticsOpt As DiagnosticBag
 
@@ -4597,12 +4597,12 @@ ContinueCandidatesLoop:
             ' Only interested in method type parameters.
             Dim leftRefersToATypeParameter = DetectReferencesToGenericParameters(left.Candidate.ReceiverTypeDefinition,
                                                                                  TypeParameterKind.Method,
-                                                                                 BitArray.Null)
+                                                                                 BitVector.Null)
 
             ' Only interested in method type parameters.
             Dim rightRefersToATypeParameter = DetectReferencesToGenericParameters(right.Candidate.ReceiverTypeDefinition,
                                                                                   TypeParameterKind.Method,
-                                                                                 BitArray.Null)
+                                                                                 BitVector.Null)
 
             If (leftRefersToATypeParameter And TypeParameterKind.Method) <> 0 Then
                 If (rightRefersToATypeParameter And TypeParameterKind.Method) = 0 Then
@@ -4628,7 +4628,7 @@ ContinueCandidatesLoop:
         Private Shared Function DetectReferencesToGenericParameters(
             symbol As NamedTypeSymbol,
             track As TypeParameterKind,
-            methodTypeParametersToTreatAsTypeTypeParameters As BitArray
+            methodTypeParametersToTreatAsTypeTypeParameters As BitVector
         ) As TypeParameterKind
             Dim result As TypeParameterKind = TypeParameterKind.None
 
@@ -4661,7 +4661,7 @@ ContinueCandidatesLoop:
         Private Shared Function DetectReferencesToGenericParameters(
             symbol As TypeParameterSymbol,
             track As TypeParameterKind,
-            methodTypeParametersToTreatAsTypeTypeParameters As BitArray
+            methodTypeParametersToTreatAsTypeTypeParameters As BitVector
         ) As TypeParameterKind
 
             If symbol.ContainingSymbol.Kind = SymbolKind.NamedType Then
@@ -4686,7 +4686,7 @@ ContinueCandidatesLoop:
         Private Shared Function DetectReferencesToGenericParameters(
             this As TypeSymbol,
             track As TypeParameterKind,
-            methodTypeParametersToTreatAsTypeTypeParameters As BitArray
+            methodTypeParametersToTreatAsTypeTypeParameters As BitVector
         ) As TypeParameterKind
             Select Case this.Kind
 
@@ -4858,7 +4858,7 @@ ContinueCandidatesLoop:
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
                 Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
-                Dim inferredTypeByAssumption As BitArray = Nothing
+                Dim inferredTypeByAssumption As BitVector = Nothing
                 Dim typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken) = Nothing
 
                 If TypeArgumentInference.Infer(DirectCast(candidate.Candidate.UnderlyingSymbol, MethodSymbol),
@@ -4920,7 +4920,7 @@ ContinueCandidatesLoop:
 
                     candidate.SetInferenceErrorReasons(inferenceErrorReasons)
 
-                    candidate.NotInferredTypeArguments = BitArray.Create(typeArguments.Length)
+                    candidate.NotInferredTypeArguments = BitVector.Create(typeArguments.Length)
 
                     For i As Integer = 0 To typeArguments.Length - 1 Step 1
                         If typeArguments(i) Is Nothing Then
