@@ -610,26 +610,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private void GetEvaluationResultsAndContinue(ArrayBuilder<EvalResultDataItem> rows, DkmEvaluationResult[] results, int index, int numRows, WorkList workList, DkmInspectionContext inspectionContext, DkmStackWalkFrame stackFrame, CompletionRoutine completionRoutine)
         {
-            if (index >= numRows)
-            {
-                completionRoutine();
-            }
-            else
+            if (index < numRows)
             {
                 CreateEvaluationResultAndContinue(rows[index], workList, inspectionContext, stackFrame,
                     result => workList.ContinueWith(
                         () =>
                         {
                             results[index] = result;
-                            if (index == numRows - 1)
-                            {
-                                completionRoutine();
-                            }
-                            else
+                            if (index < numRows - 1)
                             {
                                 GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine);
                             }
+                            else
+                            {
+                                completionRoutine();
+                            }
                         }));
+            }
+            else
+            {
+                completionRoutine();
             }
         }
 
