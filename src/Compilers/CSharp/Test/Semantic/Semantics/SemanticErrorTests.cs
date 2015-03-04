@@ -6818,9 +6818,8 @@ public static class Foo<T>
         Foo<int>.x = typeof(T).Name;
     }
 
-        public static readonly string x;
-    }
-";
+    public static readonly string x;
+}";
             var expectedOutput =
 @"initializing for System.Int64
 initializing for System.Int32

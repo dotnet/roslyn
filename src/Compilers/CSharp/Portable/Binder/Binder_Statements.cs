@@ -1401,6 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
                         (Compilation.FeatureStrictEnabled
                             ? fieldSymbol.ContainingType == containing.ContainingType
+                            // We duplicate a bug in the native compiler for compatibility in non-strict mode
                             : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
                     {
                         if (containing.Kind == SymbolKind.Method)
