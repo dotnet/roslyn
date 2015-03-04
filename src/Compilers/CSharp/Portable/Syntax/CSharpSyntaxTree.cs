@@ -299,8 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InternalSyntax.DirectiveStack.Empty;
 
             return new ParsedSyntaxTree(
-                textOpt: null,
-                encodingOpt: encoding,
+                text: null,
+                encoding: encoding,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: path,
                 options: options ?? CSharpParseOptions.Default,
@@ -316,8 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root != null);
 
             return new ParsedSyntaxTree(
-                textOpt: text,
-                encodingOpt: text.Encoding,
+                text: text,
+                encoding: text.Encoding,
                 checksumAlgorithm: text.ChecksumAlgorithm,
                 path: "",
                 options: CSharpParseOptions.Default,
@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root != null);
 
             return new ParsedSyntaxTree(
-                textOpt: null,
-                encodingOpt: null,
+                text: null,
+                encoding: null,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: "",
                 options: CSharpParseOptions.Default,

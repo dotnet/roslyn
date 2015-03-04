@@ -155,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New ParsedSyntaxTree(
-                textOpt:=Nothing,
-                encodingOpt:=encoding,
+                text:=Nothing,
+                encoding:=encoding,
                 checksumAlgorithm:=SourceHashAlgorithm.Sha1,
                 path:=path,
                 options:=If(options, VisualBasicParseOptions.Default),
@@ -176,9 +176,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(root IsNot Nothing)
 
             Return New ParsedSyntaxTree(
-                textOpt:=Nothing,
+                text:=Nothing,
                 path:="",
-                encodingOpt:=Nothing,
+                encoding:=Nothing,
                 checksumAlgorithm:=SourceHashAlgorithm.Sha1,
                 options:=VisualBasicParseOptions.Default,
                 syntaxRoot:=root,

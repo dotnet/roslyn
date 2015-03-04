@@ -1617,6 +1617,7 @@ abstract Microsoft.CodeAnalysis.SyntaxNode.WriteTo(System.IO.TextWriter writer)
 abstract Microsoft.CodeAnalysis.SyntaxReference.GetSyntax(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 abstract Microsoft.CodeAnalysis.SyntaxReference.Span.get
 abstract Microsoft.CodeAnalysis.SyntaxReference.SyntaxTree.get
+abstract Microsoft.CodeAnalysis.SyntaxTree.Encoding.get
 abstract Microsoft.CodeAnalysis.SyntaxTree.FilePath.get
 abstract Microsoft.CodeAnalysis.SyntaxTree.GetChangedSpans(Microsoft.CodeAnalysis.SyntaxTree syntaxTree)
 abstract Microsoft.CodeAnalysis.SyntaxTree.GetChanges(Microsoft.CodeAnalysis.SyntaxTree oldTree)

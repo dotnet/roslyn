@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly string _path;
             private readonly CSharpSyntaxNode _root;
             private readonly bool _hasCompilationUnitRoot;
-            private readonly Encoding _encodingOpt;
+            private readonly Encoding _encoding;
             private readonly SourceHashAlgorithm _checksumAlgorithm;
             private SourceText _lazyText;
 
-            internal ParsedSyntaxTree(SourceText textOpt, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm, string path, CSharpParseOptions options, CSharpSyntaxNode root, Syntax.InternalSyntax.DirectiveStack directives, bool cloneRoot = true)
+            internal ParsedSyntaxTree(SourceText text, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, string path, CSharpParseOptions options, CSharpSyntaxNode root, Syntax.InternalSyntax.DirectiveStack directives, bool cloneRoot = true)
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
                 Debug.Assert(path != null);
-                Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
+                Debug.Assert(text == null || text.Encoding == encoding && text.ChecksumAlgorithm == checksumAlgorithm);
 
-                _lazyText = textOpt;
-                _encodingOpt = encodingOpt;
+                _lazyText = text;
+                _encoding = encoding ?? text?.Encoding;
                 _checksumAlgorithm = checksumAlgorithm;
                 _options = options;
                 _path = path;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_GetText, message: this.FilePath, cancellationToken: cancellationToken))
                     {
-                        Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm), null);
+                        Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encoding, _checksumAlgorithm), null);
                     }
                 }
 
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 text = _lazyText;
                 return text != null;
+            }
+
+            public override Encoding Encoding
+            {
+                get { return _encoding; }
             }
 
             public override int Length
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new ParsedSyntaxTree(
                     null,
-                    _encodingOpt,
+                    _encoding,
                     _checksumAlgorithm,
                     _path,
                     (CSharpParseOptions)options,
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new ParsedSyntaxTree(
                     _lazyText,
-                    _encodingOpt,
+                    _encoding,
                     _checksumAlgorithm,
                     path,
                     _options,

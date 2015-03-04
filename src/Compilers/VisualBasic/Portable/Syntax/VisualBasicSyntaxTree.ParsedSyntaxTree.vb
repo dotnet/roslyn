@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _root As VisualBasicSyntaxNode
             Private ReadOnly _hasCompilationUnitRoot As Boolean
             Private ReadOnly _isMyTemplate As Boolean
-            Private ReadOnly _encodingOpt As Encoding
+            Private ReadOnly _encoding As Encoding
             Private ReadOnly _checksumAlgorithm As SourceHashAlgorithm
 
             Private _lazyText As SourceText
@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Used to create new tree incrementally.
             ''' </summary>
-            Friend Sub New(textOpt As SourceText,
-                           encodingOpt As Encoding,
+            Friend Sub New(text As SourceText,
+                           encoding As Encoding,
                            checksumAlgorithm As SourceHashAlgorithm,
                            path As String,
                            options As VisualBasicParseOptions,
@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(syntaxRoot IsNot Nothing)
                 Debug.Assert(options IsNot Nothing)
                 Debug.Assert(path IsNot Nothing)
-                Debug.Assert(textOpt Is Nothing OrElse textOpt.Encoding Is encodingOpt AndAlso textOpt.ChecksumAlgorithm = checksumAlgorithm)
+                Debug.Assert(text Is Nothing OrElse text.Encoding Is encoding AndAlso text.ChecksumAlgorithm = checksumAlgorithm)
 
-                _lazyText = textOpt
-                _encodingOpt = encodingOpt
+                _lazyText = text
+                _encoding = If(encoding, text?.Encoding)
                 _checksumAlgorithm = checksumAlgorithm
                 _options = options
                 _path = path
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
                 If _lazyText Is Nothing Then
                     Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_GetText, message:=Me.FilePath, cancellationToken:=cancellationToken)
-                        Dim treeText = Me.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
+                        Dim treeText = Me.GetRoot(cancellationToken).GetText(_encoding, _checksumAlgorithm)
                         Interlocked.CompareExchange(_lazyText, treeText, Nothing)
                     End Using
                 End If
@@ -81,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 text = _lazyText
                 Return text IsNot Nothing
             End Function
+
+            Public Overrides ReadOnly Property Encoding As Encoding
+                Get
+                    Return _encoding
+                End Get
+            End Property
 
             Public Overrides ReadOnly Property Length As Integer
                 Get
@@ -134,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return New ParsedSyntaxTree(
                     Nothing,
-                    Me._encodingOpt,
+                    Me._encoding,
                     Me._checksumAlgorithm,
                     Me._path,
                     DirectCast(options, VisualBasicParseOptions),
@@ -149,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return New ParsedSyntaxTree(
                     Me._lazyText,
-                    Me._encodingOpt,
+                    Me._encoding,
                     Me._checksumAlgorithm,
                     path,
                     Me._options,

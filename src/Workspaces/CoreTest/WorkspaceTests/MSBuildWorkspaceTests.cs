@@ -2376,19 +2376,40 @@ class C { }";
             var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
 
             var document = project.Documents.First(d => d.Name == "class1.cs");
+
+            // update root without first looking at text (no encoding is known)
+            var gen = Editing.SyntaxGenerator.GetGenerator(document);
+            var doc2 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
+            var doc2text = doc2.GetTextAsync().Result;
+            Assert.Null(doc2text.Encoding);
+            var doc2tree = doc2.GetSyntaxTreeAsync().Result;
+            Assert.Null(doc2tree.Encoding);
+            Assert.Null(doc2tree.GetText().Encoding);
+
+            // observe original text to discover encoding
             var text = document.GetTextAsync().Result;
             Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
+            // update root blindly again, after observing encoding, see that now encoding is known
+            var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
+            var doc3text = doc3.GetTextAsync().Result;
+            Assert.NotNull(doc3text.Encoding);
+            Assert.Equal(encoding.EncodingName, doc3text.Encoding.EncodingName);
+            var doc3tree = doc3.GetSyntaxTreeAsync().Result;
+            Assert.Equal(doc3text.Encoding, doc3tree.GetText().Encoding);
+            Assert.Equal(doc3text.Encoding, doc3tree.Encoding);
+
+            // change doc to have no encoding, still succeeds at writing to disk with old encoding
             var root = document.GetSyntaxRootAsync().Result;
-            var trivia = SpecializedCollections.SingletonEnumerable(CSharp.SyntaxFactory.CarriageReturnLineFeed).Concat(root.GetLeadingTrivia());
-            var newDocument = document.WithSyntaxRoot(root.WithLeadingTrivia(trivia));
-            var newEncoding = newDocument.GetTextAsync().Result.Encoding;
-            Assert.Null(newEncoding);
+            var noEncodingDoc = document.WithText(SourceText.From(text.ToString(), encoding: null));
+            Assert.Null(noEncodingDoc.GetTextAsync().Result.Encoding);
+            
+            // apply changes (this writes the changed document)
+            var noEncodingSolution = noEncodingDoc.Project.Solution;
+            Assert.True(noEncodingSolution.Workspace.TryApplyChanges(noEncodingSolution));
 
-            var newSolution = newDocument.Project.Solution;
-            Assert.True(newSolution.Workspace.TryApplyChanges(newSolution));
-
+            // prove the written document still has the same encoding
             var filePath = Path.Combine(this.SolutionDirectory.Path, "Class1.cs");
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
