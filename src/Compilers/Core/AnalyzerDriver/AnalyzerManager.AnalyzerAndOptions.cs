@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly AnalyzerOptions _analyzerOptions;
-            internal static readonly IEqualityComparer<AnalyzerAndOptions> Comparer = new AnalyzerAndOptionsComparer();
 
             public AnalyzerAndOptions(DiagnosticAnalyzer analyzer, AnalyzerOptions analyzerOptions)
             {
@@ -26,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public bool Equals(AnalyzerAndOptions other)
             {
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
                 return other != null &&
                     _analyzer.Equals(other._analyzer) &&
                     _analyzerOptions.Equals(other._analyzerOptions);
@@ -39,24 +41,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override int GetHashCode()
             {
                 return Hash.Combine(_analyzer.GetHashCode(), _analyzerOptions.GetHashCode());
-            }
-
-            private sealed class AnalyzerAndOptionsComparer : IEqualityComparer<AnalyzerAndOptions>
-            {
-                public bool Equals(AnalyzerAndOptions x, AnalyzerAndOptions y)
-                {
-                    if (x == null)
-                    {
-                        return y == null;
-                    }
-
-                    return x.Equals(y);
-                }
-
-                public int GetHashCode(AnalyzerAndOptions obj)
-                {
-                    return obj != null ? obj.GetHashCode() : 0;
-                }
             }
         }
     }

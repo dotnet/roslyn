@@ -41,9 +41,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
             var other = obj as AnalyzerOptions;
-            return other != null &&
-                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, (a, b) => ReferenceEquals(a, b));
+            return other != null && 
+                (this.AdditionalFiles == other.AdditionalFiles ||
+                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, (a, b) => ReferenceEquals(a, b)));
         }
 
         public override int GetHashCode()

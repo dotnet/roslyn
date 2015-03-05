@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback _compilationScopeMapCallback =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback(
-                comp => new ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>(AnalyzerAndOptions.Comparer));
+                comp => new ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>(concurrencyLevel: 2, capacity: 5));
 
         /// <summary>
         /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is

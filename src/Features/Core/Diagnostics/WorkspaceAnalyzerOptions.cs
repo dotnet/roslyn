@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
             var other = obj as WorkspaceAnalyzerOptions;
             return other != null &&
                 this.Workspace == other.Workspace &&
