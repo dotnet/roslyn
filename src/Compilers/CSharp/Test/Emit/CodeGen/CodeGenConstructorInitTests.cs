@@ -300,158 +300,6 @@ class C
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-
-        [Fact]
-        public void ParameterlessConstructorStruct001()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x;
-        public S1()
-        {
-            x = 42;
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.WriteLine(s.x);
-    }
-}
-";
-            CompileAndVerify(source, expectedOutput: "42").
-                VerifyIL("C.S1..ctor", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   42
-  IL_0003:  stfld      ""int C.S1.x""
-  IL_0008:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ParameterlessConstructorStruct002()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x;
-        public S1()
-        {
-            x = 42;
-        }
-
-        public S1(int a):this()
-        {
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1(123);
-        System.Console.WriteLine(s.x);
-    }
-}
-";
-            CompileAndVerify(source, expectedOutput: "42").
-                VerifyIL("C.S1..ctor(int)", @"
-{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""C.S1..ctor()""
-  IL_0006:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ParameterlessConstructorStruct003()
-        {
-            var source = @"
-class C
-{
-    struct S1
-    {
-        public readonly int x;
-        public S1(): this(42)
-        {
-        }
-
-        public S1(int a)
-        {
-            x = a;
-        }
-    }
-
-    static void Main()
-    {
-        var s = new S1();
-        System.Console.WriteLine(s.x);
-    }
-}
-";
-            CompileAndVerify(source, expectedOutput: "42").
-                VerifyIL("C.S1..ctor(int)", @"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C.S1.x""
-  IL_0007:  ret
-}
-").
-VerifyIL("C.S1..ctor()", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   42
-  IL_0003:  call       ""C.S1..ctor(int)""
-  IL_0008:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ParameterlessInstCtorInStructExprTree()
-        {
-            var source = @"
-
-using System;
-using System.Linq.Expressions;
-
-class C
-{
-    struct S1
-    {
-        public int x;
-        public S1()
-        {
-            x = 42;
-        }
-    }
-
-    static void Main()
-    {
-        Expression<Func<S1>> testExpr = () => new S1();
-        System.Console.Write(testExpr.Compile()().x);
-    }
-}
-";
-            CompileAndVerify(source, additionalRefs: new[] { ExpressionAssemblyRef }, expectedOutput: "42");
-        }
-
         [Fact]
         public void TestInitializerInCtor001()
         {
@@ -496,7 +344,7 @@ public struct S
     public int X{get;}
     public int Y{get;}
 
-    public S()
+    public S(int dummy)
     {
         X = 42;
         Y = X;
@@ -504,7 +352,7 @@ public struct S
 
     public static void Main()
     {
-        S s = new S();
+        S s = new S(1);
         System.Console.WriteLine(s.Y);
     }
 }

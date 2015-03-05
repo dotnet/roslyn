@@ -2723,13 +2723,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, m.Locations[0]);
                         }
-                        else if (m.DeclaredAccessibility != Accessibility.Public)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, m.Locations[0]);
-                        }
                         else
                         {
-                            Binder.CheckFeatureAvailability(m.Locations[0], MessageID.IDS_FeatureStructParameterlessConstructors, diagnostics);
+                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
                         }
                     }
                 }
