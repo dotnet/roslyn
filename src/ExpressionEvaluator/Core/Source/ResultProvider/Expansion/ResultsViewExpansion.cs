@@ -75,13 +75,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
-            if (!IsEnumerableCandidate(value))
-            {
-                return null;
-            }
-
             // Must be declared as IEnumerable or IEnumerable<T>, not a derived type.
-            var enumerableType = GetEnumerableType(declaredType, requireExactInterface: true);
+            var enumerableType = GetEnumerableType(value, declaredType, requireExactInterface: true);
             if (enumerableType == null)
             {
                 return null;
@@ -98,11 +93,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrType GetEnumerableType(DkmClrValue value)
         {
-            if (!IsEnumerableCandidate(value))
-            {
-                return null;
-            }
-            return GetEnumerableType(value.Type, requireExactInterface: false);
+            return GetEnumerableType(value, value.Type, requireExactInterface: false);
         }
 
         private static bool IsEnumerableCandidate(DkmClrValue value)
@@ -120,8 +111,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return !type.IsString() && !type.IsArray;
         }
 
-        private static DkmClrType GetEnumerableType(DkmClrType valueType, bool requireExactInterface)
+        private static DkmClrType GetEnumerableType(DkmClrValue value, DkmClrType valueType, bool requireExactInterface)
         {
+            if (!IsEnumerableCandidate(value))
+            {
+                return null;
+            }
+
             var type = valueType.GetLmrType();
             Type enumerableType;
             if (requireExactInterface)
