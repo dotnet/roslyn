@@ -11,12 +11,10 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -1226,7 +1224,6 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool IsDelaySign { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
-        internal abstract FunctionId EmitFunctionId { get; }
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
@@ -1457,72 +1454,69 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(peStream != null);
 
-            using (Logger.LogBlock(EmitFunctionId, message: this.AssemblyName, cancellationToken: cancellationToken))
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            if (options != null)
             {
-                DiagnosticBag diagnostics = new DiagnosticBag();
-                if (options != null)
-                {
-                    options.ValidateOptions(diagnostics, this.MessageProvider);
-                }
-                else
-                {
-                    options = EmitOptions.Default;
-                }
+                options.ValidateOptions(diagnostics, this.MessageProvider);
+            }
+            else
+            {
+                options = EmitOptions.Default;
+            }
 
-                if (Options.OutputKind == OutputKind.NetModule && manifestResources != null)
+            if (Options.OutputKind == OutputKind.NetModule && manifestResources != null)
+            {
+                foreach (ResourceDescription res in manifestResources)
                 {
-                    foreach (ResourceDescription res in manifestResources)
+                    if (res.FileName != null)
                     {
-                        if (res.FileName != null)
-                        {
-                            // Modules can have only embedded resources, not linked ones.
-                            diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_ResourceInModule, Location.None));
-                        }
+                        // Modules can have only embedded resources, not linked ones.
+                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_ResourceInModule, Location.None));
                     }
                 }
-
-                if (diagnostics.HasAnyErrors())
-                {
-                    return ToEmitResultAndFree(diagnostics, success: false);
-                }
-
-                var moduleBeingBuilt = this.CreateModuleBuilder(
-                    options,
-                    manifestResources,
-                    null,
-                    testData,
-                    diagnostics,
-                    cancellationToken);
-
-                if (moduleBeingBuilt == null)
-                {
-                    return ToEmitResultAndFree(diagnostics, success: false);
-                }
-
-                if (!this.Compile(
-                    moduleBeingBuilt,
-                    win32Resources,
-                    xmlDocumentationStream,
-                    generateDebugInfo: pdbStream != null,
-                    diagnostics: diagnostics,
-                    filterOpt: null,
-                    cancellationToken: cancellationToken))
-                {
-                    return ToEmitResultAndFree(diagnostics, success: false);
-                }
-
-                bool success = SerializeToPeStream(
-                    moduleBeingBuilt,
-                    peStream,
-                    options.PdbFilePath,
-                    pdbStream,
-                    (testData != null) ? testData.SymWriterFactory : null,
-                    diagnostics,
-                    metadataOnly: options.EmitMetadataOnly,
-                    cancellationToken: cancellationToken);
-
-                return ToEmitResultAndFree(diagnostics, success);
             }
+
+            if (diagnostics.HasAnyErrors())
+            {
+                return ToEmitResultAndFree(diagnostics, success: false);
+            }
+
+            var moduleBeingBuilt = this.CreateModuleBuilder(
+                options,
+                manifestResources,
+                null,
+                testData,
+                diagnostics,
+                cancellationToken);
+
+            if (moduleBeingBuilt == null)
+            {
+                return ToEmitResultAndFree(diagnostics, success: false);
+            }
+
+            if (!this.Compile(
+                moduleBeingBuilt,
+                win32Resources,
+                xmlDocumentationStream,
+                generateDebugInfo: pdbStream != null,
+                diagnostics: diagnostics,
+                filterOpt: null,
+                cancellationToken: cancellationToken))
+            {
+                return ToEmitResultAndFree(diagnostics, success: false);
+            }
+
+            bool success = SerializeToPeStream(
+                moduleBeingBuilt,
+                peStream,
+                options.PdbFilePath,
+                pdbStream,
+                (testData != null) ? testData.SymWriterFactory : null,
+                diagnostics,
+                metadataOnly: options.EmitMetadataOnly,
+                cancellationToken: cancellationToken);
+
+            return ToEmitResultAndFree(diagnostics, success);
         }
 
         private EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
@@ -1543,141 +1537,138 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(executableStream.CanWrite);
             Debug.Assert(pdbStream == null || pdbStream.CanWrite);
 
-            using (Logger.LogBlock(FunctionId.Common_Compilation_SerializeToPeStream, message: this.AssemblyName, cancellationToken: cancellationToken))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Cci.PdbWriter nativePdbWriter = null;
+            Stream signingInputStream = null;
+            DiagnosticBag metadataDiagnostics = null;
+            DiagnosticBag pdbBag = null;
+            Stream pdbTempStream = null;
+            Stream peTempStream = null;
+
+            bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (pdbStream != null)
+                {
+                    // Native PDB writer is able to update an existing stream.
+                    // It checks for length to determine whether the given stream has existing data to be updated,
+                    // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
+                    // let's create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
+                    if (!pdbStream.CanSeek || pdbStream.Length != 0)
+                    {
+                        pdbTempStream = new MemoryStream();
+                    }
 
-                Cci.PdbWriter nativePdbWriter = null;
-                Stream signingInputStream = null;
-                DiagnosticBag metadataDiagnostics = null;
-                DiagnosticBag pdbBag = null;
-                Stream pdbTempStream = null;
-                Stream peTempStream = null;
+                    nativePdbWriter = new Cci.PdbWriter(
+                        pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
+                        pdbTempStream ?? pdbStream,
+                        testSymWriterFactory);
+                }
 
-                bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+                // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
+                // to perform strong naming. If this binary is configured to be signed, create a temp file, output to that
+                // then stream that to the stream that this method was called with. Otherwise output to the
+                // stream that this method was called with.
 
+                Stream peStream;
+                if (!metadataOnly && ShouldBeSigned)
+                {
+                    Debug.Assert(Options.StrongNameProvider != null);
+
+                    signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                    peStream = signingInputStream;
+                }
+                else
+                {
+                    signingInputStream = null;
+                    peStream = executableStream;
+                }
+
+                // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                if (!peStream.CanSeek || deterministic && !peStream.CanRead)
+                {
+                    peTempStream = new MemoryStream();
+                }
+
+                metadataDiagnostics = DiagnosticBag.GetInstance();
                 try
                 {
-                    if (pdbStream != null)
-                    {
-                        // Native PDB writer is able to update an existing stream.
-                        // It checks for length to determine whether the given stream has existing data to be updated,
-                        // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
-                        // let's create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
-                        if (!pdbStream.CanSeek || pdbStream.Length != 0)
-                        {
-                            pdbTempStream = new MemoryStream();
-                        }
+                    Cci.PeWriter.WritePeToStream(
+                        new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
+                        this.MessageProvider,
+                        peTempStream ?? peStream,
+                        nativePdbWriter,
+                        metadataOnly,
+                        deterministic,
+                        cancellationToken);
 
-                        nativePdbWriter = new Cci.PdbWriter(
-                            pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                            pdbTempStream ?? pdbStream,
-                            testSymWriterFactory);
+                    if (peTempStream != null)
+                    {
+                        peTempStream.Position = 0;
+                        peTempStream.CopyTo(peStream);
                     }
 
-                    // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
-                    // to perform strong naming. If this binary is configured to be signed, create a temp file, output to that
-                    // then stream that to the stream that this method was called with. Otherwise output to the
-                    // stream that this method was called with.
-
-                    Stream peStream;
-                    if (!metadataOnly && ShouldBeSigned)
+                    if (pdbTempStream != null)
                     {
-                        Debug.Assert(Options.StrongNameProvider != null);
+                        // Note: Native PDB writer may operate on the underlying stream during disposal.
+                        // So close it here before we read data from the underlying stream.
+                        nativePdbWriter?.Close();
 
-                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                        peStream = signingInputStream;
+                        pdbTempStream.Position = 0;
+                        pdbTempStream.CopyTo(pdbStream);
                     }
-                    else
-                    {
-                        signingInputStream = null;
-                        peStream = executableStream;
-                    }
+                }
+                catch (Cci.PdbWritingException ex)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
+                    return false;
+                }
+                catch (ResourceException e)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_CantReadResource, Location.None, e.Message, e.InnerException.Message));
+                    return false;
+                }
+                catch (PermissionSetFileReadException e)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
+                    return false;
+                }
 
-                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
-                    // If the underlying stream isn't readable and seekable, we need to use a temp stream.
-                    if (!peStream.CanSeek || deterministic && !peStream.CanRead)
-                    {
-                        peTempStream = new MemoryStream();
-                    }
+                // translate metadata errors.
+                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
+                {
+                    return false;
+                }
 
-                    metadataDiagnostics = DiagnosticBag.GetInstance();
+                if (signingInputStream != null)
+                {
+                    Debug.Assert(Options.StrongNameProvider != null);
+
                     try
                     {
-                        Cci.PeWriter.WritePeToStream(
-                            new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
-                            this.MessageProvider,
-                            peTempStream ?? peStream,
-                            nativePdbWriter,
-                            metadataOnly,
-                            deterministic,
-                            cancellationToken);
-
-                        if (peTempStream != null)
-                        {
-                            peTempStream.Position = 0;
-                            peTempStream.CopyTo(peStream);
-                        }
-
-                        if (pdbTempStream != null)
-                        {
-                            // Note: Native PDB writer may operate on the underlying stream during disposal.
-                            // So close it here before we read data from the underlying stream.
-                            nativePdbWriter?.Close();
-
-                            pdbTempStream.Position = 0;
-                            pdbTempStream.CopyTo(pdbStream);
-                        }
+                        Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, executableStream);
                     }
-                    catch (Cci.PdbWritingException ex)
+                    catch (IOException ex)
                     {
-                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
+                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
                         return false;
-                    }
-                    catch (ResourceException e)
-                    {
-                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_CantReadResource, Location.None, e.Message, e.InnerException.Message));
-                        return false;
-                    }
-                    catch (PermissionSetFileReadException e)
-                    {
-                        diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
-                        return false;
-                    }
-
-                    // translate metadata errors.
-                    if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
-                    {
-                        return false;
-                    }
-
-                    if (signingInputStream != null)
-                    {
-                        Debug.Assert(Options.StrongNameProvider != null);
-
-                        try
-                        {
-                            Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, executableStream);
-                        }
-                        catch (IOException ex)
-                        {
-                            diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
-                            return false;
-                        }
                     }
                 }
-                finally
-                {
-                    peTempStream?.Dispose();
-                    pdbTempStream?.Dispose();
-                    nativePdbWriter?.Dispose();
-                    signingInputStream?.Dispose();
-                    pdbBag?.Free();
-                    metadataDiagnostics?.Free();
-                }
-
-                return true;
             }
+            finally
+            {
+                peTempStream?.Dispose();
+                pdbTempStream?.Dispose();
+                nativePdbWriter?.Dispose();
+                signingInputStream?.Dispose();
+                pdbBag?.Free();
+                metadataDiagnostics?.Free();
+            }
+
+            return true;
         }
 
         private Dictionary<string, string> _lazyFeatures;

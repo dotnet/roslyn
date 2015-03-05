@@ -3,7 +3,6 @@
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -68,10 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
                 If _lazyText Is Nothing Then
-                    Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_GetText, message:=Me.FilePath, cancellationToken:=cancellationToken)
-                        Dim treeText = Me.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
-                        Interlocked.CompareExchange(_lazyText, treeText, Nothing)
-                    End Using
+                    Dim treeText = Me.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
+                    Interlocked.CompareExchange(_lazyText, treeText, Nothing)
                 End If
 
                 Return _lazyText
