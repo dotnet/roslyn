@@ -53,5 +53,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(oldLambda.Kind());
             }
         }
+
+        /// <summary>
+        /// Returns true if the specified node can represent a closure scope -- that is a scope of a captured variable.
+        /// Doesn't validate whether or not the node actually declares any captured variable.
+        /// </summary>
+        internal static bool IsClosureScope(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.Block:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.ArrowExpressionClause:  // expression-bodied member
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.UsingStatement:
+
+                // variable captured by a lambda in a let clause, 
+                // e.g. from item in array let a = new Func<int>(() => item)
+                case SyntaxKind.LetClause:
+
+                // ctor parameter captured by a lambda in a ctor initializer
+                case SyntaxKind.ConstructorDeclaration:
+                    return true;
+
+                default:
+                    if (SyntaxFacts.IsLambdaBody(node))
+                    {
+                        return true;
+                    }
+
+                    // TODO: EE expression
+                    if (node is ExpressionSyntax && node.Parent.Parent == null)
+                    {
+                        return true;
+                    }
+
+                    return false;
+            }
+        }
     }
 }

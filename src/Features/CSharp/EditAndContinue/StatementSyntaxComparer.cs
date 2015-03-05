@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        foreach (var descendant in childNode.DescendantNodesAndTokens(SyntaxUtilities.IsNotLambda))
+                        foreach (var descendant in childNode.DescendantNodes(descendIntoChildren: SyntaxUtilities.IsNotLambda))
                         {
-                            if (EnumerateExpressionDescendant(descendant.Kind()))
+                            if (EnumerateExpressionDescendant(descendant))
                             {
-                                yield return descendant.AsNode();
+                                yield return descendant;
                             }
                         }
                     }
@@ -89,19 +89,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else
             {
-                foreach (var descendant in childNode.DescendantNodesAndTokens(SyntaxUtilities.IsNotLambda))
+                foreach (var descendant in childNode.DescendantNodes(descendIntoChildren: SyntaxUtilities.IsNotLambda))
                 {
-                    if (EnumerateExpressionDescendant(descendant.Kind()))
+                    if (EnumerateExpressionDescendant(descendant))
                     {
-                        yield return descendant.AsNode();
+                        yield return descendant;
                     }
                 }
             }
         }
 
-        private static bool EnumerateExpressionDescendant(SyntaxKind kind)
+        private static bool EnumerateExpressionDescendant(SyntaxNode node)
         {
-            return SyntaxUtilities.IsLambda(kind) || kind == SyntaxKind.VariableDeclarator || kind == SyntaxKind.AwaitExpression;
+            return 
+                node.IsKind(SyntaxKind.VariableDeclarator) || 
+                node.IsKind(SyntaxKind.AwaitExpression) ||
+                SyntaxUtilities.IsLambda(node);
         }
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
@@ -118,14 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 node = descendantNode;
             }
 
-            foreach (var descendant in node.DescendantNodesAndTokens(
+            foreach (var descendant in node.DescendantNodes(
                 descendIntoChildren: NonRootHasChildren,
                 descendIntoTrivia: false))
             {
-                var descendantNode = descendant.AsNode();
-                if (descendantNode != null && GetLabel(descendantNode) != IgnoredNode)
+                if (GetLabel(descendant) != IgnoredNode)
                 {
-                    yield return descendantNode;
+                    yield return descendant;
                 }
             }
         }
@@ -227,6 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// <paramref name="nodeOpt"/> is null only when comparing value equality of a tree node.
+        /// </summary>
         internal static Label Classify(SyntaxKind kind, SyntaxNode nodeOpt, out bool isLeaf)
         {
             // Notes:
@@ -238,6 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             isLeaf = false;
 
+            // If the node is a for loop Initializer, Condition, or Incrementor expression we label it as "ForStatementPart".
+            // We need to capture it in the match since these expressions can be "active statements" and as such we need to map them.
+            //
+            // The parent is not available only when comparing nodes for value equality.
             if (nodeOpt != null && nodeOpt.Parent.IsKind(SyntaxKind.ForStatement) && nodeOpt is ExpressionSyntax)
             {
                 return Label.ForStatementPart;
@@ -355,6 +364,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.Lambda;
 
                 case SyntaxKind.FromClause:
+                    // The first from clause of a query is not a lambda.
+                    // We have to assign it a label different from "FromClauseLambda"
+                    // so that we won't match lambda-from to non-lambda-from.
+                    // Since such from clause is just another expression the label should be "Ignored".
+                    // 
+                    // The parent is not available only when comparing nodes for value equality.
+                    // In that case we use "Ignored" for all from clauses, even when they translate to lambdas.
+                    // As a result we mark the containing statement as modified even if the change is entirely 
+                    // in the from clause lambda, which is ok.
+                    if (nodeOpt == null || nodeOpt.Parent.IsKind(SyntaxKind.QueryExpression))
+                    {
+                        // may contain lambda, so it's not a leaf node
+                        return Label.Ignored;
+                    }
+
                     isLeaf = true;
                     return Label.FromClauseLambda;
 
@@ -440,14 +464,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return Classify(node.Kind(), node, out isLeaf) != Label.Ignored;
         }
 
-        // In most cases we can determine Label based on SyntaxKind.
-        // The only case we can't is for initializer, condition and incrementor expressions in ForStatement.
-        internal static bool IsLabeledKind(SyntaxKind kind)
-        {
-            bool isLeaf;
-            return Classify(kind, null, out isLeaf) != Label.Ignored;
-        }
-
         protected internal override int LabelCount
         {
             get { return (int)Label.Count; }
@@ -462,8 +478,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Comparisons
 
+        internal static bool IgnoreLabeledChild(SyntaxKind kind)
+        {
+            // In most cases we can determine Label based on child kind.
+            // The only cases when we can't are
+            // - for Initializer, Condition and Incrementor expressions in ForStatement.
+            // - first from clause of a query expression.
+
+            bool isLeaf;
+            return Classify(kind, null, out isLeaf) != Label.Ignored;
+        }
+
         public override bool ValuesEqual(SyntaxNode left, SyntaxNode right)
         {
+            // only called from the tree matching alg, which only operates on nodes that are labeled.
+            Debug.Assert(HasLabel(left));
+            Debug.Assert(HasLabel(right));
+
             Func<SyntaxKind, bool> ignoreChildNode;
             switch (left.Kind())
             {
@@ -475,13 +506,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 default:
-                    // When a value of a statement containing lambdas or declaration expressions, e.g. 
-                    //    F(x => x, G(y => y), var a = 2); 
+                    // When a value of a statement containing lambdas, and await expressions, e.g. 
+                    //    F(x => x, G(y => y), from x in y select x, await a); 
                     // is compared we descend into expressions and include them in the value comparison (they are not labeled) 
-                    // but not into the contained lambda and declaration expression nodes (because they are labeled).
+                    // but not into the contained lambda and await expression nodes (because they are labeled).
+                    // 
                     if (NonRootHasChildren(left))
                     {
-                        ignoreChildNode = IsLabeledKind;
+                        ignoreChildNode = IgnoreLabeledChild;
                     }
                     else
                     {
@@ -497,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private bool Equal(SwitchSectionSyntax left, SwitchSectionSyntax right)
         {
             return SyntaxFactory.AreEquivalent(left.Labels, right.Labels, null)
-                && SyntaxFactory.AreEquivalent(left.Statements, right.Statements, ignoreChildNode: IsLabeledKind);
+                && SyntaxFactory.AreEquivalent(left.Statements, right.Statements, ignoreChildNode: IgnoreLabeledChild);
         }
 
         protected override bool TryComputeWeightedDistance(SyntaxNode leftNode, SyntaxNode rightNode, out double distance)

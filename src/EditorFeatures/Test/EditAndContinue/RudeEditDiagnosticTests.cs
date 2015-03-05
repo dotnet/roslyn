@@ -73,6 +73,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.InsertIntoStruct,
                 RudeEditKind.ConstraintKindUpdate,
                 RudeEditKind.InsertIntoStruct,
+                RudeEditKind.ChangingCapturedVariableType,
+                RudeEditKind.AccessingCapturedVariableInLambda,
+                RudeEditKind.NotAccessingCapturedVariableInLambda,
+            };
+
+            var arg3 = new HashSet<RudeEditKind>()
+            {
+                RudeEditKind.InsertLambdaWithMultiScopeCapture,
+                RudeEditKind.DeleteLambdaWithMultiScopeCapture,
             };
 
             List<RudeEditKind> errors = new List<RudeEditKind>();
@@ -95,6 +104,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                     var d = re.ToDiagnostic(tree);
                     Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
                     Assert.True(d.GetMessage().Contains("<2>"), value.ToString());
+                    Assert.False(d.GetMessage().Contains("{"), value.ToString());
+                }
+                else if (arg3.Contains(value))
+                {
+                    var re = new RudeEditDiagnostic(value, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>", "<2>", "<3>" });
+                    var d = re.ToDiagnostic(tree);
+                    Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<2>"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<3>"), value.ToString());
                     Assert.False(d.GetMessage().Contains("{"), value.ToString());
                 }
                 else

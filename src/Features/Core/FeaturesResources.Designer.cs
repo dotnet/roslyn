@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
+        /// </summary>
+        internal static string AccessingCapturedVariableInLambda {
+            get {
+                return ResourceManager.GetString("AccessingCapturedVariableInLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Actions can not be empty..
         /// </summary>
         internal static string ActionsCanNotBeEmpty {
@@ -376,6 +385,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Capturing variable &apos;{0}&apos; that hasn&apos;t been captured before will prevent the debug session from continuing..
+        /// </summary>
+        internal static string CapturingVariable {
+            get {
+                return ResourceManager.GetString("CapturingVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Compiler.
         /// </summary>
         internal static string CategoryCompiler {
@@ -417,6 +435,53 @@ namespace Microsoft.CodeAnalysis {
         internal static string ChangeTo {
             get {
                 return ResourceManager.GetString("ChangeTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the declaration scope of a captured variable &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingCapturedVariableScope {
+            get {
+                return ResourceManager.GetString("ChangingCapturedVariableScope", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the type of a captured variable &apos;{0}&apos; previously of type &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string DeletingCapturedVariable
+        {
+            get
+            {
+                return ResourceManager.GetString("DeletingCapturedVariable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the type of a captured variable &apos;{0}&apos; previously of type &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingCapturedVariableType {
+            get {
+                return ResourceManager.GetString("ChangingCapturedVariableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the parameters of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingLambdaParameters {
+            get {
+                return ResourceManager.GetString("ChangingLambdaParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the return type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingLambdaReturnType {
+            get {
+                return ResourceManager.GetString("ChangingLambdaReturnType", resourceCulture);
             }
         }
         
@@ -507,6 +572,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string CouldNotExtractInterfaceTypeMember {
             get {
                 return ResourceManager.GetString("CouldNotExtractInterfaceTypeMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing &apos;{0}&apos; that accessed captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        /// </summary>
+        internal static string DeleteLambdaWithMultiScopeCapture {
+            get {
+                return ResourceManager.GetString("DeleteLambdaWithMultiScopeCapture", resourceCulture);
             }
         }
         
@@ -1114,6 +1188,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        /// </summary>
+        internal static string InsertLambdaWithMultiScopeCapture {
+            get {
+                return ResourceManager.GetString("InsertLambdaWithMultiScopeCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interactive Host not initialized..
         /// </summary>
         internal static string InteractiveHostNotInitialized {
@@ -1627,11 +1710,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ceasing to access captured variable &apos;{0}&apos; in {1} will prevent the debug session from continuing..
+        /// </summary>
+        internal static string NotAccessingCapturedVariableInLambda {
+            get {
+                return ResourceManager.GetString("NotAccessingCapturedVariableInLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not Available.
         /// </summary>
         internal static string NotAvailable {
             get {
                 return ResourceManager.GetString("NotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ceasing to capture variable &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string NotCapturingVariable {
+            get {
+                return ResourceManager.GetString("NotCapturingVariable", resourceCulture);
             }
         }
         

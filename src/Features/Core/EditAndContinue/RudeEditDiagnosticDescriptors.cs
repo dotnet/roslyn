@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -66,6 +67,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ExperimentalFeaturesEnabled,               FeaturesResources.ModifyingAFileWithExperimentalFeaturesEnabled) },
             { GetDescriptorPair(RudeEditKind.AwaitStatementUpdate,                      FeaturesResources.UpdatingAStatementContainingAwaitExpression) },
             { GetDescriptorPair(RudeEditKind.ChangingConstructorVisibility,             FeaturesResources.ChangingVisibilityOfConstructor) },
+            { GetDescriptorPair(RudeEditKind.CapturingVariable,                         FeaturesResources.CapturingVariable) },
+            { GetDescriptorPair(RudeEditKind.NotCapturingVariable,                      FeaturesResources.NotCapturingVariable) },
+            { GetDescriptorPair(RudeEditKind.DeletingCapturedVariable,                  FeaturesResources.DeletingCapturedVariable) },
+            { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableType,              FeaturesResources.ChangingCapturedVariableType) },            
+            { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableScope,             FeaturesResources.ChangingCapturedVariableScope) },
+            { GetDescriptorPair(RudeEditKind.ChangingLambdaParameters,                  FeaturesResources.ChangingLambdaParameters) },
+            { GetDescriptorPair(RudeEditKind.ChangingLambdaReturnType,                  FeaturesResources.ChangingLambdaReturnType) },
+            { GetDescriptorPair(RudeEditKind.AccessingCapturedVariableInLambda,         FeaturesResources.AccessingCapturedVariableInLambda) },
+            { GetDescriptorPair(RudeEditKind.NotAccessingCapturedVariableInLambda,      FeaturesResources.NotAccessingCapturedVariableInLambda) },
+            { GetDescriptorPair(RudeEditKind.InsertLambdaWithMultiScopeCapture,         FeaturesResources.InsertLambdaWithMultiScopeCapture) },
+            { GetDescriptorPair(RudeEditKind.DeleteLambdaWithMultiScopeCapture,         FeaturesResources.DeleteLambdaWithMultiScopeCapture) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_ANON_METHOD,                     FeaturesResources.ModifyingAWhichContainsAnonymousMethod) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_YIELD,                           FeaturesResources.ModifyingAWhichContainsYield) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_FIELD_ANON_METH,                 FeaturesResources.ModifyingAInitializerWithAnonymousMethod) },
@@ -136,8 +148,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal static DiagnosticDescriptor GetDescriptor(RudeEditKind kind)
         {
-            Contract.Assert(s_descriptors.ContainsKey(kind));
-
             return s_descriptors[kind];
         }
     }

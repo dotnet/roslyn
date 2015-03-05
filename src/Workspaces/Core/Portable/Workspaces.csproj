@@ -48,6 +48,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\BitVector.cs">
+      <Link>InternalUtilities\BitVector.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\Boxes.cs">
       <Link>InternalUtilities\Boxes.cs</Link>
     </Compile>

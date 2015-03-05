@@ -146,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     ' Dim a(n)
                     ' Dim a(n), b(n) As Integer
+                    ' Dim a(n1, n2, n3) As Integer
                     Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
                         Return modifiedIdentifier.ArrayBounds
@@ -157,6 +158,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Note: A method without body is represented by a SubStatement.
                     Return Nothing
             End Select
+        End Function
+
+        Protected Overrides Function GetCapturedVariables(model As SemanticModel, body As SyntaxNode) As ImmutableArray(Of ISymbol)
+            Dim methodBlock = TryCast(body, MethodBlockBaseSyntax)
+            If methodBlock IsNot Nothing Then
+                Return model.AnalyzeDataFlow(methodBlock.BlockStatement, methodBlock.EndBlockStatement).Captured
+            End If
+
+            Dim expression = TryCast(body, ExpressionSyntax)
+            If expression IsNot Nothing Then
+                Return model.AnalyzeDataFlow(expression).Captured
+            End If
+
+            ' Edge case, no need to be efficient, currently there can either be no captured variables or just "Me".
+            ' Dim a((Function(n) n + 1).Invoke(1), (Function(n) n + 2).Invoke(2)) As Integer
+            Dim arrayBounds = TryCast(body, ArgumentListSyntax)
+            If arrayBounds IsNot Nothing Then
+                Return ImmutableArray.CreateRange(
+                    arrayBounds.Arguments.SelectMany(Function(argument) model.AnalyzeDataFlow(argument).Captured).Distinct())
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(body)
+        End Function
+
+        Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function GetVariableUseSites(roots As SyntaxList(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
+            Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol)
+
+            ' Not supported (it's non trivial to find all places where "this" is used):
+            Debug.Assert(Not localOrParameter.IsThisParameter())
+
+            Return From root In roots
+                   From node In root.DescendantNodes()
+                   Where node.IsKind(SyntaxKind.ModifiedIdentifier)
+                   Let modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
+                   Where String.Equals(DirectCast(modifiedIdentifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
+                         If(model.GetSymbolInfo(modifiedIdentifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
+                   Select node
         End Function
 
         Private Shared Function HasSimpleAsNewInitializer(variableDeclarator As VariableDeclaratorSyntax) As Boolean
@@ -890,9 +932,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides Function TryGetLambdaBodies(node As SyntaxNode, ByRef body1 As SyntaxNode, ByRef body2 As SyntaxNode) As Boolean
             Return SyntaxUtilities.TryGetLambdaBodies(node, body1, body2)
         End Function
+
+        Protected Overrides Function GetLambdaBodyNodes(lambdaBody As SyntaxNode) As SyntaxList(Of SyntaxNode)
+            Dim lambda = lambdaBody.Parent
+
+            Select Case lambda.Kind
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression
+                    ' The header of the lambda represents its body.
+                    Return DirectCast(lambda, MultiLineLambdaExpressionSyntax).Statements
+
+                Case SyntaxKind.SingleLineFunctionLambdaExpression,
+                 SyntaxKind.SingleLineSubLambdaExpression
+                    ' The header of the lambda represents its body.
+                    Return SyntaxFactory.SingletonList(DirectCast(lambda, SingleLineLambdaExpressionSyntax).Body)
+
+                Case Else
+                    Return SyntaxFactory.SingletonList(lambdaBody)
+            End Select
+        End Function
 #End Region
 
 #Region "Diagnostic Info"
+        Protected Overrides ReadOnly Property ErrorDisplayFormat As SymbolDisplayFormat
+            Get
+                Return SymbolDisplayFormat.VisualBasicShortErrorMessageFormat
+            End Get
+        End Property
+
         Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return GetDiagnosticSpanImpl(node, editKind)
         End Function
@@ -1501,7 +1568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 If newNode Is Nothing Then
-                    Return analyzer.GetDeletedNodeDiagnosticSpan(match, oldNode)
+                    Return analyzer.GetDeletedNodeDiagnosticSpan(match.Matches, oldNode)
                 Else
                     Return GetDiagnosticSpanImpl(newNode, kind)
                 End If
@@ -2874,6 +2941,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Function(n1, n2) SyntaxFactory.AreEquivalent(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
+
+        Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
+            ' TODO
+            Return False
+        End Function
 #End Region
     End Class
 End Namespace
