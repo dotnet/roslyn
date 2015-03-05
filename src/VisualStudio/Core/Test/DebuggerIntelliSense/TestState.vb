@@ -377,7 +377,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Sub
 #End Region
 
-        Function GetCurrentViewLineText() As Object
+        Function GetCurrentViewLineText() As String
             Return Me.TextView.TextViewLines.Last().Extent.GetText()
         End Function
 
