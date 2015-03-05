@@ -514,6 +514,12 @@ Public Module VerificationHelpers
             Throw New NotImplementedException()
         End Function
 
+        Public Overrides ReadOnly Property Encoding As Encoding
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Length As Integer
             Get
                 Return 0

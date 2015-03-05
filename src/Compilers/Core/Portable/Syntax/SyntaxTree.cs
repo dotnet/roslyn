@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis
         public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// The text encoding of the source document.
+        /// </summary>
+        public abstract Encoding Encoding { get; }
+
+        /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
         /// <remarks>
