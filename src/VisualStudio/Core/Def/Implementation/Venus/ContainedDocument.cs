@@ -722,14 +722,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
 
-            var projectionDataBuffer = _containedLanguage as IProjectionBuffer;
+            var projectionDataBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
             if (projectionDataBuffer != null)
             {
                 return projectionDataBuffer.CurrentSnapshot
-                           .GetSourceSpans()
-                           .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
-                           .Select(s => s.Span.ToTextSpan())
-                           .OrderBy(s => s.Start);
+                    .GetSourceSpans()
+                    .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
+                    .Select(s => s.Span.ToTextSpan())
+                    .OrderBy(s => s.Start);
             }
             else
             {
