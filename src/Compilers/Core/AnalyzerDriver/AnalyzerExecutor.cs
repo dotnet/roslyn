@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal Compilation Compilation => _compilation;
+        internal AnalyzerOptions AnalyzerOptions => _analyzerOptions;
         internal CancellationToken CancellationToken => _cancellationToken;
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
 

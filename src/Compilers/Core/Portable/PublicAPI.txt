@@ -1737,6 +1737,8 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Display.get
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.FullPath.get
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzers(string language)
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzersForAllLanguages()
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.Equals(object obj)
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.GetHashCode()
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.Display.get
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.FullPath.get
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetAnalyzers(string language)
