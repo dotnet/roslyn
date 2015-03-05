@@ -1152,10 +1152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
-                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c,
-                        "m"c, "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c,
-                        "y"c, "z"c
-
+                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
+                     "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
@@ -1353,7 +1351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "A"c
                     If NextAre(1, "s ") Then
-
                         Dim spelling = GetText(2)
                         Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
                     Else
@@ -1362,7 +1359,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "E"c
                     If NextAre(1, "nd ") Then
-
                         Dim spelling = GetText(3)
                         Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
                     Else
@@ -1371,7 +1367,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "I"c
                     If NextAre(1, "f ") Then
-
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = GetText(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
@@ -1379,9 +1374,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
-                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c,
-                        "m"c, "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c,
-                        "y"c, "z"c
+                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
+                     "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
