@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public SyntaxTree CompilationUnit { get; private set; }
+        public SyntaxTree CompilationUnit { get; }
         public override string ToString()
         {
             return "CompilationUnitCompletedEvent(" + CompilationUnit.FilePath + ")";

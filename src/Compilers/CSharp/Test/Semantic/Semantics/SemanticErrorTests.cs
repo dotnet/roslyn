@@ -6762,6 +6762,77 @@ class MyDerived : MyClass
             });
         }
 
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation01()
+        {
+            var text =
+@"public static class Foo<T>
+{
+    static Foo()
+    {
+        Foo<int>.X = 1;
+        Foo<int>.Y = 2;
+        Foo<T>.Y = 3;
+    }
+
+    public static readonly int X;
+    public static int Y { get; }
+}";
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
+                //         Foo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                );
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithStrictMode()).VerifyDiagnostics(
+                // (5,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
+                //         Foo<int>.X = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Foo<int>.X").WithLocation(5, 9),
+                // (6,9): error CS0200: Property or indexer 'Foo<int>.Y' cannot be assigned to -- it is read only
+                //         Foo<int>.Y = 2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation02()
+        {
+            var text =
+@"using System;
+using System.Threading;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Foo<long>.x);
+        Console.WriteLine(Foo<int>.x);
+        Console.WriteLine(Foo<string>.x);
+        Console.WriteLine(Foo<int>.x);
+    }
+}
+
+public static class Foo<T>
+{
+    static Foo()
+    {
+        Console.WriteLine(""initializing for "" + typeof(T));
+        Foo<int>.x = typeof(T).Name;
+    }
+
+    public static readonly string x;
+}";
+            var expectedOutput =
+@"initializing for System.Int64
+initializing for System.Int32
+
+Int64
+initializing for System.String
+
+String
+";
+            // Although we accept this nasty code, it will not verify.
+            CompileAndVerify(text, expectedOutput: expectedOutput, verify: false);
+        }
+
         [Fact]
         public void CS0199ERR_RefReadonlyStatic()
         {

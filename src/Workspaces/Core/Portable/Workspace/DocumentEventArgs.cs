@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     public class DocumentEventArgs : EventArgs
     {
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
         public DocumentEventArgs(Document document)
         {

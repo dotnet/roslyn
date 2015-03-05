@@ -590,6 +590,7 @@ Microsoft.CodeAnalysis.LocalizableResourceString
 Microsoft.CodeAnalysis.LocalizableResourceString.LocalizableResourceString(string nameOfLocalizableResource, System.Resources.ResourceManager resourceManager, System.Type resourceSource)
 Microsoft.CodeAnalysis.LocalizableResourceString.LocalizableResourceString(string nameOfLocalizableResource, System.Resources.ResourceManager resourceManager, System.Type resourceSource, params string[] formatArguments)
 Microsoft.CodeAnalysis.LocalizableString
+Microsoft.CodeAnalysis.LocalizableString.OnException
 Microsoft.CodeAnalysis.Location
 Microsoft.CodeAnalysis.Location.IsInMetadata.get
 Microsoft.CodeAnalysis.Location.IsInSource.get
@@ -1617,6 +1618,7 @@ abstract Microsoft.CodeAnalysis.SyntaxNode.WriteTo(System.IO.TextWriter writer)
 abstract Microsoft.CodeAnalysis.SyntaxReference.GetSyntax(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 abstract Microsoft.CodeAnalysis.SyntaxReference.Span.get
 abstract Microsoft.CodeAnalysis.SyntaxReference.SyntaxTree.get
+abstract Microsoft.CodeAnalysis.SyntaxTree.Encoding.get
 abstract Microsoft.CodeAnalysis.SyntaxTree.FilePath.get
 abstract Microsoft.CodeAnalysis.SyntaxTree.GetChangedSpans(Microsoft.CodeAnalysis.SyntaxTree syntaxTree)
 abstract Microsoft.CodeAnalysis.SyntaxTree.GetChanges(Microsoft.CodeAnalysis.SyntaxTree oldTree)
@@ -1736,6 +1738,8 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Display.get
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.FullPath.get
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzers(string language)
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzersForAllLanguages()
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.Equals(object obj)
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.GetHashCode()
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.Display.get
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.FullPath.get
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetAnalyzers(string language)

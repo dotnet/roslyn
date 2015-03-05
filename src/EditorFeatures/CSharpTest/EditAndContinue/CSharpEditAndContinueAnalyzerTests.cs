@@ -204,7 +204,6 @@ class C
         F(/*<span>*/(x)/*</span>*/ => x);
         F(/*<span>*/x/*</span>*/ => x);
         F(/*<span>*/delegate/*</span>*/(x) { });
-        F(/*<span>*/from/*</span>*/a in b select a.x);
         F(from a in b /*<span>*/select/*</span>*/ a.x);
         F(from a in b /*<span>*/let/*</span>*/ x = expr select expr);
         F(from a in b /*<span>*/where/*</span>*/ expr select expr);
@@ -215,7 +214,10 @@ class C
     }
 }
 ";
-            TestSpans(source, StatementSyntaxComparer.IsLabeledKind);
+            // TODO: test
+            // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
+            // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
+            TestSpans(source, StatementSyntaxComparer.IgnoreLabeledChild);
         }
 
         /// <summary>
@@ -224,7 +226,7 @@ class C
         [Fact]
         public void ErrorSpansAllKinds()
         {
-            TestErrorSpansAllKinds(StatementSyntaxComparer.IsLabeledKind);
+            TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
             TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
         }
 

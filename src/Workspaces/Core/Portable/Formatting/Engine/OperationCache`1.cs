@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.Continuation = continuation;
         }
 
-        public Func<int, SyntaxToken, SyntaxToken, NextOperation<TResult>, TResult> NextOperation { get; private set; }
-        public Func<int, SyntaxToken, SyntaxToken, IOperationHolder<TResult>, TResult> Continuation { get; private set; }
+        public Func<int, SyntaxToken, SyntaxToken, NextOperation<TResult>, TResult> NextOperation { get; }
+        public Func<int, SyntaxToken, SyntaxToken, IOperationHolder<TResult>, TResult> Continuation { get; }
     }
 }

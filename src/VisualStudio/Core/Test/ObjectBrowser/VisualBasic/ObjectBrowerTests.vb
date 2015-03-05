@@ -2074,17 +2074,17 @@ End Class
 "Public Sub M(Of T)(i As Integer, s As String)" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}" & vbCrLf &
 "" & vbCrLf &
-FeaturesResources.Summary & vbCrLf &
+ServicesVSResources.Library_Summary & vbCrLf &
 "The is my summary!" & vbCrLf &
 "" & vbCrLf &
 ServicesVSResources.Library_TypeParameters & vbCrLf &
 "T: Hello from a type parameter" & vbCrLf &
 "" & vbCrLf &
-FeaturesResources.Parameters & vbCrLf &
+ServicesVSResources.Library_Parameters & vbCrLf &
 "i: The parameter i" & vbCrLf &
 "s: The parameter t" & vbCrLf &
 "" & vbCrLf &
-FeaturesResources.Remarks & vbCrLf &
+ServicesVSResources.Library_Remarks & vbCrLf &
 "Takes i and s.")
             End Using
         End Sub

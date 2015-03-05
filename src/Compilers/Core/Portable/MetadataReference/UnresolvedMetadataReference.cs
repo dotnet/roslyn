@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public sealed class UnresolvedMetadataReference : MetadataReference
     {
-        public string Reference { get; private set; }
+        public string Reference { get; }
 
         internal UnresolvedMetadataReference(string reference, MetadataReferenceProperties properties)
             : base(properties)

@@ -554,8 +554,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     generalDiagnosticOption = ReportDiagnostic.Error;
 
-                                    // Clear specific warnaserror options (since last /warnaserror flag on the command line always wins).
+                                    // Reset specific warnaserror options (since last /warnaserror flag on the command line always wins),
+                                    // and bump warnings to errors.
                                     warnAsErrors.Clear();
+                                    foreach (var key in diagnosticOptions.Keys)
+                                    {
+                                        if (diagnosticOptions[key] == ReportDiagnostic.Warn)
+                                        {
+                                            warnAsErrors[key] = ReportDiagnostic.Error;
+                                        }
+                                    }
 
                                     continue;
                                 }
@@ -587,7 +595,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    AddWarnings(warnAsErrors, ReportDiagnostic.Default, ParseWarnings(value));
+                                    foreach (var id in ParseWarnings(value))
+                                    {
+                                        ReportDiagnostic ruleSetValue;
+                                        if (diagnosticOptions.TryGetValue(id, out ruleSetValue))
+                                        {
+                                            warnAsErrors[id] = ruleSetValue;
+                                        }
+                                        else
+                                        {
+                                            warnAsErrors[id] = ReportDiagnostic.Default;
+                                        }
+                                    }
                                 }
                                 continue;
 

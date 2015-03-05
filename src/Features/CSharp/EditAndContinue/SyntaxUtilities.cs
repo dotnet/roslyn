@@ -159,17 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsNotLambda(SyntaxNode node)
         {
-            return !IsLambda(node.Kind());
+            return !IsLambda(node);
         }
 
         public static bool IsLambda(SyntaxNode node)
         {
-            return IsLambda(node.Kind());
-        }
-
-        public static bool IsLambda(SyntaxKind kind)
-        {
-            switch (kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -184,9 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.FromClause:
-                    // Although from clause only creates a lambda if it is in a query body,
-                    // for the purpose of node matching we consider all from clauses the same.
-                    return true;
+                    // The first from clause of a query expression is not a lambda.
+                    return !node.Parent.IsKind(SyntaxKind.QueryExpression);
             }
 
             return false;
@@ -207,7 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)node;
-                    if (!(fromClause.Parent is QueryBodySyntax))
+
+                    // The first from clause of a query expression is not a lambda.
+                    if (fromClause.Parent.IsKind(SyntaxKind.QueryExpression))
                     {
                         return false;
                     }

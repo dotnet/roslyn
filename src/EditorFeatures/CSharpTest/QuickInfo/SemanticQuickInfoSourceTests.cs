@@ -2631,10 +2631,10 @@ $@"
                 MainDescription(@"string 'a.Name { get; }"),
                 NoTypeParameterMap,
                 AnonymousTypes(
-@"
-Anonymous Types:
-    'a is new { string Name, 'b Address }
-    'b is new { string Street, string Zip }"));
+$@"
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ string Name, 'b Address }}
+    'b {FeaturesResources.Is} new {{ string Street, string Zip }}"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3155,7 +3155,7 @@ class C
 
             var documentation = $@"
 {WorkspacesResources.Usage}
-  await Foo();";
+  {CSharpFeaturesResources.Await} Foo();";
 
             VerifyWithMscorlib45(markup, new[] { MainDescription(description), Usage(documentation) });
         }
@@ -3872,7 +3872,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage("\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", expectsWarningGlyph: true) });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true) });
         }
 
         [WorkItem(1020944)]

@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal struct BraceMatchingResult
     {
-        public TextSpan LeftSpan { get; private set; }
-        public TextSpan RightSpan { get; private set; }
+        public TextSpan LeftSpan { get; }
+        public TextSpan RightSpan { get; }
 
         public BraceMatchingResult(TextSpan leftSpan, TextSpan rightSpan)
             : this()

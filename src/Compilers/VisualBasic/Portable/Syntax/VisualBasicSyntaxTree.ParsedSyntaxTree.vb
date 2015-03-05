@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(textOpt Is Nothing OrElse textOpt.Encoding Is encodingOpt AndAlso textOpt.ChecksumAlgorithm = checksumAlgorithm)
 
                 _lazyText = textOpt
-                _encodingOpt = encodingOpt
+                _encodingOpt = If(encodingOpt, textOpt?.Encoding)
                 _checksumAlgorithm = checksumAlgorithm
                 _options = options
                 _path = path
@@ -81,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 text = _lazyText
                 Return text IsNot Nothing
             End Function
+
+            Public Overrides ReadOnly Property Encoding As Encoding
+                Get
+                    Return _encodingOpt
+                End Get
+            End Property
 
             Public Overrides ReadOnly Property Length As Integer
                 Get

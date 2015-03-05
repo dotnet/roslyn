@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         {
             #region Private Members
 
-            public char OpeningBrace { get; private set; }
-            public char ClosingBrace { get; private set; }
+            public char OpeningBrace { get; }
+            public char ClosingBrace { get; }
             public ITrackingPoint OpeningPoint { get; private set; }
             public ITrackingPoint ClosingPoint { get; private set; }
-            public ITextBuffer SubjectBuffer { get; private set; }
-            public ITextView TextView { get; private set; }
+            public ITextBuffer SubjectBuffer { get; }
+            public ITextView TextView { get; }
 
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;

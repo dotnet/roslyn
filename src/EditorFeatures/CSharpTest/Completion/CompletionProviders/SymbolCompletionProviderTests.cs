@@ -6298,7 +6298,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpEditorResources.Awaitable}) Task Program.foo()
+            var description = $@"({CSharpFeaturesResources.Awaitable}) Task Program.foo()
 {WorkspacesResources.Usage}
   {CSharpFeaturesResources.Await} foo();";
 
@@ -6319,7 +6319,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpEditorResources.Awaitable}) Task<int> Program.foo()
+            var description = $@"({CSharpFeaturesResources.Awaitable}) Task<int> Program.foo()
 {WorkspacesResources.Usage}
   int x = {CSharpFeaturesResources.Await} foo();";
 

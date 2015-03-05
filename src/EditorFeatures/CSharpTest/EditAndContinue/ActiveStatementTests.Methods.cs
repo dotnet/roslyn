@@ -411,7 +411,7 @@ class C
     {
         int <N:0.0>a = 1</N:0.0>;
         int <N:0.1>b = 2</N:0.1>;
-        <AS:0>Console.ReadLine(a + b);</AS:0>
+        <AS:0>System.Console.WriteLine(a + b);</AS:0>
     }
 }
 ";
@@ -422,7 +422,7 @@ class C
     {
         int <N:0.1>b = 2</N:0.1>;
         int <N:0.0>a = 1</N:0.0>;
-        <AS:0>Console.ReadLine(a + b);</AS:0>
+        <AS:0>System.Console.WriteLine(a + b);</AS:0>
     }
 }";
             var edits = GetTopEdits(src1, src2);

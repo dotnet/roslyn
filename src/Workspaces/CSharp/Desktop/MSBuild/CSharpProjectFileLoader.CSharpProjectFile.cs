@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
-                internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
+                internal Dictionary<string, ReportDiagnostic> Warnings { get; }
                 internal string OutputFileName { get; private set; }
 
                 private static readonly CSharpParseOptions s_defaultParseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);

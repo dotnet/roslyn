@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis
             return _builder.Contains(item);
         }
 
+        public int IndexOf(T item)
+        {
+            return _builder.IndexOf(item);
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);

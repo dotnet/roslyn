@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.IsTransparent = isTransparent;
         }
 
-        internal bool IsTransparent { get; private set; }
+        internal bool IsTransparent { get; }
 
         public override string Name
         {

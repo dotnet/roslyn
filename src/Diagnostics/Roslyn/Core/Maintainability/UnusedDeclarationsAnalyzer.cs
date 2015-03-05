@@ -18,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static readonly LocalizableString s_messageFormat = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UnusedDeclarationsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
-        internal static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeRuleId, s_title, s_messageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeRuleId, s_title, s_messageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: false);
 
         internal static readonly DiagnosticDescriptor s_triggerRule = new TriggerDiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeTriggerRuleId, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry);
 

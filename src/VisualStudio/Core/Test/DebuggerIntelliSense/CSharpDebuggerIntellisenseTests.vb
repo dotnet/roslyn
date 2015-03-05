@@ -615,6 +615,35 @@ $$</Document>
             End Using
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Sub CompletionOnTypeCharacterInLinkedFileContext()
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+123123123123123123123123123 + $$</Document>
+                               <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
+                           </Project>
+                           <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                               <Document FilePath="C.cs">
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}
+                              </Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendTypeChars("arg")
+                Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())
+                state.AssertCompletionSession()
+                state.SendTab()
+                Assert.Contains("args", state.GetCurrentViewLineText())
+            End Using
+        End Sub
+
         Private Sub VerifyCompletionAndDotAfter(item As String, state As TestState)
             state.SendTypeChars(item)
             state.AssertSelectedCompletionItem(item)

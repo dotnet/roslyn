@@ -67,91 +67,19 @@
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ExpressionCompiler\DateTimeUtilities.cs">
-      <Link>ResultProvider\Helpers\DateTimeUtilities.cs</Link>
+      <Link>ExpressionCompiler\DateTimeUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionCompilerConstants.cs">
       <Link>ExpressionCompiler\ExpressionCompilerConstants.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
-      <Link>ResultProvider\Helpers\ExpressionEvaluatorFatalError.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\AggregateExpansion.cs">
-      <Link>ResultProvider\Expansion\AggregateExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\ArrayExpansion.cs">
-      <Link>ResultProvider\Expansion\ArrayExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\DebuggerTypeProxyExpansion.cs">
-      <Link>ResultProvider\Expansion\DebuggerTypeProxyExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\Expansion.cs">
-      <Link>ResultProvider\Expansion\Expansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\MemberExpansion.cs">
-      <Link>ResultProvider\Expansion\MemberExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\PointerDereferenceExpansion.cs">
-      <Link>ResultProvider\Expansion\PointerDereferenceExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\ResultsViewExpansion.cs">
-      <Link>ResultProvider\Expansion\ResultsViewExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Expansion\TypeVariablesExpansion.cs">
-      <Link>ResultProvider\Expansion\TypeVariablesExpansion.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Formatter.cs">
-      <Link>ResultProvider\Formatter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Formatter.TypeNames.cs">
-      <Link>ResultProvider\Formatter.TypeNames.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Formatter.Values.cs">
-      <Link>ResultProvider\Formatter.Values.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\ArrayBuilder.cs">
-      <Link>ResultProvider\Helpers\ArrayBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\DebuggerDisplayInfo.cs">
-      <Link>ResultProvider\Helpers\DebuggerDisplayInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\DkmClrValueFlagsExtensions.cs">
-      <Link>ResultProvider\Helpers\DkmClrValueFlagsExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\DkmEvaluationResultFlagsExtensions.cs">
-      <Link>ResultProvider\Helpers\DkmEvaluationResultFlagsExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\EvalResultDataItem.cs">
-      <Link>ResultProvider\Helpers\EvalResultDataItem.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\EnumContextDataItem.cs">
-      <Link>ResultProvider\Helpers\EnumContextDataItem.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\GeneratedMetadataNames.cs">
-      <Link>ResultProvider\Helpers\GeneratedMetadataNames.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\InternalWellKnownMemberNames.cs">
-      <Link>ResultProvider\Helpers\InternalWellKnownMemberNames.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\MemberAndDeclarationInfo.cs">
-      <Link>ResultProvider\Helpers\MemberAndDeclarationInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\RawStringDataItem.cs">
-      <Link>ResultProvider\Helpers\RawStringDataItem.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\TypeHelpers.cs">
-      <Link>ResultProvider\Helpers\TypeHelpers.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\ValueHelpers.cs">
-      <Link>ResultProvider\Helpers\ValueHelpers.cs</Link>
+      <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
     <Compile Include="..\..\Source\ResultProvider\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\ResultProvider.cs">
-      <Link>ResultProvider\ResultProvider.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -221,6 +149,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />
