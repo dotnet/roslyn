@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class ExpressionCompiler :
+    public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification
