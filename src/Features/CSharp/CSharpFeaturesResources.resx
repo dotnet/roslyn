@@ -255,42 +255,6 @@
   <data name="OrganizeUsingsWithAccelerator" xml:space="preserve">
     <value>&amp;Organize Usings</value>
   </data>
-  <data name="DisposePattern" xml:space="preserve">
-    <value>    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
-
-    {0}void Dispose(bool disposing)
-    {{
-        if (!disposedValue)
-        {{
-            if (disposing)
-            {{
-                // TODO: dispose managed state (managed objects).
-            }}
-
-            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-            // TODO: set large fields to null.
-
-            disposedValue = true;
-        }}
-    }}
-
-    // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-    // ~{1}() {{
-    //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-    //   Dispose(false);
-    // }}
-
-    // This code added to correctly implement the disposable pattern.
-    {2}Dispose()
-    {{
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
-        // TODO: uncomment the following line if the finalizer is overridden above.
-        // GC.SuppressFinalize(this);
-    }}
-    #endregion</value>
-  </data>
   <data name="AutoselectDisabledDueToPotentialImplicitArray" xml:space="preserve">
     <value>Autoselect disabled due to potential implicit array creation.</value>
   </data>
@@ -320,5 +284,20 @@
   </data>
   <data name="ImplicitConversionDisplayText" xml:space="preserve">
     <value>Generate implicit conversion operator in '{0}'</value>
+  </data>
+  <data name="DoNotChangeThisCodeUseDispose" xml:space="preserve">
+    <value>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</value>
+  </data>
+  <data name="FreeUnmanagedResourcesTodo" xml:space="preserve">
+    <value>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</value>
+  </data>
+  <data name="OverrideAFinalizerTodo" xml:space="preserve">
+    <value>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</value>
+  </data>
+  <data name="ThisCodeAddedToCorrectlyImplementDisposable" xml:space="preserve">
+    <value>This code added to correctly implement the disposable pattern.</value>
+  </data>
+  <data name="UncommentTheFollowingIfFinalizerOverriddenTodo" xml:space="preserve">
+    <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
   </data>
 </root>

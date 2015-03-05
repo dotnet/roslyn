@@ -1086,10 +1086,10 @@ class C
 vbTab & "where TResult : class" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Library_MemberOf, "C")}" & vbCrLf &
 "" & vbCrLf &
-FeaturesResources.Summary & vbCrLf &
+ServicesVSResources.Library_Summary & vbCrLf &
 "The M method." & vbCrLf &
 "" & vbCrLf &
-FeaturesResources.Returns & vbCrLf &
+ServicesVSResources.Library_Returns & vbCrLf &
 "Returns a TResult.")
             End Using
         End Sub

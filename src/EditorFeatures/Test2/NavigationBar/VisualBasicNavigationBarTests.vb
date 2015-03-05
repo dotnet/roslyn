@@ -348,33 +348,33 @@ End Class
             AssertGeneratedResultIs(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
-                        <Document><![CDATA[
-<Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute>
+                        <Document>
+&lt;Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute&gt;
 Class C
 
     Sub InitializeComponent()
     End Sub
 End Class
-                        ]]></Document>
+                        </Document>
                     </Project>
                 </Workspace>,
                 "C", NavigationItemNew,
-                <Result><![CDATA[
-<Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute>
+                <Result>
+&lt;Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute&gt;
 Class C
     Public Sub New()
 
-        ' This call is required by the designer.
+        ' <%= ThisCallIsRequiredByTheDesigner %>
         InitializeComponent()
 
-        ' Add any initialization after the InitializeComponent() call.
+        ' <%= AddAnyInitializationAfter %>
 
     End Sub
 
     Sub InitializeComponent()
     End Sub
 End Class
-                ]]></Result>)
+                </Result>)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>

@@ -852,8 +852,8 @@ class C$$
                 state.EditorOperations.InsertText("at");
                 state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
                 Assert.True(mockPreview.Called);
-                Assert.Equal("Rename 'C' to 'Cat':", mockPreview.Description);
-                Assert.Equal("Preview Changes - Rename", mockPreview.Title);
+                Assert.Equal(string.Format(EditorFeaturesResources.RenameToTitle, "C", "Cat"), mockPreview.Description);
+                Assert.Equal(string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), mockPreview.Title);
                 Assert.Equal("C", mockPreview.TopLevelName);
                 Assert.Equal(Glyph.ClassInternal, mockPreview.TopLevelGlyph);
             }

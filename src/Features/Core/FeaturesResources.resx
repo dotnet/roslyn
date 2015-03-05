@@ -833,4 +833,13 @@ Do you want to continue?</value>
   <data name="FixAllTitle_Solution" xml:space="preserve">
     <value>Solution</value>
   </data>
+  <data name="DisposeManagedStateTodo" xml:space="preserve">
+    <value>TODO: dispose managed state (managed objects).</value>
+  </data>
+  <data name="SetLargeFieldsToNullTodo" xml:space="preserve">
+    <value>TODO: set large fields to null.</value>
+  </data>
+  <data name="ToDetectRedundantCalls" xml:space="preserve">
+    <value>To detect redundant calls</value>
+  </data>
 </root>

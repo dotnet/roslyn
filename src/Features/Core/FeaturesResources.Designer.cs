@@ -583,6 +583,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TODO: dispose managed state (managed objects)..
+        /// </summary>
+        internal static string DisposeManagedStateTodo {
+            get {
+                return ResourceManager.GetString("DisposeManagedStateTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
         internal static string EditAndContinue {
@@ -1789,6 +1798,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TODO: set large fields to null..
+        /// </summary>
+        internal static string SetLargeFieldsToNullTodo {
+            get {
+                return ResourceManager.GetString("SetLargeFieldsToNullTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string SimplifyMemberAccess {
@@ -1931,6 +1949,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ThisSymbolHasRelatedDefinitionsOrReferencesInMetadata {
             get {
                 return ResourceManager.GetString("ThisSymbolHasRelatedDefinitionsOrReferencesInMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To detect redundant calls.
+        /// </summary>
+        internal static string ToDetectRedundantCalls {
+            get {
+                return ResourceManager.GetString("ToDetectRedundantCalls", resourceCulture);
             }
         }
         
