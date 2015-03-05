@@ -15,14 +15,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal class AnalyzerItemSource : IAttachedCollectionSource, INotifyPropertyChanged
     {
         private readonly AnalyzersFolderItem _analyzersFolder;
+        private readonly IAnalyzersCommandHandler _commandHandler;
         private IReadOnlyCollection<AnalyzerReference> _analyzerReferences;
         private BulkObservableCollection<AnalyzerItem> _analyzerItems;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public AnalyzerItemSource(AnalyzersFolderItem analyzersFolder)
+        public AnalyzerItemSource(AnalyzersFolderItem analyzersFolder, IAnalyzersCommandHandler commandHandler)
         {
             _analyzersFolder = analyzersFolder;
+            _commandHandler = commandHandler;
+
             _analyzersFolder.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         }
 
@@ -98,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 foreach (var reference in referencesToAdd)
                 {
-                    _analyzerItems.Add(new AnalyzerItem(_analyzersFolder, reference));
+                    _analyzerItems.Add(new AnalyzerItem(_analyzersFolder, reference, _commandHandler.AnalyzerContextMenuController));
                 }
 
                 var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
@@ -161,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         _analyzerReferences = project.AnalyzerReferences;
                         var initialSet = _analyzerReferences
                                             .OrderBy(ar => ar.Display)
-                                            .Select(ar => new AnalyzerItem(_analyzersFolder, ar));
+                                            .Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
                         _analyzerItems.AddRange(initialSet);
                     }
                 }
