@@ -4,9 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -18,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// It ensures the following for the lifetime of analyzer host:
     /// 1) <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> is invoked only once per-analyzer.
     /// 2) <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is invoked only once per-analyzer.
-    /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-analyzer per-compilation.
+    /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-compilation per-<see cref="AnalyzerAndOptions"/>
     /// </summary>
     /// <remarks>
     /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/> and
     /// <see cref="GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer, AnalyzerExecutor)"/> out of the AnalyzerManager and into analyzer drivers.
     /// </remarks>
-    internal class AnalyzerManager
+    internal partial class AnalyzerManager
     {
         /// <summary>
         /// Gets the default instance of the AnalyzerManager for the lifetime of the analyzer host process.
@@ -37,24 +35,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             new ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>();
 
         // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
-        // Compilation start actions will get executed once per-each compilation as user might want to return different set of custom actions for each compilation.
-        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>>();
+        // Compilation start actions will get executed once per-each AnalyzerAndOptions as user might want to return different set of custom actions for each compilation/analyzer options.
+        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>();
+
+        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback _compilationScopeMapCallback =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback(
+                comp => new ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>(concurrencyLevel: 2, capacity: 5));
 
         /// <summary>
         /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
         /// a property rather than metadata. We expect it to be cheap and immutable, but we can't force them to be so, we cache them
         /// and ask only once.
         /// </summary>
-        private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>> _descriptorCache =
-            new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyList<DiagnosticDescriptor>>();
-        
+        private readonly ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>> _descriptorCache =
+            new ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>();
+
         private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
-            DiagnosticAnalyzer analyzer,
+            AnalyzerAndOptions analyzerAndOptions,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
-            Func<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>> getTask = a =>
+            Func<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>> getTask = a =>
             {
                 return Task.Run(() =>
                 {
@@ -64,18 +66,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }, analyzerExecutor.CancellationToken);
             };
 
-            var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(analyzerExecutor.Compilation);
-            return compilationActionsMap.GetOrAdd(analyzer, getTask);
+            var compilationActionsMap = _compilationScopeMap.GetValue(analyzerExecutor.Compilation, _compilationScopeMapCallback);
+            return compilationActionsMap.GetOrAdd(analyzerAndOptions, getTask);
         }
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
-            DiagnosticAnalyzer analyzer, 
+            DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
+            var analyzerAndOptions = new AnalyzerAndOptions(analyzer, analyzerExecutor.AnalyzerOptions);
+
             try
             {
-                return await GetCompilationAnalysisScopeCoreAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                return await GetCompilationAnalysisScopeCoreAsync(analyzerAndOptions, sessionScope, analyzerExecutor).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -83,16 +87,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
                 var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(analyzerExecutor.Compilation);
                 Task<HostCompilationStartAnalysisScope> cancelledTask;
-                compilationActionsMap.TryRemove(analyzer, out cancelledTask);
+                compilationActionsMap.TryRemove(analyzerAndOptions, out cancelledTask);
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-
             }
         }
 
         private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
-            DiagnosticAnalyzer analyzer, 
+            DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
             Func<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> getTask = a =>
@@ -183,10 +186,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from analyzer.SupportedDiagnostics
                 analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
 
-                return supportedDiagnostics;
+                var handler = new EventHandler<Exception>((sender, ex) =>
+                    {
+                        var diagnostic = AnalyzerExecutor.GetAnalyzerDiagnostic(analyzer, ex);
+                        analyzerExecutor.OnAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+                    });
+
+                // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
+                foreach (var descriptor in supportedDiagnostics)
+                {
+                    descriptor.Title.OnException += handler;
+                    descriptor.MessageFormat.OnException += handler;
+                    descriptor.Description.OnException += handler;
+                }
+
+                return Tuple.Create(supportedDiagnostics, handler);
             });
 
-            return (ImmutableArray<DiagnosticDescriptor>)descriptors;
+            return descriptors.Item1;
+        }
+
+        internal void ClearAnalyzerExceptionHandlers(DiagnosticAnalyzer analyzer)
+        {
+            // Host is disposing the analyzer instance, unsubscribe analyzer exception handlers.
+            Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
+            if (_descriptorCache.TryGetValue(analyzer, out value))
+            {
+                var descriptors = value.Item1;
+                var handler = value.Item2;
+                foreach (var descriptor in descriptors)
+                {
+                    descriptor.Title.OnException -= handler;
+                    descriptor.MessageFormat.OnException -= handler;
+                    descriptor.Description.OnException -= handler;
+                }
+            }
         }
 
         /// <summary>

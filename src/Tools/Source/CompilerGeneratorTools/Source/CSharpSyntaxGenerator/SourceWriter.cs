@@ -1465,7 +1465,7 @@ namespace CSharpSyntaxGenerator
         {
             return field.Type == "SyntaxToken"
                 && field.Kinds != null
-                && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken")) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
+                && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken", StringComparison.Ordinal)) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
         }
 
         private bool IsAutoCreateableNode(Node node, Field field)

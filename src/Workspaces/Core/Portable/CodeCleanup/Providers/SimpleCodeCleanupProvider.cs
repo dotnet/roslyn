@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             _syntaxDelegatee = syntaxDelegatee;
         }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {

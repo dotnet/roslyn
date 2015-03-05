@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         /// <summary>
         /// The name of the command. May not contain any whitespace characters.
         /// </summary>
-        string Name
+        IEnumerable<string> Names
         {
             get;
         }

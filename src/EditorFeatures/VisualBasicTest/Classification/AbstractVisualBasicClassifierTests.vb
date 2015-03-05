@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             allCode As String,
             ParamArray expected As Tuple(Of String, String)())
 
-            Dim start = allCode.IndexOf(code)
+            Dim start = allCode.IndexOf(code, StringComparison.Ordinal)
             Dim length = code.Length
             Dim span = New TextSpan(start, length)
 

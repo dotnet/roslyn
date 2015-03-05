@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                                 return null;
                             }
 
-                            // saved data is for same provider of different version of dll
-                            var providerVersion = VersionStamp.ReadFrom(reader);
-                            if (providerVersion != _version)
+                        // saved data is for same analyzer of different version of dll
+                        var analyzerVersion = VersionStamp.ReadFrom(reader);
+                        if (analyzerVersion != _version)
                             {
                                 return null;
                             }
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             }
 
                             writer.WriteInt32(item.Properties.Count);
-                            foreach(var property in item.Properties)
+                        foreach (var property in item.Properties)
                             {
                                 writer.WriteString(property.Key);
                                 writer.WriteString(property.Value);

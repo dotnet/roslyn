@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Tracks variables for which we have already reported a definite assignment error.  This
         /// allows us to report at most one such error per variable.
         /// </summary>
-        private BitArray _alreadyReported;
+        private BitVector _alreadyReported;
 
         /// <summary>
         /// Reflects the enclosing method or lambda at the current location (in the bound tree).
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Diagnostics.Clear();
             ImmutableArray<ParameterSymbol> methodParameters = MethodParameters;
             ParameterSymbol methodThisParameter = MethodThisParameter;
-            _alreadyReported = BitArray.Empty;           // no variables yet reported unassigned
+            _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
             this.State = ReachableState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
@@ -1171,12 +1171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableState()
         {
-            return new LocalState(BitArray.Empty);
+            return new LocalState(BitVector.Empty);
         }
 
         protected override LocalState AllBitsSet()
         {
-            var result = new LocalState(BitArray.AllSet(nextVariableSlot));
+            var result = new LocalState(BitVector.AllSet(nextVariableSlot));
             result.Assigned[0] = false;
             return result;
         }
@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToString();
         }
 
-        protected void AppendBitNames(BitArray a, StringBuilder builder)
+        protected void AppendBitNames(BitVector a, StringBuilder builder)
         {
             bool any = false;
             foreach (int bit in a.TrueBits())
@@ -1948,9 +1948,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal struct LocalState : AbstractLocalState
         {
-            internal BitArray Assigned;
+            internal BitVector Assigned;
 
-            internal LocalState(BitArray assigned)
+            internal LocalState(BitVector assigned)
             {
                 this.Assigned = assigned;
                 Debug.Assert(!assigned.IsNull);

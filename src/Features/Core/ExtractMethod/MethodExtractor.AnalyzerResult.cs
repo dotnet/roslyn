@@ -66,32 +66,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// used to determine whether static can be used
             /// </summary>
-            public bool UseInstanceMember { get; private set; }
+            public bool UseInstanceMember { get; }
 
             /// <summary>
             /// used to determine whether "return" statement needs to be inserted
             /// </summary>
-            public bool EndOfSelectionReachable { get; private set; }
+            public bool EndOfSelectionReachable { get; }
 
             /// <summary>
             /// document this result is based on
             /// </summary>
-            public SemanticDocument SemanticDocument { get; private set; }
+            public SemanticDocument SemanticDocument { get; }
 
             /// <summary>
             /// flag to show whether task return type is due to await
             /// </summary>
-            public bool AwaitTaskReturn { get; private set; }
+            public bool AwaitTaskReturn { get; }
 
             /// <summary>
             /// return type
             /// </summary>
-            public ITypeSymbol ReturnType { get; private set; }
+            public ITypeSymbol ReturnType { get; }
 
             /// <summary>
             /// analyzer result operation status
             /// </summary>
-            public OperationStatus Status { get; private set; }
+            public OperationStatus Status { get; }
 
             public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
             {

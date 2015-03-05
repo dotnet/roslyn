@@ -1317,7 +1317,7 @@ class C
             var expected = string.Join("\n", source
                 .Split(new[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Contains("//-"))
-                .Select(x => x.Substring(x.IndexOf("//-") + 3).Trim())
+                .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
 
             Assert.Equal(expected, results);

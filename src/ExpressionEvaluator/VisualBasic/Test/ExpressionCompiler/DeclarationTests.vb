@@ -819,7 +819,7 @@ End Class"
   // Code size       16 (0x10)
   .maxstack  1
   IL_0000:  ldstr      ""x""
-  IL_0005:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""String""
   IL_000f:  ret
 }
@@ -861,11 +861,11 @@ End Class"
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""Sub <>x.<>CreateVariable(System.Type, String)""
+  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
   IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""Function <>x.<>GetVariableAddress(Of Object)(String) As Object""
+  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_001e:  ldstr      ""x""
-  IL_0023:  call       ""Function <>x.<>GetObjectByAlias(String) As Object""
+  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0028:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_002d:  stind.ref
   IL_002e:  ret

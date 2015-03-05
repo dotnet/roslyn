@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim id = CType(context.Node, IdentifierNameSyntax)
-                If id.Identifier.ValueText.StartsWith("x") Then
+                If id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal) Then
                     context.ReportDiagnostic(New TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.GetLocation(), "Use of variable whose name starts with 'x': '{0}'", False, id.Identifier.ValueText))
                 End If
             End Sub
@@ -419,7 +419,7 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
         End Sub
 
@@ -465,7 +465,7 @@ End Class
             Assert.NotNull(MyTemplate)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
 
@@ -515,7 +515,7 @@ End Namespace
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[N]]>),
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
@@ -582,7 +582,7 @@ End Class
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
         End Sub
 
         <Fact, WorkItem(1096600)>
@@ -657,7 +657,7 @@ End Enum
                     options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
         End Sub
 
@@ -679,7 +679,7 @@ End Class
                     options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
         End Sub
 
@@ -725,7 +725,7 @@ End Class
                     options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x, y As Integer]]>),
                     AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
                     AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),

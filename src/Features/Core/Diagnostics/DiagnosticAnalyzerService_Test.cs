@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
+        // Internal for testing purposes.
+        internal DiagnosticAnalyzerService(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
+           : this(workspaceAnalyzerAssemblies: SpecializedCollections.EmptyEnumerable<string>(), hostDiagnosticUpdateSource: hostDiagnosticUpdateSource)
+        {
+        }
+
         private class TestAnalyzerReferenceByLanguage : AnalyzerReference
         {
             private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;

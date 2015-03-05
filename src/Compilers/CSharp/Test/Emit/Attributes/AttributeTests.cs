@@ -3335,7 +3335,7 @@ class D : C
 
             var model = cm.GetSemanticModel(cm.SyntaxTrees[0]);
 
-            int index = main.IndexOf("M()");
+            int index = main.IndexOf("M()", StringComparison.Ordinal);
             var m = (ExpressionSyntax)cm.SyntaxTrees[0].GetCompilationUnitRoot().FindToken(index).Parent.Parent;
 
             var info = model.GetSymbolInfo(m);

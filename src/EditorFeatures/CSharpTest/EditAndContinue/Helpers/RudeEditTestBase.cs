@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
         {
-            return new RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments);
+            return new RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine: null);
         }
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap)
@@ -92,20 +92,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             var methodMatch = GetMethodMatch(src1, src2, options, stateMachine);
 
-            bool hasLambda;
             Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
-            var reverseMap = Analyzer.ComputeReverseMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>(), out hasLambda);
+            var map = Analyzer.ComputeMap(methodMatch, new AbstractEditAndContinueAnalyzer.ActiveNode[0], ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
-            foreach (var pair in reverseMap)
+            foreach (var pair in map.Forward)
             {
-                if (pair.Key == methodMatch.NewRoot)
+                if (pair.Value == methodMatch.NewRoot)
                 {
-                    Assert.Same(pair.Value, methodMatch.OldRoot);
+                    Assert.Same(pair.Key, methodMatch.OldRoot);
                     continue;
                 }
 
-                result.Add(pair.Value, pair.Key);
+                result.Add(pair.Key, pair.Value);
             }
 
             return result;
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 .Select(partners => new MatchingPair { Old = partners.Key.ToString().Replace("\r\n", " "), New = partners.Value.ToString().Replace("\r\n", " ") }));
         }
 
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K,V>(IEnumerable<KeyValuePair<V, K>> mapping)
+        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
         {
             foreach (var pair in mapping)
             {

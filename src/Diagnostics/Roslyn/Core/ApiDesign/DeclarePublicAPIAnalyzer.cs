@@ -50,7 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.None);
 
-        private static readonly SymbolDisplayFormat PublicApiFormat =
+        private static readonly SymbolDisplayFormat s_publicApiFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -163,7 +163,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
         internal static string GetPublicApiName(ISymbol symbol)
         {
-            var publicApiName = symbol.ToDisplayString(PublicApiFormat);
+            var publicApiName = symbol.ToDisplayString(s_publicApiFormat);
 
             ITypeSymbol memberType = null;
             if (symbol is IMethodSymbol)
@@ -185,7 +185,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
             if (memberType != null)
             {
-                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(PublicApiFormat);
+                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
             }
 
             return publicApiName;

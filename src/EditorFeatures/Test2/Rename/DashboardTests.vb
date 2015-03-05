@@ -3,11 +3,9 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class DashboardTests
@@ -35,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:="found 1 reference in 1 file",
+                    searchResultText:=EditorFeaturesResources.FoundReferenceInFile,
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -67,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:="found 2 references in 1 file",
+                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
                     hasRenameOverload:=True,
                     changedOptionSet:=changingOptions)
         End Sub
@@ -96,10 +94,10 @@ class Program
                     </Project>
                 </Workspace>,
                 newName:="Bar",
-                searchResultText:="found 2 references in 1 file",
+                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
                 changedOptionSet:=changingOptions,
                 hasRenameOverload:=True,
-                unresolvableConflictText:="1 unresolvable conflict(s)",
+                unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 1),
                 severity:=DashboardSeverity.Error)
         End Sub
 
@@ -118,8 +116,8 @@ class AttributeAttribute : System.Attribute { }
                          </Project>
                      </Workspace>),
                     newName:="AttributeAttributeAttribute",
-                    searchResultText:="found 1 reference in 1 file",
-                    resolvableConflictText:="1 conflict(s) will be resolved",
+                    searchResultText:=EditorFeaturesResources.FoundReferenceInFile,
+                    resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
                     severity:=DashboardSeverity.Info)
         End Sub
 
@@ -157,7 +155,7 @@ class AttributeAttribute : System.Attribute { }
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:="found 5 references in 1 file",
+                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 5),
                     hasRenameOverload:=True,
                     changedOptionSet:=changingOptions)
         End Sub
@@ -198,7 +196,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:="found 6 references in 1 file",
+                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 6),
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -238,7 +236,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:="found 2 references in 1 file",
+                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -279,7 +277,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:="found 7 references in 1 file",
+                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 7),
                     changedOptionSet:=changingOptions)
         End Sub
 
@@ -301,7 +299,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:="found 3 references in 1 file")
+                    searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 3))
         End Sub
 
         <Fact>
@@ -322,7 +320,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:="found 1 reference in 1 file")
+                    searchResultText:=EditorFeaturesResources.FoundReferenceInFile)
         End Sub
 
         <Fact>
@@ -344,8 +342,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:="found 2 references in 1 file",
-                resolvableConflictText:="1 conflict(s) will be resolved",
+                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
                 severity:=DashboardSeverity.Info)
         End Sub
 
@@ -369,8 +367,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:="found 2 references in 1 file",
-                resolvableConflictText:="2 conflict(s) will be resolved",
+                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 2),
+                resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 2),
                 severity:=DashboardSeverity.Info)
         End Sub
 
@@ -392,8 +390,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:="found 1 reference in 1 file",
-                unresolvableConflictText:="1 unresolvable conflict(s)",
+                searchResultText:=EditorFeaturesResources.FoundReferenceInFile,
+                unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 1),
                 severity:=DashboardSeverity.Error)
         End Sub
 
@@ -417,8 +415,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:="found 3 references in 1 file",
-                unresolvableConflictText:="3 unresolvable conflict(s)",
+                searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInFile, 3),
+                unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 3),
                 severity:=DashboardSeverity.Error)
         End Sub
 
@@ -454,8 +452,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                    newName:="Bar",
-                   searchResultText:="found 4 references in 2 files",
-                   resolvableConflictText:="1 conflict(s) will be resolved",
+                   searchResultText:=String.Format(EditorFeaturesResources.FoundReferencesInMultipleFiles, 4, 2),
+                   resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
                    severity:=DashboardSeverity.Info)
         End Sub
 

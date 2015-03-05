@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not emittedName.IsEmpty Then
-                Dim nsIdx = emittedName.LastIndexOf(".")
+                Dim nsIdx = emittedName.LastIndexOf("."c)
                 If nsIdx > -1 Then
                     myCaseCorrectedNSName = emittedName.Substring(nsIdx + 1)
                     myCaseCorrectedParentNSName = emittedName.Substring(0, nsIdx)
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If ShouldVisitNamespace(containingNamespace) Then
-                    VisitNamespace(DirectCast(containingNamespace, INamespaceSymbol), myCaseCorrectedParentNSName)
+                    VisitNamespace(containingNamespace, myCaseCorrectedParentNSName)
                     AddOperator(SyntaxKind.DotToken)
                     visitedParents = True
                 End If
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 (Not namedType.IsScriptClass OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
         End Function
 
-        Private Function IsEnumMember(symbol As ISymbol) As Boolean
+        Private Shared Function IsEnumMember(symbol As ISymbol) As Boolean
             Return _
                 symbol IsNot Nothing AndAlso
                 symbol.Kind = SymbolKind.Field AndAlso

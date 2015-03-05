@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
             }
 
-            AssertIsLambdaScopeSyntax(scopeSyntaxOpt);
+            AssertIsClosureScopeSyntax(scopeSyntaxOpt);
             this.ScopeSyntaxOpt = scopeSyntaxOpt;
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Conditional("DEBUG")]
-        private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntaxOpt)
+        private static void AssertIsClosureScopeSyntax(CSharpSyntaxNode syntaxOpt)
         {
             // See C# specification, chapter 3.7 Scopes.
 
@@ -82,85 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // block:
-            if (syntaxOpt.IsKind(SyntaxKind.Block))
-            {
-                return;
-            }
-
-            // switch block:
-            if (syntaxOpt.IsKind(SyntaxKind.SwitchStatement))
-            {
-                return;
-            }
-
-            // expression-bodied member:
-            if (syntaxOpt.IsKind(SyntaxKind.ArrowExpressionClause))
-            {
-                return;
-            }
-
-            // catch clause (including filter):
-            if (syntaxOpt.IsKind(SyntaxKind.CatchClause))
-            {
-                return;
-            }
-
-            // class/struct containing a field/property with a declaration expression
-            if (syntaxOpt.IsKind(SyntaxKind.ClassDeclaration) || syntaxOpt.IsKind(SyntaxKind.StructDeclaration))
-            {
-                return;
-            }
-
-            // lambda in a let clause, 
-            // e.g. from item in array let a = new Func<int>(() => item)
-            if (syntaxOpt.IsKind(SyntaxKind.LetClause))
-            {
-                return;
-            }
-
-            if (IsStatementWithEmbeddedStatementBody(syntaxOpt.Kind()))
-            {
-                return;
-            }
-
-            // lambda bodies:
-            if (SyntaxFacts.IsLambdaBody(syntaxOpt))
-            {
-                return;
-            }
-
-            // lambda in a ctor initializer that refers to a ctor parameter
-            if (syntaxOpt.IsKind(SyntaxKind.ConstructorDeclaration))
-            {
-                return;
-            }
-
-            // TODO: EE expression
-            if (syntaxOpt is ExpressionSyntax && syntaxOpt.Parent.Parent == null)
+            if (SyntaxUtilities.IsClosureScope(syntaxOpt))
             {
                 return;
             }
 
             throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());
-        }
-
-        private static bool IsStatementWithEmbeddedStatementBody(SyntaxKind syntax)
-        {
-            switch (syntax)
-            {
-                case SyntaxKind.IfStatement:
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.UsingStatement:
-                case SyntaxKind.FixedStatement:
-                case SyntaxKind.LockStatement:
-                    return true;
-            }
-
-            return false;
         }
 
         public override TypeKind TypeKind

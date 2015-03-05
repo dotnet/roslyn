@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The path on disk to the other project file. 
         /// This path may be relative to the referencing project's file or an absolute path.
         /// </summary>
-        public string Path { get; private set; }
+        public string Path { get; }
 
         /// <summary>
         /// The aliases assigned to this reference, if any.
         /// </summary>
-        public ImmutableArray<string> Aliases { get; private set; }
+        public ImmutableArray<string> Aliases { get; }
 
         public ProjectFileReference(string path, ImmutableArray<string> aliases)
         {

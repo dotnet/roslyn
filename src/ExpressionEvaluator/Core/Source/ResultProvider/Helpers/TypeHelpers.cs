@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -257,6 +256,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsMscorlibType("System", "Void") && !type.IsGenericType;
         }
 
+        internal static bool IsIEnumerable(this Type type)
+        {
+            return type.IsMscorlibType("System.Collections", "IEnumerable");
+        }
+
+        internal static bool IsIEnumerableOfT(this Type type)
+        {
+            return type.IsMscorlibType("System.Collections.Generic", "IEnumerable`1");
+        }
+
         internal static bool IsTypeVariables(this Type type)
         {
             return type.IsType(null, "<>c__TypeVariables");
@@ -434,18 +443,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        internal static void EvaluateDebuggerDisplayStringAndContinue(this DkmClrValue value, DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string str, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
-        {
-            if (str == null)
-            {
-                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
-            }
-            else
-            {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
-            }
-        }
-
         internal static DkmClrType GetProxyType(this DkmClrType type)
         {
             DkmClrType attributeTarget;
@@ -533,7 +530,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 foreach (var @interface in t.GetInterfacesOnType())
                 {
-                    if (@interface.IsMscorlibType("System.Collections.Generic", "IEnumerable`1"))
+                    if (@interface.IsIEnumerableOfT())
                     {
                         // Return the first implementation of IEnumerable<T>.
                         return @interface;
@@ -544,7 +541,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             foreach (var @interface in type.GetInterfaces())
             {
-                if (@interface.IsMscorlibType("System.Collections", "IEnumerable"))
+                if (@interface.IsIEnumerable())
                 {
                     return @interface;
                 }
@@ -595,11 +592,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsType(@namespace, name) /*&& type.Assembly.IsMscorlib()*/;
         }
 
-        private static bool IsType(this Type type, string @namespace, string name)
+        internal static bool IsOrInheritsFrom(this Type type, string @namespace, string name)
+        {
+            do
+            {
+                if (type.IsType(@namespace, name))
+                {
+                    return true;
+                }
+                type = type.BaseType;
+            }
+            while (type != null);
+            return false;
+        }
+
+        internal static bool IsType(this Type type, string @namespace, string name)
         {
             Debug.Assert((@namespace == null) || (@namespace.Length > 0)); // Type.Namespace is null not empty.
             Debug.Assert(!string.IsNullOrEmpty(name));
-            return (type.Namespace == @namespace) && (type.Name == name);
+            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
+                string.Equals(type.Name, name, StringComparison.Ordinal);
         }
     }
 }

@@ -10,32 +10,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// True if the extract method operation succeeded.
         /// </summary>
-        public bool Succeeded { get; private set; }
+        public bool Succeeded { get; }
 
         /// <summary>
         /// True if the extract method operation is possible if the original span is adjusted.
         /// </summary>
-        public bool SucceededWithSuggestion { get; private set; }
+        public bool SucceededWithSuggestion { get; }
 
         /// <summary>
         /// The transformed document that was produced as a result of the extract method operation.
         /// </summary>
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
         /// <summary>
         /// The reasons why the extract method operation did not succeed.
         /// </summary>
-        public IEnumerable<string> Reasons { get; private set; }
+        public IEnumerable<string> Reasons { get; }
 
         /// <summary>
         /// the generated method node that contains the extracted code.
         /// </summary>
-        public SyntaxNode MethodDeclarationNode { get; private set; }
+        public SyntaxNode MethodDeclarationNode { get; }
 
         /// <summary>
         /// The name token for the invocation node that replaces the extracted code.
         /// </summary>
-        public SyntaxToken InvocationNameToken { get; private set; }
+        public SyntaxToken InvocationNameToken { get; }
 
         internal ExtractMethodResult(
             OperationStatusFlag status,
@@ -59,6 +59,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// internal status of result. more fine grained reason why it is failed. 
         /// </summary>
-        internal OperationStatusFlag Status { get; private set; }
+        internal OperationStatusFlag Status { get; }
     }
 }

@@ -17,48 +17,48 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An unique identifier for the diagnostic.
         /// </summary>
-        public string Id { get; private set; }
+        public string Id { get; }
 
         /// <summary>
         /// A short localizable title describing the diagnostic.
         /// </summary>
-        public LocalizableString Title { get; private set; }
+        public LocalizableString Title { get; }
 
         /// <summary>
         /// An optional longer localizable description for the diagnostic.
         /// </summary>
-        public LocalizableString Description { get; private set; }
+        public LocalizableString Description { get; }
 
         /// <summary>
         /// An optional hyperlink that provides more detailed information regarding the diagnostic.
         /// </summary>
-        public string HelpLinkUri { get; private set; }
+        public string HelpLinkUri { get; }
 
         /// <summary>
         /// A localizable format message string, which can be passed as the first argument to <see cref="String.Format(string, object[])"/> when creating the diagnostic message with this descriptor.
         /// </summary>
         /// <returns></returns>
-        public LocalizableString MessageFormat { get; private set; }
+        public LocalizableString MessageFormat { get; }
 
         /// <summary>
         /// The category of the diagnostic (like Design, Naming etc.)
         /// </summary>
-        public string Category { get; private set; }
+        public string Category { get; }
 
         /// <summary>
         /// The default severity of the diagnostic.
         /// </summary>
-        public DiagnosticSeverity DefaultSeverity { get; private set; }
+        public DiagnosticSeverity DefaultSeverity { get; }
 
         /// <summary>
         /// Returns true if the diagnostic is enabled by default.
         /// </summary>
-        public bool IsEnabledByDefault { get; private set; }
+        public bool IsEnabledByDefault { get; }
 
         /// <summary>
         /// Custom tags for the diagnostic.
         /// </summary>
-        public IEnumerable<string> CustomTags { get; private set; }
+        public IEnumerable<string> CustomTags { get; }
 
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             this.Id = id;
-            this.Title = title;
+            this.Title = title.MakeExceptionSafe();
             this.Category = category;
-            this.MessageFormat = messageFormat;
+            this.MessageFormat = messageFormat.MakeExceptionSafe();
             this.DefaultSeverity = defaultSeverity;
             this.IsEnabledByDefault = isEnabledByDefault;
-            this.Description = description ?? string.Empty;
+            this.Description = (description ?? string.Empty).MakeExceptionSafe();
             this.HelpLinkUri = helpLinkUri ?? string.Empty;
             this.CustomTags = customTags.AsImmutableOrEmpty();
         }

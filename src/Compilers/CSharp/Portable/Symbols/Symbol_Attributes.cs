@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool lazyAttributesStoredOnThisThread = false;
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
-                this.AddSemanticDiagnostics(diagnostics);
+                this.AddDeclarationDiagnostics(diagnostics);
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }

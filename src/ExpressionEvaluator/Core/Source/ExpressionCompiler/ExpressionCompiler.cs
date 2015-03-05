@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class ExpressionCompiler :
+    public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification
@@ -249,13 +249,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // No local signature. May occur when debugging .dmp.
                 localSignatureToken = 0;
-			}
-			catch (FileNotFoundException)
-			{
-				// No local signature. May occur when debugging heapless dumps.
-				localSignatureToken = 0;
-			}
-			return this.CreateMethodContext(
+            }
+            catch (FileNotFoundException)
+            {
+                // No local signature. May occur when debugging heapless dumps.
+                localSignatureToken = 0;
+            }
+            return this.CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
                 new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),

@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportPerLanguageIncrementalAnalyzerProviderAttribute : ExportAttribute
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public ExportPerLanguageIncrementalAnalyzerProviderAttribute(string name, string language)
             : base(typeof(IPerLanguageIncrementalAnalyzerProvider))

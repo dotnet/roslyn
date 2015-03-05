@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get;
         }
-        
+
         internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);

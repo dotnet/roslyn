@@ -6298,7 +6298,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpEditorResources.Awaitable}) Task Program.foo()
+            var description = $@"({CSharpFeaturesResources.Awaitable}) Task Program.foo()
 {WorkspacesResources.Usage}
   {CSharpFeaturesResources.Await} foo();";
 
@@ -6319,7 +6319,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpEditorResources.Awaitable}) Task<int> Program.foo()
+            var description = $@"({CSharpFeaturesResources.Awaitable}) Task<int> Program.foo()
 {WorkspacesResources.Usage}
   int x = {CSharpFeaturesResources.Await} foo();";
 
@@ -7898,6 +7898,26 @@ class C
 ";
 
             VerifyItemExists(markup, "x");
+        }
+
+        [WorkItem(717, "https://github.com/dotnet/roslyn/issues/717")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void ExpressionContextCompletionWithinCast()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            var x = ($$)
+            var y = 1;
+        }
+    }
+}
+";
+            VerifyItemExists(markup, "i");
         }
     }
 }

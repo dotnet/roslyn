@@ -301,10 +301,7 @@ public class Class1
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyLinkedFiles_UnresolvableConflictComments()
-            Using workspace = CreateWorkspaceWithWaiter(
-                         <Workspace>
-                             <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
-                                 <Document FilePath="C.cs">
+            Dim originalDocument = "
 public class Class1
 {
 #if Proj1
@@ -317,8 +314,11 @@ public class Class1
     {
         Test(5);
     }
-}
-                                 </Document>
+}"
+            Using workspace = CreateWorkspaceWithWaiter(
+                         <Workspace>
+                             <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
+                                 <Document FilePath="C.cs"><%= originalDocument %></Document>
                              </Project>
                              <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                                  <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
@@ -333,31 +333,30 @@ public class Class1
                 document.TextBuffer.Insert(location, "t")
                 WaitForRename(workspace)
 
+                Dim expectedDocument = $"
+public class Class1
+{{
+#if Proj1
+    void Test(double x) {{ }}
+#elif Proj2
+    void Test(long x) {{ }}
+#endif
+    void Test(int i) {{ }}
+    void M()
+    {{
+{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.UnmergedChangeFromProject, "CSharpAssembly1")}
+{WorkspacesResources.BeforeHeader}
+        Test(5);
+{WorkspacesResources.AfterHeader}
+        Test((long)5);
+*|}}|}}/
+        Test((double)5);
+    }}
+}}"
                 Using renamedWorkspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
-                                <Document FilePath="C.cs">
-public class Class1
-{
-#if Proj1
-    void Test(double x) { }
-#elif Proj2
-    void Test(long x) { }
-#endif
-    void Test(int i) { }
-    void M()
-    {
-{|conflict:{|conflict:
-/* Unmerged change from project 'CSharpAssembly1'
-Before:
-        Test(5);
-After:
-        Test((long)5);
-*/
-|}|}        Test((double)5);
-    }
-}
-                                </Document>
+                                <Document FilePath="C.cs"><%= expectedDocument %></Document>
                             </Project>
                             <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                                 <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>

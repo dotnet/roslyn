@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
@@ -31,6 +32,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         /// 
         /// Also installs a language appropriate command filter if one is exported via IVsInteractiveWindowOleCommandTargetProvider.
         /// </summary>
-        void SetLanguage(Guid languageServiceGuid);
+        void SetLanguage(Guid languageServiceGuid, IContentType contentType);
     }
 }

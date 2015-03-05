@@ -154,13 +154,13 @@ End Module
                 Dim endMarker = index & "#]"
 
                 ' opening '[#{0-9}'
-                Dim start = text.<file>.Value.IndexOf(startMarker)
+                Dim start = text.<file>.Value.IndexOf(startMarker, StringComparison.Ordinal)
                 If start < 0 Then
                     Exit Do
                 End If
 
                 ' closing '{0-9}#]'
-                Dim [end] = text.<file>.Value.IndexOf(endMarker)
+                Dim [end] = text.<file>.Value.IndexOf(endMarker, StringComparison.Ordinal)
                 Assert.InRange([end], 0, Int32.MaxValue)
 
                 nodes.Add(New TextSpan(start, [end] - start + 3))

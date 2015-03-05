@@ -851,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     BindLambdaForErrorRecoveryInferCommonType(commonReturnType, target.ReturnType)
                 Next
 
-                Dim isByRef = BitArray.Empty
+                Dim isByRef = BitVector.Empty
 
                 For i As Integer = 0 To commonParameterTypes.Length - 1
                     If source.Parameters(i).Type IsNot Nothing Then

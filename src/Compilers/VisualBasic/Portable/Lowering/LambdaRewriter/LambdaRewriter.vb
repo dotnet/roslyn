@@ -725,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Catch node contains 3 important pieces
             ' 1) LocalOpt - like BoundBlock, catch may own variables, but it happens so that it never needs more than one.
-            ' 2) ExceptionVariable - presense of this variable indicates that caught exception needs to be stored. 
+            ' 2) ExceptionVariable - presence of this variable indicates that caught exception needs to be stored. 
             '                        in such case ExceptionVariable is used as a target of a one-time assignment
             '                        when Catch is entered.
             ' 3) Code (Filter and Body)

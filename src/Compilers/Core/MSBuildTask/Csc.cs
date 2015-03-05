@@ -1,11 +1,15 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Text;
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CompilerServer;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// This class defines the "Csc" XMake task, which enables building assemblies from C#
@@ -17,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
     /// </summary>
     public class Csc : ManagedCompiler
     {
-        bool useHostCompilerIfAvailable = false;
+        private bool _useHostCompilerIfAvailable = false;
 
         #region Properties
 
@@ -124,8 +128,8 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
         public bool UseHostCompilerIfAvailable
         {
-            set { this.useHostCompilerIfAvailable = value; }
-            get { return this.useHostCompilerIfAvailable; }
+            set { _useHostCompilerIfAvailable = value; }
+            get { return _useHostCompilerIfAvailable; }
         }
 
         public int WarningLevel
@@ -149,6 +153,24 @@ namespace Microsoft.CodeAnalysis.BuildTask
         #endregion
 
         #region Tool Members
+
+        internal override BuildProtocolConstants.RequestLanguage Language
+            => BuildProtocolConstants.RequestLanguage.CSharpCompile;
+
+        private static string[] s_separators = { "\r\n" };
+
+        internal override void LogMessages(string output, MessageImportance messageImportance)
+        {
+            var lines = output.Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string line in lines)
+            {
+                string trimmedMessage = line.Trim();
+                if (trimmedMessage != "")
+                {
+                    Log.LogMessageFromText(trimmedMessage, messageImportance);
+                }
+            }
+        }
 
         /// <summary>
         /// Return the name of the tool to execute.
@@ -272,9 +294,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
         /// list of aliases, and if any of the aliases specified is the string "global",
         /// then we add that reference to the command-line without an alias.
         /// </summary>
-        /// <param name="commandLine"></param>
-        /// <owner>RGoel</owner>
-        void AddReferencesToCommandLine
+        private void AddReferencesToCommandLine
             (
             CommandLineBuilderExtension commandLine
             )
@@ -391,7 +411,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             // add them to the outgoing string.
             foreach (string singleIdentifier in allIdentifiers)
             {
-                if (CSharp.SyntaxFacts.IsValidIdentifier(singleIdentifier))
+                if (SyntaxFacts.IsValidIdentifier(singleIdentifier))
                 {
                     // Separate them with a semicolon if there's something already in
                     // the outgoing string.

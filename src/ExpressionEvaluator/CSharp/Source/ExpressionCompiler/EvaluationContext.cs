@@ -550,6 +550,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
                     }
                     break;
+                case ErrorCode.ERR_DottedTypeNameNotFoundInNS:
+                    if (arguments.Count == 2)
+                    {
+                        var namespaceName = arguments[0] as string;
+                        var containingNamespace = arguments[1] as NamespaceSymbol;
+                        if (namespaceName != null && (object)containingNamespace != null &&
+                            containingNamespace.ConstituentNamespaces.Any(n => n.ContainingAssembly.Identity.IsWindowsAssemblyIdentity()))
+                        {
+                            // This is just a heuristic, but it has the advantage of being portable, particularly 
+                            // across different versions of (desktop) windows.
+                            var identity = new AssemblyIdentity($"{containingNamespace.ToDisplayString()}.{namespaceName}", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
+                            return ImmutableArray.Create(identity);
+                        }
+                    }
+                    break;
                 case ErrorCode.ERR_DynamicAttributeMissing:
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
                 // MSDN says these might come from System.Dynamic.Runtime

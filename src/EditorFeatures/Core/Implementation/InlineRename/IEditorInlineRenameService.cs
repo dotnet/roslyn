@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal struct InlineRenameLocation
     {
-        public Document Document { get; private set; }
-        public TextSpan TextSpan { get; private set; }
+        public Document Document { get; }
+        public TextSpan TextSpan { get; }
 
         public InlineRenameLocation(Document document, TextSpan textSpan) : this()
         {
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal struct InlineRenameReplacement
     {
-        public InlineRenameReplacementKind Kind { get; private set; }
-        public TextSpan OriginalSpan { get; private set; }
-        public TextSpan NewSpan { get; private set; }
+        public InlineRenameReplacementKind Kind { get; }
+        public TextSpan OriginalSpan { get; }
+        public TextSpan NewSpan { get; }
 
         public InlineRenameReplacement(InlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan) : this()
         {

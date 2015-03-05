@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
     internal partial class PreviewUpdater
     {
-        private class PreviewDialogWorkspace : PreviewWorkspace
+        // internal for testing
+        internal class PreviewDialogWorkspace : PreviewWorkspace
         {
             public PreviewDialogWorkspace(Solution solution) : base(solution)
             {

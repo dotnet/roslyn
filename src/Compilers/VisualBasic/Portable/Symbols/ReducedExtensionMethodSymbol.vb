@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim someInferenceFailed As Boolean = False
                 Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
 
-                Dim fixTheseTypeParameters = BitArray.Create(possiblyExtensionMethod.Arity)
+                Dim fixTheseTypeParameters = BitVector.Create(possiblyExtensionMethod.Arity)
 
                 For Each typeParameter As TypeParameterSymbol In hashSetOfTypeParametersToFix
                     fixTheseTypeParameters(typeParameter.Ordinal) = True

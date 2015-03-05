@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
 
                 _lazyText = textOpt;
-                _encodingOpt = encodingOpt;
+                _encodingOpt = encodingOpt ?? textOpt?.Encoding;
                 _checksumAlgorithm = checksumAlgorithm;
                 _options = options;
                 _path = path;
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 text = _lazyText;
                 return text != null;
+            }
+
+            public override Encoding Encoding
+            {
+                get { return _encodingOpt; }
             }
 
             public override int Length

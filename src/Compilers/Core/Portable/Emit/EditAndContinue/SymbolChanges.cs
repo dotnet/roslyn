@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             // The method body might have been updated.
                             return SymbolChange.Updated;
                         }
-                        
+
                         return SymbolChange.None;
 
                     case SymbolChange.Added:

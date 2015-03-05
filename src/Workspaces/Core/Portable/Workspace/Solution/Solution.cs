@@ -1130,8 +1130,8 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.AddDocument(state);
 
             return this.ForkProject(
-                newProject, 
-                CompilationTranslationAction.AddDocument(state), 
+                newProject,
+                CompilationTranslationAction.AddDocument(state),
                 newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProject, SpecializedCollections.SingletonEnumerable(state.Id)));
         }
 
@@ -1373,7 +1373,7 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.RemoveDocument(documentId);
 
             return this.ForkProject(
-                newProject, 
+                newProject,
                 CompilationTranslationAction.RemoveDocument(oldDocument),
                 newLinkedFilesMap: CreateLinkedFilesMapWithRemovedDocuments(oldProject, SpecializedCollections.SingletonEnumerable(documentId)));
         }
@@ -1902,11 +1902,11 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
@@ -2011,11 +2011,11 @@ namespace Microsoft.CodeAnalysis
 
                 return mdref;
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Attempt to get the best readily available compilation for the project. It may be a

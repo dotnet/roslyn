@@ -1191,7 +1191,7 @@ public class C : B<int, long>
             Assert.Equal("Q", classBTypeArguments[0].Name);
             Assert.Equal("R", classBTypeArguments[1].Name);
 
-            var classBMethodM = (MethodSymbol)classB.GetMembers().Where(sym => sym.Name.EndsWith("M")).Single();
+            var classBMethodM = (MethodSymbol)classB.GetMembers().Single(sym => sym.Name.EndsWith("M", StringComparison.Ordinal));
             var classBMethodMTypeParameters = classBMethodM.TypeParameters;
             Assert.Equal(1, classBMethodMTypeParameters.Length);
             Assert.Equal("S", classBMethodMTypeParameters[0].Name);
@@ -1212,7 +1212,7 @@ public class C : B<int, long>
             Assert.Equal(SpecialType.System_Int32, classCBaseTypeArguments[0].SpecialType);
             Assert.Equal(SpecialType.System_Int64, classCBaseTypeArguments[1].SpecialType);
 
-            var classCBaseMethodM = (MethodSymbol)classCBase.GetMembers().Where(sym => sym.Name.EndsWith("M")).Single();
+            var classCBaseMethodM = (MethodSymbol)classCBase.GetMembers().Single(sym => sym.Name.EndsWith("M", StringComparison.Ordinal));
             Assert.NotEqual(classBMethodM, classCBaseMethodM);
 
             var classCBaseMethodMTypeParameters = classCBaseMethodM.TypeParameters;
@@ -1845,8 +1845,8 @@ public class C
 }
 ";
 
-            var keywordPos = source.IndexOf("+");
-            var parenPos = source.IndexOf("(");
+            var keywordPos = source.IndexOf('+');
+            var parenPos = source.IndexOf('(');
 
             var comp = CreateCompilationWithMscorlib(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single();
@@ -1866,8 +1866,8 @@ public class C
 }
 ";
 
-            var keywordPos = source.IndexOf("string");
-            var parenPos = source.IndexOf("(");
+            var keywordPos = source.IndexOf("string", StringComparison.Ordinal);
+            var parenPos = source.IndexOf('(');
 
             var comp = CreateCompilationWithMscorlib(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ExplicitConversionName).Single();

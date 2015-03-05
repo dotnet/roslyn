@@ -562,17 +562,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Friend Overrides Function GetMissingAssemblyIdentities(diagnostic As Diagnostic) As ImmutableArray(Of AssemblyIdentity)
-            Return GetMissingAssemblyIdentitiesHelper(CType(diagnostic.Code, ERRID), diagnostic.Arguments)
+            Return GetMissingAssemblyIdentitiesHelper(CType(diagnostic.Code, ERRID), diagnostic.Arguments, Me.Compilation.GlobalNamespace)
         End Function
 
         ''' <remarks>
         ''' Friend for testing.
         ''' </remarks>
-        Friend Shared Function GetMissingAssemblyIdentitiesHelper(code As ERRID, arguments As IReadOnlyList(Of Object)) As ImmutableArray(Of AssemblyIdentity)
-			Select Case code
+        Friend Shared Function GetMissingAssemblyIdentitiesHelper(code As ERRID, arguments As IReadOnlyList(Of Object), globalNamespace As NamespaceSymbol) As ImmutableArray(Of AssemblyIdentity)
+            Select Case code
                 Case ERRID.ERR_UnreferencedAssemblyEvent3, ERRID.ERR_UnreferencedAssembly3
                     For Each argument As Object In arguments
-						Dim identity = If(TryCast(argument, AssemblyIdentity), TryCast(argument, AssemblySymbol)?.Identity)
+                        Dim identity = If(TryCast(argument, AssemblyIdentity), TryCast(argument, AssemblySymbol)?.Identity)
                         If IsValidMissingAssemblyIdentity(identity) Then
                             Return ImmutableArray.Create(identity)
                         End If
@@ -584,6 +584,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             Return ImmutableArray.Create(identity)
                         End If
                     End If
+                Case ERRID.ERR_NameNotMember2
+                    If arguments.Count = 2 Then
+                        Dim namespaceName = TryCast(arguments(0), String)
+                        Dim containingNamespace = TryCast(arguments(1), NamespaceSymbol)
+                        If namespaceName IsNot Nothing AndAlso containingNamespace IsNot Nothing AndAlso HasConstituentFromWindowsAssembly(containingNamespace) Then
+                            ' This is just a heuristic, but it has the advantage of being portable, particularly
+                            ' across different versions of (desktop) windows.
+                            Dim identity = New AssemblyIdentity($"{containingNamespace.ToDisplayString}.{namespaceName}", contentType:=AssemblyContentType.WindowsRuntime)
+                            Return ImmutableArray.Create(identity)
+                        End If
+                    End If
+                Case ERRID.ERR_UndefinedType1
+                    If arguments.Count = 1 Then
+                        Dim qualifiedName = TryCast(arguments(0), String)
+                        If Not String.IsNullOrEmpty(qualifiedName) Then
+                            Dim nameParts = qualifiedName.Split("."c)
+                            Dim numParts = nameParts.Length
+                            Dim pos = 0
+                            If CaseInsensitiveComparison.Comparer.Equals(nameParts(0), "global") Then
+                                pos = 1
+                                Debug.Assert(pos < numParts)
+                            End If
+                            Dim currNamespace = globalNamespace
+                            While pos < numParts
+                                Dim nextNamespace = currNamespace.GetMembers(nameParts(pos)).OfType(Of NamespaceSymbol).SingleOrDefault()
+                                If nextNamespace Is Nothing Then
+                                    Exit While
+                                End If
+                                pos += 1
+                                currNamespace = nextNamespace
+                            End While
+
+                            If currNamespace IsNot globalNamespace AndAlso HasConstituentFromWindowsAssembly(currNamespace) AndAlso pos < numParts Then
+                                Dim nextNamePart = nameParts(pos)
+                                If nextNamePart.All(AddressOf SyntaxFacts.IsIdentifierPartCharacter) Then
+                                    ' This is just a heuristic, but it has the advantage of being portable, particularly
+                                    ' across different versions of (desktop) windows.
+                                    Dim identity = New AssemblyIdentity($"{currNamespace.ToDisplayString}.{nameParts(pos)}", contentType:=AssemblyContentType.WindowsRuntime)
+                                    Return ImmutableArray.Create(identity)
+                                End If
+                            End If
+                        End If
+                    End If
                 Case ERRID.ERR_XmlFeaturesNotAvailable
                     Return ImmutableArray.Create(SystemIdentity, SystemCoreIdentity, SystemXmlIdentity, SystemXmlLinqIdentity)
                 Case ERRID.ERR_MissingRuntimeHelper
@@ -591,6 +634,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Select
 
             Return Nothing
+        End Function
+
+        Private Shared Function HasConstituentFromWindowsAssembly(namespaceSymbol As NamespaceSymbol) As Boolean
+            Return namespaceSymbol.ConstituentNamespaces.Any(Function(n) n.ContainingAssembly.Identity.IsWindowsAssemblyIdentity)
         End Function
 
         Private Shared Function IsValidMissingAssemblyIdentity(identity As AssemblyIdentity) As Boolean

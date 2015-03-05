@@ -48,6 +48,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\BitVector.cs">
+      <Link>InternalUtilities\BitVector.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\Boxes.cs">
       <Link>InternalUtilities\Boxes.cs</Link>
     </Compile>
@@ -381,6 +384,7 @@
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.ReplaceTypeParameterBasedOnTypeConstraintVisitor.cs" />
+    <Compile Include="Shared\Utilities\SymbolEquivalenceComparer.AssemblyComparers.cs" />
     <Compile Include="Shared\Utilities\XmlFragmentParser.cs" />
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
@@ -762,12 +766,6 @@
     <Compile Include="SymbolId\SymbolKeyResolutionExtensions.cs" />
     <Compile Include="Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="Utilities\AnnotationTable.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable_Concat.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable_Empty.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable_Select.cs" />
-    <Compile Include="Utilities\Async\IAsyncEnumerable.cs" />
-    <Compile Include="Utilities\Async\IAsyncEnumerator.cs" />
     <Compile Include="Utilities\AsyncLazy`1.cs" />
     <Compile Include="Utilities\AsyncSemaphore.cs" />
     <Compile Include="Utilities\BidirectionalMap.cs" />

@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             {
                 throw new ArgumentException(string.Format("Unmatched open brace in '{0}'", formatString));
             }
-            
+
             workList.AddWork(() => completionRoutine(new DkmEvaluateDebuggerDisplayStringAsyncResult(pooled.ToStringAndFree())));
         }
 
@@ -328,6 +328,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             if (InspectionContext == null)
             {
                 throw new ArgumentNullException("inspectionContext");
+            }
+
+            if (this.IsError())
+            {
+                throw new InvalidOperationException();
             }
 
             var runtime = this.Type.RuntimeInstance;
@@ -671,8 +676,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             }
         }
 
-		public void Close()
-		{
-		}
+        public void Close()
+        {
+        }
     }
 }

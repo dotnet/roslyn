@@ -92,7 +92,7 @@ public interface I
             compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             // References should not include PIA.
             Assert.Equal(references.Length, 1);
-            Assert.True(references[0].Display.StartsWith("mscorlib"));
+            Assert.True(references[0].Display.StartsWith("mscorlib", StringComparison.Ordinal));
             var runtime = CreateRuntimeInstance(
                 Guid.NewGuid().ToString("D"),
                 references,

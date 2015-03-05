@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static string GenerateUniqueName(string baseName, string extension, Func<string, bool> canUse)
         {
-            if (!string.IsNullOrEmpty(extension) && !extension.StartsWith("."))
+            if (!string.IsNullOrEmpty(extension) && extension[0] != '.')
             {
                 extension = "." + extension;
             }

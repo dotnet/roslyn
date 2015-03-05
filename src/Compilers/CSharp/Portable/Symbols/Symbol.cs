@@ -742,13 +742,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }
 
-        internal void AddSemanticDiagnostics(DiagnosticBag diagnostics)
+        internal void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
             if (!diagnostics.IsEmptyWithoutResolution)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
-                compilation.SemanticDiagnostics.AddRange(diagnostics);
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
             }
         }
 

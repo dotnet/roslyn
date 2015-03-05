@@ -4407,7 +4407,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"c.E", "c", "M", "x", "Me"}, terms)
         End Sub
@@ -4426,7 +4426,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"c.E", "c", "M", "x", "Me"}, terms)
         End Sub
@@ -4444,7 +4444,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"E", "x", "Me"}, terms)
         End Sub
@@ -4461,7 +4461,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim y"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim y", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"x", "y", "Me"}, terms)
         End Sub
@@ -4478,7 +4478,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"intArray", "x", "Me"}, terms)
         End Sub
@@ -4495,7 +4495,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim x", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"intArray", "x", "Me"}, terms)
         End Sub
@@ -4515,7 +4515,7 @@ End Class
             For Each op In {"=", "+=", "-=", "*=", "/=", "\=", "^=", "<<=", ">>=", "&="}
                 Dim source = String.Format(sourceTemplate, op)
                 Dim tree = VisualBasicSyntaxTree.ParseText(source)
-                Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim y"))
+                Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim y", StringComparison.Ordinal))
                 Assert.NotNull(terms)
                 AssertEx.Equal({"x", "y", "Me"}, terms)
             Next
@@ -4534,7 +4534,7 @@ Class C
 End Class
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim y"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim y", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"s", "x", "y", "Me"}, terms)
         End Sub
@@ -4552,7 +4552,7 @@ Module Module1
 End Module
 "
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
-            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim c"))
+            Dim terms = VisualBasicProximityExpressionsService.Do(tree, source.IndexOf("Dim c", StringComparison.Ordinal))
             Assert.NotNull(terms)
             AssertEx.Equal({"b", "c"}, terms)
         End Sub

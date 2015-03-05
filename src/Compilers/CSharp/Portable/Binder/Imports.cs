@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void Validate()
         {
-            DiagnosticBag semanticDiagnostics = _compilation.SemanticDiagnostics;
+            DiagnosticBag semanticDiagnostics = _compilation.DeclarationDiagnostics;
 
             if (UsingAliases != null)
             {

@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public int? CursorPosition { get; private set; }
-        public IList<TextSpan> SelectedSpans { get; private set; }
-        public IDictionary<string, IList<TextSpan>> AnnotatedSpans { get; private set; }
+        public int? CursorPosition { get; }
+        public IList<TextSpan> SelectedSpans { get; }
+        public IDictionary<string, IList<TextSpan>> AnnotatedSpans { get; }
 
         /// <summary>
         /// If a file exists in ProjectA and is added to ProjectB as a link, then this returns

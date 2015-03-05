@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
                         Debug.Assert(trivia.ToString() = trivia.ToFullString())
                         Dim text = trivia.ToString()
-                        If text.IndexOf(vbTab) >= 0 Then
+                        If text.IndexOf(vbTab, StringComparison.Ordinal) >= 0 Then
                             Return True
                         End If
                     End If
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim text = trivia.ToString()
 
                 ' if text contains tab, we will give up perf optimization and use more expensive one to see whether we need to format this trivia
-                If text.IndexOf(vbTab) >= 0 Then
+                If text.IndexOf(vbTab, StringComparison.Ordinal) >= 0 Then
                     Return True
                 End If
 

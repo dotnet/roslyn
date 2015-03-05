@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             while (true)
             {
-                int start = source.IndexOf(StartTag, i);
+                int start = source.IndexOf(StartTag, i, StringComparison.Ordinal);
                 if (start == -1)
                 {
                     break;
                 }
 
                 start += StartTag.Length;
-                int end = source.IndexOf(EndTag, start + 1);
+                int end = source.IndexOf(EndTag, start + 1, StringComparison.Ordinal);
                 yield return new TextSpan(start, end - start);
                 i = end + 1;
             }
@@ -204,7 +204,6 @@ class C
         F(/*<span>*/(x)/*</span>*/ => x);
         F(/*<span>*/x/*</span>*/ => x);
         F(/*<span>*/delegate/*</span>*/(x) { });
-        F(/*<span>*/from/*</span>*/a in b select a.x);
         F(from a in b /*<span>*/select/*</span>*/ a.x);
         F(from a in b /*<span>*/let/*</span>*/ x = expr select expr);
         F(from a in b /*<span>*/where/*</span>*/ expr select expr);
@@ -215,7 +214,10 @@ class C
     }
 }
 ";
-            TestSpans(source, StatementSyntaxComparer.IsLabeledKind);
+            // TODO: test
+            // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
+            // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
+            TestSpans(source, StatementSyntaxComparer.IgnoreLabeledChild);
         }
 
         /// <summary>
@@ -224,7 +226,7 @@ class C
         [Fact]
         public void ErrorSpansAllKinds()
         {
-            TestErrorSpansAllKinds(StatementSyntaxComparer.IsLabeledKind);
+            TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
             TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
         }
 
@@ -264,8 +266,8 @@ class C
                 var newText = newDocument.GetTextAsync().Result;
                 var newSyntaxRoot = newDocument.GetSyntaxRootAsync().Result;
 
-                var oldStatementSource = "System.Console.WriteLine(1);";
-                var oldStatementPosition = source1.IndexOf(oldStatementSource);
+                const string oldStatementSource = "System.Console.WriteLine(1);";
+                var oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal);
                 var oldStatementTextSpan = new TextSpan(oldStatementPosition, oldStatementSource.Length);
                 var oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan);
                 var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);

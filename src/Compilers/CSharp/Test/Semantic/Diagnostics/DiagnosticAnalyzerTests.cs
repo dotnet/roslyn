@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
                 var id = (IdentifierNameSyntax)context.Node;
-                if (id.Identifier.ValueText.StartsWith("x"))
+                if (id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal))
                 {
                     context.ReportDiagnostic(new TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.Location, "Use of variable whose name starts with 'x': '{0}'", id.Identifier.ValueText));
                 }
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -211,7 +211,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //     int x3 = x1 + x2;
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -271,7 +271,7 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"))
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -304,7 +304,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -387,7 +387,7 @@ public class C { }";
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null, false,
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
                     // Syntax diagnostics
@@ -615,8 +615,8 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                     SymbolKind.Namespace, SymbolKind.NamedType, SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
             }
         }
-        [Fact]
 
+        [Fact]
         private void TestDisabledAnalyzers()
         {
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
@@ -635,79 +635,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.True(partiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options));
         }
 
-        private class CodeBlockAnalyzer : DiagnosticAnalyzer
-        {
-            public static DiagnosticDescriptor Desciptor1 = new TriggerDiagnosticDescriptor("CodeBlockDiagnostic");
-            public static DiagnosticDescriptor Desciptor2 = new TriggerDiagnosticDescriptor("EqualsValueDiagnostic");
-            public static DiagnosticDescriptor Desciptor3 = new TriggerDiagnosticDescriptor("ConstructorInitializerDiagnostic");
-            public static DiagnosticDescriptor Desciptor4 = new TriggerDiagnosticDescriptor("PropertyExpressionBodyDiagnostic");
-            public static DiagnosticDescriptor Desciptor5 = new TriggerDiagnosticDescriptor("IndexerExpressionBodyDiagnostic");
-            public static DiagnosticDescriptor Desciptor6 = new TriggerDiagnosticDescriptor("MethodExpressionBodyDiagnostic");
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return ImmutableArray.Create(Desciptor1, Desciptor2, Desciptor3, Desciptor4, Desciptor5, Desciptor6);
-                }
-            }
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCodeBlockStartAction<SyntaxKind>(new NodeAnalyzer().Initialize);
-                context.RegisterCodeBlockEndAction(OnCodeBlockEnded);
-            }
-
-            public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)
-            {
-                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None));
-            }
-
-            protected class NodeAnalyzer
-            {
-                public void Initialize(CodeBlockStartAnalysisContext<CSharp.SyntaxKind> analysisContext)
-                {
-                    analysisContext.RegisterSyntaxNodeAction(
-                        (context) =>
-                        {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None));
-                        },
-                        CSharp.SyntaxKind.EqualsValueClause);
-
-                    analysisContext.RegisterSyntaxNodeAction(
-                        (context) =>
-                        {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None));
-                        },
-                        CSharp.SyntaxKind.BaseConstructorInitializer);
-
-                    analysisContext.RegisterSyntaxNodeAction(
-                        (context) =>
-                        {
-                            DiagnosticDescriptor descriptor;
-                            switch (context.Node.Parent.Kind())
-                            {
-                                case SyntaxKind.PropertyDeclaration:
-                                    descriptor = Desciptor4;
-                                    break;
-
-                                case SyntaxKind.IndexerDeclaration:
-                                    descriptor = Desciptor5;
-                                    break;
-
-                                default:
-                                    descriptor = Desciptor6;
-                                    break;
-                            }
-
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, Location.None));
-                        },
-                        CSharp.SyntaxKind.ArrowExpressionClause);
-                }
-            }
-        }
         [Fact, WorkItem(1008059)]
-
         private void TestCodeBlockAnalyzersForNoExecutableCode()
         {
             string noExecutableCodeSource = @"
@@ -717,14 +645,14 @@ public abstract class C
     public int field;
     public abstract int Method();
 }";
-            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer: true) };
 
             CreateCompilationWithMscorlib45(noExecutableCodeSource)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers);
         }
-        [Fact, WorkItem(1008059)]
 
+        [Fact, WorkItem(1008059)]
         private void TestCodeBlockAnalyzersForBaseConstructorInitializer()
         {
             string baseCtorSource = @"
@@ -737,17 +665,17 @@ public class C : B
 {
     public C() : base(x: 10) {}
 }";
-            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer: true) };
 
             CreateCompilationWithMscorlib45(baseCtorSource)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                     Diagnostic("ConstructorInitializerDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"));
         }
-        [Fact, WorkItem(1067286)]
 
+        [Fact, WorkItem(1067286)]
         private void TestCodeBlockAnalyzersForExpressionBody()
         {
             string source = @"
@@ -757,17 +685,57 @@ public class B
     public int Method() => 0;
     public int this[int i] => 0;
 }";
-            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockAnalyzer() };
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer: true) };
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("PropertyExpressionBodyDiagnostic"),
                     Diagnostic("IndexerExpressionBodyDiagnostic"),
                     Diagnostic("MethodExpressionBodyDiagnostic"));
+        }
+
+        [Fact, WorkItem(592)]
+        private void TestSyntaxNodeAnalyzersForExpressionBody()
+        {
+            string source = @"
+public class B
+{
+    public int Property => 0;
+    public int Method() => 0;
+    public int this[int i] => 0;
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CodeBlockOrSyntaxNodeAnalyzer(isCodeBlockAnalyzer: false) };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                    Diagnostic("PropertyExpressionBodyDiagnostic"),
+                    Diagnostic("IndexerExpressionBodyDiagnostic"),
+                    Diagnostic("MethodExpressionBodyDiagnostic"));
+        }
+
+        [Fact, WorkItem(592)]
+        private void TestMethodSymbolAnalyzersForExpressionBody()
+        {
+            string source = @"
+public class B
+{
+    public int Property => 0;
+    public int Method() => 0;
+    public int this[int i] => 0;
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new MethodSymbolAnalyzer() };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                    Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.Property.get").WithLocation(4, 28),
+                    Diagnostic("MethodSymbolDiagnostic", "Method").WithArguments("B.Method()").WithLocation(5, 16),
+                    Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.this[int].get").WithLocation(6, 31));
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -807,7 +775,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
@@ -825,7 +793,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
                      Diagnostic("MyFieldDiagnostic", @"public string field1, field2;").WithLocation(4, 5),
                      Diagnostic("MyFieldDiagnostic", @"public int field3 = 0, field4 = 1;").WithLocation(5, 5),
                      Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
@@ -868,5 +836,106 @@ public class B
                 }
             }
         }
+
+        public class CodeBlockOrSyntaxNodeAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _isCodeBlockAnalyzer;
+
+            public static DiagnosticDescriptor Desciptor1 = new TriggerDiagnosticDescriptor("CodeBlockDiagnostic");
+            public static DiagnosticDescriptor Desciptor2 = new TriggerDiagnosticDescriptor("EqualsValueDiagnostic");
+            public static DiagnosticDescriptor Desciptor3 = new TriggerDiagnosticDescriptor("ConstructorInitializerDiagnostic");
+            public static DiagnosticDescriptor Desciptor4 = new TriggerDiagnosticDescriptor("PropertyExpressionBodyDiagnostic");
+            public static DiagnosticDescriptor Desciptor5 = new TriggerDiagnosticDescriptor("IndexerExpressionBodyDiagnostic");
+            public static DiagnosticDescriptor Desciptor6 = new TriggerDiagnosticDescriptor("MethodExpressionBodyDiagnostic");
+
+            public CodeBlockOrSyntaxNodeAnalyzer(bool isCodeBlockAnalyzer)
+            {
+                _isCodeBlockAnalyzer = isCodeBlockAnalyzer;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(Desciptor1, Desciptor2, Desciptor3, Desciptor4, Desciptor5, Desciptor6); }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_isCodeBlockAnalyzer)
+                {
+                    context.RegisterCodeBlockStartAction<SyntaxKind>(OnCodeBlockStarted);
+                    context.RegisterCodeBlockEndAction(OnCodeBlockEnded);
+                }
+                else
+                {
+                    Action<Action<SyntaxNodeAnalysisContext>, ImmutableArray<SyntaxKind>> registerMethod =
+                        (action, Kinds) => context.RegisterSyntaxNodeAction(action, Kinds);
+                    var analyzer = new NodeAnalyzer();
+                    analyzer.Initialize(registerMethod);
+                }
+            }
+
+            public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)
+            {
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None));
+            }
+
+            public static void OnCodeBlockStarted(CodeBlockStartAnalysisContext<SyntaxKind> context)
+            {
+                Action<Action<SyntaxNodeAnalysisContext>, ImmutableArray<SyntaxKind>> registerMethod =
+                    (action, Kinds) => context.RegisterSyntaxNodeAction(action, Kinds);
+                var analyzer = new NodeAnalyzer();
+                analyzer.Initialize(registerMethod);
+            }
+
+            protected class NodeAnalyzer
+            {
+                public void Initialize(Action<Action<SyntaxNodeAnalysisContext>, ImmutableArray<SyntaxKind>> registerSyntaxNodeAction)
+                {
+                    registerSyntaxNodeAction(context => { context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None)); },
+                        ImmutableArray.Create(SyntaxKind.EqualsValueClause));
+
+                    registerSyntaxNodeAction(context => { context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None)); },
+                        ImmutableArray.Create(SyntaxKind.BaseConstructorInitializer));
+
+                    registerSyntaxNodeAction(context =>
+                    {
+                        var descriptor = default(DiagnosticDescriptor);
+                        switch (CSharpExtensions.Kind(context.Node.Parent))
+                        {
+                            case SyntaxKind.PropertyDeclaration:
+                                descriptor = Desciptor4;
+                                break;
+                            case SyntaxKind.IndexerDeclaration:
+                                descriptor = Desciptor5;
+                                break;
+                            default:
+                                descriptor = Desciptor6;
+                                break;
+                        }
+
+                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, Location.None));
+                    }, ImmutableArray.Create(SyntaxKind.ArrowExpressionClause));
+                }
+            }
+        }
+
+        public class MethodSymbolAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Desciptor1 = new DiagnosticDescriptor("MethodSymbolDiagnostic", "MethodSymbolDiagnostic", "{0}", "MethodSymbolDiagnostic", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get { return ImmutableArray.Create(Desciptor1); }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(ctxt =>
+                {
+                    var method = ((IMethodSymbol)ctxt.Symbol);
+                    ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, method.Locations[0], method.ToDisplayString()));
+                }, SymbolKind.Method);
+            }
+        } 
     }
 }

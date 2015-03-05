@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         try
                         {
                             MethodChecks(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                         }
                         finally
                         {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.NoWrapping = noWrapping;
         }
 
-        public TextSpan TextSpan { get; private set; }
-        public bool NoWrapping { get; private set; }
+        public TextSpan TextSpan { get; }
+        public bool NoWrapping { get; }
     }
 }

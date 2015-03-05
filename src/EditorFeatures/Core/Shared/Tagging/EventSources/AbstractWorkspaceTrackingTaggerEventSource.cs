@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private readonly WorkspaceRegistration _workspaceRegistration;
 
-        protected ITextBuffer SubjectBuffer { get; private set; }
+        protected ITextBuffer SubjectBuffer { get; }
         protected Workspace CurrentWorkspace { get; private set; }
 
         protected AbstractWorkspaceTrackingTaggerEventSource(ITextBuffer subjectBuffer, TaggerDelay delay) : base(delay)

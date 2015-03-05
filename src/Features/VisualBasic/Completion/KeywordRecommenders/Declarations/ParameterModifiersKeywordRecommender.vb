@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 ' We had no special requirements, so return the default set
                 Return defaultRecommendations
             ElseIf targetToken.Kind = SyntaxKind.OptionalKeyword AndAlso Not parameterAlreadyHasByValOrByRef Then
-                Return defaultRecommendations.Where(Function(k) k.Keyword.StartsWith("By"))
+                Return defaultRecommendations.Where(Function(k) k.Keyword.StartsWith("By", StringComparison.Ordinal))
             ElseIf targetToken.Kind = SyntaxKind.ParamArrayKeyword AndAlso Not parameterAlreadyHasByValOrByRef Then
                 Return defaultRecommendations.Where(Function(k) k.Keyword = "ByVal")
             End If

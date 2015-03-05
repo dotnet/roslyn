@@ -321,8 +321,8 @@ class Class : Interface
             var interfaceIndexer = @interface.Indexers.Single();
 
             var @class = (NamedTypeSymbol)global.GetMembers("Class").Single();
-            var classImplicitImplementation = @class.Indexers.Where(p => p.Parameters.Length == 2).Single();
-            var classImplicitImplementationBase = @class.Indexers.Where(p => p.Parameters.Length == 1).Single();
+            var classImplicitImplementation = @class.Indexers.Single(p => p.Parameters.Length == 2);
+            var classImplicitImplementationBase = @class.Indexers.Single(p => p.Parameters.Length == 1);
 
             var implementingIndexer = @class.FindImplementationForInterfaceMember(interfaceIndexer);
             Assert.Same(classImplicitImplementation, implementingIndexer);

@@ -28,9 +28,9 @@ namespace Roslyn.Utilities
                              select m).Single();
 
             s_bytesOffsetCountMethod = (from m in methods
-                             let ps = m.GetParameters()
-                             where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
-                             select m).Single();
+                                        let ps = m.GetParameters()
+                                        where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
+                                        select m).Single();
 
             s_streamMethod = (from m in methods
                               let ps = m.GetParameters()

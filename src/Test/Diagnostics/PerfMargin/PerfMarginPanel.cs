@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,43 +14,43 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
     public class PerfMarginPanel : UserControl
     {
-        private static readonly DataModel model = new DataModel();
-        private static readonly PerfEventActivityLogger logger = new PerfEventActivityLogger(model);
+        private static readonly DataModel s_model = new DataModel();
+        private static readonly PerfEventActivityLogger s_logger = new PerfEventActivityLogger(s_model);
 
-        private readonly ListView mainListView;
-        private readonly Grid mainGrid;
+        private readonly ListView _mainListView;
+        private readonly Grid _mainGrid;
 
-        private readonly DispatcherTimer timer;
-        private readonly List<StatusIndicator> indicators = new List<StatusIndicator>();
+        private readonly DispatcherTimer _timer;
+        private readonly List<StatusIndicator> _indicators = new List<StatusIndicator>();
 
-        private ListView detailsListView;
-        private bool stopTimer;
+        private ListView _detailsListView;
+        private bool _stopTimer;
 
         public PerfMarginPanel()
         {
-            Logger.SetLogger(AggregateLogger.AddOrReplace(logger, Logger.GetLogger(), l => l is PerfEventActivityLogger));
+            Logger.SetLogger(AggregateLogger.AddOrReplace(s_logger, Logger.GetLogger(), l => l is PerfEventActivityLogger));
 
             // grid
-            mainGrid = new Grid();
-            mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            _mainGrid = new Grid();
+            _mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            _mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            _mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 
             // set diagnostic list
-            this.mainListView = CreateContent(new ActivityLevel[] { model.RootNode }.Concat(model.RootNode.Children), useWrapPanel: true);
-            this.mainListView.SelectionChanged += OnPerfItemsListSelectionChanged;
-            Grid.SetRow(this.mainListView, 0);
+            _mainListView = CreateContent(new ActivityLevel[] { s_model.RootNode }.Concat(s_model.RootNode.Children), useWrapPanel: true);
+            _mainListView.SelectionChanged += OnPerfItemsListSelectionChanged;
+            Grid.SetRow(_mainListView, 0);
 
-            mainGrid.Children.Add(this.mainListView);
+            _mainGrid.Children.Add(_mainListView);
 
-            this.Content = mainGrid;
+            this.Content = _mainGrid;
 
-            this.timer = new DispatcherTimer(TimeSpan.FromMilliseconds(500), DispatcherPriority.Background, UpdateUI, this.Dispatcher);
+            _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(500), DispatcherPriority.Background, UpdateUI, this.Dispatcher);
             StartTimer();
 
-            model.RootNode.IsActiveChanged += (s, e) =>
+            s_model.RootNode.IsActiveChanged += (s, e) =>
             {
-                if (this.stopTimer)
+                if (_stopTimer)
                 {
                     StartTimer();
                 }
@@ -57,25 +59,25 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         private void StartTimer()
         {
-            this.timer.Start();
-            this.stopTimer = false;
+            _timer.Start();
+            _stopTimer = false;
         }
 
         private void UpdateUI(object sender, EventArgs e)
         {
-            foreach (var item in this.indicators)
+            foreach (var item in _indicators)
             {
                 item.UpdateOnUIThread();
             }
 
-            if (this.stopTimer)
+            if (_stopTimer)
             {
-                this.timer.Stop();
+                _timer.Stop();
             }
             else
             {
                 // Stop it next time if there was no activity.
-                this.stopTimer = true;
+                _stopTimer = true;
             }
         }
 
@@ -93,7 +95,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 indicator.Width = 30;
                 indicator.Height = 10;
                 s.Children.Add(indicator);
-                this.indicators.Add(indicator);
+                _indicators.Add(indicator);
 
                 TextBlock label = new TextBlock();
                 label.Text = item.Name;
@@ -121,21 +123,21 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         private void OnPerfItemsListSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (this.detailsListView != null)
+            if (_detailsListView != null)
             {
-                mainGrid.ColumnDefinitions.RemoveAt(1);
-                mainGrid.Children.Remove(this.detailsListView);
-                foreach (StackPanel item in this.detailsListView.Items)
+                _mainGrid.ColumnDefinitions.RemoveAt(1);
+                _mainGrid.Children.Remove(_detailsListView);
+                foreach (StackPanel item in _detailsListView.Items)
                 {
                     var indicator = item.Children[0] as StatusIndicator;
-                    this.indicators.Remove(indicator);
+                    _indicators.Remove(indicator);
                     indicator.Unsubscribe();
                 }
 
-                this.detailsListView = null;
+                _detailsListView = null;
             }
 
-            var selectedItem = this.mainListView.SelectedItem as StackPanel;
+            var selectedItem = _mainListView.SelectedItem as StackPanel;
             if (selectedItem == null)
             {
                 return;
@@ -144,10 +146,10 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
             var context = selectedItem.Tag as ActivityLevel;
             if (context != null && context.Children != null && context.Children.Any())
             {
-                this.detailsListView = CreateContent(context.Children, useWrapPanel: false);
-                mainGrid.Children.Add(this.detailsListView);
-                mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                Grid.SetColumn(this.detailsListView, 1);
+                _detailsListView = CreateContent(context.Children, useWrapPanel: false);
+                _mainGrid.Children.Add(_detailsListView);
+                _mainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                Grid.SetColumn(_detailsListView, 1);
 
                 // Update the UI
                 StartTimer();

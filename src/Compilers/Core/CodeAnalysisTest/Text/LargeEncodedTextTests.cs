@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = CreateSourceText(HelloWorld);
             Assert.Throws(typeof(IndexOutOfRangeException), () => text[-1]);
             Assert.Throws(typeof(IndexOutOfRangeException), () => text[HelloWorld.Length]);
-            for(int i = HelloWorld.Length - 1; i >= 0; i--)
+            for (int i = HelloWorld.Length - 1; i >= 0; i--)
             {
                 Assert.Equal(HelloWorld[i], text[i]);
             }
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             const int destOffset = 10;
             char[] buffer = new char[HelloWorld.Length + destOffset];
-            
+
             // Copy the entire text to a non-zero offset in the destination
             text.CopyTo(0, buffer, destOffset, text.Length);
 

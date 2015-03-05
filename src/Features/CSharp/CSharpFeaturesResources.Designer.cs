@@ -187,28 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///    #region IDisposable Support
-        ///    private bool disposedValue = false; // To detect redundant calls
-        ///
-        ///    {0}void Dispose(bool disposing)
-        ///    {{
-        ///        if (!disposedValue)
-        ///        {{
-        ///            if (disposing)
-        ///            {{
-        ///                // TODO: dispose managed state (managed objects).
-        ///            }}
-        ///
-        ///            // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-        ///            // TODO: set large fields to null.
-        ///
-        ///            disposedValue = true;
-        ///       [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Do not change this code. Put cleanup code in Dispose(bool disposing) above..
         /// </summary>
-        internal static string DisposePattern {
+        internal static string DoNotChangeThisCodeUseDispose {
             get {
-                return ResourceManager.GetString("DisposePattern", resourceCulture);
+                return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture);
             }
         }
         
@@ -227,6 +210,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Extension {
             get {
                 return ResourceManager.GetString("Extension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override a finalizer below..
+        /// </summary>
+        internal static string FreeUnmanagedResourcesTodo {
+            get {
+                return ResourceManager.GetString("FreeUnmanagedResourcesTodo", resourceCulture);
             }
         }
         
@@ -389,6 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string OrganizeUsingsWithAccelerator {
             get {
                 return ResourceManager.GetString("OrganizeUsingsWithAccelerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources..
+        /// </summary>
+        internal static string OverrideAFinalizerTodo {
+            get {
+                return ResourceManager.GetString("OverrideAFinalizerTodo", resourceCulture);
             }
         }
         
@@ -578,6 +579,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TheSelectionContainsSyntacticErrors {
             get {
                 return ResourceManager.GetString("TheSelectionContainsSyntacticErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This code added to correctly implement the disposable pattern..
+        /// </summary>
+        internal static string ThisCodeAddedToCorrectlyImplementDisposable {
+            get {
+                return ResourceManager.GetString("ThisCodeAddedToCorrectlyImplementDisposable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: uncomment the following line if the finalizer is overridden above..
+        /// </summary>
+        internal static string UncommentTheFollowingIfFinalizerOverriddenTodo {
+            get {
+                return ResourceManager.GetString("UncommentTheFollowingIfFinalizerOverriddenTodo", resourceCulture);
             }
         }
         
