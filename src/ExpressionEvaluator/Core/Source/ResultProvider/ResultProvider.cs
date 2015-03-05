@@ -627,14 +627,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         () =>
                         {
                             results[index] = result;
-                            if (index < numRows - 1)
-                            {
-                                GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine);
-                            }
-                            else
-                            {
-                                completionRoutine();
-                            }
+                            GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine);
                         }));
             }
             else

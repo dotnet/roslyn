@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _analyzerDriverService = project.LanguageServices.GetService<IAnalyzerDriverService>();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _descendantExecutableNodesMap = null;
-            _analyzerOptions = _project.AnalyzerOptions;
+            _analyzerOptions = new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace);
             _onAnalyzerException = overriddenOnAnalyzerException ?? Default_OnAnalyzerException;
             _onAnalyzerException_NoTelemetryLogging = overriddenOnAnalyzerException ?? Default_OnAnalyzerException_NoTelemetryLogging;
         }
