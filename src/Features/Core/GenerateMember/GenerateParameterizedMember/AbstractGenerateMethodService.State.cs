@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
                     {
-                        return Task.FromResult(false);
+                        return SpecializedTasks.False;
                     }
                 }
                 else if (service.IsSimpleNameGeneration(node))
                 {
                     if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
                     {
-                        return Task.FromResult(false);
+                        return SpecializedTasks.False;
                     }
                 }
 

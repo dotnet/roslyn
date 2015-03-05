@@ -2231,6 +2231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (expression.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ElementAccessExpression:
                 case SyntaxKind.PostIncrementExpression:

@@ -237,9 +237,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             var expression = node.Parent;
 
-            var symbols = await GetSymbolsAsync(project, diagnostic, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var symbols = await GetSymbolsAsync(project, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
-            return FilterForExtensionMethods(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            if (symbols != null)
+            {
+                return FilterForExtensionMethods(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            }
+
+            return null;
         }
 
         private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
@@ -258,9 +263,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             var expression = node.Parent;
 
-            var symbols = await GetSymbolsAsync(project, diagnostic, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var symbols = await GetSymbolsAsync(project, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
 
-            return FilterForFieldsAndProperties(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            if (symbols != null)
+            {
+                return FilterForFieldsAndProperties(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
+            }
+
+            return null;
         }
 
         private IEnumerable<INamespaceSymbol> FilterForFieldsAndProperties(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)
@@ -285,7 +295,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private Task<IEnumerable<ISymbol>> GetSymbolsAsync(
             Project project,
-            Diagnostic diagnostic,
             SyntaxNode node,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,

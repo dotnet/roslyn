@@ -6809,6 +6809,239 @@ out
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=0, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Info, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+:Test001", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralWarnAsErrorMinusResetsRules()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "/WarnAsError-", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificWarnAsErrorMinusResetsRules()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "/WarnAsError-:Test001", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+:Test002", "/WarnAsError-:Test002", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=2, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test002"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_LastGeneralWarnAsErrorTrumpsNoWarn()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/NoWarn", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralNoWarnTrumpsGeneralWarnAsErrorMinus()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "/NoWarn", "/WarnAsError-", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralNoWarnTurnsOffAllButErrors()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Error"" />
+    <Rule Id=""Test002"" Action=""Warning"" />
+    <Rule Id=""Test003"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/NoWarn", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=3, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test002"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test003"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificNoWarnAlwaysWins()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = VisualBasicCommandLineParser.Default.Parse({"/ruleset:Rules.RuleSet", "/NoWarn:Test001", "/WarnAsError+", "/WarnAsError-:Test001", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
