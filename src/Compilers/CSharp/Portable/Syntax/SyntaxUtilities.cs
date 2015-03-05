@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ArrowExpressionClause:  // expression-bodied member
                 case SyntaxKind.CatchClause:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.UsingStatement:
 
                 // variable captured by a lambda in a let clause, 
                 // e.g. from item in array let a = new Func<int>(() => item)

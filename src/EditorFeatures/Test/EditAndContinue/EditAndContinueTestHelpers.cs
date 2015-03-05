@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = new List<RudeEditDiagnostic>();
             var actualNewActiveStatements = new LinePositionSpan[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
-            var updatedActiveMethodMatches = new List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>>();
+            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMethodInfo>();
             var editMap = Analyzer.BuildEditMap(editScript);
 
             DocumentId documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
@@ -232,14 +233,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldCompilation = CreateLibraryCompilation("Old", oldTrees);
             var newCompilation = CreateLibraryCompilation("New", newTrees);
 
-            oldTrees.SelectMany(tree => tree.GetDiagnostics()).Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-            newTrees.SelectMany(tree => tree.GetDiagnostics()).Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+            if (oldCompilation is CSharpCompilation)
+            {
+                oldCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+                newCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+            }
+            else
+            {
+                // TODO: verify all compilation diagnostics like C# does (tests need to be updated)
+                oldTrees.SelectMany(tree => tree.GetDiagnostics()).Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+                newTrees.SelectMany(tree => tree.GetDiagnostics()).Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+            }
 
             var oldModel = oldCompilation.GetSemanticModel(oldRoot.SyntaxTree);
             var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
 
             var oldActiveStatements = activeStatements.OldSpans.AsImmutable();
-            var updatedActiveMethodMatches = new List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>>();
+            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMethodInfo>();
             var triviaEdits = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
@@ -333,8 +343,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                         newNodes.Add(newNode);
                     }
-
-                    AssertEx.SetEqual(newNodes, GetDeclarators(actualNewSymbol));
                 }
                 else
                 {
