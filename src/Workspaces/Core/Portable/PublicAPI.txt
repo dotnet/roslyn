@@ -231,6 +231,7 @@ Microsoft.CodeAnalysis.Editing.DocumentEditor
 Microsoft.CodeAnalysis.Editing.DocumentEditor.GetChangedDocument()
 Microsoft.CodeAnalysis.Editing.DocumentEditor.OriginalDocument.get
 Microsoft.CodeAnalysis.Editing.DocumentEditor.SemanticModel.get
+Microsoft.CodeAnalysis.Editing.ImportAdder
 Microsoft.CodeAnalysis.Editing.SolutionEditor
 Microsoft.CodeAnalysis.Editing.SolutionEditor.GetChangedSolution()
 Microsoft.CodeAnalysis.Editing.SolutionEditor.GetDocumentEditorAsync(Microsoft.CodeAnalysis.DocumentId id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -844,6 +845,7 @@ abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TiedToAncestor(
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TreesEqual(TNode oldNode, TNode newNode)
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TryGetParent(TNode node, out TNode parent)
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.ValuesEqual(TNode oldNode, TNode newNode)
+abstract Microsoft.CodeAnalysis.Editing.ImportAdder.AddNamespaceImportsAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet options, System.Threading.CancellationToken cancellationToken)
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddBaseType(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode baseType)
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right)
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddInterfaceType(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode interfaceType)
@@ -1089,6 +1091,10 @@ static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator -(Microsoft.
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right)
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator |(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right)
 static Microsoft.CodeAnalysis.Editing.DocumentEditor.CreateAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+static Microsoft.CodeAnalysis.Editing.ImportAdder.AddImportsAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 static Microsoft.CodeAnalysis.Editing.SymbolEditor.Create(Microsoft.CodeAnalysis.Document document)
 static Microsoft.CodeAnalysis.Editing.SymbolEditor.Create(Microsoft.CodeAnalysis.Solution solution)
 static Microsoft.CodeAnalysis.Editing.SymbolEditorExtensions.GetBaseOrInterfaceDeclarationReferenceAsync(this Microsoft.CodeAnalysis.Editing.SymbolEditor editor, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ITypeSymbol baseOrInterfaceType, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))

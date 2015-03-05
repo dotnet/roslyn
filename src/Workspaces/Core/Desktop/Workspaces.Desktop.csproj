@@ -88,7 +88,6 @@
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
-    <Compile Include="Options\ExportOptionsAttribute.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities.cs" />
