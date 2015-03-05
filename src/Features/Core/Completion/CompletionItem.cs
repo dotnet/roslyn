@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public virtual Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return this.LazyDescription == null
-                ? Task.FromResult(ImmutableArray.Create<SymbolDisplayPart>())
+                ? SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>()
                 : this.LazyDescription.GetValueAsync(cancellationToken);
         }
 

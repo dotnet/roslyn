@@ -1739,6 +1739,342 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Error);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Error);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"], expected: ReportDiagnostic.Error);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Error);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"], expected: ReportDiagnostic.Info);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+:Test001",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Default);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"], expected: ReportDiagnostic.Error);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_GeneralWarnAsErrorMinusResetsRules()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+",
+                    "/warnaserror-",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Default);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"], expected: ReportDiagnostic.Warn);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_SpecificWarnAsErrorMinusResetsRules()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+",
+                    "/warnaserror-:Test001",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Error);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"], expected: ReportDiagnostic.Warn);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+:Test002",
+                    "/warnaserror-:Test002",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(actual: arguments.CompilationOptions.GeneralDiagnosticOption, expected: ReportDiagnostic.Default);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"], expected: ReportDiagnostic.Warn);
+            Assert.Equal(actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test002"], expected: ReportDiagnostic.Default);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void NoWarn_SpecificNoWarnOverridesRuleSet()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/nowarn:Test001",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
+            Assert.Equal(expected: 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void NoWarn_SpecificNoWarnOverridesGeneralWarnAsError()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/warnaserror+",
+                    "/nowarn:Test001",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
+            Assert.Equal(expected: 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
+        }
+
+        [Fact]
+        [WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")]
+        public void NoWarn_SpecificNoWarnOverridesSpecificWarnAsError()
+        {
+            var dir = Temp.CreateDirectory();
+
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+            var ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+
+            var arguments = CSharpCommandLineParser.Default.Parse(
+                new[]
+                {
+                    "/nologo",
+                    "/t:library",
+                    "/ruleset:Rules.ruleset",
+                    "/nowarn:Test001",
+                    "/warnaserror+:Test001",
+                    "a.cs"
+                },
+                dir.Path);
+
+            var errors = arguments.Errors;
+            Assert.Empty(errors);
+
+            Assert.Equal(expected: ReportDiagnostic.Default, actual: arguments.CompilationOptions.GeneralDiagnosticOption);
+            Assert.Equal(expected: 1, actual: arguments.CompilationOptions.SpecificDiagnosticOptions.Count);
+            Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions["Test001"]);
+        }
+
         [WorkItem(912906)]
         [Fact]
         public void Analyzers_CommandLineOverridesRuleset2()
@@ -7306,8 +7642,8 @@ class C {
             context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
         }
     }
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class HiddenDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Hidden01 = new DiagnosticDescriptor("Hidden01", "", "Throwing a diagnostic for #region", "", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
@@ -7331,8 +7667,8 @@ class C {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.RegionDirectiveTrivia);
         }
     }
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class InfoDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Info01 = new DiagnosticDescriptor("Info01", "", "Throwing a diagnostic for #pragma restore", "", DiagnosticSeverity.Info, isEnabledByDefault: true);
@@ -7358,8 +7694,8 @@ class C {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.PragmaWarningDirectiveTrivia);
         }
     }
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class WarningDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Warning01 = new DiagnosticDescriptor("Warning01", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -7382,8 +7718,8 @@ class C {
                 SymbolKind.NamedType);
         }
     }
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class ErrorDiagnosticAnalyzer : CompilationStartedAnalyzer
     {
         internal static readonly DiagnosticDescriptor Error01 = new DiagnosticDescriptor("Error01", "", "Throwing a diagnostic for #pragma disable", "", DiagnosticSeverity.Error, isEnabledByDefault: true);

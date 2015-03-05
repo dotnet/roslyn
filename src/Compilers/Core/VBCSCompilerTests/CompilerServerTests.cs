@@ -268,6 +268,7 @@ End Module")
         private void KillCompilerServer()
         {
             KillProcess(_compilerServerExecutable);
+            KillProcess(s_compilerServerExecutableSrc);
         }
 
         private ProcessResult RunCommandLineCompiler(
@@ -2148,7 +2149,7 @@ class Hello
         }
 
         [Fact]
-        public void ExecuteCscBuildTask()
+        public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
             csc.ToolPath = _compilerDirectory;
@@ -2160,6 +2161,9 @@ class Hello
             csc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
             csc.NoLogo = true;
             csc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            csc.ToolPath = "";
+            csc.ToolExe = "";
+            csc.UseSharedCompilation = true;
 
             csc.Execute();
 
@@ -2175,7 +2179,7 @@ class Hello
         }
 
         [Fact]
-        public void ExecuteVbcBuildTask()
+        public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
             vbc.ToolPath = _compilerDirectory;
@@ -2187,6 +2191,9 @@ class Hello
             vbc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
             vbc.NoLogo = true;
             vbc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            vbc.ToolPath = "";
+            vbc.ToolExe = "";
+            vbc.UseSharedCompilation = true;
 
             vbc.Execute();
 

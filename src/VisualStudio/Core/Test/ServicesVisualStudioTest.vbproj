@@ -336,8 +336,10 @@
     <Compile Include="ObjectBrowser\NavInfoNodeDescriptor.vb" />
     <Compile Include="ObjectBrowser\VisualBasic\ObjectBrowerTests.vb" />
     <Compile Include="Progression\GraphProviderTests.vb" />
+    <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptionsTests.vb" />
     <Compile Include="ProjectSystemShim\DeferredProjectLoadingTests.vb" />
     <Compile Include="ProjectSystemShim\Framework\MockHierarchy.vb" />
+    <Compile Include="ProjectSystemShim\MockRuleSetFile.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectTests.vb" />
     <Compile Include="Snippets\SnippetServiceWaiter.vb" />
     <Compile Include="StubVsEditorAdaptersFactoryService.vb" />

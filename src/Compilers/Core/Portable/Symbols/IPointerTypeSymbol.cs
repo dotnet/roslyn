@@ -17,11 +17,13 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol PointedAtType { get; }
 
         /// <summary>
-        /// The list of custom modifiers, if any, associated with the pointer type.
-        /// (Some managed languages may represent special information about the pointer type
-        /// as a custom modifier on either the pointer type or the element type, or
-        /// both.)
+        /// Custom modifiers associated with the pointer type, or an empty array if there are none.
         /// </summary>
+        /// <remarks>
+        /// Some managed languages may represent special information about the pointer type
+        /// as a custom modifier on either the pointer type or the element type, or
+        /// both.
+        /// </remarks>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
     }
 }
