@@ -824,7 +824,7 @@ public class B
                     OrderBy(Function(d) d.TextSpan.Start).ToArray
 
                 Assert.Equal(3, diagnostics.Count)
-                Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Desciptor1.Id))
+                Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Descriptor.Id))
                 Assert.Equal("B.Property.get", diagnostics(0).Message)
                 Assert.Equal("B.Method()", diagnostics(1).Message)
                 Assert.Equal("B.this[int].get", diagnostics(2).Message)
@@ -961,6 +961,89 @@ public class B
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim fieldDecl = DirectCast(context.Node, CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax)
                 context.ReportDiagnostic(Diagnostic.Create(Desriptor1, fieldDecl.GetLocation, fieldDecl.ToString()))
+            End Sub
+        End Class
+
+        <Fact, WorkItem(530)>
+        Sub TestCompilationAnalyzerWithAnalyzerOptions()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+public class B
+{
+}
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New CompilationAnalyzerWithAnalyzerOptions()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                ' Add additional document
+                Dim additionalDocText = "First"
+                Dim additionalDoc = project.AddAdditionalDocument("AdditionalDoc", additionalDocText)
+                project = additionalDoc.Project
+
+                Dim diagnosticService = New DiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                TestCompilationAnalyzerWithAnalyzerOptionsCore(project, additionalDocText, diagnosticService)
+
+                ' Update additional document text
+                Dim newAdditionalDocText = "Second"
+                additionalDoc = additionalDoc.WithText(SourceText.From(newAdditionalDocText))
+                project = additionalDoc.Project
+
+                ' Verify updated additional document text
+                TestCompilationAnalyzerWithAnalyzerOptionsCore(project, newAdditionalDocText, diagnosticService)
+            End Using
+        End Sub
+
+        Private Shared Sub TestCompilationAnalyzerWithAnalyzerOptionsCore(project As Project, expectedDiagnosticMessage As String, diagnosticService As DiagnosticAnalyzerService)
+            Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+            Assert.Equal(1, descriptorsMap.Count)
+
+            Dim document = project.Documents.Single()
+            Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+
+            Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).
+                WaitAndGetResult(CancellationToken.None)
+            Assert.Equal(1, diagnostics.Count())
+            Assert.Equal(CompilationAnalyzerWithAnalyzerOptions.Descriptor.Id, diagnostics(0).Id)
+            Assert.Equal(expectedDiagnosticMessage, diagnostics(0).Message)
+        End Sub
+
+        <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+        Private Class CompilationAnalyzerWithAnalyzerOptions
+            Inherits DiagnosticAnalyzer
+
+            Public Shared Descriptor As DiagnosticDescriptor = New DiagnosticDescriptor("CompilationAnalyzerWithAnalyzerOptionsDiagnostic",
+                                                                                        "CompilationAnalyzerWithAnalyzerOptionsDiagnostic",
+                                                                                        "{0}",
+                                                                                        "CompilationAnalyzerWithAnalyzerOptionsDiagnostic",
+                                                                                        DiagnosticSeverity.Warning,
+                                                                                        isEnabledByDefault:=True)
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCompilationStartAction(Sub(compilationContext As CompilationStartAnalysisContext)
+                                                           ' Cache additional file text
+                                                           Dim additionalFileText = compilationContext.Options.AdditionalFiles.Single().GetText().ToString()
+
+                                                           compilationContext.RegisterSymbolAction(Sub(symbolContext As SymbolAnalysisContext)
+                                                                                                       Dim diag = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations(0), additionalFileText)
+                                                                                                       symbolContext.ReportDiagnostic(diag)
+                                                                                                   End Sub, SymbolKind.NamedType)
+                                                       End Sub)
             End Sub
         End Class
 
@@ -1301,7 +1384,7 @@ public class B
         Private Class MethodSymbolAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Public Shared Desciptor1 As DiagnosticDescriptor = New DiagnosticDescriptor("MethodSymbolDiagnostic",
+            Public Shared Descriptor As DiagnosticDescriptor = New DiagnosticDescriptor("MethodSymbolDiagnostic",
                                                                                         "MethodSymbolDiagnostic",
                                                                                         "{0}",
                                                                                         "MethodSymbolDiagnostic",
@@ -1310,14 +1393,14 @@ public class B
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
-                    Return ImmutableArray.Create(Desciptor1)
+                    Return ImmutableArray.Create(Descriptor)
                 End Get
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
                 context.RegisterSymbolAction(Sub(ctxt)
                                                  Dim method = (DirectCast(ctxt.Symbol, IMethodSymbol))
-                                                 ctxt.ReportDiagnostic(Diagnostic.Create(Desciptor1, method.Locations(0), method.ToDisplayString))
+                                                 ctxt.ReportDiagnostic(Diagnostic.Create(Descriptor, method.Locations(0), method.ToDisplayString))
                                              End Sub, SymbolKind.Method)
             End Sub
         End Class

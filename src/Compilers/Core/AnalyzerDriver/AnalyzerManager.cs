@@ -4,9 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -18,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// It ensures the following for the lifetime of analyzer host:
     /// 1) <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> is invoked only once per-analyzer.
     /// 2) <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is invoked only once per-analyzer.
-    /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-analyzer per-compilation.
+    /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-compilation per-<see cref="AnalyzerAndOptions"/>
     /// </summary>
     /// <remarks>
     /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/> and
     /// <see cref="GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer, AnalyzerExecutor)"/> out of the AnalyzerManager and into analyzer drivers.
     /// </remarks>
-    internal class AnalyzerManager
+    internal partial class AnalyzerManager
     {
         /// <summary>
         /// Gets the default instance of the AnalyzerManager for the lifetime of the analyzer host process.
@@ -37,9 +35,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             new ConditionalWeakTable<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>();
 
         // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
-        // Compilation start actions will get executed once per-each compilation as user might want to return different set of custom actions for each compilation.
-        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>>>();
+        // Compilation start actions will get executed once per-each AnalyzerAndOptions as user might want to return different set of custom actions for each compilation/analyzer options.
+        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>();
+
+        private readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback _compilationScopeMapCallback =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>>.CreateValueCallback(
+                comp => new ConcurrentDictionary<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>>(AnalyzerAndOptions.Comparer));
 
         /// <summary>
         /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
@@ -50,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             new ConditionalWeakTable<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>();
 
         private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
-            DiagnosticAnalyzer analyzer,
+            AnalyzerAndOptions analyzerAndOptions,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
-            Func<DiagnosticAnalyzer, Task<HostCompilationStartAnalysisScope>> getTask = a =>
+            Func<AnalyzerAndOptions, Task<HostCompilationStartAnalysisScope>> getTask = a =>
             {
                 return Task.Run(() =>
                 {
@@ -64,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }, analyzerExecutor.CancellationToken);
             };
 
-            var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(analyzerExecutor.Compilation);
-            return compilationActionsMap.GetOrAdd(analyzer, getTask);
+            var compilationActionsMap = _compilationScopeMap.GetValue(analyzerExecutor.Compilation, _compilationScopeMapCallback);
+            return compilationActionsMap.GetOrAdd(analyzerAndOptions, getTask);
         }
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
@@ -73,9 +75,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
+            var analyzerAndOptions = new AnalyzerAndOptions(analyzer, analyzerExecutor.AnalyzerOptions);
+
             try
             {
-                return await GetCompilationAnalysisScopeCoreAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                return await GetCompilationAnalysisScopeCoreAsync(analyzerAndOptions, sessionScope, analyzerExecutor).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
                 var compilationActionsMap = _compilationScopeMap.GetOrCreateValue(analyzerExecutor.Compilation);
                 Task<HostCompilationStartAnalysisScope> cancelledTask;
-                compilationActionsMap.TryRemove(analyzer, out cancelledTask);
+                compilationActionsMap.TryRemove(analyzerAndOptions, out cancelledTask);
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
