@@ -393,13 +393,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function NextAre(offset As Integer, chars As String) As Boolean
             Debug.Assert(Not String.IsNullOrEmpty(chars))
             Dim n = chars.Length
-            Dim i = -1
-            If CanGetCharAtOffset(offset + n) Then
-                Do
-                    i += 1
-                Loop While i < n AndAlso chars(i) = PeekAheadChar(offset + i)
-            End If
-            Return i = n
+            If Not CanGetCharAtOffset(offset + n) Then Return False
+            For i = 0 To n - 1
+                If chars(i) <> PeekAheadChar(offset + i) Then Return False
+            Next
+            Return True
         End Function
 
         Private Function CanGetChar() As Boolean
