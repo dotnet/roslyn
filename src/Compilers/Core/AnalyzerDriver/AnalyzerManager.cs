@@ -188,8 +188,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var handler = new EventHandler<Exception>((sender, ex) =>
                     {
-                        var diagnostic = AnalyzerExecutor.GetAnalyzerDiagnostic(analyzer, ex);
-                        analyzerExecutor.OnAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+                        var diagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
+                        if (diagnostic != null)
+                        {
+                            analyzerExecutor.OnAnalyzerException?.Invoke(ex, analyzer, diagnostic);
+                        }
                     });
 
                 // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.

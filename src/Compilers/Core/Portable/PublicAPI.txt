@@ -1855,6 +1855,9 @@ override abstract Microsoft.CodeAnalysis.StrongNameProvider.GetHashCode()
 override abstract Microsoft.CodeAnalysis.SyntaxNode.ToString()
 override abstract Microsoft.CodeAnalysis.XmlReferenceResolver.Equals(object other)
 override abstract Microsoft.CodeAnalysis.XmlReferenceResolver.GetHashCode()
+override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.Equals(object obj)
+override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.GetHashCode()
+override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.ToString()
 override sealed Microsoft.CodeAnalysis.LocalizableString.ToString()
 readonly Microsoft.CodeAnalysis.Emit.EmitBaseline.OriginalMetadata
 readonly Microsoft.CodeAnalysis.Emit.SemanticEdit.Kind
