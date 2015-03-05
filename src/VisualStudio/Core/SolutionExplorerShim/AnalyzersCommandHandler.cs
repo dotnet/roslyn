@@ -238,64 +238,70 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsChecked()
         {
-            bool errorMenuItemChecked = false;
-            bool warningMenuItemChecked = false;
-            bool infoMenuItemChecked = false;
-            bool hiddenMenuItemChecked = false;
-            bool noneMenuItemChecked = false;
+            _setSeverityErrorMenuItem.Checked = false;
+            _setSeverityWarningMenuItem.Checked = false;
+            _setSeverityInfoMenuItem.Checked = false;
+            _setSeverityHiddenMenuItem.Checked = false;
+            _setSeverityNoneMenuItem.Checked = false;
 
             var workspace = TryGetWorkspace() as VisualStudioWorkspaceImpl;
-            if (workspace != null)
+            if (workspace == null)
             {
-                var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.AnalyzerItem.AnalyzersFolder.ProjectId);
+                return;
+            }
 
-                foreach (var group in groups)
+            HashSet<ReportDiagnostic> selectedItemSeverities = new HashSet<ReportDiagnostic>();
+
+            var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.AnalyzerItem.AnalyzersFolder.ProjectId);
+
+            foreach (var group in groups)
+            {
+                var project = (AbstractProject)workspace.GetHostProject(group.Key);
+                IRuleSetFile ruleSet = project.RuleSetFile;
+
+                if (ruleSet != null)
                 {
-                    var project = (AbstractProject)workspace.GetHostProject(group.Key);
-                    IRuleSetFile ruleSet = project.RuleSetFile;
+                    var specificOptions = ruleSet.GetSpecificDiagnosticOptions();
 
-                    if (ruleSet != null)
+                    foreach (var diagnosticItem in group)
                     {
-                        var specificOptions = ruleSet.GetSpecificDiagnosticOptions();
-
-                        foreach (var diagnosticItem in group)
+                        ReportDiagnostic ruleSetSeverity;
+                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity) &&
+                            ruleSetSeverity != ReportDiagnostic.Default)
                         {
-                            ReportDiagnostic ruleSetSeverity;
-                            if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity))
-                            {
-                                switch (ruleSetSeverity)
-                                {
-                                    case ReportDiagnostic.Default:
-                                        break;
-                                    case ReportDiagnostic.Error:
-                                        errorMenuItemChecked = true;
-                                        break;
-                                    case ReportDiagnostic.Warn:
-                                        warningMenuItemChecked = true;
-                                        break;
-                                    case ReportDiagnostic.Info:
-                                        infoMenuItemChecked = true;
-                                        break;
-                                    case ReportDiagnostic.Hidden:
-                                        hiddenMenuItemChecked = true;
-                                        break;
-                                    case ReportDiagnostic.Suppress:
-                                        noneMenuItemChecked = true;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
+                            selectedItemSeverities.Add(ruleSetSeverity);
                         }
                     }
                 }
             }
+            
+            if (selectedItemSeverities.Count != 1)
+            {
+                return;
+            }
 
-            _setSeverityErrorMenuItem.Checked = errorMenuItemChecked;
-            _setSeverityWarningMenuItem.Checked = warningMenuItemChecked;
-            _setSeverityInfoMenuItem.Checked = infoMenuItemChecked;
-            _setSeverityHiddenMenuItem.Checked = hiddenMenuItemChecked;
-            _setSeverityNoneMenuItem.Checked = noneMenuItemChecked;
+            switch (selectedItemSeverities.Single())
+            {
+                case ReportDiagnostic.Default:
+                    break;
+                case ReportDiagnostic.Error:
+                    _setSeverityErrorMenuItem.Checked = true;
+                    break;
+                case ReportDiagnostic.Warn:
+                    _setSeverityWarningMenuItem.Checked = true;
+                    break;
+                case ReportDiagnostic.Info:
+                    _setSeverityInfoMenuItem.Checked = true;
+                    break;
+                case ReportDiagnostic.Hidden:
+                    _setSeverityHiddenMenuItem.Checked = true;
+                    break;
+                case ReportDiagnostic.Suppress:
+                    _setSeverityNoneMenuItem.Checked = true;
+                    break;
+                default:
+                    break;
+            }
         }
 
         private bool AnyDiagnosticsWithSeverity(ReportDiagnostic severity)
