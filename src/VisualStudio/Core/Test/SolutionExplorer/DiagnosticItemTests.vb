@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error)
+            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, Nothing)
 
             Assert.Equal(expected:="TST0001: A test diagnostic", actual:=diagnostic.Text)
         End Sub
@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub BrowseObject()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info)
+            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info, Nothing)
             Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), DiagnosticItem.BrowseObject)
 
             Assert.Equal(expected:=SolutionExplorerShim.DiagnosticItem_PropertyWindowClassName, actual:=browseObject.GetClassName())

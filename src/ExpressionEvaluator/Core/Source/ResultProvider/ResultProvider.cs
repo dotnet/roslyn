@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// <remarks>
     /// This class provides implementation for the default ResultProvider component.
     /// </remarks>
-    internal abstract class ResultProvider : IDkmClrResultProvider
+    public abstract class ResultProvider : IDkmClrResultProvider
     {
         internal readonly Formatter Formatter;
 

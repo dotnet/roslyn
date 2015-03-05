@@ -399,6 +399,39 @@
   <data name="ChangingVisibilityOfConstructor" xml:space="preserve">
     <value>Changing visibility of a constructor will prevent the debug session from continuing.</value>
   </data>
+  <data name="CapturingVariable" xml:space="preserve">
+    <value>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</value>
+  </data>
+  <data name="NotCapturingVariable" xml:space="preserve">
+    <value>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingCapturedVariable" xml:space="preserve">
+    <value>Deleting captured variable '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingCapturedVariableType" xml:space="preserve">
+    <value>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingLambdaParameters" xml:space="preserve">
+    <value>Changing the parameters of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingLambdaReturnType" xml:space="preserve">
+    <value>Changing the return type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingCapturedVariableScope" xml:space="preserve">
+    <value>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AccessingCapturedVariableInLambda" xml:space="preserve">
+    <value>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</value>
+  </data>
+  <data name="NotAccessingCapturedVariableInLambda" xml:space="preserve">
+    <value>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</value>
+  </data>
+  <data name="InsertLambdaWithMultiScopeCapture" xml:space="preserve">
+    <value>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeleteLambdaWithMultiScopeCapture" xml:space="preserve">
+    <value>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</value>
+  </data>
   <data name="AddingInto" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
   </data>
@@ -832,5 +865,14 @@ Do you want to continue?</value>
   </data>
   <data name="FixAllTitle_Solution" xml:space="preserve">
     <value>Solution</value>
+  </data>
+  <data name="DisposeManagedStateTodo" xml:space="preserve">
+    <value>TODO: dispose managed state (managed objects).</value>
+  </data>
+  <data name="SetLargeFieldsToNullTodo" xml:space="preserve">
+    <value>TODO: set large fields to null.</value>
+  </data>
+  <data name="ToDetectRedundantCalls" xml:space="preserve">
+    <value>To detect redundant calls</value>
   </data>
 </root>

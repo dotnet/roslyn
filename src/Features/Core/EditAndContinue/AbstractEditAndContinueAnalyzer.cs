@@ -8,9 +8,12 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -142,6 +145,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected abstract SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node);
 
+        /// <summary>
+        /// Given a node that represents a lambda body returns all nodes of the body in a syntax list.
+        /// </summary>
+        /// <remarks>
+        /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share their parent nodes with other bodies (e.g. join clause expressions).
+        /// </remarks>
+        protected abstract SyntaxList<SyntaxNode> GetLambdaBodyNodes(SyntaxNode lambdaBody);
+
         protected abstract SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
 
         protected abstract Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit);
@@ -192,10 +203,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected abstract ISymbol GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, Dictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
+        /// If the body is a field/property initializer analyzes the initializer expression only.
+        /// </summary>
+        protected abstract ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode body);
+
+        /// <summary>
+        /// Enumerates all use sites of a specified variable within the specified syntax subtrees.
+        /// </summary>
+        protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(SyntaxList<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
+
         protected abstract TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind);
         protected abstract string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind);
         protected abstract string GetStatementDisplayName(SyntaxNode node, EditKind editKind);
         protected abstract string GetLambdaDisplayName(SyntaxNode lambda);
+        protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf);
         protected abstract ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
@@ -209,10 +232,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal abstract bool IsMethod(SyntaxNode declaration);
         internal abstract bool IsLambda(SyntaxNode node);
+        internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
 
         /// <summary>
-        /// Returns all lambda bodies of a node representing a lambda.
+        /// Returns true if the parameters of the symbol are lifted into a scope that is different from the symbol's body.
+        /// </summary>
+        internal abstract bool HasParameterClosureScope(ISymbol member);
+
+        /// <summary>
+        /// Returns all lambda bodies of a node representing a lambda, 
+        /// or false if the node doens't repesent a lambda.
         /// </summary>
         /// <remarks>
         /// C# anonymous function expression and VB lambda expression both have a single body
@@ -351,9 +381,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // 2) If there are syntactic rude edits we'll report them faster without waiting for semantic analysis.
                 //    The user may fix them before they address all the semantic errors.
 
-                // [(edit ordinal, matching statements of an updated active method)]
-                var updatedActiveMethodMatches = new List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>>();
-
+                var updatedMethods = new List<UpdatedMethodInfo>();
                 var diagnostics = new List<RudeEditDiagnostic>();
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -372,7 +400,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     baseActiveStatements,
                     newActiveStatements,
                     newExceptionRegions,
-                    updatedActiveMethodMatches,
+                    updatedMethods,
                     diagnostics);
 
                 if (diagnostics.Count > 0)
@@ -439,7 +467,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         oldText,
                         baseActiveStatements,
                         triviaEdits,
-                        updatedActiveMethodMatches,
+                        updatedMethods,
                         oldModel,
                         newModel,
                         semanticEdits,
@@ -505,13 +533,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             [Out]LinePositionSpan[] newActiveStatements,
             [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>> updatedActiveMethodMatches,
+            [Out]List<UpdatedMethodInfo> updatedMethods,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
-            Debug.Assert(updatedActiveMethodMatches != null);
-            Debug.Assert(updatedActiveMethodMatches.Count == 0);
+            Debug.Assert(updatedMethods != null);
+            Debug.Assert(updatedMethods.Count == 0);
 
             var updatedTrackingSpans = new List<KeyValuePair<ActiveStatementId, TextSpan>>();
 
@@ -519,7 +547,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedActiveMethodMatches, updatedTrackingSpans, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 
@@ -743,6 +771,54 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        internal struct UpdatedMethodInfo
+        {
+            // Index in top edit script.
+            public readonly int EditOrdinal;
+
+            // node that represents the old body of the method:
+            public readonly SyntaxNode OldBody;
+
+            // node that represents the new body of the method:
+            public readonly SyntaxNode NewBody;
+
+            // { NewNode <-> OldNode }
+            public readonly BidirectionalMap<SyntaxNode> Map;
+
+            // { OldLambdaBody -> LambdaInfo }
+            public readonly IReadOnlyDictionary<SyntaxNode, LambdaInfo> ActiveOrMatchedLambdasOpt;
+
+            // the method has an active statement (the statement might be in the body itself or in a lambda)
+            public readonly bool HasActiveStatement;
+
+            // The method body has a suspension point (await/yield); 
+            // only true if the body itself has the suspension point, not if it contains async/iterator lambda
+            public readonly bool HasStateMachineSuspensionPoint;
+
+            public UpdatedMethodInfo(
+                int editOrdinal, 
+                SyntaxNode oldBody, 
+                SyntaxNode newBody, 
+                BidirectionalMap<SyntaxNode> map, 
+                IReadOnlyDictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdasOpt,
+                bool hasActiveStatement, 
+                bool hasStateMachineSuspensionPoint)
+            {
+                Debug.Assert(editOrdinal >= 0);
+                Debug.Assert(!map.IsDefaultOrEmpty);
+                Debug.Assert(oldBody != null);
+                Debug.Assert(newBody != null);
+
+                EditOrdinal = editOrdinal;
+                OldBody = oldBody;
+                NewBody = newBody;
+                Map = map;
+                ActiveOrMatchedLambdasOpt = activeOrMatchedLambdasOpt;
+                HasActiveStatement = hasActiveStatement;
+                HasStateMachineSuspensionPoint = hasStateMachineSuspensionPoint;
+            }
+        }
+
         private void AnalyzeUpdatedActiveMethodBodies(
             EditScript<SyntaxNode> topEditScript,
             int editOrdinal,
@@ -754,7 +830,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             [Out]LinePositionSpan[] newActiveStatements,
             [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>> updatedActiveMethodMatches,
+            [Out]List<UpdatedMethodInfo> updatedMethods,
             [Out]List<KeyValuePair<ActiveStatementId, TextSpan>> updatedTrackingSpans,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
@@ -790,8 +866,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (hasActiveStatement)
                 {
                     var newSpan = HasInitializer(edit.OldNode) ?
-                        GetDeletedNodeActiveSpan(topEditScript.Match, edit.OldNode) :
-                        GetDeletedNodeDiagnosticSpan(topEditScript.Match, edit.OldNode);
+                        GetDeletedNodeActiveSpan(topEditScript.Match.Matches, edit.OldNode) :
+                        GetDeletedNodeDiagnosticSpan(topEditScript.Match.Matches, edit.OldNode);
 
                     for (int i = start; i < end; i++)
                     {
@@ -827,6 +903,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Populated with active lambdas and matched lambdas. 
             // Unmatched non-active lambdas are not included.
+            // { old-lambda-body -> info }
             Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas = null;
 
             // finds leaf nodes that correspond to the old active statements:
@@ -889,17 +966,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             bool hasStateMachineSuspensionPoint;
-            bool hasLambda;
             var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodes.Where(n => n.EnclosingLambdaBodyOpt == null).ToArray(), diagnostics, out hasStateMachineSuspensionPoint);
-            var reverseMap = ComputeReverseMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics, out hasLambda);
+            var map = ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics);
 
-            // TODO: include reverse maps of field initializers
-            if (IsMethod(edit.OldNode) && (hasStateMachineSuspensionPoint || hasLambda || hasActiveStatement))
+            // TODO: include field initializers
+            if (IsMethod(edit.OldNode))
             {
                 // Save the body match for local variable mapping.
                 // We'll use it to tell the compiler what local variables to preserve in an active method.
                 // An edited async/iterator method is considered active.
-                updatedActiveMethodMatches.Add(ValueTuple.Create(editOrdinal, reverseMap));
+                updatedMethods.Add(new UpdatedMethodInfo(editOrdinal, oldBody, newBody, map, lazyActiveOrMatchedLambdas, hasActiveStatement, hasStateMachineSuspensionPoint));
             }
 
             for (int i = 0; i < activeNodes.Length; i++)
@@ -991,14 +1067,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    newSpan = GetDeletedNodeActiveSpan(match, oldStatementSyntax);
+                    newSpan = GetDeletedNodeActiveSpan(match.Matches, oldStatementSyntax);
 
                     if (!isLeaf)
                     {
                         // rude edit: internal active statement deleted
                         diagnostics.Add(
                             new RudeEditDiagnostic(RudeEditKind.RUDE_ACTIVE_STMT_DELETED,
-                            GetDeletedNodeDiagnosticSpan(match, oldStatementSyntax)));
+                            GetDeletedNodeDiagnosticSpan(match.Matches, oldStatementSyntax)));
                     }
                 }
 
@@ -1018,12 +1094,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Calculates a syntax map of the entire method body including all lambda bodies it contains (recursively).
         /// Internal for testing.
         /// </summary>
-        internal IReadOnlyDictionary<SyntaxNode, SyntaxNode> ComputeReverseMap(
+        internal BidirectionalMap<SyntaxNode> ComputeMap(
             Match<SyntaxNode> bodyMatch,
             ActiveNode[] activeNodes,
             ref Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
-            List<RudeEditDiagnostic> diagnostics,
-            out bool hasLambda)
+            List<RudeEditDiagnostic> diagnostics)
         {
             ArrayBuilder<Match<SyntaxNode>> lambdaBodyMatches = null;
             int currentLambdaBodyMatch = -1;
@@ -1044,28 +1119,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     SyntaxNode newLambda = pair.Value;
                     SyntaxNode oldLambdaBody1, oldLambdaBody2;
 
-                    if (IsLambda(oldLambda))
+                    if (TryGetLambdaBodies(oldLambda, out oldLambdaBody1, out oldLambdaBody2))
                     {
                         Debug.Assert(IsLambda(newLambda));
 
-                        if (TryGetLambdaBodies(oldLambda, out oldLambdaBody1, out oldLambdaBody2))
+                        if (lambdaBodyMatches == null)
                         {
-                            if (lambdaBodyMatches == null)
-                            {
-                                lambdaBodyMatches = ArrayBuilder<Match<SyntaxNode>>.GetInstance();
-                            }
+                            lambdaBodyMatches = ArrayBuilder<Match<SyntaxNode>>.GetInstance();
+                        }
+                        if (lazyActiveOrMatchedLambdas == null)
+                        {
+                            lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
+                        }
 
-                            if (lazyActiveOrMatchedLambdas == null)
-                            {
-                                lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
-                            }
+                        lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
 
-                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
 
-                            if (oldLambdaBody2 != null)
-                            {
-                                lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
-                            }
+                        if (oldLambdaBody2 != null)
+                        {
+                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
                         }
                     }
                 }
@@ -1081,14 +1153,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (lambdaBodyMatches == null)
             {
-                hasLambda = false;
-                return bodyMatch.ReverseMatches;
+                return BidirectionalMap<SyntaxNode>.FromMatch(bodyMatch);
             }
 
-            var result = new Dictionary<SyntaxNode, SyntaxNode>();
+            var map = new Dictionary<SyntaxNode, SyntaxNode>();
+            var reverseMap = new Dictionary<SyntaxNode, SyntaxNode>();
 
             // include all matches, including the root:
-            result.AddRange(bodyMatch.ReverseMatches);
+            map.AddRange(bodyMatch.Matches);
+            reverseMap.AddRange(bodyMatch.ReverseMatches);
 
             foreach (var lambdaBodyMatch in lambdaBodyMatches)
             {
@@ -1097,32 +1170,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Body match of a lambda whose body is an expression has the lambda as a root.
                     // The lambda has already been included when enumerating parent body matches.
                     Debug.Assert(
-                        !result.ContainsKey(pair.Value) ||
+                        !map.ContainsKey(pair.Key) ||
                         pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key));
 
-                    // reverse
-                    result[pair.Value] = pair.Key;
+                    map[pair.Key] = pair.Value;
+                    reverseMap[pair.Value] = pair.Key;
                 }
             }
 
             lambdaBodyMatches?.Free();
 
-            hasLambda = true;
-            return result;
+            return new BidirectionalMap<SyntaxNode>(map, reverseMap);
         }
 
         private Match<SyntaxNode> ComputeLambdaBodyMatch(
-            SyntaxNode lambdaBody,
+            SyntaxNode oldLambdaBody,
             SyntaxNode newLambda,
             ActiveNode[] activeNodes,
             [Out]Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
-            SyntaxNode newLambdaBody = GetPartnerLambdaBody(lambdaBody, newLambda);
+            SyntaxNode newLambdaBody = GetPartnerLambdaBody(oldLambdaBody, newLambda);
 
             ActiveNode[] activeNodesInLambda;
             LambdaInfo info;
-            if (lazyActiveOrMatchedLambdas.TryGetValue(lambdaBody, out info))
+            if (lazyActiveOrMatchedLambdas.TryGetValue(oldLambdaBody, out info))
             {
                 // Lambda may be matched but not be active.
                 activeNodesInLambda = info.ActiveNodeIndices?.Select(i => activeNodes[i]).ToArray();
@@ -1135,9 +1207,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             bool needsSyntaxMap;
-            var lambdaBodyMatch = ComputeBodyMatch(lambdaBody, newLambdaBody, activeNodesInLambda ?? SpecializedCollections.EmptyArray<ActiveNode>(), diagnostics, out needsSyntaxMap);
+            var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambda ?? SpecializedCollections.EmptyArray<ActiveNode>(), diagnostics, out needsSyntaxMap);
 
-            lazyActiveOrMatchedLambdas[lambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
+            lazyActiveOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
 
             return lambdaBodyMatch;
         }
@@ -1192,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         diagnostics.Add(new RudeEditDiagnostic(
                             RudeEditKind.Delete,
-                            GetDeletedNodeDiagnosticSpan(match, deletedNode),
+                            GetDeletedNodeDiagnosticSpan(match.Matches, deletedNode),
                             deletedNode,
                             new[] { GetStatementDisplayName(deletedNode, EditKind.Delete) }));
                     }
@@ -1330,21 +1402,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result.AsImmutable();
         }
 
-        private TextSpan GetDeletedNodeDiagnosticSpan(SyntaxNode deletedLambdaBody, Match<SyntaxNode> bodyMatch, Dictionary<SyntaxNode, LambdaInfo> lambdaInfos)
+        private TextSpan GetDeletedNodeDiagnosticSpan(SyntaxNode deletedLambdaBody, Match<SyntaxNode> match, Dictionary<SyntaxNode, LambdaInfo> lambdaInfos)
         {
             SyntaxNode oldLambdaBody = deletedLambdaBody;
             while (true)
             {
-                var oldParentLambdaBody = FindEnclosingLambdaBody(bodyMatch.OldRoot, oldLambdaBody.Parent);
+                var oldParentLambdaBody = FindEnclosingLambdaBody(match.OldRoot, oldLambdaBody.Parent);
                 if (oldParentLambdaBody == null)
                 {
-                    return GetDeletedNodeDiagnosticSpan(bodyMatch, oldLambdaBody);
+                    return GetDeletedNodeDiagnosticSpan(match.Matches, oldLambdaBody);
                 }
 
                 LambdaInfo lambdaInfo;
                 if (lambdaInfos.TryGetValue(oldParentLambdaBody, out lambdaInfo) && lambdaInfo.Match != null)
                 {
-                    return GetDeletedNodeDiagnosticSpan(lambdaInfo.Match, oldLambdaBody);
+                    return GetDeletedNodeDiagnosticSpan(lambdaInfo.Match.Matches, oldLambdaBody);
                 }
 
                 oldLambdaBody = oldParentLambdaBody;
@@ -1382,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return statement.Span;
         }
 
-        internal TextSpan GetDeletedNodeActiveSpan(Match<SyntaxNode> match, SyntaxNode deletedNode)
+        internal TextSpan GetDeletedNodeActiveSpan(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode deletedNode)
         {
             foreach (var nodeAndPart in EnumerateNearStatements(deletedNode))
             {
@@ -1394,19 +1466,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 SyntaxNode newNode;
-                if (match.TryGetNewNode(oldNode, out newNode))
+                if (forwardMap.TryGetValue(oldNode, out newNode))
                 {
                     return FindClosestActiveSpan(newNode, part);
                 }
             }
 
-            return GetDeletedNodeDiagnosticSpan(match, deletedNode);
+            return GetDeletedNodeDiagnosticSpan(forwardMap, deletedNode);
         }
 
-        internal TextSpan GetDeletedNodeDiagnosticSpan(Match<SyntaxNode> match, SyntaxNode deletedNode)
+        internal TextSpan GetDeletedNodeDiagnosticSpan(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode deletedNode)
         {
             SyntaxNode newAncestor;
-            bool hasAncestor = TryGetMatchingAncestor(match, deletedNode, out newAncestor);
+            bool hasAncestor = TryGetMatchingAncestor(forwardMap, deletedNode, out newAncestor);
             Debug.Assert(hasAncestor);
             return GetDiagnosticSpan(newAncestor, EditKind.Delete);
         }
@@ -1414,11 +1486,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(Match<SyntaxNode> match, SyntaxNode oldNode, out SyntaxNode newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode oldNode, out SyntaxNode newAncestor)
         {
             while (oldNode != null)
             {
-                if (match.TryGetNewNode(oldNode, out newAncestor))
+                if (forwardMap.TryGetValue(oldNode, out newAncestor))
                 {
                     return true;
                 }
@@ -1841,6 +1913,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Semantic Analysis
 
+        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol>
+        {
+            public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblyEqualityComparer();
+
+            public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
+            {
+                // Types defined in old source assembly need to be treated as equivalent to types in the new source assembly,
+                // provided that they only differ in their containing assemblies.
+                // 
+                // The old source symbol has the same identity as the new one.
+                // Two distinct assembly symbols that are referenced by the compilations have to have distinct identities.
+                // If the compilation has two metadata references whose identities unify the compiler de-dups them and only creates
+                // a single PE symbol. Thus comparing assemblies by identity paritions them so that each partition
+                // contains assemblies that originated from the same Gen0 assembly.
+
+                return x.Identity.Equals(y.Identity);
+            }
+
+            public int GetHashCode(IAssemblySymbol obj)
+            {
+                return obj.Identity.GetHashCode();
+            }
+        }
+
+        private static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance);
+
         // internal for testing
         internal void AnalyzeSemantics(
             EditScript<SyntaxNode> editScript,
@@ -1848,7 +1946,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText oldText,
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             List<KeyValuePair<SyntaxNode, SyntaxNode>> triviaEdits,
-            List<ValueTuple<int, IReadOnlyDictionary<SyntaxNode, SyntaxNode>>> updatedActiveMethodMatches,
+            List<UpdatedMethodInfo> updatedMethods,
             SemanticModel oldModel,
             SemanticModel newModel,
             [Out]List<SemanticEdit> semanticEdits,
@@ -1861,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             INamedTypeSymbol layoutAttribute = null;
             var newSymbolsWithEdit = new HashSet<ISymbol>();
-            int updatedActiveMethodMatchIndex = 0;
+            int updatedMethodIndex = 0;
             for (int i = 0; i < editScript.Edits.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1909,7 +2007,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 diagnostics.Add(new RudeEditDiagnostic(
                                     RudeEditKind.Delete,
-                                    GetDeletedNodeDiagnosticSpan(editScript.Match, edit.OldNode),
+                                    GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, edit.OldNode),
                                     edit.OldNode,
                                     new[] { GetTopLevelDisplayName(edit.OldNode, EditKind.Delete) }));
 
@@ -2061,12 +2159,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             Debug.Assert((newSymbol == null) == (oldSymbol == null));
 
                             // this edit is an active method update:
-                            if (updatedActiveMethodMatchIndex < updatedActiveMethodMatches.Count &&
-                                updatedActiveMethodMatches[updatedActiveMethodMatchIndex].Item1 == i)
+                            if (updatedMethodIndex < updatedMethods.Count && updatedMethods[updatedMethodIndex].EditOrdinal == i)
                             {
-                                var reverseMap = updatedActiveMethodMatches[updatedActiveMethodMatchIndex].Item2;
-                                syntaxMap = CreateSyntaxMap(reverseMap);
-                                updatedActiveMethodMatchIndex++;
+                                var updatedMethod = updatedMethods[updatedMethodIndex];
+
+                                bool newBodyHasLambdas;
+                                ReportLambdaAndClosureRudeEdits(
+                                    oldModel, 
+                                    updatedMethod.OldBody,
+                                    oldSymbol,
+                                    newModel, 
+                                    updatedMethod.NewBody,
+                                    newSymbol, 
+                                    updatedMethod.ActiveOrMatchedLambdasOpt, 
+                                    updatedMethod.Map, 
+                                    diagnostics, 
+                                    out newBodyHasLambdas,
+                                    cancellationToken);
+
+                                // We need to provide syntax map to the compiler if 
+                                // 1) The new member has a active statement
+                                //    The values of local variables declared or synthesized in the method have to be preserved.
+                                // 2) The new member generates a state machine 
+                                //    In case the state machine is suspended we need to preserve variables.
+                                // 3) The new member contains lambdas
+                                //    We need to map new lambdas in the method to the matching old ones. 
+                                //    If the old method has lambdas but the new one doesn't there is nothing to preserve.
+                                if (updatedMethod.HasActiveStatement || updatedMethod.HasStateMachineSuspensionPoint || newBodyHasLambdas)
+                                {
+                                    syntaxMap = CreateSyntaxMap(updatedMethod.Map.Reverse);
+                                }
+                                else
+                                {
+                                    syntaxMap = null;
+                                }
+
+                                updatedMethodIndex++;
                             }
                             else
                             {
@@ -2250,23 +2378,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-        private static IMethodSymbol AsParameterlessConstructor(ISymbol symbol)
-        {
-            if (symbol.Kind != SymbolKind.Method)
-            {
-                return null;
-            }
-
-            var method = (IMethodSymbol)symbol;
-            var kind = method.MethodKind;
-            if (kind != MethodKind.Constructor && kind != MethodKind.StaticConstructor)
-            {
-                return null;
-            }
-
-            return method.Parameters.Length == 0 ? method : null;
-        }
-
         private INamedTypeSymbol TryGetPartnerType(SyntaxNode typeSyntax, Match<SyntaxNode> topMatch, SemanticModel partnerModel, CancellationToken cancellationToken)
         {
             SyntaxNode partner;
@@ -2287,6 +2398,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(partner.SyntaxTree == partnerModel.SyntaxTree);
 
             return (INamedTypeSymbol)partnerModel.GetDeclaredSymbol(partner, cancellationToken);
+        }
+
+        private static Func<SyntaxNode, SyntaxNode> CreateSyntaxMap(IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
+        {
+            return newNode =>
+            {
+                SyntaxNode oldNode;
+                return reverseMap.TryGetValue(newNode, out oldNode) ? oldNode : null;
+            };
+        }
+
+        #region Constructors and Initializers
+
+        private static IMethodSymbol AsParameterlessConstructor(ISymbol symbol)
+        {
+            if (symbol.Kind != SymbolKind.Method)
+            {
+                return null;
+            }
+
+            var method = (IMethodSymbol)symbol;
+            var kind = method.MethodKind;
+            if (kind != MethodKind.Constructor && kind != MethodKind.StaticConstructor)
+            {
+                return null;
+            }
+
+            return method.Parameters.Length == 0 ? method : null;
         }
 
         private void ForceConstructorUpdate(
@@ -2411,14 +2550,608 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static Func<SyntaxNode, SyntaxNode> CreateSyntaxMap(IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
+        #endregion
+
+        #region Lambdas and Closures
+
+        private void ReportLambdaAndClosureRudeEdits(
+            SemanticModel oldModel,
+            SyntaxNode oldMemberBody,
+            ISymbol oldMember,
+            SemanticModel newModel,
+            SyntaxNode newMemberBody,
+            ISymbol newMember,
+            IReadOnlyDictionary<SyntaxNode, LambdaInfo> matchedLambdasOpt,
+            BidirectionalMap<SyntaxNode> map,
+            List<RudeEditDiagnostic> diagnostics,
+            out bool newBodyHasLambdas,
+            CancellationToken cancellationToken)
         {
-            return newNode =>
+            if (matchedLambdasOpt != null)
             {
-                SyntaxNode oldNode;
-                return reverseMap.TryGetValue(newNode, out oldNode) ? oldNode : null;
-            };
+                bool anySignatureErrors = false;
+                foreach (var entry in matchedLambdasOpt)
+                {
+                    var oldLambdaBody = entry.Key;
+                    var newLambdaBody = entry.Value.NewBody;
+
+                    bool hasErrors;
+                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors);
+                    anySignatureErrors |= hasErrors;
+                }
+
+                // only dig into captures if lambda signatures match
+                if (anySignatureErrors)
+                {
+                    newBodyHasLambdas = true;
+                    return;
+                }
+            }
+
+            var oldCaptures = GetCapturedVariables(oldModel, oldMemberBody);
+            var newCaptures = GetCapturedVariables(newModel, newMemberBody);
+
+            bool anyCaptureErrors;
+
+            // { new capture index -> old capture index }
+            var reverseCapturesMap = ArrayBuilder<int>.GetInstance(newCaptures.Length, 0);
+            
+            // { new capture index -> new closure scope or null for "this" }
+            var newCapturesToClosureScopes = ArrayBuilder<SyntaxNode>.GetInstance(newCaptures.Length, null);
+
+            // Can be calculated from other maps but it's simpler to just calculate it upfront.
+            // { old capture index -> old closure scope or null for "this" }
+            var oldCapturesToClosureScopes = ArrayBuilder<SyntaxNode>.GetInstance(oldCaptures.Length, null);
+
+            CalculateCapturedVariablesMaps(
+                oldCaptures,
+                oldMember,
+                oldMemberBody,
+                newCaptures,
+                newMember,
+                newMemberBody,
+                map,
+                reverseCapturesMap,
+                newCapturesToClosureScopes,
+                oldCapturesToClosureScopes,
+                diagnostics,
+                out anyCaptureErrors,
+                cancellationToken);
+
+            if (anyCaptureErrors)
+            {
+                newBodyHasLambdas = true;
+                return;
+            }
+
+            // Every captured variable accessed in the new lambda has to be 
+            // accessed in the old lambda as well and vice versa.
+            //
+            // An added lambda can only reference captured variables that 
+            //
+            // This requirement ensures that:
+            // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
+            // - "Parent" links between closure scopes are preserved.
+
+            var oldCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            var newCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
+
+            BuildIndex(oldCapturesIndex, oldCaptures);
+            BuildIndex(newCapturesIndex, newCaptures);
+
+            if (matchedLambdasOpt != null)
+            {
+                bool mappedLambdasHaveErrors = false;
+                foreach (var entry in matchedLambdasOpt)
+                {
+                    var oldLambdaBody = entry.Key;
+                    var newLambdaBody = entry.Value.NewBody;
+
+                    BitVector accessedOldCaptures = GetAccessedCaptures(oldLambdaBody, oldModel, oldCaptures, oldCapturesIndex);
+                    BitVector accessedNewCaptures = GetAccessedCaptures(newLambdaBody, newModel, newCaptures, newCapturesIndex);
+
+                    // Requirement: 
+                    // (new(ReadInside) \/ new(WrittenInside)) /\ new(Captured) == (old(ReadInside) \/ old(WrittenInside)) /\ old(Captured)
+                    for (int newCaptureIndex = 0; newCaptureIndex < newCaptures.Length; newCaptureIndex++)
+                    {
+                        bool newAccessed = accessedNewCaptures[newCaptureIndex];
+                        bool oldAccessed = accessedOldCaptures[reverseCapturesMap[newCaptureIndex]];
+
+                        if (newAccessed != oldAccessed)
+                        {
+                            var newCapture = newCaptures[newCaptureIndex];
+
+                            var rudeEdit = newAccessed ? RudeEditKind.AccessingCapturedVariableInLambda : RudeEditKind.NotAccessingCapturedVariableInLambda;
+                            var arguments = new[] { newCapture.Name, GetLambdaDisplayName(newLambdaBody.Parent) };
+
+                            if (newCapture.IsThisParameter() || oldAccessed)
+                            {
+                                // changed accessed to "this", or captured variable accessed in old lambda is not accessed in the new lambda
+                                diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newLambdaBody.Parent, EditKind.Update), null, arguments));
+                            }
+                            else if (newAccessed)
+                            {
+                                // captured variable accessed in new lambda is not accessed in the old lambda
+                                bool hasUseSites = false;
+                                foreach (var useSite in GetVariableUseSites(GetLambdaBodyNodes(newLambdaBody), newCapture, newModel, cancellationToken))
+                                {
+                                    hasUseSites = true;
+                                    diagnostics.Add(new RudeEditDiagnostic(rudeEdit, useSite.Span, null, arguments));
+                                }
+
+                                Debug.Assert(hasUseSites);
+                            }
+
+                            mappedLambdasHaveErrors = true;
+                        }
+                    }
+                }
+
+                if (mappedLambdasHaveErrors)
+                {
+                    newBodyHasLambdas = true;
+                    return;
+                }
+            }
+
+            // Report rude edits for lambdas added to the method.
+            // We already checked that no new captures are introduced opr removed. 
+            // We also need to make sure that no new parent frame links are introduced.
+            // 
+            // We could implement the same analysis as the compiler does when rewriting lambdas - 
+            // to determine what closure scopes are connected at runtime via parent link, 
+            // and then disallow adding a lambda that connects two previously unconnected 
+            // groups of scopes.
+            //
+            // However even if we implemented that logic here, it would be challenging to 
+            // present the result of the analysis to the user in a short comprehensible error message.
+            // 
+            // In practice, we believe the common scenarios are (in order of commonality):
+            // 1) adding a static lambda
+            // 2) adding a lambda that accesses only "this"
+            // 3) adding a lambda that accesses variables from the same scope
+            // 4) adding a lambda that accesses "this" and variables from a single scope
+            // 5) adding a lambda that accesses variables from different scopes that are linked
+            // 6) adding a lambda that accesses variables from unlinked scopes
+            // 
+            // We currently allow #1, #2, and #3 and report a rude edit for the other cases.
+            // In future we might be able to enable more.
+
+            newBodyHasLambdas = false;
+
+            foreach (var newLambda in newMemberBody.DescendantNodes())
+            {
+                SyntaxNode newLambdaBody1, newLambdaBody2;
+                if (TryGetLambdaBodies(newLambda, out newLambdaBody1, out newLambdaBody2))
+                {
+                    if (!map.Reverse.ContainsKey(newLambda))
+                    {
+                        ReportMultiScopeCaptures(newLambdaBody1, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
+
+                        if (newLambdaBody2 != null)
+                        {
+                            ReportMultiScopeCaptures(newLambdaBody2, newModel, newCaptures, newCaptures, newCapturesToClosureScopes, newCapturesIndex, reverseCapturesMap, diagnostics, isInsert: true, cancellationToken: cancellationToken);
+                        }
+                    }
+
+                    newBodyHasLambdas = true;
+                }
+            }
+
+            // Similarly for addition. We don't allow removal of lambda that has captures from multiple scopes.
+
+            foreach (var oldLambda in oldMemberBody.DescendantNodes())
+            {
+                SyntaxNode oldLambdaBody1, oldLambdaBody2;
+                if (TryGetLambdaBodies(oldLambda, out oldLambdaBody1, out oldLambdaBody2) && !map.Forward.ContainsKey(oldLambda))
+                {
+                    ReportMultiScopeCaptures(oldLambdaBody1, oldModel, oldCaptures, newCaptures, oldCapturesToClosureScopes, oldCapturesIndex, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
+
+                    if (oldLambdaBody2 != null)
+                    {
+                        ReportMultiScopeCaptures(oldLambdaBody2, oldModel, oldCaptures, newCaptures, oldCapturesToClosureScopes, oldCapturesIndex, reverseCapturesMap, diagnostics, isInsert: false, cancellationToken: cancellationToken);
+                    }
+                }
+            }
+
+            reverseCapturesMap.Free();
+            newCapturesToClosureScopes.Free();
+            oldCapturesToClosureScopes.Free();
+            oldCapturesIndex.Free();
+            newCapturesIndex.Free();
         }
+
+        private void ReportMultiScopeCaptures(
+            SyntaxNode lambdaBody, 
+            SemanticModel model,
+            ImmutableArray<ISymbol> captures, 
+            ImmutableArray<ISymbol> newCaptures, 
+            ArrayBuilder<SyntaxNode> newCapturesToClosureScopes, 
+            PooledDictionary<ISymbol, int> capturesIndex,
+            ArrayBuilder<int> reverseCapturesMap,
+            List<RudeEditDiagnostic> diagnostics,
+            bool isInsert,
+            CancellationToken cancellationToken)
+        {
+            BitVector accessedCaptures = GetAccessedCaptures(lambdaBody, model, captures, capturesIndex);
+
+            int firstAccessedCaptureIndex = -1;
+            for (int i = 0; i < captures.Length; i++)
+            {
+                if (accessedCaptures[i])
+                {
+                    if (firstAccessedCaptureIndex == -1)
+                    {
+                        firstAccessedCaptureIndex = i;
+                    }
+                    else if (newCapturesToClosureScopes[firstAccessedCaptureIndex] != newCapturesToClosureScopes[i])
+                    {
+                        // the lambda accesses variables from two different scopes:
+
+                        TextSpan errorSpan;
+                        RudeEditKind rudeEdit;
+                        if (isInsert)
+                        {
+                            if (captures[i].IsThisParameter())
+                            {
+                                errorSpan = GetDiagnosticSpan(lambdaBody.Parent, EditKind.Insert);
+                            }
+                            else
+                            {
+                                errorSpan = GetVariableUseSites(GetLambdaBodyNodes(lambdaBody), captures[i], model, cancellationToken).First().Span;
+                            }
+
+                            rudeEdit = RudeEditKind.InsertLambdaWithMultiScopeCapture;
+                        }
+                        else
+                        {
+                            errorSpan = newCaptures[reverseCapturesMap.IndexOf(i)].Locations.Single().SourceSpan;
+                            rudeEdit = RudeEditKind.DeleteLambdaWithMultiScopeCapture;
+                        }
+
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            rudeEdit,
+                            errorSpan,
+                            null,
+                            new[] { GetLambdaDisplayName(lambdaBody.Parent), captures[firstAccessedCaptureIndex].Name, captures[i].Name }));
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static BitVector GetAccessedCaptures(SyntaxNode lambdaBody, SemanticModel model, ImmutableArray<ISymbol> captures, PooledDictionary<ISymbol, int> capturesIndex)
+        {
+            var dataFlow = model.AnalyzeDataFlow(lambdaBody);
+            BitVector result = BitVector.Create(captures.Length);
+            MarkVariables(ref result, dataFlow.ReadInside, capturesIndex);
+            MarkVariables(ref result, dataFlow.WrittenInside, capturesIndex);
+            return result;
+        }
+
+        private static void MarkVariables(ref BitVector mask, ImmutableArray<ISymbol> variables, Dictionary<ISymbol, int> index)
+        {
+            foreach (var variable in variables)
+            {
+                int newCaptureIndex;
+                if (index.TryGetValue(variable, out newCaptureIndex))
+                {
+                    mask[newCaptureIndex] = true;
+                }
+            }
+        }
+
+        private static void BuildIndex<TKey>(Dictionary<TKey, int> index, ImmutableArray<TKey> array)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                index.Add(array[i], i);
+            }
+        }
+
+        private SyntaxNode GetVariableSyntax(ISymbol localOrParameter, CancellationToken cancellationToken)
+        {
+            var references = localOrParameter.DeclaringSyntaxReferences;
+            if (references.Length == 0)
+            {
+                Debug.Assert(((IParameterSymbol)localOrParameter).IsThis);
+                return null;
+            }
+            else
+            {
+                return references.Single().GetSyntax(cancellationToken);
+            }
+        }
+
+        private void CalculateCapturedVariablesMaps(
+            ImmutableArray<ISymbol> oldCaptures, 
+            ISymbol oldMember,
+            SyntaxNode oldMemberBody,
+            ImmutableArray<ISymbol> newCaptures,
+            ISymbol newMember,
+            SyntaxNode newMemberBody,
+            BidirectionalMap<SyntaxNode> map,
+            [Out]ArrayBuilder<int> reverseCapturesMap,                 // {new capture index -> old capture index}
+            [Out]ArrayBuilder<SyntaxNode> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
+            [Out]ArrayBuilder<SyntaxNode> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
+            [Out]List<RudeEditDiagnostic> diagnostics,
+            out bool hasErrors,
+            CancellationToken cancellationToken)
+        {
+            hasErrors = false;
+
+            // Validate that all variables that are/were captured in the new/old body were captured in 
+            // the old/new one and their type and scope haven't changed. 
+            //
+            // Frames are created based upon captured variables and their scopes. If the scopes haven't changed the frames won't either.
+            // 
+            // In future we can relax some of these limitations. 
+            // - If a newly captured variable's scope is already a closure then it is ok to lift this variable to the existing closure,
+            //   unless any lambda (or the containing member) that can access the variable is active. If it was active we would need 
+            //   to copy the value of the local variable to the lifted field.
+            //  
+            //   Consider the following edit:
+            //   Gen0                               Gen1
+            //   ...                                ...
+            //     {                                  {  
+            //        int x = 1, y = 2;                  int x = 1, y = 2;
+            //        F(() => x);                        F(() => x);
+            //   AS-->W(y)                          AS-->W(y)
+            //                                           F(() => y);
+            //     }                                  }
+            //   ...                                ...
+            //
+            // - If an "uncaptured" variable's scope still defines other captured variables it is ok to cease capturing the variable,
+            //   unless any lambda (or the containing member) that can access the variable is active. If it was active we would need 
+            //   to copy the value of the lifted field to the local variable (consider reverse edit in the example above).
+            //
+            // - While building the closure tree for the new version the compiler can recreate 
+            //   the closure tree of the previous version and then map 
+            //   closure scopes in the new version to the previous ones, keeping empty closures around.
+
+            var oldCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
+            int oldCapturedThisIndex = -1;
+            for (int i = 0; i < oldCaptures.Length; i++)
+            {
+                var syntax = GetVariableSyntax(oldCaptures[i], cancellationToken);
+                if (syntax == null)
+                {
+                    oldCapturedThisIndex = i;
+                }
+                else
+                {
+                    oldCapturesBySyntax.Add(syntax, i);
+                }
+            }
+
+            int newCapturedThisIndex = -1;
+            for (int newCaptureIndex = 0; newCaptureIndex < newCaptures.Length; newCaptureIndex++)
+            {
+                int oldCaptureIndex;
+                SyntaxNode mappedOldSyntax;
+                ISymbol newCapture = newCaptures[newCaptureIndex];
+
+                var newSyntaxOpt = GetVariableSyntax(newCapture, cancellationToken);
+                if (newSyntaxOpt == null)
+                {
+                    // "this" is captured in the new member:
+                    newCapturedThisIndex = newCaptureIndex;
+                 
+                    if (oldCapturedThisIndex < 0)
+                    {
+                        // "this" has not been captured prior the edit:
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.CapturingVariable,
+                            newMember.Locations.First().SourceSpan,
+                            null,
+                            new[] { newCapture.Name }));
+
+                        hasErrors = true;
+                    }
+                    else
+                    {
+                        reverseCapturesMap[newCaptureIndex] = oldCapturedThisIndex;
+                    }
+
+                    continue;
+                }
+
+                // variable doesn't exists in the old method or has not been captured prior the edit:
+                if (!map.Reverse.TryGetValue(newSyntaxOpt, out mappedOldSyntax) ||
+                    !oldCapturesBySyntax.TryGetValue(mappedOldSyntax, out oldCaptureIndex))
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.CapturingVariable,
+                        newSyntaxOpt.Span,
+                        null,
+                        new[] { newCapture.Name }));
+
+                    hasErrors = true;
+                    continue;
+                }
+
+                reverseCapturesMap[newCaptureIndex] = oldCaptureIndex;
+
+                // Remove the old capture so that at the end we can use this hashset 
+                // to identify old captures that don't have a corresponding capture in the new version:
+                oldCapturesBySyntax.Remove(mappedOldSyntax);
+
+                // the type and scope of "this" can't change
+                if (newSyntaxOpt == null)
+                {
+                    continue;
+                }
+
+                ISymbol oldCapture = oldCaptures[oldCaptureIndex];
+
+                // type check
+                var oldType = GetType(oldCapture);
+                var newType = GetType(newCapture);
+                if (!s_assemblyEqualityComparer.Equals(oldType, newType))
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ChangingCapturedVariableType,
+                        newSyntaxOpt.Span,
+                        null,
+                        new[] { newCapture.Name, oldType.ToDisplayString(ErrorDisplayFormat) }));
+
+                    hasErrors = true;
+                    continue;
+                }
+
+                // Parameter capture can't be changed to local capture and vice versa
+                // because parameters can't be introduced or deleted during EnC 
+                // (we checked above for changes in lambda signatures).
+                Debug.Assert(oldCapture.Kind == newCapture.Kind);
+
+                // scope check:
+                SyntaxNode oldScopeOpt = GetCapturedVariableScope(oldCapture, oldMemberBody, cancellationToken);
+                SyntaxNode newScopeOpt = GetCapturedVariableScope(newCapture, newMemberBody, cancellationToken);
+                if (!AreEquivalentClosureScopes(oldScopeOpt, newScopeOpt, map.Reverse))
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ChangingCapturedVariableScope,
+                        newSyntaxOpt.Span,
+                        null,
+                        new[] { newCapture.Name }));
+
+                    hasErrors = true;
+                    continue;
+                }
+
+                newCapturesToClosureScopes[newCaptureIndex] = newScopeOpt;
+                oldCapturesToClosureScopes[oldCaptureIndex] = oldScopeOpt;
+            }
+
+            // What's left in oldCapturesBySyntax are captured variables in the previous version
+            // that have no corresponding captured variables in the new version. 
+            // Report a rude edit for all such variables.
+
+            if (oldCapturedThisIndex >= 0 && newCapturedThisIndex < 0)
+            {
+                // uncaptured "this":
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.NotCapturingVariable,
+                    newMember.Locations.First().SourceSpan,
+                    null,
+                    new[] { oldCaptures[oldCapturedThisIndex].Name }));
+
+                hasErrors = true;
+            }
+
+            if (oldCapturesBySyntax.Count > 0)
+            {
+                // uncaptured or deleted variables:
+                foreach (var entry in oldCapturesBySyntax)
+                {
+                    SyntaxNode oldCaptureNode = entry.Key;
+                    int oldCaptureIndex = entry.Value;
+                    var name = oldCaptures[oldCaptureIndex].Name;
+
+                    SyntaxNode newCaptureNode;
+                    if (map.Forward.TryGetValue(oldCaptureNode, out newCaptureNode))
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.NotCapturingVariable,
+                            newCaptureNode.Span,
+                            null,
+                            new[] { name }));
+                    }
+                    else
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.DeletingCapturedVariable,
+                            GetDeletedNodeDiagnosticSpan(map.Forward, oldCaptureNode),
+                            null,
+                            new[] { name }));
+                    }
+                }
+
+                hasErrors = true;
+            }
+
+            oldCapturesBySyntax.Free();
+        }
+
+        private void ReportLambdaSignatureRudeEdits(SemanticModel oldModel, SyntaxNode oldLambdaBody, SemanticModel newModel, SyntaxNode newLambdaBody, List<RudeEditDiagnostic> diagnostics, out bool hasErrors)
+        {
+            var oldLambdaSymbol = (IMethodSymbol)oldModel.GetEnclosingSymbol(oldLambdaBody.SpanStart);
+            var newLambdaSymbol = (IMethodSymbol)newModel.GetEnclosingSymbol(newLambdaBody.SpanStart);
+
+            RudeEditKind rudeEdit;
+
+            if (!oldLambdaSymbol.Parameters.SequenceEqual(newLambdaSymbol.Parameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer))
+            {
+                rudeEdit = RudeEditKind.ChangingLambdaParameters;
+            }
+            else if (!s_assemblyEqualityComparer.ReturnTypeEquals(oldLambdaSymbol, newLambdaSymbol)) 
+            {
+                rudeEdit = RudeEditKind.ChangingLambdaReturnType;
+            }
+            else
+            {
+                hasErrors = false;
+                return;
+            }
+
+            Debug.Assert(IsLambda(newLambdaBody.Parent));
+
+            diagnostics.Add(new RudeEditDiagnostic(
+                rudeEdit,
+                GetDiagnosticSpan(newLambdaBody.Parent, EditKind.Update),
+                newLambdaBody.Parent,
+                new[] { GetLambdaDisplayName(newLambdaBody.Parent) }));
+
+            hasErrors = true;
+        }
+
+        private static ITypeSymbol GetType(ISymbol localOrParameter)
+        {
+            return (localOrParameter.Kind == SymbolKind.Parameter) ? ((IParameterSymbol)localOrParameter).Type : ((ILocalSymbol)localOrParameter).Type;
+        }
+
+        private SyntaxNode GetCapturedVariableScope(ISymbol localOrParameter, SyntaxNode memberBody, CancellationToken cancellationToken)
+        {
+            if (localOrParameter.Kind == SymbolKind.Parameter)
+            {
+                var member = localOrParameter.ContainingSymbol;
+
+                // lambda parameters and C# constructor parameters are lifted to their own scope:
+                if ((member as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction || HasParameterClosureScope(member))
+                {
+                    var result = localOrParameter.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
+                    Debug.Assert(IsLambda(result));
+                    return result;
+                }
+
+                return memberBody;
+            }
+
+            SyntaxNode node = localOrParameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
+            while (true)
+            {
+                if (IsClosureScope(node))
+                {
+                    return node;
+                }
+
+                node = node.Parent;
+            }
+        }
+
+        private bool AreEquivalentClosureScopes(SyntaxNode oldScopeOpt, SyntaxNode newScopeOpt, IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
+        {
+            if (oldScopeOpt == null || newScopeOpt == null)
+            {
+                return oldScopeOpt == newScopeOpt;
+            }
+
+            SyntaxNode mappedScope;
+            return reverseMap.TryGetValue(newScopeOpt, out mappedScope) && mappedScope == oldScopeOpt;
+        }
+
+        #endregion
 
         #endregion
 

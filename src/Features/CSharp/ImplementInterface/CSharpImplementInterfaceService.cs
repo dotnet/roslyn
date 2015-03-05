@@ -96,17 +96,46 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var classDecl = GetClassDeclarationAt(root, position);
             Debug.Assert(CanImplementDisposePattern(symbol, classDecl), "ImplementDisposePattern called with bad inputs");
 
-            // Generate:
-            //
-            //    #region IDisposable Support
-            //    private bool disposedValue = false; // To detect redundant calls
-            //    protected virtual void Dispose(bool disposing) { ... }
-            //    public void Dispose() { ... }
-            //    #endregion
-            var code = string.Format(CSharpFeaturesResources.DisposePattern,
-                            symbol.IsSealed ? "" : "protected virtual ",
-                            classDecl.Identifier.Value,
-                            explicitly ? "void System.IDisposable." : "public void ");
+            // Generate the IDisposable boilerplate code.  The generated code cannot be one giant resource string
+            // because of the need to parse, format, and simplify the result; during pseudo-localized builds, resource
+            // strings are given a special prefix and suffix that will break the parser, hence the requirement to
+            // localize the comments individually.
+            var code = $@"
+    #region IDisposable Support
+    private bool disposedValue = false; // {FeaturesResources.ToDetectRedundantCalls}
+
+    {(symbol.IsSealed ? "" : "protected virtual ")}void Dispose(bool disposing)
+    {{
+        if (!disposedValue)
+        {{
+            if (disposing)
+            {{
+                // {FeaturesResources.DisposeManagedStateTodo}
+            }}
+
+            // {CSharpFeaturesResources.FreeUnmanagedResourcesTodo}
+            // {FeaturesResources.SetLargeFieldsToNullTodo}
+
+            disposedValue = true;
+        }}
+    }}
+
+    // {CSharpFeaturesResources.OverrideAFinalizerTodo}
+    // ~{classDecl.Identifier.Value}() {{
+    //   // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+    //   Dispose(false);
+    // }}
+
+    // {CSharpFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    {(explicitly ? "void System.IDisposable." : "public void ")}Dispose()
+    {{
+        // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+        Dispose(true);
+        // {CSharpFeaturesResources.UncommentTheFollowingIfFinalizerOverriddenTodo}
+        // GC.SuppressFinalize(this);
+    }}
+    #endregion
+";
 
             var decls = SyntaxFactory.ParseSyntaxTree(code)
                 .GetRoot().DescendantNodes().OfType<MemberDeclarationSyntax>()

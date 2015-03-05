@@ -3445,8 +3445,7 @@ class Test
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var a in e1)", "foreach statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var b in e1)", "foreach statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "()", "method"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "foreach (var b in e1)", "foreach statement"));
         }
 
         #endregion
@@ -3996,8 +3995,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "using (c)", "using statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "()", "method"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_INSERT_AROUND, "using (c)", "using statement"));
         }
 
         #endregion
@@ -5538,8 +5536,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "x", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -5596,8 +5593,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "return 1 + Foo(x);", "try block"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "x", "method"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_DELETE_AROUND, "return 1 + Foo(x);", "try block"));
         }
 
         [Fact]
@@ -5647,8 +5643,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion
@@ -5848,8 +5843,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "()", "method"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"));
         }
 
         [Fact]
@@ -5903,8 +5897,7 @@ class Test
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_AROUND_ACTIVE_STMT, "checked", "checked statement"));
         }
 
         #endregion
@@ -5935,8 +5928,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "a", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -5963,8 +5955,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANON_METHOD, "delegate", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -5991,8 +5982,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "a", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6019,8 +6009,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "a", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6047,9 +6036,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            // TODO (bug 755959): better deleted active statement span
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_ANON_METHOD, "delegate", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6091,8 +6078,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "return b;", "lambda"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "b", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "return b;", "lambda"));
         }
 
         [Fact]
@@ -6125,8 +6111,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "(b)", "lambda"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "(b)", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "(b)", "lambda"));
         }
 
         [Fact]
@@ -6174,8 +6159,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b);", "lambda"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "b", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b);", "lambda"));
         }
 
         [Fact]
@@ -6240,8 +6224,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select b.bar", "where clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select b.bar", "where clause"));
         }
 
         [Fact]
@@ -6270,8 +6253,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "let clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "let clause"));
         }
 
         [Fact]
@@ -6303,8 +6285,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "join clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "join clause"));
         }
 
         [Fact]
@@ -6336,8 +6317,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"));
         }
 
         [Fact]
@@ -6369,8 +6349,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"));
         }
 
         [Fact]
@@ -6402,8 +6381,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "from", "method"));
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "s = from a in b select a.bar", "orderby clause"));
         }
 
         #endregion
@@ -6467,8 +6445,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             // should not contain RUDE_EDIT_INSERT_AROUND
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "()", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6558,8 +6535,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             // should not contain RUDE_EDIT_INSERT_AROUND
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "()", "method"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
