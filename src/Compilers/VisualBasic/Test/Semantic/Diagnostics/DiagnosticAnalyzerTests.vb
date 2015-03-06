@@ -532,10 +532,10 @@ End Namespace
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
-                context.RegisterCodeBlockEndAction(AddressOf OnCodeBlock)
+                context.RegisterCodeBlockAction(AddressOf OnCodeBlock)
             End Sub
 
-            Private Shared Sub OnCodeBlock(context As CodeBlockEndAnalysisContext)
+            Private Shared Sub OnCodeBlock(context As CodeBlockAnalysisContext)
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, context.OwningSymbol.DeclaringSyntaxReferences.First.GetLocation))
             End Sub
         End Class

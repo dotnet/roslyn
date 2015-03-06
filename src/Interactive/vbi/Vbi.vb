@@ -4,7 +4,6 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.CodeAnalysis.Scripting

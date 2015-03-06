@@ -234,7 +234,7 @@ class Program
             value = CreateDkmClrValue(new System.Collections.ArrayList(new[] { 2 }), type: runtime.GetType(typeof(System.Collections.ArrayList)));
             evalResult = FormatResult("a", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("a", "Expanding the Results View will enumerate the IEnumerable", "", "a, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                EvalResult("a", "Count = 1", "System.Collections.ArrayList", "a, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
             var children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("[0]", "2", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView(a).Items[0]"));
@@ -243,7 +243,7 @@ class Program
             value = CreateDkmClrValue(new System.Collections.Generic.List<object>(new object[] { 3 }), type: runtime.GetType(typeof(System.Collections.Generic.List<object>)));
             evalResult = FormatResult("l", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("l", "Expanding the Results View will enumerate the IEnumerable", "", "l, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                EvalResult("l", "Count = 1", "System.Collections.Generic.List<object>", "l, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
             children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("[0]", "3", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView<object>(l).Items[0]"));
@@ -276,7 +276,7 @@ class C : IEnumerable
                     type: type);
                 var evalResult = FormatResult("o", "o, results, d", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "Expanding the Results View will enumerate the IEnumerable", "", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{C}", "C", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
                 var children = GetChildren(evalResult);
                 // ResultsOnly is not inherited.
                 Verify(children,
@@ -316,7 +316,7 @@ struct S<T> : IEnumerable<T>
                     type: type);
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "Expanding the Results View will enumerate the IEnumerable", "", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{S<int>}", "S<int>", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
                 var children = GetChildren(evalResult);
                 Verify(children,
                     EvalResult("[0]", "2", "int", "new System.Linq.SystemCore_EnumerableDebugView<int>(o).Items[0]"));
@@ -406,7 +406,7 @@ class P
                     type: type);
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "Expanding the Results View will enumerate the IEnumerable", "", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{C}", "C", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
             }
         }
 

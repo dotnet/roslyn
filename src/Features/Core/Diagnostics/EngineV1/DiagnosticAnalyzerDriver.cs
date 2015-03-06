@@ -314,7 +314,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
         {
-            var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, ex, _cancellationToken);
+            var exceptionDiagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
+            if (exceptionDiagnostic == null)
+            {
+                return;
+            }
 
             if (compilation != null)
             {
@@ -413,8 +417,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                                 this.SyntaxNodeAnalyzerService.ExecuteSyntaxNodeActions(analyzerActions, GetSyntaxNodesToAnalyze(), model, analyzerExecutor);
                             }
 
-                            // CodeBlockStart, CodeBlockEnd, and generated SyntaxNode actions.
-                            if (analyzerActions.CodeBlockStartActionsCount > 0 || analyzerActions.CodeBlockEndActionsCount > 0)
+                            // CodeBlockStart, CodeBlock, CodeBlockEnd, and generated SyntaxNode actions.
+                            if (analyzerActions.CodeBlockStartActionsCount > 0 || analyzerActions.CodeBlockActionsCount > 0 || analyzerActions.CodeBlockEndActionsCount > 0)
                             {
                                 this.SyntaxNodeAnalyzerService.ExecuteCodeBlockActions(analyzerActions, this.GetDeclarationInfos(model), model, analyzerExecutor);
                             }
@@ -479,34 +483,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (hasDependentCompilationEndAction && forceAnalyzeAllDocuments != null)
                 {
-                    // Analyzer registered a compilation end action and at least one other analyzer action during it's compilation start action.
+                    // Analyzer registered a compilation end action and at least one other analyzer action during its compilation start action.
                     // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
                     forceAnalyzeAllDocuments(_project, analyzer, _cancellationToken);
                 }
 
+                // Compilation actions.
+                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationActions);
+
                 // CompilationEnd actions.
-                analyzerExecutor.ExecuteCompilationEndActions(analyzerActions);
+                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationEndActions);
 
                 var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
                 diagnostics.AddRange(filteredDiagnostics);
             }
-        }
-
-        private static Diagnostic AnalyzerExceptionToDiagnostic(DiagnosticAnalyzer analyzer, Exception e, CancellationToken cancellationToken)
-        {
-            if (!IsCanceled(e, cancellationToken))
-            {
-                // Create a info diagnostic saying that the analyzer failed
-                return AnalyzerExecutor.GetAnalyzerDiagnostic(analyzer, e);
-            }
-
-            return null;
-        }
-
-        private static bool IsCanceled(Exception e, CancellationToken cancellationToken)
-        {
-            var canceled = e as OperationCanceledException;
-            return canceled != null && canceled.CancellationToken == cancellationToken;
         }
 
         private void Default_OnAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

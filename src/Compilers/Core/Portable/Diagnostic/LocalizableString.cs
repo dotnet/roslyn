@@ -89,6 +89,11 @@ namespace Microsoft.CodeAnalysis
 
         private void RaiseOnException(Exception ex)
         {
+            if (ex is OperationCanceledException)
+            {
+                return;
+            }
+
             try
             {
                 OnException?.Invoke(this, ex);

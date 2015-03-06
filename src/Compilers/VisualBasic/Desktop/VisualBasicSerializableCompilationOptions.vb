@@ -39,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 scriptClassName:=info.GetString(ScriptClassNameString),
                 cryptoKeyContainer:=info.GetString(CryptoKeyContainerString),
                 cryptoKeyFile:=info.GetString(CryptoKeyFileString),
+                cryptoPublicKey:=DirectCast(info.GetValue(CryptoPublicKeyString, GetType(Byte())), Byte()).AsImmutableOrNull(),
                 delaySign:=DirectCast(info.GetValue(DelaySignString, GetType(Boolean?)), Boolean?),
                 optimizationLevel:=DirectCast(info.GetInt32(OptimizeString), OptimizationLevel),
                 checkOverflow:=info.GetBoolean(CheckOverflowString),

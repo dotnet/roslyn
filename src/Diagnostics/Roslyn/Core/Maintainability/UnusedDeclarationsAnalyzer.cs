@@ -162,7 +162,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            public void OnCompilationEnd(CompilationEndAnalysisContext context)
+            public void OnCompilationEnd(CompilationAnalysisContext context)
             {
                 foreach (var kv in _used.Where(kv => !kv.Value && (kv.Key.Locations.FirstOrDefault()?.IsInSource == true)))
                 {

@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -109,28 +108,25 @@ namespace Microsoft.CodeAnalysis
             TouchedFileLogger touchedFiles,
             out MetadataFileReferenceResolver referenceDirectiveResolver)
         {
-            using (Logger.LogBlock(FunctionId.Common_CommandLineCompiler_ResolveMetadataReferences))
+            List<MetadataReference> resolved = new List<MetadataReference>();
+            Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
+
+            if (Arguments.IsInteractive)
             {
-                List<MetadataReference> resolved = new List<MetadataReference>();
-                Arguments.ResolveMetadataReferences(new AssemblyReferenceResolver(externalReferenceResolver, metadataProvider), diagnostics, this.MessageProvider, resolved);
-
-                if (Arguments.IsInteractive)
-                {
-                    referenceDirectiveResolver = externalReferenceResolver;
-                }
-                else
-                {
-                    // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
-                    referenceDirectiveResolver = new ExistingReferencesResolver(
-                        resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
-                        Arguments.ReferencePaths,
-                        Arguments.BaseDirectory,
-                        assemblyIdentityComparer,
-                        touchedFiles);
-                }
-
-                return resolved;
+                referenceDirectiveResolver = externalReferenceResolver;
             }
+            else
+            {
+                // when compiling into an assembly (csc/vbc) we only allow #r that match references given on command line:
+                referenceDirectiveResolver = new ExistingReferencesResolver(
+                    resolved.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).OfType<PortableExecutableReference>().AsImmutable(),
+                    Arguments.ReferencePaths,
+                    Arguments.BaseDirectory,
+                    assemblyIdentityComparer,
+                    touchedFiles);
+            }
+
+            return resolved;
         }
 
 

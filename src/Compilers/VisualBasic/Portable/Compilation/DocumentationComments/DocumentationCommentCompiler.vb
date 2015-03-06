@@ -5,7 +5,6 @@ Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Text
@@ -66,27 +65,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            Optional filterTree As SyntaxTree = Nothing,
                                                            Optional filterSpanWithinTree As TextSpan? = Nothing)
 
-                Using Logger.LogBlock(FunctionId.VisualBasic_DocumentationCommentCompiler_WriteDocumentationCommentXml,
-                                      message:=compilation.AssemblyName, cancellationToken:=cancellationToken)
+                Dim writer As StreamWriter = Nothing
+                If xmlDocStream IsNot Nothing AndAlso xmlDocStream.CanWrite Then
+                    writer = New StreamWriter(xmlDocStream, New UTF8Encoding(True, False), bufferSize:=&H400, leaveOpen:=True)
+                End If
 
-                    Dim writer As StreamWriter = Nothing
-                    If xmlDocStream IsNot Nothing AndAlso xmlDocStream.CanWrite Then
-                        writer = New StreamWriter(xmlDocStream, New UTF8Encoding(True, False), bufferSize:=&H400, leaveOpen:=True)
-                    End If
-
-                    Using writer
-                        ' TODO: get preferred culture from compilation(?)
-                        Dim compiler As New DocumentationCommentCompiler(If(assemblyName, compilation.SourceAssembly.Name), compilation, writer, True, False,
+                Using writer
+                    ' TODO: get preferred culture from compilation(?)
+                    Dim compiler As New DocumentationCommentCompiler(If(assemblyName, compilation.SourceAssembly.Name), compilation, writer, True, False,
                             diagnostics, filterTree, filterSpanWithinTree, preferredCulture:=Nothing, cancellationToken:=cancellationToken)
 
-                        compiler.Visit(compilation.SourceAssembly.GlobalNamespace)
-                        Debug.Assert(compiler._writer.IndentDepth = 0)
-                    End Using
-
-                    For Each tree In compilation.SyntaxTrees
-                        MislocatedDocumentationCommentFinder.ReportUnprocessed(tree, filterSpanWithinTree, diagnostics, cancellationToken)
-                    Next
+                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace)
+                    Debug.Assert(compiler._writer.IndentDepth = 0)
                 End Using
+
+                For Each tree In compilation.SyntaxTrees
+                    MislocatedDocumentationCommentFinder.ReportUnprocessed(tree, filterSpanWithinTree, diagnostics, cancellationToken)
+                Next
             End Sub
 
             Private ReadOnly Property [Module] As SourceModuleSymbol

@@ -629,7 +629,7 @@ a.vb
 
             ' ...as long as there's no whitespace between them
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ", ,\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -650,7 +650,7 @@ a.vb
             Assert.False(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("publi", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", "publi"))
             diags.Clear()
             Assert.Null(desc)
 
@@ -675,12 +675,12 @@ a.vb
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -692,27 +692,27 @@ a.vb
             Assert.True(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , , ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, , ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name, ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ,private", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -731,7 +731,7 @@ a.vb
             Assert.True(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name, ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -743,7 +743,7 @@ a.vb
             Assert.False(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name,private", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
         End Sub
@@ -941,11 +941,11 @@ a.vb
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:8", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("8", "langversion"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "8"))
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:" & (LanguageVersion.VisualBasic12 + 1), "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(CStr(LanguageVersion.VisualBasic12 + 1), "langversion"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", CStr(LanguageVersion.VisualBasic12 + 1)))
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
         End Sub
 
@@ -2109,7 +2109,7 @@ a.vb
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("target", ":exe|winexe|library|module|appcontainerexe|winmdobj"))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:xyz", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("xyz", "target"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("target", "xyz"))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/T+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/T+")) ' TODO: Dev11 reports ERR_ArgumentRequired
@@ -2196,10 +2196,10 @@ a.vb
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("debug", ":pdbonly|full"))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("+", "debug"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", "+"))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:invalid", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("invalid", "debug"))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", "invalid"))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("debug"))
@@ -3094,7 +3094,7 @@ End Class
 
             ' test illegal input
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:abcdef", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("abcdef", "platform"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("platform", "abcdef"))
 
             ' test overriding
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu32bitpreferred", "/platform:anycpu", "a.vb"}, _baseDirectory)
@@ -3103,10 +3103,10 @@ End Class
 
             ' test illegal
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu32bitpreferred", "/t:library", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("AnyCpu32BitPreferred", "Platform").WithLocation(1, 1))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("Platform", "AnyCpu32BitPreferred").WithLocation(1, 1))
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu", "/platform:anycpu32bitpreferred", "/target:winmdobj", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("AnyCpu32BitPreferred", "Platform").WithLocation(1, 1))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("Platform", "AnyCpu32BitPreferred").WithLocation(1, 1))
         End Sub
 
         <Fact()>
@@ -3157,15 +3157,15 @@ End Class
 
             ' test illegal
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0", "filealign"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "0"))
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0x", "filealign"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "0x"))
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x0", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0x0", "filealign"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "0x0"))
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:-1", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("-1", "filealign"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "-1"))
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:-0x100", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("-0x100", "filealign"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "-0x100"))
         End Sub
 
         <Fact()>
@@ -3249,11 +3249,11 @@ End Class
 
             ' test illegal
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0x10000000000000000", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0x10000000000000000", "baseaddress"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("baseaddress", "0x10000000000000000"))
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/BASEADDRESS:-1", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("-1", "baseaddress"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("baseaddress", "-1"))
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/BASEADDRESS:" + ULong.MaxValue.ToString, "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(ULong.MaxValue.ToString, "baseaddress"))
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("baseaddress", ULong.MaxValue.ToString))
         End Sub
 
         <Fact()>
@@ -7049,12 +7049,15 @@ out
         Inherits DiagnosticAnalyzer
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterCompilationStartAction(AddressOf CreateAnalyzerWithinCompilation)
-            context.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+            context.RegisterCompilationStartAction(
+                Sub(startContext As CompilationStartAnalysisContext)
+                    startContext.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+                    CreateAnalyzerWithinCompilation(startContext)
+                End Sub)
         End Sub
 
         Public MustOverride Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
-        Public MustOverride Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public MustOverride Sub AnalyzeCompilation(context As CompilationAnalysisContext)
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -7067,7 +7070,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.ExternalSourceDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -7092,7 +7095,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.EnableWarningDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -7118,7 +7121,7 @@ out
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -7143,7 +7146,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.DisableWarningDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)

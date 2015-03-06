@@ -1187,7 +1187,7 @@ public class B
             End Sub
 
             Private Class CodeBlockEndedAnalyzer
-                Public Sub AnalyzeCodeBlock(context As CodeBlockEndAnalysisContext)
+                Public Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
                     Throw New NotImplementedException()
                 End Sub
             End Class
@@ -1205,14 +1205,14 @@ public class B
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
-                context.RegisterCodeBlockEndAction(AddressOf AnalyzeCodeBlock)
+                context.RegisterCodeBlockAction(AddressOf AnalyzeCodeBlock)
                 ' Register a compilation start action that doesn't do anything to make sure that doesn't confuse anything.
                 context.RegisterCompilationStartAction(Sub(c) Return)
-                ' Register a compilation end action that doesn't do anything to make sure that doesn't confuse anything.
-                context.RegisterCompilationEndAction(Sub(c) Return)
+                ' Register a compilation action that doesn't do anything to make sure that doesn't confuse anything.
+                context.RegisterCompilationAction(Sub(c) Return)
             End Sub
 
-            Public Sub AnalyzeCodeBlock(context As CodeBlockEndAnalysisContext)
+            Public Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
                 Assert.NotNull(context.CodeBlock)
                 Assert.NotNull(context.OwningSymbol)
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.CodeBlock.GetLocation))
@@ -1232,11 +1232,11 @@ public class B
 
             Public Overrides Sub Initialize(context As AnalysisContext)
                 context.RegisterCodeBlockStartAction(Of TLanguageKindEnum)(AddressOf CreateAnalyzerWithinCodeBlock)
-                ' Register a compilation end action that doesn't do anything to make sure that doesn't confuse anything.
-                context.RegisterCompilationEndAction(Sub(c) Return)
+                ' Register a compilation action that doesn't do anything to make sure that doesn't confuse anything.
+                context.RegisterCompilationAction(Sub(c) Return)
             End Sub
 
-            Public Sub AnalyzeCodeBlock(context As CodeBlockEndAnalysisContext)
+            Public Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.CodeBlock.GetLocation))
             End Sub
 
@@ -1259,10 +1259,10 @@ public class B
             Public Overrides Sub Initialize(context As AnalysisContext)
                 ' Register a symbol analyzer that doesn't do anything to verify that that doesn't confuse anything.
                 context.RegisterSymbolAction(Sub(s) Return, SymbolKind.NamedType)
-                context.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+                context.RegisterCompilationAction(AddressOf AnalyzeCompilation)
             End Sub
 
-            Private Shared Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+            Private Shared Sub AnalyzeCompilation(context As CompilationAnalysisContext)
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None))
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Compilation.SyntaxTrees(0).GetRoot().GetLocation))
             End Sub
@@ -1301,7 +1301,7 @@ public class B
                     symbolNames.Add(context.Symbol.Name)
                 End Sub
 
-                Public Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+                Public Sub AnalyzeCompilation(context As CompilationAnalysisContext)
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None, symbolNames.Count))
                 End Sub
             End Class
@@ -1332,14 +1332,14 @@ public class B
             Public Overrides Sub Initialize(context As AnalysisContext)
                 If _isCodeBlockAnalyzer Then
                     context.RegisterCodeBlockStartAction(Of CodeAnalysis.CSharp.SyntaxKind)(AddressOf OnCodeBlockStarted)
-                    context.RegisterCodeBlockEndAction(AddressOf OnCodeBlockEnded)
+                    context.RegisterCodeBlockAction(AddressOf OnCodeBlockEnded)
                 Else
                     Dim analyzer = New NodeAnalyzer
                     analyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
                 End If
             End Sub
 
-            Public Shared Sub OnCodeBlockEnded(context As CodeBlockEndAnalysisContext)
+            Public Shared Sub OnCodeBlockEnded(context As CodeBlockAnalysisContext)
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, context.CodeBlock.GetLocation()))
             End Sub
 

@@ -5786,6 +5786,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation options &apos;{0}&apos; and &apos;{1}&apos; can&apos;t both be specified at the same time..
+        /// </summary>
+        internal static string ERR_MutuallyExclusiveOptions {
+            get {
+                return ResourceManager.GetString("ERR_MutuallyExclusiveOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Named attribute argument expected.
         /// </summary>
         internal static string ERR_NamedArgumentExpected {
