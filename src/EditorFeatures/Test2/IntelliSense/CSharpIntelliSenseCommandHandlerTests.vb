@@ -28,7 +28,7 @@ class C
                 state.AssertNoCompletionSession()
                 state.AssertSignatureHelpSession()
                 state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
-                Assert.Contains("Foo(", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Foo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 

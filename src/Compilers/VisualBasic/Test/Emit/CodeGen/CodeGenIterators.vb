@@ -1573,7 +1573,7 @@ End Class]]></file>
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim verifier = Me.CompileAndVerify(comp)
             Dim il = verifier.VisualizeIL("Program.VB$StateMachine_1_Foo.GetEnumerator()")
-            Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il)
+            Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
         End Sub
 
         <WorkItem(835430, "DevDiv")>
