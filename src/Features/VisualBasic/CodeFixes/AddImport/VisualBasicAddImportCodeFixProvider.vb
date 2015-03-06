@@ -61,6 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         Friend Const BC36610 = "BC36610"
 
         ''' <summary>
+        ''' Cannot initialize the type 'A' with a collection initializer because it does not have an accessible 'Add' method
+        ''' </summary>
+        Friend Const BC36719 = "BC36719"
+
+        ''' <summary>
         ''' Option Strict On disallows implicit conversions from 'Integer' to 'String'.
         ''' </summary>
         Friend Const BC30512 = "BC30512"
@@ -82,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC36610, BC30512, BC30390, BC42309, BC30182)
+                Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC36610, BC36719, BC30512, BC30390, BC42309, BC30182)
             End Get
         End Property
 
@@ -117,6 +122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                         node = parent.Expression
                     End If
                     Exit Select
+                Case BC36719
+                    If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
+                        Return True
+                    End If
+
+                    Return False
                 Case Else
                     Return False
             End Select
@@ -292,9 +303,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             If syntaxFacts.IsInvocationExpression(expression) Then
                 leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
             Else
-                Dim leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
-                If leftExpression Is Nothing Then
-                    Return False
+                Dim leftExpression As SyntaxNode
+                If TypeOf expression Is ObjectCreationExpressionSyntax Then
+                    leftExpression = expression
+                Else
+                    leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
+                    If leftExpression Is Nothing Then
+                        Return False
+                    End If
                 End If
 
                 Dim semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken)
@@ -314,6 +330,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         End Function
 
         Friend Overrides Function IsViableProperty([property] As IPropertySymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsAddMethodContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean
+            If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
+                Dim objectCreateExpression = node.GetAncestor(Of ObjectCreationExpressionSyntax)
+                If objectCreateExpression Is Nothing Then
+                    Return False
+                End If
+
+                Return True
+            End If
+
             Return False
         End Function
     End Class
