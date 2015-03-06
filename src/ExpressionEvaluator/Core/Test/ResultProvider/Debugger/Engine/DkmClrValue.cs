@@ -8,7 +8,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -16,8 +15,10 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
@@ -237,7 +238,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     }
 
                     var type = ((TypeImpl)this.Type.GetLmrType()).Type;
-                    var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+                    var bindingFlags = 
+                        System.Reflection.BindingFlags.Public | 
+                        System.Reflection.BindingFlags.NonPublic | 
+                        System.Reflection.BindingFlags.Instance | 
+                        System.Reflection.BindingFlags.Static;
 
                     DkmClrValue exprValue;
                     var appDomain = this.Type.AppDomain;
@@ -403,7 +408,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 case MemberTypes.Field:
                     var field = declaringType.GetField(MemberName, bindingFlags);
                     declaredType = field.FieldType;
-                    if (field.Attributes.HasFlag(FieldAttributes.Literal) || field.Attributes.HasFlag(FieldAttributes.InitOnly))
+                    if (field.Attributes.HasFlag(System.Reflection.FieldAttributes.Literal) || field.Attributes.HasFlag(System.Reflection.FieldAttributes.InitOnly))
                     {
                         evalFlags |= DkmEvaluationResultFlags.ReadOnly;
                     }
@@ -411,7 +416,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         value = field.GetValue(_rawValue);
                     }
-                    catch (TargetInvocationException e)
+                    catch (System.Reflection.TargetInvocationException e)
                     {
                         var exception = e.InnerException;
                         return new DkmClrValue(
@@ -435,7 +440,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         value = property.GetValue(_rawValue, bindingFlags, null, null, null);
                     }
-                    catch (TargetInvocationException e)
+                    catch (System.Reflection.TargetInvocationException e)
                     {
                         var exception = e.InnerException;
                         return new DkmClrValue(
@@ -453,17 +458,17 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             }
 
             Type type;
-            if (value is Pointer)
+            if (value is System.Reflection.Pointer)
             {
                 unsafe
                 {
                     if (Marshal.SizeOf(typeof(void*)) == 4)
                     {
-                        value = (int)Pointer.Unbox(value);
+                        value = (int)System.Reflection.Pointer.Unbox(value);
                     }
                     else
                     {
-                        value = (long)Pointer.Unbox(value);
+                        value = (long)System.Reflection.Pointer.Unbox(value);
                     }
                 }
                 type = declaredType;
