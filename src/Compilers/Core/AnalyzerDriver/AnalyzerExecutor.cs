@@ -459,25 +459,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 analyze();
             }
-            catch (OperationCanceledException oce)
-            {
-                if (oce.CancellationToken != cancellationToken)
-                {
-                    // Diagnostic for analyzer exception.
-                    var diagnostic = GetAnalyzerDiagnostic(analyzer, oce);
-                    onAnalyzerException(oce, analyzer, diagnostic);
-                }
-            }
             catch (Exception e)
             {
                 // Diagnostic for analyzer exception.
-                var diagnostic = GetAnalyzerDiagnostic(analyzer, e);
-                onAnalyzerException(e, analyzer, diagnostic);
+                var diagnostic = GetAnalyzerExceptionDiagnostic(analyzer, e);
+                if (diagnostic != null)
+                {
+                    onAnalyzerException(e, analyzer, diagnostic);
+                }
             }
         }
 
-        internal static Diagnostic GetAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        internal static Diagnostic GetAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
         {
+            if (e is OperationCanceledException)
+            {
+                return null;
+            }
+
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
                 AnalyzerDriverResources.AnalyzerFailure,
                 AnalyzerDriverResources.AnalyzerThrows,
@@ -485,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
-            return Diagnostic.Create(descriptor, Location.None, analyzer.GetType().ToString(), e.Message);
+            return Diagnostic.Create(descriptor, Location.None, analyzer.ToString(), e.Message);
         }
 
         internal static Diagnostic GetDescriptorDiagnostic(string faultedDescriptorId, Exception e)

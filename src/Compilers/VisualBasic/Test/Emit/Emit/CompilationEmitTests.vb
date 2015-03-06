@@ -70,14 +70,14 @@ End Module
             ' Compilation with quoted Rootnamespace and MainTypename still produces diagnostics.
             ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""Test""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """Test""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""Test.Module1""").WithLocation(1, 1))
 
             ' Use of Cyrillic rootnamespace and maintypename
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""решения""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """решения""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""решения.Module1""").WithLocation(1, 1))
 
         End Sub

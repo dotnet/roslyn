@@ -8,7 +8,6 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -194,22 +193,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               diagnostics As DiagnosticBag,
                                               Optional cancellationToken As CancellationToken = Nothing)
 
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compiler_CompileMethodBodies, message:=compilation.AssemblyName, cancellationToken:=cancellationToken)
-                If compilation.PreviousSubmission IsNot Nothing Then
-                    ' In case there is a previous submission, we should ensure 
-                    ' it has already created anonymous type/delegates templates
+            If compilation.PreviousSubmission IsNot Nothing Then
+                ' In case there is a previous submission, we should ensure 
+                ' it has already created anonymous type/delegates templates
 
-                    ' NOTE: if there are any errors, we will pick up what was created anyway
-                    compilation.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken)
+                ' NOTE: if there are any errors, we will pick up what was created anyway
+                compilation.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken)
 
-                    ' TODO: revise to use a loop instead of a recursion
-                End If
+                ' TODO: revise to use a loop instead of a recursion
+            End If
 
 #If DEBUG Then
-                compilation.EmbeddedSymbolManager.AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
+            compilation.EmbeddedSymbolManager.AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
 #End If
 
-                Dim compiler = New MethodCompiler(compilation,
+            Dim compiler = New MethodCompiler(compilation,
                                                   moduleBeingBuiltOpt,
                                                   generateDebugInfo,
                                                   doEmitPhase:=True,
@@ -218,43 +216,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   filter:=filter,
                                                   cancellationToken:=cancellationToken)
 
-                compilation.SourceModule.GlobalNamespace.Accept(compiler)
+            compilation.SourceModule.GlobalNamespace.Accept(compiler)
+            compiler.WaitForWorkers()
+
+            If moduleBeingBuiltOpt IsNot Nothing Then
+                Dim additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes()
+                If Not additionalTypes.IsEmpty Then
+                    compiler.CompileSynthesizedMethods(additionalTypes)
+                End If
+
+                compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(compiler, moduleBeingBuiltOpt, diagnostics)
                 compiler.WaitForWorkers()
 
-                If moduleBeingBuiltOpt IsNot Nothing Then
-                    Dim additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes()
-                    If Not additionalTypes.IsEmpty Then
-                        compiler.CompileSynthesizedMethods(additionalTypes)
-                    End If
-
-                    compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(compiler, moduleBeingBuiltOpt, diagnostics)
-                    compiler.WaitForWorkers()
-
-                    ' Process symbols from embedded code if needed.
-                    If compilation.EmbeddedSymbolManager.Embedded <> EmbeddedSymbolKind.None Then
-                        compiler.ProcessEmbeddedMethods()
-                    End If
-
-                    Dim privateImplClass = moduleBeingBuiltOpt.PrivateImplClass
-                    If privateImplClass IsNot Nothing Then
-                        ' all threads that were adding methods must be finished now, we can freeze the class:
-                        privateImplClass.Freeze()
-
-                        compiler.CompileSynthesizedMethods(privateImplClass)
-                    End If
+                ' Process symbols from embedded code if needed.
+                If compilation.EmbeddedSymbolManager.Embedded <> EmbeddedSymbolKind.None Then
+                    compiler.ProcessEmbeddedMethods()
                 End If
 
-                Dim entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, diagnostics, cancellationToken)
-                If moduleBeingBuiltOpt IsNot Nothing Then
-                    moduleBeingBuiltOpt.SetEntryPoint(entryPoint)
+                Dim privateImplClass = moduleBeingBuiltOpt.PrivateImplClass
+                If privateImplClass IsNot Nothing Then
+                    ' all threads that were adding methods must be finished now, we can freeze the class:
+                    privateImplClass.Freeze()
 
-                    If compiler.GlobalHasErrors AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
-                        ' If there were errors but no diagnostics, explicitly add
-                        ' a "Failed to emit module" error to prevent emitting.
-                        diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name)
-                    End If
+                    compiler.CompileSynthesizedMethods(privateImplClass)
                 End If
-            End Using
+            End If
+
+            Dim entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, diagnostics, cancellationToken)
+            If moduleBeingBuiltOpt IsNot Nothing Then
+                moduleBeingBuiltOpt.SetEntryPoint(entryPoint)
+
+                If compiler.GlobalHasErrors AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
+                    ' If there were errors but no diagnostics, explicitly add
+                    ' a "Failed to emit module" error to prevent emitting.
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name)
+                End If
+            End If
         End Sub
 
         Friend Shared Function GetEntryPoint(compilation As VisualBasicCompilation,

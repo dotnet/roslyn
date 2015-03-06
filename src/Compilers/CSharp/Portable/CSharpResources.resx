@@ -4113,6 +4113,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EncReferenceToAddedMember" xml:space="preserve">
     <value>Member '{0}' added during the current debug session can only be accessed from within its declaring assembly '{1}'.</value>
   </data>
+  <data name="ERR_MutuallyExclusiveOptions" xml:space="preserve">
+    <value>Compilation options '{0}' and '{1}' can't both be specified at the same time.</value>
+  </data>
   <data name="ERR_LinkedNetmoduleMetadataMustProvideFullPEImage" xml:space="preserve">
     <value>Linked netmodule metadata must provide a full PE image: '{0}'.</value>
   </data>
