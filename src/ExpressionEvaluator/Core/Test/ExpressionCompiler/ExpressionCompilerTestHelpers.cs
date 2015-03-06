@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         manifestResources: null,
                         options: EmitOptions.Default,
                         testData: null,
+                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
 
                     if (!result.Success)

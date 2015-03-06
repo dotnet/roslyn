@@ -1347,39 +1347,48 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Emit(
-                new SimpleEmitStreamProvider(peStream, pdbStream),
-                xmlDocumentationStream,
-                win32Resources,
-                manifestResources,
-                options,
-                cancellationToken);
-        }
-
-        /// <summary>
-        /// Emit the IL for the compiled source code into the specified stream.
-        /// </summary>
-        /// <param name="emitStreamProvider">Provides stream the compiler will write to.</param>
-        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
-        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
-        /// <param name="options">Emit options.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
-        internal EmitResult Emit(
-            EmitStreamProvider emitStreamProvider,
-            Stream xmlDocumentationStream = null,
-            Stream win32Resources = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            EmitOptions options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return Emit(
-                emitStreamProvider,
+                peStream,
+                pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
                 options,
                 testData: null,
+                getHostDiagnostics: null,
+                cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Emit the IL for the compiled source code into the specified stream.
+        /// </summary>
+        /// <param name="peStreamProvider">Provides the PE stream the compiler will write to.</param>
+        /// <param name="pdbStreamProvider">Provides the PDB stream the compiler will write to.</param>
+        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
+        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
+        /// <param name="options">Emit options.</param>
+        /// <param name="getHostDiagnostics">Returns any extra diagnostics produced by the host of the compiler.</param>
+        /// <param name="cancellationToken">To cancel the emit process.</param>
+        internal EmitResult Emit(
+            EmitStreamProvider peStreamProvider,
+            EmitStreamProvider pdbStreamProvider,
+            Stream xmlDocumentationStream = null,
+            Stream win32Resources = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            EmitOptions options = null,
+            Func<ImmutableArray<Diagnostic>> getHostDiagnostics = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Emit(
+                peStreamProvider,
+                pdbStreamProvider,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                testData: null,
+                getHostDiagnostics: getHostDiagnostics,
                 cancellationToken: cancellationToken);
         }
 
@@ -1479,15 +1488,18 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
             CompilationTestData testData,
+            Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
             return Emit(
-                new SimpleEmitStreamProvider(peStream, pdbStream),
+                new SimpleEmitStreamProvider(peStream),
+                pdbStream != null ? new SimpleEmitStreamProvider(pdbStream) : null,
                 xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
                 options,
                 testData,
+                getHostDiagnostics,
                 cancellationToken);
         }
 
@@ -1497,15 +1509,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>True if emit succeeded.</returns>
         internal EmitResult Emit(
-            EmitStreamProvider emitStreamProvider,
+            EmitStreamProvider peStreamProvider,
+            EmitStreamProvider pdbStreamProvider,
             Stream xmlDocumentationStream,
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
             CompilationTestData testData,
+            Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(emitStreamProvider != null);
+            Debug.Assert(peStreamProvider != null);
 
             using (Logger.LogBlock(EmitFunctionId, message: this.AssemblyName, cancellationToken: cancellationToken))
             {
@@ -1553,7 +1567,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt,
                     win32Resources,
                     xmlDocumentationStream,
-                    generateDebugInfo: emitStreamProvider.HasPdbStream,
+                    generateDebugInfo: pdbStreamProvider != null,
                     diagnostics: diagnostics,
                     filterOpt: null,
                     cancellationToken: cancellationToken))
@@ -1561,9 +1575,19 @@ namespace Microsoft.CodeAnalysis
                     return ToEmitResultAndFree(diagnostics, success: false);
                 }
 
+                var hostDiagnostics = getHostDiagnostics != null
+                    ? getHostDiagnostics()
+                    : ImmutableArray<Diagnostic>.Empty;
+                diagnostics.AddRange(hostDiagnostics);
+                if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
+                {
+                    return ToEmitResultAndFree(diagnostics, success: false);
+                }
+
                 bool success = SerializeToPeStream(
                     moduleBeingBuilt,
-                    emitStreamProvider,
+                    peStreamProvider,
+                    pdbStreamProvider,
                     options.PdbFilePath,
                     (testData != null) ? testData.SymWriterFactory : null,
                     diagnostics,
@@ -1581,14 +1605,15 @@ namespace Microsoft.CodeAnalysis
 
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
-            EmitStreamProvider emitStreamProvider,
+            EmitStreamProvider peStreamProvider,
+            EmitStreamProvider pdbStreamProvider,
             string pdbFileName,
             Func<object> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
             CancellationToken cancellationToken)
         {
-            Stream peStream = emitStreamProvider.GetPeStream(diagnostics);
+            Stream peStream = peStreamProvider.GetStream(diagnostics);
             if (peStream == null)
             {
                 Debug.Assert(diagnostics.HasAnyErrors());
@@ -1597,9 +1622,9 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(peStream.CanWrite);
 
             Stream pdbStream = null;
-            if (emitStreamProvider.HasPdbStream)
+            if (pdbStreamProvider != null)
             {
-                pdbStream = emitStreamProvider.GetPdbStream(diagnostics);
+                pdbStream = pdbStreamProvider.GetStream(diagnostics);
                 if (pdbStream == null)
                 {
                     Debug.Assert(diagnostics.HasAnyErrors());

@@ -3875,6 +3875,7 @@ public class C
                     win32Resources: null,
                     manifestResources: null,
                     options: null,
+                    getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(

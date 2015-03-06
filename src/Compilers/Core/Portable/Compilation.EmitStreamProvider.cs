@@ -21,42 +21,26 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract class EmitStreamProvider
         {
-            public abstract bool HasPdbStream
-            {
-                get;
-            }
-
-            public abstract Stream GetPeStream(DiagnosticBag diagnostics);
-
-            public abstract Stream GetPdbStream(DiagnosticBag diagnostics);
+            /// <summary>
+            /// This method will be called once during Emit at the time the Compilation needs the
+            /// associated <see cref="Stream"/> for writing.  It will not be called in the case of
+            /// user errors in code.
+            /// </summary>
+            public abstract Stream GetStream(DiagnosticBag diagnostics);
         }
 
         private sealed class SimpleEmitStreamProvider : EmitStreamProvider
         {
-            private readonly Stream _peStream;
-            private readonly Stream _pdbStream;
+            private readonly Stream _stream;
 
-            internal SimpleEmitStreamProvider(Stream peStream, Stream pdbStream = null)
+            internal SimpleEmitStreamProvider(Stream stream)
             {
-                Debug.Assert(peStream.CanWrite);
-                Debug.Assert(pdbStream == null || pdbStream.CanWrite);
-                _peStream = peStream;
-                _pdbStream = pdbStream;
+                _stream = stream;
             }
 
-            public override bool HasPdbStream
+            public override Stream GetStream(DiagnosticBag diagnostics)
             {
-                get { return _pdbStream != null; }
-            }
-
-            public override Stream GetPeStream(DiagnosticBag diagnostics)
-            {
-                return _peStream;
-            }
-
-            public override Stream GetPdbStream(DiagnosticBag diagnostics)
-            {
-                return _pdbStream;
+                return _stream;
             }
         }
     }
