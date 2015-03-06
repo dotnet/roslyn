@@ -101,10 +101,7 @@ namespace Microsoft.CodeAnalysis
 
         public void EnsureCapacity(int capacity)
         {
-            if (_builder.Capacity < capacity)
-            {
-                _builder.Capacity = capacity;
-            }
+            _builder.EnsureCapacity(capacity);
         }
 
         public void Clear()
@@ -134,7 +131,7 @@ namespace Microsoft.CodeAnalysis
 
         public void ReverseContents()
         {
-            _builder.Reverse();
+            _builder.ReverseContents();
         }
 
         public void Sort()

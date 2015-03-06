@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IModuleSymbol_ReferencedAssemblySymbols As ImmutableArray(Of IAssemblySymbol) Implements IModuleSymbol.ReferencedAssemblySymbols
             Get
-                Return ImmutableArray(Of IAssemblySymbol).CastUp(ReferencedAssemblySymbols)
+                Return ImmutableArray.Create(Of IAssemblySymbol, AssemblySymbol)(ReferencedAssemblySymbols)
             End Get
         End Property
 
