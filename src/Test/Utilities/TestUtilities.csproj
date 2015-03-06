@@ -123,6 +123,7 @@
     <Compile Include="ConsoleOutput.cs" />
     <Compile Include="CultureContext.cs" />
     <Compile Include="DiagnosticDescription.cs" />
+    <Compile Include="DescriptorFactory.cs" />
     <Compile Include="DiagnosticExtensions.cs" />
     <Compile Include="DiffUtil.cs" />
     <Compile Include="DisposableDirectory.cs" />

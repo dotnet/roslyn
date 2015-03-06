@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Sdk
@@ -1124,7 +1125,7 @@ public class B
                 Me.indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
             End Sub
 
-            Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared ReadOnly DiagDescriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1168,7 +1169,7 @@ public class B
         Private Class CodeBlockStartedAnalyzer(Of TLanguageKindEnum As Structure)
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1196,7 +1197,7 @@ public class B
         Private Class CodeBlockEndedAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1222,7 +1223,7 @@ public class B
         Private Class CodeBlockStartedAndEndedAnalyzer(Of TLanguageKindEnum As Structure)
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("DummyDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1248,7 +1249,7 @@ public class B
         Private Class CompilationEndedAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Public Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CompilationEndedAnalyzerDiagnostic")
+            Public Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CompilationEndedAnalyzerDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
@@ -1312,12 +1313,12 @@ public class B
 
             Private ReadOnly _isCodeBlockAnalyzer As Boolean
 
-            Public Shared Desciptor1 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CodeBlockDiagnostic")
-            Public Shared Desciptor2 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("EqualsValueDiagnostic")
-            Public Shared Desciptor3 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("ConstructorInitializerDiagnostic")
-            Public Shared Desciptor4 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("PropertyExpressionBodyDiagnostic")
-            Public Shared Desciptor5 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("IndexerExpressionBodyDiagnostic")
-            Public Shared Desciptor6 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("MethodExpressionBodyDiagnostic")
+            Public Shared Desciptor1 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
+            Public Shared Desciptor2 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("EqualsValueDiagnostic")
+            Public Shared Desciptor3 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("ConstructorInitializerDiagnostic")
+            Public Shared Desciptor4 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("PropertyExpressionBodyDiagnostic")
+            Public Shared Desciptor5 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("IndexerExpressionBodyDiagnostic")
+            Public Shared Desciptor6 As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("MethodExpressionBodyDiagnostic")
 
             Public Sub New(isCodeBlockAnalyzer As Boolean)
                 _isCodeBlockAnalyzer = isCodeBlockAnalyzer
