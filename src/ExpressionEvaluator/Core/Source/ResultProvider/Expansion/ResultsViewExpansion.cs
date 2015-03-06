@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class ResultsViewExpansion : Expansion
     {
+        private const string ResultsFormatSpecifier = "results";
+
         internal static ResultsViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, Formatter formatter)
         {
             var enumerableType = GetEnumerableType(value);
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 childShouldParenthesize: false,
                 fullName: fullName,
                 childFullNamePrefixOpt: childFullNamePrefix,
-                formatSpecifiers: Formatter.AddFormatSpecifier(parent.FormatSpecifiers, "results"),
+                formatSpecifiers: Formatter.AddFormatSpecifier(parent.FormatSpecifiers, ResultsFormatSpecifier),
                 category: DkmEvaluationResultCategory.Method,
                 flags: DkmEvaluationResultFlags.ReadOnly,
                 editableValue: null,
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var fullName = formatter.TrimAndGetFormatSpecifiers(name, out formatSpecifiers);
             if (includeResultsFormatSpecifier)
             {
-                formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, "results");
+                formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
             }
             var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), fullName);
             return new EvalResultDataItem(
