@@ -634,11 +634,16 @@ namespace Roslyn.Test.PdbUtilities
                                 return;
                             }
 
-                            closureOrdinal--;
-                            if (closureOrdinal != -1)
+                            closureOrdinal -= 2;
+
+                            if (closureOrdinal == -2)
+                            {
+                                _writer.WriteAttributeString("closure", "this");
+                            }
+                            else if (closureOrdinal != -1)
                             {
                                 _writer.WriteAttributeString("closure",
-                                    closureOrdinal.ToString() + (closureOrdinal < -1 || closureOrdinal >= closureCount ? " (invalid)" : ""));
+                                    closureOrdinal.ToString() + (closureOrdinal >= closureCount ? " (invalid)" : ""));
                             }
                         }
                         finally
