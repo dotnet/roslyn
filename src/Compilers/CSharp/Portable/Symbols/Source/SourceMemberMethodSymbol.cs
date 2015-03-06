@@ -537,11 +537,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(locations[0], this.DeclaringCompilation);
-        }
-
         public override ImmutableArray<Location> Locations
         {
             get

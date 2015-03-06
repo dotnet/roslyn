@@ -110,11 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
-            ' WARNING: This property must not cause allocation!
-            Return New LexicalSortKey(aliasLocations(0), Me.DeclaringCompilation)
-        End Function
-
         ''' <summary>
         ''' Gets the locations where this symbol was originally defined.
         ''' </summary>

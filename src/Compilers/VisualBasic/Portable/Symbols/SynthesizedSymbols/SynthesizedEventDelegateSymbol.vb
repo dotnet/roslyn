@@ -34,8 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private m_lazyMembers As ImmutableArray(Of Symbol)
         Private m_lazyEventSymbol As EventSymbol
 
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
-
         Private m_reportedAllDeclarationErrors As Integer = 0 ' An integer to be able to do Interlocked operations.
 
         Friend Sub New(syntaxRef As SyntaxReference, containingSymbol As NamedTypeSymbol)
@@ -212,11 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation))
-            End If
-
-            Return m_lazyLexicalSortKey
+            Return New LexicalSortKey(m_syntaxRef, Me.DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)

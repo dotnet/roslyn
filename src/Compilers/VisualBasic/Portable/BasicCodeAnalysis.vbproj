@@ -101,7 +101,7 @@
     <Compile Include="Analysis\FlowAnalysis\ControlFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.vb" />
-    <Compile Include="Analysis\FlowAnalysis\DataFlowAnalysis.vb" />
+    <Compile Include="Analysis\FlowAnalysis\VisualBasicDataFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.SlotCollection.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.Symbols.vb" />
