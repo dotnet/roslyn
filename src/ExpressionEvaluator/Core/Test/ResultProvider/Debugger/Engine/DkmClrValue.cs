@@ -30,7 +30,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             string alias,
             IDkmClrFormatter formatter,
             DkmEvaluationResultFlags evalFlags,
-            DkmClrValueFlags valueFlags)
+            DkmClrValueFlags valueFlags,
+            bool isComObject = false)
         {
             Debug.Assert(!type.GetLmrType().IsTypeVariables() || (valueFlags == DkmClrValueFlags.Synthetic));
             Debug.Assert((alias == null) || evalFlags.Includes(DkmEvaluationResultFlags.HasObjectId));
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             this.Alias = alias;
             this.EvalFlags = evalFlags;
             this.ValueFlags = valueFlags;
+            this.NativeComPointer = isComObject ? 1UL : 0;
         }
 
         public readonly DkmEvaluationResultFlags EvalFlags;
@@ -57,6 +59,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly DkmDataAddress Address;
         public readonly object HostObjectValue;
         public readonly string Alias;
+        public readonly ulong NativeComPointer;
 
         private readonly IDkmClrFormatter _formatter;
         private readonly object _rawValue;
