@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Friend Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
+        Private Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
             ' CanGet(at)
             Debug.Assert(_lineBufferOffset + at >= 0)
             Debug.Assert(at >= -MaxCharsLookBehind)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Friend Function TryPeek(ByRef ch As Char) As Boolean
+        Private Function TryPeek(ByRef ch As Char) As Boolean
             ' CanGet()
             If _lineBufferOffset >= _bufferLen Then Return False
             ' Peek()
