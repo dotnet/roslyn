@@ -58,12 +58,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return DirectCast(renameService.StartInlineSession(sessionInfo.Item1, sessionInfo.Item2).Session, InlineRenameSession)
         End Function
 
+        Public Sub AssertTokenRenamable(workspace As TestWorkspace)
+            Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
+            Dim sessionInfo = GetSessionInfo(workspace)
+
+            Dim editorService = sessionInfo.Item1.GetLanguageService(Of IEditorInlineRenameService)
+            Dim result = editorService.GetRenameInfoAsync(sessionInfo.Item1, sessionInfo.Item2.Start, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Assert.True(result.CanRename)
+            Assert.Null(result.LocalizedErrorMessage)
+        End Sub
+
         Public Sub AssertTokenNotRenamable(workspace As TestWorkspace)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
             Dim sessionInfo = GetSessionInfo(workspace)
 
             Dim editorService = sessionInfo.Item1.GetLanguageService(Of IEditorInlineRenameService)
             Dim result = editorService.GetRenameInfoAsync(sessionInfo.Item1, sessionInfo.Item2.Start, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Assert.False(result.CanRename)
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 

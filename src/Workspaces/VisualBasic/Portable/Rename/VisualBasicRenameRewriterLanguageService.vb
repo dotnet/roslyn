@@ -244,10 +244,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     If isRenameLocation Then
                         Dim annotation = Me.renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
                         If annotation IsNot Nothing Then
-                            newToken = RenameToken(token, newToken, annotation.Suffix, annotation.IsAccessorLocation)
+                            newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix)
                             AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
                         Else
-                            newToken = RenameToken(token, newToken, suffix:=Nothing, isAccessorLocation:=False)
+                            newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing)
                         End If
                     End If
 
@@ -257,7 +257,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, Me.semanticModel, Me.solution.Workspace, Me.cancellationToken)
 
                 ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
+                Dim prefix = If(isRenameLocation AndAlso Me.renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
                 Dim suffix As String = Nothing
+
                 If symbols.Count() = 1 Then
                     Dim symbol = symbols.Single()
 
@@ -273,6 +275,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         DirectCast(fieldSymbol.Type, INamedTypeSymbol).AssociatedSymbol IsNot Nothing Then
 
                             suffix = "Event"
+                        End If
+
+                        If fieldSymbol.AssociatedSymbol IsNot Nothing AndAlso
+                           fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property) AndAlso
+                           fieldSymbol.Name = "_" + fieldSymbol.AssociatedSymbol.Name Then
+
+                            prefix = "_"
                         End If
 
                     ElseIf symbol.IsConstructor AndAlso
@@ -297,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If isRenameLocation AndAlso Not Me.AnnotateForComplexification Then
                     Dim oldSpan = token.Span
-                    newToken = RenameToken(token, newToken, suffix:=suffix, isAccessorLocation:=isRenameLocation AndAlso Me.renameLocations(token.Span).IsRenamableAccessor)
+                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix)
                     AddModifiedSpan(oldSpan, newToken.Span)
                 End If
 
@@ -312,12 +321,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim renameAnnotation = New RenameActionAnnotation(
                                     token.Span,
                                     isRenameLocation,
-                                    If(isRenameLocation, Me.renameLocations(token.Span).IsRenamableAccessor, False),
+                                    prefix,
                                     suffix,
                                     isOldText,
                                     renameDeclarationLocations,
                                     isNamespaceDeclarationReference,
-                                                    isInvocationExpression:=False)
+                                    isInvocationExpression:=False)
 
                 annotatedIdentifierTokens.Add(token)
                 newToken = Me.renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
@@ -439,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Dim renameAnnotation = New RenameActionAnnotation(
                                             identifierToken.Span,
                                             isRenameLocation:=False,
-                                            isAccessorLocation:=False,
+                                            prefix:=Nothing,
                                             suffix:=Nothing,
                                             renameDeclarationLocations:=renameDeclarationLocations,
                                             isOriginalTextLocation:=False,
@@ -464,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return result
             End Function
 
-            Private Function RenameToken(oldToken As SyntaxToken, newToken As SyntaxToken, suffix As String, isAccessorLocation As Boolean) As SyntaxToken
+            Private Function RenameToken(oldToken As SyntaxToken, newToken As SyntaxToken, prefix As String, suffix As String) As SyntaxToken
                 Dim parent = oldToken.Parent
                 Dim currentNewIdentifier = Me.replacementText
                 Dim oldIdentifier = newToken.ValueText
@@ -477,11 +486,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             currentNewIdentifier = withoutSuffix
                         End If
                     End If
-                ElseIf isAccessorLocation Then
-                    Dim prefix = oldIdentifier.Substring(0, oldIdentifier.IndexOf("_"c) + 1)
-                    currentNewIdentifier = prefix + currentNewIdentifier
-                ElseIf Not String.IsNullOrEmpty(suffix) Then
-                    currentNewIdentifier = currentNewIdentifier + suffix
+                Else
+                    If Not String.IsNullOrEmpty(prefix) Then
+                        currentNewIdentifier = prefix + currentNewIdentifier
+                    End If
+
+                    If Not String.IsNullOrEmpty(suffix) Then
+                        currentNewIdentifier = currentNewIdentifier + suffix
+                    End If
                 End If
 
                 ' determine the canonical identifier name (unescaped, no type char, ...)
