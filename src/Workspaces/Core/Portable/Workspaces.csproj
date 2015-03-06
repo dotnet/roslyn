@@ -326,6 +326,7 @@
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
     <Compile Include="Editing\GenerationOptions.cs" />
+    <Compile Include="Editing\GenerationOptionsProvider.cs" />
     <Compile Include="Editing\ImportAdder.cs" />
     <Compile Include="Editing\SolutionEditor.cs" />
     <Compile Include="Editing\SymbolEditor.cs" />
@@ -379,7 +380,6 @@
     <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
-    <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />

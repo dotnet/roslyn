@@ -4,11 +4,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
-    internal partial class GenerationOptions
+    internal class GenerationOptions
     {
         public const string FeatureName = "Organizer";
-
-        [ExportOption]
+         
         public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(FeatureName, "PlaceSystemNamespaceFirst", defaultValue: true);
     }
 }
