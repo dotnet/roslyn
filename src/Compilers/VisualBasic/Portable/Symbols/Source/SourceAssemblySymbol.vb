@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             m_Modules = moduleBuilder.ToImmutableAndFree()
 
-            If Not compilation.Options.CryptoPublicKey.IsDefault Then
+            If Not compilation.Options.CryptoPublicKey.IsEmpty Then
                 m_lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, MessageProvider.Instance)
             End If
         End Sub
@@ -1185,7 +1185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Consider: should we allow to OSS sign if the key file only contains public key?
 
                 If DeclaringCompilation.Options.OutputKind <> OutputKind.NetModule AndAlso
-                   DeclaringCompilation.Options.CryptoPublicKey.IsDefault AndAlso
+                   DeclaringCompilation.Options.CryptoPublicKey.IsEmpty AndAlso
                    Identity.HasPublicKey AndAlso
                    Not IsDelaySigned AndAlso
                    Not StrongNameKeys.CanSign Then

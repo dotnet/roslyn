@@ -587,6 +587,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The cryptography key file path. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the public key is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoPublicKey(value As ImmutableArray(Of Byte)) As VisualBasicCompilationOptions
+            If value.IsDefault Then
+                value = ImmutableArray(Of Byte).Empty
+            End If
+
             If value = Me.CryptoPublicKey Then
                 Return Me
             End If
@@ -839,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             '          (version >= "6.2")
 
-            If Not CryptoPublicKey.IsDefault Then
+            If Not CryptoPublicKey.IsEmpty Then
                 If CryptoKeyFile IsNot Nothing Then
                     builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyFile)))
                 End If

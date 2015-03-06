@@ -42,8 +42,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string MainTypeName { get; protected set; }
 
+        // Note that we avoid using default(ImmutableArray<byte>) for unspecified value since 
+        // such value is currently not serializable by JSON serializer.
+
         /// <summary>
-        /// Specifies public key used to generate strong name for the compilation assembly, or null of not specified.
+        /// Specifies public key used to generate strong name for the compilation assembly, or empty of not specified.
         /// </summary>
         /// <remarks>
         /// If specified the values of <see cref="CryptoKeyFile"/> and <see cref="CryptoKeyContainer"/> must be null.
@@ -220,7 +223,7 @@ namespace Microsoft.CodeAnalysis
             this.ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
             this.CryptoKeyContainer = cryptoKeyContainer;
             this.CryptoKeyFile = cryptoKeyFile;
-            this.CryptoPublicKey = cryptoPublicKey;
+            this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
             this.DelaySign = delaySign;
             this.CheckOverflow = checkOverflow;
             this.Platform = platform;
@@ -404,7 +407,7 @@ namespace Microsoft.CodeAnalysis
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
-                   (this.CryptoPublicKey.IsDefault && other.CryptoPublicKey.IsDefault || !this.CryptoPublicKey.IsDefault && !other.CryptoPublicKey.IsDefault && this.CryptoPublicKey.SequenceEqual(other.CryptoPublicKey)) &&
+                   this.CryptoPublicKey.SequenceEqual(other.CryptoPublicKey) &&
                    this.DelaySign == other.DelaySign &&
                    this.GeneralDiagnosticOption == other.GeneralDiagnosticOption &&
                    string.Equals(this.MainTypeName, other.MainTypeName, StringComparison.Ordinal) &&
