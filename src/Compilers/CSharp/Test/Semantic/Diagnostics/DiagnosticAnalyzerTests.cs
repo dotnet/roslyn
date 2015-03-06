@@ -863,7 +863,7 @@ public class B
                 if (_isCodeBlockAnalyzer)
                 {
                     context.RegisterCodeBlockStartAction<SyntaxKind>(OnCodeBlockStarted);
-                    context.RegisterCodeBlockEndAction(OnCodeBlockEnded);
+                    context.RegisterCodeBlockAction(OnCodeBlockEnded);
                 }
                 else
                 {
@@ -874,7 +874,7 @@ public class B
                 }
             }
 
-            public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)
+            public static void OnCodeBlockEnded(CodeBlockAnalysisContext context)
             {
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None));
             }

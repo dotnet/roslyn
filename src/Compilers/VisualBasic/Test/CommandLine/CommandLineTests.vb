@@ -7049,12 +7049,15 @@ out
         Inherits DiagnosticAnalyzer
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterCompilationStartAction(AddressOf CreateAnalyzerWithinCompilation)
-            context.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+            context.RegisterCompilationStartAction(
+                Sub(startContext As CompilationStartAnalysisContext)
+                    startContext.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+                    CreateAnalyzerWithinCompilation(startContext)
+                End Sub)
         End Sub
 
         Public MustOverride Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
-        Public MustOverride Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public MustOverride Sub AnalyzeCompilation(context As CompilationAnalysisContext)
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -7067,7 +7070,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.ExternalSourceDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -7092,7 +7095,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.EnableWarningDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -7118,7 +7121,7 @@ out
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -7143,7 +7146,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.DisableWarningDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)

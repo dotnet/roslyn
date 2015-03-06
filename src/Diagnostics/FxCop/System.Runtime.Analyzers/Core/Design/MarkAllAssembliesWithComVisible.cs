@@ -34,10 +34,10 @@ namespace System.Runtime.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterCompilationEndAction(AnalyzeCompilation);
+            analysisContext.RegisterCompilationAction(AnalyzeCompilation);
         }
 
-        private void AnalyzeCompilation(CompilationEndAnalysisContext context)
+        private void AnalyzeCompilation(CompilationAnalysisContext context)
         {
             if (AssemblyHasPublicTypes(context.Compilation.Assembly))
             {

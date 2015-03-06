@@ -417,8 +417,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                                 this.SyntaxNodeAnalyzerService.ExecuteSyntaxNodeActions(analyzerActions, GetSyntaxNodesToAnalyze(), model, analyzerExecutor);
                             }
 
-                            // CodeBlockStart, CodeBlockEnd, and generated SyntaxNode actions.
-                            if (analyzerActions.CodeBlockStartActionsCount > 0 || analyzerActions.CodeBlockEndActionsCount > 0)
+                            // CodeBlockStart, CodeBlock, CodeBlockEnd, and generated SyntaxNode actions.
+                            if (analyzerActions.CodeBlockStartActionsCount > 0 || analyzerActions.CodeBlockActionsCount > 0 || analyzerActions.CodeBlockEndActionsCount > 0)
                             {
                                 this.SyntaxNodeAnalyzerService.ExecuteCodeBlockActions(analyzerActions, this.GetDeclarationInfos(model), model, analyzerExecutor);
                             }
@@ -483,13 +483,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (hasDependentCompilationEndAction && forceAnalyzeAllDocuments != null)
                 {
-                    // Analyzer registered a compilation end action and at least one other analyzer action during it's compilation start action.
+                    // Analyzer registered a compilation end action and at least one other analyzer action during its compilation start action.
                     // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
                     forceAnalyzeAllDocuments(_project, analyzer, _cancellationToken);
                 }
 
+                // Compilation actions.
+                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationActions);
+
                 // CompilationEnd actions.
-                analyzerExecutor.ExecuteCompilationEndActions(analyzerActions);
+                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationEndActions);
 
                 var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
                 diagnostics.AddRange(filteredDiagnostics);

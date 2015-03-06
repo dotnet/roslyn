@@ -11,8 +11,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
     {
         public static readonly string[] AnalyzerTypes =
         {
+            "Analyzer.CodeBlock",
             "Analyzer.CodeBlockEnd",
             "Analyzer.CodeBlockStart",
+            "Analyzer.Compilation",
             "Analyzer.CompilationEnd",
             "Analyzer.CompilationStart",
             "Analyzer.SemanticModel",
@@ -61,26 +63,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
                 CLRType = analyzer.GetType();
                 Telemetry = telemetry;
 
-                Counts[0] = analyzerActions.CodeBlockEndActionsCount;
-                Counts[1] = analyzerActions.CodeBlockStartActionsCount;
-                Counts[2] = analyzerActions.CompilationEndActionsCount;
-                Counts[3] = analyzerActions.CompilationStartActionsCount;
-                Counts[4] = analyzerActions.SemanticModelActionsCount;
-                Counts[5] = analyzerActions.SymbolActionsCount;
-                Counts[6] = analyzerActions.SyntaxNodeActionsCount;
-                Counts[7] = analyzerActions.SyntaxTreeActionsCount;
+                Counts[0] = analyzerActions.CodeBlockActionsCount;
+                Counts[1] = analyzerActions.CodeBlockEndActionsCount;
+                Counts[2] = analyzerActions.CodeBlockStartActionsCount;
+                Counts[3] = analyzerActions.CompilationActionsCount;
+                Counts[4] = analyzerActions.CompilationEndActionsCount;
+                Counts[5] = analyzerActions.CompilationStartActionsCount;
+                Counts[6] = analyzerActions.SemanticModelActionsCount;
+                Counts[7] = analyzerActions.SymbolActionsCount;
+                Counts[8] = analyzerActions.SyntaxNodeActionsCount;
+                Counts[9] = analyzerActions.SyntaxTreeActionsCount;
             }
 
             public void SetAnalyzerTypeCount(AnalyzerActions analyzerActions)
             {
-                Counts[0] = analyzerActions.CodeBlockEndActionsCount;
-                Counts[1] = analyzerActions.CodeBlockStartActionsCount;
-                Counts[2] = analyzerActions.CompilationEndActionsCount;
-                Counts[3] = analyzerActions.CompilationStartActionsCount;
-                Counts[4] = analyzerActions.SemanticModelActionsCount;
-                Counts[5] = analyzerActions.SymbolActionsCount;
-                Counts[6] = analyzerActions.SyntaxNodeActionsCount;
-                Counts[7] = analyzerActions.SyntaxTreeActionsCount;
+                Counts[0] = analyzerActions.CodeBlockActionsCount;
+                Counts[1] = analyzerActions.CodeBlockEndActionsCount;
+                Counts[2] = analyzerActions.CodeBlockStartActionsCount;
+                Counts[3] = analyzerActions.CompilationActionsCount;
+                Counts[4] = analyzerActions.CompilationEndActionsCount;
+                Counts[5] = analyzerActions.CompilationStartActionsCount;
+                Counts[6] = analyzerActions.SemanticModelActionsCount;
+                Counts[7] = analyzerActions.SymbolActionsCount;
+                Counts[8] = analyzerActions.SyntaxNodeActionsCount;
+                Counts[9] = analyzerActions.SyntaxTreeActionsCount;
             }
         }
     }

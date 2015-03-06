@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         cantSupportSemanticSpanAnalysis = true;
                     }
 
-                    if (analyzerActions.CompilationEndActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
+                    if (analyzerActions.CompilationEndActionsCount > 0 || analyzerActions.CompilationActionsCount > 0 || analyzerActions.CompilationStartActionsCount > 0)
                     {
                         category |= DiagnosticAnalyzerCategory.ProjectAnalysis;
                     }

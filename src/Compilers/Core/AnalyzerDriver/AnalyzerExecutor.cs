@@ -118,25 +118,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Executes the compilation end actions.
+        /// Executes compilation actions or compilation end actions.
         /// </summary>
-        /// <param name="actions"><see cref="AnalyzerActions"/> whose compilation end actions are to be executed.</param>
-        public void ExecuteCompilationEndActions(AnalyzerActions actions)
+        /// <param name="compilationActions">Compilation actions to be executed.</param>
+        public void ExecuteCompilationActions(ImmutableArray<CompilationAnalyzerAction> compilationActions)
         {
-            ExecuteCompilationEndActions(actions.CompilationEndActions);
-        }
-
-        /// <summary>
-        /// Executes the compilation end actions.
-        /// </summary>
-        /// <param name="compilationEndActions">Compilation end actions to be executed.</param>
-        public void ExecuteCompilationEndActions(ImmutableArray<CompilationEndAnalyzerAction> compilationEndActions)
-        {
-            foreach (var endAction in compilationEndActions)
+            foreach (var endAction in compilationActions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 ExecuteAndCatchIfThrows(endAction.Analyzer,
-                    () => endAction.Action(new CompilationEndAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                    () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, _cancellationToken)));
             }
         }
 
@@ -293,9 +284,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             var codeBlockStartActions = actions.GetCodeBlockStartActions<TLanguageKindEnum>();
+            var codeBlockActions = actions.CodeBlockActions;
             var codeBlockEndActions = actions.CodeBlockEndActions;
 
-            if (!codeBlockStartActions.Any() && !codeBlockEndActions.Any())
+            if (!codeBlockStartActions.Any() && !codeBlockActions.Any() && !codeBlockEndActions.Any())
             {
                 return;
             }
@@ -308,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (declaredSymbol != null && declInfo.ExecutableCodeBlocks.Any())
                 {
-                    ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+                    ExecuteCodeBlockActions(codeBlockStartActions, codeBlockActions, codeBlockEndActions,
                         declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind);
                 }
             }
@@ -316,7 +308,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
-            IEnumerable<CodeBlockEndAnalyzerAction> codeBlockEndActions,
+            IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
+            IEnumerable<CodeBlockAnalyzerAction> codeBlockEndActions,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
@@ -327,15 +320,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(declaredNode != null);
             Debug.Assert(declaredSymbol != null);
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
-            Debug.Assert(codeBlockStartActions.Any() || codeBlockEndActions.Any());
+            Debug.Assert(codeBlockStartActions.Any() || codeBlockEndActions.Any() || codeBlockActions.Any());
             Debug.Assert(executableCodeBlocks.Any());
 
-            // Compute the sets of code block end and stateful syntax node actions.
-            var endedActions = PooledHashSet<CodeBlockEndAnalyzerAction>.GetInstance();
+            // Compute the sets of code block end, code block, and stateful syntax node actions.
+            var blockEndActions = PooledHashSet<CodeBlockAnalyzerAction>.GetInstance();
+            var blockActions = PooledHashSet<CodeBlockAnalyzerAction>.GetInstance();
             var executableNodeActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
 
-            // Include the stateless code block actions.
-            endedActions.AddAll(codeBlockEndActions);
+            // Include the code block actions.
+            blockActions.AddAll(codeBlockActions);
+
+            // Include the initial code block end actions.
+            blockEndActions.AddAll(codeBlockEndActions);
 
             // Include the stateful actions.
             foreach (var da in codeBlockStartActions)
@@ -347,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(da.Analyzer,
                         codeBlockScope, declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _cancellationToken);
                     da.Action(blockStartContext);
-                    endedActions.AddAll(codeBlockScope.CodeBlockEndActions);
+                    blockEndActions.AddAll(codeBlockScope.CodeBlockEndActions);
                     executableNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
                 });
             }
@@ -361,15 +358,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ExecuteSyntaxNodeActions(nodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind);
             }
 
-            // Execute code block end actions.
-            foreach (var endedAction in endedActions)
+            executableNodeActions.Free();
+
+            ExecuteCodeBlockActions(blockActions, declaredNode, declaredSymbol, semanticModel);
+            ExecuteCodeBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel);           
+        }
+
+        private void ExecuteCodeBlockActions(PooledHashSet<CodeBlockAnalyzerAction> blockActions, SyntaxNode declaredNode, ISymbol declaredSymbol, SemanticModel semanticModel)
+        {
+            foreach (var blockAction in blockActions)
             {
-                ExecuteAndCatchIfThrows(endedAction.Analyzer,
-                    () => endedAction.Action(new CodeBlockEndAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                ExecuteAndCatchIfThrows(blockAction.Analyzer,
+                    () => blockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
             }
 
-            endedActions.Free();
-            executableNodeActions.Free();
+            blockActions.Free();
         }
 
         internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
