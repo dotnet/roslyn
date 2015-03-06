@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             Dim members As ImmutableArray(Of NamespaceOrTypeSymbol) = Nothing
             If Me.GetNameToMembersMap().TryGetValue(name, members) Then
-                Return ImmutableArray.Create(Of Symbol, NamespaceOrTypeSymbol)(members)
+                Return ImmutableArray(Of Symbol).CastUp(members)
             Else
                 Return ImmutableArray(Of Symbol).Empty
             End If

@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<IAssemblySymbol, AssemblySymbol>(ReferencedAssemblySymbols);
+                return ImmutableArray<IAssemblySymbol>.CastUp(ReferencedAssemblySymbols);
             }
         }
 

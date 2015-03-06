@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TBase> Cast<TDerived, TBase>(this ImmutableArray<TDerived> items)
             where TDerived : class, TBase
         {
-            return ImmutableArray.Create<TBase, TDerived>(items);
+            return ImmutableArray<TBase>.CastUp(items);
         }
 
         /// <summary>

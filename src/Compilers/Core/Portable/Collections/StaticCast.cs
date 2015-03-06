@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static ImmutableArray<T> From<TDerived>(ImmutableArray<TDerived> from) where TDerived : class, T
         {
-            return ImmutableArray.Create<T, TDerived>(from);
+            return ImmutableArray<T>.CastUp(from);
         }
     }
 }
