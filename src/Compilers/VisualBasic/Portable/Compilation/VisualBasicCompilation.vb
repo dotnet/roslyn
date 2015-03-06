@@ -2109,9 +2109,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Emit"
 
-        Friend Overrides ReadOnly Property IsDelaySign As Boolean
+        Friend Overrides ReadOnly Property IsDelaySigned As Boolean
             Get
-                Return SourceAssembly.IsDelaySign
+                Return SourceAssembly.IsDelaySigned
             End Get
         End Property
 
@@ -2454,7 +2454,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics.Add(ERRID.ERR_ErrorCreatingWin32ResourceFile, NoLocation.Singleton, New LocalizableErrorArgument(ERRID.IDS_UnrecognizedFileFormat))
             End Select
         End Sub
-        Protected Overrides Function HasCodeToEmit() As Boolean
+
+        Friend Overrides Function HasCodeToEmit() As Boolean
             ' TODO (tomat):
             For Each syntaxTree In SyntaxTrees
                 Dim unit = syntaxTree.GetCompilationUnitRoot()

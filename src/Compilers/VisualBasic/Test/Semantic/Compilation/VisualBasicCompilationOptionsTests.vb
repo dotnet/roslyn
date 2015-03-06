@@ -65,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
             TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
             TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
+            TestProperty(Function(old, value) old.WithCryptoPublicKey(value), Function(opt) opt.CryptoPublicKey, ImmutableArray.CreateRange(Of Byte)({1, 2, 3, 4}))
             TestProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
             TestProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
             TestProperty(Function(old, value) old.WithGeneralDiagnosticOption(value), Function(opt) opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress)

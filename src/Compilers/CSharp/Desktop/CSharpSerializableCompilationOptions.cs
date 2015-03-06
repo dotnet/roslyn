@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 usings: (string[])info.GetValue(UsingsString, typeof(string[])),
                 cryptoKeyContainer: info.GetString(CryptoKeyContainerString),
                 cryptoKeyFile: info.GetString(CryptoKeyFileString),
+                cryptoPublicKey: ((byte[])info.GetValue(CryptoPublicKeyString, typeof(byte[]))).AsImmutableOrNull(),
                 delaySign: (bool?)info.GetValue(DelaySignString, typeof(bool?)),
                 optimizationLevel: (OptimizationLevel)info.GetInt32(OptimizeString),
                 checkOverflow: info.GetBoolean(CheckOverflowString),
