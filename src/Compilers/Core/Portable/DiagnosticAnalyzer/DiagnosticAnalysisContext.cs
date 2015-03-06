@@ -499,8 +499,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     /// <summary>
-    /// Context for a code block end action.
-    /// A code block end action can use a <see cref="CodeBlockAnalysisContext"/> to report <see cref="Diagnostic"/>s about a code block.
+    /// Context for a code block action or code block end action.
+    /// A code block action or code block end action can use a <see cref="CodeBlockAnalysisContext"/> to report <see cref="Diagnostic"/>s about a code block.
     /// </summary>
     public struct CodeBlockAnalysisContext
     {
