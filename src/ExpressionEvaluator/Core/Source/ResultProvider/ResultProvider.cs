@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ResultsOnly) != 0)
             {
                 CreateEvaluationResultAndContinue(
-                    ResultsViewExpansion.CreateResultsOnlyRow(inspectionContext, name, value, null, this.Formatter), 
+                    ResultsViewExpansion.CreateResultsOnlyRow(inspectionContext, name, declaredType, value, this.Formatter), 
                     workList,
                     inspectionContext,
                     value.StackFrame,

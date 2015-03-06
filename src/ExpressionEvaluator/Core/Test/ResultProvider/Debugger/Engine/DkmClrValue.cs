@@ -49,7 +49,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly DkmEvaluationResultFlags EvalFlags;
         public readonly DkmClrValueFlags ValueFlags;
         public readonly DkmClrType Type;
-        public DkmClrType DeclaredType { get { throw new NotImplementedException(); } }
         public readonly DkmStackWalkFrame StackFrame;
         public readonly DkmEvaluationResultCategory Category;
         public readonly DkmEvaluationResultAccessType Access;
