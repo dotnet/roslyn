@@ -11,9 +11,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
-    <ExportLanguageService(GetType(ImportAdder), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(ImportAdderService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicImportAdder
-        Inherits ImportAdder.ImportAdderBase
+        Inherits ImportAdderService
 
         Protected Overrides Sub GetExistingImportedNamespaces(document As Document, model As SemanticModel, namespaces As HashSet(Of INamespaceSymbol))
             namespaces.AddRange(model.Compilation.MemberImports.OfType(Of INamespaceSymbol))

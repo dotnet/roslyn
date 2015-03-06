@@ -845,7 +845,6 @@ abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TiedToAncestor(
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TreesEqual(TNode oldNode, TNode newNode)
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TryGetParent(TNode node, out TNode parent)
 abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.ValuesEqual(TNode oldNode, TNode newNode)
-abstract Microsoft.CodeAnalysis.Editing.ImportAdder.AddNamespaceImportsAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet options, System.Threading.CancellationToken cancellationToken)
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddBaseType(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode baseType)
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right)
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddInterfaceType(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.SyntaxNode interfaceType)

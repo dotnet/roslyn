@@ -14,8 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editing
 {
-    [ExportLanguageService(typeof(ImportAdder), LanguageNames.CSharp), Shared]
-    internal class CSharpImportAdder : ImportAdder.ImportAdderBase
+    [ExportLanguageService(typeof(ImportAdderService), LanguageNames.CSharp), Shared]
+    internal class CSharpImportAdder : ImportAdderService
     {
         public CSharpImportAdder()
         {
