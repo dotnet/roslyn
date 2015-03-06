@@ -10101,29 +10101,6 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void CS0568ERR_StructsCantContainDefaultConstructor01()
-        {
-            var text = @"namespace NS
-{
-    public struct S1
-    {
-        public S1() {}
-
-        struct S2<T>
-        {
-            S2() { }
-        }
-    }
-}
-";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, Line = 9, Column = 13 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
-        }
-
-        [Fact]
         public void CS0569ERR_CantOverrideBogusMethod()
         {
             var source1 =
@@ -10207,7 +10184,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
         }
 
         [Fact]
-        public void InstanceCtorInsTructPre60()
+        public void CS0568ERR_StructsCantContainDefaultConstructor01()
         {
             var text = @"namespace x
 {
@@ -10224,12 +10201,12 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
 ";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
-    // (5,16): error CS8026: Feature 'struct instance parameterless constructors' is not available in C# 5.  Please use language version 6 or greater.
+    // (5,16): error CS0568: Structs cannot contain explicit parameterless constructors
     //         public S1() {}
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S1").WithArguments("struct instance parameterless constructors", "6").WithLocation(5, 16),
-    // (9,13): error CS8075: Parameterless instance constructors in structs must be public
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S1").WithLocation(5, 16),
+    // (9,13): error CS0568: Structs cannot contain explicit parameterless constructors
     //             S2() { }
-    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "S2").WithLocation(9, 13)
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(9, 13)
    );
         }
 
