@@ -95,6 +95,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
+        Friend Function TryPeek(at As Integer, ByRef c As Char) As Boolean
+            If Not CanGet(at) Then Return False
+            c = Peek(at)
+            Return True
+        End Function
+
         ' PERF CRITICAL
         Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGet(skip))
