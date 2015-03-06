@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -128,50 +127,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Sub CreateSourceAssemblyForCompilation(compilation As VisualBasicCompilation)
-                Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_CreateSourceAssembly, message:=compilation.AssemblyName)
-                    ' We are reading the Reference Manager state outside of a lock by accessing 
-                    ' IsBound and HasCircularReference properties.
-                    ' Once isBound flag is flipped the state of the manager is available and doesn't change.
-                    ' 
-                    ' If two threads are building SourceAssemblySymbol and the first just updated 
-                    ' set isBound flag to 1 but not yet set lazySourceAssemblySymbol,
-                    ' the second thread may end up reusing the Reference Manager data the first thread calculated. 
-                    ' That's ok since 
-                    ' 1) the second thread would produce the same data,
-                    ' 2) all results calculated by the second thread will be thrown away since the first thread 
-                    '    already acquired SymbolCacheAndReferenceManagerStateGuard that is needed to publish the data.
+                ' We are reading the Reference Manager state outside of a lock by accessing 
+                ' IsBound and HasCircularReference properties.
+                ' Once isBound flag is flipped the state of the manager is available and doesn't change.
+                ' 
+                ' If two threads are building SourceAssemblySymbol and the first just updated 
+                ' set isBound flag to 1 but not yet set lazySourceAssemblySymbol,
+                ' the second thread may end up reusing the Reference Manager data the first thread calculated. 
+                ' That's ok since 
+                ' 1) the second thread would produce the same data,
+                ' 2) all results calculated by the second thread will be thrown away since the first thread 
+                '    already acquired SymbolCacheAndReferenceManagerStateGuard that is needed to publish the data.
 
-                    ' Given compilation is the first compilation that shares this manager and its symbols are requested.
-                    ' Perform full reference resolution and binding.
-                    If Not IsBound AndAlso CreateSourceAssemblyFullBind(compilation) Then
+                ' Given compilation is the first compilation that shares this manager and its symbols are requested.
+                ' Perform full reference resolution and binding.
+                If Not IsBound AndAlso CreateSourceAssemblyFullBind(compilation) Then
 
-                        ' we have successfully bound the references for the compilation
+                    ' we have successfully bound the references for the compilation
 
-                    ElseIf Not HasCircularReference Then
-                        ' Another compilation that shares the manager with the given compilation
-                        ' already bound its references and produced tables that we can use to construct 
-                        ' source assembly symbol faster.
+                ElseIf Not HasCircularReference Then
+                    ' Another compilation that shares the manager with the given compilation
+                    ' already bound its references and produced tables that we can use to construct 
+                    ' source assembly symbol faster.
 
-                        CreateAndSetSourceAssemblyReuseData(compilation)
-                    Else
-                        ' We encountered a circular reference while binding the previous compilation.
-                        ' This compilation can't share bound references with other compilations. Create a new manager.
+                    CreateAndSetSourceAssemblyReuseData(compilation)
+                Else
+                    ' We encountered a circular reference while binding the previous compilation.
+                    ' This compilation can't share bound references with other compilations. Create a new manager.
 
-                        ' NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
+                    ' NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
 
-                        Dim newManager = New ReferenceManager(Me.SimpleAssemblyName, Me.IdentityComparer, Me.ObservedMetadata)
-                        Dim successful = newManager.CreateSourceAssemblyFullBind(compilation)
+                    Dim newManager = New ReferenceManager(Me.SimpleAssemblyName, Me.IdentityComparer, Me.ObservedMetadata)
+                    Dim successful = newManager.CreateSourceAssemblyFullBind(compilation)
 
-                        ' The new manager isn't shared with any other compilation so there is no other 
-                        ' thread but the current one could have initialized it.
-                        Debug.Assert(successful)
+                    ' The new manager isn't shared with any other compilation so there is no other 
+                    ' thread but the current one could have initialized it.
+                    Debug.Assert(successful)
 
-                        newManager.AssertBound()
-                    End If
+                    newManager.AssertBound()
+                End If
 
-                    AssertBound()
-                    Debug.Assert(compilation.m_lazyAssemblySymbol IsNot Nothing)
-                End Using
+                AssertBound()
+                Debug.Assert(compilation.m_lazyAssemblySymbol IsNot Nothing)
             End Sub
 
             ''' <summary>

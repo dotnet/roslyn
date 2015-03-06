@@ -3,10 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
-Imports System.Text
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
