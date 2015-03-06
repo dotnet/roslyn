@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
 
         Private Function ScanInterpolatedStringPunctuation() As SyntaxToken
-            If Not CanGet() Then
-                Return MakeEndOfInterpolatedStringToken()
-            End If
+            If Not CanGet() Then Return MakeEndOfInterpolatedStringToken()
 
             Dim kind As SyntaxKind
 
@@ -20,9 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim offset = leadingTriviaLength
             Dim length As Integer
 
-            If Not CanGet(offset) Then
-                Return MakeEndOfInterpolatedStringToken()
-            End If
+            If Not CanGet(offset) Then Return MakeEndOfInterpolatedStringToken()
 
             Dim c = Peek(offset)
 
@@ -118,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If IsLeftCurlyBracket(c) Then
                 Return Not CanGet(offset + 1) OrElse Not IsLeftCurlyBracket(Peek(offset + 1))
-
             ElseIf IsRightCurlyBracket(c) Then
                 Return Not CanGet(offset + 1) OrElse Not IsRightCurlyBracket(Peek(offset + 1))
 
