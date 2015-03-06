@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CSharpCompilerServer : CSharpCompiler
     {
-        internal CSharpCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory, string tempPath)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory, tempPath)
+        internal CSharpCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory)
+            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory)
         {
         }
 
@@ -22,13 +22,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string[] args,
             string baseDirectory,
             string libDirectory,
-            string tempPath,
             TextWriter output,
             CancellationToken cancellationToken,
             out bool utf8output)
         {
             var responseFile = Path.Combine(responseFileDirectory, CSharpCompiler.ResponseFileName);
-            var compiler = new CSharpCompilerServer(responseFile, args, baseDirectory, libDirectory, tempPath);
+            var compiler = new CSharpCompilerServer(responseFile, args, baseDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }

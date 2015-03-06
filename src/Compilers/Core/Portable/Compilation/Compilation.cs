@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="syntaxTree">The specificed syntax tree.</param>
         /// <param name="ignoreAccessibility">
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
-		/// </param>
+        /// </param>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
             return CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
@@ -1347,8 +1347,34 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Emit(
-                peStream,
-                pdbStream,
+                new SimpleEmitStreamProvider(peStream, pdbStream),
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Emit the IL for the compiled source code into the specified stream.
+        /// </summary>
+        /// <param name="emitStreamProvider">Provides stream the compiler will write to.</param>
+        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
+        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
+        /// <param name="options">Emit options.</param>
+        /// <param name="cancellationToken">To cancel the emit process.</param>
+        internal EmitResult Emit(
+            EmitStreamProvider emitStreamProvider,
+            Stream xmlDocumentationStream = null,
+            Stream win32Resources = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            EmitOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Emit(
+                emitStreamProvider,
                 xmlDocumentationStream,
                 win32Resources,
                 manifestResources,
@@ -1455,7 +1481,31 @@ namespace Microsoft.CodeAnalysis
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(peStream != null);
+            return Emit(
+                new SimpleEmitStreamProvider(peStream, pdbStream),
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                testData,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
+        /// The map is used for storing a list of methods and their associated IL.
+        /// </summary>
+        /// <returns>True if emit succeeded.</returns>
+        internal EmitResult Emit(
+            EmitStreamProvider emitStreamProvider,
+            Stream xmlDocumentationStream,
+            Stream win32Resources,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions options,
+            CompilationTestData testData,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(emitStreamProvider != null);
 
             using (Logger.LogBlock(EmitFunctionId, message: this.AssemblyName, cancellationToken: cancellationToken))
             {
@@ -1503,7 +1553,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt,
                     win32Resources,
                     xmlDocumentationStream,
-                    generateDebugInfo: pdbStream != null,
+                    generateDebugInfo: emitStreamProvider.HasPdbStream,
                     diagnostics: diagnostics,
                     filterOpt: null,
                     cancellationToken: cancellationToken))
@@ -1513,9 +1563,8 @@ namespace Microsoft.CodeAnalysis
 
                 bool success = SerializeToPeStream(
                     moduleBeingBuilt,
-                    peStream,
+                    emitStreamProvider,
                     options.PdbFilePath,
-                    pdbStream,
                     (testData != null) ? testData.SymWriterFactory : null,
                     diagnostics,
                     metadataOnly: options.EmitMetadataOnly,
@@ -1528,6 +1577,47 @@ namespace Microsoft.CodeAnalysis
         private EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
         {
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+        }
+
+        internal bool SerializeToPeStream(
+            CommonPEModuleBuilder moduleBeingBuilt,
+            EmitStreamProvider emitStreamProvider,
+            string pdbFileName,
+            Func<object> testSymWriterFactory,
+            DiagnosticBag diagnostics,
+            bool metadataOnly,
+            CancellationToken cancellationToken)
+        {
+            Stream peStream = emitStreamProvider.GetPeStream(diagnostics);
+            if (peStream == null)
+            {
+                Debug.Assert(diagnostics.HasAnyErrors());
+                return false;
+            }
+            Debug.Assert(peStream.CanWrite);
+
+            Stream pdbStream = null;
+            if (emitStreamProvider.HasPdbStream)
+            {
+                pdbStream = emitStreamProvider.GetPdbStream(diagnostics);
+                if (pdbStream == null)
+                {
+                    Debug.Assert(diagnostics.HasAnyErrors());
+                    return false;
+                }
+
+                Debug.Assert(pdbStream.CanWrite);
+            }
+
+            return SerializeToPeStream(
+                moduleBeingBuilt,
+                peStream,
+                pdbFileName,
+                pdbStream,
+                testSymWriterFactory,
+                diagnostics,
+                metadataOnly,
+                cancellationToken);
         }
 
         internal bool SerializeToPeStream(
