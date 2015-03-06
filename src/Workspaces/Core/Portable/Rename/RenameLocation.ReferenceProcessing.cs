@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
-                // If we are renameing a backing field for a property, cascade to the property
+                // If we are renaming a backing field for a property, cascade to the property
                 if (symbol.Kind == SymbolKind.Field)
                 {
                     var fieldSymbol = (IFieldSymbol)symbol;

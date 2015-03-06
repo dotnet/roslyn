@@ -2761,6 +2761,31 @@ End Class
             <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(905, "https://github.com/dotnet/roslyn/issues/905")>
+            Public Sub RenamingCompilerGeneratedPropertyBackingField_IntroduceConflict()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document>
+Class C1
+    Public ReadOnly Property [|X$$|] As String
+
+    Sub M()
+        {|Conflict:_X|} = "test"
+    End Sub
+
+    Dim _Y As String
+End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Y")
+
+                    result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(905, "https://github.com/dotnet/roslyn/issues/905")>
             Public Sub RenamingCompilerGeneratedPropertyBackingField_InvokableFromBackingFieldReference()
                 Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
