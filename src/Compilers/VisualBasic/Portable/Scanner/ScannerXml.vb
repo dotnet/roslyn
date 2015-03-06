@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Exit Do
                 End If
 
-                If Not CanGetCharAtOffset(len) Then
+                If Not CanGet(len) Then
                     Exit Do
                 End If
                 c = Peek(len)
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
-            While CanGetChar()
+            While CanGet()
                 Dim c As Char = Peek()
 
                 Select Case (c)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         leadingTrivia = ScanXmlTrivia(c)
 
                     Case "/"c
-                        If CanGetCharAtOffset(1) AndAlso Peek(1) = ">" Then
+                        If CanGet(1) AndAlso Peek(1) = ">" Then
                             Return XmlMakeEndEmptyElementToken(leadingTrivia)
                         End If
                         Return XmlMakeDivToken(leadingTrivia)
@@ -113,18 +113,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeDoubleQuoteToken(leadingTrivia, c, isOpening:=True)
 
                     Case "<"c
-                        If CanGetCharAtOffset(1) Then
+                        If CanGet(1) Then
                             Dim ch As Char = Peek(1)
                             Select Case ch
                                 Case "!"c
-                                    If CanGetCharAtOffset(2) Then
+                                    If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If CanGetCharAtOffset(3) AndAlso Peek(3) = "-"c Then
+                                                If CanGet(3) AndAlso Peek(3) = "-"c Then
                                                     Return XmlMakeBeginCommentToken(leadingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If CanGetCharAtOffset(8) AndAlso
+                                                If CanGet(8) AndAlso
                                                     Peek(3) = "C"c AndAlso
                                                     Peek(4) = "D"c AndAlso
                                                     Peek(5) = "A"c AndAlso
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     Return XmlMakeBeginCDataToken(leadingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If CanGetCharAtOffset(8) AndAlso
+                                                If CanGet(8) AndAlso
                                                     Peek(3) = "O"c AndAlso
                                                     Peek(4) = "C"c AndAlso
                                                     Peek(5) = "T"c AndAlso
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     End If
                                     Return XmlLessThanExclamationToken(state, leadingTrivia)
                                 Case "%"c
-                                    If CanGetCharAtOffset(2) AndAlso
+                                    If CanGet(2) AndAlso
                                         Peek(2) = "=" Then
 
                                         Return XmlMakeBeginEmbeddedToken(leadingTrivia)
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Case "?"c
 
-                        If CanGetCharAtOffset(1) AndAlso Peek(1) = ">"c Then
+                        If CanGet(1) AndAlso Peek(1) = ">"c Then
                             ' // Create token for the '?>' termination sequence
                             Return XmlMakeEndProcessingInstructionToken(leadingTrivia)
                         End If
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '// NL WS* '
         '// Example ' This is a comment
         Private Function ScanXmlForPossibleStatement(state As ScannerState) As Boolean
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return False
             End If
 
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim scratch = GetScratch()
 
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
                 Select Case (c)
@@ -361,18 +361,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         Debug.Assert(Here = 0)
-                        If CanGetCharAtOffset(1) Then
+                        If CanGet(1) Then
                             Dim ch As Char = Peek(1)
                             Select Case ch
                                 Case "!"c
-                                    If CanGetCharAtOffset(2) Then
+                                    If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If CanGetCharAtOffset(3) AndAlso Peek(3) = "-"c Then
+                                                If CanGet(3) AndAlso Peek(3) = "-"c Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If CanGetCharAtOffset(8) AndAlso _
+                                                If CanGet(8) AndAlso _
                                                     Peek(3) = "C"c AndAlso _
                                                     Peek(4) = "D"c AndAlso _
                                                     Peek(5) = "A"c AndAlso _
@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, _scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If CanGetCharAtOffset(8) AndAlso
+                                                If CanGet(8) AndAlso
                                                     Peek(3) = "O"c AndAlso
                                                     Peek(4) = "C"c AndAlso
                                                     Peek(5) = "T"c AndAlso
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         End Select
                                     End If
                                 Case "%"c
-                                    If CanGetCharAtOffset(2) AndAlso
+                                    If CanGet(2) AndAlso
                                         Peek(2) = "=" Then
 
                                         Return XmlMakeBeginEmbeddedToken(precedingTrivia)
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "]"c
-                        If CanGetCharAtOffset(Here + 2) AndAlso _
+                        If CanGet(Here + 2) AndAlso _
                            Peek(Here + 1) = "]"c AndAlso _
                            Peek(Here + 2) = ">"c Then
 
@@ -528,7 +528,7 @@ ScanChars:
             End If
 
             Dim Here = 0
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
                 Select Case (c)
 
@@ -536,7 +536,7 @@ ScanChars:
                         Return XmlMakeCommentToken(precedingTrivia, Here + LengthOfLineBreak(c, Here))
 
                     Case "-"c
-                        If CanGetCharAtOffset(Here + 1) AndAlso _
+                        If CanGet(Here + 1) AndAlso _
                            Peek(Here + 1) = "-"c Then
 
                             ' // --> terminates an Xml comment but otherwise -- is an illegal character sequence.
@@ -548,7 +548,7 @@ ScanChars:
                                 Return XmlMakeCommentToken(precedingTrivia, Here)
                             End If
 
-                            If CanGetCharAtOffset(Here + 2) Then
+                            If CanGet(Here + 2) Then
 
                                 c = Peek(Here + 2)
                                 Here += 2
@@ -621,7 +621,7 @@ ScanChars:
             Dim scratch = GetScratch()
             Dim Here = 0
 
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
                 Select Case (c)
 
@@ -631,7 +631,7 @@ ScanChars:
                         Return XmlMakeCDataToken(precedingTrivia, Here, scratch)
 
                     Case "]"c
-                        If CanGetCharAtOffset(Here + 2) AndAlso _
+                        If CanGet(Here + 2) AndAlso _
                            Peek(Here + 1) = "]"c AndAlso _
                            Peek(Here + 2) = ">"c Then
 
@@ -687,7 +687,7 @@ ScanChars:
             Dim precedingTrivia = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
             Dim result As SyntaxToken
 
-            If state = ScannerState.StartProcessingInstruction AndAlso CanGetChar() Then
+            If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                 Dim c = Peek()
@@ -699,7 +699,7 @@ ScanChars:
             End If
 
             Dim Here = 0
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
                 Select Case (c)
 
@@ -708,7 +708,7 @@ ScanChars:
                         GoTo CleanUp
 
                     Case "?"c
-                        If CanGetCharAtOffset(Here + 1) AndAlso _
+                        If CanGet(Here + 1) AndAlso _
                            Peek(Here + 1) = ">"c Then
 
                             '// If valid characters found then return them.
@@ -760,7 +760,7 @@ CleanUp:
             ' // Misc    ::=    Comment | PI | S
 
             Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
-            While CanGetChar()
+            While CanGet()
                 Dim c As Char = Peek()
 
                 Select Case (c)
@@ -772,16 +772,16 @@ CleanUp:
                         precedingTrivia = ScanXmlTrivia(c)
 
                     Case "<"c
-                        If CanGetCharAtOffset(1) Then
+                        If CanGet(1) Then
                             Dim ch As Char = Peek(1)
                             Select Case ch
                                 Case "!"c
-                                    If CanGetCharAtOffset(3) AndAlso
+                                    If CanGet(3) AndAlso
                                         Peek(2) = "-"c AndAlso
                                         Peek(3) = "-"c Then
 
                                         Return XmlMakeBeginCommentToken(precedingTrivia, _scanNoTriviaFunc)
-                                    ElseIf CanGetCharAtOffset(8) AndAlso
+                                    ElseIf CanGet(8) AndAlso
                                             Peek(2) = "D"c AndAlso
                                             Peek(3) = "O"c AndAlso
                                             Peek(4) = "C"c AndAlso
@@ -792,7 +792,7 @@ CleanUp:
                                         Return XmlMakeBeginDTDToken(precedingTrivia)
                                     End If
                                 Case "%"c
-                                    If CanGetCharAtOffset(2) AndAlso
+                                    If CanGet(2) AndAlso
                                         Peek(2) = "=" Then
 
                                         Return XmlMakeBeginEmbeddedToken(precedingTrivia)
@@ -838,7 +838,7 @@ CleanUp:
         End Function
 
         Friend Function ScanXmlStringUnQuoted() As SyntaxToken
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return MakeEofToken()
             End If
 
@@ -848,7 +848,7 @@ CleanUp:
             Dim Here = 0
             Dim scratch = GetScratch()
 
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
                 Select Case (c)
@@ -876,7 +876,7 @@ CleanUp:
                         End If
 
                     Case "/"c
-                        If CanGetCharAtOffset(Here + 1) AndAlso Peek(Here + 1) = ">"c Then
+                        If CanGet(Here + 1) AndAlso Peek(Here + 1) = ">"c Then
                             If Here <> 0 Then
                                 Return XmlMakeAttributeDataToken(Nothing, Here, scratch)
                             Else
@@ -941,7 +941,7 @@ ScanChars:
             Dim Here = 0
             Dim scratch = GetScratch()
 
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
                 If c = terminatingChar Or c = altTerminatingChar Then
                     If Here > 0 Then
@@ -975,7 +975,7 @@ ScanChars:
                             GoTo CleanUp
                         Else
                             ' report unexpected <%= in a special way.
-                            If CanGetCharAtOffset(2) AndAlso
+                            If CanGet(2) AndAlso
                                 Peek(1) = "%"c AndAlso
                                 Peek(2) = "=" Then
 
@@ -1044,10 +1044,10 @@ CleanUp:
         ''' </summary>
         Private Function ScanSurrogatePair(c1 As Char, Here As Integer) As XmlCharResult
             Debug.Assert(Here >= 0)
-            Debug.Assert(CanGetCharAtOffset(Here))
+            Debug.Assert(CanGet(Here))
             Debug.Assert(Peek(Here) = c1)
 
-            If IsHighSurrogate(c1) AndAlso CanGetCharAtOffset(Here + 1) Then
+            If IsHighSurrogate(c1) AndAlso CanGet(Here + 1) Then
                 Dim c2 = Peek(Here + 1)
 
                 If IsLowSurrogate(c2) Then
@@ -1088,7 +1088,7 @@ CleanUp:
 
         Private Function ScanXmlChar(Here As Integer) As XmlCharResult
             Debug.Assert(Here >= 0)
-            Debug.Assert(CanGetCharAtOffset(Here))
+            Debug.Assert(CanGet(Here))
 
             Dim c = Peek(Here)
 
@@ -1121,7 +1121,7 @@ CleanUp:
 
             'TODO - Fix ScanXmlNCName to conform to XML spec instead of old loose scanning.
 
-            While CanGetCharAtOffset(Here)
+            While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
                 Select Case (c)
@@ -1198,11 +1198,11 @@ CreateNCNameToken:
         End Function
 
         Private Function ScanXmlReference(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
-            Debug.Assert(CanGetChar)
+            Debug.Assert(CanGet)
             Debug.Assert(Peek() = "&"c)
 
             ' skip 1 char for "&"
-            If CanGetCharAtOffset(1) Then
+            If CanGet(1) Then
                 Dim c As Char = Peek(1)
 
                 Select Case (c)
@@ -1218,7 +1218,7 @@ CreateNCNameToken:
                                 value = Intern({result.Char1, result.Char2})
                             End If
 
-                            If CanGetCharAtOffset(Here) AndAlso Peek(Here) = ";"c Then
+                            If CanGet(Here) AndAlso Peek(Here) = ";"c Then
                                 Return XmlMakeEntityLiteralToken(precedingTrivia, Here + 1, value)
                             Else
                                 Dim noSemicolon = XmlMakeEntityLiteralToken(precedingTrivia, Here, value)
@@ -1231,7 +1231,7 @@ CreateNCNameToken:
                         ' // &amp;
                         ' // &apos;
 
-                        If CanGetCharAtOffset(4) AndAlso
+                        If CanGet(4) AndAlso
                            Peek(2) = "m"c AndAlso
                            Peek(3) = "p"c Then
 
@@ -1243,7 +1243,7 @@ CreateNCNameToken:
                                 Return DirectCast(noSemicolon.SetDiagnostics({noSemicolonError}), XmlTextTokenSyntax)
                             End If
 
-                        ElseIf CanGetCharAtOffset(5) AndAlso
+                        ElseIf CanGet(5) AndAlso
                                Peek(2) = "p"c AndAlso
                                Peek(3) = "o"c AndAlso
                                Peek(4) = "s"c Then
@@ -1260,7 +1260,7 @@ CreateNCNameToken:
                     Case "l"c
                         ' // &lt;
 
-                        If CanGetCharAtOffset(3) AndAlso
+                        If CanGet(3) AndAlso
                            Peek(2) = "t"c Then
 
                             If Peek(3) = ";"c Then
@@ -1275,7 +1275,7 @@ CreateNCNameToken:
                     Case "g"c
                         ' // &gt;
 
-                        If CanGetCharAtOffset(3) AndAlso
+                        If CanGet(3) AndAlso
                            Peek(2) = "t"c Then
 
                             If Peek(3) = ";"c Then
@@ -1290,7 +1290,7 @@ CreateNCNameToken:
                     Case "q"c
                         ' // &quot;
 
-                        If CanGetCharAtOffset(5) AndAlso
+                        If CanGet(5) AndAlso
                            Peek(2) = "u"c AndAlso
                            Peek(3) = "o"c AndAlso
                            Peek(4) = "t"c Then
@@ -1316,7 +1316,7 @@ CreateNCNameToken:
         Private Function ScanXmlCharRef(ByRef index As Integer) As XmlCharResult
             Debug.Assert(index >= 0)
 
-            If Not CanGetCharAtOffset(index) Then
+            If Not CanGet(index) Then
                 Return Nothing
             End If
 
@@ -1328,7 +1328,7 @@ CreateNCNameToken:
             If ch = "x"c Then
                 Here += 1
 
-                While CanGetCharAtOffset(Here)
+                While CanGet(Here)
                     ch = Peek(Here)
                     If XmlCharType.IsHexDigit(ch) Then
                         charRefSb.Append(ch)
@@ -1345,7 +1345,7 @@ CreateNCNameToken:
                     Return result
                 End If
             Else
-                While CanGetCharAtOffset(Here)
+                While CanGet(Here)
                     ch = Peek(Here)
                     If XmlCharType.IsDigit(ch) Then
                         charRefSb.Append(ch)

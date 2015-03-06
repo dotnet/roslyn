@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' PERF CRITICAL
         Private Function Peek(skip As Integer) As Char
-            Debug.Assert(CanGetCharAtOffset(skip))
+            Debug.Assert(CanGet(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 
             Dim position = _lineBufferOffset
