@@ -5,7 +5,7 @@
 .assembly extern System.ObjectModel, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 .assembly extern System.Runtime.WindowsRuntime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 .assembly extern System.Runtime.WindowsRuntime.UI.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-.assembly extern System.Numerics.Vectors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+.assembly extern System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 .class private auto ansi <Module>
 {
 }
