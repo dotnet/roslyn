@@ -2333,7 +2333,7 @@ class C<T>
         }
 
         [WorkItem(1115030)]
-        [Fact(Skip = "1115030")]
+        [Fact]
         public void CatchInAsyncStateMachine()
         {
             var source =
@@ -2385,6 +2385,69 @@ class C
   .maxstack  1
   .locals init (int V_0,
                 System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""System.Exception C.<M>d__1.<e>5__2""
+  IL_0006:  ret
+}");
+            locals.Free();
+        }
+
+        [WorkItem(1115030)]
+        [Fact]
+        public void CatchInIteratorStateMachine()
+        {
+            var source =
+@"using System;
+using System.Collections;
+class C
+{
+    static object F()
+    {
+        throw new ArgumentException();
+    }
+    static IEnumerable M()
+    {
+        object o;
+        try
+        {
+            o = F();
+        }
+        catch (Exception e)
+        {
+#line 999
+            o = e;
+        }
+        yield return o;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.<M>d__1.MoveNext",
+                atLineNumber: 999);
+            var testData = new CompilationTestData();
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                bool V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object C.<M>d__1.<o>5__1""
+  IL_0006:  ret
+}");
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "e", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                bool V_1,
+                System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""System.Exception C.<M>d__1.<e>5__2""
   IL_0006:  ret
