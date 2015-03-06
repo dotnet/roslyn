@@ -1,9 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.Serialization
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -523,7 +521,7 @@ End Namespace
         Private Class CodeBlockAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CodeBlockDiagnostic")
+            Private Shared Descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
