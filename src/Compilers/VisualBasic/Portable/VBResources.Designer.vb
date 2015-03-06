@@ -7693,7 +7693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         '''<summary>
-        '''  Looks up a localized string similar to The feature &apos;Parameterless Instance Constructors in Structures&apos; requires language version 14 or above..
+        '''  Looks up a localized string similar to Structures cannot declare a non-shared &apos;Sub New&apos; with no parameters..
         '''</summary>
         Friend ReadOnly Property ERR_NewInStruct() As String
             Get
@@ -9925,15 +9925,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_StructLayoutAttributeNotAllowed() As String
             Get
                 Return ResourceManager.GetString("ERR_StructLayoutAttributeNotAllowed", resourceCulture)
-            End Get
-        End Property
-
-        '''<summary>
-        '''  Looks up a localized string similar to Parameterless instance constructors in structures must be public..
-        '''</summary>
-        Friend ReadOnly Property ERR_StructParameterlessInstanceCtorMustBePublic() As String
-            Get
-                Return ResourceManager.GetString("ERR_StructParameterlessInstanceCtorMustBePublic", resourceCulture)
             End Get
         End Property
 

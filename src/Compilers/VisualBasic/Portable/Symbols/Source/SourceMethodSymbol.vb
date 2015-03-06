@@ -399,15 +399,8 @@ lReportErrorOnTwoTokens:
 
             If (flags And SourceMemberFlags.Shared) = 0 Then
                 If container.TypeKind = TypeKind.Structure AndAlso methodSym.ParameterCount = 0 Then
-                    If binder.Compilation.LanguageVersion < LanguageVersion.VisualBasic14 Then
-                        ' Instance constructor must have parameters.
-                        Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
-                    Else
-                        If methodSym.DeclaredAccessibility <> Accessibility.Public Then
-                            ' Instance constructor must be public.
-                            Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_StructParameterlessInstanceCtorMustBePublic)
-                        End If
-                    End If
+                    ' Instance constructor must have parameters.
+                    Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
                 End If
             End If
 
