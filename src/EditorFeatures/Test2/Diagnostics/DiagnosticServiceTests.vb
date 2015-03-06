@@ -1340,7 +1340,7 @@ public class B
             End Sub
 
             Public Shared Sub OnCodeBlockEnded(context As CodeBlockEndAnalysisContext)
-                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, Location.None))
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor1, context.CodeBlock.GetLocation()))
             End Sub
 
             Public Shared Sub OnCodeBlockStarted(context As CodeBlockStartAnalysisContext(Of CodeAnalysis.CSharp.SyntaxKind))
@@ -1351,11 +1351,11 @@ public class B
             Protected Class NodeAnalyzer
                 Public Sub Initialize(registerSyntaxNodeAction As Action(Of Action(Of SyntaxNodeAnalysisContext), ImmutableArray(Of CodeAnalysis.CSharp.SyntaxKind)))
                     registerSyntaxNodeAction(Sub(context)
-                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, Location.None))
+                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor2, context.Node.GetLocation()))
                                              End Sub, ImmutableArray.Create(CodeAnalysis.CSharp.SyntaxKind.EqualsValueClause))
 
                     registerSyntaxNodeAction(Sub(context)
-                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, Location.None))
+                                                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Desciptor3, context.Node.GetLocation()))
                                              End Sub, ImmutableArray.Create(CodeAnalysis.CSharp.SyntaxKind.BaseConstructorInitializer))
 
                     registerSyntaxNodeAction(Sub(context)

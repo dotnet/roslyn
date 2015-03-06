@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -117,14 +119,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var cancellationToken = analyzerDriver.CancellationToken;
 
                     var state = stateSet.GetState(StateType.Project);
-                    var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
+                    var existingData = await GetExistingProjectAnalysisDataAsync(project, state, cancellationToken).ConfigureAwait(false);
 
-                    if (CheckSemanticVersions(project, existingData, versions))
+                    // TODO: 
+                    // if there is any document level result, we can't ever use cache since we can't track those changes in current design
+                    // hopely v2 engine, either don't care this at all, or can deal with this better
+                    if (CheckSemanticVersions(project, existingData, versions) && !existingData.Items.Any(d => d.DocumentId != null))
                     {
                         return existingData;
                     }
 
-                    // TODO: remove ForceAnalyzeAllDocuments at some point
                     var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, stateSet.Analyzer, _owner.ForceAnalyzeAllDocuments).ConfigureAwait(false);
                     return new AnalysisData(VersionStamp.Default, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
@@ -132,6 +136,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private async Task<AnalysisData> GetExistingProjectAnalysisDataAsync(Project project, DiagnosticState state, CancellationToken cancellationToken)
+            {
+                var dataVersion = VersionStamp.Default;
+                var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
+
+                // quick path.
+                if (existingData?.Items.Length == 0)
+                {
+                    return existingData;
+                }
+
+                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                if (existingData != null)
+                {
+                    dataVersion = existingData.DataVersion;
+                    builder.AddRange(existingData.Items);
+                }
+
+                foreach (var document in project.Documents)
+                {
+                    existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (existingData == null)
+                    {
+                        continue;
+                    }
+
+                    if (dataVersion != VersionStamp.Default && dataVersion != existingData.DataVersion)
+                    {
+                        continue;
+                    }
+
+                    dataVersion = existingData.DataVersion;
+                    builder.AddRange(existingData.Items);
+                }
+
+                if (dataVersion == VersionStamp.Default)
+                {
+                    return null;
+                }
+
+                return new AnalysisData(VersionStamp.Default, dataVersion, builder.ToImmutable());
             }
 
             private bool CanUseDocumentState(AnalysisData existingData, VersionStamp textVersion, VersionStamp dataVersion)

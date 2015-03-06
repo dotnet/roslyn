@@ -234,10 +234,6 @@
     <Compile Include="Emit\SemanticEdit.cs" />
     <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
-    <Compile Include="Instrumentation\FunctionId.cs" />
-    <Compile Include="Instrumentation\Logger.cs" />
-    <Compile Include="Instrumentation\PerformanceGoals.cs" />
-    <Compile Include="Instrumentation\RoslynCompilerEventSource.cs" />
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\FatalError.cs" />

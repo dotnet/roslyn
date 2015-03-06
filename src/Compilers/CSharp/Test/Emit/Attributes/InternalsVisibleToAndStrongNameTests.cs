@@ -378,6 +378,67 @@ public class Test
             other.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void PublicKeyFromOptions_DelaySigned()
+        {
+            string source = @"
+[assembly: System.Reflection.AssemblyDelaySign(true)]
+public class C {}";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            c.VerifyDiagnostics();
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
+
+            var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
+            var identity = metadata.Module.ReadAssemblyIdentityOrThrow();
+
+            Assert.True(identity.HasPublicKey);
+            AssertEx.Equal(identity.PublicKey, s_publicKey);
+            Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_OssSigned()
+        {
+            // attributes are ignored
+            string source = @"
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
+[assembly: System.Reflection.AssemblyKeyFile(""some file"")] 
+public class C {}
+";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            c.VerifyDiagnostics();
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
+
+            var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
+            var identity = metadata.Module.ReadAssemblyIdentityOrThrow();
+
+            Assert.True(identity.HasPublicKey);
+            AssertEx.Equal(identity.PublicKey, s_publicKey);
+            Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void PublicKeyFromOptions_InvalidCompilationOptions()
+        {
+            string source = @"public class C {}";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.
+                WithCryptoPublicKey(ImmutableArray.Create<byte>(1,2,3)).
+                WithCryptoKeyContainer("roslynTestContainer").
+                WithCryptoKeyFile("file.snk").
+                WithStrongNameProvider(s_defaultProvider));
+
+            c.VerifyDiagnostics(
+                // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyFile' can't both be specified at the same time.
+                Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("CryptoPublicKey", "CryptoKeyFile").WithLocation(1, 1),
+                // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyContainer' can't both be specified at the same time.
+                Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("CryptoPublicKey", "CryptoKeyContainer").WithLocation(1, 1),
+                // error CS7088: Invalid 'CryptoPublicKey' value: '01-02-03'.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoPublicKey", "01-02-03").WithLocation(1, 1));
+        }
+
         #endregion
 
         #region IVT Access Checking

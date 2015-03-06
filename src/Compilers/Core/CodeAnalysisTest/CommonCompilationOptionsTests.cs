@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "ConcurrentBuild",
                 "CryptoKeyContainer",
                 "CryptoKeyFile",
+                "CryptoPublicKey",
                 "DelaySign",
                 "EnableEditAndContinue",
                 "Errors",

@@ -1230,6 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MetadataReferencesNotSupported = 7099,
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
+        ERR_MutuallyExclusiveOptions = 7102,
 
         // available 7102-8000
 
