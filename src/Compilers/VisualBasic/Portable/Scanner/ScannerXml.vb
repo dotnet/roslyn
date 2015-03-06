@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
             While CanGetChar()
-                Dim c As Char = PeekChar()
+                Dim c As Char = Peek()
 
                 Select Case (c)
                     ' // Whitespace
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim token As SyntaxToken
             Dim possibleStatement As Boolean = False
             Dim offsets = CreateOffsetRestorePoint()
-            Dim c As Char = PeekChar()
+            Dim c As Char = Peek()
 
             Select Case c
                 Case "#"c,
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If name IsNot Nothing AndAlso Not name.IsMissing Then
                         If name.PossibleKeywordKind <> SyntaxKind.XmlNameToken Then
                             leadingTrivia = ScanSingleLineTrivia()
-                            c = PeekChar()
+                            c = Peek()
                             possibleStatement =
                                 c = "("c OrElse c = FULLWIDTH_LEFT_PARENTHESIS
                         End If
@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Else
                                 scratch.Clear() ' will not use this
                                 Here = 0        ' consumed chars. 
-                                precedingTrivia = ScanXmlTrivia(PeekChar)
+                                precedingTrivia = ScanXmlTrivia(Peek)
                             End If
                         End If
 
@@ -690,7 +690,7 @@ ScanChars:
             If state = ScannerState.StartProcessingInstruction AndAlso CanGetChar() Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                Dim c = PeekChar()
+                Dim c = Peek()
                 Select Case c
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim wsTrivia = ScanXmlTrivia(c)
@@ -761,7 +761,7 @@ CleanUp:
 
             Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             While CanGetChar()
-                Dim c As Char = PeekChar()
+                Dim c As Char = Peek()
 
                 Select Case (c)
                     ' // Whitespace
@@ -1199,7 +1199,7 @@ CreateNCNameToken:
 
         Private Function ScanXmlReference(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
             Debug.Assert(CanGetChar)
-            Debug.Assert(PeekChar() = "&"c)
+            Debug.Assert(Peek() = "&"c)
 
             ' skip 1 char for "&"
             If CanGetCharAtOffset(1) Then
