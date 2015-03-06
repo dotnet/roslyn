@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor
 
             if (argumentIndex < 0)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("argumentIndex < 0", "argumentIndex");
             }
 
             if (argumentCount < argumentIndex)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("argumentCount < argumentIndex", "argumentIndex");
             }
 
             this.Items = items;
