@@ -330,16 +330,19 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
-            AnalyzerDriver analyzerDriver = null;
-            AnalyzerManager analyzerManager = null;
-            ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
+            Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
             if (!analyzers.IsDefaultOrEmpty)
             {
-                analyzerManager = new AnalyzerManager();
-                analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                var analyzerManager = new AnalyzerManager();
+                var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                 Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
 
-                analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, cancellationToken);
+                var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, cancellationToken);
+                getAnalyzerDiagnostics = () =>
+                    {
+                        var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
+                        return analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
+                    };
             }
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -401,9 +404,10 @@ namespace Microsoft.CodeAnalysis
                     WithOutputNameOverride(outputName).
                     WithPdbFilePath(finalPdbFilePath);
 
-                using (var emitStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath, Arguments.EmitPdb ? finalPdbFilePath : null))
+                using (var peStreamProvider = new CompilerEmitStreamProvider(this, touchedFilesLogger, finalOutputPath))
+                using (var pdbStreamProvider = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, touchedFilesLogger, finalPdbFilePath) : null)
                 {
-                    emitResult = compilation.Emit(emitStreamProvider, xml, win32Res, Arguments.ManifestResources, emitOptions, cancellationToken);
+                    emitResult = compilation.Emit(peStreamProvider, pdbStreamProvider, xml, win32Res, Arguments.ManifestResources, emitOptions, getAnalyzerDiagnostics, cancellationToken);
                 }
             }
 
@@ -415,19 +419,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (analyzerDriver != null)
-            {
-                var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                var allAnalyzerDiagnostics = analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-
-                if (PrintErrors(allAnalyzerDiagnostics, consoleOutput))
-                {
-                    return Failed;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-            }
 
             bool errorsReadingAdditionalFiles = false;
             foreach (var additionalFile in additionalTextFiles)
@@ -749,7 +740,7 @@ namespace Microsoft.CodeAnalysis
             byte[] compiledAssembly;
             using (MemoryStream output = new MemoryStream())
             {
-                EmitResult emitResult = compilation.Emit(new SimpleEmitStreamProvider(output));
+                EmitResult emitResult = compilation.Emit(output);
                 if (PrintErrors(emitResult.Diagnostics, consoleOutput))
                 {
                     return Failed;

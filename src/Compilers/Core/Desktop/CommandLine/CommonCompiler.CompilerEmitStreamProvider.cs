@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// This implementation of <see cref="Compilation.EmitStreamProvider"/> will delay the creation
-        /// of the PE + PDB file until the compiler determines the compilation has succeeded.  This prevents
+        /// of the PE / PDB file until the compiler determines the compilation has succeeded.  This prevents
         /// the compiler from deleting output from the previous compilation when a new compilation 
         /// fails.
         /// </summary>
@@ -18,52 +18,30 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly CommonCompiler _compiler;
             private readonly TouchedFileLogger _touchedFileLogger;
-            private readonly string _peFilePath;
-            private readonly string _pdbFilePath;
-            private Stream _peStream;
-            private Stream _pdbStream;
+            private readonly string _filePath;
+            private Stream _stream;
 
-            internal CompilerEmitStreamProvider(CommonCompiler compiler, TouchedFileLogger touchedFileLogger, string peFilePath, string pdbFilePath)
+            internal CompilerEmitStreamProvider(CommonCompiler compiler, TouchedFileLogger touchedFileLogger, string filePath)
             {
                 _compiler = compiler;
                 _touchedFileLogger = touchedFileLogger;
-                _peFilePath = peFilePath;
-                _pdbFilePath = pdbFilePath;
+                _filePath = filePath;
             }
 
             public void Dispose()
             {
-                _peStream?.Dispose();
-                _peStream = null;
-                _pdbStream?.Dispose();
-                _pdbStream = null;
+                _stream?.Dispose();
+                _stream = null;
             }
 
-            public override bool HasPdbStream
+            public override Stream GetStream(DiagnosticBag diagnostics)
             {
-                get { return _pdbFilePath != null; }
-            }
-
-            public override Stream GetPeStream(DiagnosticBag diagnostics)
-            {
-                if (_peStream == null)
+                if (_stream == null)
                 {
-                    _peStream = OpenFile(_peFilePath, diagnostics);
+                    _stream = OpenFile(_filePath, diagnostics);
                 }
 
-                return _peStream;
-            }
-
-            public override Stream GetPdbStream(DiagnosticBag diagnostics)
-            {
-                Debug.Assert(HasPdbStream);
-
-                if (_pdbStream == null)
-                {
-                    _pdbStream = OpenFile(_pdbFilePath, diagnostics);
-                }
-
-                return _pdbStream;
+                return _stream;
             }
 
             private Stream OpenFile(string filePath, DiagnosticBag diagnostics)
@@ -85,36 +63,6 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_CantOpenFileWrite, Location.None, filePath, e.Message));
                     return null;
                 }
-            }
-        }
-
-        private sealed class SimpleEmitStreamProvider : Compilation.EmitStreamProvider
-        {
-            private readonly Stream _peStream;
-            private readonly Stream _pdbStream;
-
-            internal SimpleEmitStreamProvider(Stream peStream, Stream pdbStream = null)
-            {
-                Debug.Assert(peStream.CanWrite);
-                Debug.Assert(pdbStream == null || pdbStream.CanWrite);
-                _peStream = peStream;
-                _pdbStream = pdbStream;
-            }
-
-            public override bool HasPdbStream
-            {
-                get { return _pdbStream != null; }
-            }
-
-            public override Stream GetPeStream(DiagnosticBag diagnostics)
-            {
-                return _peStream;
-            }
-
-            public override Stream GetPdbStream(DiagnosticBag diagnostics)
-            {
-                Debug.Assert(HasPdbStream);
-                return _pdbStream;
             }
         }
     }

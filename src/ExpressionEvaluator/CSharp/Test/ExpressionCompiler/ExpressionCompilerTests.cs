@@ -3761,6 +3761,7 @@ class C
                         manifestResources: null,
                         options: EmitOptions.Default,
                         testData: testData0,
+                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
                     exeBytes = exeStream.ToArray();
                     pdbBytes = pdbStream.ToArray();
@@ -3860,6 +3861,7 @@ class C
                         manifestResources: null,
                         options: EmitOptions.Default,
                         testData: testData0,
+                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
                     exeBytes = exeStream.ToArray();
                     pdbBytes = pdbStream.ToArray();
