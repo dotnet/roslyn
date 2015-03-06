@@ -230,6 +230,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ' compilation options:
+
+        Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer
+            Get
+                Return ERRID.ERR_InvalidSwitchValue
+            End Get
+        End Property
+
         ' emit options:
 
         Public Overrides ReadOnly Property ERR_InvalidDebugInformationFormat As Integer

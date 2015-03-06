@@ -135,7 +135,6 @@ Microsoft.CodeAnalysis.Compilation.RemoveSyntaxTrees(params Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.Compilation.ReplaceReference(Microsoft.CodeAnalysis.MetadataReference oldReference, Microsoft.CodeAnalysis.MetadataReference newReference)
 Microsoft.CodeAnalysis.Compilation.ReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree oldTree, Microsoft.CodeAnalysis.SyntaxTree newTree)
 Microsoft.CodeAnalysis.Compilation.ScriptClass.get
-Microsoft.CodeAnalysis.Compilation.ShouldBeSigned.get
 Microsoft.CodeAnalysis.Compilation.SourceModule.get
 Microsoft.CodeAnalysis.Compilation.SyntaxTrees.get
 Microsoft.CodeAnalysis.Compilation.WithAssemblyName(string assemblyName)
@@ -154,6 +153,8 @@ Microsoft.CodeAnalysis.CompilationOptions.CryptoKeyContainer.get
 Microsoft.CodeAnalysis.CompilationOptions.CryptoKeyContainer.set
 Microsoft.CodeAnalysis.CompilationOptions.CryptoKeyFile.get
 Microsoft.CodeAnalysis.CompilationOptions.CryptoKeyFile.set
+Microsoft.CodeAnalysis.CompilationOptions.CryptoPublicKey.get
+Microsoft.CodeAnalysis.CompilationOptions.CryptoPublicKey.set
 Microsoft.CodeAnalysis.CompilationOptions.DelaySign.get
 Microsoft.CodeAnalysis.CompilationOptions.DelaySign.set
 Microsoft.CodeAnalysis.CompilationOptions.EqualsHelper(Microsoft.CodeAnalysis.CompilationOptions other)
@@ -1476,7 +1477,6 @@ abstract Microsoft.CodeAnalysis.Compilation.GetDiagnostics(System.Threading.Canc
 abstract Microsoft.CodeAnalysis.Compilation.GetMethodBodyDiagnostics(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 abstract Microsoft.CodeAnalysis.Compilation.GetParseDiagnostics(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(System.Func<string, bool> predicate, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
-abstract Microsoft.CodeAnalysis.Compilation.HasCodeToEmit()
 abstract Microsoft.CodeAnalysis.Compilation.IsCaseSensitive.get
 abstract Microsoft.CodeAnalysis.Compilation.Language.get
 abstract Microsoft.CodeAnalysis.Compilation.ReferencedAssemblyNames.get

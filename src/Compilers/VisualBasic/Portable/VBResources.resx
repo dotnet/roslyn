@@ -178,7 +178,10 @@
     <value>option '{0}' can be followed only by '+' or '-'</value>
   </data>
   <data name="ERR_InvalidSwitchValue" xml:space="preserve">
-    <value>the value '{0}' is invalid for option '{1}'</value>
+    <value>the value '{1}' is invalid for option '{0}'</value>
+  </data>
+  <data name="ERR_MutuallyExclusiveOptions" xml:space="preserve">
+    <value>Compilation options '{0}' and '{1}' can't both be specified at the same time.</value>
   </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>

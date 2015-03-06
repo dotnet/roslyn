@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, "options");
             }
 
-            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null)
+            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsDefault)
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, "options");
             }
@@ -1196,22 +1196,32 @@ namespace Microsoft.CodeAnalysis
                 sizeOfStackReserve: sizeOfStackReserve,
                 sizeOfStackCommit: sizeOfStackCommit,
                 enableHighEntropyVA: emitOptions.HighEntropyVirtualAddressSpace,
-                strongNameSigned: this.ShouldBeSigned,
+                strongNameSigned: HasStrongName,
                 configureToExecuteInAppContainer: compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication,
                 subsystemVersion: subsystemVer);
         }
 
         #region Emit
 
-        protected bool ShouldBeSigned
+        internal bool HasStrongName
         {
             get
             {
-                //A module cannot be signed. The native compiler allowed one to create a netmodule with an AssemblyKeyFile 
-                //or Container attribute (or specify a key via the cmd line). When the module was linked into an assembly,
-                //alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
+                return !IsDelaySigned
+                    && Options.OutputKind != OutputKind.NetModule
+                    && StrongNameKeys.CanProvideStrongName;
+            }
+        }
 
-                return !IsDelaySign
+        internal bool IsRealSigned
+        {
+            get
+            {
+                // A module cannot be signed. The native compiler allowed one to create a netmodule with an AssemblyKeyFile 
+                // or Container attribute (or specify a key via the cmd line). When the module was linked into an assembly,
+                // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
+
+                return !IsDelaySigned
                     && Options.OutputKind != OutputKind.NetModule
                     && StrongNameKeys.CanSign;
             }
@@ -1220,9 +1230,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Return true if the compilation contains any code or types.
         /// </summary>
-        protected abstract bool HasCodeToEmit();
+        internal abstract bool HasCodeToEmit();
 
-        internal abstract bool IsDelaySign { get; }
+        internal abstract bool IsDelaySigned { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
@@ -1573,7 +1583,7 @@ namespace Microsoft.CodeAnalysis
                 // stream that this method was called with.
 
                 Stream peStream;
-                if (!metadataOnly && ShouldBeSigned)
+                if (!metadataOnly && IsRealSigned)
                 {
                     Debug.Assert(Options.StrongNameProvider != null);
 

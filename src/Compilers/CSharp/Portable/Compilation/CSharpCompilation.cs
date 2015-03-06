@@ -2249,9 +2249,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Emit
 
-        internal override bool IsDelaySign
+        internal override bool IsDelaySigned
         {
-            get { return SourceAssembly.IsDelaySign; }
+            get { return SourceAssembly.IsDelaySigned; }
         }
 
         internal override StrongNameKeys StrongNameKeys
@@ -2659,7 +2659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool HasCodeToEmit()
+        internal override bool HasCodeToEmit()
         {
             foreach (var syntaxTree in SyntaxTrees)
             {
