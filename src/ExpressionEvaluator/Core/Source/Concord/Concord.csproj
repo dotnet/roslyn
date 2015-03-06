@@ -31,8 +31,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata" />
-    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine" />
+    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata">
+      <Visible>false</Visible>
+    </ConcordAssemblies>
+    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine">
+      <Visible>false</Visible>
+    </ConcordAssemblies>
   </ItemGroup>
   <Target Name="IlasmNetFX20" 
           AfterTargets="CoreCompile"
