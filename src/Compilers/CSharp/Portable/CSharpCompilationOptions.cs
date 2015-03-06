@@ -192,6 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpCompilationOptions WithCryptoPublicKey(ImmutableArray<byte> value)
         {
+            if (value.IsDefault)
+            {
+                value = ImmutableArray<byte>.Empty;
+            }
+
             if (value == this.CryptoPublicKey)
             {
                 return this;
@@ -526,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             //          (version >= "6.2")
 
-            if (!CryptoPublicKey.IsDefault)
+            if (!CryptoPublicKey.IsEmpty)
             {
                 if (CryptoKeyFile != null)
                 {

@@ -388,5 +388,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(compilationOptions.ConcurrentBuild, deserializedCompilationOptions.ConcurrentBuild);
             Assert.Equal(compilationOptions.ExtendedCustomDebugInformation, deserializedCompilationOptions.ExtendedCustomDebugInformation);
         }
+
+        [Fact]
+        public void WithCryptoPublicKey()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            Assert.Equal(ImmutableArray<byte>.Empty, options.CryptoPublicKey);
+            Assert.Equal(ImmutableArray<byte>.Empty, options.WithCryptoPublicKey(default(ImmutableArray<byte>)).CryptoPublicKey);
+
+            Assert.Same(options, options.WithCryptoPublicKey(default(ImmutableArray<byte>)));
+            Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray<byte>.Empty));
+        }
     }
 }

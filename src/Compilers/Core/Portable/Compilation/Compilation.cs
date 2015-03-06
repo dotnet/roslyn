@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, "options");
             }
 
-            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsDefault)
+            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsEmpty)
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, "options");
             }
