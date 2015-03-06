@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -19,16 +20,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private readonly AnalyzerItem _item;
         private readonly IAnalyzersCommandHandler _commandHandler;
+        private readonly DiagnosticAnalyzerService _diagnosticAnalyzerService;
         private BulkObservableCollection<DiagnosticItem> _diagnosticItems;
         private Workspace _workspace;
         private ProjectId _projectId;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
 
-        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler)
+        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, DiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             _item = item;
             _commandHandler = commandHandler;
+            _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
         public object SourceItem
@@ -90,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // one.
 
             return _item.AnalyzerReference.GetAnalyzers(language)
-                .SelectMany(a => a.SupportedDiagnostics)
+                .SelectMany(a => _diagnosticAnalyzerService.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .Select(g =>
