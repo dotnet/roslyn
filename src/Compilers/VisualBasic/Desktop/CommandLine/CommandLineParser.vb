@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ElseIf String.Equals(value, "binary", StringComparison.OrdinalIgnoreCase) Then
                             optionCompareText = False
                         Else
-                            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "optioncompare")
+                            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "optioncompare", value)
                         End If
 
                         Continue For
@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
                                 ElseIf Not String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) AndAlso
                                            Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "debug")
+                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
                                 End If
                             End If
 
@@ -701,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Case "14", "14.0"
                                         languageVersion = LanguageVersion.VisualBasic12
                                     Case Else
-                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, "langversion")
+                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select
                             End If
 
@@ -1340,7 +1340,7 @@ lVbRuntimePlus:
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, optionName, ":exe|winexe|library|module|appcontainerexe|winmdobj")
                     Return OutputKind.ConsoleApplication
                 Case Else
-                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, value, optionName)
+                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, optionName, value)
                     Return OutputKind.ConsoleApplication
             End Select
         End Function
@@ -1440,7 +1440,7 @@ lVbRuntimePlus:
                 name = "(null)"
             End If
 
-            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, nullStringText, name)
+            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, name, nullStringText)
         End Sub
 
         Private Shared Sub ParseGlobalImports(value As String, globalImports As List(Of GlobalImport), errors As List(Of Diagnostic))
@@ -1826,7 +1826,7 @@ lVbRuntimePlus:
                     Case "arm"
                         Return Platform.Arm
                     Case Else
-                        AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, value, name)
+                        AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value)
                 End Select
             End If
 
@@ -1846,9 +1846,9 @@ lVbRuntimePlus:
             If String.IsNullOrEmpty(value) Then
                 AddDiagnostic(errors, ERRID.ERR_ArgumentRequired, name, ":<number>")
             ElseIf Not TryParseUInt16(value, alignment) Then
-                AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, value, name)
+                AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value)
             ElseIf Not Microsoft.CodeAnalysis.CompilationOptions.IsValidFileAlignment(alignment) Then
-                AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, value, name)
+                AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value)
             Else
                 Return alignment
             End If
@@ -1877,11 +1877,11 @@ lVbRuntimePlus:
                 ' always treat the base address string as being a hex number, regardless of the given format.
                 ' This handling was hardcoded in the command line option parsing of Dev10 and Dev11.
                 If Not ULong.TryParse(parseValue,
-                                      System.Globalization.NumberStyles.HexNumber,
-                                      System.Globalization.CultureInfo.InvariantCulture,
+                                      NumberStyles.HexNumber,
+                                      CultureInfo.InvariantCulture,
                                       baseAddress) Then
 
-                    AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, value.ToString(), name)
+                    AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value.ToString())
                 Else
                     Return baseAddress
                 End If
@@ -1938,7 +1938,7 @@ lVbRuntimePlus:
         End Sub
 
         Friend Overrides Sub GenerateErrorForNoFilesFoundInRecurse(path As String, errors As IList(Of Diagnostic))
-            AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, path, "recurse")
+            AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, "recurse", path)
         End Sub
 
         Private Shared Sub AddDiagnostic(diagnostics As IList(Of Diagnostic), errorCode As ERRID, ParamArray arguments As Object())
