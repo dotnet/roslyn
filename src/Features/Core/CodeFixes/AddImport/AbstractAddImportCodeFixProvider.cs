@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // See if the name binds.  If it does, there's nothing further we need to do.
             if (ExpressionBinds(node, semanticModel, cancellationToken, checkForExtensionMethods: true))
             {
-                return Task.FromResult(SpecializedCollections.EmptyEnumerable<ISymbol>());
+                return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
             string name;
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
             if (name == null)
             {
-                return Task.FromResult(SpecializedCollections.EmptyEnumerable<ISymbol>());
+                return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
             return SymbolFinder.FindDeclarationsAsync(project, name, this.IgnoreCase, SymbolFilter.Member, cancellationToken);
