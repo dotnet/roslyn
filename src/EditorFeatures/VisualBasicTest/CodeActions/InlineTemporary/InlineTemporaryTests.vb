@@ -3864,7 +3864,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WorkItem(1025)>
+        <WorkItem(1025, "https://github.com/dotnet/roslyn/issues/1025")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConditionalAccessWithConversion()
             Dim code =
