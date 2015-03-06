@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
 
                 // quick path.
-                if (existingData?.Items.Length == 0)
+                if (existingData == null || existingData.Items.Length == 0)
                 {
                     return existingData;
                 }

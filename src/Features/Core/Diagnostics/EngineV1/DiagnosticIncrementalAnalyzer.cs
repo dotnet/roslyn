@@ -352,6 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (kv.Key == null)
                 {
                     await state.PersistAsync(project, new AnalysisData(data.TextVersion, data.DataVersion, kv.ToImmutableArrayOrEmpty()), CancellationToken.None).ConfigureAwait(false);
+                    continue;
                 }
 
                 await state.PersistAsync(project.GetDocument(kv.Key), new AnalysisData(data.TextVersion, data.DataVersion, kv.ToImmutableArrayOrEmpty()), CancellationToken.None).ConfigureAwait(false);
@@ -699,6 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (kv.Key == null)
                 {
                     RaiseDiagnosticsUpdated(StateType.Project, project.Id, analyzer, new SolutionArgument(project), kv.ToImmutableArrayOrEmpty());
+                    continue;
                 }
 
                 RaiseDiagnosticsUpdated(StateType.Project, kv.Key, analyzer, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty());
