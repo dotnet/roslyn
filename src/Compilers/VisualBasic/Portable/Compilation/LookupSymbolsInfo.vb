@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function GetInstance() As LookupSymbolsInfo
             Dim info As LookupSymbolsInfo = pool.Allocate()
-            Debug.Assert(info.Names.Count = 0)
+            Debug.Assert(info.Count = 0)
             Return info
         End Function
     End Class

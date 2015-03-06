@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.AddMemberLookupSymbolsInfo(info, container, options, binder);
             }
 
-            var results = ArrayBuilder<Symbol>.GetInstance(info.Names.Count);
+            var results = ArrayBuilder<Symbol>.GetInstance(info.Count);
 
             if (name == null)
             {
