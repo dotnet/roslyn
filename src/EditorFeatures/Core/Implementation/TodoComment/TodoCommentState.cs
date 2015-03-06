@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             public ImmutableArray<ITaskItem> GetItems_TestingOnly(DocumentId documentId)
             {
                 Data data;
-                if (this.DataCache.TryGetValue(documentId, out data))
+                if (this.DataCache.TryGetValue(documentId, out data) && data != null)
                 {
                     return data.Items;
                 }
