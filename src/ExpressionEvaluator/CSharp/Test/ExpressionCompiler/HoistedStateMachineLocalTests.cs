@@ -1291,7 +1291,7 @@ class C
 
         [WorkItem(1134746, "DevDiv")]
         [Fact]
-        public void Caching()
+        public void CacheInvalidation()
         {
             var source = @"
 using System.Collections.Generic;

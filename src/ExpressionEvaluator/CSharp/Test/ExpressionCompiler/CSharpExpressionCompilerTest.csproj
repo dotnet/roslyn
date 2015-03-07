@@ -106,6 +106,7 @@
     <Compile Include="LocalsTests.cs" />
     <Compile Include="NoPIATests.cs" />
     <Compile Include="PseudoVariableTests.cs" />
+    <Compile Include="MethodContextReuseConstraintsTests.cs" />
     <Compile Include="UsingDebugInfoTests.cs" />
     <Compile Include="WinMdTests.cs" />
   </ItemGroup>

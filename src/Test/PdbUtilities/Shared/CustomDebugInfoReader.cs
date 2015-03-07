@@ -465,34 +465,6 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         }
 
         // TODO (acasey): caller should depend on abstraction (GH #702)
-        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(byte[] customDebugInfo, int methodToken, int methodVersion, int ilOffset)
-        {
-            var record = TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
-            if (record.IsDefault)
-            {
-                return ImmutableSortedSet<int>.Empty;
-            }
-
-            var scopes = DecodeStateMachineHoistedLocalScopesRecord(record);
-
-            ArrayBuilder<int> builder = ArrayBuilder<int>.GetInstance();
-            for (int i = 0; i < scopes.Length; i++)
-            {
-                StateMachineHoistedLocalScope scope = scopes[i];
-
-                // NB: scopes are end-inclusive.
-                if (ilOffset >= scope.StartOffset && ilOffset <= scope.EndOffset)
-                {
-                    builder.Add(i);
-                }
-            }
-
-            ImmutableSortedSet<int> result = builder.ToImmutableSortedSet();
-            builder.Free();
-            return result;
-        }
-
-        // TODO (acasey): caller should depend on abstraction (GH #702)
         /// <exception cref="InvalidOperationException">Bad data.</exception>
         public static void GetCSharpDynamicLocalInfo(
             byte[] customDebugInfo,

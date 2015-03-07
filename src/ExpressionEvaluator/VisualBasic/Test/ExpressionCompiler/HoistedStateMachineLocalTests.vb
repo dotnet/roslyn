@@ -1366,7 +1366,7 @@ End Class
 
         <WorkItem(1134746, "DevDiv")>
         <Fact>
-        Public Sub Caching()
+        Public Sub CacheInvalidation()
             Const source = "
 Imports System.Collections.Generic
 

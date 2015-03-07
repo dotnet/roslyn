@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public static MethodDebugInfo GetMethodDebugInfo(
             this ISymUnmanagedReader reader,
             int methodToken,
-            int methodVersion)
+            int methodVersion,
+            string firstLocalName)
         {
             ImmutableArray<string> externAliasStrings;
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
@@ -72,9 +73,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 externAliasRecordBuilder.Add(new NativeExternAliasRecord<AssemblySymbol>(alias, targetIdentity));
             }
 
+            var hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+            var dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
+            var dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+
+            byte[] customDebugInfoBytes = reader.GetCustomDebugInfoBytes(methodToken, methodVersion);
+
+            if (customDebugInfoBytes != null)
+            {
+                var customDebugInfoRecord = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBytes, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
+                if (!customDebugInfoRecord.IsDefault)
+                {
+                    hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
+                        .SelectAsArray(s => HoistedLocalScopeRecord.FromNative(s.StartOffset, s.EndOffset));
+                }
+
+                CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
+                    customDebugInfoBytes,
+                    methodToken,
+                    methodVersion,
+                    firstLocalName,
+                    out dynamicLocalMap,
+                    out dynamicLocalConstantMap);
+            }
+
+
             return new MethodDebugInfo(
+                hoistedLocalScopeRecords,
                 importRecordGroupBuilder.ToImmutableAndFree(),
                 externAliasRecordBuilder.ToImmutableAndFree(),
+                dynamicLocalMap,
+                dynamicLocalConstantMap,
                 defaultNamespaceName: ""); // Unused in C#.
         }
 
