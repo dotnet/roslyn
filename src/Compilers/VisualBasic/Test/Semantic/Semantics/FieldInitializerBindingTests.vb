@@ -1408,6 +1408,78 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 </errors>)
         End Sub
 
+        <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
+        Sub WriteOfReadonlySharedMemberOfAnotherInstantiation01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+   <compilation>
+       <file name="a.vb">
+Class Foo(Of T)
+    Shared Sub New()
+        Foo(Of Integer).X = 12
+        Foo(Of Integer).Y = 12
+        Foo(Of T).X = 12
+        Foo(Of T).Y = 12
+    End Sub
+
+    Public Shared ReadOnly X As Integer
+    Public Shared ReadOnly Property Y As Integer = 0
+End Class
+        </file>
+   </compilation>, TestOptions.ReleaseDll)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
+BC30526: Property 'Y' is 'ReadOnly'.
+        Foo(Of Integer).Y = 12
+        ~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation.WithStrictMode(), <expected>
+BC30064: 'ReadOnly' variable cannot be the target of an assignment.
+        Foo(Of Integer).X = 12
+        ~~~~~~~~~~~~~~~~~
+BC30526: Property 'Y' is 'ReadOnly'.
+        Foo(Of Integer).Y = 12
+        ~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
+        Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation02()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module M1
+    Sub Main()
+        Console.WriteLine(Foo(Of Long).X)
+        Console.WriteLine(Foo(Of Integer).X)
+        Console.WriteLine(Foo(Of String).X)
+        Console.WriteLine(Foo(Of Integer).X)
+    End Sub
+End Module
+
+Public Class Foo(Of T)
+    Shared Sub New()
+        Console.WriteLine("Initializing for {0}", GetType(T))
+        Foo(Of Integer).X = GetType(T).Name
+    End Sub
+
+    Public Shared ReadOnly X As String
+End Class
+    </file>
+</compilation>,
+verify:=False,
+expectedOutput:="Initializing for System.Int64
+Initializing for System.Int32
+
+Int64
+Initializing for System.String
+
+String
+")
+        End Sub
+
 #Region "Helpers"
         Private Shared Function CompileAndExtractTypeSymbol(sources As Xml.Linq.XElement, Optional typeName As String = "C") As SourceNamedTypeSymbol
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
