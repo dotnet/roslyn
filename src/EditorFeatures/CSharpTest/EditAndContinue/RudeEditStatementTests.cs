@@ -2394,7 +2394,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1109")]
         public void Lambdas_Insert_ThisOnly_Top2()
         {
             var src1 = @"
@@ -2531,7 +2531,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1109")]
         public void Lambdas_InsertAndDelete_Scopes1()
         {
             var src1 = @"
