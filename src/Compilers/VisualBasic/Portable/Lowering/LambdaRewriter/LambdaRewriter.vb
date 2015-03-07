@@ -1003,11 +1003,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf _analysis.capturedVariablesByLambda(node.LambdaSymbol).Count = 0
                 translatedLambdaContainer = GetStaticFrame(node, Diagnostics)
                 closureKind = ClosureKind.Static
-                closureOrdinal = -1
+                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal
             Else
                 translatedLambdaContainer = DirectCast(_topLevelMethod.ContainingType, InstanceTypeSymbol)
                 closureKind = ClosureKind.ThisOnly
-                closureOrdinal = -1
+                closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal
             End If
 
             Dim lambdaOrdinal As Integer
