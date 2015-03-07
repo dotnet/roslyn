@@ -1839,7 +1839,7 @@ _Default:
                 Dim info = LookupSymbolsInfo.GetInstance()
                 Me.AddLookupSymbolsInfo(position, info, container, options)
 
-                Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Names.Count)
+                Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
 
                 For Each foundName In info.Names
                     AppendSymbolsWithName(results, foundName, binder, container, options, info)
@@ -1872,7 +1872,7 @@ _Default:
                 Dim info = LookupSymbolsInfo.GetInstance()
                 Me.AddLookupSymbolsInfo(position, info, container, options)
 
-                Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Names.Count)
+                Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
 
                 AppendSymbolsWithName(results, name, binder, container, options, info)
 
