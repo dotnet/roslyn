@@ -692,9 +692,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.Null(TryMatchSingleWordPattern("AbcdefghijEfgHij", "efghij"));
         }
 
-        private static IList<string> PartListToSubstrings(string identifier, List<TextSpan> parts)
+        private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
         {
-            return parts.Select(span => identifier.Substring(span.Start, span.Length)).ToList();
+            List<string> result = new List<string>();
+            for(int i = 0; i < parts.Count; i++)
+            {
+                var span = parts[i];
+                result.Add(identifier.Substring(span.Start, span.Length));
+            }
+
+            return result;
         }
 
         private static IList<string> BreakIntoCharacterParts(string identifier)
