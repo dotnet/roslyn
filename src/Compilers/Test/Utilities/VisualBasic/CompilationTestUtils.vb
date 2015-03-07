@@ -184,6 +184,13 @@ Friend Module CompilationUtils
         Return From t In sourcesTreesAndSpans Select t.Item1
     End Function
 
+    Public Function CreateCompilationWithReferences(sourceTree As SyntaxTree,
+                                                    references As IEnumerable(Of MetadataReference),
+                                                    Optional options As VisualBasicCompilationOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return CreateCompilationWithReferences({sourceTree}, references, options, assemblyName)
+    End Function
+
     Public Function CreateCompilationWithReferences(sourceTrees As IEnumerable(Of SyntaxTree),
                                                     references As IEnumerable(Of MetadataReference),
                                                     Optional options As VisualBasicCompilationOptions = Nothing,

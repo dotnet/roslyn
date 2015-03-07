@@ -133,7 +133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            Throw ExceptionUtilities.Unreachable
+            Dim containingType = DirectCast(Me.ContainingType, SourceMemberContainerTypeSymbol)
+            Return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, IsShared)
         End Function
     End Class
 End Namespace

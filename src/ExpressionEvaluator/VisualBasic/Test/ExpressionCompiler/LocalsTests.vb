@@ -669,7 +669,7 @@ End Class
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__2-0._Lambda$__2")
+                methodName:="C._Closure$__2-0._Lambda$__1")
             Dim testData As New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -697,7 +697,7 @@ End Class
 
             context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__2-1._Lambda$__1")
+                methodName:="C._Closure$__2-1._Lambda$__0")
             testData = New CompilationTestData()
             locals.Clear()
             typeName = Nothing
@@ -775,7 +775,7 @@ End Class
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__._Lambda$__1-1")
+                methodName:="C._Closure$__._Lambda$__1-0")
             Dim testData As New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -800,7 +800,7 @@ End Class
 
             context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__1-0._Lambda$__2")
+                methodName:="C._Closure$__1-0._Lambda$__1")
             testData = New CompilationTestData()
             locals.Clear()
             typeName = Nothing
@@ -837,7 +837,7 @@ End Class
 
             context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__1-1._Lambda$__3")
+                methodName:="C._Closure$__1-1._Lambda$__2")
             testData = New CompilationTestData()
             locals.Clear()
             typeName = Nothing
@@ -876,7 +876,7 @@ End Class
 
             context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__1-2._Lambda$__4")
+                methodName:="C._Closure$__1-2._Lambda$__3")
             testData = New CompilationTestData()
             locals.Clear()
             typeName = Nothing
@@ -938,7 +938,7 @@ End Class
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__1-0._Lambda$__1")
+                methodName:="C._Closure$__1-0._Lambda$__0")
             Dim testData As New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -951,7 +951,7 @@ End Class
 
             context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__1-1._Lambda$__2")
+                methodName:="C._Closure$__1-1._Lambda$__1")
             testData = New CompilationTestData()
             locals.Clear()
             typeName = Nothing
@@ -1129,7 +1129,7 @@ End Class
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                methodName:="C._Closure$__1-0._Lambda$__1")
+                methodName:="C._Closure$__1-0._Lambda$__0")
             Dim testData As New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -2078,31 +2078,31 @@ End Class"
 
             ' Sub(y) x.ToString()
             displayClassName = "_Closure$__1-0"
-            GetLocals(runtime, "C." + displayClassName + "._Lambda$__1", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            GetLocals(runtime, "C." + displayClassName + "._Lambda$__0", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
             VerifyLocal(testData, typeName, locals(0), "<>m0", "y", expectedILOpt:=String.Format(voidRetILTemplate, 1))
             locals.Clear()
 
             ' Function(z) x
             displayClassName = "_Closure$__1-0"
-            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            GetLocals(runtime, "C." + displayClassName + "._Lambda$__1", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
             VerifyLocal(testData, typeName, locals(0), "<>m0", "z", expectedILOpt:=String.Format(funcILTemplate, "Integer", 1))
             locals.Clear()
 
             ' Sub(y) y.ToString()
             displayClassName = "_Closure$__2"
-            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2-1", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2-0", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
             VerifyLocal(testData, typeName + "(Of $CLS0)", locals(0), "<>m0", "y", expectedILOpt:=String.Format(voidRetILTemplate, 1))
             locals.Clear()
 
             ' Function(z) z
             displayClassName = "_Closure$__2"
-            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2-2", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2-1", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
             VerifyLocal(testData, typeName + "(Of $CLS0)", locals(0), "<>m0", "z", expectedILOpt:=String.Format(funcILTemplate, "Integer", 1))
             locals.Clear()
 
             ' Function(ti) ti
             displayClassName = "_Closure$__2"
-            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2-3", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
+            GetLocals(runtime, "C." + displayClassName + "._Lambda$__2-2", argumentsOnly:=True, locals:=locals, count:=1, typeName:=typeName, testData:=testData)
             VerifyLocal(testData, typeName + "(Of $CLS0)", locals(0), "<>m0", "ti", expectedILOpt:=String.Format(funcILTemplate, "$CLS0", 1))
             locals.Clear()
 

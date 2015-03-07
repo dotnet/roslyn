@@ -297,7 +297,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim emittedBody = GenerateMethodBody(moduleBeingBuilt,
                                                      scriptEntryPoint,
-                                                     body,
+                                                     methodOrdinal:=MethodDebugId.UndefinedOrdinal,
+                                                     block:=body,
+                                                     lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                     closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                                      stateMachineTypeOpt:=Nothing,
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
@@ -844,7 +847,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                      method,
-                                                     boundBody,
+                                                     methodOrdinal:=MethodDebugId.UndefinedOrdinal,
+                                                     block:=boundBody,
+                                                     lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                     closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                                      stateMachineTypeOpt:=Nothing,
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
@@ -878,11 +884,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim emittedBody As MethodBody = Nothing
 
                     If Not diagnosticsThisMethod.HasAnyErrors Then
-                        Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
+                        Dim lazyVariableSlotAllocator As VariableSlotAllocator = Nothing
                         Dim statemachineTypeOpt As StateMachineTypeSymbol = Nothing
 
-                        Dim lambdaOrdinalDispenser = 0
-                        Dim scopeOrdinalDispenser = 0
+                        Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
+                        Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
                         Dim delegateRelaxationIdDispenser = 0
 
                         Dim rewrittenBody = Rewriter.LowerBodyOrInitializer(
@@ -892,24 +898,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             previousSubmissionFields:=Nothing,
                             compilationState:=compilationState,
                             diagnostics:=diagnosticsThisMethod,
-                            lambdaOrdinalDispenser:=lambdaOrdinalDispenser,
-                            scopeOrdinalDispenser:=scopeOrdinalDispenser,
+                            lazyVariableSlotAllocator:=lazyVariableSlotAllocator,
+                            lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
+                            closureDebugInfoBuilder:=closureDebugInfoBuilder,
                             delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
                             stateMachineTypeOpt:=statemachineTypeOpt,
-                            variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
                             allowOmissionOfConditionalCalls:=_moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls,
                             isBodySynthesized:=True)
 
                         If Not diagnosticsThisMethod.HasAnyErrors Then
+                            ' Synthesized methods have no ordinal stored in custom debug information
+                            ' (only user-defined methods have ordinals).
                             emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                              method,
+                                                             MethodDebugId.UndefinedOrdinal,
                                                              rewrittenBody,
+                                                             lambdaDebugInfoBuilder.ToImmutable(),
+                                                             closureDebugInfoBuilder.ToImmutable(),
                                                              statemachineTypeOpt,
-                                                             variableSlotAllocatorOpt,
+                                                             lazyVariableSlotAllocator,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
                                                              generateDebugInfo:=False)
                         End If
+
+                        lambdaDebugInfoBuilder.Free()
+                        closureDebugInfoBuilder.Free()
                     End If
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
@@ -946,7 +960,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                          method,
-                                                         methodWithBody.Body,
+                                                         methodOrdinal:=MethodDebugId.UndefinedOrdinal,
+                                                         block:=methodWithBody.Body,
+                                                         lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                         closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                                          stateMachineTypeOpt:=Nothing,
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=_debugDocumentProvider,
@@ -1274,8 +1291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' setter needs to rewritten as it may require lambda conversions
                 Dim setterBody = setter.GetBoundMethodBody(diagnostics, containingTypeBinder)
 
-                Dim lambdaOrdinalDispenser = 0
-                Dim scopeOrdinalDispenser = 0
+                Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
+                Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
 
                 setterBody = Rewriter.LowerBodyOrInitializer(setter,
                                                              withEventPropertyIdDispenser,
@@ -1283,17 +1300,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              previousSubmissionFields,
                                                              compilationState,
                                                              diagnostics,
-                                                             lambdaOrdinalDispenser:=lambdaOrdinalDispenser,
-                                                             scopeOrdinalDispenser:=scopeOrdinalDispenser,
+                                                             lazyVariableSlotAllocator:=Nothing,
+                                                             lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
+                                                             closureDebugInfoBuilder:=closureDebugInfoBuilder,
                                                              delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
                                                              stateMachineTypeOpt:=Nothing,
-                                                             variableSlotAllocatorOpt:=Nothing,
                                                              allowOmissionOfConditionalCalls:=True,
                                                              isBodySynthesized:=True)
 
                 ' There shall be no lambdas in the synthesized accessor but delegate relaxation conversions:
-                Debug.Assert(lambdaOrdinalDispenser = 0)
-                Debug.Assert(scopeOrdinalDispenser = 0)
+                Debug.Assert(Not lambdaDebugInfoBuilder.Any())
+                Debug.Assert(Not closureDebugInfoBuilder.Any())
+
+                lambdaDebugInfoBuilder.Free()
+                closureDebugInfoBuilder.Free()
 
                 compilationState.AddMethodWrapper(setter, setter, setterBody)
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, setter)
@@ -1368,11 +1388,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics = DiagnosticBag.GetInstance()
             End If
 
-            Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
+            Dim lazyVariableSlotAllocator As VariableSlotAllocator = Nothing
             Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
             Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
-            Dim lambdaOrdinalDispenser = 0
-            Dim scopeOrdinalDispenser = 0
+            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
+            Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
 
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    methodOrdinal,
@@ -1380,11 +1400,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    previousSubmissionFields,
                                                    compilationState,
                                                    diagnostics,
-                                                   lambdaOrdinalDispenser,
-                                                   scopeOrdinalDispenser,
+                                                   lazyVariableSlotAllocator,
+                                                   lambdaDebugInfoBuilder,
+                                                   closureDebugInfoBuilder,
                                                    delegateRelaxationIdDispenser,
-                                                   stateMachineTypeOpt,
-                                                   variableSlotAllocatorOpt,
+                                                   stateMachineTypeOpt,                                                   
                                                    allowOmissionOfConditionalCalls,
                                                    isBodySynthesized:=False)
 
@@ -1421,11 +1441,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' NOTE: additional check for statement.HasErrors is needed to identify parse errors which didn't get into diagsForCurrentMethod
-            Dim methodBody As methodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
+            Dim methodBody As MethodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                               method,
+                                                              methodOrdinal,
                                                               body,
+                                                              lambdaDebugInfoBuilder.ToImmutable(),
+                                                              closureDebugInfoBuilder.ToImmutable(),
                                                               stateMachineTypeOpt,
-                                                              variableSlotAllocatorOpt,
+                                                              lazyVariableSlotAllocator,
                                                               _debugDocumentProvider,
                                                               diagnostics,
                                                               generateDebugInfo:=_generateDebugInfo AndAlso method.GenerateDebugInfo)
@@ -1436,11 +1459,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             _moduleBeingBuiltOpt.SetMethodBody(If(method.PartialDefinitionPart, method), methodBody)
+
+            lambdaDebugInfoBuilder.Free()
+            closureDebugInfoBuilder.Free()
         End Sub
 
         Friend Shared Function GenerateMethodBody(moduleBuilder As PEModuleBuilder,
                                                   method As MethodSymbol,
+                                                  methodOrdinal As Integer,
                                                   block As BoundStatement,
+                                                  lambdaDebugInfo As ImmutableArray(Of LambdaDebugInfo),
+                                                  closureDebugInfo As ImmutableArray(Of ClosureDebugInfo),
                                                   stateMachineTypeOpt As StateMachineTypeSymbol,
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
@@ -1538,7 +1567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,
                                       If(method.PartialDefinitionPart, method),
-                                      0, ' TODO: implement Lambda EnC
+                                      methodOrdinal,
                                       builder.LocalSlotManager.LocalsInOrder(),
                                       builder.RealizedSequencePoints,
                                       debugDocumentProvider,
@@ -1546,8 +1575,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       localScopes,
                                       hasDynamicLocalVariables:=False,
                                       importScopeOpt:=namespaceScopes,
-                                      lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                      closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                      lambdaDebugInfo:=lambdaDebugInfo,
+                                      closureDebugInfo:=closureDebugInfo,
                                       stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo
                                       stateMachineHoistedLocalScopes:=Nothing,
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,

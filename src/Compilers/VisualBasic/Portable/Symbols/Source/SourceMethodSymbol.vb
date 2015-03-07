@@ -1217,6 +1217,13 @@ lReportErrorOnTwoTokens:
                 If span.Contains(localPosition) Then
                     Return localPosition - span.Start
                 End If
+
+                ' Calculates a syntax offset of a syntax position which must be either a property or field initializer.
+                Dim syntaxOffset As Integer
+                Dim containingType = DirectCast(Me.ContainingType, SourceNamedTypeSymbol)
+                If containingType.TryCalculateSyntaxOffsetOfPositionInInitializer(localPosition, localTree, Me.IsShared, syntaxOffset) Then
+                    Return syntaxOffset
+                End If
             End If
 
             Throw ExceptionUtilities.Unreachable

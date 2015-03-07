@@ -518,7 +518,7 @@ End Class
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="F(Function() If(o, $exception))")
-            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__1()").VerifyIL(
+            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0()").VerifyIL(
 "{
   // Code size       16 (0x10)
   .maxstack  2

@@ -82,6 +82,12 @@ end class
 <symbols>
     <methods>
         <method containingType="C" name="M" parameterNames="a">
+            <customDebugInfo>
+                <encLambdaMap>
+                    <methodOrdinal>1</methodOrdinal>
+                    <lambda offset="48"/>
+                </encLambdaMap>
+            </customDebugInfo>
             <sequencePoints>
                 <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="30" document="0"/>
                 <entry offset="0x1" startLine="5" startColumn="9" endLine="11" endColumn="11" document="0"/>
@@ -96,7 +102,7 @@ end class
                 <constant name="x" value="1" type="Int32"/>
             </scope>
         </method>
-        <method containingType="C+_Closure$__" name="_Lambda$__1-1">
+        <method containingType="C+_Closure$__" name="_Lambda$__1-0">
             <sequencePoints>
                 <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="18" document="0"/>
                 <entry offset="0x1" startLine="9" startColumn="17" endLine="9" endColumn="45" document="0"/>
