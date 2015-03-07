@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\DebuggerTypeProxyExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\Expansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\MemberExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\NativeViewExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\PointerDereferenceExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\ResultsViewExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\TypeVariablesExpansion.cs" />
