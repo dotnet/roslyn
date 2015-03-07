@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private static int IndexOfInitializerContainingPosition(ImmutableArray<FieldOrPropertyInitializer> initializers, int position)

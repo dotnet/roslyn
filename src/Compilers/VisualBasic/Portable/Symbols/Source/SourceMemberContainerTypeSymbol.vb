@@ -1582,7 +1582,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(initializer.Syntax.Span.Start > initializers.Last().Syntax.Span.Start)
             End If
 
-            'initializer.PrecedingInitializersLength = aggregateSyntaxLength
             initializers.Add(initializer)
 
             ' A constant field of type decimal needs a field initializer, so
@@ -3298,7 +3297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            Return builder.ToImmutable()
+            Return builder.ToImmutableAndFree()
         End Function
 
         Private Shared Function IndexOfInitializerContainingPosition(initializers As ImmutableArray(Of FieldOrPropertyInitializer), position As Integer) As Integer

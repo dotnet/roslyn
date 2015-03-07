@@ -928,8 +928,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' lambda
                 isLambdaBody = True
                 lambdaOrLambdaBodySyntax = syntaxNode.SubOrFunctionHeader
-            ElseIf syntax.AncestorsAndSelf().OfType(Of QueryExpressionSyntax)().Any() Then
+            ElseIf syntax.IsKind(SyntaxKind.AddressOfExpression) Then
+                ' Late-bound AddressOf operator creates real closure, unlike delegate relaxations.
+                isLambdaBody = False
+                lambdaOrLambdaBodySyntax = syntax
+            Else
                 ' query lambdas
+                Debug.Assert(syntax.AncestorsAndSelf().OfType(Of QueryExpressionSyntax)().Any())
                 Select Case syntax.Kind
                     Case SyntaxKind.GroupByClause,
                          SyntaxKind.GroupJoinClause,
@@ -940,11 +945,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case Else
                         isLambdaBody = True
                 End Select
-                lambdaOrLambdaBodySyntax = syntax
-            Else
-                ' delegates
-                Debug.Assert(syntax.IsKind(SyntaxKind.AddressOfExpression))
-                isLambdaBody = False
                 lambdaOrLambdaBodySyntax = syntax
             End If
 
@@ -969,7 +969,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' G's ordinal in Gen0 is 0. If we used that ordinal for updated G's new closure it would conflict with F's ordinal.
                 topLevelMethodId = New MethodDebugId(_topLevelMethodOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
-
         End Sub
 
         Private Function RewriteLambda(node As BoundLambda, type As TypeSymbol, convertToExpressionTree As Boolean) As BoundExpression

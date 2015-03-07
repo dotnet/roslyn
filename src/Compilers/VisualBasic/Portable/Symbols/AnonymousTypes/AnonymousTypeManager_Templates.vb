@@ -258,11 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim nameAndIndex = template.NameAndIndex
                 Dim key = template.GetAnonymousTypeKey()
                 Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template)
-                If Not result.ContainsKey(key) Then
-                    ' Between generations, "key" properties are dropped, the same type could be already in the map.
-                    ' Consider revisit here to support anonymous types for EnC.
-                    result.Add(key, value)
-                End If
+                result.Add(key, value)
             Next
             builder.Free()
             Return result

@@ -1896,7 +1896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim keysSelector = keysLambdaBinder.BindExpressionRangeVariables(keys, True, groupBy,
                                                                              keysRangeVariables, diagnostics)
 
-            Dim keysLambda As New BoundQueryLambda(keysSelector.Syntax,
+            Dim keysLambda As New BoundQueryLambda(groupBy,
                                                    keysLambdaSymbol,
                                                    source.RangeVariables,
                                                    keysSelector,
@@ -2116,8 +2116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                               intoRangeVariables,
                                                                               diagnostics)
 
-            Dim syntax As VisualBasicSyntaxNode = aggregationVariables.FirstOrDefault()
-            Dim intoLambda As New BoundQueryLambda(If(syntax, syntaxNode),
+            Dim intoLambda As New BoundQueryLambda(syntaxNode,
                                                    intoLambdaSymbol,
                                                    keysRangeVariables,
                                                    intoSelector,
@@ -3358,7 +3357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     suppressDiagnostics.Free()
                 End If
 
-                outerKeyLambda = New BoundQueryLambda(outerKey.Syntax,
+                outerKeyLambda = New BoundQueryLambda(join,
                                                       outerKeyLambdaSymbol,
                                                       outer.RangeVariables,
                                                       outerKey,
@@ -3366,7 +3365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 outerKeyLambda.SetWasCompilerGenerated()
 
-                innerKeyLambda = New BoundQueryLambda(innerKey.Syntax,
+                innerKeyLambda = New BoundQueryLambda(join,
                                                       innerKeyLambdaSymbol,
                                                       inner.RangeVariables,
                                                       innerKey,
