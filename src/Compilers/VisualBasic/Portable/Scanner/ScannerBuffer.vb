@@ -95,7 +95,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Private Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
+    Private Function NextIs(c As Char) As Boolean
+      Dim n As Char
+      Return TryPeek(n) AndAlso (n = c)
+    End Function
+
+    Private Function NextIs(at As Integer,c As Char) As Boolean
+      Dim n As Char
+      Return TryPeek(at,n) AndAlso (n = c)
+    End Function
+
+    Private Function TryPeek(at As Integer, ByRef ch As Char) As Boolean
             ' CanGet(at)
             Debug.Assert(_lineBufferOffset + at >= 0)
             Debug.Assert(at >= -MaxCharsLookBehind)
