@@ -503,9 +503,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
             Dim ch As Char
-            If Not TryPeek(ch) OrElse Not IsAfterWhitespace() OrElse IsUnderscore(ch) Then Return False
+      If Not TryPeek(ch) OrElse Not IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then Return False
 
-            Dim offset = 1
+      Dim offset = 1
             While TryPeek(offset, ch) AndAlso IsWhitespace(ch)
                 offset += 1
             End While
